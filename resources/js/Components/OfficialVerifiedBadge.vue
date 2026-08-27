@@ -35,12 +35,12 @@ const badgeText = computed(() => {
 const tooltipText = computed(() => {
   const r = (props.role || '').toLowerCase()
   if (r === 'admin') {
-    return 'គណនី Admin ផ្លូវការ (Verified Administrator)'
+    return 'Official Verified Administrator'
   }
   if (r === 'teacher') {
-    return 'គណនី គ្រូបង្រៀនផ្លូវការ (Verified Teacher)'
+    return 'Official Verified Instructor'
   }
-  return 'គណនីផ្លូវការ (Verified Account)'
+  return 'Official Verified Account'
 })
 
 const pixelSize = computed(() => {

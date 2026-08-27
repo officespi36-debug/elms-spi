@@ -123,21 +123,21 @@
     </script>
 
     <!-- Primary Meta Tags & SEO Snippet -->
-    <title inertia>SPI AI-ELMS | ប្រព័ន្ធគ្រប់គ្រងការសិក្សា Saint Paul Institute</title>
-    <meta name="title" content="SPI AI-ELMS | ប្រព័ន្ធគ្រប់គ្រងការសិក្សា Saint Paul Institute">
+    <title inertia>SPI AI-ELMS | Smart Learning Management System — Saint Paul Institute</title>
+    <meta name="title" content="SPI AI-ELMS | Smart Learning Management System — Saint Paul Institute">
     <meta name="description"
-        content="ប្រព័ន្ធគ្រប់គ្រងការសិក្សាឆ្លាតវៃ SPI AI-ELMS សម្រាប់និស្សិត និងសាស្ត្រាចារ្យ នៃវិទ្យាស្ថានសន្តប៉ូល។ ចូលប្រើប្រាស់ដើម្បីពិនិត្យកាលវិភាគ ពិន្ទុ និងមេរៀន។">
+        content="SPI AI-ELMS — Intelligent Next-Generation Learning Management System for Students & Faculty at Saint Paul Institute. Access smart courses, live schedules, and academic excellence.">
     <meta name="keywords"
-        content="SPI AI-ELMS, Saint Paul Institute, ELMS, SPI, វិទ្យាស្ថានសន្តប៉ូល, ប្រព័ន្ធគ្រប់គ្រងការសិក្សា, spilms, e-learning">
+        content="SPI AI-ELMS, Saint Paul Institute, ELMS, SPI, Smart Learning Platform, Higher Education, spilms, e-learning">
     <meta name="author" content="Saint Paul Institute">
     <meta name="robots" content="index, follow">
 
     <!-- Open Graph / Facebook / Telegram Previews -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://spilms.tech/">
-    <meta property="og:title" content="SPI AI-ELMS | ប្រព័ន្ធគ្រប់គ្រងការសិក្សា Saint Paul Institute">
+    <meta property="og:title" content="SPI AI-ELMS | Smart Learning Management System — Saint Paul Institute">
     <meta property="og:description"
-        content="ចូលប្រើប្រាស់ប្រព័ន្ធគ្រប់គ្រងការសិក្សា SPI AI-ELMS ដោយសុវត្ថិភាព និងរហ័ស។">
+        content="SPI AI-ELMS — Intelligent Next-Generation Learning Management System for Students & Faculty at Saint Paul Institute. Access smart courses, live schedules, and academic excellence.">
     <meta property="og:image" content="https://spilms.tech/images/og-cover.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -146,9 +146,9 @@
     <!-- Twitter Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://spilms.tech/">
-    <meta name="twitter:title" content="SPI AI-ELMS | ប្រព័ន្ធគ្រប់គ្រងការសិក្សា Saint Paul Institute">
+    <meta name="twitter:title" content="SPI AI-ELMS | Smart Learning Management System — Saint Paul Institute">
     <meta name="twitter:description"
-        content="ចូលប្រើប្រាស់ប្រព័ន្ធគ្រប់គ្រងការសិក្សា SPI AI-ELMS ដោយសុវត្ថិភាព និងរហ័ស។">
+        content="SPI AI-ELMS — Intelligent Next-Generation Learning Management System for Students & Faculty at Saint Paul Institute. Access smart courses, live schedules, and academic excellence.">
     <meta name="twitter:image" content="https://spilms.tech/images/og-cover.png">
 
     <!-- Structured Data (Schema.org) for Google Search & Knowledge Graph -->
@@ -162,7 +162,7 @@
           "url": "https://spilms.tech",
           "logo": "https://spilms.tech/images/logo.png",
           "image": "https://spilms.tech/images/og-cover.png",
-          "description": "ប្រព័ន្ធគ្រប់គ្រងការសិក្សាឆ្លាតវៃនៃវិទ្យាស្ថានសន្តប៉ូល (Saint Paul Institute)",
+          "description": "Intelligent AI-Powered Next-Generation Learning Platform of Saint Paul Institute",
           "sameAs": [
             "https://spi.edu.kh"
           ]
