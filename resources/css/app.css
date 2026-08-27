@@ -32,6 +32,18 @@ svg {
   text-rendering: geometricPrecision !important;
 }
 
+/* Crisp & High-Definition Image Rendering (Anti-Blur) */
+img {
+  image-rendering: auto;
+}
+
+img[src*="logo"],
+img[alt*="Logo"],
+img[alt*="E-LMS"] {
+  image-rendering: -webkit-optimize-contrast !important;
+  image-rendering: crisp-edges !important;
+}
+
 /* Standard cursor pointer for interactive controls */
 button,
 a,
