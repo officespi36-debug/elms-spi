@@ -1370,9 +1370,9 @@ onUnmounted(() => {
                 />
                 <span class="absolute bottom-0 right-0 w-2 h-2 bg-emerald-500 rounded-full ring-2 ring-slate-900"></span>
               </div>
-              <div class="hidden md:flex items-center gap-1.5 min-w-0 max-w-[240px]">
-                <span class="text-xs font-semibold text-slate-200 group-hover:text-indigo-300 transition-colors truncate">{{ user.name }}</span>
-                <OfficialVerifiedBadge :role="user.role" size="xs" :show-label="true" />
+              <div class="hidden md:flex items-center gap-1 min-w-0">
+                <span class="text-xs font-semibold text-slate-200 group-hover:text-indigo-300 transition-colors truncate max-w-[130px]">{{ user.name }}</span>
+                <OfficialVerifiedBadge :role="user.role" size="sm" :show-label="false" />
               </div>
               <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-200 transition-transform" :class="isProfileOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
