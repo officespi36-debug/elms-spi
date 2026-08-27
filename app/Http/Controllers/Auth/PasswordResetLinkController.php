@@ -79,11 +79,33 @@ class PasswordResetLinkController extends Controller
             'reset_expires_at' => $expiresAt->timestamp,
         ]);
 
-        $telegramTargetId = $user->telegram_chat_id ?? $user->telegram_id ?? null;
-        $sentDirectly = false;
+        $channel = strtolower(trim($request->input('channel') ?? 'telegram'));
+        if (!in_array($channel, ['telegram', 'email'])) {
+            $channel = 'telegram';
+        }
 
-        if (!empty($telegramTargetId)) {
-            $sentDirectly = $telegramService->sendPasswordResetOtp($user, $code);
+        $telegramTargetId = $user->telegram_chat_id ?? $user->telegram_id ?? null;
+        $hasTelegram = !empty($telegramTargetId);
+        $botUsername = $telegramService->getBotUsername();
+        $linkTelegramUrl = "https://t.me/{$botUsername}?start={$user->id}";
+
+        $sentDirectly = false;
+        $sentEmail = false;
+
+        if ($channel === 'email') {
+            $sentEmail = $this->sendOtpEmail($user, $code);
+            $statusMsg = $sentEmail
+                ? "លេខកូដ OTP 6 ខ្ទង់ ត្រូវបានផ្ញើទៅកាន់ Email របស់អ្នក ({$user->email}) រួចរាល់ហើយ!"
+                : "លេខកូដ OTP ត្រូវបានបង្កើតរួចរាល់ហើយ ប៉ុន្តែមានបញ្ហាក្នុងការផ្ញើ Email។ សូមពិនិត្យមើលម្ដងទៀត ឬផ្ញើតាម Telegram។";
+        } else {
+            if ($hasTelegram) {
+                $sentDirectly = $telegramService->sendPasswordResetOtp($user, $code);
+            }
+            $statusMsg = $sentDirectly
+                ? "លេខកូដ OTP 6 ខ្ទង់ ត្រូវបានផ្ញើទៅកាន់ Telegram Bot របស់អ្នក (@{$botUsername}) រួចរាល់ហើយ!"
+                : ($hasTelegram
+                    ? "លេខកូដ OTP ត្រូវបានផ្ញើទៅកាន់ Telegram របស់អ្នក។"
+                    : "លេខកូដផ្ទៀងផ្ទាត់ 6 ខ្ទង់ត្រូវបានបង្កើតរួចរាល់ហើយ!");
         }
 
         // Also broadcast to admin monitoring channel
@@ -91,47 +113,29 @@ class PasswordResetLinkController extends Controller
             "<b>🔑 PASSWORD RESET REQUEST</b>\n" .
             "----------------------------------------\n" .
             "👤 <b>User:</b> {$user->name} ({$user->email})\n" .
+            "📱 <b>Channel:</b> " . strtoupper($channel) . "\n" .
             "🔢 <b>Verification Code (OTP):</b> <code>{$code}</code>\n" .
-            "✈️ <b>Direct Telegram:</b> " . ($sentDirectly ? "✅ Sent to Telegram ID: {$telegramTargetId}" : "⚠️ Not linked to Telegram") . "\n" .
+            "✈️ <b>Delivery:</b> " . ($channel === 'email' ? ($sentEmail ? "✅ Sent to Email: {$user->email}" : "⚠️ Email failed") : ($sentDirectly ? "✅ Sent to Telegram ID: {$telegramTargetId}" : "⚠️ Not linked to Telegram")) . "\n" .
             "⏰ <b>Requested At:</b> " . now()->format('Y-m-d H:i:s') . "\n"
         );
 
-        $hasTelegram = !empty($telegramTargetId);
-        $botUsername = $telegramService->getBotUsername();
-        $linkTelegramUrl = "https://t.me/{$botUsername}?start={$user->id}";
-
-        $statusMsg = $sentDirectly
-            ? "លេខកូដ OTP 6 ខ្ទង់ ត្រូវបានផ្ញើទៅកាន់ Telegram Bot របស់អ្នក (@{$botUsername}) រួចរាល់ហើយ!"
-            : ($hasTelegram
-                ? "លេខកូដ OTP ត្រូវបានផ្ញើទៅកាន់ Telegram របស់អ្នក។"
-                : "លេខកូដផ្ទៀងផ្ទាត់ 6 ខ្ទង់ត្រូវបានបង្កើតរួចរាល់ហើយ!");
-
-        if ($request->is('api/*') || (!$request->header('X-Inertia') && $request->wantsJson())) {
-            return response()->json([
-                'success'           => true,
-                'message'           => $statusMsg,
-                'sent_to_telegram'  => $sentDirectly,
-                'has_telegram'      => $hasTelegram,
-                'link_telegram_url' => $linkTelegramUrl,
-                'telegram_url'      => $linkTelegramUrl,
-                'telegram_bot_name' => $botUsername,
-                'user'              => [
-                    'id'    => $user->id,
-                    'name'  => $user->name,
-                    'email' => $user->email,
-                ],
-            ]);
-        }
-
-        return back()->with([
+        $payload = [
             'success'           => true,
-            'status'            => $statusMsg,
             'message'           => $statusMsg,
-            'has_telegram'      => $hasTelegram,
+            'status'            => $statusMsg,
+            'channel'           => $channel,
+            'sent_to_email'     => $sentEmail,
             'sent_to_telegram'  => $sentDirectly,
-            'telegram_bot_name' => $botUsername,
-            'telegram_url'      => $linkTelegramUrl,
+            'has_telegram'      => $hasTelegram,
             'link_telegram_url' => $linkTelegramUrl,
+            'telegram_url'      => $linkTelegramUrl,
+            'telegram_bot_name' => $botUsername,
+            'user'              => [
+                'id'           => $user->id,
+                'name'         => $user->name,
+                'email'        => $user->email,
+                'student_code' => $user->student_code,
+            ],
             'reset_user'        => [
                 'id'           => $user->id,
                 'name'         => $user->name,
@@ -139,7 +143,98 @@ class PasswordResetLinkController extends Controller
                 'student_code' => $user->student_code,
                 'telegram_id'  => $user->telegram_id,
             ],
-        ]);
+        ];
+
+        if ($request->is('api/*') || (!$request->header('X-Inertia') && $request->wantsJson())) {
+            return response()->json($payload);
+        }
+
+        return back()->with($payload);
+    }
+
+    /**
+     * Send OTP Verification code to user's email via Resend API / Mail
+     */
+    protected function sendOtpEmail(User $user, string $code): bool
+    {
+        $email = $user->email;
+        if (empty($email)) {
+            return false;
+        }
+
+        $resendApiKey = config('services.resend.key') ?? env('RESEND_API_KEY');
+        $fromAddress = config('mail.from.address') ?? env('MAIL_FROM_ADDRESS', 'info@spilms.tech');
+        $fromName = config('mail.from.name') ?? env('MAIL_FROM_NAME', 'Saint Paul Institute (E-LMS)');
+        $fromHeader = "{$fromName} <{$fromAddress}>";
+        $subject = "{$code} is your SPI AI-ELMS Password Reset Code";
+
+        $htmlContent = view('emails.otp', ['otp' => $code, 'user' => $user])->render();
+        $plainText = "Your SPI AI-ELMS Password Reset code is: {$code}. It will expire in 5 minutes.";
+
+        $sent = false;
+
+        // 1. Primary: Resend cURL API with IPv4
+        if ($resendApiKey) {
+            for ($attempt = 1; $attempt <= 2; $attempt++) {
+                try {
+                    $ch = curl_init('https://api.resend.com/emails');
+                    curl_setopt_array($ch, [
+                        CURLOPT_RETURNTRANSFER => true,
+                        CURLOPT_POST           => true,
+                        CURLOPT_IPRESOLVE      => defined('CURL_IPRESOLVE_V4') ? CURL_IPRESOLVE_V4 : 1,
+                        CURLOPT_SSL_VERIFYPEER => false,
+                        CURLOPT_SSL_VERIFYHOST => false,
+                        CURLOPT_CONNECTTIMEOUT => 10,
+                        CURLOPT_TIMEOUT        => 25,
+                        CURLOPT_HTTPHEADER     => [
+                            'Authorization: Bearer ' . $resendApiKey,
+                            'Content-Type: application/json',
+                            'Accept: application/json',
+                        ],
+                        CURLOPT_POSTFIELDS     => json_encode([
+                            'from'    => $fromHeader,
+                            'to'      => [$email],
+                            'subject' => $subject,
+                            'html'    => $htmlContent,
+                            'text'    => $plainText,
+                        ]),
+                    ]);
+
+                    $resCurl = curl_exec($ch);
+                    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                    curl_close($ch);
+
+                    if ($httpCode >= 200 && $httpCode < 300) {
+                        $sent = true;
+                        \Illuminate\Support\Facades\Log::info("Password reset OTP email sent successfully via Resend to {$email}");
+                        break;
+                    }
+                } catch (\Throwable $curlEx) {
+                    \Illuminate\Support\Facades\Log::warning("Password reset Resend cURL exception: " . $curlEx->getMessage());
+                }
+
+                if (!$sent && $attempt < 2) {
+                    usleep(300000);
+                }
+            }
+        }
+
+        // 2. Secondary Fallback: Laravel Mail Facade
+        if (!$sent) {
+            try {
+                \Illuminate\Support\Facades\Mail::send('emails.otp', ['otp' => $code, 'user' => $user], function ($message) use ($email, $fromAddress, $fromName, $subject) {
+                    $message->to($email)
+                        ->from($fromAddress, $fromName)
+                        ->subject($subject);
+                });
+                $sent = true;
+                \Illuminate\Support\Facades\Log::info("Password reset OTP email sent via Mail facade to {$email}");
+            } catch (\Throwable $mailEx) {
+                \Illuminate\Support\Facades\Log::warning("Password reset Mail fallback error: " . $mailEx->getMessage());
+            }
+        }
+
+        return $sent;
     }
 
     /**

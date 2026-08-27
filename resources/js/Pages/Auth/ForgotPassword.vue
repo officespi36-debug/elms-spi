@@ -100,8 +100,11 @@ onUnmounted(() => {
 })
 
 // Step 1 Form
+const selectedChannel = ref<'telegram' | 'email'>('telegram')
+
 const requestForm = useForm({
   email: '',
+  channel: 'telegram',
 })
 
 // Step 2 / 3 Form
@@ -180,7 +183,14 @@ const handleCodePaste = (e: ClipboardEvent) => {
   }
 }
 
-const onRequestCode = () => {
+const onRequestCode = (overrideChannel?: 'telegram' | 'email') => {
+  if (overrideChannel) {
+    selectedChannel.value = overrideChannel
+    requestForm.channel = overrideChannel
+  } else {
+    requestForm.channel = selectedChannel.value
+  }
+
   showErrorModal.value = false
   showSuccessModal.value = false
   requestForm.post('/forgot-password', {
@@ -191,12 +201,19 @@ const onRequestCode = () => {
       isOtpVerified.value = false
       showSuccessModal.value = true
       const flash = (pageRes?.props as any)?.flash || (pageRes?.props as any) || {}
+      if (flash.channel) {
+        selectedChannel.value = flash.channel
+      }
       successTitle.value = t('forgot_modal_success_title', 'ផ្ញើកូដជោគជ័យ!')
-      successMessage.value = flash.status || flash.message || props.status || t('forgot_modal_success_msg', 'កូដផ្ទៀងផ្ទាត់ 6 ខ្ទង់ ត្រូវបានផ្ញើទៅកាន់ Telegram Bot របស់អ្នករួចរាល់ហើយ!')
+      successMessage.value = flash.status || flash.message || props.status || (
+        selectedChannel.value === 'email'
+          ? (currentLang.value === 'km' ? 'កូដផ្ទៀងផ្ទាត់ 6 ខ្ទង់ ត្រូវបានផ្ញើទៅកាន់ Email របស់អ្នករួចរាល់ហើយ!' : 'A 6-digit OTP code has been sent to your email!')
+          : (currentLang.value === 'km' ? 'កូដផ្ទៀងផ្ទាត់ 6 ខ្ទង់ ត្រូវបានផ្ញើទៅកាន់ Telegram Bot របស់អ្នករួចរាល់ហើយ!' : 'A 6-digit OTP code has been sent to your Telegram Bot!')
+      )
 
       setTimeout(() => {
         showSuccessModal.value = false
-      }, 4000)
+      }, 4500)
 
       nextTick(() => {
         if (digitInputs.value[0]) {
@@ -370,7 +387,7 @@ const onResetPassword = () => {
           {{ t('forgot_title', 'ភ្លេចពាក្យសម្ងាត់') }}
         </h1>
         <p class="text-xs sm:text-sm text-slate-600 dark:text-zinc-400 text-center mt-1.5 mb-6 transition-colors">
-          {{ step === 1 ? (currentLang === 'km' ? 'បញ្ចូលគណនីរបស់អ្នកដើម្បីទទួលលេខកូដ OTP' : 'Enter your account to receive OTP code') : !isOtpVerified ? (currentLang === 'km' ? 'ផ្ទៀងផ្ទាត់កូដ OTP ពី Telegram' : 'Verify OTP code from Telegram') : (currentLang === 'km' ? 'កំណត់ពាក្យសម្ងាត់ថ្មីសម្រាប់គណនីរបស់អ្នក' : 'Set a new password for your account') }}
+          {{ step === 1 ? (currentLang === 'km' ? 'បញ្ចូលគណនីរបស់អ្នកដើម្បីទទួលលេខកូដ OTP' : 'Enter your account to receive OTP code') : !isOtpVerified ? (selectedChannel === 'email' ? (currentLang === 'km' ? 'ផ្ទៀងផ្ទាត់កូដ OTP ពី Email' : 'Verify OTP code from Email') : (currentLang === 'km' ? 'ផ្ទៀងផ្ទាត់កូដ OTP ពី Telegram' : 'Verify OTP code from Telegram')) : (currentLang === 'km' ? 'កំណត់ពាក្យសម្ងាត់ថ្មីសម្រាប់គណនីរបស់អ្នក' : 'Set a new password for your account') }}
         </p>
       </div>
 
@@ -378,7 +395,7 @@ const onResetPassword = () => {
       <div class="w-full space-y-3.5 animate-fade-in">
         
         <!-- STEP 1 FORM: REQUEST OTP -->
-        <form v-if="step === 1" @submit.prevent="onRequestCode" class="space-y-3">
+        <form v-if="step === 1" @submit.prevent="onRequestCode()" class="space-y-3">
           
           <!-- Input Account -->
           <div class="space-y-1.5">
@@ -399,6 +416,60 @@ const onResetPassword = () => {
                 title="Clear"
               >
                 <i class="pi pi-times-circle text-xs"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Channel Selector: Telegram vs Email -->
+          <div class="space-y-1.5 pt-0.5">
+            <label class="text-[11px] font-semibold text-slate-600 dark:text-zinc-400 block text-left">
+              {{ currentLang === 'km' ? 'ជ្រើសរើសវិធីទទួលលេខកូដ OTP' : 'Choose OTP Delivery Method' }}
+            </label>
+            <div class="grid grid-cols-2 gap-2">
+              <!-- Telegram Option -->
+              <button
+                type="button"
+                @click="selectedChannel = 'telegram'"
+                :class="[
+                  'p-2.5 rounded-xl border flex flex-col items-center justify-center gap-1.5 text-center transition-all cursor-pointer relative',
+                  selectedChannel === 'telegram'
+                    ? 'bg-sky-500/10 border-sky-500 text-sky-600 dark:text-sky-400 shadow-xs ring-1 ring-sky-500/40'
+                    : 'bg-white dark:bg-[#121214] border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 hover:border-slate-300 dark:hover:border-zinc-700'
+                ]"
+              >
+                <div class="w-7 h-7 rounded-full bg-sky-500/15 flex items-center justify-center text-sky-500">
+                  <i class="pi pi-send text-xs"></i>
+                </div>
+                <div class="leading-tight">
+                  <span class="text-xs font-bold block">Telegram</span>
+                  <span class="text-[10px] text-slate-400 opacity-80">{{ currentLang === 'km' ? 'លឿនភ្លាមៗ' : 'Instant Bot' }}</span>
+                </div>
+                <div v-if="selectedChannel === 'telegram'" class="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-sky-500 text-white flex items-center justify-center text-[9px] shadow-2xs">
+                  <i class="pi pi-check font-bold"></i>
+                </div>
+              </button>
+
+              <!-- Email Option -->
+              <button
+                type="button"
+                @click="selectedChannel = 'email'"
+                :class="[
+                  'p-2.5 rounded-xl border flex flex-col items-center justify-center gap-1.5 text-center transition-all cursor-pointer relative',
+                  selectedChannel === 'email'
+                    ? 'bg-blue-500/10 border-blue-500 text-blue-600 dark:text-blue-400 shadow-xs ring-1 ring-blue-500/40'
+                    : 'bg-white dark:bg-[#121214] border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 hover:border-slate-300 dark:hover:border-zinc-700'
+                ]"
+              >
+                <div class="w-7 h-7 rounded-full bg-blue-500/15 flex items-center justify-center text-blue-500">
+                  <i class="pi pi-envelope text-xs"></i>
+                </div>
+                <div class="leading-tight">
+                  <span class="text-xs font-bold block">Email</span>
+                  <span class="text-[10px] text-slate-400 opacity-80">{{ currentLang === 'km' ? 'ប្រអប់សំបុត្រ' : 'Inbox / Spam' }}</span>
+                </div>
+                <div v-if="selectedChannel === 'email'" class="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-blue-500 text-white flex items-center justify-center text-[9px] shadow-2xs">
+                  <i class="pi pi-check font-bold"></i>
+                </div>
               </button>
             </div>
           </div>
@@ -436,13 +507,36 @@ const onResetPassword = () => {
           <!-- STAGE 1: OTP VERIFICATION -->
           <div v-if="!isOtpVerified" class="space-y-3">
             
+            <!-- Delivery Banner: Email or Telegram -->
+            <div
+              v-if="selectedChannel === 'email'"
+              class="p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center justify-between gap-3 shadow-2xs"
+            >
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <i class="pi pi-envelope text-xs"></i>
+                </div>
+                <div class="leading-tight text-left">
+                  <p class="text-xs font-bold text-slate-800 dark:text-slate-100">
+                    {{ currentLang === 'km' ? 'បានផ្ញើកូដទៅកាន់ Email' : 'OTP Sent to Email' }}
+                  </p>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    {{ currentLang === 'km' ? 'សូមពិនិត្យមើល Inbox ឬ Junk/Spam' : 'Please check your Inbox or Spam folder' }}
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <!-- Telegram Banner -->
-            <div class="p-3 bg-sky-500/10 border border-sky-500/20 rounded-xl flex items-center justify-between gap-3 shadow-2xs">
+            <div
+              v-else
+              class="p-3 bg-sky-500/10 border border-sky-500/20 rounded-xl flex items-center justify-between gap-3 shadow-2xs"
+            >
               <div class="flex items-center gap-2.5">
                 <div class="w-8 h-8 rounded-lg bg-sky-500 text-white flex items-center justify-center shrink-0 shadow-xs">
                   <i class="pi pi-send text-xs"></i>
                 </div>
-                <div class="leading-tight">
+                <div class="leading-tight text-left">
                   <p class="text-xs font-bold text-slate-800 dark:text-slate-100">
                     {{ currentLang === 'km' ? 'បានផ្ញើកូដ OTP' : 'OTP Sent' }}
                   </p>
@@ -491,6 +585,32 @@ const onResetPassword = () => {
               <i v-if="isVerifyingOtp" class="pi pi-spin pi-spinner text-sm mr-2"></i>
               <span>{{ isVerifyingOtp ? (currentLang === 'km' ? 'កំពុងផ្ទៀងផ្ទាត់...' : 'Verifying...') : (currentLang === 'km' ? 'ផ្ទៀងផ្ទាត់កូដ OTP' : 'Verify OTP Code') }}</span>
             </button>
+
+            <!-- Channel Switch & Resend Helper -->
+            <div class="flex items-center justify-between text-xs pt-1 px-0.5">
+              <button
+                type="button"
+                @click="onRequestCode(selectedChannel === 'telegram' ? 'email' : 'telegram')"
+                :disabled="requestForm.processing"
+                class="text-slate-500 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-sky-400 font-medium transition cursor-pointer inline-flex items-center gap-1.5"
+              >
+                <i :class="selectedChannel === 'telegram' ? 'pi pi-envelope text-[11px]' : 'pi pi-send text-[11px]'"></i>
+                <span>
+                  {{ selectedChannel === 'telegram'
+                      ? (currentLang === 'km' ? 'ផ្ញើតាម Email ជំនួសវិញ' : 'Send via Email instead')
+                      : (currentLang === 'km' ? 'ផ្ញើតាម Telegram ជំនួសវិញ' : 'Send via Telegram instead') }}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                @click="onRequestCode(selectedChannel)"
+                :disabled="requestForm.processing"
+                class="text-blue-600 dark:text-sky-400 font-semibold hover:underline cursor-pointer"
+              >
+                {{ requestForm.processing ? (currentLang === 'km' ? 'កំពុងផ្ញើ...' : 'Sending...') : (currentLang === 'km' ? 'ផ្ញើកូដឡើងវិញ' : 'Resend Code') }}
+              </button>
+            </div>
 
           </div>
 
