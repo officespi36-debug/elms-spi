@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { Head, Link, router, usePage } from '@inertiajs/vue3'
 import { i18n } from '@/Services/i18n'
 import GlobalToast from '@/Components/GlobalToast.vue'
+import OfficialVerifiedBadge from '@/Components/OfficialVerifiedBadge.vue'
 
 const logoUrl = '/images/logo.png'
 const actionBtnIcon = '/images/actions/action-button.svg'
@@ -971,9 +972,12 @@ onUnmounted(() => {
           />
 
           <div v-show="!isSidebarCollapsed" class="flex-1 min-w-0">
-            <p class="text-xs font-semibold text-white truncate cursor-pointer hover:text-indigo-300 transition-colors" @click="triggerAvatarUpload" title="Click to upload profile photo">
-              {{ user.name }}
-            </p>
+            <div class="flex items-center gap-1.5 min-w-0">
+              <p class="text-xs font-semibold text-white truncate cursor-pointer hover:text-indigo-300 transition-colors" @click="triggerAvatarUpload" title="Click to upload profile photo">
+                {{ user.name }}
+              </p>
+              <OfficialVerifiedBadge :role="user.role" size="sm" />
+            </div>
             <p class="text-[11px] text-slate-400 truncate">{{ user.email }}</p>
           </div>
           <button @click="logout" title="Log Out" class="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-lg transition-colors">
@@ -1366,7 +1370,10 @@ onUnmounted(() => {
                 />
                 <span class="absolute bottom-0 right-0 w-2 h-2 bg-emerald-500 rounded-full ring-2 ring-slate-900"></span>
               </div>
-              <span class="hidden md:inline text-xs font-semibold text-slate-200 group-hover:text-indigo-300 transition-colors truncate max-w-[130px]">{{ user.name }}</span>
+              <div class="hidden md:flex items-center gap-1 min-w-0 max-w-[150px]">
+                <span class="text-xs font-semibold text-slate-200 group-hover:text-indigo-300 transition-colors truncate">{{ user.name }}</span>
+                <OfficialVerifiedBadge :role="user.role" size="xs" />
+              </div>
               <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-200 transition-transform" :class="isProfileOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
 
@@ -1384,10 +1391,13 @@ onUnmounted(() => {
                     class="w-10 h-10 rounded-full border border-slate-700 object-cover shadow-md"
                   />
                   <div class="flex-1 min-w-0">
-                    <h4 class="text-xs font-bold text-white truncate">{{ user.name }}</h4>
+                    <div class="flex items-center gap-1 min-w-0">
+                      <h4 class="text-xs font-bold text-white truncate">{{ user.name }}</h4>
+                      <OfficialVerifiedBadge :role="user.role" size="xs" />
+                    </div>
                     <p class="text-[11px] text-slate-400 truncate">{{ user.email }}</p>
                     <span class="inline-block mt-1 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                      Super Admin
+                      {{ user.role === 'admin' ? 'Super Admin' : (user.role === 'teacher' ? 'Teacher' : 'Student') }}
                     </span>
                   </div>
                 </div>

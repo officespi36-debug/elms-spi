@@ -4,6 +4,7 @@ import { Head, Link, usePage, router } from '@inertiajs/vue3'
 import { i18n } from '@/Services/i18n'
 import { useTheme } from '@/composables/useTheme'
 import GlobalToast from '@/Components/GlobalToast.vue'
+import OfficialVerifiedBadge from '@/Components/OfficialVerifiedBadge.vue'
 
 const { isDark, toggleTheme } = useTheme()
 
@@ -898,7 +899,10 @@ const onIconError = (e: Event) => {
             {{ user.name ? user.name.charAt(0) : 'S' }}
           </div>
           <div class="min-w-0">
-            <p class="font-bold text-slate-900 dark:text-slate-100 text-xs truncate">{{ teacherDisplayName }}</p>
+            <div class="flex items-center gap-1 min-w-0">
+              <p class="font-bold text-slate-900 dark:text-slate-100 text-xs truncate">{{ teacherDisplayName }}</p>
+              <OfficialVerifiedBadge :role="user.role || 'teacher'" size="xs" />
+            </div>
             <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate">{{ user.email || 'teacher@elms.com' }}</p>
           </div>
         </div>
@@ -1246,9 +1250,12 @@ const onIconError = (e: Event) => {
                 />
                 <span :class="[isOnline ? 'bg-emerald-500 shadow-emerald-500/50' : 'bg-rose-500 shadow-rose-500/50', 'absolute bottom-0 right-0 w-2 h-2 rounded-full ring-2 ring-white dark:ring-slate-900 transition-colors duration-200 shadow-xs']"></span>
               </div>
-              <span class="hidden md:inline text-xs font-semibold text-slate-700 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors truncate max-w-[130px]">
-                {{ teacherDisplayName }}
-              </span>
+              <div class="hidden md:flex items-center gap-1 min-w-0 max-w-[150px]">
+                <span class="text-xs font-semibold text-slate-700 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors truncate">
+                  {{ teacherDisplayName }}
+                </span>
+                <OfficialVerifiedBadge :role="user.role || 'teacher'" size="xs" />
+              </div>
               <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200 transition-transform" :class="isProfileOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
 
@@ -1265,7 +1272,10 @@ const onIconError = (e: Event) => {
                     class="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-700 object-cover shadow-md"
                   />
                   <div class="flex-1 min-w-0">
-                    <h4 class="text-xs font-bold text-slate-900 dark:text-white truncate">{{ teacherDisplayName }}</h4>
+                    <div class="flex items-center gap-1 min-w-0">
+                      <h4 class="text-xs font-bold text-slate-900 dark:text-white truncate">{{ teacherDisplayName }}</h4>
+                      <OfficialVerifiedBadge :role="user.role || 'teacher'" size="xs" />
+                    </div>
                     <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">{{ user.email || 'teacher@elms.com' }}</p>
                     <span class="inline-block mt-1 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-full bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 border border-indigo-500/20 dark:border-indigo-500/30">
                       Instructor • IT
