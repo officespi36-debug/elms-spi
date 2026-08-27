@@ -1150,11 +1150,11 @@ onUnmounted(() => {
         
         <!-- Center E-LMS Logo -->
         <div class="mb-3.5 relative group">
-          <div class="absolute -inset-1.5 bg-gradient-to-r from-sky-400 to-blue-600 rounded-full blur opacity-30 group-hover:opacity-60 transition duration-300"></div>
+          <div class="absolute -inset-1.5 bg-sky-500/20 rounded-full blur-md opacity-40 group-hover:opacity-80 transition duration-300 pointer-events-none"></div>
           <img
             :src="logoUrl"
             alt="E-LMS Logo"
-            class="relative w-[72px] h-[72px] rounded-full shadow-lg object-contain ring-2 ring-sky-400/40 dark:ring-sky-400/30 bg-black transition-transform duration-300 group-hover:scale-105"
+            class="relative w-[72px] h-[72px] rounded-full drop-shadow-lg object-contain transition-transform duration-300 group-hover:scale-105"
           />
         </div>
 
