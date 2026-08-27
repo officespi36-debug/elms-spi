@@ -282,18 +282,19 @@ class TelegramAuthController extends Controller
      */
     public function handleWebhook(Request $request, TelegramService $telegramService)
     {
-        $update = $request->all();
-        $botToken = $telegramService->getBotToken();
+        try {
+            $update = $request->all();
+            $botToken = $telegramService->getBotToken();
 
-        if (!$botToken) {
-            return response()->json(['ok' => true]);
-        }
+            if (!$botToken) {
+                return response()->json(['ok' => true]);
+            }
 
-        // Validate incoming update through 5-Layer Security Pipeline
-        if (!TelegramSecurityPipeline::validate($update)) {
-            Log::warning("Telegram webhook: blocked unauthorized/suspicious update.");
-            return response()->json(['ok' => true]);
-        }
+            // Validate incoming update through 5-Layer Security Pipeline
+            if (!TelegramSecurityPipeline::validate($update)) {
+                Log::warning("Telegram webhook: blocked unauthorized/suspicious update.");
+                return response()->json(['ok' => true]);
+            }
 
         $supportText = "💬 <b>ផ្នែកជំនួយបច្ចេកទេស SPI AI-ELMS</b>\n" .
                        "🏛️ <b>វិទ្យាស្ថាន សន្តប៉ូល (Saint Paul Institute)</b>\n" .
@@ -356,6 +357,8 @@ class TelegramAuthController extends Controller
 
             if ($isStartCmd || $looksLikeIdentifier) {
                 $deepLinkParam = null;
+                $linkedUser = null;
+
                 if ($isStartCmd) {
                     $parts = explode(' ', $rawText);
                     $deepLinkParam = $parts[1] ?? null;
@@ -391,11 +394,11 @@ class TelegramAuthController extends Controller
                         ->first();
                 }
 
-                // 2b. Auto-match: If user just tapped /start right after requesting OTP on web
-                if (!$linkedUser && $isStartCmd) {
+                // 2b. Auto-match: If user tapped /start and either not linked, OR linked user has no active OTP but someone just requested OTP on web
+                $hasActiveOtp = $linkedUser && !empty($linkedUser->otp_code) && $linkedUser->otp_expires_at && Carbon::parse($linkedUser->otp_expires_at)->isFuture();
+                if (!$hasActiveOtp && $isStartCmd) {
                     $recentPending = User::whereNotNull('otp_code')
                         ->where('otp_expires_at', '>', now())
-                        ->whereNull('telegram_id')
                         ->latest('updated_at')
                         ->first();
                     if ($recentPending) {
@@ -509,7 +512,14 @@ class TelegramAuthController extends Controller
         }
 
         return response()->json(['ok' => true]);
+    } catch (\Throwable $e) {
+        Log::error("Telegram Webhook Error: " . $e->getMessage(), [
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ]);
+        return response()->json(['ok' => true]);
     }
+}
 
     private function getBrowserName($userAgent)
     {
