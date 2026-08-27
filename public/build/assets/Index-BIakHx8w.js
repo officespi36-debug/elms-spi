@@ -1,1 +1,0 @@
-import{F as e,d as t,x as n}from"./vendor-ui-BDZn_Bea.js";import{t as r}from"./Index-D0B-OYLX.js";var i=n({__name:`Index`,props:{enrollments:{},activeTab:{}},setup(n){return(i,a)=>(e(),t(r,{enrollments:n.enrollments,activeTab:n.activeTab},null,8,[`enrollments`,`activeTab`]))}});export{i as default};

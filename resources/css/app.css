@@ -32,7 +32,7 @@ svg {
   text-rendering: geometricPrecision !important;
 }
 
-/* Crisp & High-Definition Image Rendering (Anti-Blur) */
+/* High-Definition Smooth Anti-Aliased Image Rendering */
 img {
   image-rendering: auto;
 }
@@ -40,8 +40,7 @@ img {
 img[src*="logo"],
 img[alt*="Logo"],
 img[alt*="E-LMS"] {
-  image-rendering: -webkit-optimize-contrast !important;
-  image-rendering: crisp-edges !important;
+  image-rendering: auto !important;
 }
 
 /* Standard cursor pointer for interactive controls */
