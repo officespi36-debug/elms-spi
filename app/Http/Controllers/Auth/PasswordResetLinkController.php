@@ -34,7 +34,9 @@ class PasswordResetLinkController extends Controller
             return back()->withErrors(['email' => $msg]);
         }
 
-        $user = User::where(function ($query) use ($input) {
+        $cleanDigits = preg_replace('/[^0-9]/', '', $input);
+
+        $user = User::where(function ($query) use ($input, $cleanDigits) {
             $cleanUser = ltrim($input, '@');
             $cleanId = ltrim($input, '#');
 
@@ -44,6 +46,11 @@ class PasswordResetLinkController extends Controller
                 ->orWhere('telegram_username', $cleanUser)
                 ->orWhere('telegram_id', $input)
                 ->orWhere('telegram_chat_id', $input);
+
+            if (!empty($cleanDigits) && strlen($cleanDigits) >= 8) {
+                $query->orWhere('phone', $cleanDigits)
+                    ->orWhere('phone', 'like', '%' . substr($cleanDigits, -8));
+            }
 
             if (is_numeric($cleanId)) {
                 $query->orWhere('id', (int) $cleanId);
@@ -91,6 +98,10 @@ class PasswordResetLinkController extends Controller
 
         $sentDirectly = false;
         $sentEmail = false;
+        $sentSms = false;
+
+        $plasgate = new \App\Services\PlasGateService();
+        $hasPhone = !empty($user->phone);
 
         if ($channel === 'email') {
             $sentEmail = $this->sendOtpEmail($user, $code);
@@ -98,24 +109,54 @@ class PasswordResetLinkController extends Controller
                 ? "លេខកូដ OTP 6 ខ្ទង់ ត្រូវបានផ្ញើទៅកាន់ Email របស់អ្នក ({$user->email}) រួចរាល់ហើយ!"
                 : "លេខកូដ OTP ត្រូវបានបង្កើតរួចរាល់ហើយ ប៉ុន្តែមានបញ្ហាក្នុងការផ្ញើ Email។ សូមពិនិត្យមើលម្ដងទៀត ឬផ្ញើតាម Telegram។";
         } else {
+            // Channel: Telegram
             if ($hasTelegram) {
                 $sentDirectly = $telegramService->sendPasswordResetOtp($user, $code);
             }
-            $statusMsg = $sentDirectly
-                ? "លេខកូដ OTP 6 ខ្ទង់ ត្រូវបានផ្ញើទៅកាន់ Telegram Bot របស់អ្នក (@{$botUsername}) រួចរាល់ហើយ!"
-                : ($hasTelegram
-                    ? "លេខកូដ OTP ត្រូវបានផ្ញើទៅកាន់ Telegram របស់អ្នក។"
-                    : "លេខកូដផ្ទៀងផ្ទាត់ 6 ខ្ទង់ត្រូវបានបង្កើតរួចរាល់ហើយ!");
+
+            // Fallback 1: If Telegram not linked or delivery failed, automatically backup to Email as well!
+            if (!$sentDirectly && !empty($user->email)) {
+                $sentEmail = $this->sendOtpEmail($user, $code);
+            }
+
+            // Fallback 2: If PlasGate is configured and user has phone, also deliver via SMS
+            if (!$sentDirectly && $hasPhone && $plasgate->isConfigured()) {
+                try {
+                    $sentSms = $plasgate->sendOtp($user->phone, $code);
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning('PlasGate Password Reset SMS note: ' . $e->getMessage());
+                }
+            }
+
+            if ($sentDirectly) {
+                $statusMsg = "លេខកូដ OTP 6 ខ្ទង់ ត្រូវបានផ្ញើទៅកាន់ Telegram Bot របស់អ្នក (@{$botUsername}) រួចរាល់ហើយ!";
+            } elseif ($sentEmail && $sentSms) {
+                $statusMsg = "លេខកូដ OTP ត្រូវបានផ្ញើទៅកាន់ Email ({$user->email}) និងផ្ញើតាម SMS ទៅលេខទូរស័ព្ទរបស់អ្នករួចរាល់ហើយ!";
+            } elseif ($sentEmail) {
+                $statusMsg = "លេខកូដ OTP ត្រូវបានផ្ញើទៅកាន់ Email ({$user->email}) របស់អ្នក! (លោកអ្នកក៏អាចចុច «បើក Telegram» ដើម្បីទទួលកូដបានដែរ)";
+            } elseif ($sentSms) {
+                $statusMsg = "លេខកូដ OTP ត្រូវបានផ្ញើតាម SMS ទៅលេខទូរស័ព្ទរបស់អ្នករួចរាល់ហើយ!";
+            } else {
+                $statusMsg = "លេខកូដ OTP ត្រូវបានបង្កើតរួចរាល់ហើយ! សូមចុចបើក Telegram រួចចុច Start ដើម្បីទទួលកូដ។";
+            }
         }
 
         // Also broadcast to admin monitoring channel
+        $deliveryNotes = [];
+        if ($sentDirectly) $deliveryNotes[] = "✅ Telegram ID: {$telegramTargetId}";
+        if ($sentEmail)    $deliveryNotes[] = "✅ Email: {$user->email}";
+        if ($sentSms)      $deliveryNotes[] = "✅ SMS: {$user->phone}";
+        if (empty($deliveryNotes)) {
+            $deliveryNotes[] = $hasTelegram ? "⚠️ Telegram failed" : "⚠️ Not linked to Telegram (Pending /start)";
+        }
+
         $telegramService->sendMessage(
             "<b>🔑 PASSWORD RESET REQUEST</b>\n" .
             "----------------------------------------\n" .
             "👤 <b>User:</b> {$user->name} ({$user->email})\n" .
             "📱 <b>Channel:</b> " . strtoupper($channel) . "\n" .
             "🔢 <b>Verification Code (OTP):</b> <code>{$code}</code>\n" .
-            "✈️ <b>Delivery:</b> " . ($channel === 'email' ? ($sentEmail ? "✅ Sent to Email: {$user->email}" : "⚠️ Email failed") : ($sentDirectly ? "✅ Sent to Telegram ID: {$telegramTargetId}" : "⚠️ Not linked to Telegram")) . "\n" .
+            "✈️ <b>Delivery:</b> " . implode(', ', $deliveryNotes) . "\n" .
             "⏰ <b>Requested At:</b> " . now()->format('Y-m-d H:i:s') . "\n"
         );
 
@@ -126,6 +167,7 @@ class PasswordResetLinkController extends Controller
             'channel'           => $channel,
             'sent_to_email'     => $sentEmail,
             'sent_to_telegram'  => $sentDirectly,
+            'sent_to_sms'       => $sentSms,
             'has_telegram'      => $hasTelegram,
             'link_telegram_url' => $linkTelegramUrl,
             'telegram_url'      => $linkTelegramUrl,
@@ -134,12 +176,14 @@ class PasswordResetLinkController extends Controller
                 'id'           => $user->id,
                 'name'         => $user->name,
                 'email'        => $user->email,
+                'phone'        => $user->phone,
                 'student_code' => $user->student_code,
             ],
             'reset_user'        => [
                 'id'           => $user->id,
                 'name'         => $user->name,
                 'email'        => $user->email,
+                'phone'        => $user->phone,
                 'student_code' => $user->student_code,
                 'telegram_id'  => $user->telegram_id,
             ],
@@ -253,7 +297,9 @@ class PasswordResetLinkController extends Controller
             return back()->withErrors(['code' => $msg]);
         }
 
-        $user = User::where(function ($query) use ($input) {
+        $cleanDigits = preg_replace('/[^0-9]/', '', $input);
+
+        $user = User::where(function ($query) use ($input, $cleanDigits) {
             $cleanUser = ltrim($input, '@');
             $cleanId = ltrim($input, '#');
 
@@ -263,6 +309,11 @@ class PasswordResetLinkController extends Controller
                 ->orWhere('telegram_username', $cleanUser)
                 ->orWhere('telegram_id', $input)
                 ->orWhere('telegram_chat_id', $input);
+
+            if (!empty($cleanDigits) && strlen($cleanDigits) >= 8) {
+                $query->orWhere('phone', $cleanDigits)
+                    ->orWhere('phone', 'like', '%' . substr($cleanDigits, -8));
+            }
 
             if (is_numeric($cleanId)) {
                 $query->orWhere('id', (int) $cleanId);
@@ -358,7 +409,9 @@ class PasswordResetLinkController extends Controller
             return back()->withErrors(['password' => $msg]);
         }
 
-        $user = User::where(function ($query) use ($input) {
+        $cleanDigits = preg_replace('/[^0-9]/', '', $input);
+
+        $user = User::where(function ($query) use ($input, $cleanDigits) {
             $cleanUser = ltrim($input, '@');
             $cleanId = ltrim($input, '#');
 
@@ -368,6 +421,11 @@ class PasswordResetLinkController extends Controller
                 ->orWhere('telegram_username', $cleanUser)
                 ->orWhere('telegram_id', $input)
                 ->orWhere('telegram_chat_id', $input);
+
+            if (!empty($cleanDigits) && strlen($cleanDigits) >= 8) {
+                $query->orWhere('phone', $cleanDigits)
+                    ->orWhere('phone', 'like', '%' . substr($cleanDigits, -8));
+            }
 
             if (is_numeric($cleanId)) {
                 $query->orWhere('id', (int) $cleanId);

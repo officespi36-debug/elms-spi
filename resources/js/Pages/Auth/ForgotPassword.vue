@@ -545,10 +545,16 @@ const onResetPassword = () => {
                 </div>
                 <div class="leading-tight text-left">
                   <p class="text-xs font-bold text-slate-800 dark:text-slate-100">
-                    {{ currentLang === 'km' ? 'បានផ្ញើកូដ OTP' : 'OTP Sent' }}
+                    {{ flashData.has_telegram === false
+                        ? (currentLang === 'km' ? 'សូមភ្ជាប់ Telegram ដើម្បីទទួលកូដ' : 'Link Telegram to receive code')
+                        : (currentLang === 'km' ? 'បានផ្ញើកូដ OTP' : 'OTP Sent') }}
                   </p>
                   <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                    {{ currentLang === 'km' ? 'សូមពិនិត្យសារក្នុង Telegram' : 'Check Telegram Bot' }}
+                    {{ flashData.has_telegram === false
+                        ? (flashData.sent_to_email
+                            ? (currentLang === 'km' ? 'កូដត្រូវបានផ្ញើទៅ Email ផងដែរ ឬចុច «បើក Telegram» រួចចុច Start' : 'Code sent to Email too, or click Telegram & Start')
+                            : (currentLang === 'km' ? 'ចុច «បើក Telegram» រួចចុច Start ដើម្បីទទួលកូដ' : 'Click "Open Telegram" & press Start'))
+                        : (currentLang === 'km' ? 'សូមពិនិត្យសារក្នុង Telegram' : 'Check Telegram Bot') }}
                   </p>
                 </div>
               </div>
@@ -560,7 +566,7 @@ const onResetPassword = () => {
                 class="px-3 py-1.5 bg-sky-500 hover:bg-sky-600 text-white text-xs font-semibold rounded-lg transition shadow-xs whitespace-nowrap inline-flex items-center gap-1 cursor-pointer shrink-0"
               >
                 <i class="pi pi-telegram text-xs"></i>
-                <span>{{ currentLang === 'km' ? 'បើក Telegram' : 'Telegram' }}</span>
+                <span>{{ flashData.has_telegram === false ? (currentLang === 'km' ? 'បើក Telegram' : 'Open Telegram') : (currentLang === 'km' ? 'បើក Telegram' : 'Telegram') }}</span>
               </a>
             </div>
 
@@ -573,8 +579,9 @@ const onResetPassword = () => {
                   ref="digitInputs"
                   v-model="codeDigits[idx]"
                   type="text"
-                  maxlength="1"
+                  maxlength="6"
                   inputmode="numeric"
+                  @paste="handleCodePaste"
                   @input="handleCodeInput(idx, $event)"
                   @keydown="handleCodeKeyDown(idx, $event)"
                   class="w-full h-11 text-center text-lg font-bold font-mono rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] text-slate-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 outline-none shadow-2xs"

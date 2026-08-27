@@ -348,23 +348,41 @@ class TelegramAuthController extends Controller
             $senderName = $message['from']['first_name'] ?? 'Student';
             $telegramUsername = $message['from']['username'] ?? null;
 
-            if (str_starts_with($text, '/start')) {
-                $parts = explode(' ', $rawText);
-                $deepLinkParam = $parts[1] ?? null;
+            $isStartCmd = str_starts_with($text, '/start');
+            $cleanDigits = preg_replace('/[^0-9]/', '', $rawText);
+            $looksLikeIdentifier = str_contains($rawText, '@')
+                || (strlen($cleanDigits) >= 8 && strlen($cleanDigits) <= 15)
+                || preg_match('/^(stu|tch|adm|usr)[0-9]+/i', $rawText);
 
-                $linkedUser = null;
+            if ($isStartCmd || $looksLikeIdentifier) {
+                $deepLinkParam = null;
+                if ($isStartCmd) {
+                    $parts = explode(' ', $rawText);
+                    $deepLinkParam = $parts[1] ?? null;
+                } else {
+                    $deepLinkParam = $rawText;
+                }
 
-                // 1. Check if deep link param exists (e.g. /start 12, /start STU241092, /start email)
+                // 1. Check if deep link param exists (e.g. /start 12, /start STU241092, /start email, /start 0966085750)
                 if (!empty($deepLinkParam)) {
-                    $linkedUser = User::where('id', $deepLinkParam)
-                        ->orWhere('student_code', $deepLinkParam)
-                        ->orWhere('email', $deepLinkParam)
+                    $cleanParam = trim($deepLinkParam);
+                    $cleanDigits = preg_replace('/[^0-9]/', '', $cleanParam);
+
+                    $linkedUser = User::where('id', $cleanParam)
+                        ->orWhere('student_code', $cleanParam)
+                        ->orWhere('email', $cleanParam)
+                        ->orWhere('phone', $cleanParam)
+                        ->when(!empty($cleanDigits) && strlen($cleanDigits) >= 8, function ($q) use ($cleanDigits) {
+                            $q->orWhere('phone', 'like', '%' . substr($cleanDigits, -8))
+                              ->orWhere('phone', $cleanDigits);
+                        })
                         ->first();
                 }
 
-                // 2. If no param or not found, try matching by telegram_id or telegram_username
+                // 2. If no param or not found, try matching by telegram_id, telegram_chat_id, or telegram_username
                 if (!$linkedUser) {
                     $linkedUser = User::where('telegram_id', (string) $chatId)
+                        ->orWhere('telegram_chat_id', (string) $chatId)
                         ->orWhere(function ($q) use ($telegramUsername) {
                             if (!empty($telegramUsername)) {
                                 $q->where('telegram_username', $telegramUsername);
@@ -373,25 +391,71 @@ class TelegramAuthController extends Controller
                         ->first();
                 }
 
+                // 2b. Auto-match: If user just tapped /start right after requesting OTP on web
+                if (!$linkedUser && $isStartCmd) {
+                    $recentPending = User::whereNotNull('otp_code')
+                        ->where('otp_expires_at', '>', now())
+                        ->whereNull('telegram_id')
+                        ->latest('updated_at')
+                        ->first();
+                    if ($recentPending) {
+                        $linkedUser = $recentPending;
+                    }
+                }
+
                 // 3. Link or update user in database
                 if ($linkedUser) {
-                    $updateFields = ['telegram_id' => (string) $chatId];
+                    $updateFields = [
+                        'telegram_id'      => (string) $chatId,
+                        'telegram_chat_id' => (string) $chatId,
+                    ];
                     if ($telegramUsername) {
                         $updateFields['telegram_username'] = $telegramUsername;
                     }
                     $linkedUser->update($updateFields);
 
-                    $welcomeText = "✅ <b>គណនី SPI AI-ELMS របស់អ្នកត្រូវបានភ្ជាប់ដោយជោគជ័យ!</b>\n" .
+                    // Check if user has an active pending password reset OTP
+                    $pendingOtp = null;
+                    if (!empty($linkedUser->otp_code) && !empty($linkedUser->otp_expires_at)) {
+                        try {
+                            if (Carbon::parse($linkedUser->otp_expires_at)->isFuture()) {
+                                $pendingOtp = $linkedUser->otp_code;
+                            }
+                        } catch (\Throwable $e) {
+                            // ignore parse error
+                        }
+                    }
+
+                    // If no active pending OTP, generate a fresh 6-digit OTP code now so user always receives it!
+                    if (empty($pendingOtp)) {
+                        $pendingOtp = (string) rand(100000, 999999);
+                        $linkedUser->update([
+                            'otp_code'       => $pendingOtp,
+                            'otp_expires_at' => now()->addMinutes(5),
+                        ]);
+                    }
+
+                    $otpSection = "\n\n━━━━━━━━━━━━━━━━━━━━━\n" .
+                                  "🔐 <b>លេខកូដផ្ទៀងផ្ទាត់ (OTP) សម្រាប់ Reset Password៖</b>\n\n" .
+                                  "👉 <code>{$pendingOtp}</code> 👈\n\n" .
+                                  "⏳ <i>លេខកូដនេះមានសុពលភាពរយៈពេល ៥ នាទី។ សូមយកទៅបំពេញលើគេហទំព័រដើម្បីកំណត់ពាក្យសម្ងាត់ថ្មី។</i>\n" .
+                                  "━━━━━━━━━━━━━━━━━━━━━\n";
+
+                    $welcomeText = "✅ <b>គណនី SPI AI-ELMS របស់អ្នកត្រូវបានស្គាល់ និងភ្ជាប់ដោយជោគជ័យ!</b>\n" .
                                    "━━━━━━━━━━━━━━━━━━━━━\n\n" .
                                    "👤 <b>ឈ្មោះ៖</b> {$linkedUser->name}\n" .
                                    "🆔 <b>Student Code/Email៖</b> " . ($linkedUser->student_code ?? $linkedUser->email) . "\n" .
-                                   "🎓 <b>Role៖</b> " . strtoupper($linkedUser->role) . "\n\n" .
-                                   "ឥឡូវនេះ អ្នកអាចទទួលលេខកូដ OTP (សម្រាប់ Forgot Password) និងដំណឹងផ្សេងៗបានយ៉ាងរហ័សតាម Telegram នេះ។ ✨\n\n" .
+                                   "📱 <b>Phone៖</b> " . ($linkedUser->phone ?? 'N/A') . "\n" .
+                                   "🎓 <b>Role៖</b> " . strtoupper($linkedUser->role) . "\n" .
+                                   $otpSection . "\n" .
+                                   "ឥឡូវនេះ អ្នកអាចទទួលលេខកូដ OTP និងដំណឹងផ្សេងៗបានយ៉ាងរហ័សតាម Telegram នេះ។ ✨\n\n" .
                                    "សូមជ្រើសរើសមុខងារខាងក្រោម៖";
                 } else {
                     $welcomeText = "👋 <b>សូមស្វាគមន៍ {$senderName} មកកាន់ប្រព័ន្ធ SPI AI-ELMS!</b>\n\n" .
                                    "🏛️ <b>វិទ្យាស្ថាន សន្តប៉ូល (Saint Paul Institute)</b>\n" .
                                    "គណនី Bot នេះត្រូវបានប្រើប្រាស់សម្រាប់ការផ្ទៀងផ្ទាត់ និងទទួលលេខកូដ OTP ចូលប្រើប្រាស់ប្រព័ន្ធដោយសុវត្ថិភាព។\n\n" .
+                                   "💡 <b>ដើម្បីទទួលលេខកូដ OTP ភ្លាមៗ៖</b>\n" .
+                                   "👉 សូម Copy ឬ វាយ<b>លេខទូរស័ព្ទ</b> (ឧទាហរណ៍៖ <code>0966085750</code>) ឬ <b>Email</b> របស់អ្នកផ្ញើមកទីនេះ ប្រព័ន្ធនឹងស្គាល់ និងផ្ញើកូដជូនភ្លាម!\n\n" .
                                    "សូមជ្រើសរើសមុខងារខាងក្រោម៖";
                 }
 

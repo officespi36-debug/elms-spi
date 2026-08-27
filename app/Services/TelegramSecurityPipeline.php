@@ -73,6 +73,11 @@ class TelegramSecurityPipeline
             $rawCmd = strtolower(trim($text));
             $cleanCmd = preg_replace('/^(\/\w+)@\w+/i', '$1', $rawCmd);
 
+            $cleanDigits = preg_replace('/[^0-9]/', '', $cleanCmd);
+            $looksLikeIdentifier = str_contains($cleanCmd, '@')
+                || (strlen($cleanDigits) >= 8 && strlen($cleanDigits) <= 15)
+                || preg_match('/^(stu|tch|adm|usr)[0-9]+/i', $cleanCmd);
+
             $isCommandOrAction = !empty($update['callback_query'])
                 || str_starts_with($cleanCmd, '/start')
                 || str_starts_with($cleanCmd, '/login')
@@ -83,7 +88,8 @@ class TelegramSecurityPipeline
                 || $cleanCmd === 'help'
                 || str_contains($cleanCmd, 'hello')
                 || str_contains($cleanCmd, 'hi')
-                || str_contains($cleanCmd, 'សួស្តី');
+                || str_contains($cleanCmd, 'សួស្តី')
+                || $looksLikeIdentifier;
 
             if (!$isLinked && !$isCommandOrAction) {
                 self::sendMessage(
