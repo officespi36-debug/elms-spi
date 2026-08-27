@@ -1309,7 +1309,11 @@ onUnmounted(() => {
               </div>
 
               <!-- Production Environment: Live Cloudflare Turnstile Challenge -->
-              <div v-else ref="turnstileWidget" class="w-full block min-h-[65px] turnstile-wrapper"></div>
+              <div
+                v-else
+                ref="turnstileWidget"
+                class="w-full block min-h-[65px] turnstile-wrapper rounded-xl overflow-hidden shadow-2xs border border-zinc-200/60 dark:border-zinc-800/60"
+              ></div>
             </div>
 
             <!-- Dynamic Continue Button (Disabled with not-allowed cursor if not ready) -->
@@ -1823,5 +1827,8 @@ onUnmounted(() => {
   max-width: 100% !important;
   display: block !important;
   margin: 0 auto !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
 }
 </style>

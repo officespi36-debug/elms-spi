@@ -43,6 +43,17 @@ img[alt*="E-LMS"] {
   image-rendering: auto !important;
 }
 
+/* Cloudflare Turnstile Modern Rounded Corners & Anti-Sharp Edges */
+.turnstile-wrapper,
+.turnstile-wrapper > div,
+.turnstile-wrapper iframe,
+iframe[src*="cloudflare"],
+iframe[src*="turnstile"] {
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  -webkit-mask-image: -webkit-radial-gradient(white, black) !important;
+}
+
 /* Standard cursor pointer for interactive controls */
 button,
 a,
