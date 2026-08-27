@@ -51,7 +51,9 @@ iframe[src*="cloudflare"],
 iframe[src*="turnstile"] {
   border-radius: 12px !important;
   overflow: hidden !important;
+  clip-path: inset(0 round 12px) !important;
   -webkit-mask-image: -webkit-radial-gradient(white, black) !important;
+  mask-image: radial-gradient(white, black) !important;
 }
 
 /* Standard cursor pointer for interactive controls */

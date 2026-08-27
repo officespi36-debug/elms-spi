@@ -1829,6 +1829,8 @@ onUnmounted(() => {
   margin: 0 auto !important;
   border-radius: 12px !important;
   overflow: hidden !important;
+  clip-path: inset(0 round 12px) !important;
   -webkit-mask-image: -webkit-radial-gradient(white, black);
+  mask-image: radial-gradient(white, black);
 }
 </style>
