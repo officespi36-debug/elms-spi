@@ -711,7 +711,7 @@ const onResetPassword = () => {
 
     </main>
 
-    <!-- Compact Success Alert Modal -->
+    <!-- Premium Success Alert Modal (Matches Login Design Style) -->
     <Transition
       enter-active-class="transition duration-200 ease-out"
       enter-from-class="opacity-0 scale-95"
@@ -720,31 +720,55 @@ const onResetPassword = () => {
       leave-from-class="opacity-100 scale-100"
       leave-to-class="opacity-0 scale-95"
     >
-      <div v-if="showSuccessModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs select-none">
-        <div class="max-w-[340px] w-full bg-white dark:bg-[#121214] rounded-2xl p-5 shadow-2xl border border-zinc-200 dark:border-zinc-800 text-center flex flex-col items-center space-y-3">
-          <div class="w-11 h-11 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-            <i class="pi pi-check text-lg font-bold"></i>
-          </div>
-          <div class="space-y-1">
-            <h3 class="text-sm font-bold text-slate-900 dark:text-white">
-              {{ successTitle || (currentLang === 'km' ? 'ជោគជ័យ!' : 'Success!') }}
-            </h3>
-            <p class="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
-              {{ successMessage }}
-            </p>
-          </div>
+      <div
+        v-if="showSuccessModal"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 dark:bg-black/75 backdrop-blur-md select-none"
+        @click.self="showSuccessModal = false"
+      >
+        <div class="max-w-[380px] w-full bg-white/95 dark:bg-[#141417]/95 backdrop-blur-xl rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-200/80 dark:border-zinc-800/80 text-center flex flex-col items-center space-y-4 relative overflow-hidden">
+          
+          <!-- Top Ambient Glow Aura -->
+          <div class="absolute -top-12 left-1/2 -translate-x-1/2 w-36 h-36 bg-emerald-500/20 dark:bg-emerald-500/15 rounded-full blur-2xl pointer-events-none"></div>
+
+          <!-- Top-Right Close Button -->
           <button
             type="button"
             @click="showSuccessModal = false"
-            class="w-full py-2 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold cursor-pointer transition-colors shadow-sm"
+            class="absolute right-4 top-4 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors p-1 cursor-pointer rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800/50"
+            title="Close"
           >
-            {{ currentLang === 'km' ? 'យល់ព្រម' : 'Got it' }}
+            <i class="pi pi-times text-xs"></i>
+          </button>
+
+          <!-- Status Icon -->
+          <div class="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500/15 via-emerald-500/10 to-teal-500/5 dark:from-emerald-500/25 dark:to-teal-500/10 border border-emerald-500/25 dark:border-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-lg shadow-emerald-500/10 ring-4 ring-emerald-500/10 dark:ring-emerald-500/15">
+            <i class="pi pi-check text-2xl font-black"></i>
+          </div>
+
+          <!-- Text Block -->
+          <div class="space-y-1.5 px-2">
+            <h3 class="text-base sm:text-lg font-black tracking-tight text-slate-900 dark:text-white">
+              {{ successTitle || (currentLang === 'km' ? 'ផ្ញើកូដជោគជ័យ!' : 'Code Sent Successfully!') }}
+            </h3>
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-zinc-400 leading-relaxed font-medium">
+              {{ successMessage }}
+            </p>
+          </div>
+
+          <!-- Action Button (Login style: Blue in light, crisp white in dark) -->
+          <button
+            type="button"
+            @click="showSuccessModal = false"
+            class="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all duration-150 active:scale-[0.99] cursor-pointer shadow-md shadow-blue-500/20 dark:shadow-none"
+          >
+            <span>{{ currentLang === 'km' ? 'យល់ព្រម' : 'Continue' }}</span>
+            <i class="pi pi-arrow-right text-xs"></i>
           </button>
         </div>
       </div>
     </Transition>
 
-    <!-- Compact Error Alert Modal -->
+    <!-- Premium Error Alert Modal (Matches Login Design Style) -->
     <Transition
       enter-active-class="transition duration-200 ease-out"
       enter-from-class="opacity-0 scale-95"
@@ -753,23 +777,46 @@ const onResetPassword = () => {
       leave-from-class="opacity-100 scale-100"
       leave-to-class="opacity-0 scale-95"
     >
-      <div v-if="showErrorModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs select-none">
-        <div class="max-w-[340px] w-full bg-white dark:bg-[#121214] rounded-2xl p-5 shadow-2xl border border-zinc-200 dark:border-zinc-800 text-center flex flex-col items-center space-y-3">
-          <div class="w-11 h-11 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center">
-            <i class="pi pi-exclamation-triangle text-lg"></i>
-          </div>
-          <div class="space-y-1">
-            <h3 class="text-sm font-bold text-slate-900 dark:text-white">
-              {{ errorTitle || (currentLang === 'km' ? 'ព័ត៌មានមិនត្រឹមត្រូវ' : 'Error') }}
-            </h3>
-            <p class="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
-              {{ errorMessage }}
-            </p>
-          </div>
+      <div
+        v-if="showErrorModal"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 dark:bg-black/75 backdrop-blur-md select-none"
+        @click.self="showErrorModal = false"
+      >
+        <div class="max-w-[380px] w-full bg-white/95 dark:bg-[#141417]/95 backdrop-blur-xl rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-200/80 dark:border-zinc-800/80 text-center flex flex-col items-center space-y-4 relative overflow-hidden">
+          
+          <!-- Top Ambient Glow Aura -->
+          <div class="absolute -top-12 left-1/2 -translate-x-1/2 w-36 h-36 bg-rose-500/20 dark:bg-rose-500/15 rounded-full blur-2xl pointer-events-none"></div>
+
+          <!-- Top-Right Close Button -->
           <button
             type="button"
             @click="showErrorModal = false"
-            class="w-full py-2 px-4 rounded-xl bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-200 text-xs font-semibold cursor-pointer transition-colors"
+            class="absolute right-4 top-4 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors p-1 cursor-pointer rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800/50"
+            title="Close"
+          >
+            <i class="pi pi-times text-xs"></i>
+          </button>
+
+          <!-- Status Icon -->
+          <div class="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-rose-500/15 via-rose-500/10 to-pink-500/5 dark:from-rose-500/25 dark:to-pink-500/10 border border-rose-500/25 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 flex items-center justify-center shadow-lg shadow-rose-500/10 ring-4 ring-rose-500/10 dark:ring-rose-500/15">
+            <i class="pi pi-exclamation-triangle text-2xl font-bold"></i>
+          </div>
+
+          <!-- Text Block -->
+          <div class="space-y-1.5 px-2">
+            <h3 class="text-base sm:text-lg font-black tracking-tight text-slate-900 dark:text-white">
+              {{ errorTitle || (currentLang === 'km' ? 'ព័ត៌មានមិនត្រឹមត្រូវ' : 'Error') }}
+            </h3>
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-zinc-400 leading-relaxed font-medium">
+              {{ errorMessage }}
+            </p>
+          </div>
+
+          <!-- Action Button -->
+          <button
+            type="button"
+            @click="showErrorModal = false"
+            class="w-full h-11 rounded-xl bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-100 font-bold text-xs sm:text-sm flex items-center justify-center transition-all duration-150 active:scale-[0.99] cursor-pointer"
           >
             {{ currentLang === 'km' ? 'យល់ព្រម' : 'Dismiss' }}
           </button>
