@@ -8,6 +8,32 @@ Route::match(['get', 'post'], '/telegram/webhook', [\App\Http\Controllers\Auth\T
 Route::match(['get', 'post'], '/telegram-webhook', [\App\Http\Controllers\Auth\TelegramAuthController::class, 'handleWebhook']);
 Route::match(['get', 'post'], '/webhook/telegram', [\App\Http\Controllers\Auth\TelegramAuthController::class, 'handleWebhook']);
 
+// System Diagnostic & Database Migration Endpoint
+Route::get('/system/migrate', function () {
+    try {
+        $path = database_path('database.sqlite');
+        if (!file_exists($path)) {
+            @touch($path);
+        }
+        $exitCode = \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        $output = \Illuminate\Support\Facades\Artisan::output();
+        return response()->json([
+            'status' => 'success',
+            'sqlite_file' => file_exists($path),
+            'sqlite_writable' => is_writable($path),
+            'exitCode' => $exitCode,
+            'output' => $output,
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ], 500);
+    }
+});
+
 Route::middleware(['web', 'auth'])->prefix('v1')->group(function () {
     // Download package សម្រាប់ offline
     Route::get('/offline/course/{course}', [Api\OfflineController::class, 'package']);
