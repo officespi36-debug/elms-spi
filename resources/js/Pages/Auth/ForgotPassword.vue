@@ -545,28 +545,22 @@ const onResetPassword = () => {
                 </div>
                 <div class="leading-tight text-left">
                   <p class="text-xs font-bold text-slate-800 dark:text-slate-100">
-                    {{ flashData.has_telegram === false
-                        ? (currentLang === 'km' ? 'សូមភ្ជាប់ Telegram ដើម្បីទទួលកូដ' : 'Link Telegram to receive code')
-                        : (currentLang === 'km' ? 'បានផ្ញើកូដ OTP' : 'OTP Sent') }}
+                    {{ currentLang === 'km' ? 'បានផ្ញើកូដ OTP ទៅកាន់ Telegram' : 'OTP Sent to Telegram' }}
                   </p>
                   <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                    {{ flashData.has_telegram === false
-                        ? (flashData.sent_to_email
-                            ? (currentLang === 'km' ? 'កូដត្រូវបានផ្ញើទៅ Email ផងដែរ ឬចុច «បើក Telegram» រួចចុច Start' : 'Code sent to Email too, or click Telegram & Start')
-                            : (currentLang === 'km' ? 'ចុច «បើក Telegram» រួចចុច Start ដើម្បីទទួលកូដ' : 'Click "Open Telegram" & press Start'))
-                        : (currentLang === 'km' ? 'សូមពិនិត្យសារក្នុង Telegram' : 'Check Telegram Bot') }}
+                    {{ currentLang === 'km' ? 'សូមពិនិត្យមើលសារក្នុង Telegram Bot' : 'Please check your Telegram Bot' }}
                   </p>
                 </div>
               </div>
 
               <a
-                :href="flashData.link_telegram_url || flashData.telegram_url || ('https://t.me/' + (flashData.telegram_bot_name || 'spi_elms_auth_bot'))"
+                :href="'https://t.me/' + (flashData.telegram_bot_name || 'spi_elms_auth_bot')"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="px-3 py-1.5 bg-sky-500 hover:bg-sky-600 text-white text-xs font-semibold rounded-lg transition shadow-xs whitespace-nowrap inline-flex items-center gap-1 cursor-pointer shrink-0"
               >
                 <i class="pi pi-telegram text-xs"></i>
-                <span>{{ flashData.has_telegram === false ? (currentLang === 'km' ? 'បើក Telegram' : 'Open Telegram') : (currentLang === 'km' ? 'បើក Telegram' : 'Telegram') }}</span>
+                <span>{{ currentLang === 'km' ? 'បើក Telegram' : 'Telegram' }}</span>
               </a>
             </div>
 

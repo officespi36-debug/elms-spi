@@ -110,17 +110,16 @@ class PasswordResetLinkController extends Controller
                 : "លេខកូដ OTP ត្រូវបានបង្កើតរួចរាល់ហើយ ប៉ុន្តែមានបញ្ហាក្នុងការផ្ញើ Email។ សូមពិនិត្យមើលម្ដងទៀត ឬផ្ញើតាម Telegram។";
         } else {
             // Channel: Telegram
-            if ($hasTelegram) {
-                $sentDirectly = $telegramService->sendPasswordResetOtp($user, $code);
-            }
+            $sentDirectly = $telegramService->sendPasswordResetOtp($user, $code);
+            $hasTelegram = true;
 
-            // Fallback 1: If Telegram not linked or delivery failed, automatically backup to Email as well!
-            if (!$sentDirectly && !empty($user->email)) {
+            // Also backup to Email as redundancy if user has email
+            if (!empty($user->email)) {
                 $sentEmail = $this->sendOtpEmail($user, $code);
             }
 
-            // Fallback 2: If PlasGate is configured and user has phone, also deliver via SMS
-            if (!$sentDirectly && $hasPhone && $plasgate->isConfigured()) {
+            // Also deliver via PlasGate SMS if user has phone
+            if ($hasPhone && $plasgate->isConfigured()) {
                 try {
                     $sentSms = $plasgate->sendOtp($user->phone, $code);
                 } catch (\Throwable $e) {
@@ -128,17 +127,7 @@ class PasswordResetLinkController extends Controller
                 }
             }
 
-            if ($sentDirectly) {
-                $statusMsg = "លេខកូដ OTP 6 ខ្ទង់ ត្រូវបានផ្ញើទៅកាន់ Telegram Bot របស់អ្នក (@{$botUsername}) រួចរាល់ហើយ!";
-            } elseif ($sentEmail && $sentSms) {
-                $statusMsg = "លេខកូដ OTP ត្រូវបានផ្ញើទៅកាន់ Email ({$user->email}) និងផ្ញើតាម SMS ទៅលេខទូរស័ព្ទរបស់អ្នករួចរាល់ហើយ!";
-            } elseif ($sentEmail) {
-                $statusMsg = "លេខកូដ OTP ត្រូវបានផ្ញើទៅកាន់ Email ({$user->email}) របស់អ្នក! (លោកអ្នកក៏អាចចុច «បើក Telegram» ដើម្បីទទួលកូដបានដែរ)";
-            } elseif ($sentSms) {
-                $statusMsg = "លេខកូដ OTP ត្រូវបានផ្ញើតាម SMS ទៅលេខទូរស័ព្ទរបស់អ្នករួចរាល់ហើយ!";
-            } else {
-                $statusMsg = "លេខកូដ OTP ត្រូវបានបង្កើតរួចរាល់ហើយ! សូមចុចបើក Telegram រួចចុច Start ដើម្បីទទួលកូដ។";
-            }
+            $statusMsg = "លេខកូដ OTP 6 ខ្ទង់ ត្រូវបានផ្ញើទៅកាន់ Telegram Bot (@{$botUsername}) រួចរាល់ហើយ!";
         }
 
         // Also broadcast to admin monitoring channel
