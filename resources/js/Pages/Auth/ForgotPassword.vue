@@ -420,56 +420,44 @@ const onResetPassword = () => {
             </div>
           </div>
 
-          <!-- Channel Selector: Telegram vs Email -->
+          <!-- Delivery Method Segmented Switcher (Matching Register/Manus AI Style) -->
           <div class="space-y-1.5 pt-0.5">
-            <label class="text-[11px] font-semibold text-slate-600 dark:text-zinc-400 block text-left">
-              {{ currentLang === 'km' ? 'ជ្រើសរើសវិធីទទួលលេខកូដ OTP' : 'Choose OTP Delivery Method' }}
-            </label>
-            <div class="grid grid-cols-2 gap-2">
-              <!-- Telegram Option -->
+            <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-zinc-400 px-0.5">
+              <span class="font-medium">{{ currentLang === 'km' ? 'វិធីទទួលលេខកូដ OTP' : 'Receive OTP Code Via' }}</span>
+              <span class="text-[10px] text-slate-400 dark:text-zinc-500">
+                {{ selectedChannel === 'telegram' ? (currentLang === 'km' ? 'ផ្ញើចូល Telegram Bot' : 'Via Telegram Bot') : (currentLang === 'km' ? 'ផ្ញើចូលប្រអប់ Email' : 'Via Email Inbox') }}
+              </span>
+            </div>
+
+            <div class="grid grid-cols-2 p-1 rounded-xl bg-slate-100 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800 text-xs shadow-2xs">
+              <!-- Telegram Tab -->
               <button
                 type="button"
                 @click="selectedChannel = 'telegram'"
                 :class="[
-                  'p-2.5 rounded-xl border flex flex-col items-center justify-center gap-1.5 text-center transition-all cursor-pointer relative',
+                  'py-2.5 px-3 rounded-lg font-medium transition-all duration-200 text-xs cursor-pointer flex items-center justify-center gap-2 select-none',
                   selectedChannel === 'telegram'
-                    ? 'bg-sky-500/10 border-sky-500 text-sky-600 dark:text-sky-400 shadow-xs ring-1 ring-sky-500/40'
-                    : 'bg-white dark:bg-[#121214] border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 hover:border-slate-300 dark:hover:border-zinc-700'
+                    ? 'bg-sky-500 text-white font-bold shadow-sm shadow-sky-500/25'
+                    : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
                 ]"
               >
-                <div class="w-7 h-7 rounded-full bg-sky-500/15 flex items-center justify-center text-sky-500">
-                  <i class="pi pi-send text-xs"></i>
-                </div>
-                <div class="leading-tight">
-                  <span class="text-xs font-bold block">Telegram</span>
-                  <span class="text-[10px] text-slate-400 opacity-80">{{ currentLang === 'km' ? 'លឿនភ្លាមៗ' : 'Instant Bot' }}</span>
-                </div>
-                <div v-if="selectedChannel === 'telegram'" class="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-sky-500 text-white flex items-center justify-center text-[9px] shadow-2xs">
-                  <i class="pi pi-check font-bold"></i>
-                </div>
+                <i class="pi pi-send text-xs"></i>
+                <span>Telegram</span>
               </button>
 
-              <!-- Email Option -->
+              <!-- Email Tab -->
               <button
                 type="button"
                 @click="selectedChannel = 'email'"
                 :class="[
-                  'p-2.5 rounded-xl border flex flex-col items-center justify-center gap-1.5 text-center transition-all cursor-pointer relative',
+                  'py-2.5 px-3 rounded-lg font-medium transition-all duration-200 text-xs cursor-pointer flex items-center justify-center gap-2 select-none',
                   selectedChannel === 'email'
-                    ? 'bg-blue-500/10 border-blue-500 text-blue-600 dark:text-blue-400 shadow-xs ring-1 ring-blue-500/40'
-                    : 'bg-white dark:bg-[#121214] border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 hover:border-slate-300 dark:hover:border-zinc-700'
+                    ? 'bg-blue-600 text-white font-bold shadow-sm shadow-blue-600/25'
+                    : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
                 ]"
               >
-                <div class="w-7 h-7 rounded-full bg-blue-500/15 flex items-center justify-center text-blue-500">
-                  <i class="pi pi-envelope text-xs"></i>
-                </div>
-                <div class="leading-tight">
-                  <span class="text-xs font-bold block">Email</span>
-                  <span class="text-[10px] text-slate-400 opacity-80">{{ currentLang === 'km' ? 'ប្រអប់សំបុត្រ' : 'Inbox / Spam' }}</span>
-                </div>
-                <div v-if="selectedChannel === 'email'" class="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-blue-500 text-white flex items-center justify-center text-[9px] shadow-2xs">
-                  <i class="pi pi-check font-bold"></i>
-                </div>
+                <i class="pi pi-envelope text-xs"></i>
+                <span>Email</span>
               </button>
             </div>
           </div>
