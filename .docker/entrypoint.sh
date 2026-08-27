@@ -1,6 +1,14 @@
 #!/bin/sh
 set -e
 
+# Ensure SQLite database exists with proper permissions
+mkdir -p /var/www/html/database
+if [ ! -f /var/www/html/database/database.sqlite ]; then
+    touch /var/www/html/database/database.sqlite
+fi
+chown -R www-data:www-data /var/www/html/database /var/www/html/storage /var/www/html/bootstrap/cache
+chmod -R 775 /var/www/html/database /var/www/html/storage /var/www/html/bootstrap/cache
+
 # Discover packages & clear stale cached files on startup
 php artisan package:discover --ansi || true
 php artisan config:clear || true

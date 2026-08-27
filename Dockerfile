@@ -13,7 +13,8 @@ RUN apk add --no-cache \
     unzip \
     icu-dev \
     oniguruma-dev \
-    && docker-php-ext-install -j$(nproc) pdo_mysql mbstring gd zip bcmath intl opcache pcntl posix
+    sqlite-dev \
+    && docker-php-ext-install -j$(nproc) pdo_mysql pdo_sqlite mbstring gd zip bcmath intl opcache pcntl posix
 
 # Get Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -42,8 +43,10 @@ COPY . .
 RUN composer dump-autoload --optimize --no-dev --classmap-authoritative --no-scripts
 
 # Set directory permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
-    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+RUN mkdir -p /var/www/html/database \
+    && touch /var/www/html/database/database.sqlite \
+    && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
 
 # Copy Nginx configuration
 COPY .docker/nginx.conf /etc/nginx/http.d/default.conf
