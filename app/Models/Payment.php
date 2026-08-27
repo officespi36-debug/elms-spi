@@ -4,6 +4,25 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property int $student_id
+ * @property int|null $course_id
+ * @property int|null $teacher_id
+ * @property float $amount
+ * @property string $currency
+ * @property string|null $aba_transaction_id
+ * @property string|null $payment_slip
+ * @property string $status
+ * @property int|null $verified_by
+ * @property \Illuminate\Support\Carbon|null $verified_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read User|null $student
+ * @property-read Course|null $course
+ * @property-read User|null $teacher
+ * @property-read User|null $verifier
+ */
 class Payment extends Model
 {
     protected $fillable = [

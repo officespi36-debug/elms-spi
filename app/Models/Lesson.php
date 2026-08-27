@@ -4,6 +4,30 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property int|null $module_id
+ * @property int|null $chapter_id
+ * @property int|null $course_id
+ * @property string $title
+ * @property string|null $kh_title
+ * @property string|null $type
+ * @property string|null $file_path
+ * @property string|null $file_url
+ * @property string|null $video_url
+ * @property string|null $content
+ * @property string|null $ai_summary
+ * @property string|null $thumbnail
+ * @property int|null $duration_seconds
+ * @property int|null $order
+ * @property bool $is_free_preview
+ * @property bool $downloadable
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read Module|null $module
+ * @property-read Chapter|null $chapter
+ * @property-read Course|null $course
+ */
 class Lesson extends Model
 {
     protected $fillable = [

@@ -3,6 +3,13 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import { useTheme } from '@/composables/useTheme'
 import GlobalToast from '@/Components/GlobalToast.vue'
+import {
+  saveCourseForOffline,
+  getOfflineCourse,
+  isCourseCachedOffline,
+  saveProgressOffline,
+  flushQueue
+} from '@/offline/sync'
 
 const props = defineProps<{
   course: any
@@ -156,38 +163,53 @@ const setPlaybackSpeed = (spd: number) => {
   }
 }
 
-// Auto Progress Dispatch
+// Auto Progress Dispatch (Works Online and Offline)
 const updateProgressToServer = (percent: number, seconds: number, isComplete: boolean = false) => {
   if (!activeLesson.value?.id) return
 
   const lessonId = activeLesson.value.id
+  const courseId = Number(props.course?.id || 1)
 
-  fetch(`/student/learn/progress/${lessonId}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRF-TOKEN': (document.head.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
-      'Accept': 'application/json'
-    },
-    body: JSON.stringify({
-      percent: isComplete ? 100 : percent,
-      seconds: seconds,
-      is_completed: isComplete
+  // 1. Immediately save progress offline in IndexedDB
+  saveProgressOffline(courseId, Number(lessonId), isComplete)
+
+  if (!localProgress.value[lessonId]) {
+    localProgress.value[lessonId] = {}
+  }
+  localProgress.value[lessonId].percent = isComplete ? 100 : percent
+  if (isComplete) {
+    localProgress.value[lessonId].completed_at = new Date().toISOString()
+  }
+
+  // 2. If online, also send to server directly
+  if (typeof navigator !== 'undefined' && navigator.onLine) {
+    fetch(`/student/learn/progress/${lessonId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': (document.head.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        percent: isComplete ? 100 : percent,
+        seconds: seconds,
+        is_completed: isComplete
+      })
     })
-  })
-    .then(res => res.json())
-    .then(data => {
-      if (data.ok) {
-        if (!localProgress.value[lessonId]) {
-          localProgress.value[lessonId] = {}
+      .then(res => res.json())
+      .then(data => {
+        if (data.ok) {
+          if (!localProgress.value[lessonId]) {
+            localProgress.value[lessonId] = {}
+          }
+          localProgress.value[lessonId].percent = data.percent
+          if (data.is_completed) {
+            localProgress.value[lessonId].completed_at = new Date().toISOString()
+          }
         }
-        localProgress.value[lessonId].percent = data.percent
-        if (data.is_completed) {
-          localProgress.value[lessonId].completed_at = new Date().toISOString()
-        }
-      }
-    })
-    .catch(err => console.log('Progress tracking error:', err))
+      })
+      .catch(err => console.log('Progress tracking error:', err))
+  }
 }
 
 const onTimeUpdate = () => {
@@ -507,13 +529,74 @@ const handlePlayerKeydown = (e: KeyboardEvent) => {
   }
 }
 
-onMounted(() => {
+// --- Offline Learning & PWA Synchronization State ---
+const isOnline = ref(typeof navigator !== 'undefined' ? navigator.onLine : true)
+const isCourseSavedOffline = ref(false)
+const isDownloadingOffline = ref(false)
+const downloadProgress = ref(0)
+const downloadStatusText = ref('')
+const offlineSyncToast = ref('')
+
+const checkOfflineStatus = async () => {
+  if (props.course?.id) {
+    isCourseSavedOffline.value = await isCourseCachedOffline(props.course.id)
+  }
+}
+
+const handleDownloadCourseOffline = async () => {
+  if (isDownloadingOffline.value || !props.course) return
+  isDownloadingOffline.value = true
+  downloadProgress.value = 0
+  downloadStatusText.value = 'កំពុងរៀបចំ...'
+
+  const success = await saveCourseForOffline(props.course, (percent, status) => {
+    downloadProgress.value = percent
+    downloadStatusText.value = status
+  })
+
+  if (success) {
+    isCourseSavedOffline.value = true
+    offlineSyncToast.value = 'បានរក្សាទុកវគ្គសិក្សាក្នុងម៉ាស៊ីនរួចរាល់! អ្នកអាចរៀនបានទោះគ្មាន Internet។'
+    setTimeout(() => {
+      offlineSyncToast.value = ''
+      isDownloadingOffline.value = false
+    }, 3500)
+  } else {
+    isDownloadingOffline.value = false
+  }
+}
+
+const handleOnlineStatusChange = () => {
+  isOnline.value = navigator.onLine
+  if (navigator.onLine) {
+    flushQueue().then(({ success }) => {
+      if (success > 0) {
+        offlineSyncToast.value = `បានភ្ជាប់អ៊ីនធឺណិតវិញ! វឌ្ឍនភាពសិក្សា (${success} មេរៀន) ត្រូវបាន Sync ទៅ Server ដោយជោគជ័យ។`
+        setTimeout(() => { offlineSyncToast.value = '' }, 4000)
+      }
+    })
+  }
+}
+
+onMounted(async () => {
   window.addEventListener('keydown', handlePlayerKeydown)
+  window.addEventListener('online', handleOnlineStatusChange)
+  window.addEventListener('offline', handleOnlineStatusChange)
   loadAiNextSteps()
+  await checkOfflineStatus()
+
+  // Auto-cache course structure if online for instantaneous offline availability
+  if (props.course && typeof navigator !== 'undefined' && navigator.onLine && !isCourseSavedOffline.value) {
+    saveCourseForOffline(props.course).then(cached => {
+      if (cached) isCourseSavedOffline.value = true
+    })
+  }
 })
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handlePlayerKeydown)
+  window.removeEventListener('online', handleOnlineStatusChange)
+  window.removeEventListener('offline', handleOnlineStatusChange)
 })
 </script>
 
@@ -611,6 +694,34 @@ onUnmounted(() => {
           </button>
         </div>
 
+        <!-- Offline Download & Ready Pill -->
+        <button
+          type="button"
+          @click="handleDownloadCourseOffline"
+          :disabled="isDownloadingOffline || isCourseSavedOffline"
+          :class="[
+            'hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all shadow-xs select-none',
+            isCourseSavedOffline
+              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 cursor-default'
+              : isDownloadingOffline
+                ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40 animate-pulse'
+                : 'bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border-slate-700 cursor-pointer'
+          ]"
+          :title="isCourseSavedOffline ? 'វគ្គសិក្សានេះត្រូវបានរក្សាទុកក្នុងម៉ាស៊ីនរួចរាល់ អាចរៀនពេលគ្មាន Internet' : 'ទាញយកវគ្គសិក្សានេះសម្រាប់រៀនក្រៅបណ្តាញ (Offline Learning)'"
+        >
+          <svg v-if="isCourseSavedOffline" class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+          <svg v-else-if="isDownloadingOffline" class="w-3.5 h-3.5 animate-spin text-indigo-400" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg>
+          <svg v-else class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          <span>{{ isCourseSavedOffline ? 'Offline Ready' : (isDownloadingOffline ? `${downloadProgress}%` : 'Save Offline') }}</span>
+        </button>
+
         <!-- Theater Mode & Fullscreen Toggles -->
         <button
           @click="isTheaterMode = !isTheaterMode"
@@ -644,6 +755,41 @@ onUnmounted(() => {
         </button>
       </div>
     </header>
+
+    <!-- Offline Learning Mode Notification Banner -->
+    <div
+      v-if="!isOnline"
+      class="bg-amber-500/15 border-b border-amber-500/30 px-4 py-2 text-xs text-amber-300 flex items-center justify-between z-30 shrink-0 select-none animate-fadeIn"
+    >
+      <div class="flex items-center gap-2 max-w-4xl truncate">
+        <span class="flex h-2 w-2 relative shrink-0">
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-400"></span>
+        </span>
+        <span class="font-bold">⚡ របៀបក្រៅបណ្តាញ (Offline Mode)៖</span>
+        <span class="truncate">អ្នកកំពុងរៀនដោយគ្មាន Internet។ មេរៀន និងឯកសារត្រូវបានទាញចេញពីម៉ាស៊ីន ហើយវឌ្ឍនភាពសិក្សានឹង Auto-Sync ពេលភ្ជាប់ Internet វិញ។</span>
+      </div>
+      <span class="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-500/20 border border-amber-500/40 text-amber-300 shrink-0">
+        PWA Active
+      </span>
+    </div>
+
+    <!-- Sync Toast Alert -->
+    <Transition
+      enter-active-class="transition duration-200 ease-out"
+      enter-from-class="transform opacity-0 -translate-y-2"
+      enter-to-class="transform opacity-100 translate-y-0"
+      leave-active-class="transition duration-150 ease-in"
+      leave-from-class="transform opacity-100 translate-y-0"
+      leave-to-class="transform opacity-0 -translate-y-2"
+    >
+      <div
+        v-if="offlineSyncToast"
+        class="fixed top-20 right-6 z-50 bg-emerald-950/95 border border-emerald-500/50 text-emerald-200 px-4 py-3 rounded-2xl shadow-2xl backdrop-blur-xl flex items-center gap-3 text-xs font-semibold"
+      >
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+        <span>{{ offlineSyncToast }}</span>
+      </div>
+    </Transition>
 
     <!-- ═════════════════════════════════════════════════════════════════════════════ -->
     <!-- 2. MAIN LEARNING VIEWPORT (Player + Playlist Grid) -->

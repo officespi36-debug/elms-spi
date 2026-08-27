@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useForm, Link } from '@inertiajs/vue3'
 import { i18n, type LanguageCode } from '../../Services/i18n'
 import AuthAnimatedBackground from '../../Components/AuthAnimatedBackground.vue'
+import NetworkStatusPill from '../../Components/NetworkStatusPill.vue'
 
 const logoUrl = '/images/logo.png'
 
@@ -35,6 +36,10 @@ const successTitle = ref('')
 const successMessage = ref('')
 const errorTitle = ref('')
 const errorMessage = ref('')
+
+const isRegistering = ref(false)
+const registerLoadingTitle = ref('')
+const registerLoadingSubtitle = ref('')
 
 const languages = [
   { code: 'km' as LanguageCode, name: 'ភាសាខ្មែរ', label: 'ខ្មែរ', short: 'KH', flagUrl: '/images/flags/km.svg' },
@@ -86,6 +91,23 @@ const handleClickOutside = (e: MouseEvent) => {
 onMounted(() => {
   initTheme()
   document.addEventListener('click', handleClickOutside)
+
+  // Pre-fill email and role from URL query parameters if redirected from Login flow
+  try {
+    const params = new URLSearchParams(window.location.search)
+    const emailParam = params.get('email')
+    const roleParam = params.get('role')
+    if (emailParam) {
+      form.email = emailParam
+      if (!form.name) {
+        const prefix = emailParam.split('@')[0]
+        form.name = prefix.replace(/[._-]/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+      }
+    }
+    if (roleParam === 'teacher' || roleParam === 'student') {
+      form.role = roleParam
+    }
+  } catch (_) {}
 })
 
 const form = useForm({
@@ -239,17 +261,21 @@ const handleFileChange = (e: Event) => {
 const submit = () => {
   showErrorModal.value = false
   showSuccessModal.value = false
+  isRegistering.value = true
+  registerLoadingTitle.value = currentLang.value === 'km' ? 'កំពុងបង្កើតគណនី...' : 'Creating your account...'
+  registerLoadingSubtitle.value = currentLang.value === 'km' ? 'សូមរង់ចាំមួយភ្លែត ប្រព័ន្ធកំពុងដំណើរការរៀបចំព័ត៌មាន...' : 'Please wait a moment while setting up your profile...'
+
   form.post('/register', {
     onSuccess: () => {
-      showSuccessModal.value = true
-      successTitle.value = t('register_modal_success_title', 'ចុះឈ្មោះជោគជ័យ!')
-      successMessage.value = t('register_modal_success_msg', 'គណនីរបស់អ្នកត្រូវបានបង្កើតដោយជោគជ័យ! កំពុងចូលប្រព័ន្ធ...')
+      registerLoadingTitle.value = currentLang.value === 'km' ? 'ចុះឈ្មោះជោគជ័យ!' : 'Registration Successful!'
+      registerLoadingSubtitle.value = currentLang.value === 'km' ? 'សូមរង់ចាំមួយភ្លែត កំពុងនាំអ្នកទៅកាន់ផ្ទាំងគ្រប់គ្រង...' : 'Please wait a moment, redirecting to your dashboard...'
     },
     onError: (errors) => {
+      isRegistering.value = false
       showErrorModal.value = true
-      errorTitle.value = t('register_modal_error_title', 'ព័ត៌មានមិនត្រឹមត្រូវ')
+      errorTitle.value = currentLang.value === 'km' ? 'ព័ត៌មានមិនត្រឹមត្រូវ' : 'Invalid Information'
       const firstKey = Object.keys(errors)[0]
-      errorMessage.value = errors[firstKey] || t('register_modal_error_msg', 'សូមពិនិត្យមើលព័ត៌មាននៃការចុះឈ្មោះរបស់អ្នកឡើងវិញ!')
+      errorMessage.value = errors[firstKey] || (currentLang.value === 'km' ? 'សូមពិនិត្យមើលព័ត៌មាននៃការចុះឈ្មោះរបស់អ្នកឡើងវិញ!' : 'Please check your registration details and try again!')
       setTimeout(() => {
         showErrorModal.value = false
       }, 4500)
@@ -260,613 +286,555 @@ const submit = () => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-slate-100/90 dark:bg-[#070D1E] text-slate-900 dark:text-slate-100 p-4 sm:p-6 lg:p-8 relative font-sans overflow-x-hidden transition-colors duration-500">
+  <div class="min-h-screen w-full bg-[#f8fafc] dark:bg-[#000000] text-zinc-900 dark:text-[#ededed] flex flex-col justify-between relative font-sans overflow-x-hidden select-none transition-colors duration-300">
     
-    <!-- Top-Right Fixed Floating Language & Theme Switchers -->
-    <div class="fixed top-6 right-6 sm:top-7 sm:right-7 lg:top-8 lg:right-8 z-50 flex items-center gap-3">
-      
-      <!-- Language Switcher Pill -->
-      <div class="relative lang-switcher-container">
+    <!-- Top Header with Branding (Left) and Language/Theme Switchers (Right) -->
+    <header class="w-full flex items-center justify-between px-6 sm:px-8 py-5 z-20">
+      <Link href="/" class="flex items-center gap-2.5 text-zinc-900 dark:text-white cursor-pointer select-none group">
+        <img :src="logoUrl" alt="E-LMS" class="w-7 h-7 rounded-full object-contain shadow-xs transition-transform duration-200 group-hover:scale-105" />
+        <span class="font-extrabold text-base tracking-tight font-sans bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-white dark:to-zinc-200 bg-clip-text text-transparent">E LMS</span>
+      </Link>
+
+      <div class="flex items-center gap-3">
+        <!-- Network Status Pill (Online / Offline) -->
+        <NetworkStatusPill :current-lang="currentLang" />
+
+        <!-- Language Switcher Pill -->
+        <div class="relative lang-switcher-container">
+          <button
+            type="button"
+            @click.stop="isLangOpen = !isLangOpen"
+            class="h-8 px-2.5 rounded-full bg-zinc-200/70 dark:bg-[#18181b] hover:bg-zinc-300 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 transition-all duration-150 border border-zinc-300/80 dark:border-zinc-800/80 flex items-center gap-1.5 text-xs font-semibold cursor-pointer select-none"
+            :title="currentLang === 'km' ? 'ប្តូរភាសា / Change Language' : 'Change Language / ប្តូរភាសា'"
+          >
+            <img
+              :src="languages.find(l => l.code === currentLang)?.flagUrl || '/images/flags/km.svg'"
+              :alt="currentLang"
+              class="w-3.5 h-3.5 rounded-full object-cover shrink-0"
+            />
+            <span class="text-[11px] font-bold">
+              {{ currentLang === 'km' ? 'KH' : 'EN' }}
+            </span>
+            <i :class="['pi pi-chevron-down text-[9px] text-zinc-500 transition-transform duration-150', isLangOpen ? 'rotate-180' : '']"></i>
+          </button>
+
+          <!-- Language Dropdown -->
+          <Transition
+            enter-active-class="transition duration-150 ease-out"
+            enter-from-class="transform opacity-0 scale-95 -translate-y-1"
+            enter-to-class="transform opacity-100 scale-100 translate-y-0"
+            leave-active-class="transition duration-100 ease-in"
+            leave-from-class="transform opacity-100 scale-100 translate-y-0"
+            leave-to-class="transform opacity-0 scale-95 -translate-y-1"
+          >
+            <div
+              v-if="isLangOpen"
+              class="absolute right-0 mt-1.5 w-36 rounded-xl bg-white dark:bg-[#18181b] border border-zinc-200 dark:border-zinc-800 shadow-lg py-1 z-50 overflow-hidden"
+            >
+              <button
+                v-for="lang in languages"
+                :key="lang.code"
+                type="button"
+                @click="selectLanguage(lang.code)"
+                :class="[
+                  'w-full flex items-center justify-between px-3 py-2 text-xs font-medium transition-colors cursor-pointer select-none',
+                  currentLang === lang.code
+                    ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-white font-bold'
+                    : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/60'
+                ]"
+              >
+                <span class="flex items-center gap-2">
+                  <img :src="lang.flagUrl" :alt="lang.name" class="w-3.5 h-3.5 rounded-full object-cover shrink-0" />
+                  <span>{{ lang.name }}</span>
+                </span>
+                <i v-if="currentLang === lang.code" class="pi pi-check text-[10px] text-zinc-900 dark:text-white font-bold shrink-0"></i>
+              </button>
+            </div>
+          </Transition>
+        </div>
+
+        <!-- Theme Switcher Pill -->
         <button
           type="button"
-          @click.stop="isLangOpen = !isLangOpen"
-          class="group px-3.5 py-2 rounded-full bg-white/95 dark:bg-slate-800/90 backdrop-blur-md hover:bg-white dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 transition-all duration-200 border border-slate-300/90 dark:border-slate-700/60 shadow-md shadow-slate-900/5 dark:shadow-black/20 flex items-center gap-2 text-xs font-semibold cursor-pointer select-none hover:scale-105 active:scale-95 focus:outline-none"
-          :title="currentLang === 'km' ? 'ប្តូរភាសា / Change Language' : 'Change Language / ប្តូរភាសា'"
+          @click="toggleTheme"
+          class="h-8 px-2.5 rounded-full bg-zinc-200/70 dark:bg-[#18181b] hover:bg-zinc-300 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 transition-all duration-150 border border-zinc-300/80 dark:border-zinc-800/80 flex items-center gap-1.5 text-xs font-semibold cursor-pointer select-none"
+          :title="isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
         >
-          <img
-            :src="languages.find(l => l.code === currentLang)?.flagUrl || '/images/flags/km.svg'"
-            :alt="currentLang"
-            class="w-4 h-4 rounded-full object-cover shrink-0 ring-1 ring-slate-300 dark:ring-slate-600"
-          />
-          <span class="text-[11px] font-bold tracking-wide">
-            {{ currentLang === 'km' ? 'KH' : 'EN' }}
-          </span>
-          <i :class="['pi pi-chevron-down text-[10px] text-slate-500 dark:text-slate-400 transition-transform duration-200', isLangOpen ? 'rotate-180 text-blue-600' : '']"></i>
+          <i :class="['pi text-xs', isDark ? 'pi-sun text-amber-400' : 'pi-moon text-zinc-600 dark:text-zinc-300']"></i>
         </button>
-
-        <!-- Dropdown Menu -->
-        <Transition
-          enter-active-class="transition duration-200 ease-out"
-          enter-from-class="transform opacity-0 scale-95 -translate-y-1"
-          enter-to-class="transform opacity-100 scale-100 translate-y-0"
-          leave-active-class="transition duration-150 ease-in"
-          leave-from-class="transform opacity-100 scale-100 translate-y-0"
-          leave-to-class="transform opacity-0 scale-95 -translate-y-1"
-        >
-          <div
-            v-if="isLangOpen"
-            class="absolute right-0 mt-2 w-44 rounded-2xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border border-slate-200/90 dark:border-slate-700/80 shadow-xl shadow-black/10 dark:shadow-black/40 py-1.5 z-50 overflow-hidden"
-          >
-            <button
-              v-for="lang in languages"
-              :key="lang.code"
-              type="button"
-              @click="selectLanguage(lang.code)"
-              :class="[
-                'w-full flex items-center justify-between px-3.5 py-2.5 text-xs font-semibold transition-colors cursor-pointer select-none',
-                currentLang === lang.code
-                  ? 'bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400'
-                  : 'text-slate-800 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/60 hover:text-slate-950 dark:hover:text-white'
-              ]"
-            >
-              <span class="flex items-center gap-2.5">
-                <img :src="lang.flagUrl" :alt="lang.name" class="w-4 h-4 rounded-full object-cover shrink-0 shadow-xs" />
-                <span>{{ lang.name }}</span>
-              </span>
-              <i v-if="currentLang === lang.code" class="pi pi-check text-xs text-blue-600 dark:text-blue-400 font-bold shrink-0"></i>
-            </button>
-          </div>
-        </Transition>
       </div>
-
-      <!-- Theme Switcher Pill -->
-      <button
-        type="button"
-        @click="toggleTheme"
-        class="group px-3.5 py-2 rounded-full bg-white/95 dark:bg-[#11131a]/90 backdrop-blur-md hover:bg-white dark:hover:bg-[#181a24] text-slate-800 dark:text-slate-200 transition-all duration-200 border border-slate-300/90 dark:border-white/10 shadow-md shadow-slate-900/5 dark:shadow-black/40 flex items-center gap-2 text-xs font-semibold cursor-pointer select-none hover:scale-105 active:scale-95"
-        :title="isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
-      >
-        <div class="relative w-4 h-4 flex items-center justify-center">
-          <i :class="['pi text-xs transition-transform duration-300 group-hover:rotate-45', isDark ? 'pi-sun text-amber-400' : 'pi-moon text-indigo-500']"></i>
-        </div>
-        <span class="text-[11px] font-bold">{{ isDark ? t('theme_light', 'Light Mode') : t('theme_dark', 'Dark Mode') }}</span>
-      </button>
-    </div>
+    </header>
 
     <!-- Manus AI Style Interactive Dot-Matrix Canvas Background -->
     <div class="absolute inset-0 overflow-hidden pointer-events-none z-0 select-none">
       <AuthAnimatedBackground />
     </div>
 
-    <!-- Master Centered Register Card (Clean, Obsidian Glassmorphism) -->
-    <div class="max-w-lg w-full max-h-[90vh] p-[1px] rounded-3xl bg-gradient-to-b from-blue-500/40 via-indigo-500/20 to-purple-500/30 dark:from-white/20 dark:via-white/5 dark:to-white/10 shadow-2xl shadow-slate-900/10 dark:shadow-[0_0_60px_-15px_rgba(0,0,0,0.9)] relative z-10 my-auto transition-all flex flex-col">
-      <div class="w-full bg-white/95 dark:bg-[#0c0d12]/95 backdrop-blur-2xl rounded-[23px] p-6 sm:p-7 flex flex-col justify-center relative z-20 space-y-3.5 transition-colors overflow-y-auto max-h-[90vh] custom-scrollbar">
-        
-        <!-- Header with Logo & Brand Name -->
-        <div class="text-center pb-1 relative">
-          <div class="flex flex-col items-center justify-center gap-1.5">
-            <div class="relative group">
-              <div class="absolute -inset-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full blur opacity-35 group-hover:opacity-65 transition duration-300"></div>
-              <img
-                :src="logoUrl"
-                alt="Saint Paul Institute Logo"
-                class="relative w-14 h-14 rounded-full shadow-lg object-contain ring-2 ring-blue-500/40 ring-offset-2 ring-offset-white dark:ring-offset-[#0c0d12] bg-white p-0.5 transition-transform duration-300 group-hover:scale-105"
-              />
-            </div>
-            <div>
-              <h1 class="text-xl font-black tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 dark:from-blue-400 dark:via-indigo-300 dark:to-cyan-300 bg-clip-text text-transparent">
-                SPI AI-ELMS
-              </h1>
-              <p class="text-xs font-bold text-slate-700 dark:text-slate-300 mt-0.5 tracking-wide">
-                {{ t('register_title', 'បង្កើតគណនីថ្មី') }}
-              </p>
-            </div>
+    <!-- Centered Clean Form Stage (Manus Minimalist Style) -->
+    <main class="w-full max-w-[460px] mx-auto px-4 py-4 z-10 my-auto flex flex-col items-center">
+      
+      <!-- Normal Form View (When not registering) -->
+      <div v-if="!isRegistering" class="w-full flex flex-col items-center">
+        <!-- Top Minimalist Icon & Heading -->
+        <div class="flex flex-col items-center mb-5 text-center">
+        <div class="mb-3.5 relative group">
+          <div class="absolute -inset-1.5 bg-gradient-to-r from-sky-400 to-blue-600 rounded-full blur opacity-30 group-hover:opacity-60 transition duration-300"></div>
+          <img
+            :src="logoUrl"
+            alt="E-LMS Logo"
+            class="relative w-[72px] h-[72px] rounded-full shadow-lg object-contain ring-2 ring-sky-400/40 dark:ring-sky-400/30 bg-black transition-transform duration-300 group-hover:scale-105"
+          />
+        </div>
+        <h1 class="text-2xl sm:text-[26px] font-black tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 dark:from-white dark:via-zinc-100 dark:to-zinc-300 bg-clip-text text-transparent">
+          {{ t('register_title', 'បង្កើតគណនីថ្មី') }}
+        </h1>
+        <p class="text-xs sm:text-sm text-slate-600 dark:text-zinc-400 mt-1">
+          {{ t('register_subtitle', 'ចាប់ផ្តើមបង្កើត និងរៀនសូត្រជាមួយ E-LMS') }}
+        </p>
+      </div>
+
+      <div class="w-full space-y-3.5">
+
+        <!-- Stepper Progress Header (Clean Minimalist) -->
+        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-100/90 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800 text-xs select-none shadow-2xs">
+          <div class="flex items-center gap-2">
+            <span class="w-5 h-5 rounded-full bg-blue-600 dark:bg-white text-white dark:text-zinc-950 font-bold text-[10px] flex items-center justify-center shadow-xs">
+              {{ step }}
+            </span>
+            <span class="text-slate-800 dark:text-white font-semibold text-xs">
+              {{ step === 1 ? t('register_step1_header', 'Step 1 of 3: Account Info') : step === 2 ? t('register_step2_header', 'Step 2 of 3: Academic Details') : t('register_step3_header', 'Step 3 of 3: Verification') }}
+            </span>
+          </div>
+
+          <!-- Progress Indicator Pills -->
+          <div class="flex items-center gap-1.5">
+            <button type="button" @click="goToStep(1)" :class="['w-6 h-1.5 rounded-full transition-all duration-200 cursor-pointer', step >= 1 ? 'bg-blue-600 dark:bg-white' : 'bg-slate-300 dark:bg-zinc-800']"></button>
+            <button type="button" @click="goToStep(2)" :disabled="!isStep1Valid" :class="['w-6 h-1.5 rounded-full transition-all duration-200 disabled:opacity-40 cursor-pointer', step >= 2 ? 'bg-blue-600 dark:bg-white' : 'bg-slate-300 dark:bg-zinc-800']"></button>
+            <button type="button" @click="goToStep(3)" :disabled="!isStep1Valid || !isStep2Valid" :class="['w-6 h-1.5 rounded-full transition-all duration-200 disabled:opacity-40 cursor-pointer', step >= 3 ? 'bg-blue-600 dark:bg-white' : 'bg-slate-300 dark:bg-zinc-800']"></button>
           </div>
         </div>
 
-        <div class="space-y-3.5">
+        <!-- Role Selection Tabs (Only Student & Teacher) -->
+        <div class="grid grid-cols-2 p-1 rounded-xl bg-slate-100 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800 text-xs shadow-2xs">
+          <button
+            type="button"
+            @click="form.role = 'student'"
+            :class="[
+              'py-2.5 rounded-lg font-medium transition-all text-xs cursor-pointer flex items-center justify-center gap-1.5',
+              form.role === 'student'
+                ? 'bg-blue-600 dark:bg-zinc-800 text-white font-bold shadow-sm shadow-blue-500/20'
+                : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+            ]"
+          >
+            <i class="pi pi-graduation-cap text-xs"></i>
+            <span>{{ t('register_tab_student', 'និស្សិត') }}</span>
+          </button>
+          <button
+            type="button"
+            @click="form.role = 'teacher'"
+            :class="[
+              'py-2.5 rounded-lg font-medium transition-all text-xs cursor-pointer flex items-center justify-center gap-1.5',
+              form.role === 'teacher'
+                ? 'bg-blue-600 dark:bg-zinc-800 text-white font-bold shadow-sm shadow-blue-500/20'
+                : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+            ]"
+          >
+            <i class="pi pi-briefcase text-xs"></i>
+            <span>{{ t('register_tab_teacher', 'លោកគ្រូ/អ្នកគ្រូ') }}</span>
+          </button>
+        </div>
 
-          <!-- Clean Step Progress Header -->
-          <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-100/90 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 text-xs select-none">
-            <div class="flex items-center gap-2">
-              <span class="w-5 h-5 rounded-full bg-blue-500/80 text-white font-black text-[10px] flex items-center justify-center shadow-xs">
-                {{ step }}
-              </span>
-              <span class="text-slate-900 dark:text-slate-100 font-bold text-xs">
-                {{ step === 1 ? t('register_step1_header', 'Step 1 of 3: Account Info') : step === 2 ? t('register_step2_header', 'Step 2 of 3: Academic Details') : t('register_step3_header', 'Step 3 of 3: Verification') }}
-              </span>
-            </div>
-
-            <!-- Progress Indicator Pills -->
-            <div class="flex items-center gap-1.5">
-              <button type="button" @click="goToStep(1)" :class="['w-6 h-1.5 rounded-full transition-all duration-300', step >= 1 ? 'bg-blue-500/80' : 'bg-slate-300 dark:bg-slate-700']"></button>
-              <button type="button" @click="goToStep(2)" :disabled="!isStep1Valid" :class="['w-6 h-1.5 rounded-full transition-all duration-300 disabled:opacity-40', step >= 2 ? 'bg-blue-500/80' : 'bg-slate-300 dark:bg-slate-700']"></button>
-              <button type="button" @click="goToStep(3)" :disabled="!isStep1Valid || !isStep2Valid" :class="['w-6 h-1.5 rounded-full transition-all duration-300 disabled:opacity-40', step >= 3 ? 'bg-blue-500/80' : 'bg-slate-300 dark:bg-slate-700']"></button>
-            </div>
+        <!-- Validation Errors Alert -->
+        <div v-if="Object.keys(form.errors).length > 0" class="bg-rose-500/10 border border-rose-500/30 rounded-xl p-2.5 text-rose-600 dark:text-rose-300 text-xs space-y-1 animate-shake">
+          <div class="font-bold flex items-center gap-1.5 text-rose-500 text-[11px]">
+            <i class="pi pi-exclamation-circle text-xs"></i> {{ t('register_fix_errors', 'សូមពិនិត្យមើលព័ត៌មានឡើងវិញ៖') }}
           </div>
+          <ul class="list-disc list-inside space-y-0.5 text-slate-700 dark:text-zinc-300 font-medium text-[11px]">
+            <li v-for="(err, key) in form.errors" :key="key">{{ err }}</li>
+          </ul>
+        </div>
 
-          <!-- Role Selection Segmented Tabs (Attractive Soft Pastel Blue Active State) -->
-          <div class="p-1 rounded-xl bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/80 grid grid-cols-2 gap-1">
-            <!-- Student Tab -->
-            <button
-              type="button"
-              @click="form.role = 'student'"
-              :class="[
-                'flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer select-none',
-                form.role === 'student'
-                  ? 'bg-blue-500/80 text-white shadow-xs shadow-blue-500/20 border border-blue-400/30'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60'
-              ]"
-            >
-              <i class="pi pi-graduation-cap text-xs"></i>
-              <span>{{ t('register_tab_student', 'Student') }}</span>
-            </button>
-
-            <!-- Teacher Tab -->
-            <button
-              type="button"
-              @click="form.role = 'teacher'"
-              :class="[
-                'flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer select-none',
-                form.role === 'teacher'
-                  ? 'bg-blue-500/80 text-white shadow-xs shadow-blue-500/20 border border-blue-400/30'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/60'
-              ]"
-            >
-              <i class="pi pi-book text-xs"></i>
-              <span>{{ t('register_tab_teacher', 'Teacher') }}</span>
-            </button>
-          </div>
-
-          <!-- Global Validation Error Alert -->
-          <div v-if="Object.keys(form.errors).length > 0" class="bg-rose-500/10 border border-rose-500/30 rounded-xl p-2.5 text-rose-600 dark:text-rose-300 text-xs space-y-1 animate-shake">
-            <div class="font-bold flex items-center gap-1.5 text-rose-500 text-[11px]">
-              <i class="pi pi-exclamation-circle text-sm"></i> Please fix the validation errors:
-            </div>
-            <ul class="list-disc list-inside space-y-0.5 text-slate-700 dark:text-slate-300 font-medium text-[11px]">
-              <li v-for="(err, key) in form.errors" :key="key">{{ err }}</li>
-            </ul>
-          </div>
-
-          <form @submit.prevent="submit" class="space-y-3.5">
+        <form @submit.prevent="submit" class="space-y-3">
+          
+          <!-- STEP 1: ACCOUNT INFORMATION -->
+          <div v-if="step === 1" class="space-y-3">
             
-            <!-- STEP 1: ACCOUNT INFORMATION -->
-            <div v-if="step === 1" class="space-y-3">
-              
-              <!-- Names Grid -->
-              <div class="grid grid-cols-2 gap-3">
-                <div class="space-y-1">
-                  <label class="block text-xs font-bold text-slate-800 dark:text-slate-200">
-                    {{ t('register_name_kh_label', 'Full Name (Khmer)') }} *
-                  </label>
-                  <input
-                    v-model="form.name_kh"
-                    type="text"
-                    :placeholder="t('register_name_kh_placeholder', 'e.g. ចាន់ ដារ៉ា')"
-                    class="h-11 w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50/70 dark:bg-slate-800/80 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 text-xs sm:text-sm font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition shadow-2xs font-khmer"
-                  />
-                </div>
+            <!-- Names Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <input
+                v-model="form.name_kh"
+                type="text"
+                :placeholder="t('register_name_kh_placeholder', 'ឈ្មោះពេញ (ភាសាខ្មែរ)')"
+                class="h-11 w-full px-3.5 bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/15 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 text-xs sm:text-sm rounded-xl outline-none transition-all duration-150 shadow-2xs font-khmer"
+              />
+              <input
+                v-model="form.name"
+                type="text"
+                required
+                :placeholder="t('register_name_en_placeholder', 'Full Name (Latin) *')"
+                class="h-11 w-full px-3.5 bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/15 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 text-xs sm:text-sm rounded-xl outline-none transition-all duration-150 shadow-2xs"
+              />
+            </div>
 
-                <div class="space-y-1">
-                  <label class="block text-xs font-bold text-slate-800 dark:text-slate-200">
-                    {{ t('register_name_en_label', 'Full Name (Latin/English)') }} *
-                  </label>
-                  <input
-                    v-model="form.name"
-                    type="text"
-                    required
-                    :placeholder="t('register_name_en_placeholder', 'e.g. Chan Dara')"
-                    class="h-11 w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50/70 dark:bg-slate-800/80 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 text-xs sm:text-sm font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition shadow-2xs"
-                  />
-                </div>
+            <!-- Contact Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <input
+                v-model="form.email"
+                type="email"
+                required
+                :placeholder="t('register_email_placeholder', 'Email Address *')"
+                class="h-11 w-full px-3.5 bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/15 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 text-xs sm:text-sm rounded-xl outline-none transition-all duration-150 shadow-2xs"
+              />
+              <input
+                v-model="form.phone"
+                type="tel"
+                required
+                :placeholder="t('register_phone_placeholder', 'Phone Number *')"
+                class="h-11 w-full px-3.5 bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/15 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 text-xs sm:text-sm rounded-xl outline-none transition-all duration-150 shadow-2xs"
+              />
+            </div>
+
+            <!-- Passwords Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div class="relative">
+                <input
+                  v-model="form.password"
+                  :type="showPassword ? 'text' : 'password'"
+                  required
+                  :placeholder="t('register_password_placeholder', 'Password (min. 8 chars) *')"
+                  class="h-11 w-full pl-3.5 pr-9 bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/15 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 text-xs sm:text-sm rounded-xl outline-none transition-all duration-150 shadow-2xs"
+                />
+                <button type="button" @click="showPassword = !showPassword" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 cursor-pointer p-1">
+                  <i :class="['pi text-xs', showPassword ? 'pi-eye-slash text-slate-700 dark:text-zinc-300' : 'pi-eye']"></i>
+                </button>
               </div>
 
-              <!-- Contact Grid -->
-              <div class="grid grid-cols-2 gap-3">
-                <div class="space-y-1">
-                  <label class="block text-xs font-bold text-slate-800 dark:text-slate-200">
-                    {{ t('register_email_label', 'Email Address') }} *
-                  </label>
-                  <input
-                    v-model="form.email"
-                    type="email"
-                    required
-                    :placeholder="t('register_email_placeholder', 'e.g. name@domain.com')"
-                    class="h-11 w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50/70 dark:bg-slate-800/80 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 text-xs sm:text-sm font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition shadow-2xs"
-                  />
-                </div>
+              <input
+                v-model="form.password_confirmation"
+                :type="showPassword ? 'text' : 'password'"
+                required
+                :placeholder="t('register_confirm_password_label', 'Confirm Password *')"
+                class="h-11 w-full px-3.5 bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/15 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 text-xs sm:text-sm rounded-xl outline-none transition-all duration-150 shadow-2xs"
+              />
+            </div>
 
-                <div class="space-y-1">
-                  <label class="block text-xs font-bold text-slate-800 dark:text-slate-200">
-                    {{ t('register_phone_label', 'Phone Number') }} *
-                  </label>
-                  <input
-                    v-model="form.phone"
-                    type="tel"
-                    required
-                    :placeholder="t('register_phone_placeholder', 'e.g. +855 12 345 678')"
-                    class="h-11 w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50/70 dark:bg-slate-800/80 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 text-xs sm:text-sm font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition shadow-2xs"
-                  />
-                </div>
+            <!-- Password Hint -->
+            <div class="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-zinc-400">
+              <i class="pi pi-info-circle text-[11px] text-blue-500 shrink-0"></i>
+              <span>{{ t('register_password_hint', 'Must be at least 8 characters with numbers & letters') }}</span>
+            </div>
+
+            <!-- Terms Checkbox -->
+            <label class="flex items-start gap-2 text-[11px] text-slate-600 dark:text-zinc-400 cursor-pointer select-none pt-1">
+              <input
+                v-model="form.terms"
+                type="checkbox"
+                required
+                class="mt-0.5 w-4 h-4 rounded border-slate-300 dark:border-zinc-700 text-blue-600 focus:ring-2 focus:ring-blue-500/20 accent-blue-600 cursor-pointer shrink-0"
+              />
+              <span>
+                {{ currentLang === 'km' ? 'ខ្ញុំយល់ព្រមតាម' : 'I agree to the' }}
+                <Link href="/terms" class="text-blue-600 hover:text-blue-700 dark:text-sky-400 font-medium underline underline-offset-2">{{ currentLang === 'km' ? 'លក្ខខណ្ឌប្រើប្រាស់' : 'Terms of Service' }}</Link>
+                &
+                <Link href="/privacy" class="text-blue-600 hover:text-blue-700 dark:text-sky-400 font-medium underline underline-offset-2">{{ currentLang === 'km' ? 'គោលការណ៍ឯកជនភាព' : 'Privacy Policy' }}</Link>
+              </span>
+            </label>
+
+            <!-- Step 1 Button -->
+            <button
+              type="button"
+              @click="nextStep"
+              :disabled="!isStep1Valid"
+              class="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white dark:bg-[#e4e4e7] dark:hover:bg-white dark:text-zinc-950 font-semibold text-xs sm:text-sm flex items-center justify-center transition-all duration-150 cursor-pointer shadow-md shadow-blue-500/20 active:scale-[0.99] disabled:opacity-50 disabled:shadow-none"
+            >
+              <span>{{ currentLang === 'km' ? 'បន្តទៅជំហានទី ២' : 'Continue to Step 2' }}</span>
+            </button>
+          </div>
+
+          <!-- STEP 2: ACADEMIC SELECTION -->
+          <div v-if="step === 2" class="space-y-3.5">
+            
+            <!-- TEACHER ROLE -->
+            <template v-if="form.role === 'teacher'">
+              <!-- Teacher Invitation Code Input -->
+              <div class="space-y-1">
+                <input
+                  v-model="form.invitation_code"
+                  type="text"
+                  required
+                  :placeholder="currentLang === 'km' ? 'កូដអញ្ជើញគ្រូបង្រៀន (TEACHER-2026-INVITE) *' : 'Teacher Invitation Code (TEACHER-2026-INVITE) *'"
+                  class="h-11 w-full px-3.5 bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/15 text-slate-900 dark:text-white font-mono text-xs sm:text-sm rounded-xl outline-none transition-all duration-150 shadow-2xs"
+                />
+                <p class="text-[11px] text-slate-500 dark:text-zinc-400 pt-0.5 flex items-center gap-1.5">
+                  <i class="pi pi-info-circle text-[11px] text-blue-500"></i>
+                  <span>{{ currentLang === 'km' ? 'តម្រូវឱ្យមានដើម្បីផ្ទៀងផ្ទាត់សិទ្ធិរបស់សាស្ត្រាចារ្យ' : 'Required to verify faculty authorization' }}</span>
+                </p>
               </div>
 
-              <!-- Passwords Grid -->
-              <div class="grid grid-cols-2 gap-3">
-                <div class="space-y-1">
-                  <label class="block text-xs font-bold text-slate-800 dark:text-slate-200">
-                    {{ t('register_password_label', 'Password') }} *
-                  </label>
-                  <div class="relative">
-                    <input
-                      v-model="form.password"
-                      :type="showPassword ? 'text' : 'password'"
-                      required
-                      :placeholder="t('register_password_placeholder', '••••••••••••••••')"
-                      class="h-11 w-full pl-3.5 pr-8 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50/70 dark:bg-slate-800/80 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 text-xs sm:text-sm font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition shadow-2xs"
-                    />
-                    <button type="button" @click="showPassword = !showPassword" class="absolute right-2.5 top-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
-                      <i :class="['pi text-xs', showPassword ? 'pi-eye-slash text-blue-600' : 'pi-eye']"></i>
-                    </button>
+              <!-- Department / Faculty Selection -->
+              <div class="space-y-1">
+                <select
+                  v-model="form.major_id"
+                  required
+                  class="h-11 w-full px-3.5 bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/15 text-slate-900 dark:text-white text-xs sm:text-sm rounded-xl outline-none transition-all duration-150 shadow-2xs"
+                >
+                  <option :value="null" disabled>-- {{ currentLang === 'km' ? 'ជ្រើសរើសមហាវិទ្យាល័យ / ដេប៉ាតឺម៉ង់' : 'Select Department / Faculty' }} --</option>
+                  <option v-for="m in props.majors" :key="m.id" :value="m.id">
+                    {{ currentLang === 'km' && m.name_kh ? m.name_kh : m.name }}
+                  </option>
+                </select>
+              </div>
+            </template>
+
+            <!-- STUDENT ROLE -->
+            <template v-else>
+              <!-- Major Dropdown -->
+              <div class="space-y-1">
+                <select
+                  v-model="form.major_id"
+                  required
+                  class="h-11 w-full px-3.5 bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/15 text-slate-900 dark:text-white text-xs sm:text-sm rounded-xl outline-none transition-all duration-150 shadow-2xs"
+                >
+                  <option :value="null" disabled>-- {{ currentLang === 'km' ? 'ជ្រើសរើសជំនាញសិក្សារបស់អ្នក *' : 'Choose Your Major *' }} --</option>
+                  <option v-for="m in props.majors" :key="m.id" :value="m.id">
+                    {{ currentLang === 'km' && m.name_kh ? m.name_kh : m.name }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Auto-filled Academic Info Pill -->
+              <div class="bg-slate-100/90 dark:bg-zinc-900/90 border border-slate-200 dark:border-zinc-800 rounded-xl p-3 space-y-1.5 text-xs transition-all shadow-2xs">
+                <div class="font-bold text-slate-900 dark:text-zinc-100 text-xs flex items-center gap-1.5 pb-1 border-b border-slate-200 dark:border-zinc-800">
+                  <i class="pi pi-building text-blue-500 text-xs shrink-0"></i>
+                  <span>🏫 {{ currentLang === 'km' ? 'ព័ត៌មានសិក្សា (ស្វ័យប្រវត្តិ)' : 'Academic Information (Auto-filled)' }}</span>
+                </div>
+                <div class="space-y-0.5 pt-0.5 text-xs text-slate-600 dark:text-zinc-400">
+                  <div class="flex items-center gap-1.5">
+                    <span class="font-semibold text-slate-700 dark:text-zinc-300">• {{ currentLang === 'km' ? 'មហាវិទ្យាល័យ:' : 'Faculty:' }}</span>
+                    <span class="font-medium text-slate-900 dark:text-white">{{ facultyName }}</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="font-semibold text-slate-700 dark:text-zinc-300">• {{ currentLang === 'km' ? 'ដេប៉ាតឺម៉ង់:' : 'Department:' }}</span>
+                    <span class="font-medium text-slate-900 dark:text-white">{{ departmentName }}</span>
                   </div>
                 </div>
-
-                <div class="space-y-1">
-                  <label class="block text-xs font-bold text-slate-800 dark:text-slate-200">
-                    {{ t('register_confirm_password_label', 'Confirm Password') }} *
+              </div>
+              
+              <!-- Study Type Radio Buttons (Manus Zinc Style) -->
+              <div class="space-y-1">
+                <label class="block text-xs font-medium text-slate-700 dark:text-zinc-400">{{ currentLang === 'km' ? 'ទម្រង់សិក្សា *' : 'Study Type *' }}</label>
+                <div class="grid grid-cols-2 gap-2.5">
+                  <label :class="[
+                    'p-2.5 rounded-xl border cursor-pointer transition-all duration-150 flex items-center justify-center gap-2 text-xs font-semibold select-none',
+                    form.study_type === 'online'
+                      ? 'bg-blue-600 text-white dark:bg-zinc-800 dark:text-white border-blue-600 dark:border-zinc-700 shadow-sm shadow-blue-500/20'
+                      : 'bg-white dark:bg-[#121214] border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 hover:border-slate-300 dark:hover:border-zinc-700'
+                  ]">
+                    <input type="radio" v-model="form.study_type" value="online" class="sr-only" />
+                    <i class="pi pi-globe text-xs"></i>
+                    <span>🌐 {{ currentLang === 'km' ? 'ការសិក្សាអនឡាញ' : 'Online Learning' }}</span>
                   </label>
-                  <input
-                    v-model="form.password_confirmation"
-                    :type="showPassword ? 'text' : 'password'"
-                    required
-                    :placeholder="t('register_password_placeholder', '••••••••••••••••')"
-                    class="h-11 w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50/70 dark:bg-slate-800/80 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 text-xs sm:text-sm font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition shadow-2xs"
-                  />
+
+                  <label :class="[
+                    'p-2.5 rounded-xl border cursor-pointer transition-all duration-150 flex items-center justify-center gap-2 text-xs font-semibold select-none',
+                    form.study_type === 'on_campus'
+                      ? 'bg-blue-600 text-white dark:bg-zinc-800 dark:text-white border-blue-600 dark:border-zinc-700 shadow-sm shadow-blue-500/20'
+                      : 'bg-white dark:bg-[#121214] border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 hover:border-slate-300 dark:hover:border-zinc-700'
+                  ]">
+                    <input type="radio" v-model="form.study_type" value="on_campus" class="sr-only" />
+                    <i class="pi pi-building text-xs"></i>
+                    <span>🏢 {{ currentLang === 'km' ? 'សិក្សានៅសាលា' : 'On-Campus' }}</span>
+                  </label>
                 </div>
               </div>
+            </template>
 
-              <!-- Password Validation Helper Hint Text -->
-              <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium pt-0.5 flex items-center gap-1.5 select-none">
-                <i class="pi pi-info-circle text-[11px] text-blue-500 shrink-0"></i>
-                <span>{{ t('register_password_hint', 'Must be at least 8 characters with numbers & letters') }}</span>
-              </p>
-
-              <!-- Terms Checkbox (Full Label Interaction Wrap) -->
-              <div class="pt-1">
-                <label class="flex items-center space-x-2.5 cursor-pointer select-none group">
-                  <input
-                    v-model="form.terms"
-                    type="checkbox"
-                    required
-                    class="rounded border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-blue-600 focus:ring-blue-500 h-4 w-4 cursor-pointer"
-                  />
-                  <span class="text-xs text-slate-700 dark:text-slate-300 font-medium group-hover:text-blue-600 dark:group-hover:text-sky-400 transition-colors">
-                    {{ t('register_terms_label', 'I agree to the Terms of Service & Privacy Policy') }}
-                  </span>
-                </label>
-                <div class="flex items-center gap-2 mt-1 ml-6.5 text-[11px] text-slate-500 dark:text-slate-400">
-                  <a href="/terms" target="_blank" class="hover:underline text-blue-600 dark:text-sky-400 font-medium">Terms of Service</a>
-                  <span>•</span>
-                  <a href="/privacy" target="_blank" class="hover:underline text-blue-600 dark:text-sky-400 font-medium">Privacy Policy</a>
-                </div>
-              </div>
-
-              <!-- Primary CTA Button (Matching Soft Blue Active Tab Aesthetic) -->
+            <!-- Step 2 Navigation Buttons -->
+            <div class="grid grid-cols-2 gap-2.5 pt-1">
               <button
                 type="button"
-                @click="nextStep"
-                :disabled="!isStep1Valid"
-                class="h-11 group w-full py-2.5 px-5 bg-blue-500/85 hover:bg-blue-500 border border-blue-400/30 active:scale-[0.99] text-white font-bold rounded-xl shadow-sm shadow-blue-500/20 hover:shadow-md hover:shadow-blue-500/30 transition-all duration-200 inline-flex items-center justify-center gap-2.5 disabled:opacity-50 text-xs sm:text-sm font-bold tracking-wide cursor-pointer focus:outline-none focus:ring-4 focus:ring-blue-500/20"
+                @click="prevStep"
+                class="h-11 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-900/90 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-200 font-semibold rounded-xl border border-slate-200 dark:border-zinc-800 transition text-xs flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                <span>{{ t('register_btn_next_step2', 'Continue to Step 2') }}</span>
-                <span class="w-6 h-6 rounded-full bg-white/20 dark:bg-white/15 flex items-center justify-center transition-all duration-300 group-hover:translate-x-1 group-hover:bg-white/30 group-hover:scale-110 shadow-2xs shrink-0">
-                  <svg class="w-3.5 h-3.5 fill-current text-white" viewBox="0 0 24 24">
-                    <path d="M13.293 6.293a1 1 0 0 1 1.414 0l5 5a1 1 0 0 1 0 1.414l-5 5a1 1 0 0 1-1.414-1.414L16.586 13H5a1 1 0 1 1 0-2h11.586l-3.293-3.293a1 1 0 0 1 0-1.414z"/>
-                  </svg>
-                </span>
+                <i class="pi pi-arrow-left text-xs"></i>
+                <span>{{ t('register_btn_back', 'ត្រឡប់ក្រោយ') }}</span>
+              </button>
+
+              <button
+                v-if="form.role === 'student'"
+                type="button"
+                @click="nextStep"
+                :disabled="!isStep2Valid"
+                class="h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white dark:bg-[#e4e4e7] dark:hover:bg-white dark:text-zinc-950 font-semibold text-xs sm:text-sm flex items-center justify-center transition-all duration-150 cursor-pointer shadow-md shadow-blue-500/20 active:scale-[0.99] disabled:opacity-50 disabled:shadow-none"
+              >
+                <span>{{ currentLang === 'km' ? 'បន្តទៅជំហានទី ៣' : 'Continue to Step 3' }}</span>
+              </button>
+
+              <button
+                v-else
+                type="submit"
+                :disabled="form.processing || !isStep2Valid"
+                class="h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white dark:bg-[#e4e4e7] dark:hover:bg-white dark:text-zinc-950 font-semibold text-xs sm:text-sm flex items-center justify-center transition-all duration-150 cursor-pointer shadow-md shadow-blue-500/20 active:scale-[0.99] disabled:opacity-50 disabled:shadow-none"
+              >
+                <i v-if="form.processing" class="pi pi-spin pi-spinner text-xs mr-1.5"></i>
+                <span>{{ form.processing ? (currentLang === 'km' ? 'កំពុងចុះឈ្មោះ...' : 'Registering...') : (currentLang === 'km' ? 'ចុះឈ្មោះបង្កើតគណនី' : 'Complete Registration') }}</span>
               </button>
             </div>
 
-            <!-- STEP 2: ACADEMIC SELECTION -->
-            <div v-if="step === 2" class="space-y-3.5">
-              
-              <!-- TEACHER ROLE: Clean Dynamic Form -->
-              <template v-if="form.role === 'teacher'">
-                <!-- Teacher Invitation Code Input -->
-                <div class="space-y-1">
-                  <label class="block text-xs font-bold text-slate-800 dark:text-slate-200">
-                    {{ t('register_invite_label', 'Teacher Invitation Code') }} *
-                  </label>
-                  <input
-                    v-model="form.invitation_code"
-                    type="text"
-                    required
-                    placeholder="TEACHER-2026-INVITE"
-                    class="h-11 w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50/70 dark:bg-slate-800/80 text-slate-900 dark:text-white font-mono text-xs sm:text-sm font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition shadow-2xs"
-                  />
-                  <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium pt-0.5 flex items-center gap-1.5 select-none">
-                    <i class="pi pi-info-circle text-[11px] text-blue-500 shrink-0"></i>
-                    <span>{{ t('register_invite_hint', 'Required to verify faculty authorization') }}</span>
-                  </p>
-                </div>
-
-                <!-- Department / Faculty Selection -->
-                <div class="space-y-1">
-                  <label class="block text-xs font-bold text-slate-800 dark:text-slate-200">
-                    {{ t('register_dept_label', 'Department / Faculty') }} *
-                  </label>
-                  <select
-                    v-model="form.major_id"
-                    required
-                    class="h-11 w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50/70 dark:bg-slate-800/80 text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-xs sm:text-sm font-medium shadow-2xs"
-                  >
-                    <option :value="null" disabled>-- Select Department / Faculty --</option>
-                    <option v-for="m in props.majors" :key="m.id" :value="m.id">
-                      {{ m.name }} {{ m.name_kh ? `(${m.name_kh})` : '' }}
-                    </option>
-                  </select>
-                </div>
-              </template>
-
-              <!-- STUDENT ROLE: Major, Auto-filled Card & Study Type -->
-              <template v-else>
-                <!-- Major Dropdown -->
-                <div class="space-y-1">
-                  <label class="block text-xs font-bold text-slate-800 dark:text-slate-200">Select Major *</label>
-                  <select
-                    v-model="form.major_id"
-                    required
-                    class="h-11 w-full px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50/70 dark:bg-slate-800/80 text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-xs sm:text-sm font-medium shadow-2xs"
-                  >
-                    <option :value="null" disabled>-- Choose Your Major --</option>
-                    <option v-for="m in props.majors" :key="m.id" :value="m.id">
-                      {{ m.name }} {{ m.name_kh ? `(${m.name_kh})` : '' }}
-                    </option>
-                  </select>
-                </div>
-
-                <!-- Read-Only Auto-filled Academic Information Card -->
-                <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/90 dark:border-slate-700/80 rounded-xl p-3.5 space-y-2 text-xs transition-all shadow-2xs">
-                  <div class="font-bold text-slate-800 dark:text-slate-200 text-xs flex items-center gap-1.5 pb-1 border-b border-slate-200/80 dark:border-slate-700/60">
-                    <i class="pi pi-building text-blue-600 dark:text-sky-400 text-xs shrink-0"></i>
-                    <span>🏫 Academic Information (Auto-filled)</span>
-                  </div>
-                  <div class="space-y-1 pt-0.5 text-xs">
-                    <div class="flex items-center gap-1.5">
-                      <span class="text-slate-500 dark:text-slate-400 font-semibold">• Faculty:</span>
-                      <span class="font-bold text-blue-600 dark:text-sky-400">{{ facultyName }}</span>
-                    </div>
-                    <div class="flex items-center gap-1.5">
-                      <span class="text-slate-500 dark:text-slate-400 font-semibold">• Department:</span>
-                      <span class="font-bold text-indigo-600 dark:text-indigo-400">{{ departmentName }}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Study Type Radio Buttons (Uniform Primary Blue Palette) -->
-                <div class="space-y-1.5">
-                  <label class="block text-xs font-bold text-slate-800 dark:text-slate-200">Study Type *</label>
-                  <div class="grid grid-cols-2 gap-2.5">
-                    <label :class="[
-                      'p-3 rounded-xl border cursor-pointer transition-all duration-200 flex items-center justify-center gap-2 text-xs font-bold select-none',
-                      form.study_type === 'online'
-                        ? 'bg-blue-500/10 border-blue-500/60 text-blue-600 dark:text-sky-400 dark:border-blue-500/50 shadow-2xs'
-                        : 'bg-slate-50 dark:bg-slate-800/60 border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-400'
-                    ]">
-                      <input type="radio" v-model="form.study_type" value="online" class="sr-only" />
-                      <i class="pi pi-globe text-sm text-blue-600 dark:text-sky-400"></i>
-                      <span>🌐 Online Learning</span>
-                    </label>
-
-                    <label :class="[
-                      'p-3 rounded-xl border cursor-pointer transition-all duration-200 flex items-center justify-center gap-2 text-xs font-bold select-none',
-                      form.study_type === 'on_campus'
-                        ? 'bg-blue-500/10 border-blue-500/60 text-blue-600 dark:text-sky-400 dark:border-blue-500/50 shadow-2xs'
-                        : 'bg-slate-50 dark:bg-slate-800/60 border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-400'
-                    ]">
-                      <input type="radio" v-model="form.study_type" value="on_campus" class="sr-only" />
-                      <i class="pi pi-building text-sm text-blue-600 dark:text-sky-400"></i>
-                      <span>🏢 On-Campus</span>
-                    </label>
-                  </div>
-                </div>
-              </template>
-
-              <!-- Step 2 Navigation Buttons -->
-              <div class="grid grid-cols-2 gap-2.5 pt-1">
-                <button
-                  type="button"
-                  @click="prevStep"
-                  class="h-11 bg-slate-200/90 dark:bg-slate-800/90 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold rounded-xl border border-slate-300/80 dark:border-slate-700/60 transition text-xs flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <i class="pi pi-arrow-left text-xs"></i>
-                  <span>{{ t('register_btn_back', 'Back') }}</span>
-                </button>
-
-                <button
-                  v-if="form.role === 'student'"
-                  type="button"
-                  @click="nextStep"
-                  :disabled="!isStep2Valid"
-                  class="h-11 group py-2.5 px-4 bg-blue-500/85 hover:bg-blue-500 border border-blue-400/30 active:scale-[0.99] text-white font-bold rounded-xl shadow-sm shadow-blue-500/20 hover:shadow-md hover:shadow-blue-500/30 transition-all duration-200 inline-flex items-center justify-center gap-2 disabled:opacity-50 text-xs font-bold tracking-wide cursor-pointer focus:outline-none focus:ring-4 focus:ring-blue-500/20"
-                >
-                  <span>{{ t('register_btn_next_step3', 'Continue to Step 3') }}</span>
-                  <span class="w-5 h-5 rounded-full bg-white/20 dark:bg-white/15 flex items-center justify-center transition-all duration-300 group-hover:translate-x-1 group-hover:bg-white/30 shrink-0">
-                    <svg class="w-3 h-3 fill-current text-white" viewBox="0 0 24 24">
-                      <path d="M13.293 6.293a1 1 0 0 1 1.414 0l5 5a1 1 0 0 1 0 1.414l-5 5a1 1 0 0 1-1.414-1.414L16.586 13H5a1 1 0 1 1 0-2h11.586l-3.293-3.293a1 1 0 0 1 0-1.414z"/>
-                    </svg>
-                  </span>
-                </button>
-
-                <button
-                  v-else
-                  type="submit"
-                  :disabled="form.processing || !isStep2Valid"
-                  class="h-11 group py-2.5 px-4 bg-blue-500/85 hover:bg-blue-500 border border-blue-400/30 active:scale-[0.99] text-white font-bold rounded-xl shadow-sm shadow-blue-500/20 hover:shadow-md hover:shadow-blue-500/30 transition-all duration-200 inline-flex items-center justify-center gap-2 disabled:opacity-50 text-xs font-bold tracking-wide cursor-pointer focus:outline-none focus:ring-4 focus:ring-blue-500/20"
-                >
-                  <i v-if="form.processing" class="pi pi-spin pi-spinner text-xs"></i>
-                  <span>{{ form.processing ? t('register_btn_submitting', 'Registering...') : t('register_btn_submit', 'Complete Registration') }}</span>
-                  <span v-if="!form.processing" class="w-5 h-5 rounded-full bg-white/20 dark:bg-white/15 flex items-center justify-center transition-all duration-300 group-hover:translate-x-1 group-hover:bg-white/30 shrink-0">
-                    <svg class="w-3 h-3 fill-current text-white" viewBox="0 0 24 24">
-                      <path d="M13.293 6.293a1 1 0 0 1 1.414 0l5 5a1 1 0 0 1 0 1.414l-5 5a1 1 0 0 1-1.414-1.414L16.586 13H5a1 1 0 1 1 0-2h11.586l-3.293-3.293a1 1 0 0 1 0-1.414z"/>
-                    </svg>
-                  </span>
-                </button>
-              </div>
-
-            </div>
-
-            <!-- STEP 3: PAYMENT VERIFICATION (STUDENT ONLY) -->
-            <div v-if="step === 3 && form.role === 'student'" class="space-y-3.5">
-              
-              <!-- Fee Summary Box -->
-              <div class="bg-slate-100/90 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 rounded-xl p-3 space-y-1.5 text-xs">
-                <div class="font-bold text-slate-900 dark:text-white text-xs flex items-center justify-between">
-                  <span>Tuition & Registration Fee:</span>
-                  <span class="font-mono text-emerald-600 dark:text-emerald-400 font-bold">$324.00 (ABA Special)</span>
-                </div>
-              </div>
-
-              <!-- Payment Method Choice -->
-              <div class="grid grid-cols-2 gap-2">
-                <label :class="[
-                  'p-2.5 rounded-xl border cursor-pointer transition flex items-center justify-center gap-2 text-xs font-bold select-none',
-                  form.payment_method === 'aba'
-                    ? 'bg-blue-500/10 border-blue-500/60 text-blue-600 dark:text-sky-400 dark:border-blue-500/50'
-                    : 'bg-slate-50 dark:bg-slate-800/60 border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400'
-                ]">
-                  <input type="radio" v-model="form.payment_method" value="aba" class="sr-only" />
-                  <i class="pi pi-qrcode text-xs"></i>
-                  <span>ABA Mobile QR</span>
-                </label>
-
-                <label :class="[
-                  'p-2.5 rounded-xl border cursor-pointer transition flex items-center justify-center gap-2 text-xs font-bold select-none',
-                  form.payment_method === 'cash'
-                    ? 'bg-emerald-500/10 border-emerald-500/60 text-emerald-600 dark:text-emerald-400 dark:border-emerald-500/50'
-                    : 'bg-slate-50 dark:bg-slate-800/60 border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400'
-                ]">
-                  <input type="radio" v-model="form.payment_method" value="cash" class="sr-only" />
-                  <i class="pi pi-money-bill text-xs"></i>
-                  <span>Cash at Campus</span>
-                </label>
-              </div>
-
-              <!-- Step 3 Navigation -->
-              <div class="grid grid-cols-2 gap-2.5 pt-1">
-                <button
-                  type="button"
-                  @click="prevStep"
-                  class="h-11 bg-slate-200/90 dark:bg-slate-800/90 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold rounded-xl border border-slate-300/80 dark:border-slate-700/60 transition text-xs flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <i class="pi pi-arrow-left text-xs"></i>
-                  <span>{{ t('register_btn_back', 'Back') }}</span>
-                </button>
-
-                <button
-                  type="submit"
-                  :disabled="form.processing"
-                  class="h-11 group py-2.5 px-4 bg-emerald-500/85 hover:bg-emerald-500 border border-emerald-400/30 active:scale-[0.99] text-white font-bold rounded-xl shadow-sm shadow-emerald-500/20 hover:shadow-md hover:shadow-emerald-500/30 transition-all duration-200 inline-flex items-center justify-center gap-2 disabled:opacity-50 text-xs font-bold tracking-wide cursor-pointer focus:outline-none focus:ring-4 focus:ring-emerald-500/20"
-                >
-                  <i v-if="form.processing" class="pi pi-spin pi-spinner text-xs"></i>
-                  <span>{{ form.processing ? t('register_btn_submitting', 'Processing...') : t('register_btn_submit', 'Complete Registration') }}</span>
-                  <span v-if="!form.processing" class="w-5 h-5 rounded-full bg-white/20 dark:bg-white/15 flex items-center justify-center transition-all duration-300 group-hover:translate-x-1 group-hover:bg-white/30 shrink-0">
-                    <svg class="w-3 h-3 fill-current text-white" viewBox="0 0 24 24">
-                      <path d="M13.293 6.293a1 1 0 0 1 1.414 0l5 5a1 1 0 0 1 0 1.414l-5 5a1 1 0 0 1-1.414-1.414L16.586 13H5a1 1 0 1 1 0-2h11.586l-3.293-3.293a1 1 0 0 1 0-1.414z"/>
-                    </svg>
-                  </span>
-                </button>
-              </div>
-
-            </div>
-
-          </form>
-
-          <!-- Navigation Footer: Clean Single Link Back to Sign In (No redundant Forgot Password link) -->
-          <div class="pt-3.5 pb-1 border-t border-slate-200 dark:border-slate-800/80 flex items-center justify-between text-xs font-medium">
-            <span class="text-slate-600 dark:text-slate-400">
-              {{ t('register_already_have_account', 'Already have an account?') }}
-            </span>
-            <Link href="/login" class="group text-blue-600 dark:text-sky-400 hover:text-blue-700 dark:hover:text-sky-300 font-bold inline-flex items-center gap-2 transition-all duration-150 active:scale-95 outline-none focus:outline-none focus:ring-0 focus-visible:outline-none select-none">
-              <span>{{ t('register_back_to_login', 'Sign In') }}</span>
-              <span class="w-6 h-6 rounded-full bg-blue-500/10 dark:bg-sky-500/20 border border-blue-500/20 dark:border-sky-400/30 flex items-center justify-center text-blue-600 dark:text-sky-400 group-hover:bg-blue-600 group-hover:text-white dark:group-hover:bg-sky-400 dark:group-hover:text-slate-950 transition-all duration-300 group-hover:translate-x-1 shadow-2xs shrink-0">
-                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-                  <path d="M13.293 6.293a1 1 0 0 1 1.414 0l5 5a1 1 0 0 1 0 1.414l-5 5a1 1 0 0 1-1.414-1.414L16.586 13H5a1 1 0 1 1 0-2h11.586l-3.293-3.293a1 1 0 0 1 0-1.414z"/>
-                </svg>
-              </span>
-            </Link>
           </div>
+
+          <!-- STEP 3: PAYMENT VERIFICATION (STUDENT ONLY) -->
+          <div v-if="step === 3 && form.role === 'student'" class="space-y-3.5">
+            
+            <!-- Fee Summary Box -->
+            <div class="bg-slate-100/90 dark:bg-zinc-900/90 border border-slate-200 dark:border-zinc-800 rounded-xl p-3 space-y-1.5 text-xs">
+              <div class="font-bold text-slate-900 dark:text-white text-xs flex items-center justify-between">
+                <span>{{ currentLang === 'km' ? 'តម្លៃសិក្សា និងការចុះឈ្មោះ:' : 'Tuition & Registration Fee:' }}</span>
+                <span class="font-mono text-emerald-600 dark:text-emerald-400 font-bold">$324.00 (ABA Pay)</span>
+              </div>
+            </div>
+
+            <!-- Payment Method Choice -->
+            <div class="grid grid-cols-2 gap-2">
+              <label :class="[
+                'p-2.5 rounded-xl border cursor-pointer transition-all duration-150 flex items-center justify-center gap-2 text-xs font-semibold select-none',
+                form.payment_method === 'aba'
+                  ? 'bg-blue-600 text-white dark:bg-zinc-800 dark:text-white border-blue-600 dark:border-zinc-700 shadow-sm shadow-blue-500/20'
+                  : 'bg-white dark:bg-[#121214] border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 hover:border-slate-300 dark:hover:border-zinc-700'
+              ]">
+                <input type="radio" v-model="form.payment_method" value="aba" class="sr-only" />
+                <i class="pi pi-qrcode text-xs"></i>
+                <span>{{ currentLang === 'km' ? 'ស្កេន ABA Mobile' : 'ABA Mobile QR' }}</span>
+              </label>
+
+              <label :class="[
+                'p-2.5 rounded-xl border cursor-pointer transition-all duration-150 flex items-center justify-center gap-2 text-xs font-semibold select-none',
+                form.payment_method === 'cash'
+                  ? 'bg-blue-600 text-white dark:bg-zinc-800 dark:text-white border-blue-600 dark:border-zinc-700 shadow-sm shadow-blue-500/20'
+                  : 'bg-white dark:bg-[#121214] border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 hover:border-slate-300 dark:hover:border-zinc-700'
+              ]">
+                <input type="radio" v-model="form.payment_method" value="cash" class="sr-only" />
+                <i class="pi pi-money-bill text-xs"></i>
+                <span>{{ currentLang === 'km' ? 'បង់ប្រាក់ផ្ទាល់នៅសាលា' : 'Cash at Campus' }}</span>
+              </label>
+            </div>
+
+            <!-- Step 3 Navigation -->
+            <div class="grid grid-cols-2 gap-2.5 pt-1">
+              <button
+                type="button"
+                @click="prevStep"
+                class="h-11 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-900/90 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-200 font-semibold rounded-xl border border-slate-200 dark:border-zinc-800 transition text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <i class="pi pi-arrow-left text-xs"></i>
+                <span>{{ t('register_btn_back', 'ត្រឡប់ក្រោយ') }}</span>
+              </button>
+
+              <button
+                type="submit"
+                :disabled="form.processing"
+                class="h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white dark:bg-[#e4e4e7] dark:hover:bg-white dark:text-zinc-950 font-semibold text-xs sm:text-sm flex items-center justify-center transition-all duration-150 cursor-pointer shadow-md shadow-blue-500/20 active:scale-[0.99] disabled:opacity-50 disabled:shadow-none"
+              >
+                <i v-if="form.processing" class="pi pi-spin pi-spinner text-xs mr-1.5"></i>
+                <span>{{ form.processing ? t('register_btn_submitting', 'កំពុងចុះឈ្មោះ...') : t('register_btn_submit', 'ចុះឈ្មោះបង្កើតគណនី') }}</span>
+              </button>
+            </div>
+
+          </div>
+
+        </form>
+
+        <!-- Navigation Footer: Link back to Sign in -->
+        <div class="pt-3 border-t border-slate-200 dark:border-zinc-800 flex items-center justify-between text-xs">
+          <span class="text-slate-500 dark:text-zinc-400">
+            {{ t('register_already_have_account', 'មានគណនីរួចហើយ?') }}
+          </span>
+          <Link href="/login" class="text-blue-600 dark:text-white font-semibold hover:underline inline-flex items-center">
+            <span>{{ t('register_back_to_login', 'ត្រឡប់ទៅទំព័រចូល') }}</span>
+          </Link>
+        </div>
+
+        <!-- Footer Terms & Policy Legal Statement (Shifted up like Login Form) -->
+        <p class="text-[11px] text-slate-500 dark:text-zinc-500 leading-normal text-center mt-6 w-full max-w-lg px-2 select-text">
+          {{ currentLang === 'km' ? 'តាមរយៈការចុះឈ្មោះ អ្នកយល់ព្រមតាម ' : 'By registering, you agree to our ' }}
+          <Link href="/terms" class="text-slate-700 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-zinc-200 underline underline-offset-2 transition-colors">
+            {{ currentLang === 'km' ? 'លក្ខខណ្ឌប្រើប្រាស់' : 'Terms of Service' }}
+          </Link>
+          {{ currentLang === 'km' ? ' និងបានអាន ' : ' and have read our ' }}
+          <Link href="/privacy" class="text-slate-700 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-zinc-200 underline underline-offset-2 transition-colors">
+            {{ currentLang === 'km' ? 'គោលការណ៍ឯកជនភាព' : 'Privacy Policy' }}</Link>។
+        </p>
 
         </div>
       </div>
-    </div>
 
-    <!-- Compact Success Alert Modal (Checkmark Icon) -->
+      <!-- Loading / Registration Processing Overlay (Like Screenshot) -->
+      <div v-else class="w-full max-w-sm flex flex-col items-center justify-center text-center animate-fade-in py-12">
+        <div class="w-12 h-12 rounded-full border-2 border-zinc-300 dark:border-zinc-800 border-t-blue-600 dark:border-t-white animate-spin mb-4"></div>
+        <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-wide mb-1.5">
+          {{ registerLoadingTitle || (currentLang === 'km' ? 'កំពុងបង្កើតគណនី...' : 'Creating your account...') }}
+        </h3>
+        <p class="text-xs text-slate-600 dark:text-zinc-400 max-w-xs leading-relaxed">
+          {{ registerLoadingSubtitle || (currentLang === 'km' ? 'សូមរង់ចាំមួយភ្លែត ប្រព័ន្ធកំពុងដំណើរការរៀបចំព័ត៌មាន...' : 'Please wait a moment while setting up your profile...') }}
+        </p>
+      </div>
+
+    </main>
+
+    <!-- Compact Success Alert Modal -->
     <Transition
-      enter-active-class="transition duration-300 ease-out"
-      enter-from-class="opacity-0 scale-90 translate-y-2"
-      enter-to-class="opacity-100 scale-100 translate-y-0"
-      leave-active-class="transition duration-200 ease-in"
-      leave-from-class="opacity-100 scale-100 translate-y-0"
-      leave-to-class="opacity-0 scale-90 translate-y-2"
+      enter-active-class="transition duration-200 ease-out"
+      enter-from-class="opacity-0 scale-95"
+      enter-to-class="opacity-100 scale-100"
+      leave-active-class="transition duration-150 ease-in"
+      leave-from-class="opacity-100 scale-100"
+      leave-to-class="opacity-0 scale-95"
     >
-      <div v-if="showSuccessModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-sm select-none">
-        <div class="max-w-xs w-full bg-white dark:bg-[#0E172E] rounded-3xl p-6 shadow-2xl border border-emerald-500/30 text-center flex flex-col items-center space-y-3.5 transform transition-all">
-          <!-- Icon with glowing ring -->
-          <div class="relative flex items-center justify-center">
-            <div class="absolute -inset-2 bg-gradient-to-r from-emerald-500/30 to-teal-500/30 rounded-full blur-md animate-pulse"></div>
-            <div class="relative w-14 h-14 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/25 ring-4 ring-white dark:ring-[#0E172E]">
-              <svg class="w-7 h-7 text-white stroke-current" fill="none" viewBox="0 0 24 24" stroke-width="3">
-                <path stroke-linecap="round" stroke-linejoin="round" class="checkmark-path" d="M4.5 12.75l6 6 9-13.5"/>
-              </svg>
-            </div>
+      <div v-if="showSuccessModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm select-none">
+        <div class="max-w-xs w-full bg-white dark:bg-[#121214] rounded-2xl p-6 shadow-2xl border border-zinc-200 dark:border-zinc-800 text-center flex flex-col items-center space-y-3">
+          <div class="w-12 h-12 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+            <i class="pi pi-check text-xl font-bold"></i>
           </div>
-          
           <div class="space-y-1">
-            <h3 class="text-base font-extrabold text-slate-900 dark:text-white">
+            <h3 class="text-base font-bold text-zinc-900 dark:text-white">
               {{ successTitle || t('register_modal_success_title', 'ចុះឈ្មោះជោគជ័យ!') }}
             </h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
-              {{ successMessage || t('register_modal_success_msg', 'គណនីរបស់អ្នកត្រូវបានបង្កើតដោយជោគជ័យ! កំពុងចូលប្រព័ន្ធ...') }}
+            <p class="text-xs text-zinc-500 dark:text-zinc-400">
+              {{ successMessage || t('register_modal_success_msg', 'គណនីរបស់អ្នកត្រូវបានបង្កើតដោយជោគជ័យ!') }}
             </p>
           </div>
         </div>
       </div>
     </Transition>
 
-    <!-- Compact Error Alert Modal (Question Mark Icon) -->
+    <!-- Compact Error Alert Modal -->
     <Transition
-      enter-active-class="transition duration-300 ease-out"
-      enter-from-class="opacity-0 scale-90 translate-y-2"
-      enter-to-class="opacity-100 scale-100 translate-y-0"
-      leave-active-class="transition duration-200 ease-in"
-      leave-from-class="opacity-100 scale-100 translate-y-0"
-      leave-to-class="opacity-0 scale-90 translate-y-2"
+      enter-active-class="transition duration-200 ease-out"
+      enter-from-class="opacity-0 scale-95"
+      enter-to-class="opacity-100 scale-100"
+      leave-active-class="transition duration-150 ease-in"
+      leave-from-class="opacity-100 scale-100"
+      leave-to-class="opacity-0 scale-95"
     >
-      <div v-if="showErrorModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-sm select-none">
-        <div class="max-w-xs w-full bg-white dark:bg-[#0E172E] rounded-3xl p-6 shadow-2xl border border-rose-500/30 text-center flex flex-col items-center space-y-3.5 transform transition-all">
-          <!-- Icon with glowing ring -->
-          <div class="relative flex items-center justify-center">
-            <div class="absolute -inset-2 bg-gradient-to-r from-rose-500/30 to-amber-500/30 rounded-full blur-md animate-pulse"></div>
-            <div class="relative w-14 h-14 rounded-full bg-gradient-to-br from-amber-500 via-rose-500 to-rose-600 text-white flex items-center justify-center shadow-lg shadow-rose-500/25 ring-4 ring-white dark:ring-[#0E172E]">
-              <span class="text-3xl font-black font-sans leading-none">?</span>
-            </div>
+      <div v-if="showErrorModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm select-none">
+        <div class="max-w-xs w-full bg-white dark:bg-[#121214] rounded-2xl p-6 shadow-2xl border border-zinc-200 dark:border-zinc-800 text-center flex flex-col items-center space-y-3">
+          <div class="w-12 h-12 rounded-full bg-rose-500/15 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+            <i class="pi pi-exclamation-triangle text-xl font-bold"></i>
           </div>
-          
           <div class="space-y-1">
-            <h3 class="text-base font-extrabold text-slate-900 dark:text-white">
-              {{ errorTitle || t('register_modal_error_title', 'ព័ត៌មានមិនត្រឹមត្រូវ') }}
+            <h3 class="text-base font-bold text-zinc-900 dark:text-white">
+              {{ errorTitle || (currentLang === 'km' ? 'ព័ត៌មានមិនត្រឹមត្រូវ' : 'Invalid Information') }}
             </h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
-              {{ errorMessage || t('register_modal_error_msg', 'សូមពិនិត្យមើលព័ត៌មាននៃការចុះឈ្មោះរបស់អ្នកឡើងវិញ!') }}
+            <p class="text-xs text-zinc-500 dark:text-zinc-400">
+              {{ errorMessage || (currentLang === 'km' ? 'សូមពិនិត្យមើលព័ត៌មាននៃការចុះឈ្មោះរបស់អ្នកឡើងវិញ!' : 'Please check your registration information and try again!') }}
             </p>
           </div>
-
           <button
             type="button"
             @click="showErrorModal = false"
-            class="w-full py-2 px-4 rounded-xl bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-800/40 text-rose-700 dark:text-rose-300 text-xs font-bold transition-all duration-150 cursor-pointer active:scale-95"
+            class="w-full py-2.5 rounded-xl bg-zinc-900 dark:bg-zinc-800 text-white text-xs font-semibold hover:bg-zinc-800 transition-colors cursor-pointer shadow-xs"
           >
-            {{ t('login_modal_close', 'យល់ព្រម') }}
+            {{ currentLang === 'km' ? 'បិទ' : 'Close' }}
           </button>
         </div>
       </div>

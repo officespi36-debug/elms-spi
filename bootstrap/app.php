@@ -35,6 +35,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth/email-otp',
             'api/auth/email-otp/*',
             'api/auth/email-otp',
+            'auth/phone-otp/*',
+            'auth/phone-otp',
+            'api/auth/phone-otp/*',
+            'api/auth/phone-otp',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

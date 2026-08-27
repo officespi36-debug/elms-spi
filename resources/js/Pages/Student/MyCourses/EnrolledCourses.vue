@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { Link, usePage } from '@inertiajs/vue3'
 import StudentLayout from '@/Layouts/StudentLayout.vue'
+import { isCourseCachedOffline, saveCourseForOffline, getAllOfflineCourses } from '@/offline/sync'
 
 const props = defineProps<{
   enrollments?: any[]
@@ -15,6 +16,22 @@ const selectedMajor = ref('all')
 const selectedStatus = ref('all')
 const selectedLearningMode = ref('all')
 const sortBy = ref('recent')
+const cachedCourseIds = ref<number[]>([])
+
+const refreshCachedCourses = async () => {
+  const all = await getAllOfflineCourses()
+  cachedCourseIds.value = all.map(c => Number(c.id))
+}
+
+const handleSaveCourseOffline = async (course: any) => {
+  if (cachedCourseIds.value.includes(course.id)) return
+  await saveCourseForOffline(course)
+  await refreshCachedCourses()
+}
+
+onMounted(() => {
+  refreshCachedCourses()
+})
 
 // Mock sample courses matching prompt specs if prop enrollments is empty or incomplete
 const sampleCourses = ref([
@@ -389,36 +406,56 @@ const statsSummary = computed(() => {
               </div>
             </div>
 
-            <!-- Action Button -->
-            <div class="pt-2">
+            <!-- Action Buttons: Learn & Offline Save -->
+            <div class="pt-2 flex items-center gap-2">
               <Link
                 v-if="course.isCompleted"
                 href="/student/my-courses/completed"
-                class="w-full py-2.5 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 font-bold text-xs transition-all text-center block"
+                class="flex-1 py-2.5 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 font-bold text-xs transition-all text-center block"
               >
                 🏅 View Certificate
               </Link>
               <Link
                 v-else-if="course.status === 'pending'"
                 href="/student/payments"
-                class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold text-xs transition-all shadow-md text-center block"
+                class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold text-xs transition-all shadow-md text-center block"
               >
                 💳 Pay Now via ABA
               </Link>
               <Link
                 v-else-if="course.progress === 0"
                 :href="`/student/learn/${course.id}`"
-                class="w-full py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs transition-all shadow-md text-center block"
+                class="flex-1 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs transition-all shadow-md text-center block"
               >
                 ▶ Start Learning
               </Link>
               <Link
                 v-else
                 :href="`/student/learn/${course.id}`"
-                class="w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs transition-all shadow-md shadow-indigo-600/30 text-center block"
+                class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs transition-all shadow-md shadow-indigo-600/30 text-center block"
               >
                 ▶ Continue Learning
               </Link>
+
+              <!-- Offline Cache Indicator / Quick Save -->
+              <button
+                type="button"
+                @click.prevent="handleSaveCourseOffline(course)"
+                :class="[
+                  'h-9 px-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center shrink-0 select-none cursor-pointer',
+                  cachedCourseIds.includes(course.id)
+                    ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                    : 'bg-slate-900/80 hover:bg-slate-700 text-slate-400 hover:text-white border-slate-700'
+                ]"
+                :title="cachedCourseIds.includes(course.id) ? 'វគ្គសិក្សានេះត្រូវបាន Save ក្នុងម៉ាស៊ីនរួចរាល់សម្រាប់រៀន Offline' : 'Save ទុកក្នុងម៉ាស៊ីនសម្រាប់រៀនក្រៅបណ្តាញ (Offline)'"
+              >
+                <svg v-if="cachedCourseIds.includes(course.id)" class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+              </button>
             </div>
           </div>
         </div>

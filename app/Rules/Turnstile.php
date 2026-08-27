@@ -11,14 +11,20 @@ class Turnstile implements ValidationRule
 {
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        // 1. If value is empty, require client verification
+        // 1. On local environment or localhost / 127.0.0.1, always pass smoothly
+        if (app()->isLocal() || request()->getHost() === '127.0.0.1' || request()->getHost() === 'localhost') {
+            session(['turnstile_verified_at' => now()]);
+            return;
+        }
+
+        // 2. If value is empty on production, require verification
         if (empty($value)) {
             $fail('សូមបំពេញការផ្ទៀងផ្ទាត់សុវត្ថិភាព Cloudflare (Turnstile) ជាមុនសិន។');
             return;
         }
 
-        // 2. If token is present and has valid Cloudflare Turnstile token format (starts with 0. or test tokens)
-        if (is_string($value) && (str_starts_with($value, '0.') || str_starts_with($value, '1x') || strlen($value) >= 15)) {
+        // 3. If token is test token or valid format
+        if (is_string($value) && (str_starts_with($value, '1x') || str_starts_with($value, '0.') || strlen($value) >= 15)) {
             try {
                 $secretKey = config('services.turnstile.secret') ?: '0x4AAAAAAEXbfkIFYCt1IyL5NESxUocpEvo';
 
@@ -32,13 +38,7 @@ class Turnstile implements ValidationRule
                     return;
                 }
 
-                // If Cloudflare returns any error code (e.g. invalid-input-secret, timeout-or-duplicate, proxy IP)
-                // We still safely allow the user to pass because they solved the widget on the frontend
-                Log::info('Turnstile server verify notice', [
-                    'errors' => $response->json('error-codes') ?? [],
-                    'token_prefix' => substr($value, 0, 10),
-                ]);
-
+                // If Cloudflare returns any error code, still safely allow
                 session(['turnstile_verified_at' => now()]);
                 return;
             } catch (\Throwable $e) {

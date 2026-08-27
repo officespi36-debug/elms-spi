@@ -4,6 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property int $course_id
+ * @property string $title
+ * @property string|null $kh_title
+ * @property string|null $description
+ * @property string|null $kh_description
+ * @property string|null $learning_objectives
+ * @property string|null $estimated_duration
+ * @property int|null $order
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read Course|null $course
+ */
 class Module extends Model
 {
     protected $fillable = [

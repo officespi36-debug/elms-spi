@@ -87,7 +87,24 @@
                 return;
             }
 
-            // Direct Standard Form POST Submission for 100% Reliable Session Cookie & Redirect
+            // If user authenticated successfully and this window was opened as a popup from the Login page:
+            if (window.opener && !window.opener.closed) {
+                try {
+                    var payload = { event: 'auth_result', result: tgUser };
+                    window.opener.postMessage(payload, '*');
+                    window.opener.postMessage(JSON.stringify(payload), '*');
+                    
+                    // Close popup smoothly after notifying opener
+                    setTimeout(function() {
+                        try { window.close(); } catch (e) {}
+                    }, 500);
+                    return;
+                } catch (err) {
+                    console.warn('postMessage to opener notice:', err);
+                }
+            }
+
+            // Direct Standard Form POST Submission for 100% Reliable Session Cookie & Redirect (Fallback when not in popup)
             function submitForm() {
                 var form = document.createElement('form');
                 form.method = 'POST';

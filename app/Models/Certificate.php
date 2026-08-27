@@ -4,6 +4,34 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property int $student_id
+ * @property int|null $course_id
+ * @property int|null $major_id
+ * @property int|null $template_id
+ * @property string $certificate_number
+ * @property string $verification_code
+ * @property string|null $grade
+ * @property float|null $score
+ * @property string $status
+ * @property \Illuminate\Support\Carbon|null $revoked_at
+ * @property int|null $revoked_by
+ * @property string|null $revocation_reason
+ * @property string|null $revocation_evidence
+ * @property string|null $revocation_note
+ * @property bool $show_reason_publicly
+ * @property int $downloads_count
+ * @property int $verifications_count
+ * @property \Illuminate\Support\Carbon|null $last_verified_at
+ * @property string|null $file_path
+ * @property array|null $audit_trail
+ * @property \Illuminate\Support\Carbon|null $issued_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read User|null $student
+ * @property-read Course|null $course
+ */
 class Certificate extends Model
 {
     protected $fillable = [

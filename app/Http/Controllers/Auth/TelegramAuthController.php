@@ -28,6 +28,19 @@ class TelegramAuthController extends Controller
                 'teacher' => '/teacher/dashboard',
                 default => '/student/dashboard',
             };
+            if ($request->wantsJson() || $request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+                return response()->json([
+                    'success' => true,
+                    'message' => "ស្វាគមន៍ {$user->name}! Login ជោគជ័យ។",
+                    'redirect' => $redirectUrl,
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'role' => $user->role,
+                        'avatar' => $user->avatar,
+                    ],
+                ]);
+            }
             return redirect()->to($redirectUrl);
         }
 

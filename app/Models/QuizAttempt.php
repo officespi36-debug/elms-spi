@@ -4,6 +4,22 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property int $quiz_id
+ * @property array|null $answers
+ * @property float|null $score
+ * @property bool $passed
+ * @property int|null $attempt_number
+ * @property string|null $client_uuid
+ * @property \Illuminate\Support\Carbon|null $started_at
+ * @property \Illuminate\Support\Carbon|null $submitted_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read User|null $user
+ * @property-read Quiz|null $quiz
+ */
 class QuizAttempt extends Model
 {
     protected $fillable = [

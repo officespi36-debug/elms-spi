@@ -19,7 +19,9 @@ Route::middleware('guest')->group(function () {
     Route::post('reset-password', [PasswordResetLinkController::class, 'resetPassword'])->name('password.update');
     Route::post('api/auth/forgot-password', [PasswordResetLinkController::class, 'store'])->name('api.password.email');
     Route::post('api/auth/verify-reset-otp', [PasswordResetLinkController::class, 'verifyOtp'])->name('api.password.verify_otp');
-    Route::post('api/auth/reset-password', [PasswordResetLinkController::class, 'resetPassword'])->name('api.password.update');
+    Route::match(['get', 'post'], 'api/auth/check-user', [AuthController::class, 'checkIdentifier'])->name('api.auth.check-user');
+    Route::match(['get', 'post'], 'api/auth/check-identifier', [AuthController::class, 'checkIdentifier'])->name('api.auth.check-identifier');
+    Route::post('api/auth/quick-register', [AuthController::class, 'quickRegister'])->name('api.auth.quick-register');
 });
 
 // ─── Email OTP Authentication via Resend (Direct Access, No Guest Redirect) ───
@@ -27,6 +29,12 @@ Route::match(['get', 'post'], 'auth/email-otp/send', [AuthController::class, 'se
 Route::match(['get', 'post'], 'auth/email-otp/verify', [AuthController::class, 'verifyEmailOtp'])->name('auth.email-otp.verify');
 Route::match(['get', 'post'], 'api/auth/email-otp/send', [AuthController::class, 'sendEmailOtp'])->name('api.auth.email-otp.send');
 Route::match(['get', 'post'], 'api/auth/email-otp/verify', [AuthController::class, 'verifyEmailOtp'])->name('api.auth.email-otp.verify');
+
+// ─── Phone OTP Authentication via PlasGate SMS (Direct Access) ───
+Route::match(['get', 'post'], 'auth/phone-otp/send', [AuthController::class, 'sendPhoneOtp'])->name('auth.phone-otp.send');
+Route::match(['get', 'post'], 'auth/phone-otp/verify', [AuthController::class, 'verifyPhoneOtp'])->name('auth.phone-otp.verify');
+Route::match(['get', 'post'], 'api/auth/phone-otp/send', [AuthController::class, 'sendPhoneOtp'])->name('api.auth.phone-otp.send');
+Route::match(['get', 'post'], 'api/auth/phone-otp/verify', [AuthController::class, 'verifyPhoneOtp'])->name('api.auth.phone-otp.verify');
 
 // ─── Telegram OAuth Widget & Direct Redirect Routes ───
 Route::match(['get', 'post'], 'auth/telegram', [\App\Http\Controllers\Auth\TelegramAuthController::class, 'handleCallback'])->name('auth.telegram');

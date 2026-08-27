@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="km" class="dark" style="color-scheme: dark; background-color: #0b132b;">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
@@ -7,7 +8,7 @@
 
     <!-- Anti-FOUC & Instant Theme Injection (Runs Synchronously Before First Paint) -->
     <script>
-        (function() {
+        (function () {
             try {
                 var storedTheme = localStorage.getItem('theme');
                 var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -33,14 +34,17 @@
             -webkit-text-size-adjust: 100%;
             text-rendering: optimizeLegibility;
         }
+
         html.dark {
             background-color: #0b132b !important;
             color: #f8fafc !important;
         }
+
         html:not(.dark) {
             background-color: #f8fafc !important;
             color: #0f172a !important;
         }
+
         body {
             margin: 0;
             padding: 0;
@@ -48,18 +52,26 @@
             overflow-x: hidden;
             background-color: #0b132b;
         }
+
         html:not(.dark) body {
             background-color: #f8fafc;
         }
-        [v-cloak] { display: none !important; }
+
+        [v-cloak] {
+            display: none !important;
+        }
     </style>
 
     <!-- Preconnect & Preload Asynchronous Font Loading (font-display: swap) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Inter:wght@300;400;500;600;700;800&family=Kantumruy+Pro:ital,wght@0,300..700;1,300..700&family=Koh+Santepheap:wght@400;500;600;700&family=Noto+Sans+Khmer:wght@400;500;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" as="style"
+        href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Inter:wght@300;400;500;600;700;800&family=Kantumruy+Pro:ital,wght@0,300..700;1,300..700&family=Koh+Santepheap:wght@400;500;600;700&family=Noto+Sans+Khmer:wght@400;500;600;700&display=swap"
+        onload="this.onload=null;this.rel='stylesheet'">
     <noscript>
-        <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Inter:wght@300;400;500;600;700;800&family=Kantumruy+Pro:ital,wght@0,300..700;1,300..700&family=Koh+Santepheap:wght@400;500;600;700&family=Noto+Sans+Khmer:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <link
+            href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Inter:wght@300;400;500;600;700;800&family=Kantumruy+Pro:ital,wght@0,300..700;1,300..700&family=Koh+Santepheap:wght@400;500;600;700&family=Noto+Sans+Khmer:wght@400;500;600;700&display=swap"
+            rel="stylesheet">
     </noscript>
 
     <!-- Favicon Links for Google Search, Mobile, and Desktop Browsers -->
@@ -80,12 +92,12 @@
     <!-- PWA Service Worker Registration & Offline Network Handler -->
     <script>
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
+            window.addEventListener('load', function () {
                 navigator.serviceWorker.register('/sw.js', { scope: '/' })
-                    .then(function(reg) {
+                    .then(function (reg) {
                         console.log('SPI AI-ELMS Service Worker Registered successfully with scope:', reg.scope);
                     })
-                    .catch(function(err) {
+                    .catch(function (err) {
                         console.warn('Service Worker Registration notice:', err);
                     });
             });
@@ -113,8 +125,10 @@
     <!-- Primary Meta Tags & SEO Snippet -->
     <title inertia>SPI AI-ELMS | ប្រព័ន្ធគ្រប់គ្រងការសិក្សា Saint Paul Institute</title>
     <meta name="title" content="SPI AI-ELMS | ប្រព័ន្ធគ្រប់គ្រងការសិក្សា Saint Paul Institute">
-    <meta name="description" content="ប្រព័ន្ធគ្រប់គ្រងការសិក្សាឆ្លាតវៃ SPI AI-ELMS សម្រាប់និស្សិត និងសាស្ត្រាចារ្យ នៃវិទ្យាស្ថានសន្តប៉ូល។ ចូលប្រើប្រាស់ដើម្បីពិនិត្យកាលវិភាគ ពិន្ទុ និងមេរៀន។">
-    <meta name="keywords" content="SPI AI-ELMS, Saint Paul Institute, ELMS, SPI, វិទ្យាស្ថានសន្តប៉ូល, ប្រព័ន្ធគ្រប់គ្រងការសិក្សា, spilms, e-learning">
+    <meta name="description"
+        content="ប្រព័ន្ធគ្រប់គ្រងការសិក្សាឆ្លាតវៃ SPI AI-ELMS សម្រាប់និស្សិត និងសាស្ត្រាចារ្យ នៃវិទ្យាស្ថានសន្តប៉ូល។ ចូលប្រើប្រាស់ដើម្បីពិនិត្យកាលវិភាគ ពិន្ទុ និងមេរៀន។">
+    <meta name="keywords"
+        content="SPI AI-ELMS, Saint Paul Institute, ELMS, SPI, វិទ្យាស្ថានសន្តប៉ូល, ប្រព័ន្ធគ្រប់គ្រងការសិក្សា, spilms, e-learning">
     <meta name="author" content="Saint Paul Institute">
     <meta name="robots" content="index, follow">
 
@@ -122,7 +136,8 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://spilms.tech/">
     <meta property="og:title" content="SPI AI-ELMS | ប្រព័ន្ធគ្រប់គ្រងការសិក្សា Saint Paul Institute">
-    <meta property="og:description" content="ចូលប្រើប្រាស់ប្រព័ន្ធគ្រប់គ្រងការសិក្សា SPI AI-ELMS ដោយសុវត្ថិភាព និងរហ័ស។">
+    <meta property="og:description"
+        content="ចូលប្រើប្រាស់ប្រព័ន្ធគ្រប់គ្រងការសិក្សា SPI AI-ELMS ដោយសុវត្ថិភាព និងរហ័ស។">
     <meta property="og:image" content="https://spilms.tech/images/og-cover.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -132,25 +147,26 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://spilms.tech/">
     <meta name="twitter:title" content="SPI AI-ELMS | ប្រព័ន្ធគ្រប់គ្រងការសិក្សា Saint Paul Institute">
-    <meta name="twitter:description" content="ចូលប្រើប្រាស់ប្រព័ន្ធគ្រប់គ្រងការសិក្សា SPI AI-ELMS ដោយសុវត្ថិភាព និងរហ័ស។">
+    <meta name="twitter:description"
+        content="ចូលប្រើប្រាស់ប្រព័ន្ធគ្រប់គ្រងការសិក្សា SPI AI-ELMS ដោយសុវត្ថិភាព និងរហ័ស។">
     <meta name="twitter:image" content="https://spilms.tech/images/og-cover.png">
 
     <!-- Structured Data (Schema.org) for Google Search & Knowledge Graph -->
     <script type="application/ld+json">
     @verbatim
-    {
-      "@context": "https://schema.org",
-      "@type": "EducationalOrganization",
-      "name": "SPI AI-ELMS",
-      "alternateName": "Saint Paul Institute E-Learning Management System",
-      "url": "https://spilms.tech",
-      "logo": "https://spilms.tech/images/logo.png",
-      "image": "https://spilms.tech/images/og-cover.png",
-      "description": "ប្រព័ន្ធគ្រប់គ្រងការសិក្សាឆ្លាតវៃនៃវិទ្យាស្ថានសន្តប៉ូល (Saint Paul Institute)",
-      "sameAs": [
-        "https://spi.edu.kh"
-      ]
-    }
+        {
+          "@context": "https://schema.org",
+          "@type": "EducationalOrganization",
+          "name": "SPI AI-ELMS",
+          "alternateName": "Saint Paul Institute E-Learning Management System",
+          "url": "https://spilms.tech",
+          "logo": "https://spilms.tech/images/logo.png",
+          "image": "https://spilms.tech/images/og-cover.png",
+          "description": "ប្រព័ន្ធគ្រប់គ្រងការសិក្សាឆ្លាតវៃនៃវិទ្យាស្ថានសន្តប៉ូល (Saint Paul Institute)",
+          "sameAs": [
+            "https://spi.edu.kh"
+          ]
+        }
     @endverbatim
     </script>
 
@@ -166,7 +182,7 @@
             try { return sessionStorage.getItem(key); } catch (e) { return null; }
         }
         function safeSetSession(key, val) {
-            try { sessionStorage.setItem(key, val); } catch (e) {}
+            try { sessionStorage.setItem(key, val); } catch (e) { }
         }
 
         // Global Error & Chunk Load Recovery for Mobile WebViews
@@ -186,11 +202,11 @@
             }
         }
 
-        window.addEventListener('unhandledrejection', function(e) {
+        window.addEventListener('unhandledrejection', function (e) {
             handleChunkError(e.reason);
         });
 
-        window.addEventListener('error', function(e) {
+        window.addEventListener('error', function (e) {
             handleChunkError(e.message || (e.error && e.error.message));
         });
     </script>
@@ -198,7 +214,10 @@
     @vite('resources/js/app.ts')
     @inertiaHead
 </head>
-<body class="font-sans antialiased bg-[#0b132b] text-slate-100 min-h-screen" style="background-color: #0b132b; color: #f8fafc;">
+
+<body class="font-sans antialiased bg-[#0b132b] text-slate-100 min-h-screen"
+    style="background-color: #0b132b; color: #f8fafc;">
     @inertia
 </body>
+
 </html>

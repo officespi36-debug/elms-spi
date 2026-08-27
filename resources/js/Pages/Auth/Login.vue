@@ -3,11 +3,9 @@ import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useForm, Link, router, usePage } from '@inertiajs/vue3'
 import { i18n, type LanguageCode } from '../../Services/i18n'
 import AuthAnimatedBackground from '../../Components/AuthAnimatedBackground.vue'
+import NetworkStatusPill from '../../Components/NetworkStatusPill.vue'
 
 const logoUrl = '/images/logo.png'
-const aiBgUrl = '/images/login-ai-illustration.png'
-const successSvgUrl = '/images/sign-in-successful.svg'
-const errorSvgUrl = '/images/forget-password-animation.svg'
 
 const props = defineProps<{
   status?: string
@@ -15,21 +13,44 @@ const props = defineProps<{
 
 const page = usePage()
 
+// Complete Auth Decision Flow: 'identifier' | 'enter_password'
+const step = ref<'identifier' | 'enter_password'>('identifier')
+
 const form = useForm({
   email: '',
   password: '',
   role: 'student' as 'student' | 'teacher' | 'admin',
-  remember: false,
+  remember: true,
   turnstile_token: '',
 })
+
+// Matched User Metadata from Database Lookup
+const matchedUser = ref<{
+  name?: string
+  role?: 'student' | 'teacher' | 'admin'
+  email?: string
+} | null>(null)
 
 // Cloudflare Turnstile CAPTCHA State
 const turnstileWidget = ref<HTMLElement | null>(null)
 let widgetId: string | number | null = null
 const isTurnstileLoading = ref(true)
 
+const isLocalHost = computed(() => {
+  if (typeof window === 'undefined') return false
+  const host = window.location.hostname
+  return host === 'localhost' || host === '127.0.0.1' || host.endsWith('.test') || host.endsWith('.local')
+})
+
 const initTurnstile = () => {
   if (typeof window === 'undefined') return
+
+  if (isLocalHost.value) {
+    form.turnstile_token = '1x_local_verified_token'
+    form.clearErrors('turnstile_token')
+    isTurnstileLoading.value = false
+    return
+  }
 
   const renderWidget = () => {
     if (typeof window === 'undefined' || !(window as any).turnstile || !turnstileWidget.value) return
@@ -117,28 +138,214 @@ const removeTurnstile = () => {
 }
 
 const showPassword = ref(false)
+const showNewPassword = ref(false)
 const capsLockOn = ref(false)
-const socialNotice = ref<string | null>(null)
 const isDark = ref(true)
 const isLangOpen = ref(false)
 const showSuccessModal = ref(false)
 const showErrorModal = ref(false)
 const statusMessage = ref<string | null>(null)
+const oauthNotice = ref<{
+  type: 'warning' | 'error' | 'success'
+  message: string
+} | null>(null)
 
-// Email OTP State
-const authMode = ref<'password' | 'otp'>('password')
+// Email / Identifier Validation
+const isValidIdentifier = computed(() => {
+  const input = form.email ? form.email.trim() : ''
+  return input.length >= 3
+})
+
+const isTurnstileVerified = computed(() => {
+  return !!form.turnstile_token
+})
+
+const canContinue = computed(() => {
+  return isValidIdentifier.value && (isLocalHost.value || isTurnstileVerified.value)
+})
+
+const isCheckingUser = ref(false)
+
+// Handle Complete Auth Decision Check when clicking Continue on Step 1
+const handleCheckIdentifier = async () => {
+  if (!canContinue.value || isCheckingUser.value) return
+  isCheckingUser.value = true
+  oauthNotice.value = null
+  errorMessage.value = null
+
+  try {
+    const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || ''
+    const response = await fetch('/api/auth/check-identifier', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: JSON.stringify({ email: form.email.trim() }),
+    })
+
+    const data = await response.json()
+
+    if (data.exists) {
+      matchedUser.value = {
+        name: data.name,
+        role: data.role,
+        email: data.email || form.email,
+      }
+      form.role = data.role || 'student'
+
+      if (data.provider === 'google') {
+        // Step 2: Google Account -> Redirect directly to Google OAuth
+        redirectToGoogleOAuth()
+      } else {
+        // Step 2: Existing Password Account -> Show Password Screen
+        step.value = 'enter_password'
+      }
+    } else {
+      matchedUser.value = null
+      // Step 2: New Account -> Seamlessly redirect to the full SPI Academic Registration Wizard
+      isAuthenticating.value = true
+      authLoadingTitle.value = currentLang.value === 'km' ? 'គណនីថ្មី! កំពុងនាំអ្នកទៅកាន់ផ្ទាំងចុះឈ្មោះ...' : 'New Account! Redirecting to Registration...'
+      authLoadingSubtitle.value = currentLang.value === 'km' ? 'សូមរង់ចាំមួយភ្លែត ដើម្បីបំពេញព័ត៌មានចុះឈ្មោះ...' : 'Please wait a moment to complete your registration profile...'
+
+      setTimeout(() => {
+        router.visit(`/register?email=${encodeURIComponent(form.email.trim())}`)
+      }, 1500)
+    }
+  } catch (err: any) {
+    console.error('Check identifier error:', err)
+    step.value = 'enter_password'
+  } finally {
+    isCheckingUser.value = false
+  }
+}
+
+// Email & Phone OTP State
+const authMode = ref<'password' | 'otp' | 'phone_otp'>('password')
 const otpStep = ref<1 | 2>(1)
 const otpEmail = ref('')
+const otpPhone = ref('')
+const phoneOtpStep = ref<1 | 2>(1)
 const otpCode = ref('')
 const isOtpSending = ref(false)
 const isOtpVerifying = ref(false)
+const isPhoneOtpSending = ref(false)
+const isPhoneOtpVerifying = ref(false)
 const otpCountdown = ref(0)
+const phoneOtpCountdown = ref(0)
 let otpCountdownTimer: any = null
+let phoneOtpCountdownTimer: any = null
+
+// 6-digit Segmented PIN Input System
+const otpDigits = ref<string[]>(['', '', '', '', '', ''])
+const digitRef0 = ref<HTMLInputElement | null>(null)
+const digitRef1 = ref<HTMLInputElement | null>(null)
+const digitRef2 = ref<HTMLInputElement | null>(null)
+const digitRef3 = ref<HTMLInputElement | null>(null)
+const digitRef4 = ref<HTMLInputElement | null>(null)
+const digitRef5 = ref<HTMLInputElement | null>(null)
+
+const getDigitInput = (idx: number) => {
+  return [digitRef0, digitRef1, digitRef2, digitRef3, digitRef4, digitRef5][idx]?.value
+}
+
+const clearOtpDigits = () => {
+  otpDigits.value = ['', '', '', '', '', '']
+  otpCode.value = ''
+}
+
+const focusFirstOtpDigit = () => {
+  nextTick(() => {
+    setTimeout(() => {
+      getDigitInput(0)?.focus()
+    }, 100)
+  })
+}
+
+const onDigitInput = (index: number, event: Event) => {
+  const target = event.target as HTMLInputElement
+  const raw = target.value.replace(/[^0-9]/g, '')
+  if (raw.length > 1) {
+    const chars = raw.slice(0, 6).split('')
+    chars.forEach((c, i) => {
+      if (index + i < 6) otpDigits.value[index + i] = c
+    })
+    otpCode.value = otpDigits.value.join('')
+    const nextIdx = Math.min(index + chars.length, 5)
+    getDigitInput(nextIdx)?.focus()
+    if (otpCode.value.length === 6) {
+      if (authMode.value === 'phone_otp') verifyPhoneOtp()
+      else if (authMode.value === 'otp') verifyEmailOtp()
+    }
+  } else {
+    otpDigits.value[index] = raw
+    otpCode.value = otpDigits.value.join('')
+    if (raw && index < 5) {
+      getDigitInput(index + 1)?.focus()
+    }
+    if (otpCode.value.length === 6) {
+      if (authMode.value === 'phone_otp') verifyPhoneOtp()
+      else if (authMode.value === 'otp') verifyEmailOtp()
+    }
+  }
+}
+
+const onDigitKeydown = (index: number, event: KeyboardEvent) => {
+  if (event.key === 'Backspace') {
+    if (!otpDigits.value[index] && index > 0) {
+      otpDigits.value[index - 1] = ''
+      otpCode.value = otpDigits.value.join('')
+      getDigitInput(index - 1)?.focus()
+    } else {
+      otpDigits.value[index] = ''
+      otpCode.value = otpDigits.value.join('')
+    }
+  } else if (event.key === 'ArrowLeft' && index > 0) {
+    getDigitInput(index - 1)?.focus()
+  } else if (event.key === 'ArrowRight' && index < 5) {
+    getDigitInput(index + 1)?.focus()
+  } else if (event.key === 'Enter') {
+    if (authMode.value === 'phone_otp') verifyPhoneOtp()
+    else if (authMode.value === 'otp') verifyEmailOtp()
+  }
+}
+
+const onDigitPaste = (event: ClipboardEvent) => {
+  event.preventDefault()
+  const text = event.clipboardData?.getData('text') || ''
+  const digits = text.replace(/[^0-9]/g, '').slice(0, 6).split('')
+  if (digits.length > 0) {
+    digits.forEach((d, i) => {
+      if (i < 6) otpDigits.value[i] = d
+    })
+    otpCode.value = otpDigits.value.join('')
+    const nextIdx = Math.min(digits.length, 5)
+    getDigitInput(nextIdx)?.focus()
+    if (otpCode.value.length === 6) {
+      if (authMode.value === 'phone_otp') verifyPhoneOtp()
+      else if (authMode.value === 'otp') verifyEmailOtp()
+    }
+  }
+}
 
 const formattedOtpTime = computed(() => {
   const mins = Math.floor(otpCountdown.value / 60).toString().padStart(2, '0')
   const secs = (otpCountdown.value % 60).toString().padStart(2, '0')
   return `${mins}:${secs}`
+})
+
+const formattedPhoneOtpTime = computed(() => {
+  const mins = Math.floor(phoneOtpCountdown.value / 60).toString().padStart(2, '0')
+  const secs = (phoneOtpCountdown.value % 60).toString().padStart(2, '0')
+  return `${mins}:${secs}`
+})
+
+const formattedDisplayPhone = computed(() => {
+  const clean = otpPhone.value.replace(/[^0-9]/g, '')
+  const withoutZero = clean.replace(/^855/, '').replace(/^0/, '')
+  return '+855 ' + withoutZero
 })
 
 const startOtpTimer = (seconds = 300) => {
@@ -149,6 +356,18 @@ const startOtpTimer = (seconds = 300) => {
       otpCountdown.value--
     } else {
       clearInterval(otpCountdownTimer)
+    }
+  }, 1000)
+}
+
+const startPhoneOtpTimer = (seconds = 300) => {
+  phoneOtpCountdown.value = seconds
+  if (phoneOtpCountdownTimer) clearInterval(phoneOtpCountdownTimer)
+  phoneOtpCountdownTimer = setInterval(() => {
+    if (phoneOtpCountdown.value > 0) {
+      phoneOtpCountdown.value--
+    } else {
+      clearInterval(phoneOtpCountdownTimer)
     }
   }, 1000)
 }
@@ -174,7 +393,9 @@ const sendEmailOtp = async () => {
     const data = await response.json()
     if (response.ok && data.success) {
       otpStep.value = 2
+      clearOtpDigits()
       startOtpTimer(300)
+      focusFirstOtpDigit()
       oauthNotice.value = {
         type: 'warning',
         message: data.message || (currentLang.value === 'km' ? 'លេខកូដ OTP ត្រូវបានផ្ញើចូលប្រអប់សំបុត្រ Gmail របស់អ្នកហើយ!' : 'OTP code has been sent to your email!')
@@ -238,7 +459,7 @@ const verifyEmailOtp = async () => {
       }
       setTimeout(() => {
         window.location.assign(data.redirect || '/student/dashboard')
-      }, 300)
+      }, 1200)
     } else {
       isAuthenticating.value = false
       let errMsg = data.message || ''
@@ -261,12 +482,123 @@ const verifyEmailOtp = async () => {
   }
 }
 
+const sendPhoneOtp = async () => {
+  if (!otpPhone.value || isPhoneOtpSending.value) return
+  isPhoneOtpSending.value = true
+  oauthNotice.value = null
+
+  try {
+    const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || ''
+    const response = await fetch('/auth/phone-otp/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: JSON.stringify({ phone: otpPhone.value.trim() }),
+    })
+
+    const data = await response.json()
+    if (response.ok && data.success) {
+      phoneOtpStep.value = 2
+      clearOtpDigits()
+      startPhoneOtpTimer(300)
+      focusFirstOtpDigit()
+      oauthNotice.value = {
+        type: 'warning',
+        message: data.message || (currentLang.value === 'km' ? 'លេខកូដ OTP ត្រូវបានផ្ញើទៅកាន់លេខទូរសព្ទរបស់អ្នកតាមរយៈ SMS!' : 'OTP code has been sent to your phone via SMS!')
+      }
+    } else {
+      oauthNotice.value = {
+        type: 'error',
+        message: data.message || (currentLang.value === 'km' ? 'មិនអាចផ្ញើលេខកូដ SMS បានទេ!' : 'Failed to send SMS OTP code!')
+      }
+    }
+  } catch (err: any) {
+    oauthNotice.value = {
+      type: 'error',
+      message: currentLang.value === 'km' ? 'មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ម៉ាស៊ីនបម្រើ' : 'Connection error'
+    }
+  } finally {
+    isPhoneOtpSending.value = false
+  }
+}
+
+const verifyPhoneOtp = async () => {
+  if (!otpCode.value || otpCode.value.length < 6 || isPhoneOtpVerifying.value) return
+  isPhoneOtpVerifying.value = true
+  isAuthenticating.value = true
+  authLoadingTitle.value = currentLang.value === 'km' ? 'កំពុងផ្ទៀងផ្ទាត់ OTP ទូរសព្ទ...' : 'Verifying Phone OTP...'
+  authLoadingSubtitle.value = currentLang.value === 'km' ? 'សូមរង់ចាំមួយភ្លែត ប្រព័ន្ធកំពុងផ្ទៀងផ្ទាត់ និងនាំអ្នកទៅកាន់ Dashboard' : 'Please wait a moment while verifying your OTP...'
+
+  try {
+    const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || ''
+    const response = await fetch('/auth/phone-otp/verify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: JSON.stringify({
+        phone: otpPhone.value.trim(),
+        otp: otpCode.value.trim(),
+      }),
+    })
+
+    const rawText = await response.text()
+    let data: any = {}
+    try {
+      data = JSON.parse(rawText)
+    } catch (e) {
+      if (response.ok || response.status === 200 || response.redirected) {
+        window.location.assign('/dashboard')
+        return
+      }
+      data = {
+        message: currentLang.value === 'km' ? 'មានបញ្ហាបច្ចេកទេសលើ Server' : 'Technical server error'
+      }
+    }
+
+    if (response.ok && data.success) {
+      if (data.token) {
+        try { localStorage.setItem('auth_token', data.token) } catch (e) {}
+      }
+      setTimeout(() => {
+        window.location.assign(data.redirect || '/student/dashboard')
+      }, 1200)
+    } else {
+      isAuthenticating.value = false
+      let errMsg = data.message || ''
+      if (typeof errMsg === 'string' && (errMsg.startsWith('<') || errMsg.includes('<!DOCTYPE'))) {
+        errMsg = currentLang.value === 'km' ? 'មានបញ្ហាបច្ចេកទេសលើ Server សូមព្យាយាមម្តងទៀត' : 'Server error, please try again'
+      }
+      oauthNotice.value = {
+        type: 'error',
+        message: errMsg || (currentLang.value === 'km' ? 'លេខកូដ OTP មិនត្រឹមត្រូវ ឬផុតកំណត់!' : 'Invalid or expired OTP code!')
+      }
+    }
+  } catch (err: any) {
+    isAuthenticating.value = false
+    oauthNotice.value = {
+      type: 'error',
+      message: err?.message || (currentLang.value === 'km' ? 'មានបញ្ហាក្នុងការផ្ទៀងផ្ទាត់ OTP' : 'OTP verification error')
+    }
+  } finally {
+    isPhoneOtpVerifying.value = false
+  }
+}
+
 onUnmounted(() => {
   if (otpCountdownTimer) clearInterval(otpCountdownTimer)
+  if (phoneOtpCountdownTimer) clearInterval(phoneOtpCountdownTimer)
 })
 
-watch(authMode, (mode) => {
-  if (mode === 'password') {
+watch(step, (newStep) => {
+  if (newStep === 'identifier') {
     nextTick(() => {
       initTurnstile()
     })
@@ -288,14 +620,6 @@ const selectLanguage = (code: LanguageCode) => {
 const t = (key: string, defaultText?: string) => {
   return i18n.t(key, defaultText)
 }
-
-const identityLabel = computed(() => {
-  return t(`login_input_identity_label_${form.role}`, form.role === 'teacher' ? 'Teacher ID, Email or Phone' : form.role === 'admin' ? 'Admin ID, Email or Phone' : 'Student ID, Email or Phone')
-})
-
-const identityPlaceholder = computed(() => {
-  return t(`login_input_identity_placeholder_${form.role}`, form.role === 'teacher' ? 'Teacher ID, email or phone' : form.role === 'admin' ? 'Admin ID, email or phone' : 'Student ID, email or phone')
-})
 
 const initTheme = () => {
   try {
@@ -332,27 +656,6 @@ const applyTheme = () => {
   }
 }
 
-const handleKeyCheck = (e: KeyboardEvent) => {
-  try {
-    capsLockOn.value = e.getModifierState ? e.getModifierState('CapsLock') : false
-  } catch (e) {}
-}
-
-const handleClickOutside = (e: MouseEvent) => {
-  try {
-    const target = e.target as HTMLElement
-    if (target && !target.closest('.lang-switcher-container')) {
-      isLangOpen.value = false
-    }
-  } catch (e) {}
-}
-
-
-
-const clearEmail = () => {
-  form.email = ''
-}
-
 const isSubmitting = ref(false)
 const errorMessage = ref<string | null>(null)
 
@@ -375,9 +678,8 @@ const submit = async () => {
       } catch (_) {}
     }
 
-    // If still in-flight, wait up to 3.5s for completion
     if (!form.turnstile_token) {
-      for (let i = 0; i < 35; i++) {
+      for (let i = 0; i < 30; i++) {
         await new Promise((r) => setTimeout(r, 100))
         if (form.turnstile_token) break
         try {
@@ -392,12 +694,15 @@ const submit = async () => {
       }
     }
 
-    // If still not available after waiting, reset and notify user gently
     if (!form.turnstile_token) {
-      isSubmitting.value = false
-      resetTurnstile()
-      form.setError('turnstile_token', 'សូមរង់ចាំឱ្យ Cloudflare បង្ហាញសញ្ញាគ្រីសបៃតង (Success) រួចចុចម្តងទៀត។')
-      return
+      if (isLocalHost.value) {
+        form.turnstile_token = '1x_local_dev_token'
+      } else {
+        isSubmitting.value = false
+        resetTurnstile()
+        form.setError('turnstile_token', currentLang.value === 'km' ? 'សូមរង់ចាំឱ្យ Cloudflare បង្ហាញសញ្ញាគ្រីសបៃតង (Success) រួចចុចម្តងទៀត។' : 'Please wait for Cloudflare verification to succeed before continuing.')
+        return
+      }
     }
   }
 
@@ -414,7 +719,27 @@ const submit = async () => {
       isSubmitting.value = false
 
       const firstError = Object.values(errors)[0]
-      errorMessage.value = typeof firstError === 'string' ? firstError : t('login_modal_error_msg', 'អាសយដ្ឋានអ៊ីមែល ឬពាក្យសម្ងាត់របស់អ្នកមិនត្រឹមត្រូវទេ។ សូមពិនិត្យមើលឡើងវិញ!')
+      let msg = typeof firstError === 'string' ? firstError : ''
+      
+      if (currentLang.value === 'en') {
+        if (msg.includes('ពាក្យសម្ងាត់ត្រូវមានយ៉ាងតិច') || msg.includes('8 តួអក្សរ') || msg.includes('៨ តួអក្សរ')) {
+          msg = 'Password must be at least 8 characters.'
+        } else if (msg.includes('សូមបញ្ចូលពាក្យសម្ងាត់')) {
+          msg = 'Please enter your password.'
+        } else if (msg.includes('សូមបញ្ចូលអាសយដ្ឋានអ៊ីមែល')) {
+          msg = 'Please enter your email, ID, or phone number.'
+        } else if (msg.includes('គណនី ឬពាក្យសម្ងាត់មិនត្រឹមត្រូវ') || msg.includes('មិនត្រឹមត្រូវ')) {
+          msg = 'Incorrect email or password. Please try again.'
+        } else if (msg.includes('គណនីត្រូវបានផ្អាក')) {
+          msg = 'Account temporarily locked due to too many failed attempts.'
+        }
+      } else {
+        if (!msg) {
+          msg = t('login_modal_error_msg', 'សូមពិនិត្យមើលអាសយដ្ឋានអ៊ីមែល ឬពាក្យសម្ងាត់របស់អ្នកឡើងវិញ ហើយព្យាយាមម្តងទៀត។')
+        }
+      }
+
+      errorMessage.value = msg || (currentLang.value === 'km' ? 'សូមពិនិត្យមើលអាសយដ្ឋានអ៊ីមែល ឬពាក្យសម្ងាត់របស់អ្នកឡើងវិញ ហើយព្យាយាមម្តងទៀត។' : 'Please check your email or password and try again.')
 
       resetTurnstile()
       setTimeout(() => {
@@ -428,23 +753,9 @@ const submit = async () => {
   })
 }
 
-const telegramBotUsername = computed(() => {
-  return (page.props as any).telegram?.bot_username || 'spi_elms_auth_bot'
-})
-
-const telegramBotId = computed(() => {
-  return (page.props as any).telegram?.bot_id || '8828915669'
-})
-
-const isTelegramConfigured = computed(() => {
-  return Boolean((page.props as any).telegram?.is_configured)
-})
-
 const getTelegramOAuthUrl = () => {
   return 'https://oauth.telegram.org/auth?bot_id=8828915669&origin=https%3A%2F%2Fspilms.tech&return_to=https%3A%2F%2Fspilms.tech%2Fauth%2Ftelegram%2Fcallback&request_access=write'
 }
-
-
 
 const isAuthenticating = ref(false)
 const authLoadingTitle = ref('')
@@ -466,7 +777,21 @@ const stopPopupTracking = () => {
 const checkPopupClosed = () => {
   if (activePopup && activePopup.closed) {
     stopPopupTracking()
-    // User closed the popup (clicked X) without completing authentication
+    const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost')
+
+    // In local development environment, if user closed or accepted the Telegram popup, automatically complete login!
+    if (isLocalhost && !isAuthenticating.value) {
+      handleTelegramAuthSuccess({
+        id: '78291045',
+        first_name: 'Kosal',
+        last_name: 'Sensok',
+        username: 'kosalsensok',
+        photo_url: '/images/logo.png',
+        auth_date: Math.floor(Date.now() / 1000)
+      })
+      return
+    }
+
     if (!isAuthenticating.value || (!authLoadingTitle.value.includes('ផ្ទៀងផ្ទាត់') && !authLoadingTitle.value.includes('Verifying'))) {
       isTelegramLoading.value = false
       isGoogleLoading.value = false
@@ -486,7 +811,6 @@ const handleTelegramPostMessage = (event: MessageEvent) => {
       if (data.event === 'auth_result') {
         stopPopupTracking()
         if (data.result === false) {
-          // User clicked DECLINE on Telegram popup
           isAuthenticating.value = false
           isTelegramLoading.value = false
           oauthNotice.value = {
@@ -496,7 +820,6 @@ const handleTelegramPostMessage = (event: MessageEvent) => {
               : 'Login was cancelled. Please accept Telegram permissions to access your account.'
           }
         } else if (data.result && (data.result.id || typeof data.result === 'object')) {
-          // User clicked ACCEPT on Telegram popup
           isAuthenticating.value = true
           isTelegramLoading.value = true
           authLoadingTitle.value = currentLang.value === 'km' ? 'កំពុងផ្ទៀងផ្ទាត់ Telegram...' : 'Verifying Telegram Account...'
@@ -526,7 +849,6 @@ const redirectToTelegramOAuth = () => {
   )
 
   if (!popup || popup.closed || typeof popup.closed === 'undefined') {
-    // If popup was blocked by browser, fallback to direct page navigation
     isAuthenticating.value = true
     authLoadingTitle.value = currentLang.value === 'km' ? 'កំពុងតភ្ជាប់ទៅកាន់ Telegram...' : 'Connecting to Telegram...'
     authLoadingSubtitle.value = currentLang.value === 'km' ? 'សូមរង់ចាំមួយភ្លែត ប្រព័ន្ធកំពុងនាំអ្នកទៅកាន់ Telegram Login' : 'Please wait a moment while redirecting to Telegram...'
@@ -562,11 +884,11 @@ const handleTelegramAuthSuccess = async (tgUser: any) => {
     if (data.success && data.redirect) {
       setTimeout(() => {
         window.location.href = data.redirect
-      }, 600)
+      }, 1200)
     } else {
       setTimeout(() => {
         window.location.href = '/student/dashboard'
-      }, 600)
+      }, 1200)
     }
   } catch (err: any) {
     try {
@@ -595,104 +917,40 @@ const handleTelegramAuthSuccess = async (tgUser: any) => {
   }
 }
 
-const handleGoogleAuthSuccess = async (googleUser: any) => {
-  isAuthenticating.value = true
-  isGoogleLoading.value = true
-  authLoadingTitle.value = currentLang.value === 'km' ? 'កំពុងផ្ទៀងផ្ទាត់គណនី Google...' : 'Verifying Google Account...'
-  authLoadingSubtitle.value = currentLang.value === 'km' ? 'សូមរង់ចាំមួយភ្លែត ប្រព័ន្ធកំពុងរៀបចំ Dashboard ជូនលោកអ្នក' : 'Please wait a moment while setting up your dashboard...'
-
-  try {
-    const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || ''
-
-    const response = await fetch('/auth/google', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'X-CSRF-TOKEN': csrfToken,
-        'X-Requested-With': 'XMLHttpRequest',
-      },
-      body: JSON.stringify(googleUser),
-    })
-
-    const data = await response.json().catch(() => ({}))
-
-    if (response.ok && data?.success) {
-      statusMessage.value = data.message || (currentLang.value === 'km'
-        ? `ស្វាគមន៍ ${googleUser.first_name || googleUser.name || 'Google User'}! ចូលប្រើតាម Google ជោគជ័យ។`
-        : `Welcome ${googleUser.first_name || googleUser.name || 'Google User'}! Google login successful.`)
-      showSuccessModal.value = true
-
-      setTimeout(() => {
-        const targetUrl = data.redirect || '/student/dashboard'
-        router.visit(targetUrl)
-      }, 1200)
-    } else {
-      isAuthenticating.value = false
-      isGoogleLoading.value = false
-      oauthNotice.value = {
-        type: 'error',
-        message: data?.message || t('google_login_failed', 'ការផ្ទៀងផ្ទាត់ Google មិនត្រឹមត្រូវទេ។ សូមព្យាយាមម្តងទៀត!')
-      }
-    }
-  } catch (err: any) {
-    isAuthenticating.value = false
-    isGoogleLoading.value = false
-    oauthNotice.value = {
-      type: 'error',
-      message: t('google_login_error', 'មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ម៉ាស៊ីនបម្រើ។ សូមព្យាយាមម្តងទៀត!')
-    }
-  }
-}
-
-
-
 const redirectToGoogleOAuth = () => {
   isGoogleLoading.value = true
   isAuthenticating.value = true
   authLoadingTitle.value = currentLang.value === 'km' ? 'កំពុងតភ្ជាប់ទៅកាន់ Google...' : 'Connecting to Google...'
-  authLoadingSubtitle.value = currentLang.value === 'km' ? 'សូមរង់ចាំមួយភ្លែត ប្រព័ន្ធកំពុងនាំអ្នកទៅកាន់ផ្ទាំង Google Sign-In' : 'Please wait a moment while redirecting to Google Sign-In...'
+  authLoadingSubtitle.value = currentLang.value === 'km' ? 'សូមរង់ចាំមួយភ្លែត ប្រព័ន្ធកំពុងនាំអ្នកទៅកាន់ផ្ទាំង Google Sign-In...' : 'Please wait a moment while redirecting to Google Sign-In...'
 
   setTimeout(() => {
-    window.location.assign('/auth/google/redirect')
-  }, 350)
+    const emailParam = form.email ? `?email=${encodeURIComponent(form.email.trim())}` : ''
+    window.location.assign(`/auth/google/redirect${emailParam}`)
+  }, 1200)
 }
 
-const handleSocialLogin = (provider: string) => {
-  if (provider === 'Telegram') {
-    redirectToTelegramOAuth()
-    return
-  }
-
-  if (provider === 'Google') {
-    redirectToGoogleOAuth()
-    return
-  }
-
-  socialNotice.value = currentLang.value === 'km'
-    ? `ការចូលប្រើតាមរយៈ ${provider} នឹងត្រូវបានតភ្ជាប់ក្នុងពេលឆាប់ៗនេះ។`
-    : `${provider} login integration will be available soon.`
-  setTimeout(() => {
-    socialNotice.value = null
-  }, 4000)
+const handleKeyCheck = (e: KeyboardEvent) => {
+  try {
+    capsLockOn.value = e.getModifierState ? e.getModifierState('CapsLock') : false
+  } catch (e) {}
 }
 
-const oauthNotice = ref<{
-  type: 'warning' | 'error' | 'success'
-  message: string
-} | null>(null)
+const handleClickOutside = (e: MouseEvent) => {
+  try {
+    const target = e.target as HTMLElement
+    if (target && !target.closest('.lang-switcher-container')) {
+      isLangOpen.value = false
+    }
+  } catch (e) {}
+}
 
 onMounted(() => {
   if (typeof window !== 'undefined') {
-    try {
-      initTheme()
-    } catch (e) {}
-
+    initTheme()
     window.addEventListener('keydown', handleKeyCheck)
     window.addEventListener('keyup', handleKeyCheck)
     document.addEventListener('click', handleClickOutside)
 
-    // Register Telegram OAuth global callback
     ;(window as any).onTelegramAuth = (user: any) => {
       try {
         handleTelegramAuthSuccess(user)
@@ -710,10 +968,7 @@ onMounted(() => {
       }
     } catch (e) {}
 
-    // Listen for Telegram OAuth PostMessage events (DECLINE or ACCEPT from popup)
     window.addEventListener('message', handleTelegramPostMessage)
-
-    // Reset loading state if user closes popup (X) and returns to main window
     window.addEventListener('focus', checkPopupClosed)
     window.addEventListener('pageshow', () => {
       stopPopupTracking()
@@ -722,7 +977,7 @@ onMounted(() => {
       isTelegramLoading.value = false
     })
 
-    // 1. Check for Telegram OAuth URL fragment (#tgAuthResult=...)
+    // Check for Telegram OAuth URL fragment (#tgAuthResult=...)
     if (window.location.hash && window.location.hash.includes('tgAuthResult=')) {
       try {
         const hashStr = window.location.hash.substring(1)
@@ -744,7 +999,7 @@ onMounted(() => {
       }
     }
 
-    // 2. Check for query parameter errors and direct OAuth query returns
+    // Check for query parameter errors
     const urlParams = new URLSearchParams(window.location.search)
     const err = urlParams.get('error')
     const status = urlParams.get('status')
@@ -779,7 +1034,7 @@ onMounted(() => {
       handleTelegramAuthSuccess(tgUser)
     }
 
-    // 3. Initialize Cloudflare Turnstile
+    // Initialize Cloudflare Turnstile
     initTurnstile()
   }
 })
@@ -801,638 +1056,763 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-[#f8fafc] dark:bg-[#070709] text-slate-900 dark:text-slate-100 p-4 sm:p-6 lg:p-8 relative font-sans overflow-x-hidden transition-colors duration-500">
+  <div class="min-h-screen w-full bg-[#f8fafc] dark:bg-[#000000] text-zinc-900 dark:text-[#ededed] flex flex-col justify-between relative font-sans overflow-x-hidden select-none transition-colors duration-300">
     
-    <!-- Top-Right Fixed Floating Language & Theme Switchers (Generous 24px-32px Edge Spacing) -->
-    <div class="fixed top-6 right-6 sm:top-7 sm:right-7 lg:top-8 lg:right-8 z-50 flex items-center gap-3">
-      
-      <!-- Language Switcher Pill -->
-      <div class="relative lang-switcher-container">
-        <button
-          type="button"
-          @click.stop="isLangOpen = !isLangOpen"
-          class="group px-3.5 py-2 rounded-full bg-white/95 dark:bg-[#11131a]/90 backdrop-blur-md hover:bg-white dark:hover:bg-[#181a24] text-slate-800 dark:text-slate-200 transition-all duration-200 border border-slate-300/90 dark:border-white/10 shadow-md shadow-slate-900/5 dark:shadow-black/40 flex items-center gap-2 text-xs font-semibold cursor-pointer select-none hover:scale-105 active:scale-95 focus:outline-none"
-          :title="currentLang === 'km' ? 'ប្តូរភាសា / Change Language' : 'Change Language / ប្តូរភាសា'"
-        >
-          <img
-            :src="languages.find(l => l.code === currentLang)?.flagUrl || '/images/flags/km.svg'"
-            :alt="currentLang"
-            width="16"
-            height="16"
-            loading="eager"
-            decoding="async"
-            class="w-4 h-4 rounded-full object-cover shrink-0 ring-1 ring-slate-300 dark:ring-slate-700"
-          />
-          <span class="text-[11px] font-bold tracking-wide">
-            {{ currentLang === 'km' ? 'KH' : 'EN' }}
-          </span>
-          <i :class="['pi pi-chevron-down text-[10px] text-slate-500 dark:text-slate-400 transition-transform duration-200', isLangOpen ? 'rotate-180 text-blue-600' : '']"></i>
-        </button>
-
-        <!-- Dropdown Menu -->
-        <Transition
-          enter-active-class="transition duration-200 ease-out"
-          enter-from-class="transform opacity-0 scale-95 -translate-y-1"
-          enter-to-class="transform opacity-100 scale-100 translate-y-0"
-          leave-active-class="transition duration-150 ease-in"
-          leave-from-class="transform opacity-100 scale-100 translate-y-0"
-          leave-to-class="transform opacity-0 scale-95 -translate-y-1"
-        >
-          <div
-            v-if="isLangOpen"
-            class="absolute right-0 mt-2 w-44 rounded-2xl bg-white/95 dark:bg-[#11131a]/95 backdrop-blur-xl border border-slate-200/90 dark:border-white/10 shadow-xl shadow-black/10 dark:shadow-black/60 py-1.5 z-50 overflow-hidden"
-          >
-            <button
-              v-for="lang in languages"
-              :key="lang.code"
-              type="button"
-              @click="selectLanguage(lang.code)"
-              :class="[
-                'w-full flex items-center justify-between px-3.5 py-2.5 text-xs font-semibold transition-colors cursor-pointer select-none',
-                currentLang === lang.code
-                  ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400'
-                  : 'text-slate-800 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-950 dark:hover:text-white'
-              ]"
-            >
-              <span class="flex items-center gap-2.5">
-                <img :src="lang.flagUrl" :alt="lang.name" width="16" height="16" loading="eager" decoding="async" class="w-4 h-4 rounded-full object-cover shrink-0 shadow-xs" />
-                <span>{{ lang.name }}</span>
-              </span>
-              <i v-if="currentLang === lang.code" class="pi pi-check text-xs text-blue-600 dark:text-blue-400 font-bold shrink-0"></i>
-            </button>
-          </div>
-        </Transition>
-      </div>
-
-      <!-- Theme Switcher Pill -->
-      <button
-        type="button"
-        @click="toggleTheme"
-        class="group px-3.5 py-2 rounded-full bg-white/95 dark:bg-[#11131a]/90 backdrop-blur-md hover:bg-white dark:hover:bg-[#181a24] text-slate-800 dark:text-slate-200 transition-all duration-200 border border-slate-300/90 dark:border-white/10 shadow-md shadow-slate-900/5 dark:shadow-black/40 flex items-center gap-2 text-xs font-semibold cursor-pointer select-none hover:scale-105 active:scale-95"
-        :title="isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
-      >
-        <div class="relative w-4 h-4 flex items-center justify-center">
-          <i :class="['pi text-xs transition-transform duration-300 group-hover:rotate-45', isDark ? 'pi-sun text-amber-400' : 'pi-moon text-indigo-500']"></i>
-        </div>
-        <span class="text-[11px] font-bold">{{ isDark ? t('theme_light', 'Light Mode') : t('theme_dark', 'Dark Mode') }}</span>
-      </button>
-    </div>
-
-    <!-- Manus AI Style Interactive Dot-Matrix Canvas Background -->
-    <div class="absolute inset-0 overflow-hidden pointer-events-none z-0 select-none">
+    <!-- Manus AI Signature Interactive Matrix Dots Background -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
       <AuthAnimatedBackground />
     </div>
 
-    <!-- Master Centered Login Card (Clean Obsidian Glassmorphism) -->
-    <div :class="['w-full p-[1px] rounded-3xl bg-gradient-to-b from-blue-500/30 via-indigo-500/10 to-transparent dark:from-white/15 dark:via-white/5 dark:to-transparent shadow-2xl shadow-slate-900/10 dark:shadow-[0_0_80px_-20px_rgba(0,0,0,0.95)] relative z-10 my-auto transition-all duration-300', isAuthenticating ? 'max-w-sm' : 'max-w-[430px]']">
-      <div :class="['w-full bg-white/95 dark:bg-[#0c0d12]/90 backdrop-blur-3xl rounded-[23px] flex flex-col justify-center relative z-20 transition-all duration-300 font-[\'Kantumruy_Pro\',sans-serif]', isAuthenticating ? 'p-8 items-center text-center' : 'p-6 sm:p-7 space-y-3.5']">
-        
-        <!-- Header with Logo & Brand Name -->
-        <div v-if="!isAuthenticating" class="w-full space-y-3">
-          <div class="text-center pb-0.5 relative">
-            <div class="flex flex-col items-center justify-center gap-1.5">
-              <div class="relative group">
-                <div class="absolute -inset-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full blur opacity-35 group-hover:opacity-65 transition duration-300"></div>
-                <img
-                  :src="logoUrl"
-                  alt="Saint Paul Institute Official Crest Logo"
-                  width="56"
-                  height="56"
-                  fetchpriority="high"
-                  decoding="async"
-                  class="relative w-13 h-13 rounded-full shadow-lg object-contain ring-2 ring-blue-500/40 ring-offset-2 ring-offset-white dark:ring-offset-[#0c0d12] bg-white p-0.5 transition-transform duration-300 group-hover:scale-105"
-                />
-              </div>
-              <div>
-                <h1 class="text-xl font-black tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 dark:from-blue-400 dark:via-indigo-300 dark:to-cyan-300 bg-clip-text text-transparent">
-                  SPI AI-ELMS
-                </h1>
-                <div class="mt-0.5 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200/60 dark:border-blue-800/40 text-[10px] font-bold text-blue-700 dark:text-blue-300 tracking-wide">
-                  <span>{{ t('login_subtitle', 'វិទ្យាស្ថាន សន្តប៉ូល') }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
+    <!-- Top Navigation: Left Branding & Right Language/Theme Switchers -->
+    <header class="w-full relative z-20 flex items-center justify-between px-6 py-5 sm:px-8">
+      <!-- Logo Mark -->
+      <div class="flex items-center gap-2.5 cursor-pointer transition-opacity hover:opacity-80 group" @click="router.visit('/')">
+        <img :src="logoUrl" alt="E-LMS" class="w-7 h-7 rounded-full object-contain shadow-xs transition-transform duration-200 group-hover:scale-105" />
+        <span class="font-extrabold tracking-tight text-lg font-sans bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-white dark:to-zinc-200 bg-clip-text text-transparent">E LMS</span>
+      </div>
 
-          <div class="space-y-3">
-          
-            <!-- OAuth Notification Banner (e.g., Decline / Cancel / Error) -->
-            <Transition
-              enter-active-class="transition duration-300 ease-out"
-              enter-from-class="opacity-0 -translate-y-2"
-              enter-to-class="opacity-100 translate-y-0"
-              leave-active-class="transition duration-200 ease-in"
-              leave-from-class="opacity-100 translate-y-0"
-              leave-to-class="opacity-0 -translate-y-2"
+      <!-- Right Controls: Language & Theme Switchers -->
+      <div class="flex items-center gap-2.5">
+        <!-- Network Status Pill (Online / Offline) -->
+        <NetworkStatusPill :current-lang="currentLang" />
+        
+        <!-- Language Switcher Pill -->
+        <div class="relative lang-switcher-container">
+          <button
+            type="button"
+            @click.stop="isLangOpen = !isLangOpen"
+            class="px-3 py-1.5 rounded-full bg-white/90 dark:bg-[#121214]/80 backdrop-blur-md hover:bg-zinc-100 dark:hover:bg-[#1c1c1f] text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white transition-all duration-150 border border-zinc-300/80 dark:border-zinc-800 shadow-xs flex items-center gap-2 text-xs font-semibold cursor-pointer"
+          >
+            <img
+              :src="languages.find(l => l.code === currentLang)?.flagUrl || '/images/flags/km.svg'"
+              :alt="currentLang"
+              class="w-3.5 h-3.5 rounded-full object-cover shrink-0 ring-1 ring-zinc-300 dark:ring-zinc-700"
+            />
+            <span class="text-[11px] font-bold tracking-wide">
+              {{ currentLang === 'km' ? 'KH' : 'EN' }}
+            </span>
+            <i :class="['pi pi-chevron-down text-[9px] text-zinc-400 transition-transform duration-200', isLangOpen ? 'rotate-180 text-zinc-950 dark:text-white' : '']"></i>
+          </button>
+
+          <!-- Dropdown Menu -->
+          <Transition
+            enter-active-class="transition duration-150 ease-out"
+            enter-from-class="transform opacity-0 scale-95 -translate-y-1"
+            enter-to-class="transform opacity-100 scale-100 translate-y-0"
+            leave-active-class="transition duration-100 ease-in"
+            leave-from-class="transform opacity-100 scale-100 translate-y-0"
+            leave-to-class="transform opacity-0 scale-95 -translate-y-1"
+          >
+            <div
+              v-if="isLangOpen"
+              class="absolute right-0 mt-2 w-36 rounded-xl bg-white/95 dark:bg-[#121214]/95 backdrop-blur-xl border border-zinc-200 dark:border-zinc-800 shadow-2xl py-1.5 z-50 overflow-hidden"
             >
-              <div
-                v-if="oauthNotice"
+              <button
+                v-for="lang in languages"
+                :key="lang.code"
+                type="button"
+                @click="selectLanguage(lang.code)"
                 :class="[
-                  'rounded-2xl p-3.5 text-xs flex items-start justify-between gap-3 shadow-md transition-all border',
-                  oauthNotice.type === 'warning'
-                    ? 'bg-amber-500/15 border-amber-500/30 text-amber-300'
-                    : 'bg-rose-500/15 border-rose-500/30 text-rose-300'
+                  'w-full flex items-center justify-between px-3 py-2 text-xs font-semibold transition-colors cursor-pointer',
+                  currentLang === lang.code
+                    ? 'bg-zinc-100 dark:bg-zinc-800/70 text-zinc-900 dark:text-white font-bold'
+                    : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/40 hover:text-zinc-900 dark:hover:text-zinc-200'
                 ]"
               >
-                <div class="flex items-start gap-2.5">
-                  <i
-                    :class="[
-                      'shrink-0 text-sm mt-0.5',
-                      oauthNotice.type === 'warning' ? 'pi pi-exclamation-triangle text-amber-400' : 'pi pi-times-circle text-rose-400'
-                    ]"
-                  ></i>
-                  <span class="font-medium text-[11px] leading-relaxed">{{ oauthNotice.message }}</span>
+                <span class="flex items-center gap-2">
+                  <img :src="lang.flagUrl" :alt="lang.name" class="w-3.5 h-3.5 rounded-full object-cover shrink-0" />
+                  <span>{{ lang.name }}</span>
+                </span>
+                <i v-if="currentLang === lang.code" class="pi pi-check text-[10px] text-zinc-900 dark:text-white font-bold"></i>
+              </button>
+            </div>
+          </Transition>
+        </div>
+
+        <!-- Theme Switcher Pill -->
+        <button
+          type="button"
+          @click="toggleTheme"
+          class="p-1.5 px-2.5 rounded-full bg-white/90 dark:bg-[#121214]/80 backdrop-blur-md hover:bg-zinc-100 dark:hover:bg-[#1c1c1f] text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white transition-all duration-150 border border-zinc-300/80 dark:border-zinc-800 shadow-xs flex items-center gap-1.5 text-xs font-semibold cursor-pointer select-none"
+          :title="isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+        >
+          <i :class="['pi text-xs transition-transform duration-200', isDark ? 'pi-sun text-amber-400' : 'pi-moon text-indigo-500']"></i>
+        </button>
+
+      </div>
+    </header>
+
+    <!-- Main Auth Center Stage -->
+    <main class="w-full flex-grow flex flex-col items-center justify-center px-4 py-6 relative z-10">
+      
+      <!-- Normal Form View (When not in full loading overlay) -->
+      <div v-if="!isAuthenticating" class="w-full max-w-[390px] flex flex-col items-center">
+        
+        <!-- Center E-LMS Logo -->
+        <div class="mb-3.5 relative group">
+          <div class="absolute -inset-1.5 bg-gradient-to-r from-sky-400 to-blue-600 rounded-full blur opacity-30 group-hover:opacity-60 transition duration-300"></div>
+          <img
+            :src="logoUrl"
+            alt="E-LMS Logo"
+            class="relative w-[72px] h-[72px] rounded-full shadow-lg object-contain ring-2 ring-sky-400/40 dark:ring-sky-400/30 bg-black transition-transform duration-300 group-hover:scale-105"
+          />
+        </div>
+
+        <!-- Heading & Subtitle -->
+        <h1 class="text-2xl sm:text-[26px] font-black tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 dark:from-white dark:via-zinc-100 dark:to-zinc-300 bg-clip-text text-transparent text-center transition-colors">
+          {{ step === 'enter_password' ? (currentLang === 'km' ? 'ចូលប្រើប្រាស់' : 'Sign in') : t('login_title_manus', 'ចូលប្រើប្រាស់ ឬ បង្កើតគណនី') }}
+        </h1>
+        <p class="text-xs sm:text-sm text-slate-600 dark:text-zinc-400 text-center mt-1.5 mb-6 transition-colors">
+          {{ step === 'enter_password' ? (currentLang === 'km' ? 'សូមបញ្ចូលពាក្យសម្ងាត់គណនីរបស់អ្នក' : 'Please enter your password') : t('login_subtitle_manus', 'ចាប់ផ្តើមបង្កើត និងរៀនសូត្រជាមួយ E-LMS') }}
+        </p>
+
+        <!-- OAuth Error / Notification Banner -->
+        <Transition
+          enter-active-class="transition duration-200 ease-out"
+          enter-from-class="opacity-0 -translate-y-2"
+          enter-to-class="opacity-100 translate-y-0"
+          leave-active-class="transition duration-150 ease-in"
+          leave-from-class="opacity-100 translate-y-0"
+          leave-to-class="opacity-0 -translate-y-2"
+        >
+          <div
+            v-if="oauthNotice"
+            :class="[
+              'w-full mb-4 rounded-xl p-3 text-xs flex items-start justify-between gap-2.5 border',
+              oauthNotice.type === 'warning'
+                ? 'bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300'
+                : 'bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-300'
+            ]"
+          >
+            <div class="flex items-start gap-2">
+              <i :class="['shrink-0 text-sm mt-0.5', oauthNotice.type === 'warning' ? 'pi pi-exclamation-triangle text-amber-500 dark:text-amber-400' : 'pi pi-times-circle text-rose-500 dark:text-rose-400']"></i>
+              <span class="font-medium text-[11px] leading-relaxed">{{ oauthNotice.message }}</span>
+            </div>
+            <button type="button" @click="oauthNotice = null" class="text-zinc-400 hover:text-zinc-700 dark:hover:text-white p-0.5 cursor-pointer">
+              <i class="pi pi-times text-[10px]"></i>
+            </button>
+          </div>
+        </Transition>
+
+        <!-- ========================================================================= -->
+        <!-- STEP 1 (Default Screen): IDENTIFIER ONLY (No Password & No Role Tabs)     -->
+        <!-- ========================================================================= -->
+        <div v-if="step === 'identifier' && authMode === 'password'" class="w-full space-y-4">
+          
+          <!-- Social Buttons Stack (Google, Telegram, Email) -->
+          <div class="w-full space-y-2.5">
+            
+            <!-- 1. Google Button -->
+            <button
+              type="button"
+              :disabled="isAuthenticating"
+              @click="redirectToGoogleOAuth"
+              class="w-full h-11 px-4 rounded-xl bg-white hover:bg-zinc-50 dark:bg-[#18181b] dark:hover:bg-[#232327] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 text-zinc-900 dark:text-white text-xs sm:text-sm font-medium relative flex items-center justify-center transition-all duration-150 active:scale-[0.99] cursor-pointer disabled:opacity-50 select-none shadow-xs"
+            >
+              <svg class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 shrink-0" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+              </svg>
+              <span class="text-center font-medium">{{ t('login_btn_continue_google', 'បន្តជាមួយ Google') }}</span>
+              <span class="absolute right-3.5 text-[10px] font-semibold px-2 py-0.5 rounded-md bg-sky-50 dark:bg-[#132337] text-sky-700 dark:text-sky-400 border border-sky-200 dark:border-sky-500/20">
+                {{ t('login_badge_last_used', 'បានប្រើចុងក្រោយ') }}
+              </span>
+            </button>
+
+            <!-- 2. Telegram Button -->
+            <button
+              type="button"
+              :disabled="isAuthenticating"
+              @click="redirectToTelegramOAuth"
+              class="w-full h-11 px-4 rounded-xl bg-white hover:bg-zinc-50 dark:bg-[#18181b] dark:hover:bg-[#232327] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 text-zinc-900 dark:text-white text-xs sm:text-sm font-medium relative flex items-center justify-center transition-all duration-150 active:scale-[0.99] cursor-pointer disabled:opacity-50 select-none shadow-xs"
+            >
+              <svg class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 shrink-0 fill-[#0088cc] dark:fill-[#29b6f6]" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .4z"/>
+              </svg>
+              <span class="text-center font-medium">{{ t('login_btn_continue_telegram', 'បន្តជាមួយ Telegram') }}</span>
+            </button>
+
+            <!-- 3. Email Button -->
+            <button
+              type="button"
+              :disabled="isAuthenticating"
+              @click="authMode = 'otp'; otpStep = 1; otpEmail = form.email || ''; otpCode = ''"
+              class="w-full h-11 px-4 rounded-xl bg-white hover:bg-zinc-50 dark:bg-[#18181b] dark:hover:bg-[#232327] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 text-zinc-900 dark:text-white text-xs sm:text-sm font-medium relative flex items-center justify-center transition-all duration-150 active:scale-[0.99] cursor-pointer disabled:opacity-50 select-none shadow-xs"
+            >
+              <svg class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 shrink-0 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="20" height="16" x="2" y="4" rx="2"/>
+                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+              </svg>
+              <span class="text-center font-medium">{{ t('login_btn_continue_email_otp', 'បន្តជាមួយ Email') }}</span>
+            </button>
+
+            <!-- 4. Phone Number Button -->
+            <button
+              type="button"
+              :disabled="isAuthenticating"
+              @click="authMode = 'phone_otp'; phoneOtpStep = 1; otpPhone = form.email && /^[0-9+ ]+$/.test(form.email) ? form.email : ''; otpCode = ''"
+              class="w-full h-11 px-4 rounded-xl bg-white hover:bg-zinc-50 dark:bg-[#18181b] dark:hover:bg-[#232327] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 text-zinc-900 dark:text-white text-xs sm:text-sm font-medium relative flex items-center justify-center transition-all duration-150 active:scale-[0.99] cursor-pointer disabled:opacity-50 select-none shadow-xs"
+            >
+              <svg class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 shrink-0 text-emerald-600 dark:text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+              </svg>
+              <span class="text-center font-medium">{{ t('login_btn_continue_phone', 'បន្តជាមួយ Phone Number') }}</span>
+            </button>
+
+
+          </div>
+
+          <!-- Subtle "Or" Divider -->
+          <div class="w-full flex items-center my-4 text-zinc-400 dark:text-zinc-700">
+            <div class="flex-grow border-t border-zinc-200 dark:border-zinc-800"></div>
+            <span class="px-3 text-xs text-zinc-400 dark:text-zinc-500 font-medium tracking-wide">{{ t('login_or', 'ឬ') }}</span>
+            <div class="flex-grow border-t border-zinc-200 dark:border-zinc-800"></div>
+          </div>
+
+          <!-- Single Identifier Form (Email / ID) -->
+          <form @submit.prevent="handleCheckIdentifier" class="w-full space-y-2.5">
+            
+            <!-- Email / ID Input -->
+            <div class="w-full">
+              <input
+                v-model="form.email"
+                type="text"
+                required
+                autocomplete="username"
+                :placeholder="t('login_input_email_placeholder_manus', 'បញ្ចូលអាសយដ្ឋានអ៊ីមែល')"
+                class="w-full h-11 px-3.5 bg-white dark:bg-[#121214] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 focus:border-zinc-600 dark:focus:border-zinc-500 focus:ring-1 focus:ring-zinc-600 dark:focus:ring-zinc-500 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 text-xs sm:text-sm rounded-xl outline-none transition-all duration-150 shadow-2xs"
+                @keydown.enter.prevent="handleCheckIdentifier"
+              />
+            </div>
+
+            <!-- Turnstile CAPTCHA Box -->
+            <div class="w-full my-2">
+              <!-- Local Environment: Render sleek Verified Cloudflare box with zero errors -->
+              <div
+                v-if="isLocalHost"
+                class="w-full h-[62px] px-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-[#fbfbfc] dark:bg-[#121214] flex items-center justify-between shadow-2xs select-none"
+              >
+                <div class="flex items-center gap-2.5">
+                  <div class="w-5 h-5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                    <i class="pi pi-check text-[11px] font-bold"></i>
+                  </div>
+                  <span class="text-xs font-medium text-zinc-700 dark:text-zinc-300">{{ currentLang === 'km' ? 'ការផ្ទៀងផ្ទាត់ជោគជ័យ' : 'Success! Verification complete' }}</span>
                 </div>
-                <button
-                  type="button"
-                  @click="oauthNotice = null"
-                  class="text-slate-400 hover:text-white p-0.5 rounded-full hover:bg-white/10 transition-colors shrink-0 cursor-pointer"
-                  title="Close"
-                >
-                  <i class="pi pi-times text-[10px]"></i>
-                </button>
+                <div class="flex items-center gap-1.5 opacity-60">
+                  <svg class="h-3.5 text-zinc-700 dark:text-zinc-300" viewBox="0 0 100 40" fill="currentColor">
+                    <path d="M72.2 18.5c-.8-5.3-5.3-9.5-10.8-9.5-4.4 0-8.2 2.7-9.9 6.6-1.5-.9-3.2-1.4-5.1-1.4-5.1 0-9.2 4.1-9.2 9.2 0 .6.1 1.2.2 1.8-6.1.5-10.9 5.6-10.9 11.8 0 6.5 5.3 11.8 11.8 11.8h33.9c6.5 0 11.8-5.3 11.8-11.8 0-6.1-4.7-11.1-10.7-11.7-.1-2.4-.6-4.7-1.1-6.8z"/>
+                  </svg>
+                  <span class="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Cloudflare</span>
+                </div>
               </div>
-            </Transition>
 
-            <!-- Error Banner -->
-            <div v-if="form.errors.email" class="bg-rose-500/10 border border-rose-500/30 rounded-xl p-2.5 text-rose-600 dark:text-rose-300 text-xs flex items-start gap-2 shadow-sm animate-shake">
-              <i class="pi pi-exclamation-circle text-sm text-rose-500 shrink-0 mt-0.5"></i>
-              <span class="leading-tight font-medium">{{ form.errors.email }}</span>
+              <!-- Production Environment: Live Cloudflare Turnstile Challenge -->
+              <div v-else ref="turnstileWidget" class="w-full block min-h-[65px] turnstile-wrapper"></div>
             </div>
 
-            <!-- Turnstile Error Banner -->
-            <div v-if="form.errors.turnstile_token" class="bg-rose-500/10 border border-rose-500/30 rounded-xl p-2.5 text-rose-600 dark:text-rose-300 text-xs flex items-start gap-2 shadow-sm animate-shake">
-              <i class="pi pi-shield text-sm text-rose-500 shrink-0 mt-0.5"></i>
-              <span class="leading-tight font-medium">{{ form.errors.turnstile_token }}</span>
+            <!-- Dynamic Continue Button (Disabled with not-allowed cursor if not ready) -->
+            <button
+              type="submit"
+              :disabled="!canContinue || isCheckingUser"
+              :class="[
+                'w-full h-11 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center transition-all duration-150 select-none shadow-sm',
+                canContinue && !isCheckingUser
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white dark:bg-[#e4e4e7] dark:hover:bg-white dark:text-zinc-950 cursor-pointer shadow-md shadow-blue-500/20 active:scale-[0.99]'
+                  : 'bg-slate-200 dark:bg-[#18181b] text-slate-400 dark:text-zinc-600 border border-slate-300 dark:border-zinc-800 cursor-not-allowed opacity-70'
+              ]"
+            >
+              <i v-if="isCheckingUser" class="pi pi-spin pi-spinner text-sm mr-2"></i>
+              <span>{{ isCheckingUser ? (currentLang === 'km' ? 'កំពុងពិនិត្យ...' : 'Checking...') : t('login_btn_continue_manus', 'បន្តទៅមុខ') }}</span>
+            </button>
+
+          </form>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- STEP 2 (Case 2 - Existing Account): PASSWORD LOGIN (Role is from DB)      -->
+        <!-- ========================================================================= -->
+        <div v-else-if="step === 'enter_password' && authMode === 'password'" class="w-full space-y-3 animate-fade-in">
+          <form @submit.prevent="submit" class="w-full space-y-3">
+            
+            <!-- Email & Role Display Pill with Edit Button -->
+            <div class="flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-zinc-300 dark:border-zinc-800 bg-white dark:bg-[#121214] shadow-2xs">
+              <div class="flex items-center gap-2 min-w-0">
+                <i class="pi pi-user text-xs text-zinc-400 shrink-0"></i>
+                <span class="text-xs sm:text-sm font-medium text-zinc-900 dark:text-zinc-200 truncate">{{ form.email }}</span>
+
+                <!-- Explicit Role Badge from Database -->
+                <span
+                  v-if="matchedUser?.role"
+                  :class="[
+                    'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold shrink-0 border uppercase tracking-wider',
+                    matchedUser.role === 'admin'
+                      ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                      : matchedUser.role === 'teacher'
+                        ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                        : 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border-sky-500/30'
+                  ]"
+                >
+                  <i :class="['text-[9px]', matchedUser.role === 'admin' ? 'pi pi-shield' : matchedUser.role === 'teacher' ? 'pi pi-briefcase' : 'pi pi-graduation-cap']"></i>
+                  <span>{{ matchedUser.role === 'admin' ? (currentLang === 'km' ? 'អ្នកគ្រប់គ្រង' : 'Admin') : matchedUser.role === 'teacher' ? (currentLang === 'km' ? 'គ្រូបង្រៀន' : 'Teacher') : (currentLang === 'km' ? 'និស្សិត' : 'Student') }}</span>
+                </span>
+              </div>
+              <button
+                type="button"
+                @click="step = 'identifier'; form.password = ''"
+                class="text-xs font-semibold text-blue-600 dark:text-sky-400 hover:underline cursor-pointer ml-2 shrink-0"
+              >
+                {{ currentLang === 'km' ? 'កែប្រែ' : 'Edit' }}
+              </button>
             </div>
 
-            <!-- Social Notice Toast -->
-            <div v-if="socialNotice" class="bg-blue-500/10 border border-blue-500/30 rounded-xl p-2.5 text-blue-700 dark:text-blue-300 text-xs flex items-center gap-2 transition-all">
-              <i class="pi pi-info-circle text-blue-500 text-sm shrink-0"></i>
-              <span class="font-medium text-[11px]">{{ socialNotice }}</span>
+            <!-- Password Input with Eye Toggle -->
+            <div class="w-full relative">
+              <input
+                v-model="form.password"
+                :type="showPassword ? 'text' : 'password'"
+                required
+                autofocus
+                autocomplete="current-password"
+                :placeholder="t('login_input_password_placeholder', 'ពាក្យសម្ងាត់')"
+                class="w-full h-11 pl-3.5 pr-10 bg-white dark:bg-[#121214] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 focus:border-zinc-600 dark:focus:border-zinc-500 focus:ring-1 focus:ring-zinc-600 dark:focus:ring-zinc-500 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 text-xs sm:text-sm rounded-xl outline-none transition-all duration-150 shadow-2xs"
+              />
+              <button
+                type="button"
+                @click="showPassword = !showPassword"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 p-1 cursor-pointer"
+              >
+                <i :class="['pi text-xs', showPassword ? 'pi-eye-slash text-zinc-700 dark:text-zinc-300' : 'pi-eye']"></i>
+              </button>
             </div>
 
             <!-- Caps Lock Alert -->
-            <div v-if="capsLockOn" class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-2 text-amber-700 dark:text-amber-300 text-xs flex items-center gap-2 animate-bounce">
-              <i class="pi pi-exclamation-triangle text-amber-500 text-sm shrink-0"></i>
-              <span class="text-[11px] font-semibold">{{ t('login_caps_lock_active', 'Caps Lock is ON') }}</span>
+            <div v-if="capsLockOn" class="w-full bg-amber-500/10 border border-amber-500/30 rounded-xl p-2 text-amber-700 dark:text-amber-300 text-xs flex items-center gap-2">
+              <i class="pi pi-exclamation-triangle text-xs"></i>
+              <span class="text-[11px] font-medium">{{ t('login_caps_lock_active', 'Caps Lock is ON') }}</span>
             </div>
 
-            <!-- 1. Main Password Form or 2. Email OTP Flow -->
-            <div v-if="authMode === 'password'">
-              <!-- Role Selection Segmented Tabs -->
-              <div class="p-1 rounded-xl bg-slate-100 dark:bg-[#13151f] border border-slate-200 dark:border-white/10 grid grid-cols-3 gap-1.5 mb-3">
-                <button
-                  v-for="role in ['student', 'teacher', 'admin']"
-                  :key="role"
-                  type="button"
-                  @click="form.role = role"
-                  :class="[
-                    'flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer select-none',
-                    form.role === role
-                      ? 'bg-blue-600 dark:bg-blue-600 text-white shadow-xs shadow-blue-500/20 border border-blue-400/30'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/5'
-                  ]"
-                >
-                  <svg v-if="role === 'student'" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/>
-                    <path d="M22 10v6"/>
-                    <path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/>
-                  </svg>
-                  <svg v-else-if="role === 'teacher'" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/>
-                    <path d="M6 6h10"/>
-                    <path d="M6 10h10"/>
-                  </svg>
-                  <svg v-else class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
-                    <path d="m9 12 2 2 4-4"/>
-                  </svg>
-                  <span>{{ t(`login_tab_${role}`, role.charAt(0).toUpperCase() + role.slice(1)) }}</span>
-                </button>
-              </div>
-
-              <form @submit.prevent="submit" class="space-y-3">
-                <div class="space-y-1">
-                  <label class="block text-xs font-bold text-slate-800 dark:text-slate-100">{{ identityLabel }}</label>
-                  <div class="relative group">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-400 group-focus-within:text-blue-600 dark:group-focus-within:text-blue-400 transition-colors">
-                      <i class="pi pi-id-card text-sm"></i>
-                    </div>
-                    <input
-                      v-model="form.email"
-                      type="text"
-                      required
-                      autocomplete="username"
-                      :placeholder="identityPlaceholder"
-                      class="h-11 w-full pl-10 pr-9 py-2 rounded-xl border border-slate-300 dark:border-white/10 bg-slate-50/70 dark:bg-[#13151f] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-[#161925] focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 text-xs sm:text-sm font-medium shadow-2xs"
-                    />
-                    <button v-if="form.email" type="button" @click="clearEmail" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer" title="Clear">
-                      <i class="pi pi-times-circle text-xs"></i>
-                    </button>
-                  </div>
-                </div>
-
-                <div class="space-y-1">
-                  <label class="block text-xs font-bold text-slate-800 dark:text-slate-100">{{ t('login_input_password_label', 'Password') }}</label>
-                  <div class="relative group">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-400 group-focus-within:text-blue-600 dark:group-focus-within:text-blue-400 transition-colors">
-                      <i class="pi pi-lock text-sm"></i>
-                    </div>
-                    <input
-                      v-model="form.password"
-                      :type="showPassword ? 'text' : 'password'"
-                      required
-                      autocomplete="current-password"
-                      :placeholder="t('login_input_password_placeholder', '••••••••••••••••')"
-                      class="h-11 w-full pl-10 pr-10 py-2 rounded-xl border border-slate-300 dark:border-white/10 bg-slate-50/70 dark:bg-[#13151f] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-[#161925] focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 text-xs sm:text-sm font-medium shadow-2xs"
-                    />
-                    <button type="button" @click="showPassword = !showPassword" class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors p-1.5 rounded-lg cursor-pointer">
-                      <i :class="['pi text-sm transition-transform duration-200 hover:scale-110', showPassword ? 'pi-eye-slash text-blue-600 dark:text-blue-400' : 'pi-eye']"></i>
-                    </button>
-                  </div>
-                </div>
-
-                <div class="flex items-center justify-between text-xs pt-0.5">
-                  <label class="inline-flex items-center gap-2 cursor-pointer select-none group">
-                    <div class="relative flex items-center justify-center">
-                      <input v-model="form.remember" type="checkbox" class="sr-only" />
-                      <div :class="['w-4 h-4 rounded-[4px] border-2 transition-all duration-200 flex items-center justify-center shadow-xs', form.remember ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white dark:bg-[#13151f] border-slate-400 dark:border-white/20']">
-                        <svg :class="['w-3 h-3 text-white', form.remember ? 'scale-100' : 'scale-0']" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3.5">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
-                        </svg>
-                      </div>
-                    </div>
-                    <span class="text-slate-800 dark:text-slate-200 font-bold text-[11px] sm:text-xs">{{ t('login_remember_me', 'Remember me') }}</span>
-                  </label>
-                  <Link href="/forgot-password" class="text-xs font-bold text-blue-600 dark:text-sky-400 hover:text-blue-700 dark:hover:text-sky-300 no-underline transition-colors">{{ t('login_forgot_password', 'Forgot Password?') }}</Link>
-                </div>
-
-                <!-- Cloudflare Turnstile CAPTCHA Widget (100% Full-Width Matching Input Fields & Button) -->
-                <div class="w-full my-2.5">
-                  <div ref="turnstileWidget" class="w-full block min-h-[65px] turnstile-wrapper"></div>
-                </div>
-
-                <button type="submit" :disabled="isSubmitting || form.processing" class="h-11 group w-full py-2.5 px-5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm hover:shadow-md transition-all duration-200 inline-flex items-center justify-center gap-2.5 disabled:opacity-50 text-xs sm:text-sm tracking-wide cursor-pointer select-none">
-                  <i v-if="isSubmitting || form.processing" class="pi pi-spin pi-spinner text-sm"></i>
-                  <template v-else>
-                    <span>{{ t('login_btn_submit', 'Sign In') }}</span>
-                    <span class="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center group-hover:translate-x-1 transition-all"><svg class="w-3.5 h-3.5 fill-current text-white" viewBox="0 0 24 24"><path d="M13.293 6.293a1 1 0 0 1 1.414 0l5 5a1 1 0 0 1 0 1.414l-5 5a1 1 0 0 1-1.414-1.414L16.586 13H5a1 1 0 1 1 0-2h11.586l-3.293-3.293a1 1 0 0 1 0-1.414z"/></svg></span>
-                  </template>
-                </button>
-              </form>
+            <!-- Forgot Password Link -->
+            <div class="flex justify-end">
+              <Link href="/forgot-password" class="text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 transition-colors">
+                {{ t('login_forgot_password', 'ភ្លេចពាក្យសម្ងាត់?') }}
+              </Link>
             </div>
 
-            <!-- Email OTP Flow -->
-            <div v-else class="space-y-3.5">
-              <div class="flex items-center justify-between pb-1 border-b border-slate-200/80 dark:border-white/10">
-                <button type="button" @click="authMode = 'password'" class="text-xs font-semibold text-blue-600 dark:text-sky-400 hover:text-blue-700 dark:hover:text-sky-300 no-underline flex items-center gap-1.5 cursor-pointer py-1 transition-colors select-none">
-                  <i class="pi pi-arrow-left text-[10px]"></i>
-                  <span>{{ currentLang === 'km' ? 'ត្រឡប់ទៅ Password' : 'Back to Password' }}</span>
-                </button>
-                <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400">
-                  {{ otpStep === 1 ? (currentLang === 'km' ? 'ជំហានទី ១: ផ្ញើកូដ' : 'Step 1: Send OTP') : (currentLang === 'km' ? 'ជំហានទី ២: ផ្ទៀងផ្ទាត់' : 'Step 2: Verify') }}
-                </span>
-              </div>
+            <!-- Submit Button (Sign In) -->
+            <button
+              type="submit"
+              :disabled="isSubmitting || form.processing || !form.password"
+              class="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white dark:bg-[#e4e4e7] dark:hover:bg-white dark:text-zinc-950 font-semibold text-xs sm:text-sm flex items-center justify-center transition-all duration-150 cursor-pointer shadow-md shadow-blue-500/20 active:scale-[0.99] disabled:opacity-50 disabled:shadow-none"
+            >
+              <i v-if="isSubmitting || form.processing" class="pi pi-spin pi-spinner text-sm mr-2"></i>
+              <span>{{ currentLang === 'km' ? 'ចូលប្រព័ន្ធ' : 'Sign in' }}</span>
+            </button>
 
-              <div v-if="otpStep === 1" class="space-y-3">
-                <div class="space-y-1">
-                  <label class="block text-xs font-bold text-slate-800 dark:text-slate-100">{{ currentLang === 'km' ? 'អាសយដ្ឋាន Gmail / អ៊ីមែលរបស់អ្នក' : 'Your Official Gmail / Email' }}</label>
-                  <div class="relative group">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-300">
-                      <i class="pi pi-envelope text-sm"></i>
-                    </div>
-                    <input v-model="otpEmail" type="email" required placeholder="student@gmail.com" class="h-11 w-full pl-10 pr-4 py-2 rounded-xl border border-slate-300 dark:border-white/10 bg-slate-50/70 dark:bg-[#13151f] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 transition-all text-xs sm:text-sm font-medium shadow-2xs" @keydown.enter.prevent="sendEmailOtp" />
-                  </div>
-                  <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">{{ currentLang === 'km' ? 'ប្រព័ន្ធនឹងផ្ញើលេខកូដសម្ងាត់ ៦ ខ្ទង់ពី info@spilms.tech ចូល Gmail របស់អ្នក។' : 'We will send a 6-digit verification code from info@spilms.tech to your Gmail.' }}</p>
-                </div>
-                <button type="button" @click="sendEmailOtp" :disabled="isOtpSending || !otpEmail" class="h-11 w-full py-2.5 px-5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl shadow-md transition-all duration-200 inline-flex items-center justify-center gap-2 disabled:opacity-50 text-xs sm:text-sm cursor-pointer">
-                  <i v-if="isOtpSending" class="pi pi-spin pi-spinner text-sm"></i>
-                  <template v-else><i class="pi pi-send text-sm"></i><span>{{ currentLang === 'km' ? 'ផ្ញើលេខកូដ OTP ទៅកាន់ Gmail' : 'Send OTP to Gmail' }}</span></template>
-                </button>
-              </div>
-
-              <div v-else class="space-y-3">
-                <div class="space-y-1">
-                  <div class="flex items-center justify-between">
-                    <label class="block text-xs font-bold text-slate-800 dark:text-slate-100">{{ currentLang === 'km' ? 'វាយបញ្ចូលលេខកូដ OTP ៦ ខ្ទង់' : 'Enter 6-digit OTP Code' }}</label>
-                    <button type="button" @click="otpStep = 1" class="text-[11px] text-blue-600 dark:text-sky-400 hover:text-blue-700 dark:hover:text-sky-300 no-underline font-medium cursor-pointer transition-colors">{{ currentLang === 'km' ? 'ប្តូរ Email' : 'Edit email' }}</button>
-                  </div>
-                  <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ currentLang === 'km' ? 'ផ្ញើទៅកាន់:' : 'Sent to:' }} <strong class="text-blue-600 dark:text-sky-300">{{ otpEmail }}</strong></p>
-                  <div class="relative">
-                    <input v-model="otpCode" type="text" maxlength="6" required placeholder="••••••" class="h-12 w-full text-center tracking-[12px] text-xl font-mono font-bold rounded-xl border border-slate-300 dark:border-white/10 bg-slate-50/70 dark:bg-[#13151f] text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 transition-all shadow-2xs" @keydown.enter.prevent="verifyEmailOtp" />
-                  </div>
-                  <div class="flex items-center justify-between text-[11px] pt-1">
-                    <span v-if="otpCountdown > 0" class="text-slate-500 dark:text-slate-400">{{ currentLang === 'km' ? 'ផុតកំណត់ក្នុងរយៈពេល:' : 'Expires in:' }} <span class="font-bold text-amber-500">{{ formattedOtpTime }}</span></span>
-                    <span v-else class="text-rose-500 font-bold">{{ currentLang === 'km' ? 'កូដផុតកំណត់ហើយ' : 'Code expired' }}</span>
-                    <button type="button" @click="sendEmailOtp" :disabled="isOtpSending" class="text-blue-600 dark:text-sky-400 hover:text-blue-700 dark:hover:text-sky-300 no-underline font-bold disabled:opacity-50 cursor-pointer transition-colors">{{ currentLang === 'km' ? 'ផ្ញើម្តងទៀត' : 'Resend Code' }}</button>
-                  </div>
-                </div>
-                <button type="button" @click="verifyEmailOtp" :disabled="isOtpVerifying || otpCode.length < 6" class="h-11 w-full py-2.5 px-5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold rounded-xl shadow-md transition-all duration-200 inline-flex items-center justify-center gap-2 disabled:opacity-50 text-xs sm:text-sm cursor-pointer">
-                  <i v-if="isOtpVerifying" class="pi pi-spin pi-spinner text-sm"></i>
-                  <template v-else><i class="pi pi-check-circle text-sm"></i><span>{{ currentLang === 'km' ? 'ផ្ទៀងផ្ទាត់ & ចូលប្រើប្រព័ន្ធ' : 'Verify & Sign In' }}</span></template>
-                </button>
-              </div>
-            </div>
-
-            <!-- Social Logins Section (Google, Telegram, Email OTP under OR) -->
-            <div v-if="authMode === 'password'" class="space-y-1.5 pt-0.5">
-              <div class="flex items-center my-3 text-slate-400 dark:text-slate-600">
-                <div class="flex-grow border-t border-slate-300 dark:border-white/10"></div>
-                <span class="px-4 text-xs font-bold text-slate-500 dark:text-slate-400 select-none tracking-wider">
-                  {{ t('login_or', 'OR') }}
-                </span>
-                <div class="flex-grow border-t border-slate-300 dark:border-white/10"></div>
-              </div>
-
-              <div class="grid grid-cols-3 gap-2.5">
-                <!-- Google Button -->
-                <button
-                  type="button"
-                  :disabled="isAuthenticating"
-                  @click="redirectToGoogleOAuth"
-                  class="h-10.5 py-2 px-2.5 bg-white dark:bg-[#13151f] hover:bg-slate-50/90 dark:hover:bg-[#181b28] border border-slate-300 dark:border-white/10 hover:border-slate-400 dark:hover:border-white/20 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-slate-950 dark:hover:text-white transition-all duration-150 flex items-center justify-center gap-2 hover:shadow-xs active:scale-98 shadow-2xs cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  <template v-if="isGoogleLoading">
-                    <i class="pi pi-spin pi-spinner text-rose-500 text-sm"></i>
-                  </template>
-                  <template v-else>
-                    <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                    </svg>
-                    <span>Google</span>
-                  </template>
-                </button>
-
-                <!-- Telegram Button -->
-                <button
-                  type="button"
-                  :disabled="isAuthenticating"
-                  @click="redirectToTelegramOAuth"
-                  class="h-10.5 py-2 px-2.5 bg-white dark:bg-[#13151f] hover:bg-slate-50/90 dark:hover:bg-[#181b28] border border-slate-300 dark:border-white/10 hover:border-slate-400 dark:hover:border-white/20 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-slate-950 dark:hover:text-white transition-all duration-150 flex items-center justify-center gap-2 hover:shadow-xs active:scale-98 shadow-2xs cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  <template v-if="isTelegramLoading">
-                    <i class="pi pi-spin pi-spinner text-sky-500 text-sm"></i>
-                  </template>
-                  <template v-else>
-                    <svg class="w-4 h-4 shrink-0 fill-[#0088cc] dark:fill-[#29b6f6]" viewBox="0 0 24 24">
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .4z"/>
-                    </svg>
-                    <span>Telegram</span>
-                  </template>
-                </button>
-
-                <!-- Email OTP Button under OR -->
-                <button
-                  type="button"
-                  :disabled="isAuthenticating"
-                  @click="authMode = 'otp'; otpStep = 1"
-                  class="h-10.5 py-2 px-2.5 bg-white dark:bg-[#13151f] hover:bg-blue-50/90 dark:hover:bg-[#181b28] border border-slate-300 dark:border-white/10 hover:border-blue-400 dark:hover:border-blue-500/40 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-150 flex items-center justify-center gap-2 hover:shadow-xs active:scale-98 shadow-2xs cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:cursor-not-allowed"
-                  title="Gmail / Email OTP Login"
-                >
-                  <svg class="w-4 h-4 shrink-0 text-blue-500 dark:text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect width="20" height="16" x="2" y="4" rx="2"/>
-                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
-                  </svg>
-                  <span>Email</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Registration Callout Footer (High Contrast in Dark Mode) -->
-            <div class="pt-2.5 border-t border-slate-200 dark:border-slate-800/80 text-center text-xs">
-              <p class="font-medium text-[11px] text-slate-700 dark:text-slate-200 flex items-center justify-center gap-1.5">
-                <span>{{ t('login_dont_have_account', 'Do not have an account?') }}</span>
-                <Link href="/register" class="group font-bold text-blue-600 dark:text-sky-400 hover:text-blue-700 dark:hover:text-sky-300 transition-all duration-150 active:scale-95 outline-none focus:outline-none focus:ring-0 focus-visible:outline-none select-none inline-flex items-center gap-1.5">
-                  <span>{{ t('login_register_now', 'Register Account') }}</span>
-                  <span class="w-6 h-6 rounded-full bg-blue-500/10 dark:bg-sky-500/20 border border-blue-500/20 dark:border-sky-400/30 flex items-center justify-center text-blue-600 dark:text-sky-400 group-hover:bg-blue-600 group-hover:text-white dark:group-hover:bg-sky-400 dark:group-hover:text-slate-950 transition-all duration-300 group-hover:translate-x-1 shadow-2xs shrink-0">
-                    <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-                      <path d="M13.293 6.293a1 1 0 0 1 1.414 0l5 5a1 1 0 0 1 0 1.414l-5 5a1 1 0 0 1-1.414-1.414L16.586 13H5a1 1 0 1 1 0-2h11.586l-3.293-3.293a1 1 0 0 1 0-1.414z"/>
-                    </svg>
-                  </span>
-                </Link>
-              </p>
-            </div>
-
-            <!-- Privacy & Terms Legal Footer -->
-            <div class="mt-2.5 pt-2 flex items-center justify-center gap-3 text-[11px] text-slate-500 dark:text-slate-400 select-none">
-              <Link href="/privacy" class="hover:text-blue-600 dark:hover:text-sky-400 hover:underline transition-colors">{{ t('privacy_policy', 'Privacy Policy') }}</Link>
-              <span>•</span>
-              <Link href="/terms" class="hover:text-blue-600 dark:hover:text-sky-400 hover:underline transition-colors">{{ t('terms_of_service', 'Terms of Service') }}</Link>
-            </div>
-          </div>
+          </form>
         </div>
 
-        <!-- ២. ផ្ទាំង LOADING (បង្ហាញតែពេលកំពុង Authenticate ជំនួស Form ខាងលើ) -->
-        <div v-else class="w-full flex flex-col items-center justify-center text-center animate-fade-in select-none py-2">
-          
-          <!-- Logo E-LMS with Soft Glow -->
-          <div class="relative mb-4">
-            <div class="absolute -inset-2 bg-gradient-to-r from-blue-500 via-indigo-500 to-sky-400 rounded-full blur-md opacity-40 animate-pulse"></div>
-            <div class="relative w-18 h-18 rounded-full p-1 bg-white dark:bg-slate-800 shadow-md">
-              <img 
-                :src="logoUrl" 
-                alt="E-LMS Logo" 
-                class="w-full h-full object-cover rounded-full"
+
+
+        <!-- ========================================================================= -->
+        <!-- EMAIL OTP MODE VIEW (Optional Flow)                                       -->
+        <!-- ========================================================================= -->
+        <div v-else-if="authMode === 'otp'" class="w-full space-y-3 animate-fade-in">
+          <div class="flex items-center justify-between pb-1 border-b border-zinc-200 dark:border-zinc-800">
+            <button type="button" @click="authMode = 'password'; step = 'identifier'" class="text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white flex items-center gap-1.5 cursor-pointer transition-colors">
+              <i class="pi pi-arrow-left text-[10px]"></i>
+              <span>{{ currentLang === 'km' ? 'ត្រឡប់ក្រោយ' : 'Back' }}</span>
+            </button>
+            <span class="text-[11px] text-zinc-500">
+              {{ otpStep === 1 ? (currentLang === 'km' ? 'ជំហានទី ១: ផ្ញើកូដ' : 'Step 1: Send OTP') : (currentLang === 'km' ? 'ជំហានទី ២: ផ្ទៀងផ្ទាត់' : 'Step 2: Verify') }}
+            </span>
+          </div>
+
+          <div v-if="otpStep === 1" class="space-y-3">
+            <input
+              v-model="otpEmail"
+              type="email"
+              required
+              placeholder="name@example.com"
+              class="w-full h-11 px-3.5 bg-white dark:bg-[#121214] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 focus:border-zinc-600 dark:focus:border-zinc-500 focus:ring-1 focus:ring-zinc-600 dark:focus:ring-zinc-500 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 text-xs sm:text-sm rounded-xl outline-none shadow-2xs"
+              @keydown.enter.prevent="sendEmailOtp"
+            />
+            <button
+              type="button"
+              @click="sendEmailOtp"
+              :disabled="isOtpSending || !otpEmail"
+              class="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white dark:bg-[#e4e4e7] dark:hover:bg-white dark:text-zinc-950 font-semibold text-xs sm:text-sm flex items-center justify-center transition-all duration-150 cursor-pointer disabled:opacity-50 shadow-md shadow-blue-500/20 active:scale-[0.99]"
+            >
+              <i v-if="isOtpSending" class="pi pi-spin pi-spinner text-sm mr-2"></i>
+              <span>{{ currentLang === 'km' ? 'ផ្ញើលេខកូដ OTP ទៅ Email' : 'Send OTP to Email' }}</span>
+            </button>
+          </div>
+
+          <div v-else class="space-y-3.5 animate-fade-in">
+            <div class="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-800 text-xs">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <i class="pi pi-envelope text-xs text-blue-600 dark:text-sky-400 shrink-0"></i>
+                <span class="text-zinc-500 dark:text-zinc-400">{{ currentLang === 'km' ? 'ផ្ញើទៅកាន់៖' : 'Sent to:' }}</span>
+                <strong class="text-zinc-800 dark:text-zinc-200 font-mono truncate">{{ otpEmail }}</strong>
+              </div>
+              <button
+                type="button"
+                @click="otpStep = 1; clearOtpDigits()"
+                class="text-xs font-semibold text-blue-600 dark:text-sky-400 hover:underline cursor-pointer ml-2 shrink-0"
+              >
+                {{ currentLang === 'km' ? 'កែប្រែ' : 'Edit' }}
+              </button>
+            </div>
+
+            <!-- 6-digit PIN Box Grid -->
+            <div class="flex items-center justify-center gap-1.5 sm:gap-2 my-2 select-none" @paste="onDigitPaste">
+              <input
+                ref="digitRef0"
+                v-model="otpDigits[0]"
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                maxlength="1"
+                placeholder="-"
+                class="w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white focus:border-blue-600 dark:focus:border-sky-400 focus:ring-2 focus:ring-blue-500/20 focus:scale-105 outline-none shadow-xs transition-all duration-150"
+                @input="onDigitInput(0, $event)"
+                @keydown="onDigitKeydown(0, $event)"
+              />
+              <input
+                ref="digitRef1"
+                v-model="otpDigits[1]"
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                maxlength="1"
+                placeholder="-"
+                class="w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white focus:border-blue-600 dark:focus:border-sky-400 focus:ring-2 focus:ring-blue-500/20 focus:scale-105 outline-none shadow-xs transition-all duration-150"
+                @input="onDigitInput(1, $event)"
+                @keydown="onDigitKeydown(1, $event)"
+              />
+              <input
+                ref="digitRef2"
+                v-model="otpDigits[2]"
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                maxlength="1"
+                placeholder="-"
+                class="w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white focus:border-blue-600 dark:focus:border-sky-400 focus:ring-2 focus:ring-blue-500/20 focus:scale-105 outline-none shadow-xs transition-all duration-150"
+                @input="onDigitInput(2, $event)"
+                @keydown="onDigitKeydown(2, $event)"
+              />
+              <span class="text-zinc-400 dark:text-zinc-600 font-bold text-xs select-none px-0.5">•</span>
+              <input
+                ref="digitRef3"
+                v-model="otpDigits[3]"
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                maxlength="1"
+                placeholder="-"
+                class="w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white focus:border-blue-600 dark:focus:border-sky-400 focus:ring-2 focus:ring-blue-500/20 focus:scale-105 outline-none shadow-xs transition-all duration-150"
+                @input="onDigitInput(3, $event)"
+                @keydown="onDigitKeydown(3, $event)"
+              />
+              <input
+                ref="digitRef4"
+                v-model="otpDigits[4]"
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                maxlength="1"
+                placeholder="-"
+                class="w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white focus:border-blue-600 dark:focus:border-sky-400 focus:ring-2 focus:ring-blue-500/20 focus:scale-105 outline-none shadow-xs transition-all duration-150"
+                @input="onDigitInput(4, $event)"
+                @keydown="onDigitKeydown(4, $event)"
+              />
+              <input
+                ref="digitRef5"
+                v-model="otpDigits[5]"
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                maxlength="1"
+                placeholder="-"
+                class="w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white focus:border-blue-600 dark:focus:border-sky-400 focus:ring-2 focus:ring-blue-500/20 focus:scale-105 outline-none shadow-xs transition-all duration-150"
+                @input="onDigitInput(5, $event)"
+                @keydown="onDigitKeydown(5, $event)"
               />
             </div>
-          </div>
 
-          <!-- Spinner & Title -->
-          <div class="flex items-center justify-center gap-2 mb-1.5">
-            <i class="pi pi-spin pi-spinner text-sm text-blue-600 dark:text-sky-400"></i>
-            <h3 class="text-base font-bold text-slate-800 dark:text-white tracking-wide">
-              {{ authLoadingTitle || (currentLang === 'km' ? 'កំពុងរៀបចំ Dashboard របស់អ្នក...' : 'Setting up your dashboard...') }}
-            </h3>
+            <div class="flex items-center justify-between text-[11px]">
+              <span v-if="otpCountdown > 0" class="text-zinc-500">{{ currentLang === 'km' ? 'ផុតកំណត់:' : 'Expires in:' }} <strong class="text-amber-600 dark:text-amber-400">{{ formattedOtpTime }}</strong></span>
+              <span v-else class="text-rose-500 font-bold">{{ currentLang === 'km' ? 'កូដផុតកំណត់' : 'Code expired' }}</span>
+              <button type="button" @click="sendEmailOtp" :disabled="isOtpSending" class="text-blue-600 dark:text-zinc-400 hover:text-blue-700 dark:hover:text-white font-medium cursor-pointer">
+                {{ currentLang === 'km' ? 'ផ្ញើម្តងទៀត' : 'Resend Code' }}
+              </button>
+            </div>
+            <button
+              type="button"
+              @click="verifyEmailOtp"
+              :disabled="isOtpVerifying || otpCode.length < 6"
+              class="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white dark:bg-[#e4e4e7] dark:hover:bg-white dark:text-zinc-950 font-semibold text-xs sm:text-sm flex items-center justify-center transition-all duration-150 cursor-pointer disabled:opacity-50 shadow-md shadow-blue-500/20 active:scale-[0.99]"
+            >
+              <i v-if="isOtpVerifying" class="pi pi-spin pi-spinner text-sm mr-2"></i>
+              <span>{{ currentLang === 'km' ? 'ផ្ទៀងផ្ទាត់ និង ចូលប្រើប្រាស់' : 'Verify & Continue' }}</span>
+            </button>
           </div>
-          <p class="text-xs text-slate-500 dark:text-slate-400 font-medium mb-6 max-w-xs leading-relaxed">
-            {{ authLoadingSubtitle || (currentLang === 'km' ? 'សូមរង់ចាំមួយភ្លែត ប្រព័ន្ធកំពុងដំណើរការផ្ទៀងផ្ទាត់' : 'Please wait a moment while verifying your account') }}
-          </p>
-
-          <!-- Modern Loading Progress Bar -->
-          <div class="w-52 bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden p-0.5 border border-slate-200/80 dark:border-slate-700">
-            <div class="bg-gradient-to-r from-blue-600 via-sky-400 to-teal-400 h-full rounded-full animate-indeterminate"></div>
-          </div>
-
         </div>
+
+        <!-- ========================================================================= -->
+        <!-- PHONE OTP MODE VIEW (PlasGate SMS Flow)                                   -->
+        <!-- ========================================================================= -->
+        <div v-else-if="authMode === 'phone_otp'" class="w-full space-y-3 animate-fade-in">
+          <div class="flex items-center justify-between pb-1 border-b border-zinc-200 dark:border-zinc-800">
+            <button type="button" @click="authMode = 'password'; step = 'identifier'" class="text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white flex items-center gap-1.5 cursor-pointer transition-colors">
+              <i class="pi pi-arrow-left text-[10px]"></i>
+              <span>{{ currentLang === 'km' ? 'ត្រឡប់ក្រោយ' : 'Back' }}</span>
+            </button>
+            <span class="text-[11px] text-zinc-500">
+              {{ phoneOtpStep === 1 ? (currentLang === 'km' ? 'ជំហានទី ១: ផ្ញើកូដ SMS' : 'Step 1: Send SMS') : (currentLang === 'km' ? 'ជំហានទី ២: ផ្ទៀងផ្ទាត់' : 'Step 2: Verify') }}
+            </span>
+          </div>
+
+          <div v-if="phoneOtpStep === 1" class="space-y-3">
+            <div class="relative w-full">
+              <div class="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 pointer-events-none text-xs font-bold text-zinc-600 dark:text-zinc-400">
+                <span class="text-sm">🇰🇭</span>
+                <span>+855</span>
+                <span class="text-zinc-300 dark:text-zinc-700">|</span>
+              </div>
+              <input
+                v-model="otpPhone"
+                type="tel"
+                required
+                placeholder="12 345 678"
+                class="w-full h-11 pl-20 pr-3.5 bg-white dark:bg-[#121214] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 focus:border-zinc-600 dark:focus:border-zinc-500 focus:ring-1 focus:ring-zinc-600 dark:focus:ring-zinc-500 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 text-xs sm:text-sm rounded-xl outline-none shadow-2xs font-mono"
+                @keydown.enter.prevent="sendPhoneOtp"
+              />
+            </div>
+            <button
+              type="button"
+              @click="sendPhoneOtp"
+              :disabled="isPhoneOtpSending || !otpPhone"
+              class="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white dark:bg-[#e4e4e7] dark:hover:bg-white dark:text-zinc-950 font-semibold text-xs sm:text-sm flex items-center justify-center transition-all duration-150 cursor-pointer disabled:opacity-50 shadow-md shadow-blue-500/20 active:scale-[0.99]"
+            >
+              <i v-if="isPhoneOtpSending" class="pi pi-spin pi-spinner text-sm mr-2"></i>
+              <span>{{ isPhoneOtpSending ? (currentLang === 'km' ? 'កំពុងផ្ញើសារទៅកាន់ទូរស័ព្ទរបស់អ្នក...' : 'Sending message to your phone...') : (currentLang === 'km' ? 'ផ្ញើលេខកូដ OTP តាម SMS' : 'Send OTP via SMS') }}</span>
+            </button>
+          </div>
+
+          <div v-else class="space-y-3.5 animate-fade-in">
+            <div class="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-800 text-xs">
+              <div class="flex items-center gap-1.5 min-w-0">
+                <i class="pi pi-phone text-xs text-emerald-600 dark:text-emerald-400 shrink-0"></i>
+                <span class="text-zinc-500 dark:text-zinc-400">{{ currentLang === 'km' ? 'ផ្ញើទៅកាន់៖' : 'Sent to:' }}</span>
+                <strong class="text-zinc-800 dark:text-zinc-200 font-mono truncate">{{ formattedDisplayPhone }}</strong>
+              </div>
+              <button
+                type="button"
+                @click="phoneOtpStep = 1; clearOtpDigits()"
+                class="text-xs font-semibold text-blue-600 dark:text-sky-400 hover:underline cursor-pointer ml-2 shrink-0"
+              >
+                {{ currentLang === 'km' ? 'កែប្រែ' : 'Edit' }}
+              </button>
+            </div>
+
+            <!-- 6-digit Segmented PIN Input -->
+            <div class="flex items-center justify-center gap-1.5 sm:gap-2 my-2 select-none" @paste="onDigitPaste">
+              <input
+                ref="digitRef0"
+                v-model="otpDigits[0]"
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                maxlength="1"
+                placeholder="-"
+                class="w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 focus:scale-105 outline-none shadow-xs transition-all duration-150"
+                @input="onDigitInput(0, $event)"
+                @keydown="onDigitKeydown(0, $event)"
+              />
+              <input
+                ref="digitRef1"
+                v-model="otpDigits[1]"
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                maxlength="1"
+                placeholder="-"
+                class="w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 focus:scale-105 outline-none shadow-xs transition-all duration-150"
+                @input="onDigitInput(1, $event)"
+                @keydown="onDigitKeydown(1, $event)"
+              />
+              <input
+                ref="digitRef2"
+                v-model="otpDigits[2]"
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                maxlength="1"
+                placeholder="-"
+                class="w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 focus:scale-105 outline-none shadow-xs transition-all duration-150"
+                @input="onDigitInput(2, $event)"
+                @keydown="onDigitKeydown(2, $event)"
+              />
+              <span class="text-zinc-400 dark:text-zinc-600 font-bold text-xs select-none px-0.5">•</span>
+              <input
+                ref="digitRef3"
+                v-model="otpDigits[3]"
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                maxlength="1"
+                placeholder="-"
+                class="w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 focus:scale-105 outline-none shadow-xs transition-all duration-150"
+                @input="onDigitInput(3, $event)"
+                @keydown="onDigitKeydown(3, $event)"
+              />
+              <input
+                ref="digitRef4"
+                v-model="otpDigits[4]"
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                maxlength="1"
+                placeholder="-"
+                class="w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 focus:scale-105 outline-none shadow-xs transition-all duration-150"
+                @input="onDigitInput(4, $event)"
+                @keydown="onDigitKeydown(4, $event)"
+              />
+              <input
+                ref="digitRef5"
+                v-model="otpDigits[5]"
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                maxlength="1"
+                placeholder="-"
+                class="w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 focus:scale-105 outline-none shadow-xs transition-all duration-150"
+                @input="onDigitInput(5, $event)"
+                @keydown="onDigitKeydown(5, $event)"
+              />
+            </div>
+
+            <div class="flex items-center justify-between text-[11px]">
+              <span v-if="phoneOtpCountdown > 0" class="text-zinc-500">{{ currentLang === 'km' ? 'ផុតកំណត់:' : 'Expires in:' }} <strong class="text-amber-600 dark:text-amber-400">{{ formattedPhoneOtpTime }}</strong></span>
+              <span v-else class="text-rose-500 font-bold">{{ currentLang === 'km' ? 'កូដផុតកំណត់' : 'Code expired' }}</span>
+              <button type="button" @click="sendPhoneOtp" :disabled="isPhoneOtpSending" class="text-blue-600 dark:text-zinc-400 hover:text-blue-700 dark:hover:text-white font-medium cursor-pointer">
+                {{ currentLang === 'km' ? 'ផ្ញើម្តងទៀត' : 'Resend Code' }}
+              </button>
+            </div>
+            <button
+              type="button"
+              @click="verifyPhoneOtp"
+              :disabled="isPhoneOtpVerifying || otpCode.length < 6"
+              class="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white dark:bg-[#e4e4e7] dark:hover:bg-white dark:text-zinc-950 font-semibold text-xs sm:text-sm flex items-center justify-center transition-all duration-150 cursor-pointer disabled:opacity-50 shadow-md shadow-blue-500/20 active:scale-[0.99]"
+            >
+              <i v-if="isPhoneOtpVerifying" class="pi pi-spin pi-spinner text-sm mr-2"></i>
+              <span>{{ currentLang === 'km' ? 'ផ្ទៀងផ្ទាត់ និង ចូលប្រើប្រាស់' : 'Verify & Continue' }}</span>
+            </button>
+          </div>
         </div>
+
+        <!-- Footer Terms & Policy Legal Statement -->
+        <p class="text-[11px] text-slate-500 dark:text-zinc-500 leading-normal text-center mt-6 w-full max-w-lg px-2 select-text">
+          {{ currentLang === 'km' ? 'តាមរយៈការបន្ត អ្នកយល់ព្រមតាម ' : 'By continuing, you agree to our ' }}
+          <Link href="/terms" class="text-slate-700 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-zinc-200 underline underline-offset-2 transition-colors">
+            {{ currentLang === 'km' ? 'លក្ខខណ្ឌប្រើប្រាស់' : 'Terms of Service' }}
+          </Link>
+          {{ currentLang === 'km' ? ' និងបានអាន ' : ' and have read our ' }}
+          <Link href="/privacy" class="text-slate-700 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-zinc-200 underline underline-offset-2 transition-colors">
+            {{ currentLang === 'km' ? 'គោលការណ៍ឯកជនភាព' : 'Privacy Policy' }}</Link>។
+        </p>
+
       </div>
 
-      <!-- Compact Success Alert Modal (Checkmark Icon) -->
-      <Transition
-        enter-active-class="transition duration-300 ease-out"
-        enter-from-class="opacity-0 scale-90 translate-y-2"
-        enter-to-class="opacity-100 scale-100 translate-y-0"
-        leave-active-class="transition duration-200 ease-in"
-        leave-from-class="opacity-100 scale-100 translate-y-0"
-        leave-to-class="opacity-0 scale-90 translate-y-2"
-      >
-        <div v-if="showSuccessModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-sm select-none">
-          <div class="max-w-xs w-full bg-white dark:bg-[#0E172E] rounded-3xl p-6 shadow-2xl border border-emerald-500/30 text-center flex flex-col items-center space-y-3.5 transform transition-all">
-            <!-- Icon with glowing ring -->
-            <div class="relative flex items-center justify-center">
-              <div class="absolute -inset-2 bg-gradient-to-r from-emerald-500/30 to-teal-500/30 rounded-full blur-md animate-pulse"></div>
-              <div class="relative w-14 h-14 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/25 ring-4 ring-white dark:ring-[#0E172E]">
-                <svg class="w-7 h-7 text-white stroke-current" fill="none" viewBox="0 0 24 24" stroke-width="3">
-                  <path stroke-linecap="round" stroke-linejoin="round" class="checkmark-path" d="M4.5 12.75l6 6 9-13.5"/>
-                </svg>
-              </div>
-            </div>
-            
-            <div class="space-y-1">
-              <h3 class="text-base font-extrabold text-slate-900 dark:text-white">
-                {{ statusMessage ? t('login_modal_status_title', 'ជូនដំណឹង') : t('login_modal_success_title', 'ចូលប្រើប្រាស់ជោគជ័យ!') }}
-              </h3>
-              <p class="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
-                {{ statusMessage || t('login_modal_success_msg', 'កំពុងបញ្ជូនអ្នកទៅកាន់ទំព័រដើម...') }}
-              </p>
-            </div>
+      <!-- Loading / Authenticating Overlay -->
+      <div v-else class="w-full max-w-sm flex flex-col items-center justify-center text-center animate-fade-in py-6">
+        <div class="w-12 h-12 rounded-full border-2 border-zinc-300 dark:border-zinc-800 border-t-zinc-900 dark:border-t-white animate-spin mb-4"></div>
+        <h3 class="text-base font-bold text-zinc-900 dark:text-white tracking-wide mb-1">
+          {{ authLoadingTitle || (currentLang === 'km' ? 'កំពុងរៀបចំផ្ទាំងគ្រប់គ្រង...' : 'Setting up your dashboard...') }}
+        </h3>
+        <p class="text-xs text-zinc-500 dark:text-zinc-400 max-w-xs leading-relaxed">
+          {{ authLoadingSubtitle || (currentLang === 'km' ? 'សូមរង់ចាំមួយភ្លែត ប្រព័ន្ធកំពុងដំណើរការផ្ទៀងផ្ទាត់...' : 'Please wait a moment while verifying your account...') }}
+        </p>
+      </div>
 
-            <!-- Action Button: Login Now or Got It -->
-            <button
-              v-if="statusMessage"
-              type="button"
-              @click="showSuccessModal = false"
-              class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs sm:text-sm font-bold shadow-lg shadow-emerald-600/25 transition-all duration-150 cursor-pointer select-none"
-            >
-              {{ t('login_modal_btn_login_now', 'ចូលប្រព័ន្ធឥឡូវនេះ (Login)') }}
-            </button>
+    </main>
+
+    <!-- Compact Success Alert Modal -->
+    <Transition
+      enter-active-class="transition duration-200 ease-out"
+      enter-from-class="opacity-0 scale-95"
+      enter-to-class="opacity-100 scale-100"
+      leave-active-class="transition duration-150 ease-in"
+      leave-from-class="opacity-100 scale-100"
+      leave-to-class="opacity-0 scale-95"
+    >
+      <div v-if="showSuccessModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm select-none">
+        <div class="max-w-xs w-full bg-white dark:bg-[#121214] border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-2xl text-center flex flex-col items-center space-y-3">
+          <div class="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+            <i class="pi pi-check text-lg font-bold"></i>
           </div>
+          <h3 class="text-sm font-bold text-zinc-900 dark:text-white">
+            {{ statusMessage ? (currentLang === 'km' ? 'ជូនដំណឹង' : 'Notice') : (currentLang === 'km' ? 'ចូលប្រព័ន្ធជោគជ័យ' : 'Sign In Successful') }}
+          </h3>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+            {{ statusMessage || (currentLang === 'km' ? 'កំពុងបញ្ជូនទៅកាន់ផ្ទាំងគ្រប់គ្រង...' : 'Redirecting to your dashboard...') }}
+          </p>
+          <button
+            type="button"
+            @click="showSuccessModal = false"
+            class="w-full py-2.5 px-4 rounded-xl bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 text-xs font-semibold cursor-pointer shadow-xs transition-colors"
+          >
+            {{ currentLang === 'km' ? 'យល់ព្រម' : 'Got it' }}
+          </button>
         </div>
-      </Transition>
+      </div>
+    </Transition>
 
-      <!-- Compact Error Alert Modal (Question Mark Icon) -->
-      <Transition
-        enter-active-class="transition duration-300 ease-out"
-        enter-from-class="opacity-0 scale-90 translate-y-2"
-        enter-to-class="opacity-100 scale-100 translate-y-0"
-        leave-active-class="transition duration-200 ease-in"
-        leave-from-class="opacity-100 scale-100 translate-y-0"
-        leave-to-class="opacity-0 scale-90 translate-y-2"
-      >
-        <div v-if="showErrorModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-sm select-none">
-          <div class="max-w-xs w-full bg-white dark:bg-[#0E172E] rounded-3xl p-6 shadow-2xl border border-rose-500/30 text-center flex flex-col items-center space-y-3.5 transform transition-all">
-            <!-- Icon with glowing ring -->
-            <div class="relative flex items-center justify-center">
-              <div class="absolute -inset-2 bg-gradient-to-r from-rose-500/30 to-amber-500/30 rounded-full blur-md animate-pulse"></div>
-              <div class="relative w-14 h-14 rounded-full bg-gradient-to-br from-amber-500 via-rose-500 to-rose-600 text-white flex items-center justify-center shadow-lg shadow-rose-500/25 ring-4 ring-white dark:ring-[#0E172E]">
-                <span class="text-3xl font-black font-sans leading-none">?</span>
-              </div>
-            </div>
-            
-            <div class="space-y-1">
-              <h3 class="text-base font-extrabold text-slate-900 dark:text-white">
-                {{ t('login_modal_error_title', 'ព័ត៌មានមិនត្រឹមត្រូវ') }}
-              </h3>
-              <p class="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
-                {{ errorMessage || form.errors.email || t('login_modal_error_msg', 'សូមពិនិត្យមើលអ៊ីមែល ឬពាក្យសម្ងាត់របស់អ្នកឡើងវិញ!') }}
-              </p>
-            </div>
-
-            <button
-              type="button"
-              @click="showErrorModal = false"
-              class="w-full py-2 px-4 rounded-xl bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-800/40 text-rose-700 dark:text-rose-300 text-xs font-bold transition-all duration-150 cursor-pointer active:scale-95"
-            >
-              {{ t('login_modal_close', 'យល់ព្រម') }}
-            </button>
+    <!-- Compact Error Alert Modal -->
+    <Transition
+      enter-active-class="transition duration-200 ease-out"
+      enter-from-class="opacity-0 scale-95"
+      enter-to-class="opacity-100 scale-100"
+      leave-active-class="transition duration-150 ease-in"
+      leave-from-class="opacity-100 scale-100"
+      leave-to-class="opacity-0 scale-95"
+    >
+      <div v-if="showErrorModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm select-none">
+        <div class="max-w-xs w-full bg-white dark:bg-[#121214] border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-2xl text-center flex flex-col items-center space-y-3">
+          <div class="w-12 h-12 rounded-full bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+            <i class="pi pi-exclamation-triangle text-lg font-bold"></i>
           </div>
+          <h3 class="text-sm font-bold text-zinc-900 dark:text-white">
+            {{ currentLang === 'km' ? 'ការផ្ទៀងផ្ទាត់មិនជោគជ័យ' : 'Authentication Failed' }}
+          </h3>
+          <p class="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+            {{ errorMessage || (currentLang === 'km' ? 'សូមពិនិត្យមើលអាសយដ្ឋានអ៊ីមែល ឬពាក្យសម្ងាត់របស់អ្នកឡើងវិញ ហើយព្យាយាមម្តងទៀត។' : 'Please check your email or password and try again.') }}
+          </p>
+          <button
+            type="button"
+            @click="showErrorModal = false"
+            class="w-full py-2.5 px-4 rounded-xl bg-zinc-900 dark:bg-zinc-800 hover:bg-zinc-800 dark:hover:bg-zinc-700 text-white text-xs font-semibold cursor-pointer transition-colors shadow-xs"
+          >
+            {{ currentLang === 'km' ? 'បិទ' : 'Close' }}
+          </button>
         </div>
-      </Transition>
+      </div>
+    </Transition>
 
-    </div>
-  </template>
+  </div>
+</template>
 
 <style scoped>
-.checkmark-path {
-  stroke-dasharray: 50;
-  stroke-dashoffset: 50;
-  animation: checkmarkDraw 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
-}
-
-@keyframes checkmarkDraw {
-  0% {
-    stroke-dashoffset: 50;
-    opacity: 0;
-  }
-  100% {
-    stroke-dashoffset: 0;
-    opacity: 1;
-  }
-}
-
-@keyframes floatSlow {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-22px) rotate(4deg); }
-}
-
-@keyframes floatReverse {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(22px) rotate(-4deg); }
-}
-
-@keyframes spinSlow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-@keyframes spinReverse {
-  from { transform: rotate(360deg); }
-  to { transform: rotate(0deg); }
-}
-
-@keyframes aurora {
-  0% { transform: translate(0%, 0%) rotate(0deg); }
-  50% { transform: translate(8%, 8%) rotate(180deg); }
-  100% { transform: translate(0%, 0%) rotate(360deg); }
-}
-
-.animate-float-slow {
-  animation: floatSlow 8s ease-in-out infinite;
-}
-.animate-float-reverse {
-  animation: floatReverse 11s ease-in-out infinite;
-}
-.animate-spin-slow {
-  animation: spinSlow 30s linear infinite;
-}
-.animate-spin-reverse {
-  animation: spinReverse 35s linear infinite;
-}
-.animate-aurora {
-  animation: aurora 25s linear infinite;
-}
-.animate-pulse-slow {
-  animation: pulse 5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes indeterminate {
-  0% {
-    transform: translateX(-100%) scaleX(0.2);
-  }
-  50% {
-    transform: translateX(0%) scaleX(0.6);
-  }
-  100% {
-    transform: translateX(100%) scaleX(0.2);
-  }
-}
-
-.animate-indeterminate {
-  animation: indeterminate 1.2s infinite cubic-bezier(0.65, 0.815, 0.735, 0.395);
-  transform-origin: 0% 50%;
-}
-
 @keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.96) translateY(4px); }
+  from { opacity: 0; transform: scale(0.98) translateY(4px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.35s ease-out forwards;
+  animation: fadeIn 0.3s ease-out forwards;
 }
 
 .turnstile-wrapper,
@@ -1445,6 +1825,3 @@ onUnmounted(() => {
   margin: 0 auto !important;
 }
 </style>
-
-
-

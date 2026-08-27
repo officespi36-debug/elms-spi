@@ -8,6 +8,37 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string|null $name_kh
+ * @property string $email
+ * @property string $password
+ * @property string $role
+ * @property int|null $major_id
+ * @property string|null $student_code
+ * @property string|null $study_type
+ * @property string|null $phone
+ * @property string|null $telegram_id
+ * @property string|null $telegram_chat_id
+ * @property string|null $telegram_username
+ * @property string|null $telegram_photo_url
+ * @property string|null $google_id
+ * @property string|null $clerk_id
+ * @property string|null $avatar
+ * @property \Illuminate\Support\Carbon|null $email_verified_at
+ * @property bool $is_active
+ * @property string $status
+ * @property string|null $qualification
+ * @property string|null $expertise
+ * @property int $login_attempts
+ * @property \Illuminate\Support\Carbon|null $locked_until
+ * @property string|null $otp_code
+ * @property \Illuminate\Support\Carbon|null $otp_expires_at
+ * @property \Illuminate\Support\Carbon|null $last_login_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 class User extends Authenticatable implements JWTSubject
 {
     use HasApiTokens, HasFactory, Notifiable;

@@ -67,7 +67,7 @@ class PaymentController extends Controller
         ]);
 
         $payment = Payment::create([
-            'student_id' => $request->user()->id,
+            'student_id' => $request->user()?->id,
             'course_id'  => $course->id,
             'teacher_id' => $course->teacher_id,
             'amount'     => $course->price,
@@ -77,7 +77,7 @@ class PaymentController extends Controller
         ]);
 
         Enrollment::firstOrCreate(
-            ['student_id' => $request->user()->id, 'course_id' => $course->id],
+            ['student_id' => $request->user()?->id, 'course_id' => $course->id],
             ['status' => 'pending_payment']
         );
 

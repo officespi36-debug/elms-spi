@@ -20,17 +20,21 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if (
-            app()->environment('production') ||
-            env('APP_ENV') === 'production' ||
-            config('app.env') === 'production' ||
-            str_starts_with((string)config('app.url'), 'https://') ||
-            (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ||
-            (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ||
-            (isset($_SERVER['SERVER_NAME']) && str_contains($_SERVER['SERVER_NAME'], 'spilms.tech')) ||
-            (isset($_SERVER['HTTP_HOST']) && str_contains($_SERVER['HTTP_HOST'], 'spilms.tech'))
-        ) {
-            URL::forceScheme('https');
+        $isLocalHost = isset($_SERVER['HTTP_HOST']) && (
+            str_starts_with($_SERVER['HTTP_HOST'], 'localhost') ||
+            str_starts_with($_SERVER['HTTP_HOST'], '127.0.0.1')
+        );
+
+        if (!$isLocalHost && !app()->environment('local', 'testing')) {
+            if (
+                app()->environment('production') ||
+                (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ||
+                (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ||
+                (isset($_SERVER['SERVER_NAME']) && str_contains($_SERVER['SERVER_NAME'], 'spilms.tech')) ||
+                (isset($_SERVER['HTTP_HOST']) && str_contains($_SERVER['HTTP_HOST'], 'spilms.tech'))
+            ) {
+                URL::forceScheme('https');
+            }
         }
     }
 }

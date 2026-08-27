@@ -28,6 +28,15 @@ Route::get('/health', function () {
     ], 200);
 });
 
+// ─── Development Preview for OTP Email (Manus Style) ───
+Route::get('/preview/otp-email', function () {
+    $user = (object)[
+        'name' => 'Kosal Sensok',
+        'email' => 'kosalsensok@gmail.com',
+    ];
+    return view('emails.otp', ['otp' => '550274', 'user' => $user]);
+});
+
 // ─── Sitemap XML for Googlebot & Search Engines ───
 Route::get('/sitemap.xml', function () {
     $path = public_path('sitemap.xml');

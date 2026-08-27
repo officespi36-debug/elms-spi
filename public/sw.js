@@ -76,8 +76,12 @@ self.addEventListener('fetch', (event) => {
                         if (teacherFallback) return teacherFallback;
                     }
 
-                    // Fallback to student dashboard if in student area
+                    // Fallback to student dashboard or my-courses if in student area
                     if (url.pathname.startsWith('/student/')) {
+                        const learnFallback = await caches.match(event.request);
+                        if (learnFallback) return learnFallback;
+                        const myCoursesFallback = await caches.match('/student/my-courses/enrolled');
+                        if (myCoursesFallback) return myCoursesFallback;
                         const studentFallback = await caches.match('/student/dashboard');
                         if (studentFallback) return studentFallback;
                     }

@@ -25,6 +25,10 @@ Route::middleware('auth:sanctum')->prefix('v1/token')->group(function () {
 Route::post('/auth/email-otp/send', [\App\Http\Controllers\AuthController::class, 'sendEmailOtp']);
 Route::post('/auth/email-otp/verify', [\App\Http\Controllers\AuthController::class, 'verifyEmailOtp']);
 
+// Phone OTP Authentication via PlasGate
+Route::post('/auth/phone-otp/send', [\App\Http\Controllers\AuthController::class, 'sendPhoneOtp']);
+Route::post('/auth/phone-otp/verify', [\App\Http\Controllers\AuthController::class, 'verifyPhoneOtp']);
+
 // ─── Cloudflare Workers AI & AI Gateway Endpoints ───
 Route::prefix('ai')->name('api.ai.')->group(function () {
     Route::get('/verify', [Api\CloudflareAIController::class, 'verify'])->name('verify');

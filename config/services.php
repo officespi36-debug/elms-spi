@@ -71,6 +71,13 @@ return [
         'default_model' => env('CLOUDFLARE_AI_DEFAULT_MODEL', '@cf/meta/llama-3.1-8b-instruct'),
     ],
 
+    'plasgate' => [
+        'api_url'     => env('PLASGATE_API_URL', 'https://cloudapi.plasgate.com/rest/send'),
+        'secret_key'  => env('PLASGATE_SECRET_KEY'),
+        'private_key' => env('PLASGATE_PRIVATE_KEY'),
+        'sender_name' => env('PLASGATE_SENDER_NAME', 'SMS Info'),
+    ],
+
 ];
 
 
