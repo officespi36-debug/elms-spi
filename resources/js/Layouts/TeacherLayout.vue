@@ -1250,7 +1250,7 @@ const onIconError = (e: Event) => {
                 />
                 <span :class="[isOnline ? 'bg-emerald-500 shadow-emerald-500/50' : 'bg-rose-500 shadow-rose-500/50', 'absolute bottom-0 right-0 w-2 h-2 rounded-full ring-2 ring-white dark:ring-slate-900 transition-colors duration-200 shadow-xs']"></span>
               </div>
-              <div class="hidden md:flex items-center gap-1 min-w-0 max-w-[150px]">
+              <div class="hidden md:flex items-center gap-1.5 min-w-0 max-w-[240px]">
                 <span class="text-xs font-semibold text-slate-700 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors truncate">
                   {{ teacherDisplayName }}
                 </span>

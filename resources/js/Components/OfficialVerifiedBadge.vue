@@ -5,12 +5,13 @@ const props = withDefaults(
   defineProps<{
     role?: string
     size?: 'xs' | 'sm' | 'md' | 'lg'
-    showTooltip?: boolean
+    showLabel?: boolean
+    label?: string
   }>(),
   {
     role: 'admin',
     size: 'sm',
-    showTooltip: true,
+    showLabel: true,
   }
 )
 
@@ -19,12 +20,24 @@ const isVerified = computed(() => {
   return r === 'admin' || r === 'teacher'
 })
 
+const badgeText = computed(() => {
+  if (props.label) return props.label
+  const r = (props.role || '').toLowerCase()
+  if (r === 'admin') {
+    return 'Verified Admin'
+  }
+  if (r === 'teacher') {
+    return 'Verified Teacher'
+  }
+  return 'Verified'
+})
+
 const sizeClasses = computed(() => {
   switch (props.size) {
     case 'xs':
       return 'w-3 h-3'
     case 'md':
-      return 'w-4.5 h-4.5'
+      return 'w-4 h-4'
     case 'lg':
       return 'w-5 h-5'
     case 'sm':
@@ -32,35 +45,23 @@ const sizeClasses = computed(() => {
       return 'w-3.5 h-3.5'
   }
 })
-
-const tooltipText = computed(() => {
-  const r = (props.role || '').toLowerCase()
-  if (r === 'admin') {
-    return 'គណនី Admin ផ្លូវការ (Verified Administrator)'
-  }
-  if (r === 'teacher') {
-    return 'គណនី គ្រូបង្រៀនផ្លូវការ (Verified Teacher)'
-  }
-  return 'គណនីផ្លូវការ (Verified Account)'
-})
 </script>
 
 <template>
   <span
     v-if="isVerified"
-    class="inline-flex items-center justify-center shrink-0 select-none group/badge relative align-middle"
-    :title="showTooltip ? tooltipText : undefined"
+    class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-sky-500/15 border border-sky-500/30 text-sky-400 font-semibold text-[10px] tracking-wide shrink-0 select-none shadow-[0_0_8px_rgba(14,165,233,0.25)] leading-none align-middle"
   >
+    <!-- Scalloped Rosette Badge Background (Official Verified Blue) -->
     <svg
       :class="[
         sizeClasses,
-        'transition-transform duration-200 group-hover/badge:scale-115 drop-shadow-[0_1px_4px_rgba(2,132,199,0.5)]'
+        'shrink-0 drop-shadow-[0_1px_3px_rgba(2,132,199,0.6)]'
       ]"
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <!-- Scalloped Rosette Badge Background (Official Verified Blue) -->
       <path
         fill-rule="evenodd"
         clip-rule="evenodd"
@@ -76,5 +77,10 @@ const tooltipText = computed(() => {
         stroke-linejoin="round"
       />
     </svg>
+
+    <!-- Always Visible Text Label -->
+    <span v-if="showLabel" class="whitespace-nowrap font-medium">
+      {{ badgeText }}
+    </span>
   </span>
 </template>
