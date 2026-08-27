@@ -420,115 +420,63 @@ const onResetPassword = () => {
             </div>
           </div>
 
-          <!-- Channel Selection Cards (Rich, Engaging, Easy-to-Understand) -->
-          <div class="space-y-2 pt-1 text-left">
-            <div class="flex items-center justify-between px-0.5">
-              <label class="text-[11px] font-semibold text-slate-700 dark:text-zinc-300 flex items-center gap-1.5">
-                <i class="pi pi-shield text-blue-500 text-xs"></i>
-                <span>{{ currentLang === 'km' ? 'ជ្រើសរើសវិធីទទួលលេខកូដ OTP' : 'Choose OTP Delivery Channel' }}</span>
-              </label>
-              <span class="text-[10px] text-slate-400 dark:text-zinc-500">
-                {{ selectedChannel === 'telegram' ? (currentLang === 'km' ? '⚡ លឿនរហ័ស' : '⚡ Instant Delivery') : (currentLang === 'km' ? '📨 ប្រអប់សំបុត្រ' : '📨 Direct to Inbox') }}
-              </span>
-            </div>
+          <!-- Channel Selection (Clean Icon + Label Only) -->
+          <div class="space-y-1.5 pt-0.5 text-left">
+            <label class="text-[11px] font-semibold text-slate-600 dark:text-zinc-400 block px-0.5">
+              {{ currentLang === 'km' ? 'ជ្រើសរើសវិធីទទួលលេខកូដ OTP' : 'Choose OTP Delivery Channel' }}
+            </label>
 
             <div class="grid grid-cols-2 gap-2.5">
-              <!-- Telegram Option Card -->
+              <!-- Telegram Option -->
               <button
                 type="button"
                 @click="selectedChannel = 'telegram'"
                 :class="[
-                  'relative p-3 rounded-2xl border text-left transition-all duration-200 cursor-pointer overflow-hidden flex flex-col justify-between select-none group',
+                  'py-3.5 px-3 rounded-2xl border text-center transition-all duration-200 cursor-pointer flex flex-col items-center justify-center gap-2 select-none group',
                   selectedChannel === 'telegram'
-                    ? 'border-sky-500 bg-sky-50/60 dark:bg-sky-950/25 ring-2 ring-sky-500/30 shadow-md shadow-sky-500/10'
+                    ? 'border-sky-500 bg-sky-500/10 dark:bg-sky-500/15 ring-2 ring-sky-500/30 shadow-md shadow-sky-500/10'
                     : 'border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] hover:border-slate-300 dark:hover:border-zinc-700'
                 ]"
               >
-                <!-- Top row: Icon Badge + Radio Check -->
-                <div class="flex items-center justify-between w-full mb-2">
-                  <div
-                    :class="[
-                      'w-9 h-9 rounded-xl flex items-center justify-center transition-all',
-                      selectedChannel === 'telegram'
-                        ? 'bg-sky-500 text-white shadow-sm shadow-sky-500/30 scale-105'
-                        : 'bg-slate-100 dark:bg-zinc-800/80 text-sky-500 dark:text-sky-400 group-hover:scale-105'
-                    ]"
-                  >
-                    <i class="pi pi-send text-sm"></i>
-                  </div>
-
-                  <!-- Integrated Radio Pill -->
-                  <div
-                    :class="[
-                      'w-5 h-5 rounded-full flex items-center justify-center transition-all',
-                      selectedChannel === 'telegram'
-                        ? 'bg-sky-500 text-white shadow-xs'
-                        : 'border border-slate-300 dark:border-zinc-700 bg-transparent'
-                    ]"
-                  >
-                    <i v-if="selectedChannel === 'telegram'" class="pi pi-check text-[9px] font-bold"></i>
-                  </div>
+                <div
+                  :class="[
+                    'w-11 h-11 rounded-2xl flex items-center justify-center transition-all',
+                    selectedChannel === 'telegram'
+                      ? 'bg-sky-500 text-white shadow-sm shadow-sky-500/30 scale-105'
+                      : 'bg-slate-100 dark:bg-zinc-800/90 text-sky-500 dark:text-sky-400 group-hover:scale-105'
+                  ]"
+                >
+                  <i class="pi pi-send text-base"></i>
                 </div>
-
-                <!-- Text Content -->
-                <div>
-                  <div class="flex items-center gap-1.5">
-                    <span class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">Telegram</span>
-                    <span class="px-1.5 py-0.5 text-[9px] font-bold rounded-md bg-sky-500/15 text-sky-600 dark:text-sky-400">⚡ លឿន</span>
-                  </div>
-                  <p class="text-[11px] text-slate-500 dark:text-zinc-400 mt-1 leading-snug">
-                    {{ currentLang === 'km' ? 'ទទួលកូដក្នុង Telegram Bot' : 'Instant code via Telegram Bot' }}
-                  </p>
-                </div>
+                <span class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                  Telegram
+                </span>
               </button>
 
-              <!-- Email Option Card -->
+              <!-- Email Option -->
               <button
                 type="button"
                 @click="selectedChannel = 'email'"
                 :class="[
-                  'relative p-3 rounded-2xl border text-left transition-all duration-200 cursor-pointer overflow-hidden flex flex-col justify-between select-none group',
+                  'py-3.5 px-3 rounded-2xl border text-center transition-all duration-200 cursor-pointer flex flex-col items-center justify-center gap-2 select-none group',
                   selectedChannel === 'email'
-                    ? 'border-blue-600 bg-blue-50/60 dark:bg-blue-950/25 ring-2 ring-blue-500/30 shadow-md shadow-blue-500/10'
+                    ? 'border-blue-600 bg-blue-500/10 dark:bg-blue-500/15 ring-2 ring-blue-500/30 shadow-md shadow-blue-500/10'
                     : 'border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#121214] hover:border-slate-300 dark:hover:border-zinc-700'
                 ]"
               >
-                <!-- Top row: Icon Badge + Radio Check -->
-                <div class="flex items-center justify-between w-full mb-2">
-                  <div
-                    :class="[
-                      'w-9 h-9 rounded-xl flex items-center justify-center transition-all',
-                      selectedChannel === 'email'
-                        ? 'bg-blue-600 text-white shadow-sm shadow-blue-600/30 scale-105'
-                        : 'bg-slate-100 dark:bg-zinc-800/80 text-blue-600 dark:text-blue-400 group-hover:scale-105'
-                    ]"
-                  >
-                    <i class="pi pi-envelope text-sm"></i>
-                  </div>
-
-                  <!-- Integrated Radio Pill -->
-                  <div
-                    :class="[
-                      'w-5 h-5 rounded-full flex items-center justify-center transition-all',
-                      selectedChannel === 'email'
-                        ? 'bg-blue-600 text-white shadow-xs'
-                        : 'border border-slate-300 dark:border-zinc-700 bg-transparent'
-                    ]"
-                  >
-                    <i v-if="selectedChannel === 'email'" class="pi pi-check text-[9px] font-bold"></i>
-                  </div>
+                <div
+                  :class="[
+                    'w-11 h-11 rounded-2xl flex items-center justify-center transition-all',
+                    selectedChannel === 'email'
+                      ? 'bg-blue-600 text-white shadow-sm shadow-blue-600/30 scale-105'
+                      : 'bg-slate-100 dark:bg-zinc-800/90 text-blue-600 dark:text-blue-400 group-hover:scale-105'
+                  ]"
+                >
+                  <i class="pi pi-envelope text-base"></i>
                 </div>
-
-                <!-- Text Content -->
-                <div>
-                  <div class="flex items-center gap-1.5">
-                    <span class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">Email</span>
-                    <span class="px-1.5 py-0.5 text-[9px] font-bold rounded-md bg-blue-500/15 text-blue-600 dark:text-blue-400">📨 សំបុត្រ</span>
-                  </div>
-                  <p class="text-[11px] text-slate-500 dark:text-zinc-400 mt-1 leading-snug">
-                    {{ currentLang === 'km' ? 'ផ្ញើសំបុត្រទៅកាន់ Inbox/Spam' : 'Send email to your Inbox/Spam' }}
-                  </p>
-                </div>
+                <span class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                  Email
+                </span>
               </button>
             </div>
           </div>
