@@ -48,6 +48,10 @@ RUN mkdir -p /var/www/html/database \
     && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
 
+# Copy PHP and OPcache performance configurations
+COPY .docker/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
+COPY .docker/php.ini /usr/local/etc/php/conf.d/custom.ini
+
 # Copy Nginx configuration
 COPY .docker/nginx.conf /etc/nginx/http.d/default.conf
 

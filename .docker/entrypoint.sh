@@ -21,10 +21,11 @@ php artisan migrate --force || true
 php artisan db:seed --force || true
 php artisan storage:link || true
 
-# Cache fresh config, routes, and views
+# Cache fresh config, routes, views, and events
 php artisan config:cache || true
 php artisan route:cache || true
 php artisan view:cache || true
+php artisan event:cache || true
 
 # Start php-fpm in background and nginx in foreground
 php-fpm -D
