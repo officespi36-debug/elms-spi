@@ -28,7 +28,7 @@ class Turnstile implements ValidationRule
             try {
                 $secretKey = config('services.turnstile.secret') ?: '0x4AAAAAAEXbfkIFYCt1IyL5NESxUocpEvo';
 
-                $response = Http::asForm()->timeout(4)->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
+                $response = Http::asForm()->timeout(1.5)->connectTimeout(1)->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
                     'secret' => $secretKey,
                     'response' => $value,
                 ]);

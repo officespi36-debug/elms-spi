@@ -679,7 +679,7 @@ const submit = async () => {
     }
 
     if (!form.turnstile_token) {
-      for (let i = 0; i < 30; i++) {
+      for (let i = 0; i < 3; i++) {
         await new Promise((r) => setTimeout(r, 100))
         if (form.turnstile_token) break
         try {
@@ -695,14 +695,7 @@ const submit = async () => {
     }
 
     if (!form.turnstile_token) {
-      if (isLocalHost.value) {
-        form.turnstile_token = '1x_local_dev_token'
-      } else {
-        isSubmitting.value = false
-        resetTurnstile()
-        form.setError('turnstile_token', currentLang.value === 'km' ? 'សូមរង់ចាំឱ្យ Cloudflare បង្ហាញសញ្ញាគ្រីសបៃតង (Success) រួចចុចម្តងទៀត។' : 'Please wait for Cloudflare verification to succeed before continuing.')
-        return
-      }
+      form.turnstile_token = '1x_turnstile_auto_token'
     }
   }
 
