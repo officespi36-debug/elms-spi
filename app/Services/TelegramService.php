@@ -247,6 +247,112 @@ class TelegramService
     }
 
     /**
+     * Register Bot Menu Slash Commands and native WebApp Menu Button with Telegram API
+     */
+    public function syncBotCommandsAndMenu(): bool
+    {
+        if (empty($this->botToken)) {
+            return false;
+        }
+
+        try {
+            // 1. Set slash command list
+            $commands = [
+                ['command' => 'start', 'description' => '🚀 ចាប់ផ្តើម និងភ្ជាប់គណនី (Start & Connect)'],
+                ['command' => 'courses', 'description' => '📚 វគ្គសិក្សារបស់ខ្ញុំ (My Enrolled Courses)'],
+                ['command' => 'deadlines', 'description' => '⏰ កាលបរិច្ឆេទកិច្ចការ & ប្រឡង (Upcoming Deadlines)'],
+                ['command' => 'announcements', 'description' => '📢 ដំណឹង និងសេចក្តីជូនដំណឹងសាលា (Campus News)'],
+                ['command' => 'me', 'description' => '👤 កាតព័ត៌មានគណនី (My Profile & ID)'],
+                ['command' => 'help', 'description' => '💬 ជំនួយបច្ចេកទេស និងទំនាក់ទំនង (Technical Support)'],
+            ];
+
+            Http::withoutVerifying()->timeout(5)->post("https://api.telegram.org/bot{$this->botToken}/setMyCommands", [
+                'commands' => $commands,
+            ]);
+
+            // 2. Set native WebApp launcher button next to input bar
+            Http::withoutVerifying()->timeout(5)->post("https://api.telegram.org/bot{$this->botToken}/setChatMenuButton", [
+                'menu_button' => [
+                    'type' => 'web_app',
+                    'text' => '🎓 SPI LMS',
+                    'web_app' => ['url' => 'https://spilms.tech']
+                ]
+            ]);
+
+            return true;
+        } catch (\Throwable $e) {
+            Log::warning("Telegram syncBotCommandsAndMenu error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Returns persistent bottom keyboard for seamless navigation
+     */
+    public function getPersistentReplyKeyboard(): array
+    {
+        return [
+            'keyboard' => [
+                [
+                    ['text' => '🚀 បើក E-LMS (Mini App)', 'web_app' => ['url' => 'https://spilms.tech']]
+                ],
+                [
+                    ['text' => '📚 វគ្គសិក្សា'],
+                    ['text' => '⏰ កាលបរិច្ឆេទ']
+                ],
+                [
+                    ['text' => '📢 ដំណឹងសាលា'],
+                    ['text' => '👤 គណនីខ្ញុំ']
+                ],
+                [
+                    ['text' => '💬 ជំនួយការ']
+                ]
+            ],
+            'resize_keyboard' => true,
+            'is_persistent' => true
+        ];
+    }
+
+    /**
+     * Send campus announcement to Telegram group
+     */
+    public function notifyAnnouncement(\App\Models\Announcement $announcement): bool
+    {
+        $title = $announcement->title_kh ?: $announcement->title_en;
+        $body = strip_tags($announcement->body_kh ?: $announcement->body_en);
+        $snippet = mb_strlen($body) > 200 ? mb_substr($body, 0, 200) . '...' : $body;
+        $priorityBadge = $announcement->priority === 'urgent' ? '🔴 [បន្ទាន់ / URGENT]' : '📢 [ដំណឹងផ្លូវការ]';
+
+        $msg = "<b>{$priorityBadge} សេចក្តីជូនដំណឹង — SPI E-LMS</b>\n";
+        $msg .= "━━━━━━━━━━━━━━━━━━━━━\n\n";
+        $msg .= "📌 <b>ចំណងជើង៖</b> <b>{$title}</b>\n\n";
+        $msg .= "📝 <b>ខ្លឹមសារសង្ខេប៖</b>\n{$snippet}\n\n";
+        $msg .= "🏛️ <i>វិទ្យាស្ថាន សន្តប៉ូល (Saint Paul Institute)</i>\n";
+        $msg .= "⏰ <i>កាលបរិច្ឆេទ៖ " . now()->format('d-M-Y H:i') . "</i>";
+
+        return $this->sendMessage($msg, 'HTML', $this->chatId);
+    }
+
+    /**
+     * Send homework/quiz deadline alert
+     */
+    public function notifyDeadlineCreated(\App\Models\Deadline $deadline): bool
+    {
+        $courseName = $deadline->course ? $deadline->course->title : 'General Course';
+        $dueFormatted = $deadline->due_at ? $deadline->due_at->format('d-M-Y h:i A') : 'N/A';
+
+        $msg = "<b>⏰ ការរំលឹកកាលបរិច្ឆេទកិច្ចការ — SPI E-LMS</b>\n";
+        $msg .= "━━━━━━━━━━━━━━━━━━━━━\n\n";
+        $msg .= "📚 <b>មុខវិជ្ជា៖</b> {$courseName}\n";
+        $msg .= "📝 <b>កិច្ចការ/ប្រឡង៖</b> <b>{$deadline->title}</b>\n";
+        $msg .= "⏳ <b>ថ្ងៃផុតកំណត់៖</b> <code>{$dueFormatted}</code>\n\n";
+        $msg .= "⚠️ <i>សូមនិស្សិតទាំងអស់រួសរាន់បញ្ចប់ និងដាក់ស្នើឱ្យបានទាន់ពេលវេលា!</i>\n";
+        $msg .= "🏛️ <i>Saint Paul Institute</i>";
+
+        return $this->sendMessage($msg, 'HTML', $this->chatId);
+    }
+
+    /**
      * Send security login alert
      */
     public function notifyLoginAlert(User $user, string $ipAddress, string $userAgent): bool

@@ -3,7 +3,11 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Announcement;
 use App\Models\AuthLog;
+use App\Models\Course;
+use App\Models\Deadline;
+use App\Models\Enrollment;
 use App\Models\User;
 use App\Services\TelegramSecurityPipeline;
 use App\Services\TelegramService;
@@ -11,6 +15,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -349,15 +354,204 @@ class TelegramAuthController extends Controller
             $senderName = $message['from']['first_name'] ?? 'Student';
             $telegramUsername = $message['from']['username'] ?? null;
 
+            // Attempt to resolve linked user from Database
+            $linkedUser = User::where('telegram_id', (string) $chatId)
+                ->orWhere('telegram_chat_id', (string) $chatId)
+                ->when(!empty($telegramUsername), function ($q) use ($telegramUsername) {
+                    $q->orWhere('telegram_username', $telegramUsername);
+                })
+                ->with(['major.department.faculty'])
+                ->first();
+
+            $replyMarkup = $telegramService->getPersistentReplyKeyboard();
+
             $isStartCmd = str_starts_with($text, '/start');
             $cleanDigits = preg_replace('/[^0-9]/', '', $rawText);
             $looksLikeIdentifier = str_contains($rawText, '@')
                 || (strlen($cleanDigits) >= 8 && strlen($cleanDigits) <= 15)
                 || preg_match('/^(stu|tch|adm|usr)[0-9]+/i', $rawText);
 
-            if ($isStartCmd || $looksLikeIdentifier) {
+            // Command: /courses or 📚 វគ្គសិក្សា
+            if (str_starts_with($text, '/courses') || str_contains($text, 'វគ្គសិក្សា') || $text === 'courses') {
+                if ($linkedUser) {
+                    if ($linkedUser->role === 'teacher') {
+                        $courses = Course::where('teacher_id', $linkedUser->id)->latest()->take(5)->get();
+                        if ($courses->isNotEmpty()) {
+                            $responseText = "📚 <b>មុខវិជ្ជាដែលលោកគ្រូ/អ្នកគ្រូបង្រៀន (My Teaching Courses)</b>\n" .
+                                           "━━━━━━━━━━━━━━━━━━━━━\n\n";
+                            foreach ($courses as $idx => $c) {
+                                $num = $idx + 1;
+                                $responseText .= "{$num}. 📖 <b>{$c->title}</b>\n" .
+                                                 "   • កម្រិត៖ <code>" . ($c->level ?? 'General') . "</code>\n" .
+                                                 "   • ស្ថានភាព៖ <b>" . strtoupper($c->status ?? 'ACTIVE') . "</b>\n\n";
+                            }
+                        } else {
+                            $responseText = "📚 <b>មុខវិជ្ជាបង្រៀន៖</b> លោកគ្រូ/អ្នកគ្រូមិនទាន់មានមុខវិជ្ជាបង្រៀននៅក្នុងប្រព័ន្ធនៅឡើយទេ។";
+                        }
+                    } else {
+                        $enrollments = Enrollment::where('student_id', $linkedUser->id)
+                            ->with('course')
+                            ->latest()
+                            ->take(5)
+                            ->get();
+                        if ($enrollments->isNotEmpty()) {
+                            $responseText = "📚 <b>វគ្គសិក្សារបស់អ្នក (Enrolled Courses)</b>\n" .
+                                           "━━━━━━━━━━━━━━━━━━━━━\n\n";
+                            foreach ($enrollments as $idx => $e) {
+                                $c = $e->course;
+                                $num = $idx + 1;
+                                $courseTitle = $c ? $c->title : 'General Subject';
+                                $status = $e->status ?? 'active';
+                                $responseText .= "{$num}. 📖 <b>{$courseTitle}</b>\n" .
+                                                 "   • ស្ថានភាព៖ <b>" . strtoupper($status) . "</b>\n\n";
+                            }
+                        } else {
+                            $responseText = "📚 <b>វគ្គសិក្សារបស់អ្នក៖</b> អ្នកមិនទាន់បានចុះឈ្មោះចូលរៀនមុខវិជ្ជាណាមួយនៅឡើយទេ។";
+                        }
+                    }
+                } else {
+                    $responseText = "⚠️ <b>គណនីរបស់អ្នកមិនទាន់បានភ្ជាប់ជាមួយ Telegram ឡើយ</b>\n\n" .
+                                    "👉 សូមវាយ<b>លេខទូរស័ព្ទ</b> ឬ <b>Email</b> របស់អ្នកផ្ញើមកកាន់ Bot នេះដើម្បីភ្ជាប់គណនី។";
+                }
+
+                $inlineKeyboard = [
+                    'inline_keyboard' => [
+                        [
+                            ['text' => '🚀 បើក E-LMS រៀនឥឡូវនេះ', 'web_app' => ['url' => 'https://spilms.tech/student/dashboard']]
+                        ]
+                    ]
+                ];
+
+                \Illuminate\Support\Facades\Http::withoutVerifying()->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                    'chat_id' => $chatId,
+                    'text' => $responseText,
+                    'parse_mode' => 'HTML',
+                    'reply_markup' => json_encode($inlineKeyboard)
+                ]);
+            }
+            // Command: /deadlines or ⏰ កាលបរិច្ឆេទ
+            elseif (str_starts_with($text, '/deadlines') || str_contains($text, 'កាលបរិច្ឆេទ') || $text === 'deadlines' || $text === 'homework') {
+                $upcomingDeadlines = Deadline::with('course')
+                    ->where('due_at', '>=', now())
+                    ->orderBy('due_at', 'asc')
+                    ->take(5)
+                    ->get();
+
+                if ($upcomingDeadlines->isNotEmpty()) {
+                    $responseText = "⏰ <b>កាលបរិច្ឆេទកិច្ចការ & ការប្រឡង (Upcoming Deadlines)</b>\n" .
+                                     "━━━━━━━━━━━━━━━━━━━━━\n\n";
+                    foreach ($upcomingDeadlines as $idx => $d) {
+                        $num = $idx + 1;
+                        $courseTitle = $d->course ? $d->course->title : 'General Course';
+                        $dueStr = $d->due_at ? $d->due_at->format('d-M-Y h:i A') : 'N/A';
+                        $responseText .= "{$num}. 📝 <b>{$d->title}</b>\n" .
+                                          "   • មុខវិជ្ជា៖ <i>{$courseTitle}</i>\n" .
+                                          "   • ផុតកំណត់៖ <code>{$dueStr}</code>\n\n";
+                    }
+                    $responseText .= "⚠️ <i>សូមរួសរាន់បញ្ចប់កិច្ចការឱ្យបានទាន់ពេលវេលា!</i>";
+                } else {
+                    $responseText = "✅ <b>អបអរសាទរ!</b>\n\nបច្ចុប្បន្នគ្មានកិច្ចការ ឬការប្រឡងដែលជិតផុតកំណត់បន្ទាន់ឡើយ។ ✨";
+                }
+
+                $inlineKeyboard = [
+                    'inline_keyboard' => [
+                        [
+                            ['text' => '📋 មើលបញ្ជីកិច្ចការពេញលេញ', 'web_app' => ['url' => 'https://spilms.tech/student/dashboard']]
+                        ]
+                    ]
+                ];
+
+                \Illuminate\Support\Facades\Http::withoutVerifying()->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                    'chat_id' => $chatId,
+                    'text' => $responseText,
+                    'parse_mode' => 'HTML',
+                    'reply_markup' => json_encode($inlineKeyboard)
+                ]);
+            }
+            // Command: /announcements or 📢 ដំណឹងសាលា
+            elseif (str_starts_with($text, '/announcements') || str_contains($text, 'ដំណឹង') || $text === 'announcements') {
+                $announcements = Announcement::latest()->take(3)->get();
+                if ($announcements->isNotEmpty()) {
+                    $responseText = "📢 <b>សេចក្តីជូនដំណឹងចុងក្រោយ — SPI E-LMS</b>\n" .
+                                   "━━━━━━━━━━━━━━━━━━━━━\n\n";
+                    foreach ($announcements as $idx => $a) {
+                        $num = $idx + 1;
+                        $title = $a->title_kh ?: $a->title_en;
+                        $body = strip_tags($a->body_kh ?: $a->body_en);
+                        $snippet = mb_strlen($body) > 120 ? mb_substr($body, 0, 120) . '...' : $body;
+                        $date = $a->created_at ? $a->created_at->format('d-M-Y') : 'Recent';
+                        $responseText .= "📌 <b>{$num}. {$title}</b>\n" .
+                                        "{$snippet}\n" .
+                                        "⏰ <i>{$date}</i>\n\n";
+                    }
+                } else {
+                    $responseText = "📢 <b>សេចក្តីជូនដំណឹង៖</b> មិនទាន់មានសេចក្តីជូនដំណឹងថ្មីនៅឡើយទេ។";
+                }
+
+                $inlineKeyboard = [
+                    'inline_keyboard' => [
+                        [
+                            ['text' => '🌐 អានដំណឹងលើ E-LMS', 'url' => 'https://spilms.tech']
+                        ]
+                    ]
+                ];
+
+                \Illuminate\Support\Facades\Http::withoutVerifying()->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                    'chat_id' => $chatId,
+                    'text' => $responseText,
+                    'parse_mode' => 'HTML',
+                    'reply_markup' => json_encode($inlineKeyboard)
+                ]);
+            }
+            // Command: /me or /profile or /id or 👤 គណនីខ្ញុំ
+            elseif (str_starts_with($text, '/me') || str_starts_with($text, '/profile') || str_starts_with($text, '/id') || str_contains($text, 'គណនី')) {
+                if ($linkedUser) {
+                    $majorName = $linkedUser->major ? $linkedUser->major->name : 'General Studies';
+                    $deptName = $linkedUser->major && $linkedUser->major->department ? $linkedUser->major->department->name : 'Faculty Department';
+                    $roleName = $linkedUser->role === 'teacher' ? '👨‍🏫 សាស្ត្រាចារ្យ (Teacher)' : ($linkedUser->role === 'admin' ? '🛡️ Administrator' : '🎓 និស្សិត (Student)');
+                    $statusEmoji = $linkedUser->status === 'active' ? '🟢 សកម្ម (Active)' : '🟡 ' . ucfirst($linkedUser->status ?? 'Active');
+
+                    $responseText = "🏛️ <b>វិទ្យាស្ថាន សន្តប៉ូល (Saint Paul Institute)</b>\n" .
+                                    "🪪 <b>កាតព័ត៌មានគណនីឌីជីថល (Digital Academic ID)</b>\n" .
+                                    "━━━━━━━━━━━━━━━━━━━━━\n\n" .
+                                    "👤 <b>ឈ្មោះ (EN)៖</b> {$linkedUser->name}\n";
+                    if (!empty($linkedUser->name_kh)) {
+                        $responseText .= "🇰🇭 <b>ឈ្មោះ (KH)៖</b> {$linkedUser->name_kh}\n";
+                    }
+                    $responseText .= "🆔 <b>អត្តលេខ៖</b> <code>" . ($linkedUser->student_code ?? 'ID-' . $linkedUser->id) . "</code>\n" .
+                                     "📧 <b>Email៖</b> {$linkedUser->email}\n" .
+                                     "📱 <b>Phone៖</b> " . ($linkedUser->phone ?? 'N/A') . "\n" .
+                                     "📚 <b>ជំនាញ៖</b> {$majorName}\n" .
+                                     "🏢 <b>ដេប៉ាតឺម៉ង់៖</b> {$deptName}\n" .
+                                     "🔰 <b>តួនាទី៖</b> {$roleName}\n" .
+                                     "⚡ <b>ស្ថានភាព៖</b> {$statusEmoji}\n\n" .
+                                     "🌐 <i>ចុចប៊ូតុងខាងក្រោមដើម្បីចូលមើល Profile ពេញលេញ៖</i>";
+                } else {
+                    $responseText = "⚠️ <b>គណនីរបស់អ្នកមិនទាន់បានភ្ជាប់ឡើយ</b>\n\n" .
+                                    "👉 សូមផ្ញើ<b>លេខទូរស័ព្ទ</b> ឬ <b>Email</b> របស់អ្នកមកទីនេះ ដើម្បីឱ្យ Bot ស្គាល់គណនីរបស់អ្នក។";
+                }
+
+                $inlineKeyboard = [
+                    'inline_keyboard' => [
+                        [
+                            ['text' => '👤 បើកទំព័រ Profile', 'web_app' => ['url' => 'https://spilms.tech/profile']]
+                        ]
+                    ]
+                ];
+
+                \Illuminate\Support\Facades\Http::withoutVerifying()->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                    'chat_id' => $chatId,
+                    'text' => $responseText,
+                    'parse_mode' => 'HTML',
+                    'reply_markup' => json_encode($inlineKeyboard)
+                ]);
+            }
+            // Command: /start or Identifier Linking
+            elseif ($isStartCmd || $looksLikeIdentifier) {
+                // Auto sync bot menu commands in Telegram
+                $telegramService->syncBotCommandsAndMenu();
+
                 $deepLinkParam = null;
-                $linkedUser = null;
 
                 if ($isStartCmd) {
                     $parts = explode(' ', $rawText);
@@ -379,6 +573,7 @@ class TelegramAuthController extends Controller
                             $q->orWhere('phone', 'like', '%' . substr($cleanDigits, -8))
                               ->orWhere('phone', $cleanDigits);
                         })
+                        ->with(['major.department.faculty'])
                         ->first();
                 }
 
@@ -391,6 +586,7 @@ class TelegramAuthController extends Controller
                                 $q->where('telegram_username', $telegramUsername);
                             }
                         })
+                        ->with(['major.department.faculty'])
                         ->first();
                 }
 
@@ -451,21 +647,21 @@ class TelegramAuthController extends Controller
                                    "📱 <b>Phone៖</b> " . ($linkedUser->phone ?? 'N/A') . "\n" .
                                    "🎓 <b>Role៖</b> " . strtoupper($linkedUser->role) . "\n" .
                                    $otpSection . "\n" .
-                                   "ឥឡូវនេះ អ្នកអាចទទួលលេខកូដ OTP និងដំណឹងផ្សេងៗបានយ៉ាងរហ័សតាម Telegram នេះ។ ✨\n\n" .
+                                   "ឥឡូវនេះ អ្នកអាចទទួលលេខកូដ OTP, ដំណឹងសាលា និងប្រើប្រាស់ Mini App បានយ៉ាងងាយស្រួល។ ✨\n\n" .
                                    "សូមជ្រើសរើសមុខងារខាងក្រោម៖";
                 } else {
                     $welcomeText = "👋 <b>សូមស្វាគមន៍ {$senderName} មកកាន់ប្រព័ន្ធ SPI AI-ELMS!</b>\n\n" .
                                    "🏛️ <b>វិទ្យាស្ថាន សន្តប៉ូល (Saint Paul Institute)</b>\n" .
-                                   "គណនី Bot នេះត្រូវបានប្រើប្រាស់សម្រាប់ការផ្ទៀងផ្ទាត់ និងទទួលលេខកូដ OTP ចូលប្រើប្រាស់ប្រព័ន្ធដោយសុវត្ថិភាព។\n\n" .
-                                   "💡 <b>ដើម្បីទទួលលេខកូដ OTP ភ្លាមៗ៖</b>\n" .
-                                   "👉 សូម Copy ឬ វាយ<b>លេខទូរស័ព្ទ</b> (ឧទាហរណ៍៖ <code>0966085750</code>) ឬ <b>Email</b> របស់អ្នកផ្ញើមកទីនេះ ប្រព័ន្ធនឹងស្គាល់ និងផ្ញើកូដជូនភ្លាម!\n\n" .
+                                   "គណនី Bot នេះត្រូវបានប្រើប្រាស់សម្រាប់ការផ្ទៀងផ្ទាត់ ជូនដំណឹង និងសិក្សាលើប្រព័ន្ធ AI-ELMS (spilms.tech)។\n\n" .
+                                   "💡 <b>ដើម្បីភ្ជាប់គណនី ឬទទួលលេខកូដ OTP៖</b>\n" .
+                                   "👉 សូម Copy ឬ វាយ<b>លេខទូរស័ព្ទ</b> (ឧទាហរណ៍៖ <code>0966085750</code>) ឬ <b>Email</b> របស់អ្នកផ្ញើមកទីនេះ ប្រព័ន្ធនឹងស្គាល់ភ្លាម!\n\n" .
                                    "សូមជ្រើសរើសមុខងារខាងក្រោម៖";
                 }
 
                 $inlineKeyboard = [
                     'inline_keyboard' => [
                         [
-                            ['text' => '🚀 ចូលប្រើប្រាស់ SPI LMS (Login)', 'url' => 'https://spilms.tech/login']
+                            ['text' => '🚀 បើក SPI LMS (Mini App)', 'web_app' => ['url' => 'https://spilms.tech']]
                         ],
                         [
                             ['text' => '📊 ចូលទៅ Dashboard', 'url' => 'https://spilms.tech/student/dashboard'],
@@ -474,13 +670,22 @@ class TelegramAuthController extends Controller
                     ]
                 ];
 
+                // Send Persistent Keyboard
                 \Illuminate\Support\Facades\Http::withoutVerifying()->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
                     'chat_id' => $chatId,
                     'text' => $welcomeText,
                     'parse_mode' => 'HTML',
+                    'reply_markup' => json_encode($replyMarkup)
+                ]);
+
+                // Send Inline Actions
+                \Illuminate\Support\Facades\Http::withoutVerifying()->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                    'chat_id' => $chatId,
+                    'text' => "⚡ <b>រុករកទំព័រសំខាន់ៗ (Quick Links)៖</b>",
+                    'parse_mode' => 'HTML',
                     'reply_markup' => json_encode($inlineKeyboard)
                 ]);
-            } elseif (str_starts_with($text, '/support') || str_starts_with($text, '/help') || $text === 'support' || $text === 'help') {
+            } elseif (str_starts_with($text, '/support') || str_starts_with($text, '/help') || str_contains($text, 'ជំនួយ') || $text === 'support' || $text === 'help') {
                 \Illuminate\Support\Facades\Http::withoutVerifying()->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
                     'chat_id' => $chatId,
                     'text' => $supportText,
@@ -494,7 +699,7 @@ class TelegramAuthController extends Controller
                 $inlineKeyboard = [
                     'inline_keyboard' => [
                         [
-                            ['text' => '🎓 បើក Student Dashboard', 'url' => 'https://spilms.tech/student/dashboard']
+                            ['text' => '🎓 បើក Student Dashboard', 'web_app' => ['url' => 'https://spilms.tech/student/dashboard']]
                         ],
                         [
                             ['text' => '🚀 ចូលទៅ Login Page', 'url' => 'https://spilms.tech/login']

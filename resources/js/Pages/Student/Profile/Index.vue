@@ -111,6 +111,17 @@ const learningActivityLogs = [
       <!-- Navigation Tabs -->
       <div class="flex items-center gap-2 border-b border-slate-800 pb-2 overflow-x-auto custom-scrollbar">
         <button
+          @click="activeTab = 'id-card'"
+          :class="[
+            activeTab === 'id-card'
+              ? 'bg-indigo-600 text-white shadow-lg'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800',
+            'px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0'
+          ]"
+        >
+          🪪 1. Digital Student ID (កាតសិស្ស)
+        </button>
+        <button
           @click="activeTab = 'personal'"
           :class="[
             activeTab === 'personal'
@@ -119,7 +130,7 @@ const learningActivityLogs = [
             'px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0'
           ]"
         >
-          👤 1. Personal Information
+          👤 2. Personal Information
         </button>
         <button
           @click="activeTab = 'academic'"
@@ -130,7 +141,7 @@ const learningActivityLogs = [
             'px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0'
           ]"
         >
-          🎓 2. Academic Information
+          🎓 3. Academic Information
         </button>
         <button
           @click="activeTab = 'security'"
@@ -141,7 +152,7 @@ const learningActivityLogs = [
             'px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0'
           ]"
         >
-          🔒 3. Security & Password
+          🔒 4. Security & Password
         </button>
         <button
           @click="activeTab = 'history'"
@@ -152,8 +163,90 @@ const learningActivityLogs = [
             'px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0'
           ]"
         >
-          📜 4. Learning History & Logs
+          📜 5. Learning History & Logs
         </button>
+      </div>
+
+      <!-- TAB 0: Digital Student ID Card -->
+      <div v-show="activeTab === 'id-card'" class="space-y-6">
+        <div class="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 md:p-8 shadow-xl space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 class="text-base font-extrabold text-white flex items-center gap-2">
+                <span>🪪 កាតនិស្សិតឌីជីថល (Digital Student ID Card)</span>
+              </h3>
+              <p class="text-xs text-slate-400 mt-1">កាតសម្គាល់ខ្លួនផ្លូវការសម្រាប់ការសិក្សា និងប្រើប្រាស់សេវាកម្មក្នុងវិទ្យាស្ថាន សន្តប៉ូល</p>
+            </div>
+            <span class="px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-bold shrink-0 self-start">
+              ⚡ Live Verified Badge
+            </span>
+          </div>
+
+          <!-- Luxury NFC-Style ID Card -->
+          <div class="max-w-md mx-auto relative rounded-3xl p-6 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 border-2 border-indigo-500/40 shadow-2xl shadow-indigo-950/80 overflow-hidden text-white space-y-5">
+            <!-- Holographic Shine Background Glow -->
+            <div class="absolute -right-16 -top-16 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -left-16 -bottom-16 w-48 h-48 bg-purple-500/20 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <!-- Header -->
+            <div class="flex items-center justify-between border-b border-indigo-800/50 pb-3 relative z-10">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-lg font-black shadow-md shadow-indigo-600/40">
+                  🎓
+                </div>
+                <div>
+                  <p class="text-[11px] font-black tracking-wider text-indigo-200 uppercase">SAINT PAUL INSTITUTE</p>
+                  <p class="text-[9px] text-slate-400 font-medium">វិទ្យាស្ថាន សន្តប៉ូល • SPI E-LMS</p>
+                </div>
+              </div>
+              <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[9px] font-bold uppercase tracking-wider">
+                Official ID
+              </span>
+            </div>
+
+            <!-- Middle: Avatar & Identity -->
+            <div class="flex items-center gap-4 relative z-10">
+              <div class="relative shrink-0">
+                <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white font-black text-2xl flex items-center justify-center shadow-lg ring-2 ring-indigo-400/40">
+                  {{ profile.name ? profile.name.charAt(0) : 'S' }}
+                </div>
+                <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center text-[10px] text-white font-bold ring-2 ring-slate-900">
+                  ✓
+                </div>
+              </div>
+
+              <div class="space-y-1">
+                <h4 class="text-base font-black text-white leading-tight">{{ profile.name }}</h4>
+                <p class="text-xs text-indigo-300 font-extrabold font-mono">{{ profile.student_id || 'STU-2024-089' }}</p>
+                <p class="text-[11px] text-slate-300 font-medium">{{ profile.major || 'Information Technology' }}</p>
+                <p class="text-[10px] text-slate-400">{{ profile.faculty || 'Faculty of Science & Tech' }}</p>
+              </div>
+            </div>
+
+            <!-- Bottom: Term & Dynamic QR Code -->
+            <div class="pt-3 border-t border-indigo-800/50 flex items-end justify-between gap-4 relative z-10">
+              <div class="space-y-1.5 text-[10px]">
+                <div>
+                  <span class="text-slate-400 block font-semibold uppercase">Academic Term:</span>
+                  <span class="text-emerald-400 font-extrabold">{{ profile.semester || 'Semester 1 • Year 2026' }}</span>
+                </div>
+                <div>
+                  <span class="text-slate-400 block font-semibold uppercase">Status:</span>
+                  <span class="text-slate-200 font-bold">🟢 Active Enrolled Student</span>
+                </div>
+              </div>
+
+              <!-- Live QR Code -->
+              <div class="bg-white p-1.5 rounded-2xl shrink-0 shadow-lg shadow-black/40">
+                <img
+                  :src="`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https://spilms.tech/verify-certificate/${profile.student_id || 'STU-2024-089'}`"
+                  alt="Student Verification QR"
+                  class="w-14 h-14 rounded-lg"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- TAB 1: Personal Information -->

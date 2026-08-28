@@ -142,10 +142,82 @@ const submitCreateQuestion = () => {
   createForm.reset()
 }
 
-// AI Question Generator Modal
+// 🤖 AI Smart Question Generator State & Methods
 const showAiModal = ref(false)
-const generateAiQuestions = () => {
-  alert('AI is analyzing lesson content to generate 5 high-yield questions...')
+const isGeneratingAi = ref(false)
+const aiTopic = ref('')
+const aiContent = ref('')
+const aiLanguage = ref('km')
+const aiCount = ref(4)
+const aiType = ref('MCQ')
+const aiDifficulty = ref('Medium')
+const generatedQuestions = ref<any[]>([])
+const aiErrorMessage = ref('')
+
+const generateAiQuestions = async () => {
+  if (!aiTopic.value.trim() && !aiContent.value.trim()) {
+    aiErrorMessage.value = 'សូមបញ្ចូលប្រធានបទ ឬខ្លឹមសារមេរៀនជាមុនសិន'
+    return
+  }
+
+  aiErrorMessage.value = ''
+  isGeneratingAi.value = true
+  generatedQuestions.value = []
+
+  try {
+    const res = await fetch('/teacher/ai/generate-quiz', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-XSRF-TOKEN': decodeURIComponent(document.cookie.split('; ').find(row => row.startsWith('XSRF-TOKEN='))?.split('=')[1] || '')
+      },
+      body: JSON.stringify({
+        topic: aiTopic.value.trim() || 'General Academic Assessment',
+        content: aiContent.value.trim(),
+        language: aiLanguage.value,
+        count: aiCount.value,
+        type: aiType.value,
+        difficulty: aiDifficulty.value,
+      })
+    })
+
+    const data = await res.json()
+
+    if (data && data.questions && data.questions.length > 0) {
+      generatedQuestions.value = data.questions
+    } else {
+      aiErrorMessage.value = 'មិនអាចបង្កើតសំណួរបានទេ។ សូមព្យាយាមម្តងទៀត។'
+    }
+  } catch (err: any) {
+    aiErrorMessage.value = err?.message || 'មានបញ្ហាក្នុងការទាក់ទង AI Engine។'
+  } finally {
+    isGeneratingAi.value = false
+  }
+}
+
+const importAllAiQuestions = () => {
+  if (generatedQuestions.value.length === 0) return
+
+  generatedQuestions.value.forEach((item, index) => {
+    questions.value.unshift({
+      id: `Q-AI-${Date.now().toString().slice(-4)}${index + 1}`,
+      title: item.title || item.question || 'AI Question',
+      title_kh: item.title_kh || item.title || item.question || 'AI Question (Khmer)',
+      type: item.type || aiType.value,
+      difficulty: item.difficulty || aiDifficulty.value,
+      used: 0,
+      status: 'Live',
+      course: 'AI Generated Bank',
+      module: aiTopic.value || 'General Module',
+      marks: item.marks || 2,
+      options: item.options || [],
+      correct: item.correct || (item.options ? item.options[item.correct_index ?? 0] : 'N/A'),
+    })
+  })
+
+  alert(`🎉 បញ្ចូលសំណួរ AI ចំនួន ${generatedQuestions.value.length} ទៅក្នុង Question Bank ដោយជោគជ័យ!`)
+  generatedQuestions.value = []
   showAiModal.value = false
 }
 </script>
@@ -348,6 +420,188 @@ const generateAiQuestions = () => {
         <div class="flex justify-end gap-2 pt-3 border-t">
           <button @click="showCreateModal = false" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold">Cancel</button>
           <button @click="submitCreateQuestion" class="px-5 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold shadow">Save to Vault</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 🤖 AI SMART QUESTION GENERATOR MODAL -->
+    <div v-if="showAiModal" class="fixed inset-0 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
+      <div class="bg-white dark:bg-gray-900 rounded-3xl max-w-2xl w-full p-6 space-y-5 shadow-2xl border border-purple-200 dark:border-purple-900/50 overflow-y-auto max-h-[90vh]">
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-gray-800 pb-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-500 text-white flex items-center justify-center font-black text-lg shadow-lg shadow-purple-500/25">
+              ✨
+            </div>
+            <div>
+              <h3 class="text-base font-extrabold text-slate-800 dark:text-white">AI Smart Quiz Generator</h3>
+              <p class="text-xs text-purple-600 dark:text-purple-400 font-semibold">បង្កើតសំនួរប្រឡង និងលំហាត់ដោយស្វ័យប្រវត្តិតាមរយៈ AI</p>
+            </div>
+          </div>
+          <button @click="showAiModal = false" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-400 hover:text-slate-600 flex items-center justify-center transition">
+            <i class="pi pi-times text-xs"></i>
+          </button>
+        </div>
+
+        <!-- Inputs Section (When not yet generated) -->
+        <div v-if="generatedQuestions.length === 0" class="space-y-4 text-xs">
+          <div v-if="aiErrorMessage" class="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 rounded-2xl font-bold">
+            ⚠️ {{ aiErrorMessage }}
+          </div>
+
+          <div>
+            <label class="block font-extrabold text-slate-700 dark:text-slate-200 mb-1.5">
+              📌 ប្រធានបទមេរៀន ឬ មុខវិជ្ជា (Topic / Subject) <span class="text-rose-500">*</span>
+            </label>
+            <input
+              v-model="aiTopic"
+              type="text"
+              placeholder="ឧទាហរណ៍៖ Cloud Computing & Virtualization, TCP/IP Model, Data Structures"
+              class="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 text-xs font-medium focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+
+          <div>
+            <label class="block font-extrabold text-slate-700 dark:text-slate-200 mb-1.5">
+              📝 ខ្លឹមសារមេរៀនសង្ខេប ឬ អត្ថបទស្លាយ (Lesson Context / Notes) <span class="text-slate-400 font-normal">(ស្រេចចិត្ត)</span>
+            </label>
+            <textarea
+              v-model="aiContent"
+              rows="4"
+              placeholder="Copy & Paste ខ្លឹមសារមេរៀន ឬឯកសារបង្រៀនចូលទីនេះ ដើម្បីឱ្យ AI បង្កើតសំណួរកាន់តែចំគោលដៅ..."
+              class="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 text-xs font-medium focus:ring-2 focus:ring-purple-500 resize-none"
+            ></textarea>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div>
+              <label class="block font-bold text-slate-600 dark:text-slate-300 mb-1">ភាសាសំណួរ</label>
+              <select v-model="aiLanguage" class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 font-bold">
+                <option value="km">🇰🇭 ភាសាខ្មែរ (Khmer)</option>
+                <option value="en">🇬🇧 English</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block font-bold text-slate-600 dark:text-slate-300 mb-1">ចំនួនសំណួរ</label>
+              <select v-model.number="aiCount" class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 font-bold">
+                <option :value="3">3 សំណួរ</option>
+                <option :value="4">4 សំណួរ</option>
+                <option :value="5">5 សំណួរ</option>
+                <option :value="8">8 សំណួរ</option>
+                <option :value="10">10 សំណួរ</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block font-bold text-slate-600 dark:text-slate-300 mb-1">ប្រភេទសំណួរ</label>
+              <select v-model="aiType" class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 font-bold">
+                <option value="MCQ">MCQ (ពហុជ្រើសរើស)</option>
+                <option value="True-False">True / False</option>
+                <option value="Short Answer">Short Answer</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block font-bold text-slate-600 dark:text-slate-300 mb-1">កម្រិតលំបាក</label>
+              <select v-model="aiDifficulty" class="w-full p-2.5 rounded-xl border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 font-bold">
+                <option value="Easy">🟢 ងាយ (Easy)</option>
+                <option value="Medium">🟡 មធ្យម (Medium)</option>
+                <option value="Hard">🔴 ពិបាក (Hard)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-100 dark:border-gray-800 flex items-center justify-between">
+            <button @click="showAiModal = false" class="px-4 py-2.5 bg-slate-100 dark:bg-gray-800 text-slate-700 dark:text-slate-300 rounded-2xl font-bold">
+              បោះបង់ (Cancel)
+            </button>
+            <button
+              @click="generateAiQuestions"
+              :disabled="isGeneratingAi"
+              class="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-2xl font-extrabold shadow-lg shadow-purple-500/30 flex items-center gap-2 transition disabled:opacity-50 cursor-pointer"
+            >
+              <span v-if="isGeneratingAi" class="animate-spin text-sm">⏳</span>
+              <span v-else>⚡</span>
+              <span>{{ isGeneratingAi ? 'AI កំពុងបង្កើតសំណួរ...' : 'បង្កើតសំណួរឥឡូវនេះ' }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Results / Preview Section (When generated successfully) -->
+        <div v-else class="space-y-4 text-xs">
+          <div class="flex items-center justify-between bg-purple-50 dark:bg-purple-950/40 p-3 rounded-2xl border border-purple-200 dark:border-purple-800">
+            <div class="flex items-center gap-2">
+              <span class="text-base">🎉</span>
+              <span class="font-extrabold text-purple-900 dark:text-purple-200">
+                AI បានបង្កើតសំណួរចំនួន {{ generatedQuestions.length }} ដោយជោគជ័យ!
+              </span>
+            </div>
+            <button @click="generateAiQuestions" :disabled="isGeneratingAi" class="px-3 py-1 bg-white dark:bg-gray-800 rounded-xl text-purple-700 dark:text-purple-300 font-bold border shadow-xs hover:bg-purple-100 transition">
+              🔄 បង្កើតឡើងវិញ
+            </button>
+          </div>
+
+          <!-- Question Previews List -->
+          <div class="space-y-3 max-h-[50vh] overflow-y-auto pr-1">
+            <div
+              v-for="(item, idx) in generatedQuestions"
+              :key="idx"
+              class="p-4 bg-slate-50 dark:bg-gray-800/80 rounded-2xl border border-slate-200 dark:border-gray-700 space-y-2.5"
+            >
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 rounded-lg bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 font-extrabold font-mono text-[10px]">
+                    #{{ idx + 1 }}
+                  </span>
+                  <span class="px-2 py-0.5 rounded-lg bg-slate-200 dark:bg-gray-700 font-bold text-[10px]">
+                    {{ item.type || aiType }}
+                  </span>
+                  <span class="px-2 py-0.5 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 font-bold text-[10px]">
+                    {{ item.difficulty || aiDifficulty }}
+                  </span>
+                </div>
+                <span class="font-bold text-slate-400">{{ item.marks || 2 }} Marks</span>
+              </div>
+
+              <div>
+                <p class="font-extrabold text-slate-800 dark:text-white">{{ item.title || item.question }}</p>
+                <p v-if="item.title_kh && item.title_kh !== item.title" class="text-slate-600 dark:text-slate-300 mt-0.5">{{ item.title_kh }}</p>
+              </div>
+
+              <div v-if="item.options && item.options.length > 0" class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                <div
+                  v-for="(opt, oIdx) in item.options"
+                  :key="oIdx"
+                  :class="[
+                    'p-2 rounded-xl text-[11px] font-medium border',
+                    (opt === item.correct || opt.startsWith('A.') || oIdx === item.correct_index)
+                      ? 'bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800 font-bold'
+                      : 'bg-white dark:bg-gray-700 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-gray-600'
+                  ]"
+                >
+                  {{ opt }}
+                  <span v-if="opt === item.correct || opt.startsWith('A.') || oIdx === item.correct_index" class="ml-1 text-emerald-600 dark:text-emerald-400 font-black">✓ Correct</span>
+                </div>
+              </div>
+
+              <div v-if="item.explanation" class="p-2.5 bg-blue-50 dark:bg-blue-950/30 rounded-xl border border-blue-100 dark:border-blue-900 text-[11px] text-blue-800 dark:text-blue-200">
+                💡 <span class="font-bold">ពន្យល់៖</span> {{ item.explanation }}
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-100 dark:border-gray-800 flex items-center justify-between">
+            <button @click="generatedQuestions = []" class="px-4 py-2.5 bg-slate-100 dark:bg-gray-800 text-slate-700 dark:text-slate-300 rounded-2xl font-bold">
+              ← កែសម្រួលប្រធានបទ
+            </button>
+            <button
+              @click="importAllAiQuestions"
+              class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black shadow-lg shadow-emerald-500/25 flex items-center gap-2 transition cursor-pointer"
+            >
+              <span>📥 បញ្ចូលសំណួរទាំងអស់ទៅក្នុង Question Bank</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
