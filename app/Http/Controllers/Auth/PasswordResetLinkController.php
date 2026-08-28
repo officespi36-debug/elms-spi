@@ -47,9 +47,13 @@ class PasswordResetLinkController extends Controller
                 ->orWhere('telegram_id', $input)
                 ->orWhere('telegram_chat_id', $input);
 
-            if (!empty($cleanDigits) && strlen($cleanDigits) >= 8) {
+            if (!empty($cleanDigits) && strlen($cleanDigits) >= 6) {
+                $last7 = substr($cleanDigits, -7);
+                $last8 = substr($cleanDigits, -8);
                 $query->orWhere('phone', $cleanDigits)
-                    ->orWhere('phone', 'like', '%' . substr($cleanDigits, -8));
+                    ->orWhere('phone', '0' . ltrim($cleanDigits, '0'))
+                    ->orWhere('phone', 'like', '%' . $last7)
+                    ->orWhere('phone', 'like', '%' . $last8);
             }
 
             if (is_numeric($cleanId)) {
@@ -110,8 +114,9 @@ class PasswordResetLinkController extends Controller
                 : "លេខកូដ OTP ត្រូវបានបង្កើតរួចរាល់ហើយ ប៉ុន្តែមានបញ្ហាក្នុងការផ្ញើ Email។ សូមពិនិត្យមើលម្ដងទៀត ឬផ្ញើតាម Telegram។";
         } else {
             // Channel: Telegram
-            $sentDirectly = $telegramService->sendPasswordResetOtp($user, $code);
-            $hasTelegram = true;
+            if ($hasTelegram) {
+                $sentDirectly = $telegramService->sendPasswordResetOtp($user, $code);
+            }
 
             // Also backup to Email as redundancy if user has email
             if (!empty($user->email)) {
@@ -127,16 +132,20 @@ class PasswordResetLinkController extends Controller
                 }
             }
 
-            $statusMsg = "លេខកូដ OTP 6 ខ្ទង់ ត្រូវបានផ្ញើទៅកាន់ Telegram Bot (@{$botUsername}) រួចរាល់ហើយ!";
+            if ($sentDirectly) {
+                $statusMsg = "លេខកូដ OTP 6 ខ្ទង់ ត្រូវបានផ្ញើទៅកាន់ Telegram Bot (@{$botUsername}) របស់អ្នករួចរាល់ហើយ!";
+            } else {
+                $statusMsg = "សូមចុចប៊ូតុង «បើក Telegram» ខាងក្រោម រួចចុច START ដើម្បីទទួលលេខកូដ OTP ៦ ខ្ទង់!";
+            }
         }
 
         // Also broadcast to admin monitoring channel
         $deliveryNotes = [];
-        if ($sentDirectly) $deliveryNotes[] = "✅ Telegram ID: {$telegramTargetId}";
-        if ($sentEmail)    $deliveryNotes[] = "✅ Email: {$user->email}";
-        if ($sentSms)      $deliveryNotes[] = "✅ SMS: {$user->phone}";
+        if ($sentDirectly) $deliveryNotes[] = "✅ Direct Telegram ({$telegramTargetId})";
+        if ($sentEmail)    $deliveryNotes[] = "✅ Email ({$user->email})";
+        if ($sentSms)      $deliveryNotes[] = "✅ SMS ({$user->phone})";
         if (empty($deliveryNotes)) {
-            $deliveryNotes[] = $hasTelegram ? "⚠️ Telegram failed" : "⚠️ Not linked to Telegram (Pending /start)";
+            $deliveryNotes[] = "⏳ Pending user clicking /start in Telegram";
         }
 
         $telegramService->sendMessage(
@@ -299,9 +308,13 @@ class PasswordResetLinkController extends Controller
                 ->orWhere('telegram_id', $input)
                 ->orWhere('telegram_chat_id', $input);
 
-            if (!empty($cleanDigits) && strlen($cleanDigits) >= 8) {
+            if (!empty($cleanDigits) && strlen($cleanDigits) >= 6) {
+                $last7 = substr($cleanDigits, -7);
+                $last8 = substr($cleanDigits, -8);
                 $query->orWhere('phone', $cleanDigits)
-                    ->orWhere('phone', 'like', '%' . substr($cleanDigits, -8));
+                    ->orWhere('phone', '0' . ltrim($cleanDigits, '0'))
+                    ->orWhere('phone', 'like', '%' . $last7)
+                    ->orWhere('phone', 'like', '%' . $last8);
             }
 
             if (is_numeric($cleanId)) {
@@ -411,9 +424,13 @@ class PasswordResetLinkController extends Controller
                 ->orWhere('telegram_id', $input)
                 ->orWhere('telegram_chat_id', $input);
 
-            if (!empty($cleanDigits) && strlen($cleanDigits) >= 8) {
+            if (!empty($cleanDigits) && strlen($cleanDigits) >= 6) {
+                $last7 = substr($cleanDigits, -7);
+                $last8 = substr($cleanDigits, -8);
                 $query->orWhere('phone', $cleanDigits)
-                    ->orWhere('phone', 'like', '%' . substr($cleanDigits, -8));
+                    ->orWhere('phone', '0' . ltrim($cleanDigits, '0'))
+                    ->orWhere('phone', 'like', '%' . $last7)
+                    ->orWhere('phone', 'like', '%' . $last8);
             }
 
             if (is_numeric($cleanId)) {

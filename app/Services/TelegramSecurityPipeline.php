@@ -79,8 +79,12 @@ class TelegramSecurityPipeline
                 || preg_match('/^(stu|tch|adm|usr)[0-9]+/i', $cleanCmd);
 
             $isCommandOrAction = !empty($update['callback_query'])
+                || !empty($update['message']['contact'])
                 || str_starts_with($cleanCmd, '/start')
                 || str_starts_with($cleanCmd, '/login')
+                || str_starts_with($cleanCmd, '/logout')
+                || str_starts_with($cleanCmd, '/unlink')
+                || str_starts_with($cleanCmd, '/switch')
                 || str_starts_with($cleanCmd, '/dashboard')
                 || str_starts_with($cleanCmd, '/courses')
                 || str_starts_with($cleanCmd, '/deadlines')

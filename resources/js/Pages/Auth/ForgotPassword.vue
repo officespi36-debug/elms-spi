@@ -539,28 +539,32 @@ const onResetPassword = () => {
               v-else
               class="p-3 bg-sky-500/10 border border-sky-500/20 rounded-xl flex items-center justify-between gap-3 shadow-2xs"
             >
-              <div class="flex items-center gap-2.5">
+              <div class="flex items-center gap-2.5 min-w-0">
                 <div class="w-8 h-8 rounded-lg bg-sky-500 text-white flex items-center justify-center shrink-0 shadow-xs">
                   <i class="pi pi-send text-xs"></i>
                 </div>
-                <div class="leading-tight text-left">
-                  <p class="text-xs font-bold text-slate-800 dark:text-slate-100">
-                    {{ currentLang === 'km' ? 'បានផ្ញើកូដ OTP ទៅកាន់ Telegram' : 'OTP Sent to Telegram' }}
+                <div class="leading-tight text-left min-w-0">
+                  <p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">
+                    {{ flashData.sent_to_telegram
+                        ? (currentLang === 'km' ? 'បានផ្ញើកូដ OTP ទៅកាន់ Telegram' : 'OTP Sent to Telegram')
+                        : (currentLang === 'km' ? 'បើក Telegram ដើម្បីទទួលកូដ OTP' : 'Open Telegram to get OTP') }}
                   </p>
-                  <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                    {{ currentLang === 'km' ? 'សូមពិនិត្យមើលសារក្នុង Telegram Bot' : 'Please check your Telegram Bot' }}
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
+                    {{ flashData.sent_to_telegram
+                        ? (currentLang === 'km' ? 'សូមពិនិត្យមើលសារក្នុង Telegram Bot' : 'Please check your Telegram Bot')
+                        : (currentLang === 'km' ? 'ចុច «បើក Telegram» រួចចុច START ដើម្បីយកកូដ' : 'Click "Open Telegram" and tap START') }}
                   </p>
                 </div>
               </div>
 
               <a
-                :href="'https://t.me/' + (flashData.telegram_bot_name || 'spi_elms_auth_bot')"
+                :href="flashData.link_telegram_url || flashData.telegram_url || ('https://t.me/' + (flashData.telegram_bot_name || 'spi_elms_auth_bot') + '?start=' + (flashData.reset_user?.id || flashData.user?.id || ''))"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="px-3 py-1.5 bg-sky-500 hover:bg-sky-600 text-white text-xs font-semibold rounded-lg transition shadow-xs whitespace-nowrap inline-flex items-center gap-1 cursor-pointer shrink-0"
               >
                 <i class="pi pi-telegram text-xs"></i>
-                <span>{{ currentLang === 'km' ? 'បើក Telegram' : 'Telegram' }}</span>
+                <span>{{ currentLang === 'km' ? 'បើក Telegram' : 'Open Telegram' }}</span>
               </a>
             </div>
 

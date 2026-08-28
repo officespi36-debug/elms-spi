@@ -132,6 +132,17 @@ class TelegramAuthController extends Controller
         }
 
         if ($user) {
+            // Unlink any other user who was previously attached to this telegram_id
+            User::where('id', '!=', $user->id)
+                ->where(function ($q) use ($telegramId) {
+                    $q->where('telegram_id', $telegramId)
+                      ->orWhere('telegram_chat_id', $telegramId);
+                })
+                ->update([
+                    'telegram_id' => null,
+                    'telegram_chat_id' => null,
+                ]);
+
             // Update Telegram profile info
             $updateData = [
                 'telegram_id' => $telegramId,
@@ -385,6 +396,21 @@ class TelegramAuthController extends Controller
         $senderName = $message['from']['first_name'] ?? 'Student';
         $telegramUsername = $message['from']['username'] ?? null;
 
+        // Handle native phone number contact sharing
+        if (isset($message['contact']['phone_number'])) {
+            $contactPhone = trim($message['contact']['phone_number']);
+            $cleanDigits = preg_replace('/[^0-9]/', '', $contactPhone);
+            $linkedUser = User::where(function ($q) use ($contactPhone, $cleanDigits) {
+                $q->where('phone', $contactPhone);
+                if (!empty($cleanDigits) && strlen($cleanDigits) >= 8) {
+                    $q->orWhere('phone', 'like', '%' . substr($cleanDigits, -8))
+                      ->orWhere('phone', $cleanDigits);
+                }
+            })->first();
+
+            return $this->handleStartOrLinkCommand($chatId, $contactPhone, false, $senderName, $telegramUsername, $linkedUser, $telegramService, $botToken);
+        }
+
         $linkedUser = User::where('telegram_id', (string) $chatId)
             ->orWhere('telegram_chat_id', (string) $chatId)
             ->when(!empty($telegramUsername), function ($q) use ($telegramUsername) {
@@ -407,6 +433,37 @@ class TelegramAuthController extends Controller
 
         if (str_starts_with($text, '/me') || str_starts_with($text, '/profile') || str_starts_with($text, '/id') || str_contains($text, 'គណនី')) {
             return $this->handleProfileCommand($chatId, $linkedUser, $botToken);
+        }
+
+        if (str_starts_with($text, '/unlink') || str_starts_with($text, '/logout')) {
+            User::where('telegram_id', (string) $chatId)
+                ->orWhere('telegram_chat_id', (string) $chatId)
+                ->update([
+                    'telegram_id' => null,
+                    'telegram_chat_id' => null,
+                ]);
+
+            $unlinkText = "🔓 <b>គណនីរបស់អ្នកត្រូវបានផ្តាច់ចេញពី Telegram នេះជោគជ័យ!</b>\n\n" .
+                          "👉 ដើម្បីភ្ជាប់គណនីថ្មី សូមចុច <b>«📱 ចែករំលែកលេខទូរស័ព្ទ»</b> ខាងក្រោម ឬ វាយ<b>លេខទូរស័ព្ទ</b>/<b>Email</b> របស់អ្នកផ្ញើមកកាន់ទីនេះ។";
+
+            $replyMarkup = [
+                'keyboard' => [
+                    [
+                        ['text' => '📱 ចែករំលែកលេខទូរស័ព្ទ (Share Phone)', 'request_contact' => true],
+                        ['text' => '🚀 បើក E-LMS (Mini App)', 'web_app' => ['url' => 'https://spilms.tech']]
+                    ],
+                ],
+                'resize_keyboard' => true,
+                'is_persistent' => true
+            ];
+
+            Http::withoutVerifying()->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                'chat_id' => $chatId,
+                'text' => $unlinkText,
+                'parse_mode' => 'HTML',
+                'reply_markup' => json_encode($replyMarkup)
+            ]);
+            return response()->json(['ok' => true]);
         }
 
         $isStartCmd = str_starts_with($text, '/start');
@@ -667,17 +724,28 @@ class TelegramAuthController extends Controller
         if (!empty($deepLinkParam)) {
             $cleanParam = trim($deepLinkParam);
             $cleanDigits = preg_replace('/[^0-9]/', '', $cleanParam);
+            $numericId = preg_match('/^(?:reset_)?(\d+)$/i', $cleanParam, $m) ? (int)$m[1] : null;
 
-            $linkedUser = User::where('id', $cleanParam)
-                ->orWhere('student_code', $cleanParam)
-                ->orWhere('email', $cleanParam)
-                ->orWhere('phone', $cleanParam)
-                ->when(!empty($cleanDigits) && strlen($cleanDigits) >= 8, function ($q) use ($cleanDigits) {
-                    $q->orWhere('phone', 'like', '%' . substr($cleanDigits, -8))
-                      ->orWhere('phone', $cleanDigits);
-                })
-                ->with(['major.department.faculty'])
-                ->first();
+            $linkedUser = User::where(function ($q) use ($cleanParam, $cleanDigits, $numericId) {
+                if ($numericId) {
+                    $q->orWhere('id', $numericId);
+                }
+                $q->orWhere('id', $cleanParam)
+                  ->orWhere('student_code', $cleanParam)
+                  ->orWhere('email', $cleanParam)
+                  ->orWhere('phone', $cleanParam);
+
+                if (!empty($cleanDigits) && strlen($cleanDigits) >= 6) {
+                    $last7 = substr($cleanDigits, -7);
+                    $last8 = substr($cleanDigits, -8);
+                    $q->orWhere('phone', $cleanDigits)
+                      ->orWhere('phone', '0' . ltrim($cleanDigits, '0'))
+                      ->orWhere('phone', 'like', '%' . $last7)
+                      ->orWhere('phone', 'like', '%' . $last8);
+                }
+            })
+            ->with(['major.department.faculty'])
+            ->first();
         }
 
         if (!$linkedUser) {
@@ -702,6 +770,17 @@ class TelegramAuthController extends Controller
         }
 
         if ($linkedUser) {
+            // Unlink any other user who was previously attached to this telegram_id
+            User::where('id', '!=', $linkedUser->id)
+                ->where(function ($q) use ($chatId) {
+                    $q->where('telegram_id', (string) $chatId)
+                      ->orWhere('telegram_chat_id', (string) $chatId);
+                })
+                ->update([
+                    'telegram_id' => null,
+                    'telegram_chat_id' => null,
+                ]);
+
             $updateFields = [
                 'telegram_id'      => (string) $chatId,
                 'telegram_chat_id' => (string) $chatId,
@@ -750,14 +829,37 @@ class TelegramAuthController extends Controller
                            "🏛️ <b>វិទ្យាស្ថាន សន្តប៉ូល (Saint Paul Institute)</b>\n" .
                            "គណនី Bot នេះត្រូវបានប្រើប្រាស់សម្រាប់ការផ្ទៀងផ្ទាត់ ជូនដំណឹង និងសិក្សាលើប្រព័ន្ធ AI-ELMS (spilms.tech)។\n\n" .
                            "💡 <b>ដើម្បីភ្ជាប់គណនី ឬទទួលលេខកូដ OTP៖</b>\n" .
-                           "👉 សូម Copy ឬ វាយ<b>លេខទូរស័ព្ទ</b> (ឧទាហរណ៍៖ <code>0966085750</code>) ឬ <b>Email</b> របស់អ្នកផ្ញើមកទីនេះ ប្រព័ន្ធនឹងស្គាល់ភ្លាម!\n\n" .
+                           "👉 សូមចុចប៊ូតុង <b>«📱 ចែករំលែកលេខទូរស័ព្ទ»</b> ខាងក្រោម ឬ វាយ<b>លេខទូរស័ព្ទ</b> (ឧទាហរណ៍៖ <code>0964618507</code>) ឬ <b>Email</b> របស់អ្នកផ្ញើមកទីនេះ ប្រព័ន្ធនឹងស្គាល់ភ្លាម!\n\n" .
                            "សូមជ្រើសរើសមុខងារខាងក្រោម៖";
         }
 
-        $replyMarkup = $telegramService->getPersistentReplyKeyboard();
+        $replyMarkup = [
+            'keyboard' => [
+                [
+                    ['text' => '📱 ចែករំលែកលេខទូរស័ព្ទ (Share Phone)', 'request_contact' => true],
+                    ['text' => '🚀 បើក E-LMS (Mini App)', 'web_app' => ['url' => 'https://spilms.tech']]
+                ],
+                [
+                    ['text' => '📚 វគ្គសិក្សា'],
+                    ['text' => '⏰ កាលបរិច្ឆេទ']
+                ],
+                [
+                    ['text' => '📢 ដំណឹងសាលា'],
+                    ['text' => '👤 គណនីខ្ញុំ']
+                ],
+                [
+                    ['text' => '💬 ជំនួយការ']
+                ]
+            ],
+            'resize_keyboard' => true,
+            'is_persistent' => true
+        ];
 
         $inlineKeyboard = [
             'inline_keyboard' => [
+                [
+                    ['text' => '🌐 បើកទំព័រ Reset Password', 'url' => 'https://spilms.tech/forgot-password']
+                ],
                 [
                     ['text' => '🚀 បើក SPI LMS (Mini App)', 'web_app' => ['url' => 'https://spilms.tech']]
                 ],
