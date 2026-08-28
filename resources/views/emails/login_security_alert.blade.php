@@ -10,7 +10,7 @@
   <title>Security Login Alert</title>
   
   <style>
-    /* Global Reset & Client Specific Styles */
+    /* Global Reset & Client Specific Styles (Exact match to OTP template) */
     html, body {
       margin: 0 !important;
       padding: 0 !important;
@@ -18,7 +18,7 @@
       background-color: #f1f5f9;
       -webkit-text-size-adjust: 100%;
       -ms-text-size-adjust: 100%;
-      font-family: 'Khmer UI', 'Leelawadee UI', 'Kantumruy Pro', 'Siemreap', 'Noto Sans Khmer', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       color: #0f172a;
     }
     table, td {
@@ -38,9 +38,9 @@
       text-decoration: none;
     }
 
-    /* Khmer Specific Font Styling (Windows & Web Unicode) */
+    /* Beautiful Smooth Traditional Khmer Typography */
     .km-font {
-      font-family: 'Khmer UI', 'Leelawadee UI', 'Kantumruy Pro', 'Siemreap', 'Noto Sans Khmer', 'Khmer OS Siemreap', Arial, sans-serif !important;
+      font-family: 'Siemreap', 'Khmer OS Siemreap', 'Kantumruy Pro', 'Battambang', 'Noto Sans Khmer', 'Khmer Sangam MN', 'Khmer OS', Arial, sans-serif !important;
     }
 
     .notranslate {
@@ -66,11 +66,14 @@
         margin-top: 14px !important;
         text-align: center !important;
       }
+      .footer-social-table {
+        margin: 0 auto !important;
+      }
     }
   </style>
 </head>
 
-<body class="notranslate" translate="no" style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: 'Khmer UI', 'Leelawadee UI', 'Kantumruy Pro', 'Siemreap', 'Noto Sans Khmer', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: #0f172a;">
+<body class="notranslate" translate="no" style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: #0f172a;">
 
   <!-- Preheader text for email clients -->
   <div class="notranslate" translate="no" style="display: none; font-size: 1px; color: #f1f5f9; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all;">
@@ -115,7 +118,7 @@
           <!-- Khmer Sub-Heading with Traditional Smooth Khmer Font -->
           <tr>
             <td align="center" style="padding-bottom: 22px; text-align: center;">
-              <span class="km-font notranslate" translate="no" style="font-family: 'Khmer UI', 'Leelawadee UI', 'Kantumruy Pro', 'Siemreap', 'Noto Sans Khmer', Arial, sans-serif; font-size: 15.5px; font-weight: 600; color: #2563eb; line-height: 1.8; display: inline-block;">
+              <span class="km-font notranslate" translate="no" style="font-family: 'Siemreap', 'Khmer OS Siemreap', 'Kantumruy Pro', 'Battambang', 'Noto Sans Khmer', Arial, sans-serif; font-size: 15.5px; font-weight: 500; color: #2563eb; line-height: 1.8; display: inline-block;">
                 ការជូនដំណឹងសុវត្ថិភាព៖ ការចូលប្រើប្រាស់គណនី
               </span>
             </td>
@@ -124,10 +127,10 @@
           <!-- Greeting & Intro Text -->
           <tr>
             <td align="center" style="padding-bottom: 24px; text-align: center;">
-              <p class="km-font notranslate" translate="no" style="margin: 0 0 6px 0; font-size: 15.5px; font-weight: 600; color: #0f172a; line-height: 1.6; font-family: 'Khmer UI', 'Leelawadee UI', 'Kantumruy Pro', 'Siemreap', 'Noto Sans Khmer', Arial, sans-serif;">
+              <p class="km-font notranslate" translate="no" style="margin: 0 0 6px 0; font-size: 15px; font-weight: 600; color: #1e293b; line-height: 1.6; font-family: 'Siemreap', 'Khmer OS Siemreap', 'Kantumruy Pro', Arial, sans-serif;">
                 សួស្តី <span class="notranslate" translate="no" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-weight: 700; color: #0f172a;">{{ $userName }}</span> 👋
               </p>
-              <p class="km-font notranslate" translate="no" style="margin: 0 0 4px 0; font-size: 14.5px; color: #334155; line-height: 1.8; font-family: 'Khmer UI', 'Leelawadee UI', 'Kantumruy Pro', 'Siemreap', 'Noto Sans Khmer', Arial, sans-serif;">
+              <p class="km-font notranslate" translate="no" style="margin: 0 0 4px 0; font-size: 14.5px; color: #475569; line-height: 1.8; font-family: 'Siemreap', 'Khmer OS Siemreap', 'Kantumruy Pro', 'Battambang', 'Noto Sans Khmer', Arial, sans-serif;">
                 យើងខ្ញុំបានកត់ត្រាការចូលប្រើប្រាស់គណនី <span class="notranslate" translate="no" style="font-weight: 700; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">SPI E-LMS</span> របស់អ្នកដោយជោគជ័យ។
               </p>
               <p class="notranslate" translate="no" style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
@@ -141,47 +144,47 @@
             <td align="center" style="padding-bottom: 22px; text-align: center;">
               <table border="0" cellpadding="0" cellspacing="0" width="100%" class="notranslate" translate="no" style="background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; margin: 0 auto; text-align: left;">
                 <tr>
-                  <td align="left" style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
-                    <span class="km-font notranslate" translate="no" style="font-family: 'Khmer UI', 'Leelawadee UI', 'Kantumruy Pro', 'Siemreap', 'Noto Sans Khmer', Arial, sans-serif; font-size: 13.5px; font-weight: 600; color: #1e293b;">👤 គណនី</span>
-                    <span class="notranslate" translate="no" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; color: #64748b;">(Account):</span>
+                  <td align="left" style="padding: 10px 0; border-bottom: 1px solid #e2e8f0;">
+                    <span class="km-font notranslate" translate="no" style="font-family: 'Siemreap', 'Khmer OS Siemreap', 'Kantumruy Pro', 'Battambang', Arial, sans-serif; font-size: 14px; font-weight: 500; color: #1e293b;">👤 គណនី</span>
+                    <span class="notranslate" translate="no" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; color: #64748b; padding-left: 2px;">/ Account:</span>
                   </td>
-                  <td align="right" class="notranslate" translate="no" style="padding: 8px 0; border-bottom: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; font-weight: 600; color: #0f172a;">
+                  <td align="right" class="notranslate" translate="no" style="padding: 10px 0; border-bottom: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13.5px; font-weight: 600; color: #0f172a;">
                     {{ $email }}
                   </td>
                 </tr>
                 <tr>
-                  <td align="left" style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
-                    <span class="km-font notranslate" translate="no" style="font-family: 'Khmer UI', 'Leelawadee UI', 'Kantumruy Pro', 'Siemreap', 'Noto Sans Khmer', Arial, sans-serif; font-size: 13.5px; font-weight: 600; color: #1e293b;">⏰ ពេលវេលា</span>
-                    <span class="notranslate" translate="no" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; color: #64748b;">(Time):</span>
+                  <td align="left" style="padding: 10px 0; border-bottom: 1px solid #e2e8f0;">
+                    <span class="km-font notranslate" translate="no" style="font-family: 'Siemreap', 'Khmer OS Siemreap', 'Kantumruy Pro', 'Battambang', Arial, sans-serif; font-size: 14px; font-weight: 500; color: #1e293b;">⏰ ពេលវេលា</span>
+                    <span class="notranslate" translate="no" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; color: #64748b; padding-left: 2px;">/ Time:</span>
                   </td>
-                  <td align="right" class="notranslate" translate="no" style="padding: 8px 0; border-bottom: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; font-weight: 600; color: #0f172a;">
+                  <td align="right" class="notranslate" translate="no" style="padding: 10px 0; border-bottom: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13.5px; font-weight: 600; color: #0f172a;">
                     {{ $time }} (Cambodia)
                   </td>
                 </tr>
                 <tr>
-                  <td align="left" style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
-                    <span class="km-font notranslate" translate="no" style="font-family: 'Khmer UI', 'Leelawadee UI', 'Kantumruy Pro', 'Siemreap', 'Noto Sans Khmer', Arial, sans-serif; font-size: 13.5px; font-weight: 600; color: #1e293b;">📱 ឧបករណ៍</span>
-                    <span class="notranslate" translate="no" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; color: #64748b;">(Device):</span>
+                  <td align="left" style="padding: 10px 0; border-bottom: 1px solid #e2e8f0;">
+                    <span class="km-font notranslate" translate="no" style="font-family: 'Siemreap', 'Khmer OS Siemreap', 'Kantumruy Pro', 'Battambang', Arial, sans-serif; font-size: 14px; font-weight: 500; color: #1e293b;">📱 ឧបករណ៍</span>
+                    <span class="notranslate" translate="no" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; color: #64748b; padding-left: 2px;">/ Device:</span>
                   </td>
-                  <td align="right" class="notranslate" translate="no" style="padding: 8px 0; border-bottom: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; font-weight: 600; color: #0f172a;">
+                  <td align="right" class="notranslate" translate="no" style="padding: 10px 0; border-bottom: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13.5px; font-weight: 600; color: #0f172a;">
                     {{ $device }} ({{ $browser }})
                   </td>
                 </tr>
                 <tr>
-                  <td align="left" style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
-                    <span class="km-font notranslate" translate="no" style="font-family: 'Khmer UI', 'Leelawadee UI', 'Kantumruy Pro', 'Siemreap', 'Noto Sans Khmer', Arial, sans-serif; font-size: 13.5px; font-weight: 600; color: #1e293b;">🌐 អាសយដ្ឋាន IP</span>
-                    <span class="notranslate" translate="no" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; color: #64748b;">(IP):</span>
+                  <td align="left" style="padding: 10px 0; border-bottom: 1px solid #e2e8f0;">
+                    <span class="km-font notranslate" translate="no" style="font-family: 'Siemreap', 'Khmer OS Siemreap', 'Kantumruy Pro', 'Battambang', Arial, sans-serif; font-size: 14px; font-weight: 500; color: #1e293b;">🌐 អាសយដ្ឋាន IP</span>
+                    <span class="notranslate" translate="no" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; color: #64748b; padding-left: 2px;">/ IP:</span>
                   </td>
-                  <td align="right" class="notranslate" translate="no" style="padding: 8px 0; border-bottom: 1px solid #e2e8f0; font-family: 'Courier New', monospace; font-size: 13px; font-weight: 700; color: #0284c7;">
+                  <td align="right" class="notranslate" translate="no" style="padding: 10px 0; border-bottom: 1px solid #e2e8f0; font-family: 'Courier New', monospace; font-size: 13.5px; font-weight: 700; color: #0284c7;">
                     {{ $ip }}
                   </td>
                 </tr>
                 <tr>
-                  <td align="left" style="padding: 8px 0;">
-                    <span class="km-font notranslate" translate="no" style="font-family: 'Khmer UI', 'Leelawadee UI', 'Kantumruy Pro', 'Siemreap', 'Noto Sans Khmer', Arial, sans-serif; font-size: 13.5px; font-weight: 600; color: #1e293b;">🎓 តួនាទី</span>
-                    <span class="notranslate" translate="no" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; color: #64748b;">(Role):</span>
+                  <td align="left" style="padding: 10px 0;">
+                    <span class="km-font notranslate" translate="no" style="font-family: 'Siemreap', 'Khmer OS Siemreap', 'Kantumruy Pro', 'Battambang', Arial, sans-serif; font-size: 14px; font-weight: 500; color: #1e293b;">🎓 តួនាទី</span>
+                    <span class="notranslate" translate="no" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; color: #64748b; padding-left: 2px;">/ Role:</span>
                   </td>
-                  <td align="right" class="notranslate" translate="no" style="padding: 8px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; font-weight: 700; color: #16a34a;">
+                  <td align="right" class="notranslate" translate="no" style="padding: 10px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13.5px; font-weight: 700; color: #16a34a;">
                     {{ $role }}
                   </td>
                 </tr>
@@ -192,13 +195,13 @@
           <!-- Security Alert Box (Soft Red Pill) -->
           <tr>
             <td align="center" style="padding-bottom: 22px; text-align: center;">
-              <table border="0" cellpadding="0" cellspacing="0" width="100%" class="notranslate" translate="no" style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 14px 18px; margin: 0 auto; text-align: center;">
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" class="notranslate" translate="no" style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 16px 20px; margin: 0 auto; text-align: center;">
                 <tr>
                   <td align="center">
-                    <p class="km-font notranslate" translate="no" style="margin: 0 0 4px 0; font-size: 14px; font-weight: 700; color: #991b1b; font-family: 'Khmer UI', 'Leelawadee UI', 'Kantumruy Pro', 'Siemreap', 'Noto Sans Khmer', Arial, sans-serif;">
-                      ⚠️ មិនមែនជាអ្នកមែនទេ? (Wasn't you?)
+                    <p class="km-font notranslate" translate="no" style="margin: 0 0 4px 0; font-size: 14.5px; font-weight: 700; color: #991b1b; font-family: 'Siemreap', 'Khmer OS Siemreap', 'Kantumruy Pro', Arial, sans-serif;">
+                      ⚠️ មិនមែនជាអ្នកមែនទេ? <span style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; font-weight: 600; color: #991b1b;">(Wasn't you?)</span>
                     </p>
-                    <p class="km-font notranslate" translate="no" style="margin: 0; font-family: 'Khmer UI', 'Leelawadee UI', 'Kantumruy Pro', 'Siemreap', 'Noto Sans Khmer', Arial, sans-serif; font-size: 13px; color: #b91c1c; line-height: 1.8;">
+                    <p class="km-font notranslate" translate="no" style="margin: 0; font-family: 'Siemreap', 'Khmer OS Siemreap', 'Kantumruy Pro', 'Battambang', 'Noto Sans Khmer', Arial, sans-serif; font-size: 13.5px; color: #b91c1c; line-height: 1.8;">
                       ប្រសិនបើអ្នកមិនបានចូលប្រើប្រាស់គណនីនៅពេលនេះទេ សូមចុចប៊ូតុងខាងក្រោមជាបន្ទាន់ ដើម្បីប្តូរពាក្យសម្ងាត់ និងការពារគណនីរបស់អ្នក។
                     </p>
                   </td>
@@ -212,10 +215,10 @@
             <td align="center" style="padding-bottom: 24px; text-align: center;">
               <table border="0" cellpadding="0" cellspacing="0" align="center" class="notranslate" translate="no" style="margin: 0 auto;">
                 <tr>
-                  <td align="center" style="background-color: #dc2626; border-radius: 10px; padding: 12px 24px;">
+                  <td align="center" style="background-color: #dc2626; border-radius: 10px; padding: 13px 28px;">
                     <a href="{{ $secureAccountUrl }}" target="_blank" class="notranslate" translate="no" style="text-decoration: none; display: inline-block;">
-                      <span class="km-font notranslate" translate="no" style="font-family: 'Khmer UI', 'Leelawadee UI', 'Kantumruy Pro', 'Siemreap', 'Noto Sans Khmer', Arial, sans-serif; font-size: 14px; font-weight: 700; color: #ffffff;">🔒 ការពារគណនី</span>
-                      <span class="notranslate" translate="no" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; font-weight: 700; color: #ffffff; padding-left: 4px;">/ Reset Password</span>
+                      <span class="km-font notranslate" translate="no" style="font-family: 'Siemreap', 'Khmer OS Siemreap', 'Kantumruy Pro', 'Battambang', Arial, sans-serif; font-size: 14px; font-weight: 600; color: #ffffff;">🔒 ការពារគណនី</span>
+                      <span class="notranslate" translate="no" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; font-weight: 600; color: #ffffff; padding-left: 4px;">(Secure Account)</span>
                     </a>
                   </td>
                 </tr>
