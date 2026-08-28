@@ -25,7 +25,7 @@ const props = defineProps<{
   majors?: Major[]
 }>()
 
-const step = ref<1 | 2 | 3>(1)
+const step = ref<1 | 2>(1)
 const maxStepReached = ref<number>(1)
 const isDark = ref(true)
 const isLangOpen = ref(false)
@@ -202,15 +202,12 @@ const isStep2Valid = computed(() => {
   return form.major_id !== null && form.study_type !== null
 })
 
-const goToStep = (targetStep: 1 | 2 | 3) => {
+const goToStep = (targetStep: 1 | 2) => {
   if (targetStep === 1) {
     step.value = 1
   } else if (targetStep === 2 && isStep1Valid.value) {
     step.value = 2
     if (maxStepReached.value < 2) maxStepReached.value = 2
-  } else if (targetStep === 3 && isStep1Valid.value && isStep2Valid.value) {
-    step.value = 3
-    if (maxStepReached.value < 3) maxStepReached.value = 3
   }
 }
 
@@ -218,15 +215,12 @@ const nextStep = () => {
   if (step.value === 1 && isStep1Valid.value) {
     step.value = 2
     if (maxStepReached.value < 2) maxStepReached.value = 2
-  } else if (step.value === 2 && isStep2Valid.value) {
-    step.value = 3
-    if (maxStepReached.value < 3) maxStepReached.value = 3
   }
 }
 
 const prevStep = () => {
   if (step.value > 1) {
-    step.value = (step.value - 1) as 1 | 2 | 3
+    step.value = 1
   }
 }
 
@@ -401,7 +395,7 @@ const submit = () => {
               {{ step }}
             </span>
             <span class="text-slate-800 dark:text-white font-semibold text-xs">
-              {{ step === 1 ? t('register_step1_header', 'Step 1 of 3: Account Info') : step === 2 ? t('register_step2_header', 'Step 2 of 3: Academic Details') : t('register_step3_header', 'Step 3 of 3: Verification') }}
+              {{ step === 1 ? (currentLang === 'km' ? 'ជំហានទី ១: ព័ត៌មានគណនី' : 'Step 1 of 2: Account Info') : (currentLang === 'km' ? 'ជំហានទី ២: ព័ត៌មានសិក្សា' : 'Step 2 of 2: Academic Details') }}
             </span>
           </div>
 
@@ -409,7 +403,6 @@ const submit = () => {
           <div class="flex items-center gap-1.5">
             <button type="button" @click="goToStep(1)" :class="['w-6 h-1.5 rounded-full transition-all duration-200 cursor-pointer', step >= 1 ? 'bg-blue-600 dark:bg-white' : 'bg-slate-300 dark:bg-zinc-800']"></button>
             <button type="button" @click="goToStep(2)" :disabled="!isStep1Valid" :class="['w-6 h-1.5 rounded-full transition-all duration-200 disabled:opacity-40 cursor-pointer', step >= 2 ? 'bg-blue-600 dark:bg-white' : 'bg-slate-300 dark:bg-zinc-800']"></button>
-            <button type="button" @click="goToStep(3)" :disabled="!isStep1Valid || !isStep2Valid" :class="['w-6 h-1.5 rounded-full transition-all duration-200 disabled:opacity-40 cursor-pointer', step >= 3 ? 'bg-blue-600 dark:bg-white' : 'bg-slate-300 dark:bg-zinc-800']"></button>
           </div>
         </div>
 
@@ -663,82 +656,12 @@ const submit = () => {
               </button>
 
               <button
-                v-if="form.role === 'student'"
-                type="button"
-                @click="nextStep"
-                :disabled="!isStep2Valid"
-                class="h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white dark:bg-[#e4e4e7] dark:hover:bg-white dark:text-zinc-950 font-semibold text-xs sm:text-sm flex items-center justify-center transition-all duration-150 cursor-pointer shadow-md shadow-blue-500/20 active:scale-[0.99] disabled:opacity-50 disabled:shadow-none"
-              >
-                <span>{{ currentLang === 'km' ? 'បន្តទៅជំហានទី ៣' : 'Continue to Step 3' }}</span>
-              </button>
-
-              <button
-                v-else
                 type="submit"
                 :disabled="form.processing || !isStep2Valid"
                 class="h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white dark:bg-[#e4e4e7] dark:hover:bg-white dark:text-zinc-950 font-semibold text-xs sm:text-sm flex items-center justify-center transition-all duration-150 cursor-pointer shadow-md shadow-blue-500/20 active:scale-[0.99] disabled:opacity-50 disabled:shadow-none"
               >
                 <i v-if="form.processing" class="pi pi-spin pi-spinner text-xs mr-1.5"></i>
                 <span>{{ form.processing ? (currentLang === 'km' ? 'កំពុងចុះឈ្មោះ...' : 'Registering...') : (currentLang === 'km' ? 'ចុះឈ្មោះបង្កើតគណនី' : 'Complete Registration') }}</span>
-              </button>
-            </div>
-
-          </div>
-
-          <!-- STEP 3: PAYMENT VERIFICATION (STUDENT ONLY) -->
-          <div v-if="step === 3 && form.role === 'student'" class="space-y-3.5">
-            
-            <!-- Fee Summary Box -->
-            <div class="bg-slate-100/90 dark:bg-zinc-900/90 border border-slate-200 dark:border-zinc-800 rounded-xl p-3 space-y-1.5 text-xs">
-              <div class="font-bold text-slate-900 dark:text-white text-xs flex items-center justify-between">
-                <span>{{ currentLang === 'km' ? 'តម្លៃសិក្សា និងការចុះឈ្មោះ:' : 'Tuition & Registration Fee:' }}</span>
-                <span class="font-mono text-emerald-600 dark:text-emerald-400 font-bold">$324.00 (ABA Pay)</span>
-              </div>
-            </div>
-
-            <!-- Payment Method Choice -->
-            <div class="grid grid-cols-2 gap-2">
-              <label :class="[
-                'p-2.5 rounded-xl border cursor-pointer transition-all duration-150 flex items-center justify-center gap-2 text-xs font-semibold select-none',
-                form.payment_method === 'aba'
-                  ? 'bg-blue-600 text-white dark:bg-zinc-800 dark:text-white border-blue-600 dark:border-zinc-700 shadow-sm shadow-blue-500/20'
-                  : 'bg-white dark:bg-[#121214] border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 hover:border-slate-300 dark:hover:border-zinc-700'
-              ]">
-                <input type="radio" v-model="form.payment_method" value="aba" class="sr-only" />
-                <i class="pi pi-qrcode text-xs"></i>
-                <span>{{ currentLang === 'km' ? 'ស្កេន ABA Mobile' : 'ABA Mobile QR' }}</span>
-              </label>
-
-              <label :class="[
-                'p-2.5 rounded-xl border cursor-pointer transition-all duration-150 flex items-center justify-center gap-2 text-xs font-semibold select-none',
-                form.payment_method === 'cash'
-                  ? 'bg-blue-600 text-white dark:bg-zinc-800 dark:text-white border-blue-600 dark:border-zinc-700 shadow-sm shadow-blue-500/20'
-                  : 'bg-white dark:bg-[#121214] border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-zinc-400 hover:border-slate-300 dark:hover:border-zinc-700'
-              ]">
-                <input type="radio" v-model="form.payment_method" value="cash" class="sr-only" />
-                <i class="pi pi-money-bill text-xs"></i>
-                <span>{{ currentLang === 'km' ? 'បង់ប្រាក់ផ្ទាល់នៅសាលា' : 'Cash at Campus' }}</span>
-              </label>
-            </div>
-
-            <!-- Step 3 Navigation -->
-            <div class="grid grid-cols-2 gap-2.5 pt-1">
-              <button
-                type="button"
-                @click="prevStep"
-                class="h-11 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-900/90 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-200 font-semibold rounded-xl border border-slate-200 dark:border-zinc-800 transition text-xs flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                <i class="pi pi-arrow-left text-xs"></i>
-                <span>{{ t('register_btn_back', 'ត្រឡប់ក្រោយ') }}</span>
-              </button>
-
-              <button
-                type="submit"
-                :disabled="form.processing"
-                class="h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white dark:bg-[#e4e4e7] dark:hover:bg-white dark:text-zinc-950 font-semibold text-xs sm:text-sm flex items-center justify-center transition-all duration-150 cursor-pointer shadow-md shadow-blue-500/20 active:scale-[0.99] disabled:opacity-50 disabled:shadow-none"
-              >
-                <i v-if="form.processing" class="pi pi-spin pi-spinner text-xs mr-1.5"></i>
-                <span>{{ form.processing ? t('register_btn_submitting', 'កំពុងចុះឈ្មោះ...') : t('register_btn_submit', 'ចុះឈ្មោះបង្កើតគណនី') }}</span>
               </button>
             </div>
 
