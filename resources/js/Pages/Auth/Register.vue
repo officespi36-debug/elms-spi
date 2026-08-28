@@ -118,7 +118,6 @@ const form = useForm({
   password: '',
   password_confirmation: '',
   role: 'student' as 'student' | 'teacher',
-  invitation_code: '',
   major_id: null as number | null,
   study_type: 'on_campus' as 'on_campus' | 'online',
   payment_method: 'aba' as 'aba' | 'cash',
@@ -198,7 +197,7 @@ const isStep1Valid = computed(() => {
 
 const isStep2Valid = computed(() => {
   if (form.role === 'teacher') {
-    return form.invitation_code.trim() !== '' && form.major_id !== null
+    return form.major_id !== null
   }
   return form.major_id !== null && form.study_type !== null
 })
@@ -238,7 +237,7 @@ watch(
     if (!errors || Object.keys(errors).length === 0) return
 
     const step1Fields = ['name', 'name_kh', 'email', 'phone', 'password', 'password_confirmation', 'terms']
-    const step2Fields = ['major_id', 'study_type', 'invitation_code']
+    const step2Fields = ['major_id', 'study_type']
 
     if (Object.keys(errors).some((key) => step1Fields.includes(key))) {
       step.value = 1
@@ -556,21 +555,6 @@ const submit = () => {
             
             <!-- TEACHER ROLE -->
             <template v-if="form.role === 'teacher'">
-              <!-- Teacher Invitation Code Input -->
-              <div class="space-y-1">
-                <input
-                  v-model="form.invitation_code"
-                  type="text"
-                  required
-                  :placeholder="currentLang === 'km' ? 'កូដអញ្ជើញគ្រូបង្រៀន (TEACHER-2026-INVITE) *' : 'Teacher Invitation Code (TEACHER-2026-INVITE) *'"
-                  class="h-11 w-full px-3.5 bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/15 text-slate-900 dark:text-white font-mono text-xs sm:text-sm rounded-xl outline-none transition-all duration-150 shadow-2xs"
-                />
-                <p class="text-[11px] text-slate-500 dark:text-zinc-400 pt-0.5 flex items-center gap-1.5">
-                  <i class="pi pi-info-circle text-[11px] text-blue-500"></i>
-                  <span>{{ currentLang === 'km' ? 'តម្រូវឱ្យមានដើម្បីផ្ទៀងផ្ទាត់សិទ្ធិរបស់សាស្ត្រាចារ្យ' : 'Required to verify faculty authorization' }}</span>
-                </p>
-              </div>
-
               <!-- Department / Faculty Selection -->
               <div class="space-y-1">
                 <select
@@ -583,6 +567,24 @@ const submit = () => {
                     {{ currentLang === 'km' && m.name_kh ? m.name_kh : m.name }}
                   </option>
                 </select>
+              </div>
+
+              <!-- Auto-filled Academic Info Pill -->
+              <div v-if="form.major_id" class="bg-slate-100/90 dark:bg-zinc-900/90 border border-slate-200 dark:border-zinc-800 rounded-xl p-3 space-y-1.5 text-xs transition-all shadow-2xs">
+                <div class="font-bold text-slate-900 dark:text-zinc-100 text-xs flex items-center gap-1.5 pb-1 border-b border-slate-200 dark:border-zinc-800">
+                  <i class="pi pi-building text-blue-500 text-xs shrink-0"></i>
+                  <span>🏫 {{ currentLang === 'km' ? 'ព័ត៌មានសិក្សា (ស្វ័យប្រវត្តិ)' : 'Academic Information (Auto-filled)' }}</span>
+                </div>
+                <div class="space-y-0.5 pt-0.5 text-xs text-slate-600 dark:text-zinc-400">
+                  <div class="flex items-center gap-1.5">
+                    <span class="font-semibold text-slate-700 dark:text-zinc-300">• {{ currentLang === 'km' ? 'មហាវិទ្យាល័យ:' : 'Faculty:' }}</span>
+                    <span class="font-medium text-slate-900 dark:text-white">{{ facultyName }}</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="font-semibold text-slate-700 dark:text-zinc-300">• {{ currentLang === 'km' ? 'ដេប៉ាតឺម៉ង់:' : 'Department:' }}</span>
+                    <span class="font-medium text-slate-900 dark:text-white">{{ departmentName }}</span>
+                  </div>
+                </div>
               </div>
             </template>
 

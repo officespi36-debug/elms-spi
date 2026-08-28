@@ -41,7 +41,7 @@ class RegisteredUserController extends Controller
     }
 
     /**
-     * Handle an incoming multi-step registration request (Student & Teacher with Invitation Code).
+     * Handle an incoming multi-step registration request (Student & Teacher).
      */
     public function store(Request $request, TelegramService $telegramService)
     {
@@ -53,22 +53,8 @@ class RegisteredUserController extends Controller
 
         $targetRole = $request->input('role', 'student');
 
-        // ─── TEACHER REGISTRATION VIA INVITATION CODE ───
+        // ─── TEACHER REGISTRATION ───
         if ($targetRole === 'teacher') {
-            $invitationCode = trim($request->input('invitation_code', ''));
-            $validCodes = ['TEACHER-2026-INVITE', 'TEACHER-INVITE', 'ELMS-TEACHER-2026'];
-
-            $dbInviteCode = Setting::where('key', 'teacher_invite_code')->value('value');
-            if ($dbInviteCode) {
-                $validCodes[] = $dbInviteCode;
-            }
-
-            if (empty($invitationCode) || !in_array($invitationCode, $validCodes)) {
-                return back()->withErrors([
-                    'invitation_code' => 'កូដអញ្ជើញ (Invitation Code) សម្រាប់លោកគ្រូ/អ្នកគ្រូ មិនត្រឹមត្រូវទេ! សូមទាក់ទង Administrator',
-                ]);
-            }
-
             $request->validate([
                 'name' => 'required|string|max:255',
                 'name_kh' => 'nullable|string|max:255',
@@ -100,7 +86,7 @@ class RegisteredUserController extends Controller
 
             $user->load(['major.department.faculty']);
 
-            $telegramService->notifyTeacherCreated($user, '[Self-registered via Invitation Code]');
+            $telegramService->notifyTeacherCreated($user, '[Self-registered]');
 
             Auth::login($user);
 
