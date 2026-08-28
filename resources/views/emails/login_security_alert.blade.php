@@ -1,240 +1,266 @@
 <!DOCTYPE html>
-<html lang="km">
+<html lang="km" translate="no" class="notranslate" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Security Alert: New Login to SPI E-LMS</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="x-apple-disable-message-reformatting">
+  <meta name="format-detection" content="telephone=no,address=no,email=no,date=no,url=no">
+  <title>Security Alert: New Login</title>
+  
   <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background-color: #0b0f19;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, 'Kantumruy Pro', 'Battambang', sans-serif;
-      color: #e2e8f0;
-      -webkit-font-smoothing: antialiased;
+    /* Global Reset & Client Specific Styles */
+    html, body {
+      margin: 0 !important;
+      padding: 0 !important;
+      width: 100% !important;
+      background-color: #f1f5f9;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      color: #0f172a;
     }
-    table {
-      border-collapse: collapse;
+    table, td {
+      mso-table-lspace: 0pt !important;
+      mso-table-rspace: 0pt !important;
     }
-    .wrapper {
-      width: 100%;
-      table-layout: fixed;
-      background-color: #0b0f19;
-      padding: 30px 0;
-    }
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      background-color: #111827;
-      border: 1px solid #1f2937;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-    }
-    .header {
-      background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
-      padding: 28px 24px;
-      text-align: center;
-      border-bottom: 1px solid #1e293b;
-    }
-    .header h1 {
-      margin: 0;
-      color: #ffffff;
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-    }
-    .header p {
-      margin: 6px 0 0 0;
-      color: #94a3b8;
-      font-size: 12px;
-    }
-    .badge {
-      display: inline-block;
-      margin-top: 12px;
-      background-color: rgba(59, 130, 246, 0.15);
-      border: 1px solid rgba(59, 130, 246, 0.4);
-      color: #60a5fa;
-      padding: 4px 12px;
-      border-radius: 9999px;
-      font-size: 11px;
-      font-weight: 600;
-    }
-    .content {
-      padding: 28px 24px;
-    }
-    .greeting {
-      font-size: 15px;
-      font-weight: 600;
-      color: #ffffff;
-      margin-bottom: 12px;
-    }
-    .lead-text {
-      font-size: 13px;
-      line-height: 1.6;
-      color: #cbd5e1;
-      margin-bottom: 20px;
-    }
-    .details-box {
-      background-color: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 24px;
-    }
-    .detail-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 7px 0;
-      border-bottom: 1px solid #334155;
-      font-size: 12.5px;
-    }
-    .detail-row:last-child {
-      border-bottom: none;
-      padding-bottom: 0;
-    }
-    .detail-label {
-      color: #94a3b8;
-      font-weight: 500;
-    }
-    .detail-value {
-      color: #f8fafc;
-      font-weight: 600;
-      text-align: right;
-    }
-    .alert-notice {
-      background-color: rgba(239, 68, 68, 0.1);
-      border-left: 3px solid #ef4444;
-      padding: 12px 14px;
-      border-radius: 6px;
-      margin-bottom: 24px;
-      font-size: 12px;
-      line-height: 1.5;
-      color: #fca5a5;
-    }
-    .btn-container {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .btn-danger {
-      display: inline-block;
-      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-      color: #ffffff !important;
+    img {
+      -ms-interpolation-mode: bicubic;
+      border: 0;
+      height: auto;
+      line-height: 100%;
+      outline: none;
       text-decoration: none;
-      font-weight: 600;
-      font-size: 13px;
-      padding: 12px 24px;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
     }
-    .footer {
-      background-color: #0f172a;
-      padding: 20px 24px;
-      text-align: center;
-      border-top: 1px solid #1e293b;
-      font-size: 11px;
-      color: #64748b;
-      line-height: 1.6;
-    }
-    .footer a {
-      color: #60a5fa;
+    a {
+      color: inherit;
       text-decoration: none;
+    }
+
+    /* Khmer Specific Font Styling (Siemreap & Kantumruy Priority) */
+    .km-font {
+      font-family: 'Siemreap', 'Khmer OS Siemreap', 'Kantumruy Pro', 'Battambang', 'Noto Sans Khmer', 'Khmer Sangam MN', 'Khmer OS', Arial, sans-serif !important;
+    }
+
+    /* Responsive Rules */
+    @media only screen and (max-width: 580px) {
+      .email-outer-td {
+        padding: 16px 8px !important;
+      }
+      .email-card {
+        max-width: 100% !important;
+        padding: 28px 18px 24px 18px !important;
+        border-radius: 12px !important;
+      }
+      .footer-cell-left, .footer-cell-right {
+        display: block !important;
+        width: 100% !important;
+        text-align: center !important;
+      }
+      .footer-social-wrap {
+        margin-top: 14px !important;
+        text-align: center !important;
+      }
     }
   </style>
 </head>
-<body>
-  <div class="wrapper">
-    <table class="container" width="100%" cellpadding="0" cellspacing="0">
-      <!-- Header -->
-      <tr>
-        <td class="header">
-          <table width="100%" cellpadding="0" cellspacing="0">
-            <tr>
-              <td align="center">
-                <div style="font-size: 28px; margin-bottom: 4px;">🏛️</div>
-                <h1>វិទ្យាស្ថាន សន្តប៉ូល | SAINT PAUL INSTITUTE</h1>
-                <p>SPI E-LMS Official Academic Platform</p>
-                <div class="badge">🛡️ សេចក្តីជូនដំណឹងសុវត្ថិភាព / Security Login Alert</div>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
 
-      <!-- Body Content -->
-      <tr>
-        <td class="content">
-          <div class="greeting">
-            សួស្តី {{ $userName }} 👋
-          </div>
-          <div class="lead-text">
-            យើងខ្ញុំបានកត់ត្រាការចូលប្រើប្រាស់គណនី SPI E-LMS របស់អ្នកដោយជោគជ័យ។ ប្រសិនបើនេះជាសកម្មភាពផ្ទាល់របស់អ្នក លោកអ្នកមិនចាំបាច់ចាត់វិធានការអ្វីឡើយ។<br>
-            <span style="font-size: 11.5px; color: #94a3b8;">(We detected a successful login to your SPI E-LMS account. If this was you, no further action is needed.)</span>
-          </div>
+<body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: #0f172a;">
 
-          <!-- Login Details Card -->
-          <div class="details-box">
-            <table width="100%" cellpadding="0" cellspacing="0">
-              <tr>
-                <td class="detail-label" style="padding: 6px 0; color: #94a3b8; font-size: 12.5px;">👤 គណនី / Account:</td>
-                <td class="detail-value" style="padding: 6px 0; color: #f8fafc; font-size: 12.5px; font-weight: 600; text-align: right;">{{ $email }}</td>
-              </tr>
-              <tr>
-                <td class="detail-label" style="padding: 6px 0; color: #94a3b8; font-size: 12.5px; border-top: 1px solid #334155;">⏰ ពេលវេលា / Time:</td>
-                <td class="detail-value" style="padding: 6px 0; color: #f8fafc; font-size: 12.5px; font-weight: 600; text-align: right; border-top: 1px solid #334155;">{{ $time }} (Cambodia)</td>
-              </tr>
-              <tr>
-                <td class="detail-label" style="padding: 6px 0; color: #94a3b8; font-size: 12.5px; border-top: 1px solid #334155;">📱 ឧបករណ៍ / Device:</td>
-                <td class="detail-value" style="padding: 6px 0; color: #f8fafc; font-size: 12.5px; font-weight: 600; text-align: right; border-top: 1px solid #334155;">{{ $device }} ({{ $browser }})</td>
-              </tr>
-              <tr>
-                <td class="detail-label" style="padding: 6px 0; color: #94a3b8; font-size: 12.5px; border-top: 1px solid #334155;">🌐 អាសយដ្ឋាន IP / IP:</td>
-                <td class="detail-value" style="padding: 6px 0; color: #38bdf8; font-size: 12.5px; font-weight: 600; font-family: monospace; text-align: right; border-top: 1px solid #334155;">{{ $ip }}</td>
-              </tr>
-              <tr>
-                <td class="detail-label" style="padding: 6px 0; color: #94a3b8; font-size: 12.5px; border-top: 1px solid #334155;">🎓 តួនាទី / Role:</td>
-                <td class="detail-value" style="padding: 6px 0; color: #4ade80; font-size: 12.5px; font-weight: 600; text-align: right; border-top: 1px solid #334155;">{{ $role }}</td>
-              </tr>
-            </table>
-          </div>
-
-          <!-- Alert Warning Box -->
-          <div class="alert-notice">
-            <strong>⚠️ មិនមែនជាអ្នកមែនទេ? (Wasn't you?)</strong><br>
-            ប្រសិនបើលោកអ្នកមិនបាន Login ចូលប្រើប្រាស់នៅពេលនេះទេ សូមចុចប៊ូតុងខាងក្រោមជាបន្ទាន់ ដើម្បីប្តូរពាក្យសម្ងាត់ និងទប់ស្កាត់ការលួចចូលគណនីរបស់អ្នក។
-          </div>
-
-          <!-- CTA Button -->
-          <div class="btn-container">
-            <a href="{{ $secureAccountUrl }}" class="btn-danger" target="_blank">
-              🔒 ការពារគណនី / ប្តូរពាក្យសម្ងាត់ (Secure Account)
-            </a>
-          </div>
-
-          <div style="text-align: center; font-size: 11px; color: #64748b; margin-top: 12px;">
-            ឬចូលទៅកាន់គេហទំព័រផ្ទាល់៖ <a href="https://spilms.tech" style="color: #60a5fa;">https://spilms.tech</a>
-          </div>
-        </td>
-      </tr>
-
-      <!-- Footer -->
-      <tr>
-        <td class="footer">
-          <div style="font-weight: 600; color: #94a3b8; margin-bottom: 4px;">
-            🏛️ វិទ្យាស្ថាន សន្តប៉ូល (Saint Paul Institute)
-          </div>
-          <div>
-            📍 ភូមិអង្គរុក្ខា ឃុំតាភេម ស្រុកត្រាំកក់ ខេត្តតាកែវ ព្រះរាជាណាចក្រកម្ពុជា
-          </div>
-          <div style="margin-top: 6px;">
-            🌐 វេបសាយ: <a href="https://spilms.tech">spilms.tech</a> | 📞 ទូរស័ព្ទ: +855 96 608 5750 | ✈️ Bot: <a href="https://t.me/spi_elms_auth_bot">@spi_elms_auth_bot</a>
-          </div>
-          <div style="margin-top: 8px; font-size: 10px; color: #475569;">
-            សារនេះត្រូវបានផ្ញើដោយស្វ័យប្រវត្តិពីប្រព័ន្ធសុវត្ថិភាព SPI E-LMS។ សូមកុំឆ្លើយតបមកកាន់អ៊ីមែលនេះ។
-          </div>
-        </td>
-      </tr>
-    </table>
+  <!-- Preheader text for email clients -->
+  <div style="display: none; font-size: 1px; color: #f1f5f9; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all;">
+    Security Alert: A new login was detected on your SPI E-LMS account ({{ $email }}).
   </div>
+
+  <!-- Outer Centering Table -->
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f1f5f9; width: 100%; margin: 0; padding: 36px 12px;">
+    <tr>
+      <td align="center" valign="top" class="email-outer-td">
+        
+        <!-- Main Card (Clean Minimalist White Card matching OTP template) -->
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" class="email-card" style="max-width: 520px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; border-collapse: separate; border-spacing: 0; padding: 42px 34px 30px 34px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); text-align: center;">
+          
+          <!-- Top Centered Logo Lockup -->
+          <tr>
+            <td align="center" style="padding-bottom: 24px; text-align: center;">
+              <table border="0" cellpadding="0" cellspacing="0" align="center" style="margin: 0 auto;">
+                <tr>
+                  <td align="center" valign="middle" style="padding-right: 8px;">
+                    <img src="https://raw.githubusercontent.com/Kosalsensok/AI-Based-E-Learning-Platform-for-Saint-Paul-Institute-/main/public/images/logo_transparent.png" alt="SPI Logo" width="30" height="30" style="display: block; width: 30px; height: 30px; border-radius: 50%; object-fit: cover;">
+                  </td>
+                  <td align="center" valign="middle">
+                    <span style="font-size: 20px; font-weight: 800; color: #0f172a; letter-spacing: -0.4px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                      SPI E-LMS
+                    </span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Main Centered Heading -->
+          <tr>
+            <td align="center" style="padding-bottom: 4px; text-align: center;">
+              <h1 style="margin: 0; font-size: 24px; font-weight: 800; color: #0f172a; letter-spacing: -0.4px; line-height: 1.3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+                Security login alert
+              </h1>
+            </td>
+          </tr>
+
+          <!-- Khmer Sub-Heading with Traditional Smooth Khmer Font -->
+          <tr>
+            <td align="center" style="padding-bottom: 20px; text-align: center;">
+              <span class="km-font" style="font-family: 'Siemreap', 'Khmer OS Siemreap', 'Kantumruy Pro', 'Battambang', 'Noto Sans Khmer', Arial, sans-serif; font-size: 15.5px; font-weight: 500; color: #2563eb; line-height: 1.8; display: inline-block;">
+                ការជូនដំណឹងសុវត្ថិភាព៖ ការចូលប្រើប្រាស់គណនី
+              </span>
+            </td>
+          </tr>
+
+          <!-- Greeting & Intro Text -->
+          <tr>
+            <td align="center" style="padding-bottom: 20px; text-align: center;">
+              <p style="margin: 0 0 6px 0; font-size: 15px; font-weight: 700; color: #0f172a; line-height: 1.5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+                សួស្តី {{ $userName }} 👋
+              </p>
+              <p class="km-font" style="margin: 0 0 4px 0; font-size: 14px; color: #334155; line-height: 1.7; font-family: 'Siemreap', 'Khmer OS Siemreap', 'Kantumruy Pro', 'Battambang', Arial, sans-serif;">
+                យើងខ្ញុំបានកត់ត្រាការចូលប្រើប្រាស់គណនី SPI E-LMS របស់អ្នកដោយជោគជ័យ។
+              </p>
+              <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+                (A successful login to your SPI E-LMS account was detected.)
+              </p>
+            </td>
+          </tr>
+
+          <!-- Login Details Card (Clean Light Slate Box) -->
+          <tr>
+            <td align="center" style="padding-bottom: 20px; text-align: center;">
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 20px; margin: 0 auto; text-align: left;">
+                <tr>
+                  <td style="padding: 7px 0; font-size: 13px; color: #64748b; font-weight: 500; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                    👤 គណនី / Account:
+                  </td>
+                  <td style="padding: 7px 0; font-size: 13px; color: #0f172a; font-weight: 600; text-align: right; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                    {{ $email }}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 7px 0; font-size: 13px; color: #64748b; font-weight: 500; border-top: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                    ⏰ ពេលវេលា / Time:
+                  </td>
+                  <td style="padding: 7px 0; font-size: 13px; color: #0f172a; font-weight: 600; text-align: right; border-top: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                    {{ $time }} (Cambodia)
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 7px 0; font-size: 13px; color: #64748b; font-weight: 500; border-top: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                    📱 ឧបករណ៍ / Device:
+                  </td>
+                  <td style="padding: 7px 0; font-size: 13px; color: #0f172a; font-weight: 600; text-align: right; border-top: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                    {{ $device }} ({{ $browser }})
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 7px 0; font-size: 13px; color: #64748b; font-weight: 500; border-top: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                    🌐 អាសយដ្ឋាន IP / IP:
+                  </td>
+                  <td style="padding: 7px 0; font-size: 13px; color: #0284c7; font-weight: 700; font-family: monospace; text-align: right; border-top: 1px solid #e2e8f0;">
+                    {{ $ip }}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 7px 0; font-size: 13px; color: #64748b; font-weight: 500; border-top: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                    🎓 តួនាទី / Role:
+                  </td>
+                  <td style="padding: 7px 0; font-size: 13px; color: #16a34a; font-weight: 700; text-align: right; border-top: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                    {{ $role }}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Security Alert Box (Soft Red Alert Pill) -->
+          <tr>
+            <td align="center" style="padding-bottom: 20px; text-align: center;">
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 14px 18px; margin: 0 auto; text-align: center;">
+                <tr>
+                  <td align="center" style="font-size: 13px; line-height: 1.6; color: #991b1b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                    <strong>⚠️ មិនមែនជាអ្នកមែនទេ? (Wasn't you?)</strong><br>
+                    <span class="km-font" style="font-family: 'Siemreap', 'Khmer OS Siemreap', 'Kantumruy Pro', 'Battambang', Arial, sans-serif; font-size: 12.5px; color: #b91c1c;">
+                      ប្រសិនបើអ្នកមិនបាន Login ចូលនៅពេលនេះទេ សូមចុចប៊ូតុងខាងក្រោមជាបន្ទាន់ ដើម្បីប្តូរពាក្យសម្ងាត់ និងការពារគណនីរបស់អ្នក។
+                    </span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Red CTA Button (Clean Rounded Button) -->
+          <tr>
+            <td align="center" style="padding-bottom: 24px; text-align: center;">
+              <table border="0" cellpadding="0" cellspacing="0" align="center" style="margin: 0 auto;">
+                <tr>
+                  <td align="center" style="background-color: #dc2626; border-radius: 10px;">
+                    <a href="{{ $secureAccountUrl }}" target="_blank" style="display: inline-block; background-color: #dc2626; color: #ffffff !important; text-decoration: none; font-weight: 700; font-size: 13.5px; padding: 13px 26px; border-radius: 10px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; letter-spacing: -0.2px;">
+                      🔒 ការពារគណនី / ប្តូរពាក្យសម្ងាត់ (Secure Account)
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Website Link -->
+          <tr>
+            <td align="center" style="padding-bottom: 12px; text-align: center;">
+              <p style="margin: 0; text-align: center;">
+                <a href="https://spilms.tech" style="color: #0f172a; text-decoration: none; font-size: 15px; font-weight: 800; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; letter-spacing: -0.2px; border-bottom: 2px solid #2563eb; padding-bottom: 1px;">
+                  spilms.tech
+                </a>
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer Divider & Social Media Icons (Identical to OTP template) -->
+          <tr>
+            <td style="border-top: 1px solid #e2e8f0; padding-top: 22px; margin-top: 16px;">
+              <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                  <!-- Left: Copyright -->
+                  <td align="left" valign="middle" style="font-size: 12.5px; color: #64748b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                    © {{ date('Y') }} SPI E-LMS
+                  </td>
+
+                  <!-- Right: YouTube & Telegram Icons -->
+                  <td align="right" valign="middle">
+                    <table border="0" cellpadding="0" cellspacing="0" align="right">
+                      <tr>
+                        <!-- YouTube (@SokCodeing) -->
+                        <td style="padding: 0 8px;">
+                          <a href="https://www.youtube.com/@SokCodeing" target="_blank" title="YouTube" style="text-decoration: none; display: inline-block;">
+                            <img src="https://img.icons8.com/ios-glyphs/30/111827/youtube-play.png" width="18" height="18" alt="YouTube" style="display: block; width: 18px; height: 18px; border: 0;">
+                          </a>
+                        </td>
+                        <!-- Telegram (@spi_elms_auth_bot) -->
+                        <td style="padding: 0 8px;">
+                          <a href="https://t.me/spi_elms_auth_bot" target="_blank" title="Telegram" style="text-decoration: none; display: inline-block;">
+                            <img src="https://img.icons8.com/ios-glyphs/30/111827/telegram-app.png" width="18" height="18" alt="Telegram" style="display: block; width: 18px; height: 18px; border: 0;">
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+        </table>
+        <!-- End Main Card -->
+
+      </td>
+    </tr>
+  </table>
+
 </body>
 </html>
