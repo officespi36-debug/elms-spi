@@ -177,7 +177,7 @@ class AuthenticatedSessionController extends Controller
 
         // Dispatch Email & Telegram Notifications in Background AFTER sending response to user
         dispatch(function () use ($user, $ip, $device, $browser, $telegramService) {
-            // 1. Dispatch Security Login Alert Email to User
+            // 1. Dispatch Security Login Alert Email to User (Resend API + Mail Fallback)
             try {
                 if (!empty($user->email)) {
                     $loginDetails = [
@@ -188,7 +188,7 @@ class AuthenticatedSessionController extends Controller
                         'location' => 'Cambodia',
                     ];
 
-                    Mail::to($user->email)->send(new LoginSecurityAlertMail($user, $loginDetails));
+                    (new AuthenticatedSessionController())->sendSecurityAlertEmail($user, $loginDetails);
                 }
             } catch (\Throwable $e) {
                 Log::warning('Login security alert email failed: ' . $e->getMessage());
@@ -281,5 +281,119 @@ class AuthenticatedSessionController extends Controller
         if (str_contains($userAgent, 'Edge'))
             return 'Edge';
         return 'Unknown';
+    }
+
+    public function sendSecurityAlertEmail(User $user, array $loginDetails): bool
+    {
+        $email = $user->email;
+        if (empty($email)) {
+            return false;
+        }
+
+        $resendApiKey = config('services.resend.key') ?? env('RESEND_API_KEY');
+        $fromAddress = config('mail.from.address') ?? env('MAIL_FROM_ADDRESS', 'info@spilms.tech');
+        $fromName = config('mail.from.name') ?? env('MAIL_FROM_NAME', 'Saint Paul Institute (E-LMS)');
+        $fromHeader = "{$fromName} <{$fromAddress}>";
+        $subject = '🛡️ ការជូនដំណឹងសុវត្ថិភាព៖ ការចូលប្រើប្រាស់គណនីថ្មី | Security Alert: New Login';
+
+        try {
+            $mailable = new LoginSecurityAlertMail($user, $loginDetails);
+            $htmlContent = $mailable->render();
+        } catch (\Throwable $e) {
+            Log::warning('LoginSecurityAlertMail render failed: ' . $e->getMessage());
+            $htmlContent = "<h2>SPI E-LMS Security Alert</h2><p>A new login to your account was detected.</p>";
+        }
+
+        $plainText = "SPI E-LMS - Security Alert: A new login to your account ({$email}) was detected.\nIP: {$loginDetails['ip']}\nDevice: {$loginDetails['device']} ({$loginDetails['browser']})\nTime: {$loginDetails['time']}\nIf this wasn't you, please visit https://spilms.tech/forgot-password immediately.";
+
+        $sent = false;
+
+        // 1. Primary: Resend API direct cURL with IPv4
+        if ($resendApiKey && function_exists('curl_init')) {
+            for ($attempt = 1; $attempt <= 2; $attempt++) {
+                try {
+                    $ch = curl_init('https://api.resend.com/emails');
+                    curl_setopt_array($ch, [
+                        CURLOPT_RETURNTRANSFER => true,
+                        CURLOPT_POST           => true,
+                        CURLOPT_IPRESOLVE      => defined('CURL_IPRESOLVE_V4') ? CURL_IPRESOLVE_V4 : 1,
+                        CURLOPT_SSL_VERIFYPEER => false,
+                        CURLOPT_SSL_VERIFYHOST => false,
+                        CURLOPT_CONNECTTIMEOUT => 5,
+                        CURLOPT_TIMEOUT        => 10,
+                        CURLOPT_HTTPHEADER     => [
+                            'Authorization: Bearer ' . $resendApiKey,
+                            'Content-Type: application/json',
+                            'Accept: application/json',
+                        ],
+                        CURLOPT_POSTFIELDS     => json_encode([
+                            'from'    => $fromHeader,
+                            'to'      => [$email],
+                            'subject' => $subject,
+                            'html'    => $htmlContent,
+                            'text'    => $plainText,
+                        ]),
+                    ]);
+
+                    $resCurl = curl_exec($ch);
+                    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                    curl_close($ch);
+
+                    if ($httpCode >= 200 && $httpCode < 300) {
+                        $sent = true;
+                        Log::info("Security alert email sent successfully via Resend to {$email}");
+                        break;
+                    }
+                } catch (\Throwable $curlEx) {
+                    Log::warning("Security alert Resend cURL exception: " . $curlEx->getMessage());
+                }
+
+                if (!$sent && $attempt < 2) {
+                    usleep(200000);
+                }
+            }
+        }
+
+        // 2. Secondary Fallback: Laravel Http Client to Resend API
+        if (!$sent && $resendApiKey) {
+            try {
+                $response = Http::withoutVerifying()
+                    ->timeout(8)
+                    ->withOptions([
+                        'curl' => [
+                            CURLOPT_IPRESOLVE      => defined('CURL_IPRESOLVE_V4') ? CURL_IPRESOLVE_V4 : 1,
+                            CURLOPT_CONNECTTIMEOUT => 5,
+                        ],
+                    ])
+                    ->withToken($resendApiKey)
+                    ->post('https://api.resend.com/emails', [
+                        'from'    => $fromHeader,
+                        'to'      => [$email],
+                        'subject' => $subject,
+                        'html'    => $htmlContent,
+                        'text'    => $plainText,
+                    ]);
+
+                if ($response->successful()) {
+                    $sent = true;
+                    Log::info("Security alert email sent via Resend Http to {$email}");
+                }
+            } catch (\Throwable $resendEx) {
+                Log::warning("Security alert Resend Http exception: " . $resendEx->getMessage());
+            }
+        }
+
+        // 3. Tertiary Fallback: Laravel Mail Facade
+        if (!$sent) {
+            try {
+                Mail::to($email)->send(new LoginSecurityAlertMail($user, $loginDetails));
+                $sent = true;
+                Log::info("Security alert email sent via Mail facade to {$email}");
+            } catch (\Throwable $mailEx) {
+                Log::error("Security alert Mail fallback error: " . $mailEx->getMessage());
+            }
+        }
+
+        return $sent;
     }
 }
