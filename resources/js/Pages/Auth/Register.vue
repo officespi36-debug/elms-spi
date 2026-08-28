@@ -573,7 +573,7 @@ const submit = () => {
               <div v-if="form.major_id" class="bg-slate-100/90 dark:bg-zinc-900/90 border border-slate-200 dark:border-zinc-800 rounded-xl p-3 space-y-1.5 text-xs transition-all shadow-2xs">
                 <div class="font-bold text-slate-900 dark:text-zinc-100 text-xs flex items-center gap-1.5 pb-1 border-b border-slate-200 dark:border-zinc-800">
                   <i class="pi pi-building text-blue-500 text-xs shrink-0"></i>
-                  <span>🏫 {{ currentLang === 'km' ? 'ព័ត៌មានសិក្សា (ស្វ័យប្រវត្តិ)' : 'Academic Information (Auto-filled)' }}</span>
+                  <span>{{ currentLang === 'km' ? 'ព័ត៌មានសិក្សា (ស្វ័យប្រវត្តិ)' : 'Academic Information (Auto-filled)' }}</span>
                 </div>
                 <div class="space-y-0.5 pt-0.5 text-xs text-slate-600 dark:text-zinc-400">
                   <div class="flex items-center gap-1.5">
@@ -608,7 +608,7 @@ const submit = () => {
               <div class="bg-slate-100/90 dark:bg-zinc-900/90 border border-slate-200 dark:border-zinc-800 rounded-xl p-3 space-y-1.5 text-xs transition-all shadow-2xs">
                 <div class="font-bold text-slate-900 dark:text-zinc-100 text-xs flex items-center gap-1.5 pb-1 border-b border-slate-200 dark:border-zinc-800">
                   <i class="pi pi-building text-blue-500 text-xs shrink-0"></i>
-                  <span>🏫 {{ currentLang === 'km' ? 'ព័ត៌មានសិក្សា (ស្វ័យប្រវត្តិ)' : 'Academic Information (Auto-filled)' }}</span>
+                  <span>{{ currentLang === 'km' ? 'ព័ត៌មានសិក្សា (ស្វ័យប្រវត្តិ)' : 'Academic Information (Auto-filled)' }}</span>
                 </div>
                 <div class="space-y-0.5 pt-0.5 text-xs text-slate-600 dark:text-zinc-400">
                   <div class="flex items-center gap-1.5">
@@ -634,7 +634,7 @@ const submit = () => {
                   ]">
                     <input type="radio" v-model="form.study_type" value="online" class="sr-only" />
                     <i class="pi pi-globe text-xs"></i>
-                    <span>🌐 {{ currentLang === 'km' ? 'ការសិក្សាអនឡាញ' : 'Online Learning' }}</span>
+                    <span>{{ currentLang === 'km' ? 'ការសិក្សាអនឡាញ' : 'Online Learning' }}</span>
                   </label>
 
                   <label :class="[
@@ -645,7 +645,7 @@ const submit = () => {
                   ]">
                     <input type="radio" v-model="form.study_type" value="on_campus" class="sr-only" />
                     <i class="pi pi-building text-xs"></i>
-                    <span>🏢 {{ currentLang === 'km' ? 'សិក្សានៅសាលា' : 'On-Campus' }}</span>
+                    <span>{{ currentLang === 'km' ? 'សិក្សានៅសាលា' : 'On-Campus' }}</span>
                   </label>
                 </div>
               </div>
