@@ -241,7 +241,7 @@ class AuthenticatedSessionController extends Controller
                 ]);
             }
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('JWT token creation exception: ' . $e->getMessage());
+            Log::warning('JWT token creation exception: ' . $e->getMessage());
         }
 
         // Login and regenerate session
