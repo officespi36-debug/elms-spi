@@ -39,6 +39,19 @@ const todayGoal = ref({
   completed: 1,
   percentage: 50
 })
+
+const streakCount = ref(5)
+const streakDays = ref([
+  { day: 'M', active: true },
+  { day: 'T', active: true },
+  { day: 'W', active: true },
+  { day: 'T', active: true },
+  { day: 'F', active: true },
+  { day: 'S', active: false },
+  { day: 'S', active: false }
+])
+const xpPoints = ref(850)
+const nextLevelXp = ref(1000)
 </script>
 
 <template>
@@ -258,6 +271,57 @@ const todayGoal = ref({
                 <div class="h-full bg-emerald-500 rounded-full transition-all duration-500" :style="{ width: todayGoal.percentage + '%' }"></div>
               </div>
               <p class="text-[11px] text-slate-500 dark:text-slate-400 text-right">50% completed</p>
+            </div>
+          </div>
+
+          <!-- 🔥 Daily Streak & XP Gamification Card -->
+          <div class="relative overflow-hidden bg-gradient-to-br from-amber-500/10 via-purple-500/10 to-indigo-500/10 dark:bg-[#111827]/80 border border-amber-500/30 rounded-3xl p-6 shadow-xl space-y-4">
+            <div class="flex items-center justify-between border-b border-amber-500/20 pb-3">
+              <div class="flex items-center gap-2">
+                <span class="text-xl animate-bounce">🔥</span>
+                <div>
+                  <h3 class="text-sm font-black text-slate-900 dark:text-white">{{ streakCount }} Days Active Streak!</h3>
+                  <p class="text-[10px] text-amber-600 dark:text-amber-400 font-semibold">Keep learning daily to earn XP</p>
+                </div>
+              </div>
+              <span class="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/30 text-[10px] font-black">
+                ⚡ +50 XP Today
+              </span>
+            </div>
+
+            <!-- 7-Day Dots -->
+            <div class="flex items-center justify-between gap-1.5 pt-1">
+              <div
+                v-for="(d, i) in streakDays"
+                :key="i"
+                class="flex-1 flex flex-col items-center gap-1.5"
+              >
+                <div
+                  :class="[
+                    d.active
+                      ? 'bg-gradient-to-tr from-amber-500 to-orange-500 text-white shadow-md shadow-orange-500/40 ring-2 ring-amber-400/40'
+                      : 'bg-slate-200 dark:bg-slate-800 text-slate-400',
+                    'w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold transition-all'
+                  ]"
+                >
+                  <span v-if="d.active">🔥</span>
+                  <span v-else class="text-[10px]">{{ d.day }}</span>
+                </div>
+                <span class="text-[9px] font-bold text-slate-400">{{ d.day }}</span>
+              </div>
+            </div>
+
+            <!-- XP Level Bar -->
+            <div class="pt-2 border-t border-slate-200/60 dark:border-white/5 space-y-1.5">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-bold text-indigo-600 dark:text-indigo-300 flex items-center gap-1.5">
+                  <span>🏆 Level 4 Scholar</span>
+                </span>
+                <span class="text-[11px] font-mono text-slate-500 dark:text-slate-400">{{ xpPoints }} / {{ nextLevelXp }} XP</span>
+              </div>
+              <div class="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full" :style="{ width: (xpPoints / nextLevelXp * 100) + '%' }"></div>
+              </div>
             </div>
           </div>
 
