@@ -59,13 +59,12 @@ class RegisteredUserController extends Controller
                 'name' => 'required|string|max:255',
                 'name_kh' => 'nullable|string|max:255',
                 'email' => 'required|string|email|max:255|unique:users,email',
-                'phone' => 'required|string|max:50|unique:users,phone',
+                'phone' => 'required|string|max:50',
                 'password' => ['required', 'confirmed', Rules\Password::min(8)],
                 'major_id' => 'nullable|exists:majors,id',
                 'terms' => 'accepted',
             ], [
                 'email.unique' => 'អាសយដ្ឋានអ៊ីមែលនេះមានក្នុងប្រព័ន្ធរួចហើយ',
-                'phone.unique' => 'លេខទូរស័ព្ទនេះមានក្នុងប្រព័ន្ធរួចហើយ',
                 'password.confirmed' => 'ការបញ្ជាក់ពាក្យសម្ងាត់មិនត្រូវគ្នាទេ',
                 'terms.accepted' => 'សូមយល់ព្រមតាមលក្ខខណ្ឌប្រើប្រាស់',
             ]);
@@ -98,7 +97,7 @@ class RegisteredUserController extends Controller
             'name' => 'required|string|max:255',
             'name_kh' => 'nullable|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
-            'phone' => 'required|string|max:50|unique:users,phone',
+            'phone' => 'required|string|max:50',
             'password' => ['required', 'confirmed', Rules\Password::min(8)],
             'major_id' => 'required|exists:majors,id',
             'study_type' => 'required|in:on_campus,online',
@@ -107,7 +106,6 @@ class RegisteredUserController extends Controller
             'terms' => 'accepted',
         ], [
             'email.unique' => 'អាសយដ្ឋានអ៊ីមែលនេះមានក្នុងប្រព័ន្ធរួចហើយ',
-            'phone.unique' => 'លេខទូរស័ព្ទនេះមានក្នុងប្រព័ន្ធរួចហើយ',
             'password.confirmed' => 'ការបញ្ជាក់ពាក្យសម្ងាត់មិនត្រូវគ្នាទេ',
             'major_id.required' => 'សូមជ្រើសរើសជំនាញសិក្សា',
             'terms.accepted' => 'សូមយល់ព្រមតាមលក្ខខណ្ឌប្រើប្រាស់',
