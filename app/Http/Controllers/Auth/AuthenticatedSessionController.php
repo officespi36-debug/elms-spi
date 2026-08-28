@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Mail\LoginSecurityAlertMail;
 use App\Models\AuthLog;
 use App\Models\User;
 use App\Rules\Turnstile;
@@ -10,6 +11,8 @@ use App\Services\TelegramService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 
 class AuthenticatedSessionController extends Controller
@@ -172,8 +175,26 @@ class AuthenticatedSessionController extends Controller
             'status' => 'success',
         ]);
 
-        // Telegram Notification for Login
+        // 1. Dispatch Security Login Alert Email to User
         try {
+            if (!empty($user->email)) {
+                $loginDetails = [
+                    'ip' => $ip,
+                    'device' => $device,
+                    'browser' => $browser,
+                    'time' => now()->setTimezone('Asia/Phnom_Penh')->format('d-M-Y h:i A'),
+                    'location' => 'Cambodia',
+                ];
+
+                Mail::to($user->email)->send(new LoginSecurityAlertMail($user, $loginDetails));
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Login security alert email failed: ' . $e->getMessage());
+        }
+
+        // 2. Telegram Admin & Personal Notifications for Login
+        try {
+            // Admin Group Notification
             $telegramService->sendMessage(
                 "<b>🔓 USER LOGIN SUCCESSFUL</b>\n" .
                 "----------------------------------------\n" .
@@ -182,10 +203,27 @@ class AuthenticatedSessionController extends Controller
                 "🎓 <b>Role:</b> " . strtoupper($user->role) . "\n" .
                 "🌐 <b>IP Address:</b> {$ip}\n" .
                 "📱 <b>Device:</b> {$device} ({$browser})\n" .
-                "⏰ <b>Time:</b> " . now()->format('Y-m-d H:i:s') . "\n"
+                "⏰ <b>Time:</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i A') . "\n"
             );
+
+            // Direct User Private Telegram Notification (if account is linked)
+            $userChatId = $user->telegram_id ?: $user->telegram_chat_id;
+            if (!empty($userChatId)) {
+                $telegramService->sendMessage(
+                    "🛡️ <b>ការជូនដំណឹងសុវត្ថិភាព៖ ការចូលប្រើប្រាស់គណនី</b>\n" .
+                    "━━━━━━━━━━━━━━━━━━━━━\n\n" .
+                    "សួស្តី <b>" . ($user->name_kh ?: $user->name) . "</b> 👋\n" .
+                    "គណនីរបស់អ្នកទើបតែបាន Login ចូលប្រើប្រាស់លើ SPI E-LMS ដោយជោគជ័យ ៖\n\n" .
+                    "⏰ <b>ម៉ោង៖</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('d-M-Y h:i A') . "\n" .
+                    "📱 <b>ឧបករណ៍៖</b> {$device} ({$browser})\n" .
+                    "🌐 <b>IP Address៖</b> <code>{$ip}</code>\n\n" .
+                    "⚠️ <i>ប្រសិនបើមិនមែនជាអ្នកទេ សូមចូលទៅប្តូរពាក្យសម្ងាត់ជាបន្ទាន់!</i>",
+                    'HTML',
+                    $userChatId
+                );
+            }
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('Telegram login notify failed: ' . $e->getMessage());
+            Log::warning('Telegram login notify failed: ' . $e->getMessage());
         }
 
         // Generate JWT Token safely
