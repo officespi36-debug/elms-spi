@@ -129,6 +129,76 @@ const form = useForm({
 const showPassword = ref(false)
 const receiptPreview = ref<string | null>(null)
 
+const isRegisterEmailFocused = ref(false)
+const selectedRegisterSuggestionIndex = ref(-1)
+
+const emailDomains = [
+  { domain: '@gmail.com', icon: '⚡', name: 'Gmail' },
+  { domain: '@spi.edu.kh', icon: '🎓', name: 'SPI Mail' },
+  { domain: '@yahoo.com', icon: '📧', name: 'Yahoo' },
+  { domain: '@outlook.com', icon: '💼', name: 'Outlook' },
+]
+
+const filteredRegisterEmailSuggestions = computed(() => {
+  const val = form.email.trim().toLowerCase()
+  if (!val || !isRegisterEmailFocused.value) return []
+
+  let username = val
+  let domainPart = ''
+
+  if (val.includes('@')) {
+    const parts = val.split('@')
+    username = parts[0]
+    domainPart = '@' + (parts[1] || '')
+  }
+
+  if (!username) return []
+  if (val.includes('@') && emailDomains.some(d => val === username + d.domain)) {
+    return []
+  }
+
+  return emailDomains
+    .filter(d => !domainPart || d.domain.toLowerCase().startsWith(domainPart))
+    .slice(0, 4)
+    .map(d => ({
+      username,
+      domain: d.domain,
+      fullEmail: username + d.domain,
+      icon: d.icon,
+      name: d.name,
+    }))
+})
+
+const selectRegisterEmailSuggestion = (fullEmail: string) => {
+  form.email = fullEmail
+  isRegisterEmailFocused.value = false
+  selectedRegisterSuggestionIndex.value = -1
+}
+
+const onRegisterEmailKeydown = (event: KeyboardEvent) => {
+  const suggestions = filteredRegisterEmailSuggestions.value
+  if (suggestions.length > 0 && isRegisterEmailFocused.value) {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      selectedRegisterSuggestionIndex.value = (selectedRegisterSuggestionIndex.value + 1) % suggestions.length
+      return
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      selectedRegisterSuggestionIndex.value = selectedRegisterSuggestionIndex.value <= 0
+        ? suggestions.length - 1
+        : selectedRegisterSuggestionIndex.value - 1
+      return
+    } else if ((event.key === 'Enter' || event.key === 'Tab') && selectedRegisterSuggestionIndex.value >= 0) {
+      event.preventDefault()
+      const chosen = suggestions[selectedRegisterSuggestionIndex.value]
+      if (chosen) {
+        selectRegisterEmailSuggestion(chosen.fullEmail)
+      }
+      return
+    }
+  }
+}
+
 // Fallback mappings for major details
 const majorDetailsMap: Record<string, { faculty: string; department: string }> = {
   'IT & Networking': {
@@ -470,13 +540,70 @@ const submit = () => {
 
             <!-- Contact Grid -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              <input
-                v-model="form.email"
-                type="email"
-                required
-                :placeholder="t('register_email_placeholder', 'Email Address *')"
-                class="h-11 w-full px-3.5 bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/15 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 text-xs sm:text-sm rounded-xl outline-none transition-all duration-150 shadow-2xs"
-              />
+              <div class="relative">
+                <input
+                  v-model="form.email"
+                  type="email"
+                  required
+                  autocomplete="off"
+                  autocorrect="off"
+                  autocapitalize="none"
+                  spellcheck="false"
+                  :placeholder="t('register_email_placeholder', 'Email Address *')"
+                  class="h-11 w-full px-3.5 bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/15 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 text-xs sm:text-sm rounded-xl outline-none transition-all duration-150 shadow-2xs"
+                  @focus="isRegisterEmailFocused = true"
+                  @blur="setTimeout(() => { isRegisterEmailFocused = false }, 200)"
+                  @keydown="onRegisterEmailKeydown"
+                />
+
+                <!-- Dynamic Auto-Popup Email Suggestions Dropdown -->
+                <Transition
+                  enter-active-class="transition duration-150 ease-out"
+                  enter-from-class="opacity-0 -translate-y-1 scale-98"
+                  enter-to-class="opacity-100 translate-y-0 scale-100"
+                  leave-active-class="transition duration-100 ease-in"
+                  leave-from-class="opacity-100 translate-y-0 scale-100"
+                  leave-to-class="opacity-0 -translate-y-1 scale-98"
+                >
+                  <div
+                    v-if="filteredRegisterEmailSuggestions.length > 0 && isRegisterEmailFocused"
+                    class="absolute left-0 right-0 top-full mt-1.5 z-50 bg-white dark:bg-[#18181b] border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl p-1.5 space-y-1 select-none"
+                  >
+                    <button
+                      v-for="(sug, sIdx) in filteredRegisterEmailSuggestions"
+                      :key="sIdx"
+                      type="button"
+                      @mousedown.prevent="selectRegisterEmailSuggestion(sug.fullEmail)"
+                      :class="[
+                        'w-full px-3 py-2.5 rounded-xl text-left text-xs flex items-center justify-between transition-all duration-150 cursor-pointer group',
+                        selectedRegisterSuggestionIndex === sIdx
+                          ? 'bg-blue-50 dark:bg-zinc-800 ring-1 ring-blue-500/30 text-zinc-950 dark:text-white'
+                          : 'hover:bg-zinc-100 dark:hover:bg-zinc-800/70 text-zinc-800 dark:text-zinc-200'
+                      ]"
+                    >
+                      <div class="flex items-center gap-2.5 min-w-0">
+                        <div class="w-6 h-6 rounded-lg bg-zinc-100 dark:bg-zinc-800/90 border border-zinc-200/80 dark:border-zinc-700/60 flex items-center justify-center text-xs shrink-0">
+                          <svg v-if="sug.name === 'Gmail'" class="w-3.5 h-3.5" viewBox="0 0 24 24">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                          </svg>
+                          <span v-else class="text-xs">{{ sug.icon }}</span>
+                        </div>
+                        <div class="truncate text-xs font-medium">
+                          <span class="text-zinc-900 dark:text-zinc-100 font-semibold">{{ sug.username }}</span>
+                          <span class="text-blue-600 dark:text-sky-400 font-bold font-mono">{{ sug.domain }}</span>
+                        </div>
+                      </div>
+                      <span class="text-[10px] font-medium text-zinc-400 dark:text-zinc-500 bg-zinc-100 dark:bg-zinc-800/80 px-2 py-0.5 rounded-md border border-zinc-200/60 dark:border-zinc-700/50">
+                        {{ sug.name }}
+                      </span>
+                    </button>
+                  </div>
+                </Transition>
+              </div>
+
               <input
                 v-model="form.phone"
                 type="tel"
