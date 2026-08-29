@@ -190,6 +190,12 @@ const onForgotEmailKeydown = (event: KeyboardEvent) => {
   }
 }
 
+const onForgotEmailBlur = () => {
+  setTimeout(() => {
+    isForgotEmailFocused.value = false
+  }, 200)
+}
+
 const clearEmail = () => {
   requestForm.email = ''
 }
@@ -481,7 +487,7 @@ const onResetPassword = () => {
                 :placeholder="t('forgot_input_email_placeholder', 'ឈ្មោះគណនី, Email ឬ លេខទូរស័ព្ទ')"
                 class="w-full h-11 px-3.5 bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/15 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 text-xs sm:text-sm rounded-xl outline-none shadow-2xs transition-colors"
                 @focus="isForgotEmailFocused = true"
-                @blur="setTimeout(() => { isForgotEmailFocused = false }, 200)"
+                @blur="onForgotEmailBlur"
                 @keydown="onForgotEmailKeydown"
               />
               <button

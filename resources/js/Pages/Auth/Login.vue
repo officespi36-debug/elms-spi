@@ -336,6 +336,12 @@ const onEmailKeydown = (event: KeyboardEvent) => {
   }
 }
 
+const onEmailBlur = () => {
+  setTimeout(() => {
+    isEmailInputFocused.value = false
+  }, 200)
+}
+
 const clearOtpDigits = () => {
   otpDigits.value = ['', '', '', '', '', '']
   otpCode.value = ''
@@ -1589,7 +1595,7 @@ onUnmounted(() => {
                   :placeholder="currentLang === 'km' ? 'បញ្ចូលអ៊ីមែល (ឧ. name@gmail.com)' : 'Enter email (e.g. name@gmail.com)'"
                   class="w-full h-11 pl-10 pr-9 bg-white dark:bg-[#121214] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 focus:border-blue-600 dark:focus:border-sky-400 focus:ring-2 focus:ring-blue-500/20 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 text-xs sm:text-sm rounded-xl outline-none shadow-2xs transition-all font-medium"
                   @focus="isEmailInputFocused = true"
-                  @blur="setTimeout(() => { isEmailInputFocused = false }, 200)"
+                  @blur="onEmailBlur"
                   @keydown="onEmailKeydown"
                 />
                 <button

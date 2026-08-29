@@ -199,6 +199,12 @@ const onRegisterEmailKeydown = (event: KeyboardEvent) => {
   }
 }
 
+const onRegisterEmailBlur = () => {
+  setTimeout(() => {
+    isRegisterEmailFocused.value = false
+  }, 200)
+}
+
 // Fallback mappings for major details
 const majorDetailsMap: Record<string, { faculty: string; department: string }> = {
   'IT & Networking': {
@@ -552,7 +558,7 @@ const submit = () => {
                   :placeholder="t('register_email_placeholder', 'Email Address *')"
                   class="h-11 w-full px-3.5 bg-white dark:bg-[#121214] border border-slate-200 dark:border-zinc-800 hover:border-slate-300 dark:hover:border-zinc-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/15 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 text-xs sm:text-sm rounded-xl outline-none transition-all duration-150 shadow-2xs"
                   @focus="isRegisterEmailFocused = true"
-                  @blur="setTimeout(() => { isRegisterEmailFocused = false }, 200)"
+                  @blur="onRegisterEmailBlur"
                   @keydown="onRegisterEmailKeydown"
                 />
 
