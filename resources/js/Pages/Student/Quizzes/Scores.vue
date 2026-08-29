@@ -1,147 +1,179 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { Link } from '@inertiajs/vue3'
 import StudentLayout from '@/Layouts/StudentLayout.vue'
 
+const preTestSummary = ref({
+  score: 45,
+  level: 'Beginner / Foundation Level',
+  date: 'Feb 10, 2026',
+  startingRecommendation: 'Chapter 1: Introduction to Web Development',
+  topicBreakdown: [
+    { topic: 'HTML Basics', score: 60, status: 'Moderate' },
+    { topic: 'CSS Fundamentals', score: 50, status: 'Basic' },
+    { topic: 'JavaScript Logic', score: 25, status: 'Novice' }
+  ]
+})
+
+const postTestSummary = ref({
+  score: 85,
+  growth: 40,
+  date: 'Active Assessment',
+  strongAreas: [
+    'HTML5 Semantic Architecture (95%)',
+    'CSS Flexbox & Responsive Layouts (88%)',
+    'JavaScript Function Syntax & Statements (85%)'
+  ],
+  reinforceAreas: [
+    'Closure & Scope Invariance (62%)',
+    'Asynchronous Fetch & Promise Chaining (68%)'
+  ],
+  recommendedCourses: [
+    { title: 'Advanced JavaScript & Async/Await', match: '98% Match' },
+    { title: 'React.js Component Architecture', match: '95% Match' }
+  ]
+})
+
 const gradeComponents = ref([
-  { name: 'Pre-Test Quizzes', weight: '10%', max: 100, score: '65.0%', weighted: '6.5 / 10', status: '✅ Done' },
-  { name: 'Practice Quizzes', weight: '10%', max: 100, score: '78.0%', weighted: '7.8 / 10', status: '✅ Active' },
-  { name: 'Assignments / Projects', weight: '40%', max: 100, score: '85.0%', weighted: '34.0 / 40', status: '✅ Graded' },
-  { name: 'Post-Test Final Exams', weight: '40%', max: 100, score: '82.0%', weighted: '32.8 / 40', status: '✅ Passed' }
+  { name: 'Pre-Test Diagnostic', weight: '10%', max: 100, score: '45.0%', weighted: '4.5 / 10', status: '✅ Done' },
+  { name: 'Chapter Practice Quizzes', weight: '20%', max: 100, score: '78.0%', weighted: '15.6 / 20', status: '✅ Active' },
+  { name: 'Interactive Lab Assignments', weight: '30%', max: 100, score: '88.0%', weighted: '26.4 / 30', status: '✅ Graded' },
+  { name: 'Post-Test Assessment', weight: '40%', max: 100, score: '85.0%', weighted: '34.0 / 40', status: '✅ Passed' }
 ])
 </script>
 
 <template>
-  <StudentLayout title="My Scores & Gradebook">
-    <div class="space-y-6">
+  <StudentLayout
+    title="Assessment Scores & AI Pre/Post Test Analysis"
+    :breadcrumbs="[
+      { label: 'Dashboard', href: '/student/dashboard' },
+      { label: 'Quizzes', href: '/student/quizzes/all' },
+      { label: 'Scores & AI Analysis' }
+    ]"
+  >
+    <div class="space-y-6 pb-12">
       
-      <!-- Page Header -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
-        <div>
-          <h1 class="text-xl sm:text-2xl font-black text-white flex items-center gap-2.5">
-            <span>🏆</span>
-            <span>MY SCORES & PERSONAL GRADEBOOK</span>
+      <!-- Top Banner -->
+      <div class="bg-gradient-to-r from-purple-950 via-slate-900 to-indigo-950 border border-purple-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
+        <div class="space-y-2.5 max-w-2xl">
+          <span class="px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40 text-xs font-bold uppercase tracking-wider">
+            🤖 AI EVALUATION REPORT
+          </span>
+
+          <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            Diagnostic & Assessment Scores
           </h1>
-          <p class="text-xs text-slate-400 mt-1">
-            C Programming Basics  •  Academic Year: 2024–2025  •  Semester 2  •  Teacher: Mr. Sophea
+
+          <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            AI tracks your full learning trajectory from starting diagnostic Pre-Test ({{ preTestSummary.score }}%) to current Post-Test mastery ({{ postTestSummary.score }}%), measuring a net +{{ postTestSummary.growth }}% knowledge expansion.
           </p>
         </div>
 
-        <button class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md self-start">
-          📥 Download PDF Transcript
-        </button>
+        <div class="flex items-center gap-3 shrink-0">
+          <div class="px-5 py-3 rounded-2xl bg-slate-900/90 border border-slate-800 text-right">
+            <p class="text-[10px] text-slate-400 font-bold uppercase">Overall Grade</p>
+            <p class="text-xl font-black text-emerald-400">80.5% (A-)</p>
+          </div>
+        </div>
       </div>
 
-      <!-- PERFORMANCE METRICS SUMMARY GRID -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- PRE-TEST & POST-TEST 2-COLUMN COMPARISON -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         
-        <!-- Overall Weighted Grade -->
-        <div class="p-5 bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-900 border border-indigo-500/40 rounded-3xl space-y-1 shadow-xl">
-          <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Overall Grade</p>
-          <div class="flex items-baseline justify-between">
-            <span class="text-2xl font-black text-white">84.5%</span>
-            <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-black text-xs border border-emerald-500/30">
-              Grade A-
+        <!-- Pre-Test AI Analysis Card -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div class="flex items-center gap-2">
+              <span class="text-base">📋</span>
+              <h3 class="text-xs font-bold text-white uppercase tracking-wider">Pre-Test Diagnostic Analysis</h3>
+            </div>
+            <span class="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 text-xs font-mono font-bold">
+              Score: {{ preTestSummary.score }}%
             </span>
           </div>
-          <p class="text-[11px] text-slate-400 pt-1">Weighted Total Score</p>
+
+          <div class="p-4 rounded-2xl bg-slate-950/70 border border-slate-800/80 space-y-2">
+            <p class="text-xs text-slate-400 font-medium">Assessed Baseline Level:</p>
+            <p class="text-sm font-bold text-purple-300">{{ preTestSummary.level }}</p>
+            <p class="text-xs text-slate-300 pt-1">
+              <strong class="text-white">AI Starting Recommendation:</strong> Start from {{ preTestSummary.startingRecommendation }}.
+            </p>
+          </div>
+
+          <!-- Pre-test topic breakdown -->
+          <div class="space-y-2 pt-1">
+            <p class="text-[11px] font-bold text-slate-400 uppercase">Diagnostic Topic Baseline:</p>
+            <div
+              v-for="item in preTestSummary.topicBreakdown"
+              :key="item.topic"
+              class="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/60 flex items-center justify-between text-xs"
+            >
+              <span class="text-slate-300">{{ item.topic }}</span>
+              <span class="text-slate-400 font-mono">{{ item.score }}% ({{ item.status }})</span>
+            </div>
+          </div>
         </div>
 
-        <!-- Class Rank -->
-        <div class="p-5 bg-gradient-to-br from-amber-950 via-slate-900 to-slate-900 border border-amber-500/40 rounded-3xl space-y-1 shadow-xl">
-          <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Class Ranking</p>
-          <div class="flex items-baseline justify-between">
-            <span class="text-2xl font-black text-white">Rank #4</span>
-            <span class="text-xs font-bold text-amber-300">Top 10% 🌟</span>
+        <!-- Post-Test AI Analysis Card -->
+        <div class="bg-slate-900/80 border border-purple-500/30 rounded-3xl p-6 shadow-xl space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div class="flex items-center gap-2">
+              <span class="text-base">🏆</span>
+              <h3 class="text-xs font-bold text-white uppercase tracking-wider">Post-Test Mastery Report</h3>
+            </div>
+            <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-mono font-bold border border-emerald-500/30">
+              Score: {{ postTestSummary.score }}% (+{{ postTestSummary.growth }}%)
+            </span>
           </div>
-          <p class="text-[11px] text-slate-400 pt-1">Out of 45 enrolled students</p>
-        </div>
 
-        <!-- Pre vs Post Growth -->
-        <div class="p-5 bg-gradient-to-br from-emerald-950 via-slate-900 to-slate-900 border border-emerald-500/40 rounded-3xl space-y-1 shadow-xl">
-          <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Knowledge Growth</p>
-          <div class="flex items-baseline justify-between">
-            <span class="text-2xl font-black text-white">+17%</span>
-            <span class="text-xs font-bold text-emerald-400">Pre 65% → Post 82%</span>
+          <div class="p-4 rounded-2xl bg-indigo-950/40 border border-indigo-500/30 space-y-2">
+            <p class="text-xs text-indigo-300 font-bold flex items-center gap-1.5">
+              <span>🤖 AI Knowledge Growth:</span>
+              <span class="text-emerald-400">+{{ postTestSummary.growth }}% Increase</span>
+            </p>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Outstanding learning trajectory. You transitioned from basic syntax comprehension to building modular JavaScript functions and modern styling.
+            </p>
           </div>
-          <p class="text-[11px] text-slate-400 pt-1">Net Learning Improvement</p>
-        </div>
 
-        <!-- Quizzes Completed -->
-        <div class="p-5 bg-gradient-to-br from-cyan-950 via-slate-900 to-slate-900 border border-cyan-500/40 rounded-3xl space-y-1 shadow-xl">
-          <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Assessments Done</p>
-          <div class="flex items-baseline justify-between">
-            <span class="text-2xl font-black text-white">24</span>
-            <span class="text-xs font-bold text-cyan-300">Pass Rate: 88%</span>
+          <!-- Strong Areas vs Reinforce Areas -->
+          <div class="space-y-2 text-xs pt-1">
+            <p class="text-[11px] font-bold text-emerald-400 uppercase">Top Strong Areas:</p>
+            <ul class="space-y-1.5 text-slate-300">
+              <li v-for="area in postTestSummary.strongAreas" :key="area" class="flex items-center gap-2">
+                <span class="text-emerald-400 font-bold">✓</span>
+                <span>{{ area }}</span>
+              </li>
+            </ul>
           </div>
-          <p class="text-[11px] text-slate-400 pt-1">Total Completed Tasks</p>
         </div>
 
       </div>
 
-      <!-- GRADEBOOK WEIGHT DISTRIBUTION TABLE (Matching Prompt Specs) -->
-      <div class="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 shadow-xl space-y-4">
-        <h3 class="text-sm font-bold text-white uppercase tracking-wider">GRADEBOOK WEIGHT DISTRIBUTION</h3>
-        
+      <!-- GRADEBOOK TABLE -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+        <h3 class="text-xs font-bold text-white uppercase tracking-wider">Full Course Grade Breakdown</h3>
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-slate-300">
-            <thead class="bg-slate-900 text-slate-400 text-[10px] uppercase font-bold border-b border-slate-700">
+          <table class="w-full text-xs text-left text-slate-300">
+            <thead class="text-[11px] uppercase bg-slate-950 text-slate-400 border-b border-slate-800">
               <tr>
-                <th class="p-3">Assessment Component</th>
-                <th class="p-3">Weight</th>
-                <th class="p-3">Max Pts</th>
-                <th class="p-3">My Score</th>
-                <th class="p-3">Weighted Score</th>
-                <th class="p-3">Status</th>
+                <th class="p-3.5">Component</th>
+                <th class="p-3.5">Weight</th>
+                <th class="p-3.5">Score</th>
+                <th class="p-3.5">Weighted Contribution</th>
+                <th class="p-3.5">Status</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-700/50 font-medium">
-              <tr v-for="comp in gradeComponents" :key="comp.name" class="hover:bg-slate-700/30">
-                <td class="p-3 font-bold text-white">{{ comp.name }}</td>
-                <td class="p-3 font-mono text-indigo-300 font-bold">{{ comp.weight }}</td>
-                <td class="p-3 font-mono text-slate-400">{{ comp.max }}</td>
-                <td class="p-3 font-bold text-emerald-400">{{ comp.score }}</td>
-                <td class="p-3 font-mono font-bold text-white">{{ comp.weighted }}</td>
-                <td class="p-3"><span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-emerald-300">{{ comp.status }}</span></td>
+            <tbody class="divide-y divide-slate-800">
+              <tr v-for="g in gradeComponents" :key="g.name" class="hover:bg-slate-800/40">
+                <td class="p-3.5 font-bold text-white">{{ g.name }}</td>
+                <td class="p-3.5 font-mono text-slate-400">{{ g.weight }}</td>
+                <td class="p-3.5 font-mono font-bold text-emerald-400">{{ g.score }}</td>
+                <td class="p-3.5 font-mono text-white">{{ g.weighted }}</td>
+                <td class="p-3.5 text-slate-300">{{ g.status }}</td>
               </tr>
             </tbody>
-            <tfoot class="bg-slate-950 font-bold border-t-2 border-slate-700 text-white text-xs">
-              <tr>
-                <td class="p-3 text-indigo-300">TOTAL WEIGHTED SCORE</td>
-                <td class="p-3 font-mono">100%</td>
-                <td class="p-3 font-mono">—</td>
-                <td class="p-3 text-emerald-400">84.5%</td>
-                <td class="p-3 font-mono text-emerald-300">84.5 / 100 (Grade: A-)</td>
-                <td class="p-3 text-emerald-400">🟢 Excellent</td>
-              </tr>
-            </tfoot>
           </table>
-        </div>
-      </div>
-
-      <!-- AI WEAK TOPICS SUMMARY CARD -->
-      <div class="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 shadow-xl space-y-4">
-        <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-          <span>🤖</span>
-          <span>AI TOPIC MASTERY SUMMARY</span>
-        </h3>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-          <div class="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 font-medium flex items-center justify-between">
-            <span>🔴 Pointers &amp; Memory Allocation</span>
-            <span class="font-bold font-mono">42% (Needs Focus)</span>
-          </div>
-          <div class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 font-medium flex items-center justify-between">
-            <span>⚠️ Operators &amp; Type Casting</span>
-            <span class="font-bold font-mono">48% (Needs Work)</span>
-          </div>
-          <div class="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-medium flex items-center justify-between">
-            <span>🟢 Variables &amp; Data Types</span>
-            <span class="font-bold font-mono">85% (Strong)</span>
-          </div>
-          <div class="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-medium flex items-center justify-between">
-            <span>🟢 Control Loops &amp; Conditions</span>
-            <span class="font-bold font-mono">82% (Good)</span>
-          </div>
         </div>
       </div>
 

@@ -27,29 +27,38 @@ const aiInput = ref('')
 
 const sendAiPrompt = (promptText: string) => {
   aiMessages.value.push({ role: 'user', text: promptText })
+  const lessonTitle = currentLesson.value?.title || 'JavaScript Functions'
+  const lessonDesc = currentLesson.value?.about || 'JavaScript functions and parameters'
+
   setTimeout(() => {
-    if (promptText.includes('example')) {
+    const qLower = promptText.toLowerCase()
+    if (qLower.includes('example')) {
       aiMessages.value.push({
         role: 'ai',
-        text: `Here is a quick JavaScript function example:\n\`\`\`javascript\nfunction greet(name) {\n  return "Hello, " + name + "!";\n}\nconsole.log(greet("Pisey")); // "Hello, Pisey!"\n\`\`\``
+        text: `Here is a practical code example for **${lessonTitle}**:\n\`\`\`javascript\n// Function declaration with parameter & return\nfunction calculateDiscount(price, rate = 0.1) {\n  return price - (price * rate);\n}\n\nconst total = calculateDiscount(100, 0.2);\nconsole.log("Discounted Total:", total); // 80\n\`\`\`\nTry modifying the rate parameter to see how the return value changes!`
       })
-    } else if (promptText.includes('Explain')) {
+    } else if (qLower.includes('explain') || qLower.includes('what is') || qLower.includes('this')) {
       aiMessages.value.push({
         role: 'ai',
-        text: 'A JavaScript function is a reusable block of code designed to perform a particular task. It is executed when "something" invokes or calls it.'
+        text: `**Context: ${lessonTitle}**\n\n${lessonDesc}\n\nKey Concept: Functions are declared using the \`function\` keyword, receive arguments via parameters, and pass data back using the \`return\` statement.`
       })
-    } else if (promptText.includes('Summarize')) {
+    } else if (qLower.includes('summarize') || qLower.includes('summary')) {
       aiMessages.value.push({
         role: 'ai',
-        text: 'Summary: Functions allow code reusability, accept parameters as inputs, and return values using the "return" statement.'
+        text: `**Key Summary of ${lessonTitle}:**\n• Reusability: Write once, call multiple times anywhere in your script.\n• Parameters: Inputs defined in the parentheses.\n• Return: Halts execution and sends the result back to the caller.`
+      })
+    } else if (qLower.includes('practice') || qLower.includes('question')) {
+      aiMessages.value.push({
+        role: 'ai',
+        text: `**Quick Check for ${lessonTitle}:**\nWhat happens if a function executes without an explicit \`return\` statement?\n(A) Throws ReferenceError\n(B) Returns \`undefined\`\n(C) Returns 0\n(D) Returns \`null\``
       })
     } else {
       aiMessages.value.push({
         role: 'ai',
-        text: 'Practice question: What keyword is used to return a value from a JavaScript function? (A) give (B) return (C) send (D) output'
+        text: `Regarding **${lessonTitle}**: ${promptText}\n\nIn JavaScript, functions create their own execution scope. Any variable defined inside cannot be accessed outside unless returned or passed via closures.`
       })
     }
-  }, 400)
+  }, 350)
 }
 
 const handleSendAi = () => {

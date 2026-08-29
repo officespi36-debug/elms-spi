@@ -1,265 +1,341 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { Link } from '@inertiajs/vue3'
 import StudentLayout from '@/Layouts/StudentLayout.vue'
 
-const isPracticing = ref(false)
-const showPracticeResults = ref(false)
-const isAnswerSubmitted = ref(false)
-const isCorrect = ref(true)
+const selectedTopic = ref('JavaScript Functions & Parameters')
+const selectedDifficulty = ref<'Beginner' | 'Intermediate' | 'Advanced'>('Beginner')
+const isGenerating = ref(false)
+const isSessionActive = ref(false)
+const currentQIndex = ref(0)
+const selectedAnswers = ref<Record<number, number>>({})
+const isEvaluated = ref(false)
 
-const streakCount = ref(4)
-const lives = ref(5)
-const hintsRemaining = ref(2)
-const selectedOpt = ref('B')
-
-const practiceList = ref([
-  { name: 'Variables Practice', qs: 15, best: '85% ⭐', attempts: '4x', status: '🟢 Good' },
-  { name: 'Loops Practice', qs: 20, best: '71% ✅', attempts: '6x', status: '🟡 OK' },
-  { name: '🔴 Pointer Drill', qs: 25, best: '42% ❌', attempts: '2x', status: 'Practice' },
-  { name: 'Function Basics', qs: 15, best: '—', attempts: '0x', status: '🔒 Lock' }
+const availableTopics = ref([
+  'JavaScript Functions & Parameters',
+  'Return Values & Expression Scopes',
+  'JavaScript Variables & Data Types',
+  'DOM Manipulation & Event Listeners',
+  'CSS Flexbox & Responsive Layouts'
 ])
 
-const startPractice = () => {
-  isPracticing.value = true
-  isAnswerSubmitted.value = false
-  showPracticeResults.value = false
+// AI Generated Question Pool
+const generatedQuestions = ref([
+  {
+    id: 1,
+    question: 'What is the default return value of a JavaScript function that does not contain a "return" statement?',
+    options: ['0', 'null', 'undefined', 'NaN'],
+    correct: 2,
+    explanation: 'In JavaScript, functions that do not explicitly return a value evaluate to "undefined" by default.'
+  },
+  {
+    id: 2,
+    question: 'How do you define a default parameter value in modern JavaScript ES6?',
+    options: [
+      'function test(a default 10) {}',
+      'function test(a = 10) {}',
+      'function test(a || 10) {}',
+      'function test(default a : 10) {}'
+    ],
+    correct: 1,
+    explanation: 'Default parameters use the assignment operator (=) directly inside the parameter list.'
+  },
+  {
+    id: 3,
+    question: 'Which of the following creates a valid arrow function in JavaScript?',
+    options: [
+      'const add = (a, b) => a + b;',
+      'const add = (a, b) -> a + b;',
+      'function add => (a, b) { return a + b; }',
+      'arrow add(a, b) => a + b;'
+    ],
+    correct: 0,
+    explanation: 'Arrow function syntax uses the fat arrow (=>) following the argument parentheses.'
+  },
+  {
+    id: 4,
+    question: 'What is the scope of a variable declared with "let" inside a function?',
+    options: [
+      'Global scope',
+      'Block / Local function scope',
+      'Window scope',
+      'Module scope only'
+    ],
+    correct: 1,
+    explanation: 'Variables declared with "let" and "const" are block-scoped to the nearest enclosing block or function.'
+  },
+  {
+    id: 5,
+    question: 'What will the following code output? \nfunction greet(name = "Student") { return "Hi, " + name; }\nconsole.log(greet());',
+    options: [
+      '"Hi, undefined"',
+      '"Hi, null"',
+      '"Hi, Student"',
+      'Throws ReferenceError'
+    ],
+    correct: 2,
+    explanation: 'Because no argument was supplied, the default parameter "Student" was utilized.'
+  }
+])
+
+const generateQuestionsWithAi = () => {
+  isGenerating.value = true
+  setTimeout(() => {
+    isGenerating.value = false
+    isSessionActive.value = true
+    currentQIndex.value = 0
+    selectedAnswers.value = {}
+    isEvaluated.value = false
+  }, 500)
 }
 
-const submitAnswer = () => {
-  isAnswerSubmitted.value = true
-  isCorrect.value = true
+const selectAnswer = (qIdx: number, optIdx: number) => {
+  if (isEvaluated.value) return
+  selectedAnswers.value[qIdx] = optIdx
 }
 
-const finishPractice = () => {
-  isPracticing.value = false
-  showPracticeResults.value = true
+const submitForAiEvaluation = () => {
+  isEvaluated.value = true
 }
+
+const practiceScore = computed(() => {
+  let score = 0
+  generatedQuestions.value.forEach((q, idx) => {
+    if (selectedAnswers.value[idx] === q.correct) {
+      score++
+    }
+  })
+  return score
+})
+
+const practicePercentage = computed(() => {
+  return Math.round((practiceScore.value / generatedQuestions.value.length) * 100)
+})
 </script>
 
 <template>
-  <StudentLayout title="Practice Quiz — Gamified Gym">
-    <div class="space-y-6">
+  <StudentLayout
+    title="AI Practice Questions Generator"
+    :breadcrumbs="[
+      { label: 'Dashboard', href: '/student/dashboard' },
+      { label: 'Quiz & Assessment', href: '/student/quizzes/practice' },
+      { label: 'AI Practice Questions' }
+    ]"
+  >
+    <div class="space-y-6 pb-12">
       
-      <!-- Top Header Summary Bar -->
-      <div class="bg-gradient-to-r from-emerald-950 via-slate-900 to-indigo-950 border border-emerald-900/60 rounded-3xl p-5 md:p-6 shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold uppercase tracking-wider">
-            🟩 PRACTICE GYM
+      <!-- Top Banner -->
+      <div class="bg-gradient-to-r from-purple-950 via-slate-900 to-indigo-950 border border-purple-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
+        <div class="space-y-2.5 max-w-2xl">
+          <span class="px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40 text-xs font-bold uppercase tracking-wider">
+            🤖 AI QUESTION SYNTHESIZER
           </span>
-          <h1 class="text-xl md:text-2xl font-black text-white mt-1.5 flex items-center gap-2">
-            <span>🟩 PRACTICE QUIZ (ហាត់អនុវត្ត)</span>
+
+          <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            AI Practice Generator
           </h1>
-          <p class="text-xs text-slate-300 mt-1">
-            រៀនឲ្យចេះ ហាត់ឥតដែនកំណត់ដង ទទួលបាន AI Hint ភ្លាមៗ និងសន្សំ XP / Level Up
+
+          <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            Generate unlimited customized drills targeted specifically to your weak areas with instant step-by-step AI evaluations.
           </p>
         </div>
-
-        <div class="flex items-center gap-3">
-          <div class="px-4 py-2.5 rounded-2xl bg-slate-900/80 border border-slate-800 text-right">
-            <p class="text-[10px] text-slate-400 font-bold uppercase">Total Practice XP</p>
-            <p class="text-base font-black text-emerald-400">⚡ 2,340 XP (Lvl 12)</p>
-          </div>
-        </div>
       </div>
 
-      <!-- MAIN PRACTICE SELECTION (If not actively in session) -->
-      <div v-if="!isPracticing && !showPracticeResults" class="space-y-6">
+      <!-- GENERATION CONFIGURATION BOX (When not in active quiz session) -->
+      <div v-if="!isSessionActive" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
-        <!-- RECOMMENDED FOR YOU (URGENT FOCUS) CARD -->
-        <div class="bg-gradient-to-r from-slate-900 via-rose-950/40 to-slate-900 border border-rose-500/40 rounded-3xl p-6 shadow-xl space-y-4">
-          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700/60 pb-3">
-            <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <span>🎯</span>
-              <span>RECOMMENDED FOR YOU (Based on weak topics)</span>
-            </h3>
-            <span class="px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 text-xs font-extrabold border border-rose-500/40 animate-pulse">
-              ⚡ URGENT FOCUS
-            </span>
+        <div class="lg:col-span-8 bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
+          <div class="border-b border-slate-800 pb-4">
+            <h2 class="text-base font-bold text-white flex items-center gap-2">
+              <span>⚡</span>
+              <span>Configure AI Practice Drill</span>
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">Select a topic and target difficulty level to generate 5 interactive questions</p>
           </div>
 
-          <div class="p-4 bg-slate-900/90 rounded-2xl border border-slate-700/60 space-y-3">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <h4 class="text-base font-black text-white">🔴 Pointers Practice Drill</h4>
-              <span class="text-xs font-mono text-slate-400">25 Questions • ∞ Unlimited • AI Adaptive</span>
+          <div class="space-y-4">
+            <!-- Topic Selector -->
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-slate-200">Target Learning Topic:</label>
+              <select
+                v-model="selectedTopic"
+                class="w-full p-3 rounded-2xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-purple-500 transition-colors"
+              >
+                <option v-for="t in availableTopics" :key="t" :value="t">{{ t }}</option>
+              </select>
             </div>
 
-            <p class="text-xs text-slate-300">
-              Your last score: <span class="text-rose-400 font-bold">42% ❌</span>  •  Class average: <strong>68%</strong>
-            </p>
-
-            <div class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-300 font-semibold flex items-center gap-2">
-              <span>🤖 AI Warning:</span>
-              <span>"ចំណុច Pointers នេះនឹងចេញក្នុង Post-Test និង Final Exam!"</span>
+            <!-- Difficulty Selector -->
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-slate-200">Target Difficulty:</label>
+              <div class="grid grid-cols-3 gap-3">
+                <button
+                  v-for="diff in ['Beginner', 'Intermediate', 'Advanced']"
+                  :key="diff"
+                  @click="selectedDifficulty = diff as any"
+                  type="button"
+                  :class="[
+                    selectedDifficulty === diff
+                      ? 'bg-purple-600 border-purple-500 text-white font-bold shadow-lg shadow-purple-600/30'
+                      : 'bg-slate-950/80 border-slate-800 text-slate-400 hover:text-white',
+                    'py-2.5 rounded-xl border text-xs text-center transition-all cursor-pointer'
+                  ]"
+                >
+                  {{ diff }}
+                </button>
+              </div>
             </div>
+          </div>
 
+          <div class="pt-4 border-t border-slate-800 flex items-center justify-between">
+            <span class="text-xs text-slate-400">Generates 5 questions with detailed explanations</span>
             <button
-              @click="startPractice"
-              class="px-6 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow-lg transition-all hover:scale-105"
+              @click="generateQuestionsWithAi"
+              :disabled="isGenerating"
+              type="button"
+              class="px-6 py-3 rounded-2xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-xl shadow-purple-600/30 flex items-center gap-2 hover:scale-105 active:scale-95 transition-all cursor-pointer"
             >
-              🟩 Start Focused Practice →
+              <span v-if="isGenerating" class="animate-spin">⏳</span>
+              <span v-else>✨</span>
+              <span>{{ isGenerating ? 'Synthesizing with AI...' : 'Generate 5 Practice Questions' }}</span>
             </button>
           </div>
         </div>
 
-        <!-- ALL PRACTICE QUIZZES TABLE -->
-        <div class="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 shadow-xl space-y-4">
-          <h3 class="text-sm font-bold text-white uppercase tracking-wider">ALL PRACTICE QUIZZES</h3>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs text-slate-300">
-              <thead class="bg-slate-900 text-slate-400 text-[10px] uppercase font-bold border-b border-slate-700">
-                <tr>
-                  <th class="p-3">Quiz Name</th>
-                  <th class="p-3">Qs</th>
-                  <th class="p-3">My Best</th>
-                  <th class="p-3">Attempts</th>
-                  <th class="p-3">AI Hints</th>
-                  <th class="p-3">Status</th>
-                  <th class="p-3 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-700/50 font-medium">
-                <tr v-for="pq in practiceList" :key="pq.name" class="hover:bg-slate-700/30">
-                  <td class="p-3 font-bold text-white">{{ pq.name }}</td>
-                  <td class="p-3 font-mono">{{ pq.qs }}</td>
-                  <td class="p-3 font-bold text-emerald-400">{{ pq.best }}</td>
-                  <td class="p-3 font-mono">{{ pq.attempts }}</td>
-                  <td class="p-3 text-emerald-400">✅ On</td>
-                  <td class="p-3"><span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-700">{{ pq.status }}</span></td>
-                  <td class="p-3 text-right">
-                    <button @click="startPractice" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold">
-                      Practice
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+        <!-- Right Quick Info Card -->
+        <div class="lg:col-span-4 bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4 text-xs">
+          <div class="flex items-center gap-2.5">
+            <span class="text-lg">🤖</span>
+            <h3 class="text-xs font-bold text-white uppercase tracking-wider">How AI Practice Works</h3>
           </div>
+
+          <ul class="space-y-2.5 text-slate-300 leading-relaxed">
+            <li class="flex items-start gap-2">
+              <span class="text-purple-400 font-bold">1.</span>
+              <span>AI examines your past quiz errors and designs targeted questions to fix weak concepts.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-purple-400 font-bold">2.</span>
+              <span>You answer at your own pace without pressure on your final course GPA.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-purple-400 font-bold">3.</span>
+              <span>Receive deep AI explanations and code snippets for each question upon submission.</span>
+            </li>
+          </ul>
         </div>
 
       </div>
 
-      <!-- GAMIFIED PRACTICE SCREEN VIEW -->
-      <div v-if="isPracticing" class="bg-slate-900 border border-emerald-500/40 rounded-3xl p-6 md:p-8 shadow-2xl space-y-6">
+      <!-- ACTIVE PRACTICE SESSION & AI EVALUATION -->
+      <div v-else class="space-y-6">
         
-        <!-- Gamification Header Bar -->
-        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
-          <div>
-            <h2 class="text-base font-black text-white">🟩 Pointers Practice Drill</h2>
-            <p class="text-xs text-slate-400">Question 5 / 25  •  Difficulty: ⭐⭐ Medium (Adaptive)</p>
-          </div>
-
-          <div class="flex items-center gap-4 text-xs font-bold">
-            <span class="px-3 py-1.5 rounded-2xl bg-amber-500/20 text-amber-300 border border-amber-500/30">
-              🔥 Streak: {{ streakCount }}
+        <!-- Top Session Nav -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="px-2.5 py-1 rounded-full bg-purple-500/20 text-purple-300 text-xs font-bold border border-purple-500/30">
+              {{ selectedTopic }} • {{ selectedDifficulty }}
             </span>
-            <span class="px-3 py-1.5 rounded-2xl bg-rose-500/20 text-rose-300 border border-rose-500/30">
-              ❤️❤️❤️❤️❤️ {{ lives }} lives
-            </span>
-          </div>
-        </div>
-
-        <!-- Question Body with Code -->
-        <div class="p-6 bg-slate-950 rounded-2xl border border-slate-800 space-y-4">
-          <p class="text-sm font-bold text-white">Q5: What is the output of the following C code snippet?</p>
-
-          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 font-mono text-xs text-emerald-400 space-y-1">
-            <p>int a = 10;</p>
-            <p>int *p = &amp;a;</p>
-            <p>printf("%d", *p);</p>
+            <span class="text-xs text-slate-400">Question {{ currentQIndex + 1 }} of {{ generatedQuestions.length }}</span>
           </div>
 
-          <!-- Options -->
-          <div class="space-y-2.5 text-xs">
-            <label class="flex items-center gap-3 p-3.5 rounded-xl bg-slate-900 border border-slate-800 cursor-pointer">
-              <input type="radio" name="popt" value="A" v-model="selectedOpt" class="text-emerald-600" />
-              <span class="text-slate-200">A. Memory address of a</span>
-            </label>
-            <label class="flex items-center gap-3 p-3.5 rounded-xl bg-emerald-900/30 border border-emerald-500/50 font-bold text-white cursor-pointer">
-              <input type="radio" name="popt" value="B" v-model="selectedOpt" class="text-emerald-600" />
-              <span>B. 10 (Selected)</span>
-            </label>
-            <label class="flex items-center gap-3 p-3.5 rounded-xl bg-slate-900 border border-slate-800 cursor-pointer">
-              <input type="radio" name="popt" value="C" v-model="selectedOpt" class="text-emerald-600" />
-              <span class="text-slate-200">C. NULL</span>
-            </label>
-            <label class="flex items-center gap-3 p-3.5 rounded-xl bg-slate-900 border border-slate-800 cursor-pointer">
-              <input type="radio" name="popt" value="D" v-model="selectedOpt" class="text-emerald-600" />
-              <span class="text-slate-200">D. Error</span>
-            </label>
-          </div>
-
-          <!-- Actions -->
-          <div class="flex items-center justify-between pt-2">
-            <button class="px-3.5 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 font-bold text-xs border border-amber-500/30">
-              💡 Hint ({{ hintsRemaining }} left)
-            </button>
-            <button @click="submitAnswer" class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow-lg">
-              ✅ Submit Answer
-            </button>
-          </div>
-        </div>
-
-        <!-- Immediate Feedback Box if submitted -->
-        <div v-if="isAnswerSubmitted" class="p-5 bg-emerald-500/10 border border-emerald-500/40 rounded-2xl space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="text-sm font-black text-emerald-300">✅ Correct! +10 XP 🎉</span>
-            <span class="text-xs text-amber-300 font-bold">🔥 5 Streak Active!</span>
-          </div>
-
-          <div class="space-y-1.5 text-xs text-slate-200">
-            <p class="font-bold">💡 Explanation:</p>
-            <p>*p ជាការ Dereference pointer variable p គឺទាញយកតម្លៃដែលរក្សាទុកក្នុង address នោះ ដែលគឺ a = 10 ដូច្នេះ *p = 10</p>
-          </div>
-
-          <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-indigo-300 italic">
-            🤖 AI Tip: ចាំ! * មុន pointer variable = ទាញយកតម្លៃ, &amp; មុន variable = យក Address នៃ Memory
-          </div>
-
-          <div class="pt-2">
-            <button @click="finishPractice" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs shadow-md">
-              Next Question / Complete Drill →
-            </button>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- PRACTICE RESULTS & XP SYSTEM -->
-      <div v-if="showPracticeResults" class="bg-slate-900 border border-emerald-500/40 rounded-3xl p-6 md:p-8 shadow-2xl space-y-6">
-        <div class="text-center space-y-2 border-b border-slate-800 pb-4">
-          <h2 class="text-2xl font-black text-white">🟩 Practice Complete! – Pointers Drill (Attempt 3)</h2>
-          <p class="text-base font-bold text-emerald-400">Score: 68% (+26% from last time! 🚀)</p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-          <!-- XP Earned -->
-          <div class="p-5 bg-slate-950 rounded-2xl border border-slate-800 space-y-2">
-            <h4 class="font-bold text-amber-300 uppercase tracking-wider text-[11px]">🏆 XP Earned Today:</h4>
-            <ul class="space-y-1 text-slate-300">
-              <li>+150 XP Practice Completion</li>
-              <li>+50 XP Improvement Bonus</li>
-              <li>+30 XP Streak Bonus</li>
-            </ul>
-            <p class="pt-2 text-sm font-black text-white">Total XP: 2,340  •  Level 12 (14/20 to Lvl 13)</p>
-            <p class="text-emerald-400 font-bold">New Badge Unlocked: 🔄 "Comeback Kid" (+20% Growth)!</p>
-          </div>
-
-          <!-- AI Progress -->
-          <div class="p-5 bg-slate-950 rounded-2xl border border-slate-800 space-y-2">
-            <h4 class="font-bold text-cyan-300 uppercase tracking-wider text-[11px]">🤖 AI Progress Update:</h4>
-            <p class="text-slate-200">Pointers score improved: <span class="text-rose-400 font-bold">42%</span> → <span class="text-emerald-400 font-bold">68% ↗️</span> (+26%)</p>
-            <p class="text-slate-400">Still needs work: Pointer Arithmetic (55%)</p>
-          </div>
-        </div>
-
-        <div class="flex items-center justify-between pt-2">
-          <button @click="showPracticeResults = false" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs">
-            ← Back to Practice Gym
-          </button>
-          <button @click="startPractice" class="px-6 py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-xs shadow-md">
-            ▶ Practice Pointer Arithmetic →
+          <button
+            @click="isSessionActive = false"
+            class="text-xs text-slate-400 hover:text-white transition-colors"
+          >
+            ← Exit Session
           </button>
         </div>
+
+        <!-- Question Box Card -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
+          
+          <div class="space-y-3">
+            <span class="text-[11px] font-bold text-purple-400 uppercase tracking-wider">Question {{ currentQIndex + 1 }}</span>
+            <h3 class="text-base sm:text-lg font-bold text-white whitespace-pre-wrap leading-relaxed">
+              {{ generatedQuestions[currentQIndex].question }}
+            </h3>
+          </div>
+
+          <!-- Options Grid -->
+          <div class="space-y-3">
+            <button
+              v-for="(opt, optIdx) in generatedQuestions[currentQIndex].options"
+              :key="optIdx"
+              @click="selectAnswer(currentQIndex, optIdx)"
+              type="button"
+              :class="[
+                isEvaluated && optIdx === generatedQuestions[currentQIndex].correct
+                  ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300 font-bold'
+                  : isEvaluated && selectedAnswers[currentQIndex] === optIdx && optIdx !== generatedQuestions[currentQIndex].correct
+                  ? 'bg-rose-500/20 border-rose-500 text-rose-300 font-bold'
+                  : selectedAnswers[currentQIndex] === optIdx
+                  ? 'bg-purple-600/30 border-purple-500 text-white font-bold'
+                  : 'bg-slate-950/80 border-slate-800 text-slate-300 hover:bg-slate-800/60',
+                'w-full p-4 rounded-2xl border text-xs text-left flex items-center justify-between transition-all cursor-pointer'
+              ]"
+            >
+              <div class="flex items-center gap-3">
+                <span class="w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center font-bold text-[11px]">
+                  {{ String.fromCharCode(65 + optIdx) }}
+                </span>
+                <span>{{ opt }}</span>
+              </div>
+
+              <span v-if="isEvaluated && optIdx === generatedQuestions[currentQIndex].correct" class="text-emerald-400 font-bold">✓ Correct</span>
+              <span v-else-if="isEvaluated && selectedAnswers[currentQIndex] === optIdx" class="text-rose-400 font-bold">✗ Incorrect</span>
+            </button>
+          </div>
+
+          <!-- AI Explanation Box (When Evaluated) -->
+          <div v-if="isEvaluated" class="p-4 rounded-2xl bg-indigo-950/50 border border-indigo-500/30 space-y-1.5 text-xs">
+            <p class="font-bold text-indigo-300 flex items-center gap-1.5">
+              <span>🤖 AI Explanation:</span>
+            </p>
+            <p class="text-slate-200 leading-relaxed">
+              {{ generatedQuestions[currentQIndex].explanation }}
+            </p>
+          </div>
+
+          <!-- Session Controls -->
+          <div class="flex items-center justify-between pt-4 border-t border-slate-800">
+            <button
+              :disabled="currentQIndex === 0"
+              @click="currentQIndex--"
+              class="px-4 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-300 text-xs font-bold disabled:opacity-40"
+            >
+              Previous
+            </button>
+
+            <div class="flex items-center gap-3">
+              <button
+                v-if="currentQIndex < generatedQuestions.length - 1"
+                @click="currentQIndex++"
+                class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold"
+              >
+                Next Question ›
+              </button>
+
+              <button
+                v-if="!isEvaluated && currentQIndex === generatedQuestions.length - 1"
+                @click="submitForAiEvaluation"
+                class="px-6 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-600/30"
+              >
+                Submit for AI Evaluation ✓
+              </button>
+
+              <button
+                v-if="isEvaluated"
+                @click="generateQuestionsWithAi"
+                class="px-6 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-lg shadow-purple-600/30"
+              >
+                Generate Another Set ⚡
+              </button>
+            </div>
+          </div>
+
+        </div>
+
       </div>
 
     </div>
