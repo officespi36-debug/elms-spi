@@ -1665,10 +1665,6 @@ onUnmounted(() => {
               ]"
             >
               <i v-if="isOtpSending" class="pi pi-spin pi-spinner text-sm mr-2"></i>
-              <svg v-else class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="22" y1="2" x2="11" y2="13"/>
-                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-              </svg>
               <span>{{ isOtpSending ? (currentLang === 'km' ? 'កំពុងផ្ញើលេខកូដ...' : 'Sending code...') : (currentLang === 'km' ? 'ផ្ញើលេខកូដ OTP ទៅ Email' : 'Send OTP to Email') }}</span>
             </button>
           </div>
@@ -1892,10 +1888,6 @@ onUnmounted(() => {
               ]"
             >
               <i v-if="isPhoneOtpSending" class="pi pi-spin pi-spinner text-sm mr-2"></i>
-              <svg v-else class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="22" y1="2" x2="11" y2="13"/>
-                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-              </svg>
               <span>{{ isPhoneOtpSending ? (currentLang === 'km' ? 'កំពុងផ្ញើសារ SMS...' : 'Sending SMS...') : (currentLang === 'km' ? 'ផ្ញើលេខកូដ OTP តាម SMS' : 'Send OTP via SMS') }}</span>
             </button>
           </div>
