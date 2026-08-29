@@ -68,17 +68,17 @@ const sampleCourses = ref([
   {
     id: 3,
     title: 'Web Development',
-    teacher: 'Ms. Dara',
-    teacherAvatar: 'https://ui-avatars.com/api/?name=Dara&background=8b5cf6&color=fff',
+    teacher: 'Mr. Sophea',
+    teacherAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80',
     major: 'IT & Networking',
     mode: 'Teacher-Led',
     price: '$30',
-    progress: 100,
+    progress: 53,
     status: 'paid',
-    isCompleted: true,
+    isCompleted: false,
     thumbnail: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=500&auto=format&fit=crop&q=75',
-    lastAccessed: '3 days ago',
-    href: '/student/my-courses/completed'
+    lastAccessed: 'Today, 09:30 AM',
+    href: '/student/courses/1/overview'
   },
   {
     id: 4,

@@ -19,12 +19,12 @@ const page = usePage<any>()
 const user = computed(() => page.props.auth?.user || {})
 
 const continueCourse = ref({
-  title: 'C Programming Basics',
-  chapter: 'Module 2: Operators',
-  progress: 65,
+  title: 'Web Development',
+  chapter: 'Chapter 3 - JavaScript Functions',
+  progress: 53,
   teacher: 'Mr. Sophea',
   lastAccessed: 'Today, 09:30 AM',
-  href: '/student/courses'
+  href: '/student/my-courses/current'
 })
 
 const aiRecommendation = ref({
@@ -213,9 +213,9 @@ const nextLevelXp = ref(1000)
               <Link
                 :href="continueCourse.href"
                 prefetch="hover"
-                class="shrink-0 px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-all duration-200 shadow-md shadow-indigo-600/25 text-center hover:scale-105 active:scale-95 cursor-pointer"
+                class="shrink-0 px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition-all duration-200 shadow-md shadow-purple-600/25 text-center hover:scale-105 active:scale-95 cursor-pointer"
               >
-                Continue Lesson →
+                Continue Learning →
               </Link>
             </div>
           </div>

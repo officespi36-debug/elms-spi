@@ -489,8 +489,11 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/current', [Student\CourseController::class, 'current'])->name('current');
             Route::get('/completed', [Student\CourseController::class, 'completed'])->name('completed');
             Route::get('/browse', [Student\BrowseController::class, 'index'])->name('browse');
+            Route::get('/overview', [Student\CourseController::class, 'overview'])->name('overview');
+            Route::get('/{course}/overview', [Student\CourseController::class, 'overview'])->name('course.overview');
             Route::get('/wishlist', [Student\CourseController::class, 'wishlist'])->name('wishlist');
         });
+        Route::get('/courses/{course}/overview', [Student\CourseController::class, 'overview'])->name('courses.overview');
 
         // URL Aliases for space-separated or underscore-separated requests (e.g. 'my courses' / 'my_courses')
         Route::get('/my courses', [Student\CourseController::class, 'enrolled']);

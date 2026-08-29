@@ -1,0 +1,1 @@
+import{F as t,d as a,x as n}from"./vendor-ui-C2HnsEsf.js";import{t as r}from"./Index-DU0BTJdZ.js";var l=n({__name:"Index",props:{enrollments:{},activeTab:{}},setup(e){return(o,s)=>(t(),a(r,{enrollments:e.enrollments,activeTab:e.activeTab},null,8,["enrollments","activeTab"]))}}),c=l;export{c as default};

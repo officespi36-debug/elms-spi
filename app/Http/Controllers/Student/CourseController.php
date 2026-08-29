@@ -63,6 +63,13 @@ class CourseController extends Controller
         ]);
     }
 
+    public function overview(Request $request, $course = null)
+    {
+        return Inertia::render('Student/Courses/Overview', [
+            'courseId' => $course,
+        ]);
+    }
+
     public function wishlist(Request $request)
     {
         return Inertia::render('Student/MyCourses/Wishlist');

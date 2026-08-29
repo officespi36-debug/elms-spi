@@ -1,12 +1,23 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { Link } from '@inertiajs/vue3'
 import StudentLayout from '@/Layouts/StudentLayout.vue'
 
+// Active tab state
 const activeTab = ref<'overview' | 'content' | 'resources' | 'discussion'>('overview')
 const isVideoPlaying = ref(false)
 const videoSpeed = ref('1x')
 const isCC = ref(true)
+const showCelebrationToast = ref(false)
+const celebrationToastMessage = ref('')
+
+// Interactive Quiz State
+const isQuizOpen = ref(false)
+const isQuizSubmitted = ref(false)
+const currentQuestionIndex = ref(0)
+const quizAnswers = ref<Record<number, number>>({})
+const quizTimeSeconds = ref(95)
+const isCourseCompletedModalOpen = ref(false)
 
 // AI Chat widget state in Right Panel
 const aiMessages = ref<Array<{ role: 'ai' | 'user'; text: string }>>([
@@ -48,12 +59,14 @@ const handleSendAi = () => {
   sendAiPrompt(text)
 }
 
-// Chapter curriculum accordion
+// Chapter curriculum accordion & dynamic lesson data
 interface LessonItem {
   id: string
   title: string
   duration: string
   status: 'completed' | 'active' | 'pending' | 'locked'
+  about?: string
+  objectives?: string[]
 }
 
 interface ChapterItem {
@@ -95,10 +108,43 @@ const chapters = ref<ChapterItem[]>([
     progress: '1/4',
     expanded: true,
     lessons: [
-      { id: '3.1', title: '3.1 What is JavaScript?', duration: '10:15', status: 'completed' },
-      { id: '3.2', title: '3.2 JavaScript Functions', duration: '18:20', status: 'active' },
-      { id: '3.3', title: '3.3 Function Parameters', duration: '15:30', status: 'pending' },
-      { id: '3.4', title: '3.4 Return Values', duration: '12:45', status: 'locked' }
+      {
+        id: '3.1',
+        title: '3.1 What is JavaScript?',
+        duration: '10:15',
+        status: 'completed',
+        about: 'An introduction to JavaScript as the programming language of the Web, its history, and execution environments.',
+        objectives: ['Understand how JavaScript works in browsers', 'Include JS via script tags', 'Use developer console for logging']
+      },
+      {
+        id: '3.2',
+        title: '3.2 JavaScript Functions',
+        duration: '18:20',
+        status: 'active',
+        about: 'In this lesson, you will learn about JavaScript Functions, how to create them, use parameters, return values, and practical examples.',
+        objectives: [
+          'What is a function in JavaScript',
+          'How to declare and call functions',
+          'Function parameters and return values',
+          'Real world examples'
+        ]
+      },
+      {
+        id: '3.3',
+        title: '3.3 Function Parameters',
+        duration: '15:30',
+        status: 'pending',
+        about: 'Deep dive into passing arguments, setting default parameters, rest parameters, and scope rules.',
+        objectives: ['Default parameter values', 'Positional arguments vs keyword patterns', 'Rest parameter syntax (...)']
+      },
+      {
+        id: '3.4',
+        title: '3.4 Return Values',
+        duration: '12:45',
+        status: 'locked',
+        about: 'Mastering the return statement, returning multiple values using objects and arrays, and void functions.',
+        objectives: ['How the return keyword halts execution', 'Returning expressions and data structures', 'Handling undefined return values']
+      }
     ]
   },
   {
@@ -125,6 +171,31 @@ const chapters = ref<ChapterItem[]>([
   }
 ])
 
+const currentLessonId = ref('3.2')
+
+const currentLesson = computed(() => {
+  for (const chap of chapters.value) {
+    const found = chap.lessons.find(l => l.id === currentLessonId.value)
+    if (found) return found
+  }
+  return chapters.value[2].lessons[1]
+})
+
+// Calculate total and completed lessons
+const totalLessonsCount = computed(() => {
+  return chapters.value.reduce((acc, chap) => acc + chap.lessons.length, 0)
+})
+
+const completedLessonsCount = computed(() => {
+  return chapters.value.reduce((acc, chap) => {
+    return acc + chap.lessons.filter(l => l.status === 'completed').length
+  }, 0)
+})
+
+const overallProgressPercentage = computed(() => {
+  return Math.round((completedLessonsCount.value / totalLessonsCount.value) * 100)
+})
+
 const toggleChapter = (chapter: ChapterItem) => {
   if (chapter.locked) return
   chapter.expanded = !chapter.expanded
@@ -136,20 +207,215 @@ const toggleExpandAll = () => {
     if (!c.locked) c.expanded = !allOpen
   })
 }
+
+// Select a lesson
+const selectLesson = (chap: ChapterItem, lsn: LessonItem) => {
+  if (lsn.status === 'locked' || chap.locked) return
+  currentLessonId.value = lsn.id
+  chapters.value.forEach(c => {
+    c.lessons.forEach(l => {
+      if (l.status === 'active') l.status = 'completed'
+    })
+  })
+  lsn.status = 'active'
+}
+
+// Mini Quiz Questions for JavaScript Functions
+const quizQuestions = ref([
+  {
+    id: 1,
+    question: 'Which keyword is used to declare a function in JavaScript?',
+    options: ['def', 'func', 'function', 'fn'],
+    correct: 2
+  },
+  {
+    id: 2,
+    question: 'What is the correct syntax for declaring a function named "calculateTotal"?',
+    options: [
+      'function:calculateTotal() {}',
+      'function calculateTotal() {}',
+      'def calculateTotal() {}',
+      'call calculateTotal() {}'
+    ],
+    correct: 1
+  },
+  {
+    id: 3,
+    question: 'What statement is used to return a value back to the caller of a function?',
+    options: ['send', 'output', 'yield', 'return'],
+    correct: 3
+  },
+  {
+    id: 4,
+    question: 'What is a parameter in a JavaScript function?',
+    options: [
+      'A variable listed inside the parentheses in the function definition',
+      'The value given to the function when it is called',
+      'The return value of the function',
+      'The HTML tag calling the script'
+    ],
+    correct: 0
+  },
+  {
+    id: 5,
+    question: 'What happens if a function does not specify a return statement?',
+    options: [
+      'It throws a syntax error',
+      'It returns null',
+      'It returns undefined',
+      'It automatically returns 0'
+    ],
+    correct: 2
+  }
+])
+
+const quizScore = computed(() => {
+  let score = 0
+  quizQuestions.value.forEach((q, idx) => {
+    if (quizAnswers.value[idx] === q.correct) {
+      score++
+    }
+  })
+  return score
+})
+
+const quizScorePercentage = computed(() => {
+  return Math.round((quizScore.value / quizQuestions.value.length) * 100)
+})
+
+const isQuizPassed = computed(() => {
+  return quizScorePercentage.value >= 70
+})
+
+const formattedQuizTime = computed(() => {
+  const m = Math.floor(quizTimeSeconds.value / 60)
+  const s = quizTimeSeconds.value % 60
+  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
+})
+
+// Trigger Mini Quiz
+const handleCompleteAndNext = () => {
+  // Open the mini quiz modal
+  quizAnswers.value = {}
+  currentQuestionIndex.value = 0
+  isQuizSubmitted.value = false
+  isQuizOpen.value = true
+}
+
+const selectQuizAnswer = (qIndex: number, optIndex: number) => {
+  quizAnswers.value[qIndex] = optIndex
+}
+
+const submitQuiz = () => {
+  isQuizSubmitted.value = true
+}
+
+const retakeQuiz = () => {
+  quizAnswers.value = {}
+  currentQuestionIndex.value = 0
+  isQuizSubmitted.value = false
+}
+
+// Pass flow: Advance to next lesson
+const handlePassAndAdvance = () => {
+  isQuizOpen.value = false
+  
+  // Find current chapter & lesson index
+  let foundChapIndex = -1
+  let foundLessonIndex = -1
+  
+  chapters.value.forEach((c, cIdx) => {
+    const lIdx = c.lessons.findIndex(l => l.id === currentLessonId.value)
+    if (lIdx !== -1) {
+      foundChapIndex = cIdx
+      foundLessonIndex = lIdx
+    }
+  })
+
+  if (foundChapIndex !== -1 && foundLessonIndex !== -1) {
+    // 1. Mark current lesson completed
+    chapters.value[foundChapIndex].lessons[foundLessonIndex].status = 'completed'
+
+    // Update chapter progress string
+    const comp = chapters.value[foundChapIndex].lessons.filter(l => l.status === 'completed').length
+    const tot = chapters.value[foundChapIndex].lessons.length
+    chapters.value[foundChapIndex].progress = `${comp}/${tot}`
+
+    // 2. Find next lesson
+    if (foundLessonIndex + 1 < chapters.value[foundChapIndex].lessons.length) {
+      const nextLesson = chapters.value[foundChapIndex].lessons[foundLessonIndex + 1]
+      nextLesson.status = 'active'
+      currentLessonId.value = nextLesson.id
+    } else if (foundChapIndex + 1 < chapters.value.length) {
+      // Unlock next chapter
+      const nextChap = chapters.value[foundChapIndex + 1]
+      nextChap.locked = false
+      nextChap.expanded = true
+      if (nextChap.lessons.length > 0) {
+        nextChap.lessons[0].status = 'active'
+        currentLessonId.value = nextChap.lessons[0].id
+      }
+    } else {
+      // All lessons in all chapters completed!
+      isCourseCompletedModalOpen.value = true
+    }
+
+    // Trigger celebration toast
+    celebrationToastMessage.value = `Lesson completed! Course progress updated to ${overallProgressPercentage.value}%.`
+    showCelebrationToast.value = true
+    setTimeout(() => {
+      showCelebrationToast.value = false
+    }, 4000)
+  }
+}
+
+// Previous and Next lesson triggers
+const handlePreviousLesson = () => {
+  let foundChapIndex = -1
+  let foundLessonIndex = -1
+  
+  chapters.value.forEach((c, cIdx) => {
+    const lIdx = c.lessons.findIndex(l => l.id === currentLessonId.value)
+    if (lIdx !== -1) {
+      foundChapIndex = cIdx
+      foundLessonIndex = lIdx
+    }
+  })
+
+  if (foundLessonIndex > 0) {
+    const prev = chapters.value[foundChapIndex].lessons[foundLessonIndex - 1]
+    if (prev.status !== 'locked') {
+      selectLesson(chapters.value[foundChapIndex], prev)
+    }
+  }
+}
+
+const handleNextLessonDirect = () => {
+  handleCompleteAndNext()
+}
 </script>
 
 <template>
   <StudentLayout
-    title="Chapter 3 - JavaScript Functions — Web Development Course"
+    :title="`${currentLesson.title} — Web Development Course`"
     :breadcrumbs="[
       { label: 'Dashboard', href: '/student/dashboard' },
       { label: 'My Courses', href: '/student/my-courses/enrolled' },
-      { label: 'Web Development', href: '/student/my-courses/enrolled' },
-      { label: 'Chapter 3 - JavaScript Functions' }
+      { label: 'Web Development', href: '/student/courses/1/overview' },
+      { label: currentLesson.title }
     ]"
   >
-    <div class="space-y-6 pb-12">
+    <div class="space-y-6 pb-12 relative">
       
+      <!-- Toast Notification -->
+      <div
+        v-if="showCelebrationToast"
+        class="fixed top-20 right-6 z-50 p-4 rounded-2xl bg-emerald-600 text-white font-bold text-xs shadow-2xl flex items-center gap-3 border border-emerald-400 animate-in fade-in slide-in-from-top-4 duration-300"
+      >
+        <span class="text-base">🎉</span>
+        <span>{{ celebrationToastMessage }}</span>
+      </div>
+
       <!-- MAIN GRID: Left 8 cols Video & Tabs, Right 4 cols Course Progress & AI Assistant -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
@@ -164,7 +430,7 @@ const toggleExpandAll = () => {
               </div>
               <div>
                 <h1 class="text-lg sm:text-xl font-extrabold text-white tracking-tight">
-                  Chapter 3 - JavaScript Functions
+                  {{ currentLesson.title }}
                 </h1>
                 <p class="text-xs text-purple-400/90 font-medium">
                   Web Development Course
@@ -175,6 +441,7 @@ const toggleExpandAll = () => {
             <!-- Top Navigation Buttons (< Previous, Next >) -->
             <div class="flex items-center gap-2 self-start sm:self-auto">
               <button
+                @click="handlePreviousLesson"
                 type="button"
                 class="px-3.5 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700/80 flex items-center gap-1.5 transition-colors cursor-pointer"
               >
@@ -182,6 +449,7 @@ const toggleExpandAll = () => {
                 <span>Previous</span>
               </button>
               <button
+                @click="handleNextLessonDirect"
                 type="button"
                 class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/30 flex items-center gap-1.5 transition-colors cursor-pointer"
               >
@@ -267,7 +535,7 @@ const toggleExpandAll = () => {
                   <button class="hover:text-white transition-colors cursor-pointer">
                     🔊
                   </button>
-                  <span class="text-[11px] font-mono text-slate-400">08:45 / 18:20</span>
+                  <span class="text-[11px] font-mono text-slate-400">08:45 / {{ currentLesson.duration }}</span>
                 </div>
 
                 <div class="flex items-center gap-3">
@@ -350,7 +618,7 @@ const toggleExpandAll = () => {
             <div class="space-y-2.5">
               <h3 class="text-sm font-bold text-white uppercase tracking-wider">About This Lesson</h3>
               <p class="text-xs text-slate-300 leading-relaxed">
-                In this lesson, you will learn about JavaScript Functions, how to create them, use parameters, return values, and practical examples.
+                {{ currentLesson.about || 'In this lesson, you will learn about JavaScript Functions, how to create them, use parameters, return values, and practical examples.' }}
               </p>
             </div>
 
@@ -358,21 +626,13 @@ const toggleExpandAll = () => {
             <div class="space-y-2.5">
               <h4 class="text-xs font-bold text-slate-200 uppercase tracking-wider">What you will learn:</h4>
               <ul class="space-y-2 text-xs text-slate-300">
-                <li class="flex items-center gap-2.5">
+                <li
+                  v-for="(obj, idx) in (currentLesson.objectives || ['What is a function in JavaScript', 'How to declare and call functions', 'Function parameters and return values', 'Real world examples'])"
+                  :key="idx"
+                  class="flex items-center gap-2.5"
+                >
                   <span class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-bold">✓</span>
-                  <span>What is a function in JavaScript</span>
-                </li>
-                <li class="flex items-center gap-2.5">
-                  <span class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-bold">✓</span>
-                  <span>How to declare and call functions</span>
-                </li>
-                <li class="flex items-center gap-2.5">
-                  <span class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-bold">✓</span>
-                  <span>Function parameters and return values</span>
-                </li>
-                <li class="flex items-center gap-2.5">
-                  <span class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-bold">✓</span>
-                  <span>Real world examples</span>
+                  <span>{{ obj }}</span>
                 </li>
               </ul>
             </div>
@@ -444,6 +704,7 @@ const toggleExpandAll = () => {
           <!-- Bottom Action Buttons (Previous Lesson / Complete & Next Lesson) -->
           <div class="flex items-center justify-between pt-4 border-t border-slate-800">
             <button
+              @click="handlePreviousLesson"
               type="button"
               class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs border border-slate-700 flex items-center gap-2 transition-colors cursor-pointer"
             >
@@ -452,6 +713,7 @@ const toggleExpandAll = () => {
             </button>
 
             <button
+              @click="handleCompleteAndNext"
               type="button"
               class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 flex items-center gap-2 hover:scale-105 active:scale-95 transition-all cursor-pointer"
             >
@@ -463,18 +725,18 @@ const toggleExpandAll = () => {
         </div>
 
         <!-- RIGHT 4 COLUMNS: Course Progress & Curriculum Accordion + AI Study Assistant -->
-        <div class="lg:col-span-4 space-y-6">
+        <div class="lg:col-span-4 space-y-6 sticky top-20">
           
           <!-- Course Progress Card -->
           <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-3">
             <div class="flex items-center justify-between text-xs font-bold">
               <span class="text-white">Course Progress</span>
-              <span class="text-purple-400">53%</span>
+              <span class="text-purple-400">{{ overallProgressPercentage }}%</span>
             </div>
-            <p class="text-[11px] text-slate-400">8 / 15 Lessons Completed</p>
+            <p class="text-[11px] text-slate-400">{{ completedLessonsCount }} / {{ totalLessonsCount }} Lessons Completed</p>
             
             <div class="w-full h-2.5 rounded-full bg-slate-800 overflow-hidden">
-              <div class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-500" style="width: 53%"></div>
+              <div class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-500" :style="{ width: overallProgressPercentage + '%' }"></div>
             </div>
           </div>
 
@@ -526,18 +788,21 @@ const toggleExpandAll = () => {
                   <div
                     v-for="lsn in chap.lessons"
                     :key="lsn.id"
+                    @click="selectLesson(chap, lsn)"
                     :class="[
-                      lsn.status === 'active'
+                      lsn.status === 'active' || lsn.id === currentLessonId
                         ? 'bg-purple-600/25 border-purple-500/40 text-white font-bold'
                         : lsn.status === 'completed'
-                        ? 'text-slate-300 hover:bg-slate-900 border-transparent'
-                        : 'text-slate-400 hover:bg-slate-900 border-transparent',
+                        ? 'text-slate-300 hover:bg-slate-900 border-transparent cursor-pointer'
+                        : lsn.status === 'pending'
+                        ? 'text-slate-400 hover:bg-slate-900 border-transparent cursor-pointer'
+                        : 'text-slate-600 border-transparent opacity-60 cursor-not-allowed',
                       'p-2.5 rounded-xl border text-xs flex items-center justify-between transition-colors'
                     ]"
                   >
                     <div class="flex items-center gap-2.5 truncate">
                       <span v-if="lsn.status === 'completed'" class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-bold">✓</span>
-                      <span v-else-if="lsn.status === 'active'" class="w-4 h-4 rounded-full bg-purple-500 text-white flex items-center justify-center text-[9px]">▶</span>
+                      <span v-else-if="lsn.status === 'active' || lsn.id === currentLessonId" class="w-4 h-4 rounded-full bg-purple-500 text-white flex items-center justify-center text-[9px]">▶</span>
                       <span v-else-if="lsn.status === 'locked'" class="w-4 h-4 text-slate-500 flex items-center justify-center text-[10px]">🔒</span>
                       <span v-else class="w-4 h-4 rounded-full border border-slate-600 flex items-center justify-center text-[9px]">○</span>
                       <span class="truncate">{{ lsn.title }}</span>
@@ -626,6 +891,253 @@ const toggleExpandAll = () => {
 
         </div>
 
+      </div>
+
+      <!-- MINI QUIZ MODAL (Interactive Assessment Step) -->
+      <div
+        v-if="isQuizOpen"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md transition-opacity"
+      >
+        <div class="w-full max-w-2xl rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl p-6 sm:p-8 space-y-6 text-white animate-in zoom-in-95 duration-200">
+          
+          <!-- Modal Header -->
+          <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-purple-600/30 text-purple-400 border border-purple-500/40 flex items-center justify-center text-sm font-bold">
+                📝
+              </div>
+              <div>
+                <h3 class="text-base font-bold text-white">Lesson Practice / Mini Quiz</h3>
+                <p class="text-xs text-purple-400">{{ currentLesson.title }}</p>
+              </div>
+            </div>
+
+            <button
+              @click="isQuizOpen = false"
+              type="button"
+              class="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+
+          <!-- QUIZ IN PROGRESS VIEW -->
+          <div v-if="!isQuizSubmitted" class="space-y-6">
+            <div class="flex items-center justify-between text-xs text-slate-400">
+              <span>Question {{ currentQuestionIndex + 1 }} of {{ quizQuestions.length }}</span>
+              <span class="font-mono">⏱ {{ formattedQuizTime }}</span>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
+              <div
+                class="h-full bg-purple-500 rounded-full transition-all duration-300"
+                :style="{ width: `${((currentQuestionIndex + 1) / quizQuestions.length) * 100}%` }"
+              ></div>
+            </div>
+
+            <!-- Current Question -->
+            <div class="space-y-4">
+              <h4 class="text-sm sm:text-base font-bold text-slate-100 leading-snug">
+                {{ quizQuestions[currentQuestionIndex].question }}
+              </h4>
+
+              <!-- Multiple Choice Options -->
+              <div class="space-y-2.5">
+                <button
+                  v-for="(option, optIdx) in quizQuestions[currentQuestionIndex].options"
+                  :key="optIdx"
+                  @click="selectQuizAnswer(currentQuestionIndex, optIdx)"
+                  type="button"
+                  :class="[
+                    quizAnswers[currentQuestionIndex] === optIdx
+                      ? 'bg-purple-600/30 border-purple-500 text-white font-bold shadow-md shadow-purple-600/20'
+                      : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:bg-slate-800/60',
+                    'w-full p-3.5 rounded-2xl border text-xs text-left flex items-center justify-between transition-all cursor-pointer'
+                  ]"
+                >
+                  <div class="flex items-center gap-3">
+                    <span
+                      :class="[
+                        quizAnswers[currentQuestionIndex] === optIdx
+                          ? 'bg-purple-500 text-white'
+                          : 'bg-slate-800 text-slate-400',
+                        'w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px] shrink-0'
+                      ]"
+                    >
+                      {{ String.fromCharCode(65 + optIdx) }}
+                    </span>
+                    <span>{{ option }}</span>
+                  </div>
+
+                  <span v-if="quizAnswers[currentQuestionIndex] === optIdx" class="text-purple-400 font-bold">●</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Navigation Controls inside Quiz -->
+            <div class="flex items-center justify-between pt-4 border-t border-slate-800">
+              <button
+                :disabled="currentQuestionIndex === 0"
+                @click="currentQuestionIndex--"
+                type="button"
+                :class="[
+                  currentQuestionIndex === 0 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-800 cursor-pointer',
+                  'px-4 py-2 rounded-xl bg-slate-950 text-slate-300 border border-slate-800 text-xs font-bold transition-colors'
+                ]"
+              >
+                Previous
+              </button>
+
+              <button
+                v-if="currentQuestionIndex < quizQuestions.length - 1"
+                @click="currentQuestionIndex++"
+                type="button"
+                class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-md shadow-purple-600/30 transition-all cursor-pointer"
+              >
+                Next Question ›
+              </button>
+
+              <button
+                v-else
+                @click="submitQuiz"
+                type="button"
+                class="px-6 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md shadow-emerald-600/30 transition-all cursor-pointer"
+              >
+                Submit Quiz ✓
+              </button>
+            </div>
+          </div>
+
+          <!-- QUIZ RESULT & AI ANALYSIS VIEW -->
+          <div v-else class="space-y-6 text-center">
+            <div
+              :class="[
+                isQuizPassed ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300' : 'bg-rose-500/15 border-rose-500/30 text-rose-300',
+                'p-6 rounded-3xl border space-y-3'
+              ]"
+            >
+              <div class="text-3xl">
+                {{ isQuizPassed ? '🎉' : '⚠️' }}
+              </div>
+              <h4 class="text-lg font-black text-white">
+                {{ isQuizPassed ? 'Congratulations! You passed this lesson.' : 'You need more practice.' }}
+              </h4>
+              <p class="text-xs opacity-90">
+                {{ isQuizPassed ? 'You have successfully verified your understanding of JavaScript Functions.' : 'Score 70% or higher to unlock the next lesson and advance.' }}
+              </p>
+
+              <!-- Score Summary Grid -->
+              <div class="grid grid-cols-3 gap-3 pt-3 text-left">
+                <div class="p-3 rounded-2xl bg-slate-950/60 border border-slate-800/80">
+                  <p class="text-[10px] text-slate-400">Score</p>
+                  <p class="text-base font-black text-white mt-0.5">{{ quizScore }} / {{ quizQuestions.length }}</p>
+                </div>
+                <div class="p-3 rounded-2xl bg-slate-950/60 border border-slate-800/80">
+                  <p class="text-[10px] text-slate-400">Percentage</p>
+                  <p :class="[isQuizPassed ? 'text-emerald-400' : 'text-rose-400', 'text-base font-black mt-0.5']">
+                    {{ quizScorePercentage }}%
+                  </p>
+                </div>
+                <div class="p-3 rounded-2xl bg-slate-950/60 border border-slate-800/80">
+                  <p class="text-[10px] text-slate-400">Time Used</p>
+                  <p class="text-base font-black text-cyan-300 font-mono mt-0.5">{{ formattedQuizTime }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- AI Analysis Placeholder Box -->
+            <div class="p-4 rounded-2xl bg-indigo-950/40 border border-indigo-500/30 text-left space-y-2">
+              <div class="flex items-center gap-2">
+                <span class="text-sm">🤖</span>
+                <span class="text-xs font-bold text-indigo-300 uppercase tracking-wider">AI Analysis & Feedback</span>
+              </div>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                {{ isQuizPassed
+                  ? 'Great performance! You demonstrated clear comprehension of function syntax and return mechanisms. Continue practicing parameter scoping in the next lesson.'
+                  : 'Review the return statement logic in Chapter 3.2. Remember that without an explicit return, a function defaults to returning undefined.' }}
+              </p>
+            </div>
+
+            <!-- Action Buttons based on Pass / Fail -->
+            <div class="flex items-center justify-center gap-3 pt-2">
+              <template v-if="isQuizPassed">
+                <button
+                  @click="handlePassAndAdvance"
+                  type="button"
+                  class="px-8 py-3 rounded-2xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-xl shadow-purple-600/30 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                >
+                  Continue to Next Lesson →
+                </button>
+              </template>
+              <template v-else>
+                <button
+                  @click="isQuizOpen = false"
+                  type="button"
+                  class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition-colors cursor-pointer"
+                >
+                  Review Lesson
+                </button>
+                <button
+                  @click="retakeQuiz"
+                  type="button"
+                  class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 transition-all cursor-pointer"
+                >
+                  Retake Quiz 🔄
+                </button>
+              </template>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- COURSE COMPLETED CELEBRATION MODAL (Final Assessment Completed) -->
+      <div
+        v-if="isCourseCompletedModalOpen"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md transition-opacity"
+      >
+        <div class="w-full max-w-lg rounded-3xl bg-slate-900 border border-purple-500/40 shadow-2xl p-6 sm:p-8 space-y-6 text-center text-white animate-in zoom-in-95 duration-200">
+          <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white text-3xl flex items-center justify-center mx-auto shadow-2xl shadow-purple-600/40">
+            🏆
+          </div>
+
+          <div class="space-y-2">
+            <h3 class="text-xl font-black text-white tracking-tight">Course Completed!</h3>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Congratulations Sok Pisey! You have completed all 15 lessons and assessments for the <strong>Web Development Course</strong>.
+            </p>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-purple-950/40 border border-purple-500/30 text-left flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="text-2xl">🎓</span>
+              <div>
+                <p class="text-xs font-bold text-white">Certificate of Completion</p>
+                <p class="text-[10px] text-purple-300">Verified by Saint Paul Institute</p>
+              </div>
+            </div>
+            <span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold border border-emerald-500/30">
+              Ready
+            </span>
+          </div>
+
+          <div class="flex items-center justify-center gap-3 pt-2">
+            <button
+              @click="isCourseCompletedModalOpen = false"
+              type="button"
+              class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs cursor-pointer"
+            >
+              Close
+            </button>
+            <Link
+              href="/student/certificates/my-certificates"
+              class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-xl shadow-purple-600/30 cursor-pointer"
+            >
+              View Certificate 🏅
+            </Link>
+          </div>
+        </div>
       </div>
 
     </div>
