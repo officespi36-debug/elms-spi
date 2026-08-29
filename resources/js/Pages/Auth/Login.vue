@@ -256,6 +256,20 @@ const getDigitInput = (idx: number): HTMLInputElement | null => {
   return refs[idx] || null
 }
 
+const otpEmailInputRef = ref<HTMLInputElement | null>(null)
+
+const appendDomain = (domain: string) => {
+  if (!otpEmail.value) {
+    otpEmail.value = domain
+  } else {
+    const username = otpEmail.value.split('@')[0].trim()
+    otpEmail.value = username + domain
+  }
+  nextTick(() => {
+    otpEmailInputRef.value?.focus()
+  })
+}
+
 const clearOtpDigits = () => {
   otpDigits.value = ['', '', '', '', '', '']
   otpCode.value = ''
@@ -1482,22 +1496,84 @@ onUnmounted(() => {
             </span>
           </div>
 
-          <div v-if="otpStep === 1" class="space-y-3">
-            <input
-              v-model="otpEmail"
-              type="email"
-              required
-              placeholder="name@example.com"
-              class="w-full h-11 px-3.5 bg-white dark:bg-[#121214] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 focus:border-blue-600 dark:focus:border-sky-500 focus:ring-2 focus:ring-blue-500/20 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 text-xs sm:text-sm rounded-xl outline-none shadow-2xs transition-all"
-              @keydown.enter.prevent="sendEmailOtp"
-            />
+          <div v-if="otpStep === 1" class="space-y-3.5">
+            <!-- Email Input Field with Icon Prefix & Clear Button -->
+            <div class="space-y-1.5">
+              <label class="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 flex items-center justify-between">
+                <span>{{ currentLang === 'km' ? 'អាសយដ្ឋានអ៊ីមែល' : 'Email Address' }}</span>
+                <span class="text-[10px] text-zinc-400 font-normal">{{ currentLang === 'km' ? 'ទទួលកូដ OTP 6 ខ្ទង់' : 'Receive 6-digit OTP' }}</span>
+              </label>
+
+              <div class="relative w-full group">
+                <div class="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-blue-600 dark:text-sky-400">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="20" height="16" x="2" y="4" rx="2"/>
+                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                  </svg>
+                </div>
+                <input
+                  ref="otpEmailInputRef"
+                  v-model="otpEmail"
+                  type="email"
+                  required
+                  autofocus
+                  autocomplete="email"
+                  :placeholder="currentLang === 'km' ? 'បញ្ចូលអ៊ីមែល (ឧ. name@gmail.com)' : 'Enter email (e.g. name@gmail.com)'"
+                  class="w-full h-11 pl-10 pr-9 bg-white dark:bg-[#121214] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 focus:border-blue-600 dark:focus:border-sky-400 focus:ring-2 focus:ring-blue-500/20 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 text-xs sm:text-sm rounded-xl outline-none shadow-2xs transition-all font-medium"
+                  @keydown.enter.prevent="sendEmailOtp"
+                />
+                <button
+                  v-if="otpEmail"
+                  type="button"
+                  @click="otpEmail = ''; otpEmailInputRef?.focus()"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 flex items-center justify-center text-[10px] cursor-pointer transition-colors"
+                  title="Clear"
+                >
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+
+              <!-- Quick Domain Suggestion Pills -->
+              <div class="flex items-center gap-1.5 flex-wrap pt-1 select-none">
+                <span class="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium">
+                  {{ currentLang === 'km' ? 'បំពេញរហ័ស៖' : 'Quick fill:' }}
+                </span>
+                <button
+                  type="button"
+                  @click="appendDomain('@gmail.com')"
+                  class="px-2 py-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-800/80 hover:bg-blue-50 dark:hover:bg-sky-950/40 text-zinc-700 dark:text-zinc-300 hover:text-blue-600 dark:hover:text-sky-300 text-[11px] font-mono font-semibold border border-zinc-200 dark:border-zinc-700/60 transition-all cursor-pointer active:scale-95 flex items-center gap-1"
+                >
+                  <span class="text-amber-500 font-bold text-[10px]">⚡</span>
+                  <span>@gmail.com</span>
+                </button>
+                <button
+                  type="button"
+                  @click="appendDomain('@spi.edu.kh')"
+                  class="px-2 py-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-800/80 hover:bg-blue-50 dark:hover:bg-sky-950/40 text-zinc-700 dark:text-zinc-300 hover:text-blue-600 dark:hover:text-sky-300 text-[11px] font-mono font-semibold border border-zinc-200 dark:border-zinc-700/60 transition-all cursor-pointer active:scale-95 flex items-center gap-1"
+                >
+                  <span class="text-blue-500 font-bold text-[10px]">🎓</span>
+                  <span>@spi.edu.kh</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Send OTP Button -->
             <button
               type="button"
               @click="sendEmailOtp"
-              :disabled="isOtpSending || !otpEmail"
-              class="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm flex items-center justify-center transition-all duration-150 cursor-pointer disabled:opacity-50 shadow-md shadow-blue-500/20 active:scale-[0.99]"
+              :disabled="isOtpSending || !otpEmail || !otpEmail.includes('@')"
+              :class="[
+                'w-full h-11 rounded-xl font-semibold text-xs sm:text-sm flex items-center justify-center transition-all duration-200 select-none cursor-pointer',
+                otpEmail && otpEmail.includes('@') && !isOtpSending
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 active:scale-[0.99]'
+                  : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 cursor-not-allowed opacity-60'
+              ]"
             >
               <i v-if="isOtpSending" class="pi pi-spin pi-spinner text-sm mr-2"></i>
+              <svg v-else class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"/>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
               <span>{{ isOtpSending ? (currentLang === 'km' ? 'កំពុងផ្ញើលេខកូដ...' : 'Sending code...') : (currentLang === 'km' ? 'ផ្ញើលេខកូដ OTP ទៅ Email' : 'Send OTP to Email') }}</span>
             </button>
           </div>
@@ -1676,29 +1752,55 @@ onUnmounted(() => {
             </span>
           </div>
 
-          <div v-if="phoneOtpStep === 1" class="space-y-3">
-            <div class="relative w-full">
-              <div class="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 pointer-events-none text-xs font-bold text-zinc-600 dark:text-zinc-400">
-                <span class="text-sm">🇰🇭</span>
-                <span>+855</span>
-                <span class="text-zinc-300 dark:text-zinc-700">|</span>
+          <div v-if="phoneOtpStep === 1" class="space-y-3.5">
+            <div class="space-y-1.5">
+              <label class="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 flex items-center justify-between">
+                <span>{{ currentLang === 'km' ? 'លេខទូរស័ព្ទ' : 'Phone Number' }}</span>
+                <span class="text-[10px] text-zinc-400 font-normal">{{ currentLang === 'km' ? 'ទទួលកូដ OTP តាម SMS' : 'Receive OTP via SMS' }}</span>
+              </label>
+
+              <div class="relative w-full group">
+                <div class="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 pointer-events-none text-xs font-bold text-zinc-600 dark:text-zinc-400">
+                  <span class="text-sm">🇰🇭</span>
+                  <span>+855</span>
+                  <span class="text-zinc-300 dark:text-zinc-700">|</span>
+                </div>
+                <input
+                  v-model="otpPhone"
+                  type="tel"
+                  required
+                  placeholder="12 345 678"
+                  class="w-full h-11 pl-20 pr-9 bg-white dark:bg-[#121214] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 focus:border-emerald-600 dark:focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 text-xs sm:text-sm rounded-xl outline-none shadow-2xs font-mono transition-all font-medium"
+                  @keydown.enter.prevent="sendPhoneOtp"
+                />
+                <button
+                  v-if="otpPhone"
+                  type="button"
+                  @click="otpPhone = ''"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 flex items-center justify-center text-[10px] cursor-pointer transition-colors"
+                  title="Clear"
+                >
+                  <i class="pi pi-times"></i>
+                </button>
               </div>
-              <input
-                v-model="otpPhone"
-                type="tel"
-                required
-                placeholder="12 345 678"
-                class="w-full h-11 pl-20 pr-3.5 bg-white dark:bg-[#121214] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 focus:border-emerald-600 dark:focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 text-xs sm:text-sm rounded-xl outline-none shadow-2xs font-mono transition-all"
-                @keydown.enter.prevent="sendPhoneOtp"
-              />
             </div>
+
             <button
               type="button"
               @click="sendPhoneOtp"
               :disabled="isPhoneOtpSending || !otpPhone"
-              class="w-full h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm flex items-center justify-center transition-all duration-150 cursor-pointer disabled:opacity-50 shadow-md shadow-emerald-500/20 active:scale-[0.99]"
+              :class="[
+                'w-full h-11 rounded-xl font-semibold text-xs sm:text-sm flex items-center justify-center transition-all duration-200 select-none cursor-pointer',
+                otpPhone && !isPhoneOtpSending
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-500/20 active:scale-[0.99]'
+                  : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 cursor-not-allowed opacity-60'
+              ]"
             >
               <i v-if="isPhoneOtpSending" class="pi pi-spin pi-spinner text-sm mr-2"></i>
+              <svg v-else class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"/>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
               <span>{{ isPhoneOtpSending ? (currentLang === 'km' ? 'កំពុងផ្ញើសារ SMS...' : 'Sending SMS...') : (currentLang === 'km' ? 'ផ្ញើលេខកូដ OTP តាម SMS' : 'Send OTP via SMS') }}</span>
             </button>
           </div>
