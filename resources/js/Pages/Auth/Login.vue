@@ -235,8 +235,12 @@ const isPhoneOtpSending = ref(false)
 const isPhoneOtpVerifying = ref(false)
 const otpCountdown = ref(0)
 const phoneOtpCountdown = ref(0)
+const emailResendCooldown = ref(0)
+const phoneResendCooldown = ref(0)
 let otpCountdownTimer: any = null
 let phoneOtpCountdownTimer: any = null
+let emailCooldownTimer: any = null
+let phoneCooldownTimer: any = null
 
 // 6-digit Segmented PIN Input System
 const otpDigits = ref<string[]>(['', '', '', '', '', ''])
@@ -247,8 +251,9 @@ const digitRef3 = ref<HTMLInputElement | null>(null)
 const digitRef4 = ref<HTMLInputElement | null>(null)
 const digitRef5 = ref<HTMLInputElement | null>(null)
 
-const getDigitInput = (idx: number) => {
-  return [digitRef0, digitRef1, digitRef2, digitRef3, digitRef4, digitRef5][idx]?.value
+const getDigitInput = (idx: number): HTMLInputElement | null => {
+  const refs = [digitRef0.value, digitRef1.value, digitRef2.value, digitRef3.value, digitRef4.value, digitRef5.value]
+  return refs[idx] || null
 }
 
 const clearOtpDigits = () => {
@@ -259,8 +264,8 @@ const clearOtpDigits = () => {
 const focusFirstOtpDigit = () => {
   nextTick(() => {
     setTimeout(() => {
-      getDigitInput(0)?.focus()
-    }, 100)
+      digitRef0.value?.focus()
+    }, 80)
   })
 }
 
@@ -276,8 +281,10 @@ const onDigitInput = (index: number, event: Event) => {
     const nextIdx = Math.min(index + chars.length, 5)
     getDigitInput(nextIdx)?.focus()
     if (otpCode.value.length === 6) {
-      if (authMode.value === 'phone_otp') verifyPhoneOtp()
-      else if (authMode.value === 'otp') verifyEmailOtp()
+      nextTick(() => {
+        if (authMode.value === 'phone_otp' && !isPhoneOtpVerifying.value) verifyPhoneOtp()
+        else if (authMode.value === 'otp' && !isOtpVerifying.value) verifyEmailOtp()
+      })
     }
   } else {
     otpDigits.value[index] = raw
@@ -286,8 +293,10 @@ const onDigitInput = (index: number, event: Event) => {
       getDigitInput(index + 1)?.focus()
     }
     if (otpCode.value.length === 6) {
-      if (authMode.value === 'phone_otp') verifyPhoneOtp()
-      else if (authMode.value === 'otp') verifyEmailOtp()
+      nextTick(() => {
+        if (authMode.value === 'phone_otp' && !isPhoneOtpVerifying.value) verifyPhoneOtp()
+        else if (authMode.value === 'otp' && !isOtpVerifying.value) verifyEmailOtp()
+      })
     }
   }
 }
@@ -307,8 +316,10 @@ const onDigitKeydown = (index: number, event: KeyboardEvent) => {
   } else if (event.key === 'ArrowRight' && index < 5) {
     getDigitInput(index + 1)?.focus()
   } else if (event.key === 'Enter') {
-    if (authMode.value === 'phone_otp') verifyPhoneOtp()
-    else if (authMode.value === 'otp') verifyEmailOtp()
+    if (otpCode.value.length === 6) {
+      if (authMode.value === 'phone_otp' && !isPhoneOtpVerifying.value) verifyPhoneOtp()
+      else if (authMode.value === 'otp' && !isOtpVerifying.value) verifyEmailOtp()
+    }
   }
 }
 
@@ -324,8 +335,10 @@ const onDigitPaste = (event: ClipboardEvent) => {
     const nextIdx = Math.min(digits.length, 5)
     getDigitInput(nextIdx)?.focus()
     if (otpCode.value.length === 6) {
-      if (authMode.value === 'phone_otp') verifyPhoneOtp()
-      else if (authMode.value === 'otp') verifyEmailOtp()
+      nextTick(() => {
+        if (authMode.value === 'phone_otp' && !isPhoneOtpVerifying.value) verifyPhoneOtp()
+        else if (authMode.value === 'otp' && !isOtpVerifying.value) verifyEmailOtp()
+      })
     }
   }
 }
@@ -372,6 +385,30 @@ const startPhoneOtpTimer = (seconds = 300) => {
   }, 1000)
 }
 
+const startEmailCooldown = (seconds = 60) => {
+  emailResendCooldown.value = seconds
+  if (emailCooldownTimer) clearInterval(emailCooldownTimer)
+  emailCooldownTimer = setInterval(() => {
+    if (emailResendCooldown.value > 0) {
+      emailResendCooldown.value--
+    } else {
+      clearInterval(emailCooldownTimer)
+    }
+  }, 1000)
+}
+
+const startPhoneCooldown = (seconds = 60) => {
+  phoneResendCooldown.value = seconds
+  if (phoneCooldownTimer) clearInterval(phoneCooldownTimer)
+  phoneCooldownTimer = setInterval(() => {
+    if (phoneResendCooldown.value > 0) {
+      phoneResendCooldown.value--
+    } else {
+      clearInterval(phoneCooldownTimer)
+    }
+  }, 1000)
+}
+
 const sendEmailOtp = async () => {
   if (!otpEmail.value || isOtpSending.value) return
   isOtpSending.value = true
@@ -395,10 +432,11 @@ const sendEmailOtp = async () => {
       otpStep.value = 2
       clearOtpDigits()
       startOtpTimer(300)
+      startEmailCooldown(60)
       focusFirstOtpDigit()
       oauthNotice.value = {
         type: 'warning',
-        message: data.message || (currentLang.value === 'km' ? 'លេខកូដ OTP ត្រូវបានផ្ញើចូលប្រអប់សំបុត្រ Gmail របស់អ្នកហើយ!' : 'OTP code has been sent to your email!')
+        message: data.message || (currentLang.value === 'km' ? 'លេខកូដ OTP ត្រូវបានផ្ញើចូលប្រអប់សំបុត្រ Gmail របស់អ្នកហើយ! សូមពិនិត្យមើល Inbox/Spam។' : 'OTP code has been sent to your email! Please check Inbox/Spam.')
       }
     } else {
       oauthNotice.value = {
@@ -505,6 +543,7 @@ const sendPhoneOtp = async () => {
       phoneOtpStep.value = 2
       clearOtpDigits()
       startPhoneOtpTimer(300)
+      startPhoneCooldown(60)
       focusFirstOtpDigit()
       oauthNotice.value = {
         type: 'warning',
@@ -1045,6 +1084,10 @@ onUnmounted(() => {
     }
     removeTurnstile()
   }
+  if (otpCountdownTimer) clearInterval(otpCountdownTimer)
+  if (phoneOtpCountdownTimer) clearInterval(phoneOtpCountdownTimer)
+  if (emailCooldownTimer) clearInterval(emailCooldownTimer)
+  if (phoneCooldownTimer) clearInterval(phoneCooldownTimer)
 })
 </script>
 
@@ -1171,17 +1214,34 @@ onUnmounted(() => {
           <div
             v-if="oauthNotice"
             :class="[
-              'w-full mb-4 rounded-xl p-3 text-xs flex items-start justify-between gap-2.5 border',
+              'w-full mb-4 rounded-xl p-3 text-xs flex items-start justify-between gap-2.5 border transition-all',
               oauthNotice.type === 'warning'
-                ? 'bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300'
-                : 'bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-300'
+                ? 'bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300 shadow-xs'
+                : 'bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-300 shadow-xs'
             ]"
           >
-            <div class="flex items-start gap-2">
+            <div class="flex items-start gap-2.5 min-w-0 flex-1">
               <i :class="['shrink-0 text-sm mt-0.5', oauthNotice.type === 'warning' ? 'pi pi-exclamation-triangle text-amber-500 dark:text-amber-400' : 'pi pi-times-circle text-rose-500 dark:text-rose-400']"></i>
-              <span class="font-medium text-[11px] leading-relaxed">{{ oauthNotice.message }}</span>
+              <div class="space-y-2 flex-1 min-w-0">
+                <span class="font-medium text-[11px] leading-relaxed block">{{ oauthNotice.message }}</span>
+                <!-- Quick Action: Direct Open Gmail Shortcut -->
+                <div v-if="authMode === 'otp' && otpStep === 2 && oauthNotice.type === 'warning'" class="pt-0.5">
+                  <a
+                    href="https://mail.google.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-800 dark:text-amber-200 font-bold text-[11px] transition-all active:scale-95 border border-amber-500/30"
+                  >
+                    <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24">
+                      <path fill="#EA4335" d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.272H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L12 9.545l8.073-6.052C21.69 2.28 24 3.434 24 5.457z"/>
+                    </svg>
+                    <span>{{ currentLang === 'km' ? 'បើកមើលក្នុង Gmail' : 'Open Gmail Inbox' }}</span>
+                    <i class="pi pi-external-link text-[9px]"></i>
+                  </a>
+                </div>
+              </div>
             </div>
-            <button type="button" @click="oauthNotice = null" class="text-zinc-400 hover:text-zinc-700 dark:hover:text-white p-0.5 cursor-pointer">
+            <button type="button" @click="oauthNotice = null" class="text-zinc-400 hover:text-zinc-700 dark:hover:text-white p-0.5 cursor-pointer shrink-0">
               <i class="pi pi-times text-[10px]"></i>
             </button>
           </div>
@@ -1417,7 +1477,7 @@ onUnmounted(() => {
               <i class="pi pi-arrow-left text-[10px]"></i>
               <span>{{ currentLang === 'km' ? 'ត្រឡប់ក្រោយ' : 'Back' }}</span>
             </button>
-            <span class="text-[11px] text-zinc-500">
+            <span class="text-[11px] text-zinc-500 font-medium">
               {{ otpStep === 1 ? (currentLang === 'km' ? 'ជំហានទី ១: ផ្ញើកូដ' : 'Step 1: Send OTP') : (currentLang === 'km' ? 'ជំហានទី ២: ផ្ទៀងផ្ទាត់' : 'Step 2: Verify') }}
             </span>
           </div>
@@ -1428,17 +1488,17 @@ onUnmounted(() => {
               type="email"
               required
               placeholder="name@example.com"
-              class="w-full h-11 px-3.5 bg-white dark:bg-[#121214] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 focus:border-zinc-600 dark:focus:border-zinc-500 focus:ring-1 focus:ring-zinc-600 dark:focus:ring-zinc-500 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 text-xs sm:text-sm rounded-xl outline-none shadow-2xs"
+              class="w-full h-11 px-3.5 bg-white dark:bg-[#121214] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 focus:border-blue-600 dark:focus:border-sky-500 focus:ring-2 focus:ring-blue-500/20 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 text-xs sm:text-sm rounded-xl outline-none shadow-2xs transition-all"
               @keydown.enter.prevent="sendEmailOtp"
             />
             <button
               type="button"
               @click="sendEmailOtp"
               :disabled="isOtpSending || !otpEmail"
-              class="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white dark:bg-[#e4e4e7] dark:hover:bg-white dark:text-zinc-950 font-semibold text-xs sm:text-sm flex items-center justify-center transition-all duration-150 cursor-pointer disabled:opacity-50 shadow-md shadow-blue-500/20 active:scale-[0.99]"
+              class="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm flex items-center justify-center transition-all duration-150 cursor-pointer disabled:opacity-50 shadow-md shadow-blue-500/20 active:scale-[0.99]"
             >
               <i v-if="isOtpSending" class="pi pi-spin pi-spinner text-sm mr-2"></i>
-              <span>{{ currentLang === 'km' ? 'ផ្ញើលេខកូដ OTP ទៅ Email' : 'Send OTP to Email' }}</span>
+              <span>{{ isOtpSending ? (currentLang === 'km' ? 'កំពុងផ្ញើលេខកូដ...' : 'Sending code...') : (currentLang === 'km' ? 'ផ្ញើលេខកូដ OTP ទៅ Email' : 'Send OTP to Email') }}</span>
             </button>
           </div>
 
@@ -1468,7 +1528,10 @@ onUnmounted(() => {
                 pattern="[0-9]*"
                 maxlength="1"
                 placeholder="-"
-                class="w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white focus:border-blue-600 dark:focus:border-sky-400 focus:ring-2 focus:ring-blue-500/20 focus:scale-105 outline-none shadow-xs transition-all duration-150"
+                :class="[
+                  'w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border text-zinc-900 dark:text-white outline-none shadow-xs transition-all duration-150',
+                  otpDigits[0] ? 'border-blue-600 dark:border-sky-400 bg-blue-50/40 dark:bg-sky-950/30' : 'border-zinc-300 dark:border-zinc-700 focus:border-blue-600 dark:focus:border-sky-400 focus:ring-2 focus:ring-blue-500/20 focus:scale-105'
+                ]"
                 @input="onDigitInput(0, $event)"
                 @keydown="onDigitKeydown(0, $event)"
               />
@@ -1480,7 +1543,10 @@ onUnmounted(() => {
                 pattern="[0-9]*"
                 maxlength="1"
                 placeholder="-"
-                class="w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white focus:border-blue-600 dark:focus:border-sky-400 focus:ring-2 focus:ring-blue-500/20 focus:scale-105 outline-none shadow-xs transition-all duration-150"
+                :class="[
+                  'w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border text-zinc-900 dark:text-white outline-none shadow-xs transition-all duration-150',
+                  otpDigits[1] ? 'border-blue-600 dark:border-sky-400 bg-blue-50/40 dark:bg-sky-950/30' : 'border-zinc-300 dark:border-zinc-700 focus:border-blue-600 dark:focus:border-sky-400 focus:ring-2 focus:ring-blue-500/20 focus:scale-105'
+                ]"
                 @input="onDigitInput(1, $event)"
                 @keydown="onDigitKeydown(1, $event)"
               />
@@ -1492,7 +1558,10 @@ onUnmounted(() => {
                 pattern="[0-9]*"
                 maxlength="1"
                 placeholder="-"
-                class="w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white focus:border-blue-600 dark:focus:border-sky-400 focus:ring-2 focus:ring-blue-500/20 focus:scale-105 outline-none shadow-xs transition-all duration-150"
+                :class="[
+                  'w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border text-zinc-900 dark:text-white outline-none shadow-xs transition-all duration-150',
+                  otpDigits[2] ? 'border-blue-600 dark:border-sky-400 bg-blue-50/40 dark:bg-sky-950/30' : 'border-zinc-300 dark:border-zinc-700 focus:border-blue-600 dark:focus:border-sky-400 focus:ring-2 focus:ring-blue-500/20 focus:scale-105'
+                ]"
                 @input="onDigitInput(2, $event)"
                 @keydown="onDigitKeydown(2, $event)"
               />
@@ -1505,7 +1574,10 @@ onUnmounted(() => {
                 pattern="[0-9]*"
                 maxlength="1"
                 placeholder="-"
-                class="w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white focus:border-blue-600 dark:focus:border-sky-400 focus:ring-2 focus:ring-blue-500/20 focus:scale-105 outline-none shadow-xs transition-all duration-150"
+                :class="[
+                  'w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border text-zinc-900 dark:text-white outline-none shadow-xs transition-all duration-150',
+                  otpDigits[3] ? 'border-blue-600 dark:border-sky-400 bg-blue-50/40 dark:bg-sky-950/30' : 'border-zinc-300 dark:border-zinc-700 focus:border-blue-600 dark:focus:border-sky-400 focus:ring-2 focus:ring-blue-500/20 focus:scale-105'
+                ]"
                 @input="onDigitInput(3, $event)"
                 @keydown="onDigitKeydown(3, $event)"
               />
@@ -1517,7 +1589,10 @@ onUnmounted(() => {
                 pattern="[0-9]*"
                 maxlength="1"
                 placeholder="-"
-                class="w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white focus:border-blue-600 dark:focus:border-sky-400 focus:ring-2 focus:ring-blue-500/20 focus:scale-105 outline-none shadow-xs transition-all duration-150"
+                :class="[
+                  'w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border text-zinc-900 dark:text-white outline-none shadow-xs transition-all duration-150',
+                  otpDigits[4] ? 'border-blue-600 dark:border-sky-400 bg-blue-50/40 dark:bg-sky-950/30' : 'border-zinc-300 dark:border-zinc-700 focus:border-blue-600 dark:focus:border-sky-400 focus:ring-2 focus:ring-blue-500/20 focus:scale-105'
+                ]"
                 @input="onDigitInput(4, $event)"
                 @keydown="onDigitKeydown(4, $event)"
               />
@@ -1529,27 +1604,60 @@ onUnmounted(() => {
                 pattern="[0-9]*"
                 maxlength="1"
                 placeholder="-"
-                class="w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white focus:border-blue-600 dark:focus:border-sky-400 focus:ring-2 focus:ring-blue-500/20 focus:scale-105 outline-none shadow-xs transition-all duration-150"
+                :class="[
+                  'w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border text-zinc-900 dark:text-white outline-none shadow-xs transition-all duration-150',
+                  otpDigits[5] ? 'border-blue-600 dark:border-sky-400 bg-blue-50/40 dark:bg-sky-950/30' : 'border-zinc-300 dark:border-zinc-700 focus:border-blue-600 dark:focus:border-sky-400 focus:ring-2 focus:ring-blue-500/20 focus:scale-105'
+                ]"
                 @input="onDigitInput(5, $event)"
                 @keydown="onDigitKeydown(5, $event)"
               />
             </div>
 
-            <div class="flex items-center justify-between text-[11px]">
-              <span v-if="otpCountdown > 0" class="text-zinc-500">{{ currentLang === 'km' ? 'ផុតកំណត់:' : 'Expires in:' }} <strong class="text-amber-600 dark:text-amber-400">{{ formattedOtpTime }}</strong></span>
-              <span v-else class="text-rose-500 font-bold">{{ currentLang === 'km' ? 'កូដផុតកំណត់' : 'Code expired' }}</span>
-              <button type="button" @click="sendEmailOtp" :disabled="isOtpSending" class="text-blue-600 dark:text-zinc-400 hover:text-blue-700 dark:hover:text-white font-medium cursor-pointer">
-                {{ currentLang === 'km' ? 'ផ្ញើម្តងទៀត' : 'Resend Code' }}
+            <div class="flex items-center justify-between text-[11px] pt-0.5">
+              <span v-if="otpCountdown > 0" class="text-zinc-500 flex items-center gap-1">
+                <i class="pi pi-clock text-[10px]"></i>
+                <span>{{ currentLang === 'km' ? 'ផុតកំណត់៖' : 'Expires in:' }}</span>
+                <strong class="text-amber-600 dark:text-amber-400 font-mono">{{ formattedOtpTime }}</strong>
+              </span>
+              <span v-else class="text-rose-500 font-bold flex items-center gap-1">
+                <i class="pi pi-exclamation-circle text-[10px]"></i>
+                <span>{{ currentLang === 'km' ? 'កូដផុតកំណត់' : 'Code expired' }}</span>
+              </span>
+
+              <button
+                type="button"
+                @click="sendEmailOtp"
+                :disabled="isOtpSending || emailResendCooldown > 0"
+                :class="[
+                  'font-medium text-xs transition-colors flex items-center gap-1',
+                  emailResendCooldown > 0 || isOtpSending
+                    ? 'text-zinc-400 dark:text-zinc-600 cursor-not-allowed'
+                    : 'text-blue-600 dark:text-sky-400 hover:text-blue-700 dark:hover:text-sky-300 cursor-pointer hover:underline'
+                ]"
+              >
+                <i v-if="isOtpSending" class="pi pi-spin pi-spinner text-[10px]"></i>
+                <span v-if="emailResendCooldown > 0">
+                  {{ currentLang === 'km' ? `ផ្ញើម្តងទៀត (${emailResendCooldown}s)` : `Resend (${emailResendCooldown}s)` }}
+                </span>
+                <span v-else>
+                  {{ currentLang === 'km' ? 'ផ្ញើម្តងទៀត' : 'Resend Code' }}
+                </span>
               </button>
             </div>
+
             <button
               type="button"
               @click="verifyEmailOtp"
               :disabled="isOtpVerifying || otpCode.length < 6"
-              class="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white dark:bg-[#e4e4e7] dark:hover:bg-white dark:text-zinc-950 font-semibold text-xs sm:text-sm flex items-center justify-center transition-all duration-150 cursor-pointer disabled:opacity-50 shadow-md shadow-blue-500/20 active:scale-[0.99]"
+              :class="[
+                'w-full h-11 rounded-xl font-semibold text-xs sm:text-sm flex items-center justify-center transition-all duration-200 select-none',
+                otpCode.length === 6 && !isOtpVerifying
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white dark:bg-[#e4e4e7] dark:hover:bg-white dark:text-zinc-950 shadow-md shadow-blue-500/20 cursor-pointer active:scale-[0.99]'
+                  : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 cursor-not-allowed opacity-60'
+              ]"
             >
               <i v-if="isOtpVerifying" class="pi pi-spin pi-spinner text-sm mr-2"></i>
-              <span>{{ currentLang === 'km' ? 'ផ្ទៀងផ្ទាត់ និង ចូលប្រើប្រាស់' : 'Verify & Continue' }}</span>
+              <span>{{ isOtpVerifying ? (currentLang === 'km' ? 'កំពុងផ្ទៀងផ្ទាត់...' : 'Verifying...') : (currentLang === 'km' ? 'ផ្ទៀងផ្ទាត់ និង ចូលប្រើប្រាស់' : 'Verify & Continue') }}</span>
             </button>
           </div>
         </div>
@@ -1563,7 +1671,7 @@ onUnmounted(() => {
               <i class="pi pi-arrow-left text-[10px]"></i>
               <span>{{ currentLang === 'km' ? 'ត្រឡប់ក្រោយ' : 'Back' }}</span>
             </button>
-            <span class="text-[11px] text-zinc-500">
+            <span class="text-[11px] text-zinc-500 font-medium">
               {{ phoneOtpStep === 1 ? (currentLang === 'km' ? 'ជំហានទី ១: ផ្ញើកូដ SMS' : 'Step 1: Send SMS') : (currentLang === 'km' ? 'ជំហានទី ២: ផ្ទៀងផ្ទាត់' : 'Step 2: Verify') }}
             </span>
           </div>
@@ -1580,7 +1688,7 @@ onUnmounted(() => {
                 type="tel"
                 required
                 placeholder="12 345 678"
-                class="w-full h-11 pl-20 pr-3.5 bg-white dark:bg-[#121214] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 focus:border-zinc-600 dark:focus:border-zinc-500 focus:ring-1 focus:ring-zinc-600 dark:focus:ring-zinc-500 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 text-xs sm:text-sm rounded-xl outline-none shadow-2xs font-mono"
+                class="w-full h-11 pl-20 pr-3.5 bg-white dark:bg-[#121214] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 focus:border-emerald-600 dark:focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 text-xs sm:text-sm rounded-xl outline-none shadow-2xs font-mono transition-all"
                 @keydown.enter.prevent="sendPhoneOtp"
               />
             </div>
@@ -1588,10 +1696,10 @@ onUnmounted(() => {
               type="button"
               @click="sendPhoneOtp"
               :disabled="isPhoneOtpSending || !otpPhone"
-              class="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white dark:bg-[#e4e4e7] dark:hover:bg-white dark:text-zinc-950 font-semibold text-xs sm:text-sm flex items-center justify-center transition-all duration-150 cursor-pointer disabled:opacity-50 shadow-md shadow-blue-500/20 active:scale-[0.99]"
+              class="w-full h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm flex items-center justify-center transition-all duration-150 cursor-pointer disabled:opacity-50 shadow-md shadow-emerald-500/20 active:scale-[0.99]"
             >
               <i v-if="isPhoneOtpSending" class="pi pi-spin pi-spinner text-sm mr-2"></i>
-              <span>{{ isPhoneOtpSending ? (currentLang === 'km' ? 'កំពុងផ្ញើសារទៅកាន់ទូរស័ព្ទរបស់អ្នក...' : 'Sending message to your phone...') : (currentLang === 'km' ? 'ផ្ញើលេខកូដ OTP តាម SMS' : 'Send OTP via SMS') }}</span>
+              <span>{{ isPhoneOtpSending ? (currentLang === 'km' ? 'កំពុងផ្ញើសារ SMS...' : 'Sending SMS...') : (currentLang === 'km' ? 'ផ្ញើលេខកូដ OTP តាម SMS' : 'Send OTP via SMS') }}</span>
             </button>
           </div>
 
@@ -1605,7 +1713,7 @@ onUnmounted(() => {
               <button
                 type="button"
                 @click="phoneOtpStep = 1; clearOtpDigits()"
-                class="text-xs font-semibold text-blue-600 dark:text-sky-400 hover:underline cursor-pointer ml-2 shrink-0"
+                class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer ml-2 shrink-0"
               >
                 {{ currentLang === 'km' ? 'កែប្រែ' : 'Edit' }}
               </button>
@@ -1621,7 +1729,10 @@ onUnmounted(() => {
                 pattern="[0-9]*"
                 maxlength="1"
                 placeholder="-"
-                class="w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 focus:scale-105 outline-none shadow-xs transition-all duration-150"
+                :class="[
+                  'w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border text-zinc-900 dark:text-white outline-none shadow-xs transition-all duration-150',
+                  otpDigits[0] ? 'border-emerald-500 dark:border-emerald-400 bg-emerald-50/40 dark:bg-emerald-950/30' : 'border-zinc-300 dark:border-zinc-700 focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 focus:scale-105'
+                ]"
                 @input="onDigitInput(0, $event)"
                 @keydown="onDigitKeydown(0, $event)"
               />
@@ -1633,7 +1744,10 @@ onUnmounted(() => {
                 pattern="[0-9]*"
                 maxlength="1"
                 placeholder="-"
-                class="w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 focus:scale-105 outline-none shadow-xs transition-all duration-150"
+                :class="[
+                  'w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border text-zinc-900 dark:text-white outline-none shadow-xs transition-all duration-150',
+                  otpDigits[1] ? 'border-emerald-500 dark:border-emerald-400 bg-emerald-50/40 dark:bg-emerald-950/30' : 'border-zinc-300 dark:border-zinc-700 focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 focus:scale-105'
+                ]"
                 @input="onDigitInput(1, $event)"
                 @keydown="onDigitKeydown(1, $event)"
               />
@@ -1645,7 +1759,10 @@ onUnmounted(() => {
                 pattern="[0-9]*"
                 maxlength="1"
                 placeholder="-"
-                class="w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 focus:scale-105 outline-none shadow-xs transition-all duration-150"
+                :class="[
+                  'w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border text-zinc-900 dark:text-white outline-none shadow-xs transition-all duration-150',
+                  otpDigits[2] ? 'border-emerald-500 dark:border-emerald-400 bg-emerald-50/40 dark:bg-emerald-950/30' : 'border-zinc-300 dark:border-zinc-700 focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 focus:scale-105'
+                ]"
                 @input="onDigitInput(2, $event)"
                 @keydown="onDigitKeydown(2, $event)"
               />
@@ -1658,7 +1775,10 @@ onUnmounted(() => {
                 pattern="[0-9]*"
                 maxlength="1"
                 placeholder="-"
-                class="w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 focus:scale-105 outline-none shadow-xs transition-all duration-150"
+                :class="[
+                  'w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border text-zinc-900 dark:text-white outline-none shadow-xs transition-all duration-150',
+                  otpDigits[3] ? 'border-emerald-500 dark:border-emerald-400 bg-emerald-50/40 dark:bg-emerald-950/30' : 'border-zinc-300 dark:border-zinc-700 focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 focus:scale-105'
+                ]"
                 @input="onDigitInput(3, $event)"
                 @keydown="onDigitKeydown(3, $event)"
               />
@@ -1670,7 +1790,10 @@ onUnmounted(() => {
                 pattern="[0-9]*"
                 maxlength="1"
                 placeholder="-"
-                class="w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 focus:scale-105 outline-none shadow-xs transition-all duration-150"
+                :class="[
+                  'w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border text-zinc-900 dark:text-white outline-none shadow-xs transition-all duration-150',
+                  otpDigits[4] ? 'border-emerald-500 dark:border-emerald-400 bg-emerald-50/40 dark:bg-emerald-950/30' : 'border-zinc-300 dark:border-zinc-700 focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 focus:scale-105'
+                ]"
                 @input="onDigitInput(4, $event)"
                 @keydown="onDigitKeydown(4, $event)"
               />
@@ -1682,27 +1805,60 @@ onUnmounted(() => {
                 pattern="[0-9]*"
                 maxlength="1"
                 placeholder="-"
-                class="w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 focus:scale-105 outline-none shadow-xs transition-all duration-150"
+                :class="[
+                  'w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border text-zinc-900 dark:text-white outline-none shadow-xs transition-all duration-150',
+                  otpDigits[5] ? 'border-emerald-500 dark:border-emerald-400 bg-emerald-50/40 dark:bg-emerald-950/30' : 'border-zinc-300 dark:border-zinc-700 focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 focus:scale-105'
+                ]"
                 @input="onDigitInput(5, $event)"
                 @keydown="onDigitKeydown(5, $event)"
               />
             </div>
 
-            <div class="flex items-center justify-between text-[11px]">
-              <span v-if="phoneOtpCountdown > 0" class="text-zinc-500">{{ currentLang === 'km' ? 'ផុតកំណត់:' : 'Expires in:' }} <strong class="text-amber-600 dark:text-amber-400">{{ formattedPhoneOtpTime }}</strong></span>
-              <span v-else class="text-rose-500 font-bold">{{ currentLang === 'km' ? 'កូដផុតកំណត់' : 'Code expired' }}</span>
-              <button type="button" @click="sendPhoneOtp" :disabled="isPhoneOtpSending" class="text-blue-600 dark:text-zinc-400 hover:text-blue-700 dark:hover:text-white font-medium cursor-pointer">
-                {{ currentLang === 'km' ? 'ផ្ញើម្តងទៀត' : 'Resend Code' }}
+            <div class="flex items-center justify-between text-[11px] pt-0.5">
+              <span v-if="phoneOtpCountdown > 0" class="text-zinc-500 flex items-center gap-1">
+                <i class="pi pi-clock text-[10px]"></i>
+                <span>{{ currentLang === 'km' ? 'ផុតកំណត់៖' : 'Expires in:' }}</span>
+                <strong class="text-amber-600 dark:text-amber-400 font-mono">{{ formattedPhoneOtpTime }}</strong>
+              </span>
+              <span v-else class="text-rose-500 font-bold flex items-center gap-1">
+                <i class="pi pi-exclamation-circle text-[10px]"></i>
+                <span>{{ currentLang === 'km' ? 'កូដផុតកំណត់' : 'Code expired' }}</span>
+              </span>
+
+              <button
+                type="button"
+                @click="sendPhoneOtp"
+                :disabled="isPhoneOtpSending || phoneResendCooldown > 0"
+                :class="[
+                  'font-medium text-xs transition-colors flex items-center gap-1',
+                  phoneResendCooldown > 0 || isPhoneOtpSending
+                    ? 'text-zinc-400 dark:text-zinc-600 cursor-not-allowed'
+                    : 'text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 cursor-pointer hover:underline'
+                ]"
+              >
+                <i v-if="isPhoneOtpSending" class="pi pi-spin pi-spinner text-[10px]"></i>
+                <span v-if="phoneResendCooldown > 0">
+                  {{ currentLang === 'km' ? `ផ្ញើម្តងទៀត (${phoneResendCooldown}s)` : `Resend (${phoneResendCooldown}s)` }}
+                </span>
+                <span v-else>
+                  {{ currentLang === 'km' ? 'ផ្ញើម្តងទៀត' : 'Resend Code' }}
+                </span>
               </button>
             </div>
+
             <button
               type="button"
               @click="verifyPhoneOtp"
               :disabled="isPhoneOtpVerifying || otpCode.length < 6"
-              class="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white dark:bg-[#e4e4e7] dark:hover:bg-white dark:text-zinc-950 font-semibold text-xs sm:text-sm flex items-center justify-center transition-all duration-150 cursor-pointer disabled:opacity-50 shadow-md shadow-blue-500/20 active:scale-[0.99]"
+              :class="[
+                'w-full h-11 rounded-xl font-semibold text-xs sm:text-sm flex items-center justify-center transition-all duration-200 select-none',
+                otpCode.length === 6 && !isPhoneOtpVerifying
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-500/20 cursor-pointer active:scale-[0.99]'
+                  : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 cursor-not-allowed opacity-60'
+              ]"
             >
               <i v-if="isPhoneOtpVerifying" class="pi pi-spin pi-spinner text-sm mr-2"></i>
-              <span>{{ currentLang === 'km' ? 'ផ្ទៀងផ្ទាត់ និង ចូលប្រើប្រាស់' : 'Verify & Continue' }}</span>
+              <span>{{ isPhoneOtpVerifying ? (currentLang === 'km' ? 'កំពុងផ្ទៀងផ្ទាត់...' : 'Verifying...') : (currentLang === 'km' ? 'ផ្ទៀងផ្ទាត់ និង ចូលប្រើប្រាស់' : 'Verify & Continue') }}</span>
             </button>
           </div>
         </div>
