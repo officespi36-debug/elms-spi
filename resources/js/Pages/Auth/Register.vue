@@ -782,9 +782,8 @@ const submit = () => {
               <button
                 type="button"
                 @click="prevStep"
-                class="h-11 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-900/90 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-200 font-semibold rounded-xl border border-slate-200 dark:border-zinc-800 transition text-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                class="h-11 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-900/90 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-200 font-semibold rounded-xl border border-slate-200 dark:border-zinc-800 transition text-xs flex items-center justify-center cursor-pointer"
               >
-                <i class="pi pi-arrow-left text-xs"></i>
                 <span>{{ t('register_btn_back', 'ត្រឡប់ក្រោយ') }}</span>
               </button>
 

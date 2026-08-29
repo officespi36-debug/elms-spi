@@ -820,8 +820,7 @@ const onResetPassword = () => {
 
         <!-- Footer Navigation Links -->
         <div class="pt-2 flex items-center justify-between text-xs">
-          <Link href="/login" class="text-slate-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-white font-medium inline-flex items-center gap-1 transition-colors">
-            <i class="pi pi-arrow-left text-[10px]"></i>
+          <Link href="/login" class="text-slate-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-white font-medium inline-flex items-center transition-colors">
             <span>{{ currentLang === 'km' ? 'ត្រឡប់ទៅទំព័រចូល' : 'Back to Sign In' }}</span>
           </Link>
           <Link href="/register" class="text-blue-600 dark:text-white font-semibold hover:underline">
