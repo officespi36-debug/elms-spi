@@ -1037,39 +1037,6 @@ const onIconError = (e: Event) => {
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           </button>
 
-          <!-- Quick Action Dropdown (+ រៀនមេរៀន ˅) -->
-          <div class="relative">
-            <button
-              @click="toggleDropdown('quick')"
-              type="button"
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs shadow-md shadow-indigo-500/20 active:scale-95 transition-all cursor-pointer"
-            >
-              <img :src="actionBtnIcon" alt="Quick Action" class="w-3.5 h-3.5 filter invert brightness-0" />
-              <span class="hidden sm:inline">+ សកម្មភាពរហ័ស</span>
-              <svg class="w-3.5 h-3.5 ml-0.5 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-            </button>
-
-            <!-- Quick Action Dropdown Menu -->
-            <div
-              v-show="isQuickActionOpen"
-              class="absolute right-0 mt-2 w-64 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-2 z-50 space-y-1"
-            >
-              <div class="px-3 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
-                Quick Shortcuts
-              </div>
-              <Link
-                v-for="act in quickActions"
-                :key="act.name"
-                :href="act.href"
-                @click="isQuickActionOpen = false"
-                class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-slate-800/80 hover:text-indigo-600 dark:hover:text-indigo-300 transition-all font-medium"
-              >
-                <img :src="act.iconUrl" class="w-4 h-4 object-contain shrink-0" />
-                <span class="truncate">{{ act.name }}</span>
-              </Link>
-            </div>
-          </div>
-
           <!-- Dark / Light Mode Toggle Button -->
           <button
             @click="toggleTheme"
@@ -1147,21 +1114,6 @@ const onIconError = (e: Event) => {
               </button>
             </div>
           </div>
-
-          <!-- Fullscreen Toggle -->
-          <button
-            @click="toggleFullscreen"
-            type="button"
-            title="Toggle Fullscreen"
-            class="hidden md:flex p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl focus:outline-none transition-colors cursor-pointer"
-          >
-            <svg v-if="!isFullscreen" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-            </svg>
-            <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
 
           <!-- Notifications Bell & Drawer Trigger -->
           <div class="relative">
