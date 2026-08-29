@@ -10,7 +10,53 @@ const props = defineProps<{
 const isEnrolled = ref(true)
 const courseProgress = ref(53) // 8 of 15 completed
 
-const course = ref({
+interface LessonItem {
+  title: string
+  duration: string
+  completed?: boolean
+  active?: boolean
+  locked?: boolean
+}
+
+interface ChapterItem {
+  id: number
+  title: string
+  lessonsCount: number
+  duration: string
+  completed?: boolean
+  active?: boolean
+  locked?: boolean
+  lessons: LessonItem[]
+}
+
+interface CourseOverviewData {
+  id: number
+  title: string
+  subtitle: string
+  bannerUrl: string
+  category: string
+  level: string
+  mode: string
+  language: string
+  duration: string
+  totalLessons: number
+  completedLessons: number
+  lastLessonTitle: string
+  lastLessonHref: string
+  price: string
+  rating: number
+  reviewsCount: number
+  instructor: {
+    name: string
+    role: string
+    avatar: string
+    bio: string
+  }
+  objectives: string[]
+  chapters: ChapterItem[]
+}
+
+const course = ref<CourseOverviewData>({
   id: 1,
   title: 'Web Development Course',
   subtitle: 'Master Modern Full-Stack Web Development with HTML, CSS, JavaScript, and Modern Tooling',
