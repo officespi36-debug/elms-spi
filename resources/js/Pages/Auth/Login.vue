@@ -257,14 +257,49 @@ const getDigitInput = (idx: number): HTMLInputElement | null => {
 }
 
 const otpEmailInputRef = ref<HTMLInputElement | null>(null)
+const isEmailInputFocused = ref(false)
 
-const appendDomain = (domain: string) => {
-  if (!otpEmail.value) {
-    otpEmail.value = domain
-  } else {
-    const username = otpEmail.value.split('@')[0].trim()
-    otpEmail.value = username + domain
+const emailDomains = [
+  { domain: '@gmail.com', icon: '⚡', name: 'Gmail' },
+  { domain: '@spi.edu.kh', icon: '🎓', name: 'SPI Mail' },
+  { domain: '@yahoo.com', icon: '📧', name: 'Yahoo' },
+  { domain: '@outlook.com', icon: '💼', name: 'Outlook' },
+]
+
+const filteredEmailSuggestions = computed(() => {
+  const val = otpEmail.value.trim().toLowerCase()
+  if (!val || !isEmailInputFocused.value) return []
+
+  let username = val
+  let domainPart = ''
+
+  if (val.includes('@')) {
+    const parts = val.split('@')
+    username = parts[0]
+    domainPart = '@' + (parts[1] || '')
   }
+
+  // Hide if no username or already an exact full domain match
+  if (!username) return []
+  if (val.includes('@') && emailDomains.some(d => val === username + d.domain)) {
+    return []
+  }
+
+  return emailDomains
+    .filter(d => !domainPart || d.domain.toLowerCase().startsWith(domainPart))
+    .slice(0, 3)
+    .map(d => ({
+      username,
+      domain: d.domain,
+      fullEmail: username + d.domain,
+      icon: d.icon,
+      name: d.name,
+    }))
+})
+
+const selectEmailSuggestion = (fullEmail: string) => {
+  otpEmail.value = fullEmail
+  isEmailInputFocused.value = false
   nextTick(() => {
     otpEmailInputRef.value?.focus()
   })
@@ -1520,6 +1555,8 @@ onUnmounted(() => {
                   autocomplete="email"
                   :placeholder="currentLang === 'km' ? 'បញ្ចូលអ៊ីមែល (ឧ. name@gmail.com)' : 'Enter email (e.g. name@gmail.com)'"
                   class="w-full h-11 pl-10 pr-9 bg-white dark:bg-[#121214] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 focus:border-blue-600 dark:focus:border-sky-400 focus:ring-2 focus:ring-blue-500/20 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 text-xs sm:text-sm rounded-xl outline-none shadow-2xs transition-all font-medium"
+                  @focus="isEmailInputFocused = true"
+                  @blur="setTimeout(() => { isEmailInputFocused = false }, 200)"
                   @keydown.enter.prevent="sendEmailOtp"
                 />
                 <button
@@ -1531,29 +1568,41 @@ onUnmounted(() => {
                 >
                   <i class="pi pi-times"></i>
                 </button>
-              </div>
 
-              <!-- Quick Domain Suggestion Pills -->
-              <div class="flex items-center gap-1.5 flex-wrap pt-1 select-none">
-                <span class="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium">
-                  {{ currentLang === 'km' ? 'បំពេញរហ័ស៖' : 'Quick fill:' }}
-                </span>
-                <button
-                  type="button"
-                  @click="appendDomain('@gmail.com')"
-                  class="px-2 py-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-800/80 hover:bg-blue-50 dark:hover:bg-sky-950/40 text-zinc-700 dark:text-zinc-300 hover:text-blue-600 dark:hover:text-sky-300 text-[11px] font-mono font-semibold border border-zinc-200 dark:border-zinc-700/60 transition-all cursor-pointer active:scale-95 flex items-center gap-1"
+                <!-- Dynamic Auto-Popup Email Suggestions Dropdown (Only appears when typing!) -->
+                <Transition
+                  enter-active-class="transition duration-150 ease-out"
+                  enter-from-class="opacity-0 -translate-y-1 scale-98"
+                  enter-to-class="opacity-100 translate-y-0 scale-100"
+                  leave-active-class="transition duration-100 ease-in"
+                  leave-from-class="opacity-100 translate-y-0 scale-100"
+                  leave-to-class="opacity-0 -translate-y-1 scale-98"
                 >
-                  <span class="text-amber-500 font-bold text-[10px]">⚡</span>
-                  <span>@gmail.com</span>
-                </button>
-                <button
-                  type="button"
-                  @click="appendDomain('@spi.edu.kh')"
-                  class="px-2 py-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-800/80 hover:bg-blue-50 dark:hover:bg-sky-950/40 text-zinc-700 dark:text-zinc-300 hover:text-blue-600 dark:hover:text-sky-300 text-[11px] font-mono font-semibold border border-zinc-200 dark:border-zinc-700/60 transition-all cursor-pointer active:scale-95 flex items-center gap-1"
-                >
-                  <span class="text-blue-500 font-bold text-[10px]">🎓</span>
-                  <span>@spi.edu.kh</span>
-                </button>
+                  <div
+                    v-if="filteredEmailSuggestions.length > 0 && isEmailInputFocused"
+                    class="absolute left-0 right-0 top-full mt-1.5 z-40 bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-xl border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl py-1 overflow-hidden divide-y divide-zinc-100 dark:divide-zinc-800/60"
+                  >
+                    <button
+                      v-for="(sug, sIdx) in filteredEmailSuggestions"
+                      :key="sIdx"
+                      type="button"
+                      @mousedown.prevent="selectEmailSuggestion(sug.fullEmail)"
+                      class="w-full px-3.5 py-2.5 text-left text-xs flex items-center justify-between hover:bg-blue-50 dark:hover:bg-sky-950/40 transition-colors cursor-pointer group"
+                    >
+                      <div class="flex items-center gap-2 min-w-0">
+                        <span class="text-sm shrink-0">{{ sug.icon }}</span>
+                        <div class="truncate text-zinc-900 dark:text-white font-medium text-xs">
+                          <span class="font-semibold">{{ sug.username }}</span>
+                          <span class="text-blue-600 dark:text-sky-400 font-bold font-mono">{{ sug.domain }}</span>
+                        </div>
+                      </div>
+                      <span class="text-[10px] font-semibold text-blue-600 dark:text-sky-400 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span>{{ currentLang === 'km' ? 'ជ្រើសរើស' : 'Select' }}</span>
+                        <i class="pi pi-arrow-right text-[8px]"></i>
+                      </span>
+                    </button>
+                  </div>
+                </Transition>
               </div>
             </div>
 
