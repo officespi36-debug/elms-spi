@@ -15,7 +15,7 @@ const currentLesson = ref({
   instructor: 'Mr. Sophea',
   mode: 'Teacher-Led',
   major: 'IT & Networking',
-  videoUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1200&auto=format&fit=crop&q=80',
+  videoUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=720&auto=format&fit=crop&q=75',
   currentTime: '08:45',
   duration: '18:30',
   keyPoint: 'Key Point: Operator %= ប្រើសម្រាប់គណនា Remainder (សំណល់នៃការចែក)'
@@ -110,6 +110,7 @@ const addNote = () => {
         <div class="flex items-center gap-3">
           <Link
             href="/student/my-courses/enrolled"
+            prefetch="hover"
             class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs border border-slate-700 transition-all"
           >
             ← Back to Enrolled Courses
@@ -182,7 +183,7 @@ const addNote = () => {
           <!-- VIDEO PLAYER CONTAINER (Matching Prompt Specs) -->
           <div class="relative bg-slate-950 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl group">
             <div class="relative aspect-video bg-slate-900 flex items-center justify-center">
-              <img :src="currentLesson.videoUrl" class="w-full h-full object-cover opacity-60" />
+              <img :src="currentLesson.videoUrl" :alt="currentLesson.title" loading="lazy" decoding="async" class="w-full h-full object-cover opacity-60" />
 
               <!-- Overlay Play/Pause Controls -->
               <button

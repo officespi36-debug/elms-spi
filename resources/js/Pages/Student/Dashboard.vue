@@ -80,12 +80,14 @@ const nextLevelXp = ref(1000)
           <div class="flex items-center gap-3 shrink-0 flex-wrap sm:flex-nowrap">
             <Link
               href="/student/my-courses/current"
+              prefetch="hover"
               class="px-5 py-2.5 rounded-xl bg-white text-indigo-900 font-bold text-xs hover:bg-indigo-50 transition-all duration-200 shadow-lg shadow-black/10 hover:scale-105 active:scale-95 flex items-center gap-2 cursor-pointer"
             >
               <span>▶ Continue Learning</span>
             </Link>
             <Link
               href="/student/browse"
+              prefetch="hover"
               class="px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-white font-semibold text-xs transition-all duration-200 backdrop-blur-md cursor-pointer"
             >
               Explore Catalog
@@ -210,6 +212,7 @@ const nextLevelXp = ref(1000)
 
               <Link
                 :href="continueCourse.href"
+                prefetch="hover"
                 class="shrink-0 px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-all duration-200 shadow-md shadow-indigo-600/25 text-center hover:scale-105 active:scale-95 cursor-pointer"
               >
                 Continue Lesson →
@@ -244,6 +247,7 @@ const nextLevelXp = ref(1000)
 
               <Link
                 :href="aiRecommendation.href"
+                prefetch="hover"
                 class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer"
               >
                 Start Learning →
@@ -329,7 +333,7 @@ const nextLevelXp = ref(1000)
           <div class="bg-white dark:bg-[#111827]/80 border border-slate-200/80 dark:border-white/5 rounded-3xl p-6 shadow-xs dark:shadow-xl space-y-4">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-white/5 pb-3">
               <h3 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">My Courses Overview</h3>
-              <Link href="/student/my-courses/enrolled" class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500">View All →</Link>
+              <Link href="/student/my-courses/enrolled" prefetch="hover" class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500">View All →</Link>
             </div>
 
             <div class="space-y-3">
@@ -354,7 +358,7 @@ const nextLevelXp = ref(1000)
                   <p class="font-bold text-xs text-slate-900 dark:text-white truncate">📙 Database Systems</p>
                   <p class="text-[10px] text-amber-600 dark:text-amber-400 font-medium">⏳ Pending Payment ($25)</p>
                 </div>
-                <Link href="/student/payments/pending" class="px-2.5 py-1 text-[10px] font-bold rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-300 border border-amber-500/30 hover:bg-amber-500/25 transition-colors">
+                <Link href="/student/payments/pending" prefetch="hover" class="px-2.5 py-1 text-[10px] font-bold rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-300 border border-amber-500/30 hover:bg-amber-500/25 transition-colors">
                   Pay Now 🔒
                 </Link>
               </div>

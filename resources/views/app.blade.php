@@ -62,15 +62,22 @@
         }
     </style>
 
-    <!-- Preconnect & Preload Asynchronous Font Loading (font-display: swap) -->
+    <!-- DNS Prefetch & Preconnect for High-Speed CDN & Media Loading -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <link rel="dns-prefetch" href="https://images.unsplash.com">
+    <link rel="dns-prefetch" href="https://ui-avatars.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
+
+    <!-- Optimized Font Loading with font-display: swap to eliminate render blocking -->
     <link rel="preload" as="style"
-        href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Inter:wght@300;400;500;600;700;800&family=Kantumruy+Pro:ital,wght@0,300..700;1,300..700&family=Koh+Santepheap:wght@400;500;600;700&family=Noto+Sans+Khmer:wght@400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Kantumruy+Pro:wght@400;500;600;700&family=Noto+Sans+Khmer:wght@400;600;700&display=swap"
         onload="this.onload=null;this.rel='stylesheet'">
     <noscript>
         <link
-            href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Inter:wght@300;400;500;600;700;800&family=Kantumruy+Pro:ital,wght@0,300..700;1,300..700&family=Koh+Santepheap:wght@400;500;600;700&family=Noto+Sans+Khmer:wght@400;500;600;700&display=swap"
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Kantumruy+Pro:wght@400;500;600;700&family=Noto+Sans+Khmer:wght@400;600;700&display=swap"
             rel="stylesheet">
     </noscript>
 

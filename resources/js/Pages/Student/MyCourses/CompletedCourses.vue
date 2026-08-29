@@ -182,10 +182,10 @@ const completedCourses = ref([
 
         <!-- Footer Actions -->
         <div class="flex flex-wrap items-center gap-3 pt-2">
-          <Link href="/student/my-courses/current" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs border border-slate-700">
+          <Link href="/student/my-courses/current" prefetch="hover" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs border border-slate-700">
             📖 Review Content Again
           </Link>
-          <Link href="/student/discussions?tab=ask" class="px-4 py-2.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 font-bold text-xs">
+          <Link href="/student/discussions?tab=ask" prefetch="hover" class="px-4 py-2.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 font-bold text-xs">
             👨‍🏫 Thank Teacher
           </Link>
         </div>

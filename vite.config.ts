@@ -40,6 +40,9 @@ export default defineConfig({
   build: {
     target: 'es2020',
     cssTarget: 'safari14',
+    minify: 'esbuild',
+    cssMinify: true,
+    reportCompressedSize: false,
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -67,6 +70,6 @@ export default defineConfig({
         },
       },
     },
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 1200,
   },
 })

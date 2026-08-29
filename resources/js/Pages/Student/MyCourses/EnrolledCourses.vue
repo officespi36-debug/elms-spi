@@ -46,7 +46,7 @@ const sampleCourses = ref([
     progress: 65,
     status: 'paid',
     isCompleted: false,
-    thumbnail: 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?w=600&auto=format&fit=crop&q=80',
+    thumbnail: 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?w=500&auto=format&fit=crop&q=75',
     lastAccessed: 'Today, 09:30 AM',
     href: '/student/my-courses/current'
   },
@@ -61,7 +61,7 @@ const sampleCourses = ref([
     progress: 40,
     status: 'paid',
     isCompleted: false,
-    thumbnail: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=600&auto=format&fit=crop&q=80',
+    thumbnail: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=500&auto=format&fit=crop&q=75',
     lastAccessed: 'Yesterday',
     href: '/student/my-courses/current'
   },
@@ -76,7 +76,7 @@ const sampleCourses = ref([
     progress: 100,
     status: 'paid',
     isCompleted: true,
-    thumbnail: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&auto=format&fit=crop&q=80',
+    thumbnail: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=500&auto=format&fit=crop&q=75',
     lastAccessed: '3 days ago',
     href: '/student/my-courses/completed'
   },
@@ -91,7 +91,7 @@ const sampleCourses = ref([
     progress: 30,
     status: 'pending',
     isCompleted: false,
-    thumbnail: 'https://images.unsplash.com/photo-1544383835-bda2bc66a55d?w=600&auto=format&fit=crop&q=80',
+    thumbnail: 'https://images.unsplash.com/photo-1544383835-bda2bc66a55d?w=500&auto=format&fit=crop&q=75',
     lastAccessed: '1 week ago',
     href: '/student/payments'
   },
@@ -106,7 +106,7 @@ const sampleCourses = ref([
     progress: 0,
     status: 'free',
     isCompleted: false,
-    thumbnail: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=600&auto=format&fit=crop&q=80',
+    thumbnail: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=500&auto=format&fit=crop&q=75',
     lastAccessed: 'Not started',
     href: '/student/my-courses/current'
   }
@@ -322,222 +322,231 @@ const statsSummary = computed(() => {
           :key="course.id"
           class="bg-slate-800/90 border border-slate-700/80 rounded-3xl overflow-hidden shadow-xl hover:border-slate-600 transition-all flex flex-col group"
         >
-          <!-- Thumbnail & Progress Overlay -->
-          <div class="relative h-44 overflow-hidden bg-slate-900">
-            <img
-              :src="course.thumbnail"
-              :alt="course.title"
-              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent"></div>
+            <!-- Thumbnail & Progress Overlay -->
+            <div class="relative h-44 overflow-hidden bg-slate-900">
+              <img
+                :src="course.thumbnail"
+                :alt="course.title"
+                loading="lazy"
+                decoding="async"
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+              <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent"></div>
 
-            <!-- Lock Badge overlay for Pending Payment -->
-            <div v-if="course.status === 'pending'" class="absolute inset-0 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center">
-              <span class="px-3 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center gap-1.5 shadow-lg">
-                🔒 Payment Pending
-              </span>
-            </div>
-
-            <!-- Mode Badge -->
-            <div class="absolute top-3 left-3">
-              <span :class="[course.mode === 'Teacher-Led' ? 'bg-blue-600/90' : 'bg-purple-600/90', 'px-2.5 py-1 rounded-full text-[10px] font-bold text-white shadow-md backdrop-blur-md flex items-center gap-1']">
-                <span>{{ course.mode === 'Teacher-Led' ? '🎥' : '💻' }}</span>
-                <span>{{ course.mode }}</span>
-              </span>
-            </div>
-
-            <!-- Price & Status Badge -->
-            <div class="absolute top-3 right-3 flex items-center gap-1.5">
-              <span class="px-2.5 py-1 rounded-full bg-slate-900/80 text-white font-bold text-[10px] border border-slate-700/80 shadow-md">
-                {{ course.price }}
-              </span>
-            </div>
-
-            <!-- Progress Bar Overlay Bottom -->
-            <div class="absolute bottom-3 left-3 right-3 space-y-1">
-              <div class="flex items-center justify-between text-[11px] font-bold">
-                <span class="text-white drop-shadow">Progress</span>
-                <span :class="course.isCompleted ? 'text-emerald-400' : 'text-indigo-400'" class="drop-shadow">{{ course.progress }}%</span>
-              </div>
-              <div class="w-full h-2 rounded-full bg-slate-900/80 backdrop-blur-xs overflow-hidden border border-slate-700/60">
-                <div
-                  :class="course.isCompleted ? 'bg-emerald-500' : 'bg-gradient-to-r from-blue-500 to-indigo-500'"
-                  class="h-full rounded-full transition-all duration-500"
-                  :style="{ width: course.progress + '%' }"
-                ></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Course Body Info -->
-          <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
-            <div class="space-y-2">
-              <div class="flex items-center justify-between text-[10px] text-slate-400 font-medium">
-                <span>🏫 {{ course.major }}</span>
-                <span>{{ course.lastAccessed }}</span>
+              <!-- Lock Badge overlay for Pending Payment -->
+              <div v-if="course.status === 'pending'" class="absolute inset-0 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center">
+                <span class="px-3 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center gap-1.5 shadow-lg">
+                  🔒 Payment Pending
+                </span>
               </div>
 
-              <h3 class="text-base font-bold text-white group-hover:text-indigo-300 transition-colors line-clamp-1">
-                {{ course.title }}
-              </h3>
+              <!-- Mode Badge -->
+              <div class="absolute top-3 left-3">
+                <span :class="[course.mode === 'Teacher-Led' ? 'bg-blue-600/90' : 'bg-purple-600/90', 'px-2.5 py-1 rounded-full text-[10px] font-bold text-white shadow-md backdrop-blur-md flex items-center gap-1']">
+                  <span>{{ course.mode === 'Teacher-Led' ? '🎥' : '💻' }}</span>
+                  <span>{{ course.mode }}</span>
+                </span>
+              </div>
 
-              <!-- Teacher Info -->
-              <div class="flex items-center gap-2.5 pt-1">
-                <img :src="course.teacherAvatar" class="w-6 h-6 rounded-full object-cover border border-slate-700" />
-                <span class="text-xs text-slate-300 font-semibold">👨‍🏫 {{ course.teacher }}</span>
+              <!-- Price & Status Badge -->
+              <div class="absolute top-3 right-3 flex items-center gap-1.5">
+                <span class="px-2.5 py-1 rounded-full bg-slate-900/80 text-white font-bold text-[10px] border border-slate-700/80 shadow-md">
+                  {{ course.price }}
+                </span>
+              </div>
+
+              <!-- Progress Bar Overlay Bottom -->
+              <div class="absolute bottom-3 left-3 right-3 space-y-1">
+                <div class="flex items-center justify-between text-[11px] font-bold">
+                  <span class="text-white drop-shadow">Progress</span>
+                  <span :class="course.isCompleted ? 'text-emerald-400' : 'text-indigo-400'" class="drop-shadow">{{ course.progress }}%</span>
+                </div>
+                <div class="w-full h-2 rounded-full bg-slate-900/80 backdrop-blur-xs overflow-hidden border border-slate-700/60">
+                  <div
+                    :class="course.isCompleted ? 'bg-emerald-500' : 'bg-gradient-to-r from-blue-500 to-indigo-500'"
+                    class="h-full rounded-full transition-all duration-500"
+                    :style="{ width: course.progress + '%' }"
+                  ></div>
+                </div>
               </div>
             </div>
 
-            <!-- Status Tag -->
-            <div class="pt-2 border-t border-slate-700/60 flex items-center justify-between text-xs">
-              <div v-if="course.isCompleted" class="flex items-center gap-1.5 text-emerald-400 font-bold text-xs">
-                <span>✅ Paid</span>
-                <span>•</span>
-                <span>🏆 Completed</span>
-              </div>
-              <div v-else-if="course.status === 'paid'" class="flex items-center gap-1.5 text-emerald-400 font-bold text-xs">
-                <span>✅ Paid</span>
-              </div>
-              <div v-else-if="course.status === 'pending'" class="flex items-center gap-1.5 text-amber-400 font-bold text-xs">
-                <span>⏳ Payment Pending</span>
-              </div>
-              <div v-else class="flex items-center gap-1.5 text-cyan-400 font-bold text-xs">
-                <span>🎁 Free Access</span>
-              </div>
-            </div>
+            <!-- Course Body Info -->
+            <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+              <div class="space-y-2">
+                <div class="flex items-center justify-between text-[10px] text-slate-400 font-medium">
+                  <span>🏫 {{ course.major }}</span>
+                  <span>{{ course.lastAccessed }}</span>
+                </div>
 
-            <!-- Action Buttons: Learn & Offline Save -->
-            <div class="pt-2 flex items-center gap-2">
-              <Link
-                v-if="course.isCompleted"
-                href="/student/my-courses/completed"
-                class="flex-1 py-2.5 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 font-bold text-xs transition-all text-center block"
-              >
-                🏅 View Certificate
-              </Link>
-              <Link
-                v-else-if="course.status === 'pending'"
-                href="/student/payments"
-                class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold text-xs transition-all shadow-md text-center block"
-              >
-                💳 Pay Now via ABA
-              </Link>
-              <Link
-                v-else-if="course.progress === 0"
-                :href="`/student/learn/${course.id}`"
-                class="flex-1 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs transition-all shadow-md text-center block"
-              >
-                ▶ Start Learning
-              </Link>
-              <Link
-                v-else
-                :href="`/student/learn/${course.id}`"
-                class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs transition-all shadow-md shadow-indigo-600/30 text-center block"
-              >
-                ▶ Continue Learning
-              </Link>
+                <h3 class="text-base font-bold text-white group-hover:text-indigo-300 transition-colors line-clamp-1">
+                  {{ course.title }}
+                </h3>
 
-              <!-- Offline Cache Indicator / Quick Save -->
-              <button
-                type="button"
-                @click.prevent="handleSaveCourseOffline(course)"
-                :class="[
-                  'h-9 px-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center shrink-0 select-none cursor-pointer',
-                  cachedCourseIds.includes(course.id)
-                    ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
-                    : 'bg-slate-900/80 hover:bg-slate-700 text-slate-400 hover:text-white border-slate-700'
-                ]"
-                :title="cachedCourseIds.includes(course.id) ? 'វគ្គសិក្សានេះត្រូវបាន Save ក្នុងម៉ាស៊ីនរួចរាល់សម្រាប់រៀន Offline' : 'Save ទុកក្នុងម៉ាស៊ីនសម្រាប់រៀនក្រៅបណ្តាញ (Offline)'"
-              >
-                <svg v-if="cachedCourseIds.includes(course.id)" class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-                <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-              </button>
+                <!-- Teacher Info -->
+                <div class="flex items-center gap-2.5 pt-1">
+                  <img :src="course.teacherAvatar" :alt="course.teacher" loading="lazy" decoding="async" class="w-6 h-6 rounded-full object-cover border border-slate-700" />
+                  <span class="text-xs text-slate-300 font-semibold">👨‍🏫 {{ course.teacher }}</span>
+                </div>
+              </div>
+
+              <!-- Status Tag -->
+              <div class="pt-2 border-t border-slate-700/60 flex items-center justify-between text-xs">
+                <div v-if="course.isCompleted" class="flex items-center gap-1.5 text-emerald-400 font-bold text-xs">
+                  <span>✅ Paid</span>
+                  <span>•</span>
+                  <span>🏆 Completed</span>
+                </div>
+                <div v-else-if="course.status === 'paid'" class="flex items-center gap-1.5 text-emerald-400 font-bold text-xs">
+                  <span>✅ Paid</span>
+                </div>
+                <div v-else-if="course.status === 'pending'" class="flex items-center gap-1.5 text-amber-400 font-bold text-xs">
+                  <span>⏳ Payment Pending</span>
+                </div>
+                <div v-else class="flex items-center gap-1.5 text-cyan-400 font-bold text-xs">
+                  <span>🎁 Free Access</span>
+                </div>
+              </div>
+
+              <!-- Action Buttons: Learn & Offline Save -->
+              <div class="pt-2 flex items-center gap-2">
+                <Link
+                  v-if="course.isCompleted"
+                  href="/student/my-courses/completed"
+                  prefetch="hover"
+                  class="flex-1 py-2.5 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 font-bold text-xs transition-all text-center block"
+                >
+                  🏅 View Certificate
+                </Link>
+                <Link
+                  v-else-if="course.status === 'pending'"
+                  href="/student/payments"
+                  prefetch="hover"
+                  class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold text-xs transition-all shadow-md text-center block"
+                >
+                  💳 Pay Now via ABA
+                </Link>
+                <Link
+                  v-else-if="course.progress === 0"
+                  :href="`/student/learn/${course.id}`"
+                  prefetch="hover"
+                  class="flex-1 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs transition-all shadow-md text-center block"
+                >
+                  ▶ Start Learning
+                </Link>
+                <Link
+                  v-else
+                  :href="`/student/learn/${course.id}`"
+                  prefetch="hover"
+                  class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs transition-all shadow-md shadow-indigo-600/30 text-center block"
+                >
+                  ▶ Continue Learning
+                </Link>
+
+                <!-- Offline Cache Indicator / Quick Save -->
+                <button
+                  type="button"
+                  @click.prevent="handleSaveCourseOffline(course)"
+                  :class="[
+                    'h-9 px-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center shrink-0 select-none cursor-pointer',
+                    cachedCourseIds.includes(course.id)
+                      ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                      : 'bg-slate-900/80 hover:bg-slate-700 text-slate-400 hover:text-white border-slate-700'
+                  ]"
+                  :title="cachedCourseIds.includes(course.id) ? 'វគ្គសិក្សានេះត្រូវបាន Save ក្នុងម៉ាស៊ីនរួចរាល់សម្រាប់រៀន Offline' : 'Save ទុកក្នុងម៉ាស៊ីនសម្រាប់រៀនក្រៅបណ្តាញ (Offline)'"
+                >
+                  <svg v-if="cachedCourseIds.includes(course.id)" class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- COURSE TABLE (LIST VIEW - Matching Option 2 Prompt Spec) -->
-      <div v-else class="bg-slate-800/90 border border-slate-700/80 rounded-3xl overflow-hidden shadow-2xl">
-        <div class="overflow-x-auto custom-scrollbar">
-          <table class="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr class="bg-slate-900/90 border-b border-slate-700 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
-                <th class="p-4">Course</th>
-                <th class="p-4">Instructor</th>
-                <th class="p-4">Major</th>
-                <th class="p-4">Progress</th>
-                <th class="p-4">Status</th>
-                <th class="p-4 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-700/60">
-              <tr
-                v-for="course in filteredCourses"
-                :key="course.id"
-                class="hover:bg-slate-700/40 transition-colors group"
-              >
-                <td class="p-4">
-                  <div class="flex items-center gap-3">
-                    <img :src="course.thumbnail" class="w-12 h-12 rounded-xl object-cover" />
-                    <div>
-                      <h4 class="font-bold text-white group-hover:text-indigo-300 transition-colors line-clamp-1">{{ course.title }}</h4>
-                      <p class="text-[10px] text-slate-400">{{ course.mode }} • {{ course.price }}</p>
+        <!-- COURSE TABLE (LIST VIEW - Matching Option 2 Prompt Spec) -->
+        <div v-else class="bg-slate-800/90 border border-slate-700/80 rounded-3xl overflow-hidden shadow-2xl">
+          <div class="overflow-x-auto custom-scrollbar">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-slate-900/90 border-b border-slate-700 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                  <th class="p-4">Course</th>
+                  <th class="p-4">Instructor</th>
+                  <th class="p-4">Major</th>
+                  <th class="p-4">Progress</th>
+                  <th class="p-4">Status</th>
+                  <th class="p-4 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-700/60">
+                <tr
+                  v-for="course in filteredCourses"
+                  :key="course.id"
+                  class="hover:bg-slate-700/40 transition-colors group"
+                >
+                  <td class="p-4">
+                    <div class="flex items-center gap-3">
+                      <img :src="course.thumbnail" :alt="course.title" loading="lazy" decoding="async" class="w-12 h-12 rounded-xl object-cover" />
+                      <div>
+                        <h4 class="font-bold text-white group-hover:text-indigo-300 transition-colors line-clamp-1">{{ course.title }}</h4>
+                        <p class="text-[10px] text-slate-400">{{ course.mode }} • {{ course.price }}</p>
+                      </div>
                     </div>
-                  </div>
-                </td>
-                <td class="p-4 text-slate-300 font-medium">{{ course.teacher }}</td>
-                <td class="p-4 text-slate-300">{{ course.major }}</td>
-                <td class="p-4">
-                  <div class="space-y-1 w-28">
-                    <span class="text-[10px] font-bold text-indigo-400">{{ course.progress }}%</span>
-                    <div class="w-full h-1.5 rounded-full bg-slate-700 overflow-hidden">
-                      <div class="h-full bg-indigo-500 rounded-full" :style="{ width: course.progress + '%' }"></div>
+                  </td>
+                  <td class="p-4 text-slate-300 font-medium">{{ course.teacher }}</td>
+                  <td class="p-4 text-slate-300">{{ course.major }}</td>
+                  <td class="p-4">
+                    <div class="space-y-1 w-28">
+                      <span class="text-[10px] font-bold text-indigo-400">{{ course.progress }}%</span>
+                      <div class="w-full h-1.5 rounded-full bg-slate-700 overflow-hidden">
+                        <div class="h-full bg-indigo-500 rounded-full" :style="{ width: course.progress + '%' }"></div>
+                      </div>
                     </div>
-                  </div>
-                </td>
-                <td class="p-4">
-                  <span v-if="course.isCompleted" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                    ✅ Completed
-                  </span>
-                  <span v-else-if="course.status === 'paid'" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                    📖 Learning
-                  </span>
-                  <span v-else-if="course.status === 'pending'" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                    🔒 Locked
-                  </span>
-                  <span v-else class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                    🎁 Free
-                  </span>
-                </td>
-                <td class="p-4 text-right">
-                  <Link
-                    v-if="course.isCompleted"
-                    href="/student/my-courses/completed"
-                    class="px-3 py-1.5 rounded-lg bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 font-bold text-xs inline-block"
-                  >
-                    🏅 Certificate
-                  </Link>
-                  <Link
-                    v-else-if="course.status === 'pending'"
-                    href="/student/payments"
-                    class="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs inline-block"
-                  >
-                    💳 Pay
-                  </Link>
-                  <Link
-                    v-else
-                    :href="`/student/learn/${course.id}`"
-                    class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs inline-block shadow-md"
-                  >
-                    ▶ Learn
-                  </Link>
-                </td>
-              </tr>
+                  </td>
+                  <td class="p-4">
+                    <span v-if="course.isCompleted" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                      ✅ Completed
+                    </span>
+                    <span v-else-if="course.status === 'paid'" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                      📖 Learning
+                    </span>
+                    <span v-else-if="course.status === 'pending'" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                      🔒 Locked
+                    </span>
+                    <span v-else class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                      🎁 Free
+                    </span>
+                  </td>
+                  <td class="p-4 text-right">
+                    <Link
+                      v-if="course.isCompleted"
+                      href="/student/my-courses/completed"
+                      prefetch="hover"
+                      class="px-3 py-1.5 rounded-lg bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 font-bold text-xs inline-block"
+                    >
+                      🏅 Certificate
+                    </Link>
+                    <Link
+                      v-else-if="course.status === 'pending'"
+                      href="/student/payments"
+                      prefetch="hover"
+                      class="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs inline-block"
+                    >
+                      💳 Pay
+                    </Link>
+                    <Link
+                      v-else
+                      :href="`/student/learn/${course.id}`"
+                      prefetch="hover"
+                      class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs inline-block shadow-md"
+                    >
+                      ▶ Learn
+                    </Link>
+                  </td>
+                </tr>
             </tbody>
           </table>
         </div>

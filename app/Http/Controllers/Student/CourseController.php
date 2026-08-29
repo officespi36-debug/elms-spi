@@ -15,7 +15,8 @@ class CourseController extends Controller
         $tab = $request->query('tab', 'enrolled');
 
         $enrollments = Enrollment::where('student_id', $request->user()->id)
-            ->with(['course.teacher', 'course.major', 'course.modules'])
+            ->with(['course.teacher:id,name,avatar', 'course.major:id,name'])
+            ->latest('updated_at')
             ->get();
 
         return Inertia::render('Student/MyCourses/Index', [
@@ -27,7 +28,8 @@ class CourseController extends Controller
     public function enrolled(Request $request)
     {
         $enrollments = Enrollment::where('student_id', $request->user()->id)
-            ->with(['course.teacher', 'course.major', 'course.modules'])
+            ->with(['course.teacher:id,name,avatar', 'course.major:id,name'])
+            ->latest('updated_at')
             ->get();
 
         return Inertia::render('Student/MyCourses/EnrolledCourses', [
@@ -39,7 +41,8 @@ class CourseController extends Controller
     {
         $enrollments = Enrollment::where('student_id', $request->user()->id)
             ->where('status', 'active')
-            ->with(['course.teacher', 'course.major', 'course.modules.lessons'])
+            ->with(['course.teacher:id,name,avatar', 'course.major:id,name', 'course.modules.lessons'])
+            ->latest('updated_at')
             ->get();
 
         return Inertia::render('Student/MyCourses/CurrentCourse', [
@@ -51,7 +54,8 @@ class CourseController extends Controller
     {
         $enrollments = Enrollment::where('student_id', $request->user()->id)
             ->where('status', 'completed')
-            ->with(['course.teacher', 'course.major'])
+            ->with(['course.teacher:id,name,avatar', 'course.major:id,name'])
+            ->latest('updated_at')
             ->get();
 
         return Inertia::render('Student/MyCourses/CompletedCourses', [

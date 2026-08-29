@@ -557,6 +557,7 @@ const onIconError = (e: Event) => {
             <Link
               v-else-if="!item.children || item.children.length === 0"
               :href="item.href!"
+              prefetch="hover"
               :title="isSidebarCollapsed ? (currentLang === 'km' ? item.khName : item.name) : undefined"
               :class="[
                 $page.url.startsWith(item.href!) 
@@ -572,6 +573,8 @@ const onIconError = (e: Event) => {
                     v-if="item.iconUrl"
                     :src="item.iconUrl" 
                     :alt="item.name"
+                    loading="lazy"
+                    decoding="async"
                     @error="onIconError"
                     class="w-4 h-4 object-contain shrink-0 filter drop-shadow-sm transition-transform duration-200 group-hover:scale-110"
                   />
@@ -619,6 +622,8 @@ const onIconError = (e: Event) => {
                       v-if="item.iconUrl"
                       :src="item.iconUrl" 
                       :alt="item.name"
+                      loading="lazy"
+                      decoding="async"
                       @error="onIconError"
                       class="w-4 h-4 object-contain shrink-0 filter drop-shadow-sm transition-transform duration-200 group-hover:scale-110"
                     />
@@ -669,6 +674,7 @@ const onIconError = (e: Event) => {
                 >
                   <Link
                     :href="sub.href"
+                    prefetch="hover"
                     :class="[
                       isSubActive(sub.href)
                         ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 font-bold border border-indigo-500/30'
@@ -680,6 +686,8 @@ const onIconError = (e: Event) => {
                       v-if="sub.iconUrl"
                       :src="sub.iconUrl"
                       :alt="sub.name"
+                      loading="lazy"
+                      decoding="async"
                       @error="onIconError"
                       class="w-3.5 h-3.5 object-contain shrink-0 filter drop-shadow-xs"
                     />
@@ -709,6 +717,7 @@ const onIconError = (e: Event) => {
                     v-for="sub in item.children"
                     :key="sub.href"
                     :href="sub.href"
+                    prefetch="hover"
                     :class="[
                       isSubActive(sub.href)
                         ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 font-bold border border-indigo-500/30'
@@ -716,7 +725,7 @@ const onIconError = (e: Event) => {
                       'flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs transition-all duration-150 truncate'
                     ]"
                   >
-                    <img v-if="sub.iconUrl" :src="sub.iconUrl" :alt="sub.name" class="w-3.5 h-3.5 object-contain shrink-0" />
+                    <img v-if="sub.iconUrl" :src="sub.iconUrl" :alt="sub.name" loading="lazy" decoding="async" class="w-3.5 h-3.5 object-contain shrink-0" />
                     <span class="truncate">{{ currentLang === 'km' ? sub.khName : sub.name }}</span>
                   </Link>
                 </div>
@@ -731,6 +740,7 @@ const onIconError = (e: Event) => {
         <div :class="[isSidebarCollapsed ? 'flex-col justify-center items-center gap-2 w-full' : 'justify-between gap-2', 'flex items-center']">
           <Link
             href="/student/profile?tab=personal"
+            prefetch="hover"
             :class="[
               isSidebarCollapsed ? 'justify-center' : 'min-w-0 flex-1',
               'flex items-center gap-2.5 hover:opacity-80 transition-opacity'
@@ -746,6 +756,8 @@ const onIconError = (e: Event) => {
               <img
                 v-else
                 :src="user.avatar"
+                loading="lazy"
+                decoding="async"
                 class="w-8 h-8 rounded-full object-cover border border-indigo-500/30 shadow-md"
               />
               <span class="absolute bottom-0 right-0 w-2 h-2 bg-emerald-500 rounded-full ring-2 ring-white dark:ring-slate-900"></span>
@@ -786,7 +798,7 @@ const onIconError = (e: Event) => {
     >
       <div class="h-16 px-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 shrink-0">
         <div class="flex items-center gap-3">
-          <img :src="logoUrl" alt="E-LMS Logo" class="w-8 h-8 rounded-full object-cover ring-2 ring-indigo-500/30" />
+          <img :src="logoUrl" alt="E-LMS Logo" loading="lazy" decoding="async" class="w-8 h-8 rounded-full object-cover ring-2 ring-indigo-500/30" />
           <span class="font-bold text-sm text-slate-900 dark:text-white">E-LMS Student</span>
         </div>
         <button @click="sidebarOpen = false" class="p-1 text-slate-400 hover:text-slate-900 dark:hover:text-white">
@@ -813,13 +825,14 @@ const onIconError = (e: Event) => {
           <Link
             v-else-if="!item.children || item.children.length === 0"
             :href="item.href!"
+            prefetch="hover"
             @click="sidebarOpen = false"
             :class="[
               $page.url.startsWith(item.href!) ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200',
               'flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium'
             ]"
           >
-            <img v-if="item.iconUrl" :src="item.iconUrl" class="w-4 h-4 object-contain" />
+            <img v-if="item.iconUrl" :src="item.iconUrl" loading="lazy" decoding="async" class="w-4 h-4 object-contain" />
             <span>{{ currentLang === 'km' ? item.khName : item.name }}</span>
           </Link>
           <div v-else class="space-y-0.5">
@@ -828,7 +841,7 @@ const onIconError = (e: Event) => {
               class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium"
             >
               <div class="flex items-center gap-2.5">
-                <img v-if="item.iconUrl" :src="item.iconUrl" class="w-4 h-4 object-contain" />
+                <img v-if="item.iconUrl" :src="item.iconUrl" loading="lazy" decoding="async" class="w-4 h-4 object-contain" />
                 <span>{{ currentLang === 'km' ? item.khName : item.name }}</span>
               </div>
               <svg :class="[expandedModules[item.key!] ? 'rotate-180 text-indigo-500' : '', 'w-3.5 h-3.5 transition-transform']" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -838,6 +851,7 @@ const onIconError = (e: Event) => {
                 v-for="sub in item.children"
                 :key="sub.href"
                 :href="sub.href"
+                prefetch="hover"
                 @click="sidebarOpen = false"
                 :class="[isSubActive(sub.href) ? 'text-indigo-600 dark:text-indigo-300 font-bold' : 'text-slate-500 dark:text-slate-400', 'block py-1.5 text-[11px] truncate']"
               >

@@ -11,7 +11,7 @@ class BrowseController extends Controller
     public function index(\Illuminate\Http\Request $request)
     {
         $courses = Course::where('status', 'published')
-            ->with(['teacher', 'major', 'department', 'faculty'])
+            ->with(['teacher:id,name,avatar', 'major:id,name', 'department:id,name', 'faculty:id,name'])
             ->when($request->search, function ($q, $search) {
                 $q->where('title', 'like', "%{$search}%");
             })

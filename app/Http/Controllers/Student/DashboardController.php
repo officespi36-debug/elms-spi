@@ -18,7 +18,8 @@ class DashboardController extends Controller
 
         try {
             $enrollments = Enrollment::where('student_id', $user->id)
-                ->with(['course.teacher'])
+                ->with(['course.teacher:id,name,avatar', 'course.major:id,name'])
+                ->latest('updated_at')
                 ->get();
         } catch (\Throwable $e) {
             $enrollments = collect();
