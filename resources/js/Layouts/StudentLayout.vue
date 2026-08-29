@@ -13,17 +13,20 @@ const actionBtnIcon = '/images/actions/action-button.svg'
 const onlineIconUrl = '/images/nav/online.svg'
 const offlineIconUrl = '/images/nav/offline.svg'
 
-const props = defineProps<{ title?: string }>()
+const props = defineProps<{
+  title?: string
+  breadcrumbs?: Array<{ label: string; href?: string }>
+}>()
 
 const page = usePage<any>()
 const user = computed(() => page.props.auth?.user || {})
 
 const studentDisplayName = computed(() => {
-  return user.value?.name || 'Chan Dara'
+  return user.value?.name || 'Sok Pisey'
 })
 
 const studentId = computed(() => {
-  return user.value?.student_id || 'STU-2024-089'
+  return user.value?.student_id || 'STU2024001'
 })
 
 const studentMajor = computed(() => {
@@ -51,7 +54,7 @@ const isLangOpen = ref(false)
 const isStatusOpen = ref(false)
 const isFullscreen = ref(false)
 
-const currentLang = computed(() => i18n.locale.value || 'km')
+const currentLang = computed(() => i18n.locale.value || 'en')
 
 const isOnline = ref(typeof window !== 'undefined' ? window.navigator.onLine : true)
 const manualStatusOverride = ref<boolean | null>(null)
@@ -71,8 +74,8 @@ const setStatusMode = (online: boolean) => {
 }
 
 const languages = [
-  { code: 'km', name: 'ភាសាខ្មែរ', flagUrl: '/images/flags/km.svg' },
   { code: 'en', name: 'English', flagUrl: '/images/flags/en.svg' },
+  { code: 'km', name: 'ភាសាខ្មែរ', flagUrl: '/images/flags/km.svg' },
 ]
 
 const selectLanguage = (code: string) => {
@@ -131,29 +134,124 @@ const handleKeydown = (e: KeyboardEvent) => {
 }
 
 // Dynamic Breadcrumb Calculation
-const currentBreadcrumb = computed(() => {
+const dynamicBreadcrumbs = computed(() => {
+  if (props.breadcrumbs && props.breadcrumbs.length > 0) {
+    return props.breadcrumbs
+  }
   const url = page.url
-  if (url.startsWith('/student/dashboard')) return ['Student', 'Dashboard']
-  if (url.startsWith('/student/browse') || url.startsWith('/student/courses') || url.startsWith('/student/my-courses')) return ['Student', 'My Courses']
-  if (url.startsWith('/student/learn') || url.startsWith('/student/content') || url.startsWith('/student/learning-content')) return ['Student', 'Learning Content']
-  if (url.startsWith('/student/quizzes') || url.startsWith('/student/quiz')) return ['Student', 'Quiz & Assessment']
-  if (url.startsWith('/student/ai-path')) return ['Student', 'AI Learning Path']
-  if (url.startsWith('/student/ai-tutor')) return ['Student', 'AI Assistant / Tutor']
-  if (url.startsWith('/student/practice-lab')) return ['Student', 'Practice Lab']
-  if (url.startsWith('/student/progress')) return ['Student', 'Progress Tracking']
-  if (url.startsWith('/student/certificates')) return ['Student', 'Certificates']
-  if (url.startsWith('/student/payments')) return ['Student', 'Payment & ABA']
-  if (url.startsWith('/student/notifications')) return ['Student', 'Notifications']
-  if (url.startsWith('/student/calendar')) return ['Student', 'Calendar & Schedule']
-  if (url.startsWith('/student/profile')) return ['Student', 'Profile Settings']
-  if (url.startsWith('/student/discussions')) return ['Student', 'Discussions & Support']
-  return ['Student', 'Student Panel']
+  if (url.startsWith('/student/my-courses/current') || url.startsWith('/student/courses/current')) {
+    return [
+      { label: 'Dashboard', href: '/student/dashboard' },
+      { label: 'My Courses', href: '/student/my-courses/enrolled' },
+      { label: 'Web Development', href: '/student/my-courses/enrolled' },
+      { label: 'Chapter 3 - JavaScript Functions' }
+    ]
+  }
+  if (url.startsWith('/student/my-courses/enrolled') || url.startsWith('/student/courses/enrolled')) {
+    return [
+      { label: 'Dashboard', href: '/student/dashboard' },
+      { label: 'My Courses', href: '/student/my-courses/enrolled' },
+      { label: 'Enrolled Courses' }
+    ]
+  }
+  if (url.startsWith('/student/my-courses/completed') || url.startsWith('/student/courses/completed')) {
+    return [
+      { label: 'Dashboard', href: '/student/dashboard' },
+      { label: 'My Courses', href: '/student/my-courses/enrolled' },
+      { label: 'Completed Courses' }
+    ]
+  }
+  if (url.startsWith('/student/browse')) {
+    return [
+      { label: 'Dashboard', href: '/student/dashboard' },
+      { label: 'My Courses', href: '/student/my-courses/enrolled' },
+      { label: 'Browse Catalog' }
+    ]
+  }
+  if (url.startsWith('/student/ai-tutor')) {
+    return [
+      { label: 'Dashboard', href: '/student/dashboard' },
+      { label: 'AI Learning', href: '/student/ai-path/recommended' },
+      { label: 'AI Study Assistant' }
+    ]
+  }
+  if (url.startsWith('/student/ai-path/recommended')) {
+    return [
+      { label: 'Dashboard', href: '/student/dashboard' },
+      { label: 'AI Learning', href: '/student/ai-path/recommended' },
+      { label: 'Personalized Learning Path' }
+    ]
+  }
+  if (url.startsWith('/student/ai-path/next-course')) {
+    return [
+      { label: 'Dashboard', href: '/student/dashboard' },
+      { label: 'AI Learning', href: '/student/ai-path/recommended' },
+      { label: 'Recommended Roadmap' }
+    ]
+  }
+  if (url.startsWith('/student/ai-path/weak-topics')) {
+    return [
+      { label: 'Dashboard', href: '/student/dashboard' },
+      { label: 'AI Learning', href: '/student/ai-path/recommended' },
+      { label: 'Weak Topics Review' }
+    ]
+  }
+  if (url.startsWith('/student/progress')) {
+    return [
+      { label: 'Dashboard', href: '/student/dashboard' },
+      { label: 'Progress & Analytics', href: '/student/progress/overview' },
+      { label: 'Learning Overview' }
+    ]
+  }
+  if (url.startsWith('/student/quizzes')) {
+    return [
+      { label: 'Dashboard', href: '/student/dashboard' },
+      { label: 'Quiz & Assessment', href: '/student/quizzes/practice' },
+      { label: 'Available Quizzes' }
+    ]
+  }
+  if (url.startsWith('/student/certificates')) {
+    return [
+      { label: 'Dashboard', href: '/student/dashboard' },
+      { label: 'Certificates', href: '/student/certificates/my-certificates' },
+      { label: 'My Certificates' }
+    ]
+  }
+  if (url.startsWith('/student/payments')) {
+    return [
+      { label: 'Dashboard', href: '/student/dashboard' },
+      { label: 'Payment & Billing', href: '/student/payments/my-payments' },
+      { label: 'Course Fees & Invoices' }
+    ]
+  }
+  if (url.startsWith('/student/notifications')) {
+    return [
+      { label: 'Dashboard', href: '/student/dashboard' },
+      { label: 'Notifications', href: '/student/notifications/announcements' },
+      { label: 'Announcements & Alerts' }
+    ]
+  }
+  if (url.startsWith('/student/calendar')) {
+    return [
+      { label: 'Dashboard', href: '/student/dashboard' },
+      { label: 'Calendar & Schedule' }
+    ]
+  }
+  if (url.startsWith('/student/profile')) {
+    return [
+      { label: 'Dashboard', href: '/student/dashboard' },
+      { label: 'Profile & Settings' }
+    ]
+  }
+  return [
+    { label: 'Dashboard', href: '/student/dashboard' }
+  ]
 })
 
 const pageTitle = computed(() => {
   if (props.title) return props.title
-  const crumb = currentBreadcrumb.value
-  return crumb.length > 1 ? crumb[crumb.length - 1] : 'Student Panel'
+  const crumbs = dynamicBreadcrumbs.value
+  return crumbs.length > 0 ? crumbs[crumbs.length - 1].label : 'Student Panel'
 })
 
 // Quick Actions Dropdown items for Student
@@ -235,7 +333,6 @@ const filteredSearchLinks = computed(() => {
   return searchableLinks.value.filter(l => l.name.toLowerCase().includes(q) || l.category.toLowerCase().includes(q))
 })
 
-// Navigation Structure Definition
 interface NavSubItem {
   name: string
   khName: string
@@ -272,7 +369,7 @@ const logout = () => {
   router.post('/logout')
 }
 
-// E.LMS Student - Structure as per official specification
+// E-LMS Student - Structure as per official specification
 const studentNav: NavItem[] = [
   {
     key: 'dashboard',
@@ -289,23 +386,23 @@ const studentNav: NavItem[] = [
     iconUrl: '/images/nav/courses.svg',
     icon: 'M12 14l9-5-9-5-9 5 9 5z',
     children: [
-      { name: 'Enrolled Courses (កំពុងរៀន)', khName: 'Enrolled Courses (កំពុងរៀន)', href: '/student/my-courses/enrolled', iconUrl: '/images/nav/sub/all-courses.svg' },
-      { name: 'Completed Courses (រៀនចប់)', khName: 'Completed Courses (រៀនចប់)', href: '/student/my-courses/completed', iconUrl: '/images/nav/sub/roles.svg' },
-      { name: 'Browse Catalog (វគ្គសិក្សាទាំងអស់)', khName: 'Browse Catalog (វគ្គសិក្សាទាំងអស់)', href: '/student/browse', iconUrl: '/images/nav/sub/overview.svg' },
-      { name: 'Free Courses', khName: 'Free Courses', href: '/student/browse?type=free', iconUrl: '/images/nav/sub/free-courses.svg' },
-      { name: 'Paid Courses', khName: 'Paid Courses', href: '/student/browse?type=paid', iconUrl: '/images/nav/sub/paid-courses.svg' },
-      { name: 'Filter by Major (IT, Tourism, English, Agronomy, Social Work)', khName: 'Filter by Major (IT, Tourism, English, Agronomy, Social Work)', href: '/student/browse?filter=major', iconUrl: '/images/nav/sub/majors.svg' },
+      { name: 'Continue Learning', khName: 'Continue Learning', href: '/student/my-courses/current', iconUrl: '/images/actions/add-course.svg' },
+      { name: 'Enrolled Courses', khName: 'Enrolled Courses', href: '/student/my-courses/enrolled', iconUrl: '/images/nav/sub/all-courses.svg' },
+      { name: 'Completed Courses', khName: 'Completed Courses', href: '/student/my-courses/completed', iconUrl: '/images/nav/sub/roles.svg' },
+      { name: 'Browse Catalog', khName: 'Browse Catalog', href: '/student/browse', iconUrl: '/images/nav/sub/overview.svg' },
     ]
   },
   {
     key: 'aiPath',
-    name: 'AI Learning Path',
-    khName: 'AI Learning Path',
+    name: 'AI Learning',
+    khName: 'AI Learning',
     iconUrl: '/images/nav/ai.svg',
     icon: 'M13 10V3L4 14h7v7l9-11h-7z',
     badge: { text: 'AI', colorClass: 'bg-purple-500/20 text-purple-300 border-purple-500/30' },
     children: [
-      { name: 'Recommended Roadmap', khName: 'Recommended Roadmap', href: '/student/ai-path/recommended', iconUrl: '/images/nav/ai.svg' },
+      { name: 'AI Study Assistant', khName: 'AI Study Assistant', href: '/student/ai-tutor', iconUrl: '/images/nav/ai.svg' },
+      { name: 'Personalized Learning Path', khName: 'Personalized Learning Path', href: '/student/ai-path/recommended', iconUrl: '/images/nav/ai.svg' },
+      { name: 'Recommended Roadmap', khName: 'Recommended Roadmap', href: '/student/ai-path/next-course', iconUrl: '/images/nav/sub/all-courses.svg' },
       { name: 'Weak Topics Review', khName: 'Weak Topics Review', href: '/student/ai-path/weak-topics', iconUrl: '/images/nav/sub/failed.svg' },
     ]
   },
@@ -316,20 +413,22 @@ const studentNav: NavItem[] = [
     iconUrl: '/images/nav/progress.svg',
     icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6',
     children: [
-      { name: 'Learning Overview (Charts)', khName: 'Learning Overview (Charts)', href: '/student/progress/overview', iconUrl: '/images/nav/progress.svg' },
+      { name: 'Learning Overview', khName: 'Learning Overview', href: '/student/progress/overview', iconUrl: '/images/nav/progress.svg' },
+      { name: 'Quiz Performance', khName: 'Quiz Performance', href: '/student/progress/weekly', iconUrl: '/images/nav/analytics.svg' },
       { name: 'Time Tracker', khName: 'Time Tracker', href: '/student/progress/learning-time', iconUrl: '/images/nav/sub/history.svg' },
       { name: 'Badges & Achievements', khName: 'Badges & Achievements', href: '/student/progress/achievements', iconUrl: '/images/nav/sub/roles.svg' },
     ]
   },
   {
     key: 'quizzes',
-    name: 'Quiz & Assessment History',
-    khName: 'Quiz & Assessment History',
+    name: 'Quiz & Assessment',
+    khName: 'Quiz & Assessment',
     iconUrl: '/images/nav/quiz.svg',
     icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
     children: [
-      { name: 'Pre/Post-Test Results', khName: 'Pre/Post-Test Results', href: '/student/quizzes/history', iconUrl: '/images/nav/sub/semesters.svg' },
-      { name: 'Detailed Scores & Performance', khName: 'Detailed Scores & Performance', href: '/student/quizzes/scores', iconUrl: '/images/nav/analytics.svg' },
+      { name: 'Available Quizzes', khName: 'Available Quizzes', href: '/student/quizzes/practice', iconUrl: '/images/nav/quiz.svg' },
+      { name: 'Pre/Post-Test Results', khName: 'Pre/Post-Test Results', href: '/student/quizzes/scores', iconUrl: '/images/nav/sub/semesters.svg' },
+      { name: 'Detailed Performance', khName: 'Detailed Performance', href: '/student/quizzes/history', iconUrl: '/images/nav/analytics.svg' },
     ]
   },
   {
@@ -353,7 +452,7 @@ const studentNav: NavItem[] = [
     badge: { text: 'ABA', colorClass: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' },
     children: [
       { name: 'Course Fees & Invoices', khName: 'Course Fees & Invoices', href: '/student/payments/my-payments', iconUrl: '/images/nav/payment.svg' },
-      { name: 'Pay via ABA (KHQR)', khName: 'Pay via ABA (KHQR)', href: '/student/payments/pending', iconUrl: '/images/actions/payment.svg' },
+      { name: 'Pay via ABA (KHR)', khName: 'Pay via ABA (KHR)', href: '/student/payments/pending', iconUrl: '/images/actions/payment.svg' },
       { name: 'Payment History', khName: 'Payment History', href: '/student/payments/history', iconUrl: '/images/nav/sub/history.svg' },
     ]
   },
@@ -383,15 +482,6 @@ const studentNav: NavItem[] = [
     href: '/student/profile?tab=personal',
     iconUrl: '/images/nav/sub/students.svg',
     icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
-  },
-  {
-    key: 'logout',
-    name: 'Log Out',
-    khName: 'Log Out',
-    isAction: true,
-    onClick: logout,
-    iconUrl: '/images/actions/action-button.svg',
-    icon: 'M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1'
   }
 ]
 
@@ -411,7 +501,12 @@ const isChildActive = (children?: NavSubItem[]) => {
 }
 
 const toggleModule = (key: string) => {
-  expandedModules.value[key] = !expandedModules.value[key]
+  const isCurrentOpen = !!expandedModules.value[key]
+  // Only one submenu expanded at a time: reset all
+  Object.keys(expandedModules.value).forEach(k => {
+    expandedModules.value[k] = false
+  })
+  expandedModules.value[key] = !isCurrentOpen
 }
 
 watch(
@@ -561,7 +656,7 @@ const onIconError = (e: Event) => {
               :title="isSidebarCollapsed ? (currentLang === 'km' ? item.khName : item.name) : undefined"
               :class="[
                 $page.url.startsWith(item.href!) 
-                  ? 'bg-indigo-50 dark:bg-[#1E1B4B] text-indigo-600 dark:text-[#818CF8] border border-indigo-200/90 dark:border-[#818CF8]/30 font-bold shadow-xs dark:shadow-md dark:shadow-indigo-950/50' 
+                  ? 'bg-gradient-to-r from-purple-600/30 via-indigo-600/25 to-purple-600/10 text-indigo-700 dark:text-white border border-purple-500/40 font-bold shadow-sm shadow-purple-500/10' 
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-[#F1F5F9] hover:bg-slate-100 dark:hover:bg-slate-800/70 border border-transparent font-medium',
                 isSidebarCollapsed ? 'justify-center px-0 w-10 h-10 mx-auto' : 'px-3 w-full justify-between',
                 'group flex items-center rounded-xl py-2 text-xs transition-all duration-200'
@@ -580,7 +675,7 @@ const onIconError = (e: Event) => {
                   />
                   <svg 
                     :class="[
-                      $page.url.startsWith(item.href!) ? 'text-indigo-600 dark:text-[#818CF8]' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300',
+                      $page.url.startsWith(item.href!) ? 'text-indigo-600 dark:text-purple-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300',
                       item.iconUrl ? 'hidden' : '',
                       'h-4 w-4 shrink-0 transition-colors'
                     ]"
@@ -610,7 +705,7 @@ const onIconError = (e: Event) => {
                 :title="isSidebarCollapsed ? (currentLang === 'km' ? item.khName : item.name) : undefined"
                 :class="[
                   isChildActive(item.children) 
-                    ? 'bg-indigo-50/80 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-500/30 font-semibold' 
+                    ? 'bg-gradient-to-r from-purple-600/25 via-indigo-600/20 to-purple-600/10 text-indigo-700 dark:text-white border border-purple-500/30 font-semibold' 
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-[#F1F5F9] hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-transparent',
                   isSidebarCollapsed ? 'justify-center px-0 w-10 h-10 mx-auto' : 'px-3 w-full justify-between',
                   'group flex items-center rounded-xl py-2 text-xs font-medium transition-all duration-200 cursor-pointer'
@@ -629,7 +724,7 @@ const onIconError = (e: Event) => {
                     />
                     <svg 
                       :class="[
-                        isChildActive(item.children) ? 'text-indigo-600 dark:text-[#818CF8]' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300',
+                        isChildActive(item.children) ? 'text-indigo-600 dark:text-purple-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300',
                         item.iconUrl ? 'hidden' : '',
                         'h-4 w-4 shrink-0 transition-colors'
                       ]"
@@ -652,7 +747,7 @@ const onIconError = (e: Event) => {
                   </span>
                   <svg
                     :class="[
-                      expandedModules[item.key!] ? 'rotate-180 text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500',
+                      expandedModules[item.key!] ? 'rotate-180 text-indigo-600 dark:text-purple-400' : 'text-slate-400 dark:text-slate-500',
                       'w-3.5 h-3.5 transition-transform duration-200 shrink-0 ml-1'
                     ]"
                     fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
@@ -665,7 +760,7 @@ const onIconError = (e: Event) => {
               <!-- Submenu Items Tree -->
               <div
                 v-show="!isSidebarCollapsed && expandedModules[item.key!]"
-                class="relative ml-5 pl-3 space-y-0.5 my-1 transition-all duration-300 border-l border-slate-200 dark:border-slate-800 w-[calc(100%-20px)]"
+                class="relative ml-4 pl-3.5 space-y-0.5 my-1 transition-all duration-300 border-l border-purple-500/30 w-[calc(100%-18px)]"
               >
                 <div
                   v-for="sub in item.children"
@@ -677,7 +772,7 @@ const onIconError = (e: Event) => {
                     prefetch="hover"
                     :class="[
                       isSubActive(sub.href)
-                        ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 font-bold border border-indigo-500/30'
+                        ? 'bg-purple-600/20 text-indigo-700 dark:text-purple-300 font-bold border border-purple-500/30'
                         : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50 border border-transparent',
                       'flex items-center gap-x-2 rounded-lg px-2 py-1.5 text-[11px] transition-all duration-200 truncate'
                     ]"
@@ -720,7 +815,7 @@ const onIconError = (e: Event) => {
                     prefetch="hover"
                     :class="[
                       isSubActive(sub.href)
-                        ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 font-bold border border-indigo-500/30'
+                        ? 'bg-purple-600/20 text-indigo-700 dark:text-purple-300 font-bold border border-purple-500/30'
                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/70 border border-transparent',
                       'flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs transition-all duration-150 truncate'
                     ]"
@@ -736,50 +831,58 @@ const onIconError = (e: Event) => {
       </nav>
 
       <!-- Sidebar Footer User Card & Log Out (🚪) -->
-      <div :class="[isSidebarCollapsed ? 'px-0 py-2' : 'p-3', 'mt-auto border-t border-slate-200/90 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950/60 shrink-0']">
-        <div :class="[isSidebarCollapsed ? 'flex-col justify-center items-center gap-2 w-full' : 'justify-between gap-2', 'flex items-center']">
-          <Link
-            href="/student/profile?tab=personal"
-            prefetch="hover"
-            :class="[
-              isSidebarCollapsed ? 'justify-center' : 'min-w-0 flex-1',
-              'flex items-center gap-2.5 hover:opacity-80 transition-opacity'
-            ]"
-          >
+      <div :class="[isSidebarCollapsed ? 'px-0 py-2' : 'p-3', 'mt-auto border-t border-slate-200/90 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950/70 shrink-0 space-y-2']">
+        <Link
+          href="/student/profile?tab=personal"
+          prefetch="hover"
+          :class="[
+            isSidebarCollapsed ? 'justify-center' : 'justify-between',
+            'flex items-center gap-2.5 p-2 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 hover:border-purple-500/50 shadow-xs transition-all duration-200 group'
+          ]"
+        >
+          <div class="flex items-center gap-2.5 min-w-0">
             <div class="relative shrink-0">
-              <div
-                v-if="!user.avatar"
-                class="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 text-white font-bold flex items-center justify-center text-xs shadow"
-              >
-                {{ studentDisplayName.charAt(0) }}
-              </div>
               <img
-                v-else
-                :src="user.avatar"
+                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
+                alt="Student Avatar"
                 loading="lazy"
                 decoding="async"
-                class="w-8 h-8 rounded-full object-cover border border-indigo-500/30 shadow-md"
+                class="w-9 h-9 rounded-full object-cover border border-purple-500/40 shadow-sm"
               />
-              <span class="absolute bottom-0 right-0 w-2 h-2 bg-emerald-500 rounded-full ring-2 ring-white dark:ring-slate-900"></span>
+              <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-white dark:ring-slate-900"></span>
             </div>
 
-            <div v-show="!isSidebarCollapsed" class="min-w-0">
-              <p class="font-bold text-slate-800 dark:text-slate-100 text-[11px] truncate">{{ studentDisplayName }}</p>
-              <p class="text-[9px] text-slate-400 truncate">ID: {{ studentId }} • Student</p>
+            <div v-show="!isSidebarCollapsed" class="min-w-0 text-left">
+              <p class="font-bold text-slate-800 dark:text-white text-xs truncate group-hover:text-purple-400 transition-colors">
+                {{ user.name || 'Sok Pisey' }}
+              </p>
+              <p class="text-[10px] text-slate-400 truncate">
+                Student ID: {{ user.student_id || 'STU2024001' }}
+              </p>
             </div>
-          </Link>
+          </div>
 
-          <!-- Log Out Button (🚪) -->
-          <button
-            @click="logout"
-            title="Log Out (ចាកចេញ)"
-            class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors shrink-0 cursor-pointer"
-          >
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-          </button>
-        </div>
+          <div v-show="!isSidebarCollapsed" class="flex items-center gap-1 text-purple-400 group-hover:translate-x-0.5 transition-transform shrink-0">
+            <span class="text-[10px] font-semibold">View Profile</span>
+            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+          </div>
+        </Link>
+
+        <!-- Log Out Button -->
+        <button
+          @click="logout"
+          type="button"
+          :title="isSidebarCollapsed ? 'Log Out' : undefined"
+          :class="[
+            isSidebarCollapsed ? 'justify-center w-10 h-10 mx-auto' : 'px-3 w-full justify-start gap-2.5',
+            'flex items-center py-2 rounded-xl text-xs font-semibold text-rose-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer'
+          ]"
+        >
+          <svg class="w-4 h-4 shrink-0 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+          <span v-show="!isSidebarCollapsed">Log Out</span>
+        </button>
       </div>
     </aside>
 
@@ -828,7 +931,7 @@ const onIconError = (e: Event) => {
             prefetch="hover"
             @click="sidebarOpen = false"
             :class="[
-              $page.url.startsWith(item.href!) ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200',
+              $page.url.startsWith(item.href!) ? 'bg-purple-500/20 text-purple-300 font-bold border border-purple-500/30' : 'text-slate-400 hover:text-white',
               'flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium'
             ]"
           >
@@ -838,22 +941,22 @@ const onIconError = (e: Event) => {
           <div v-else class="space-y-0.5">
             <button
               @click="toggleModule(item.key!)"
-              class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-medium"
+              class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs text-slate-400 hover:text-white font-medium"
             >
               <div class="flex items-center gap-2.5">
                 <img v-if="item.iconUrl" :src="item.iconUrl" loading="lazy" decoding="async" class="w-4 h-4 object-contain" />
                 <span>{{ currentLang === 'km' ? item.khName : item.name }}</span>
               </div>
-              <svg :class="[expandedModules[item.key!] ? 'rotate-180 text-indigo-500' : '', 'w-3.5 h-3.5 transition-transform']" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+              <svg :class="[expandedModules[item.key!] ? 'rotate-180 text-purple-400' : '', 'w-3.5 h-3.5 transition-transform']" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
-            <div v-show="expandedModules[item.key!]" class="pl-6 space-y-0.5 border-l border-slate-200 dark:border-slate-800 ml-4">
+            <div v-show="expandedModules[item.key!]" class="pl-6 space-y-0.5 border-l border-purple-500/30 ml-4">
               <Link
                 v-for="sub in item.children"
                 :key="sub.href"
                 :href="sub.href"
                 prefetch="hover"
                 @click="sidebarOpen = false"
-                :class="[isSubActive(sub.href) ? 'text-indigo-600 dark:text-indigo-300 font-bold' : 'text-slate-500 dark:text-slate-400', 'block py-1.5 text-[11px] truncate']"
+                :class="[isSubActive(sub.href) ? 'text-purple-300 font-bold' : 'text-slate-400', 'block py-1.5 text-[11px] truncate']"
               >
                 {{ currentLang === 'km' ? sub.khName : sub.name }}
               </Link>
@@ -861,22 +964,13 @@ const onIconError = (e: Event) => {
           </div>
         </template>
       </nav>
-
-      <div class="p-3 border-t border-slate-200 dark:border-slate-800">
-        <button
-          @click="logout"
-          class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold transition-colors"
-        >
-          <span>🚪 Log Out (ចាកចេញ)</span>
-        </button>
-      </div>
     </aside>
 
     <!-- STICKY TOP NAVBAR (Dynamically padded to account for fixed sidebar) -->
     <header :class="[isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72', 'sticky top-0 z-40 bg-white/95 dark:bg-[#0B0F19]/90 backdrop-blur-xl border-b border-slate-200/90 dark:border-slate-800/80 transition-all duration-300 shadow-xs']">
       <div class="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8 gap-4">
         
-        <!-- Left Side: Mobile Menu Toggle, Breadcrumb & Global Search Bar -->
+        <!-- Left Side: Mobile Sidebar Hamburger & Multi-Segment Breadcrumbs -->
         <div class="flex items-center gap-3.5 min-w-0">
           <button
             @click="sidebarOpen = !sidebarOpen"
@@ -889,14 +983,32 @@ const onIconError = (e: Event) => {
             </svg>
           </button>
 
-          <!-- Breadcrumb -->
-          <div class="hidden sm:flex items-center gap-2 text-xs font-medium truncate">
-            <span class="text-slate-400 font-normal">Student</span>
-            <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-            <span class="px-2.5 py-1 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border border-indigo-500/20 font-semibold truncate shadow-xs">
-              {{ currentBreadcrumb[1] }}
-            </span>
-          </div>
+          <!-- Breadcrumbs Multi-Segment matching reference design -->
+          <nav aria-label="Breadcrumb" class="hidden sm:flex items-center gap-2 text-xs font-medium truncate">
+            <template v-for="(crumb, idx) in dynamicBreadcrumbs" :key="crumb.label">
+              <Link
+                v-if="crumb.href"
+                :href="crumb.href"
+                prefetch="hover"
+                class="text-slate-400 hover:text-purple-400 transition-colors truncate"
+              >
+                {{ crumb.label }}
+              </Link>
+              <span
+                v-else
+                class="text-slate-800 dark:text-white font-semibold truncate"
+              >
+                {{ crumb.label }}
+              </span>
+              <svg
+                v-if="idx < dynamicBreadcrumbs.length - 1"
+                class="w-3 h-3 text-slate-500 shrink-0"
+                fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+              </svg>
+            </template>
+          </nav>
 
           <!-- Glassmorphic Search Bar -->
           <div class="relative hidden md:block">

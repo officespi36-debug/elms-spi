@@ -3,445 +3,627 @@ import { ref } from 'vue'
 import { Link } from '@inertiajs/vue3'
 import StudentLayout from '@/Layouts/StudentLayout.vue'
 
-const activeTab = ref<'overview' | 'transcript' | 'translation' | 'qa' | 'notes'>('translation')
-const translationLanguage = ref<'km' | 'en' | 'both'>('both')
+const activeTab = ref<'overview' | 'content' | 'resources' | 'discussion'>('overview')
 const isVideoPlaying = ref(false)
-const videoSpeed = ref('1.0x')
+const videoSpeed = ref('1x')
 const isCC = ref(true)
 
-const currentLesson = ref({
-  title: 'Chapter 2.1: Understanding Operators',
-  courseTitle: 'C Programming Basics',
-  instructor: 'Mr. Sophea',
-  mode: 'Teacher-Led',
-  major: 'IT & Networking',
-  videoUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=720&auto=format&fit=crop&q=75',
-  currentTime: '08:45',
-  duration: '18:30',
-  keyPoint: 'Key Point: Operator %= ប្រើសម្រាប់គណនា Remainder (សំណល់នៃការចែក)'
-})
+// AI Chat widget state in Right Panel
+const aiMessages = ref<Array<{ role: 'ai' | 'user'; text: string }>>([
+  { role: 'ai', text: 'Hi Pisey! 👋 How can I help you with this lesson?' }
+])
+const aiInput = ref('')
 
-interface Chapter {
+const sendAiPrompt = (promptText: string) => {
+  aiMessages.value.push({ role: 'user', text: promptText })
+  setTimeout(() => {
+    if (promptText.includes('example')) {
+      aiMessages.value.push({
+        role: 'ai',
+        text: `Here is a quick JavaScript function example:\n\`\`\`javascript\nfunction greet(name) {\n  return "Hello, " + name + "!";\n}\nconsole.log(greet("Pisey")); // "Hello, Pisey!"\n\`\`\``
+      })
+    } else if (promptText.includes('Explain')) {
+      aiMessages.value.push({
+        role: 'ai',
+        text: 'A JavaScript function is a reusable block of code designed to perform a particular task. It is executed when "something" invokes or calls it.'
+      })
+    } else if (promptText.includes('Summarize')) {
+      aiMessages.value.push({
+        role: 'ai',
+        text: 'Summary: Functions allow code reusability, accept parameters as inputs, and return values using the "return" statement.'
+      })
+    } else {
+      aiMessages.value.push({
+        role: 'ai',
+        text: 'Practice question: What keyword is used to return a value from a JavaScript function? (A) give (B) return (C) send (D) output'
+      })
+    }
+  }, 400)
+}
+
+const handleSendAi = () => {
+  if (!aiInput.value.trim()) return
+  const text = aiInput.value.trim()
+  aiInput.value = ''
+  sendAiPrompt(text)
+}
+
+// Chapter curriculum accordion
+interface LessonItem {
   id: string
-  name: string
-  completed?: boolean
-  active?: boolean
-  locked?: boolean
-}
-
-interface ModuleItem {
   title: string
-  status: string
-  progress: number
-  chapters: Chapter[]
+  duration: string
+  status: 'completed' | 'active' | 'pending' | 'locked'
 }
 
-const modulesTree = ref<ModuleItem[]>([
+interface ChapterItem {
+  id: number
+  title: string
+  progress: string
+  expanded: boolean
+  locked?: boolean
+  lessons: LessonItem[]
+}
+
+const chapters = ref<ChapterItem[]>([
   {
-    title: 'Module 1: C Fundamentals',
-    status: 'completed',
-    progress: 100,
-    chapters: [
-      { id: '1.1', name: 'Ch 1.1 History & Installation', completed: true, active: false, locked: false },
-      { id: '1.2', name: 'Ch 1.2 Syntax & Environment Setup', completed: true, active: false, locked: false }
+    id: 1,
+    title: 'Chapter 1: Introduction',
+    progress: '3/3',
+    expanded: false,
+    lessons: [
+      { id: '1.1', title: '1.1 Web Basics & HTTP', duration: '08:20', status: 'completed' },
+      { id: '1.2', title: '1.2 Dev Tools & IDE Setup', duration: '12:40', status: 'completed' },
+      { id: '1.3', title: '1.3 Course Roadmap Overview', duration: '06:15', status: 'completed' }
     ]
   },
   {
-    title: 'Module 2: Variables & Operators',
-    status: 'active',
-    progress: 65,
-    chapters: [
-      { id: '2.1', name: 'Ch 2.1 Data Types & Variables', completed: true, active: false, locked: false },
-      { id: '2.2', name: 'Ch 2.2 Understanding Operators', completed: false, active: true, locked: false },
-      { id: '2.3', name: 'Ch 2.3 Control Loops & Conditions', completed: false, active: false, locked: true }
+    id: 2,
+    title: 'Chapter 2: HTML Basics',
+    progress: '4/4',
+    expanded: false,
+    lessons: [
+      { id: '2.1', title: '2.1 Semantic Tags', duration: '10:15', status: 'completed' },
+      { id: '2.2', title: '2.2 Forms and Inputs', duration: '14:30', status: 'completed' },
+      { id: '2.3', title: '2.3 Media & Canvas Elements', duration: '11:20', status: 'completed' },
+      { id: '2.4', title: '2.4 HTML5 Best Practices', duration: '09:45', status: 'completed' }
     ]
   },
   {
-    title: 'Module 3: Functions & Arrays',
-    status: 'locked',
-    progress: 0,
-    chapters: [
-      { id: '3.1', name: 'Ch 3.1 Defining Functions', completed: false, active: false, locked: true },
-      { id: '3.2', name: 'Ch 3.2 Arrays & Memory', completed: false, active: false, locked: true }
+    id: 3,
+    title: 'Chapter 3: JavaScript Basics',
+    progress: '1/4',
+    expanded: true,
+    lessons: [
+      { id: '3.1', title: '3.1 What is JavaScript?', duration: '10:15', status: 'completed' },
+      { id: '3.2', title: '3.2 JavaScript Functions', duration: '18:20', status: 'active' },
+      { id: '3.3', title: '3.3 Function Parameters', duration: '15:30', status: 'pending' },
+      { id: '3.4', title: '3.4 Return Values', duration: '12:45', status: 'locked' }
+    ]
+  },
+  {
+    id: 4,
+    title: 'Chapter 4: DOM Manipulation',
+    progress: '0/2',
+    expanded: false,
+    locked: true,
+    lessons: [
+      { id: '4.1', title: '4.1 Selecting Elements', duration: '16:00', status: 'locked' },
+      { id: '4.2', title: '4.2 Modifying DOM Nodes', duration: '14:20', status: 'locked' }
+    ]
+  },
+  {
+    id: 5,
+    title: 'Chapter 5: Events',
+    progress: '0/2',
+    expanded: false,
+    locked: true,
+    lessons: [
+      { id: '5.1', title: '5.1 Event Listeners', duration: '15:10', status: 'locked' },
+      { id: '5.2', title: '5.2 Event Bubbling & Delegation', duration: '18:40', status: 'locked' }
     ]
   }
 ])
 
-const notesList = ref([
-  { id: 1, text: 'Operator %= calculates the remainder of division.', time: '05:20' },
-  { id: 2, text: 'Remember ++i vs i++ difference for loop indexes.', time: '11:45' }
-])
-const newNote = ref('')
+const toggleChapter = (chapter: ChapterItem) => {
+  if (chapter.locked) return
+  chapter.expanded = !chapter.expanded
+}
 
-const addNote = () => {
-  if (newNote.value.trim()) {
-    notesList.value.push({
-      id: Date.now(),
-      text: newNote.value.trim(),
-      time: currentLesson.value.currentTime
-    })
-    newNote.value = ''
-  }
+const toggleExpandAll = () => {
+  const allOpen = chapters.value.every(c => c.expanded || c.locked)
+  chapters.value.forEach(c => {
+    if (!c.locked) c.expanded = !allOpen
+  })
 }
 </script>
 
 <template>
-  <StudentLayout title="Current Course — Learning Room">
-    <div class="space-y-6">
+  <StudentLayout
+    title="Chapter 3 - JavaScript Functions — Web Development Course"
+    :breadcrumbs="[
+      { label: 'Dashboard', href: '/student/dashboard' },
+      { label: 'My Courses', href: '/student/my-courses/enrolled' },
+      { label: 'Web Development', href: '/student/my-courses/enrolled' },
+      { label: 'Chapter 3 - JavaScript Functions' }
+    ]"
+  >
+    <div class="space-y-6 pb-12">
       
-      <!-- Top Learning Room Banner -->
-      <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-slate-800 rounded-3xl p-5 md:p-6 shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div class="flex items-center gap-2 text-xs text-indigo-400 font-bold mb-1">
-            <span>📖 CURRENT LEARNING ROOM</span>
-            <span>•</span>
-            <span class="px-2 py-0.5 rounded bg-indigo-500/20 border border-indigo-500/30 text-indigo-300">
-              {{ currentLesson.mode }}
-            </span>
-          </div>
-          <h1 class="text-xl md:text-2xl font-black text-white">
-            {{ currentLesson.courseTitle }}
-          </h1>
-          <p class="text-xs text-slate-400 mt-1">
-            👨‍🏫 Instructor: {{ currentLesson.instructor }} • 🏫 {{ currentLesson.major }}
-          </p>
-        </div>
-
-        <div class="flex items-center gap-3">
-          <Link
-            href="/student/my-courses/enrolled"
-            prefetch="hover"
-            class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs border border-slate-700 transition-all"
-          >
-            ← Back to Enrolled Courses
-          </Link>
-        </div>
-      </div>
-
-      <!-- MAIN LEARNING ROOM GRID (Sidebar + Main Player) -->
+      <!-- MAIN GRID: Left 8 cols Video & Tabs, Right 4 cols Course Progress & AI Assistant -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
-        <!-- LEFT SIDEBAR: CHAPTER TREE (4 Columns on LG) -->
-        <div class="lg:col-span-4 bg-slate-800/90 border border-slate-700/80 rounded-3xl p-4 shadow-xl space-y-4">
-          <div class="flex items-center justify-between border-b border-slate-700/60 pb-3">
-            <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <span>📁</span>
-              <span>Course Curriculum</span>
-            </h3>
-            <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-indigo-500/20 text-indigo-300">
-              65% Overall
-            </span>
-          </div>
-
-          <!-- Module Accordion Tree -->
-          <div class="space-y-3 max-h-[600px] overflow-y-auto custom-scrollbar pr-1">
-            <div v-for="mod in modulesTree" :key="mod.title" class="space-y-1.5">
-              <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-700/60 text-xs font-bold text-slate-200">
-                <span class="truncate">{{ mod.title }}</span>
-                <span v-if="mod.status === 'completed'" class="text-emerald-400">✅ 100%</span>
-                <span v-else-if="mod.status === 'active'" class="text-amber-400">🔄 {{ mod.progress }}%</span>
-                <span v-else class="text-slate-500">🔒 Locked</span>
+        <!-- LEFT 8 COLUMNS: Video Player, Title, Tabs, About, Next/Previous Actions -->
+        <div class="lg:col-span-8 space-y-5">
+          
+          <!-- Video Title Bar matching screenshot -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-purple-600/30 text-purple-400 border border-purple-500/40 flex items-center justify-center text-lg shrink-0 shadow-lg shadow-purple-900/30">
+                ▶
               </div>
-
-              <!-- Chapter List -->
-              <div class="pl-3 space-y-1">
-                <div
-                  v-for="ch in mod.chapters"
-                  :key="ch.id"
-                  :class="[
-                    ch.active ? 'bg-indigo-600/20 text-indigo-300 border-indigo-500/40 font-bold' : 'text-slate-400 hover:text-slate-200 border-transparent',
-                    'p-2 rounded-xl border text-xs flex items-center justify-between cursor-pointer transition-all'
-                  ]"
-                >
-                  <div class="flex items-center gap-2 truncate">
-                    <span v-if="ch.completed" class="text-emerald-400">✅</span>
-                    <span v-else-if="ch.active" class="text-indigo-400 animate-pulse">▶</span>
-                    <span v-else-if="ch.locked" class="text-slate-500">🔒</span>
-                    <span class="truncate">{{ ch.name }}</span>
-                  </div>
-                  <span v-if="ch.active" class="px-1.5 py-0.5 rounded text-[9px] bg-indigo-500 text-white">Active</span>
-                </div>
+              <div>
+                <h1 class="text-lg sm:text-xl font-extrabold text-white tracking-tight">
+                  Chapter 3 - JavaScript Functions
+                </h1>
+                <p class="text-xs text-purple-400/90 font-medium">
+                  Web Development Course
+                </p>
               </div>
             </div>
+
+            <!-- Top Navigation Buttons (< Previous, Next >) -->
+            <div class="flex items-center gap-2 self-start sm:self-auto">
+              <button
+                type="button"
+                class="px-3.5 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700/80 flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <span>‹</span>
+                <span>Previous</span>
+              </button>
+              <button
+                type="button"
+                class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/30 flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <span>Next</span>
+                <span>›</span>
+              </button>
+            </div>
           </div>
-        </div>
 
-        <!-- RIGHT MAIN AREA: VIDEO PLAYER & INTERACTIVE TABS (8 Columns on LG) -->
-        <div class="lg:col-span-8 space-y-6">
-          
-          <!-- Current Lesson Title -->
-          <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 shadow-md flex items-center justify-between">
-            <h2 class="text-base font-bold text-white flex items-center gap-2">
-              <span>📖</span>
-              <span>{{ currentLesson.title }}</span>
-            </h2>
-            <span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-500/30">
-              Module 2 • Lesson 2
-            </span>
-          </div>
+          <!-- Video Player Screen matching design in screenshot -->
+          <div class="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#0c1322] via-[#0f172a] to-[#0a0f1d] border border-slate-800 shadow-2xl group">
+            
+            <!-- Graphic Illustration Container for Lesson Video Cover -->
+            <div class="relative aspect-video w-full flex items-center justify-center p-6 sm:p-12 overflow-hidden select-none bg-[#090e1a]">
+              <!-- Grid background accent -->
+              <div class="absolute inset-0 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:20px_20px] opacity-15 pointer-events-none"></div>
 
-          <!-- VIDEO PLAYER CONTAINER (Matching Prompt Specs) -->
-          <div class="relative bg-slate-950 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl group">
-            <div class="relative aspect-video bg-slate-900 flex items-center justify-center">
-              <img :src="currentLesson.videoUrl" :alt="currentLesson.title" loading="lazy" decoding="async" class="w-full h-full object-cover opacity-60" />
+              <div class="relative z-10 w-full max-w-2xl flex flex-col md:flex-row items-center justify-between gap-6">
+                <!-- Left Title Banner -->
+                <div class="space-y-3 text-left">
+                  <div class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg bg-amber-400 text-slate-950 font-black text-xs shadow-md">
+                    JS
+                  </div>
+                  <h2 class="text-2xl sm:text-4xl font-black text-white leading-tight tracking-tight">
+                    JavaScript<br />
+                    <span class="text-amber-400">Functions</span>
+                  </h2>
+                </div>
 
-              <!-- Overlay Play/Pause Controls -->
+                <!-- Right Code Editor Mockup Card -->
+                <div class="relative w-64 sm:w-72 rounded-2xl bg-slate-900/90 border border-slate-700/80 p-4 shadow-2xl backdrop-blur-md">
+                  <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-800 text-[10px] text-slate-400">
+                    <div class="flex items-center gap-1.5">
+                      <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                      <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                      <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                    </div>
+                    <span class="font-mono text-purple-400">{...}</span>
+                  </div>
+                  <div class="space-y-1.5 font-mono text-[11px] leading-relaxed">
+                    <div class="flex items-center gap-2">
+                      <div class="w-12 h-2 rounded bg-purple-400/60"></div>
+                      <div class="w-20 h-2 rounded bg-blue-400/60"></div>
+                    </div>
+                    <div class="flex items-center gap-2 pl-3">
+                      <div class="w-16 h-2 rounded bg-amber-400/60"></div>
+                      <div class="w-10 h-2 rounded bg-emerald-400/60"></div>
+                    </div>
+                    <div class="flex items-center gap-2 pl-3">
+                      <div class="w-24 h-2 rounded bg-cyan-400/60"></div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <div class="w-8 h-2 rounded bg-purple-400/60"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Overlay Play Button -->
               <button
                 @click="isVideoPlaying = !isVideoPlaying"
-                class="absolute inset-0 m-auto w-16 h-16 rounded-full bg-indigo-600/90 hover:bg-indigo-500 text-white flex items-center justify-center shadow-2xl transition-all hover:scale-110 cursor-pointer"
+                type="button"
+                class="absolute inset-0 m-auto w-16 h-16 rounded-full bg-purple-600/90 hover:bg-purple-500 text-white flex items-center justify-center shadow-2xl shadow-purple-600/40 hover:scale-110 active:scale-95 transition-all cursor-pointer z-20"
               >
-                <svg v-if="!isVideoPlaying" class="w-8 h-8 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                <svg v-else class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                <span v-if="!isVideoPlaying" class="text-xl ml-1">▶</span>
+                <span v-else class="text-xl">❚❚</span>
               </button>
+            </div>
 
-              <!-- Custom Video Player Control Bar (Matching Prompt Specs) -->
-              <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent p-4 space-y-2">
-                <div class="w-full h-1.5 rounded-full bg-slate-700/60 overflow-hidden cursor-pointer">
-                  <div class="h-full bg-indigo-500 rounded-full w-[47%]"></div>
+            <!-- Video Player Bottom Control Bar -->
+            <div class="bg-slate-950/90 border-t border-slate-800/80 px-4 py-3 space-y-2">
+              <!-- Scrub bar -->
+              <div class="relative w-full h-1.5 rounded-full bg-slate-800 cursor-pointer overflow-hidden group/bar">
+                <div class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full w-[48%]"></div>
+              </div>
+
+              <div class="flex items-center justify-between text-xs text-slate-300">
+                <div class="flex items-center gap-3">
+                  <button @click="isVideoPlaying = !isVideoPlaying" class="hover:text-white transition-colors cursor-pointer">
+                    <span v-if="!isVideoPlaying">▶</span>
+                    <span v-else>❚❚</span>
+                  </button>
+                  <button class="hover:text-white transition-colors cursor-pointer">
+                    🔊
+                  </button>
+                  <span class="text-[11px] font-mono text-slate-400">08:45 / 18:20</span>
                 </div>
 
-                <div class="flex items-center justify-between text-xs text-slate-200">
-                  <div class="flex items-center gap-3">
-                    <button @click="isVideoPlaying = !isVideoPlaying" class="hover:text-indigo-400">
-                      {{ isVideoPlaying ? '⏸' : '▶' }}
-                    </button>
-                    <span class="font-mono text-[11px] text-slate-300">
-                      {{ currentLesson.currentTime }} / {{ currentLesson.duration }}
-                    </span>
-                  </div>
-
-                  <div class="flex items-center gap-3 text-xs font-semibold">
-                    <button @click="isCC = !isCC" :class="isCC ? 'text-indigo-400' : 'text-slate-500'" class="hover:text-white">
-                      🔊 CC: KH | EN
-                    </button>
-                    <select v-model="videoSpeed" class="bg-slate-900/80 text-xs text-slate-300 rounded border border-slate-700 px-1 py-0.5">
-                      <option value="0.75x">0.75x</option>
-                      <option value="1.0x">1.0x</option>
-                      <option value="1.25x">1.25x</option>
-                      <option value="1.5x">1.5x</option>
-                    </select>
-                    <button class="hover:text-white">⛶ Fullscreen</button>
-                  </div>
+                <div class="flex items-center gap-3">
+                  <button
+                    @click="videoSpeed = videoSpeed === '1x' ? '1.5x' : videoSpeed === '1.5x' ? '2x' : '1x'"
+                    class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-slate-300 transition-colors cursor-pointer"
+                  >
+                    {{ videoSpeed }}
+                  </button>
+                  <button
+                    @click="isCC = !isCC"
+                    :class="[isCC ? 'bg-purple-600 text-white' : 'bg-slate-800 text-slate-400', 'px-2 py-0.5 rounded text-[11px] font-bold transition-colors cursor-pointer']"
+                  >
+                    CC
+                  </button>
+                  <button class="hover:text-white transition-colors cursor-pointer text-slate-400">
+                    ⚙️
+                  </button>
+                  <button class="hover:text-white transition-colors cursor-pointer text-slate-400">
+                    ⛶
+                  </button>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- CHAPTER NAVIGATION BAR -->
-          <div class="flex items-center justify-between gap-3">
-            <button class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs border border-slate-700 transition-all">
-              ◀ Previous Chapter
-            </button>
-            <button class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md transition-all">
-              ✓ Mark Complete
-            </button>
-            <button class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md transition-all">
-              Next Chapter ▶
-            </button>
-          </div>
-
-          <!-- INTERACTIVE LESSON TABS -->
-          <div class="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-5 shadow-xl space-y-4">
-            <div class="flex flex-wrap items-center gap-2 border-b border-slate-700/60 pb-3">
+          <!-- Lesson Navigation Tabs (Overview, Lesson Content, Resources, Discussion) -->
+          <div class="border-b border-slate-800">
+            <nav class="flex items-center gap-6 text-xs font-semibold">
               <button
                 @click="activeTab = 'overview'"
-                :class="[activeTab === 'overview' ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:text-slate-200', 'px-3.5 py-1.5 rounded-xl text-xs transition-all']"
+                :class="[
+                  activeTab === 'overview'
+                    ? 'text-purple-400 border-b-2 border-purple-500 pb-3 font-bold'
+                    : 'text-slate-400 hover:text-slate-200 pb-3 border-b-2 border-transparent'
+                ]"
+                class="transition-colors cursor-pointer"
               >
-                📝 Overview
+                Overview
               </button>
               <button
-                @click="activeTab = 'transcript'"
-                :class="[activeTab === 'transcript' ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:text-slate-200', 'px-3.5 py-1.5 rounded-xl text-xs transition-all']"
+                @click="activeTab = 'content'"
+                :class="[
+                  activeTab === 'content'
+                    ? 'text-purple-400 border-b-2 border-purple-500 pb-3 font-bold'
+                    : 'text-slate-400 hover:text-slate-200 pb-3 border-b-2 border-transparent'
+                ]"
+                class="transition-colors cursor-pointer"
               >
-                🗣 Transcript
+                Lesson Content
               </button>
               <button
-                @click="activeTab = 'translation'"
-                :class="[activeTab === 'translation' ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:text-slate-200', 'px-3.5 py-1.5 rounded-xl text-xs transition-all']"
+                @click="activeTab = 'resources'"
+                :class="[
+                  activeTab === 'resources'
+                    ? 'text-purple-400 border-b-2 border-purple-500 pb-3 font-bold'
+                    : 'text-slate-400 hover:text-slate-200 pb-3 border-b-2 border-transparent'
+                ]"
+                class="transition-colors cursor-pointer"
               >
-                🌐 KH/EN Translation
+                Resources
               </button>
               <button
-                @click="activeTab = 'qa'"
-                :class="[activeTab === 'qa' ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:text-slate-200', 'px-3.5 py-1.5 rounded-xl text-xs transition-all']"
+                @click="activeTab = 'discussion'"
+                :class="[
+                  activeTab === 'discussion'
+                    ? 'text-purple-400 border-b-2 border-purple-500 pb-3 font-bold'
+                    : 'text-slate-400 hover:text-slate-200 pb-3 border-b-2 border-transparent'
+                ]"
+                class="transition-colors cursor-pointer"
               >
-                💬 Q&A (3)
+                Discussion
               </button>
+            </nav>
+          </div>
+
+          <!-- TAB CONTENT: Overview -->
+          <div v-show="activeTab === 'overview'" class="space-y-6">
+            <!-- About This Lesson Section -->
+            <div class="space-y-2.5">
+              <h3 class="text-sm font-bold text-white uppercase tracking-wider">About This Lesson</h3>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                In this lesson, you will learn about JavaScript Functions, how to create them, use parameters, return values, and practical examples.
+              </p>
+            </div>
+
+            <!-- What you will learn Section -->
+            <div class="space-y-2.5">
+              <h4 class="text-xs font-bold text-slate-200 uppercase tracking-wider">What you will learn:</h4>
+              <ul class="space-y-2 text-xs text-slate-300">
+                <li class="flex items-center gap-2.5">
+                  <span class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-bold">✓</span>
+                  <span>What is a function in JavaScript</span>
+                </li>
+                <li class="flex items-center gap-2.5">
+                  <span class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-bold">✓</span>
+                  <span>How to declare and call functions</span>
+                </li>
+                <li class="flex items-center gap-2.5">
+                  <span class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-bold">✓</span>
+                  <span>Function parameters and return values</span>
+                </li>
+                <li class="flex items-center gap-2.5">
+                  <span class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-bold">✓</span>
+                  <span>Real world examples</span>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Need help banner with Ask AI Assistant -->
+            <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-indigo-950/60 via-purple-950/40 to-slate-900 border border-purple-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
+              <div>
+                <h4 class="text-xs font-bold text-white">Need help understanding this lesson?</h4>
+                <p class="text-[11px] text-slate-400 mt-0.5">Ask our AI Assistant to explain or give you examples.</p>
+              </div>
+
               <button
-                @click="activeTab = 'notes'"
-                :class="[activeTab === 'notes' ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:text-slate-200', 'px-3.5 py-1.5 rounded-xl text-xs transition-all']"
+                @click="sendAiPrompt('Explain this lesson')"
+                type="button"
+                class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 flex items-center gap-2 transition-all hover:scale-105 active:scale-95 cursor-pointer shrink-0"
               >
-                📌 My Notes
+                <span>✨ Ask AI Assistant</span>
+                <span>›</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- TAB CONTENT: Lesson Content -->
+          <div v-show="activeTab === 'content'" class="space-y-4 text-xs text-slate-300 leading-relaxed bg-slate-900/60 border border-slate-800 p-5 rounded-2xl">
+            <h4 class="text-sm font-bold text-white">Detailed Lesson Transcript & Notes</h4>
+            <p>1. <strong>Function Declarations</strong>: Declaring a function using the <code>function</code> keyword creates a named reusable function.</p>
+            <pre class="p-3 bg-slate-950 rounded-xl font-mono text-purple-300 text-[11px] overflow-x-auto">function calculateTotal(price, tax) {
+  return price + (price * tax);
+}</pre>
+            <p>2. <strong>Function Expressions and Arrow Functions</strong>: Modern ES6 syntax offers concise arrow function syntax for callbacks and handlers.</p>
+          </div>
+
+          <!-- TAB CONTENT: Resources -->
+          <div v-show="activeTab === 'resources'" class="space-y-3">
+            <div class="p-3.5 bg-slate-900/80 border border-slate-800 rounded-xl flex items-center justify-between gap-3 text-xs">
+              <div class="flex items-center gap-2.5">
+                <span class="text-base">📄</span>
+                <div>
+                  <p class="font-bold text-white">JavaScript Functions Cheatsheet.pdf</p>
+                  <p class="text-[10px] text-slate-400">PDF Document • 2.4 MB</p>
+                </div>
+              </div>
+              <button class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-purple-400 text-xs font-bold border border-slate-700">Download</button>
+            </div>
+            <div class="p-3.5 bg-slate-900/80 border border-slate-800 rounded-xl flex items-center justify-between gap-3 text-xs">
+              <div class="flex items-center gap-2.5">
+                <span class="text-base">💻</span>
+                <div>
+                  <p class="font-bold text-white">lesson-3-starter-code.zip</p>
+                  <p class="text-[10px] text-slate-400">Source Code • 150 KB</p>
+                </div>
+              </div>
+              <button class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-purple-400 text-xs font-bold border border-slate-700">Download</button>
+            </div>
+          </div>
+
+          <!-- TAB CONTENT: Discussion -->
+          <div v-show="activeTab === 'discussion'" class="space-y-4">
+            <div class="flex items-center gap-3">
+              <input
+                type="text"
+                placeholder="Ask a question about this lesson..."
+                class="flex-1 px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-purple-500"
+              />
+              <button class="px-4 py-2 rounded-xl bg-purple-600 text-white font-bold text-xs hover:bg-purple-500">Post</button>
+            </div>
+          </div>
+
+          <!-- Bottom Action Buttons (Previous Lesson / Complete & Next Lesson) -->
+          <div class="flex items-center justify-between pt-4 border-t border-slate-800">
+            <button
+              type="button"
+              class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs border border-slate-700 flex items-center gap-2 transition-colors cursor-pointer"
+            >
+              <span>←</span>
+              <span>Previous Lesson</span>
+            </button>
+
+            <button
+              type="button"
+              class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 flex items-center gap-2 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            >
+              <span>Complete & Next Lesson</span>
+              <span>→</span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- RIGHT 4 COLUMNS: Course Progress & Curriculum Accordion + AI Study Assistant -->
+        <div class="lg:col-span-4 space-y-6">
+          
+          <!-- Course Progress Card -->
+          <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-3">
+            <div class="flex items-center justify-between text-xs font-bold">
+              <span class="text-white">Course Progress</span>
+              <span class="text-purple-400">53%</span>
+            </div>
+            <p class="text-[11px] text-slate-400">8 / 15 Lessons Completed</p>
+            
+            <div class="w-full h-2.5 rounded-full bg-slate-800 overflow-hidden">
+              <div class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-500" style="width: 53%"></div>
+            </div>
+          </div>
+
+          <!-- Course Content Accordion -->
+          <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 class="text-xs font-bold text-white uppercase tracking-wider">Course Content</h3>
+              <button
+                @click="toggleExpandAll"
+                type="button"
+                class="text-[11px] font-semibold text-purple-400 hover:text-purple-300 transition-colors cursor-pointer"
+              >
+                Expand All
               </button>
             </div>
 
-            <!-- TAB CONTENT: BILINGUAL TRANSLATION (Matching Prompt Specs) -->
-            <div v-if="activeTab === 'translation'" class="space-y-4">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-white">🌐 TRANSLATION MODE</span>
-                <div class="flex items-center gap-1 bg-slate-900 rounded-xl p-1 border border-slate-700/80">
-                  <button
-                    @click="translationLanguage = 'km'"
-                    :class="[translationLanguage === 'km' ? 'bg-indigo-600 text-white' : 'text-slate-400', 'px-2.5 py-1 rounded-lg text-[10px] font-bold']"
-                  >
-                    ខ្មែរ
-                  </button>
-                  <button
-                    @click="translationLanguage = 'en'"
-                    :class="[translationLanguage === 'en' ? 'bg-indigo-600 text-white' : 'text-slate-400', 'px-2.5 py-1 rounded-lg text-[10px] font-bold']"
-                  >
-                    English
-                  </button>
-                  <button
-                    @click="translationLanguage = 'both'"
-                    :class="[translationLanguage === 'both' ? 'bg-indigo-600 text-white' : 'text-slate-400', 'px-2.5 py-1 rounded-lg text-[10px] font-bold']"
-                  >
-                    Both
-                  </button>
-                </div>
-              </div>
+            <!-- Chapter Items List -->
+            <div class="space-y-2">
+              <div
+                v-for="chap in chapters"
+                :key="chap.id"
+                class="rounded-2xl border border-slate-800/80 bg-slate-950/60 overflow-hidden"
+              >
+                <!-- Chapter Header -->
+                <button
+                  @click="toggleChapter(chap)"
+                  type="button"
+                  :class="[
+                    chap.locked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-800/40',
+                    'w-full p-3 flex items-center justify-between text-xs transition-colors'
+                  ]"
+                >
+                  <div class="flex items-center gap-2 text-left truncate">
+                    <span :class="[chap.expanded ? 'rotate-90 text-purple-400' : 'text-slate-500', 'transition-transform text-[10px]']">›</span>
+                    <span class="font-bold text-slate-200 truncate">{{ chap.title }}</span>
+                  </div>
 
-              <div class="space-y-3 text-xs leading-relaxed bg-slate-900/80 p-4 rounded-2xl border border-slate-700/60">
-                <div v-if="translationLanguage === 'km' || translationLanguage === 'both'" class="space-y-1">
-                  <p class="font-bold text-indigo-300">KH (ខ្មែរ):</p>
-                  <p class="text-slate-300">
-                    ក្នុងមេរៀននេះ យើងនឹងរៀនពី Operators ក្នុង C Programming រួមមាន Arithmetic Operators (+, -, *, /, %), Relational Operators (==, !=, >, <) និង Logical Operators (&&, ||, !)...
-                  </p>
-                </div>
-
-                <div v-if="translationLanguage === 'en' || translationLanguage === 'both'" class="space-y-1 pt-2 border-t border-slate-800">
-                  <p class="font-bold text-cyan-300">EN (English):</p>
-                  <p class="text-slate-300">
-                    In this lesson, we will learn about Operators in C Programming including Arithmetic Operators (+, -, *, /, %), Relational Operators (==, !=, >, <), and Logical Operators (&&, ||, !)...
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <!-- TAB CONTENT: MY NOTES -->
-            <div v-else-if="activeTab === 'notes'" class="space-y-3">
-              <div class="flex items-center gap-2">
-                <input
-                  v-model="newNote"
-                  type="text"
-                  placeholder="Take a quick note at current timestamp..."
-                  class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
-                  @keyup.enter="addNote"
-                />
-                <button @click="addNote" class="px-4 py-2 rounded-xl bg-indigo-600 text-white font-bold text-xs">
-                  Save Note
+                  <div class="flex items-center gap-1.5 shrink-0">
+                    <span :class="[chap.progress.startsWith(chap.progress.split('/')[1]) ? 'text-emerald-400 font-bold' : 'text-purple-400 font-bold', 'text-[11px]']">
+                      {{ chap.progress }}
+                    </span>
+                    <span v-if="chap.locked" class="text-xs text-slate-500">🔒</span>
+                    <span v-else :class="[chap.expanded ? 'rotate-180' : '', 'text-[10px] text-slate-500 transition-transform']">⌄</span>
+                  </div>
                 </button>
-              </div>
 
-              <div class="space-y-2">
-                <div v-for="note in notesList" :key="note.id" class="p-3 bg-slate-900/60 rounded-xl border border-slate-700/40 flex items-center justify-between text-xs">
-                  <p class="text-slate-200">{{ note.text }}</p>
-                  <span class="px-2 py-0.5 rounded bg-slate-800 text-indigo-400 font-mono text-[10px]">{{ note.time }}</span>
+                <!-- Lessons inside chapter -->
+                <div v-show="chap.expanded && !chap.locked" class="border-t border-slate-800/60 p-2 space-y-1 bg-slate-950/90">
+                  <div
+                    v-for="lsn in chap.lessons"
+                    :key="lsn.id"
+                    :class="[
+                      lsn.status === 'active'
+                        ? 'bg-purple-600/25 border-purple-500/40 text-white font-bold'
+                        : lsn.status === 'completed'
+                        ? 'text-slate-300 hover:bg-slate-900 border-transparent'
+                        : 'text-slate-400 hover:bg-slate-900 border-transparent',
+                      'p-2.5 rounded-xl border text-xs flex items-center justify-between transition-colors'
+                    ]"
+                  >
+                    <div class="flex items-center gap-2.5 truncate">
+                      <span v-if="lsn.status === 'completed'" class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-bold">✓</span>
+                      <span v-else-if="lsn.status === 'active'" class="w-4 h-4 rounded-full bg-purple-500 text-white flex items-center justify-center text-[9px]">▶</span>
+                      <span v-else-if="lsn.status === 'locked'" class="w-4 h-4 text-slate-500 flex items-center justify-center text-[10px]">🔒</span>
+                      <span v-else class="w-4 h-4 rounded-full border border-slate-600 flex items-center justify-center text-[9px]">○</span>
+                      <span class="truncate">{{ lsn.title }}</span>
+                    </div>
+
+                    <span class="text-[10px] text-slate-400 shrink-0 font-mono">{{ lsn.duration }}</span>
+                  </div>
                 </div>
               </div>
             </div>
-
-            <div v-else class="p-4 text-xs text-slate-400 text-center">
-              Content loaded for {{ activeTab }}
-            </div>
           </div>
 
-          <!-- MARQUEE RUNNING TEXT BAR (Matching Prompt Specs) -->
-          <div class="bg-gradient-to-r from-amber-500/20 via-slate-800 to-indigo-900/40 border border-amber-500/30 rounded-2xl p-3 flex items-center justify-between gap-3 text-xs">
-            <div class="flex items-center gap-2 min-w-0">
-              <span class="text-amber-400 animate-bounce">🔔</span>
-              <span class="font-bold text-amber-300 truncate">{{ currentLesson.keyPoint }}</span>
-            </div>
-            <div class="flex items-center gap-1.5 shrink-0">
-              <button class="px-2 py-0.5 rounded bg-slate-800 text-[10px] font-bold text-slate-300">Pause</button>
-              <button class="px-2 py-0.5 rounded bg-slate-800 text-[10px] font-bold text-slate-300">1x</button>
-              <button class="px-2 py-0.5 rounded bg-indigo-600 text-[10px] font-bold text-white">KH</button>
-            </div>
-          </div>
-
-        </div>
-
-      </div>
-
-      <!-- COURSE STATS, AI RECOMMENDATION & UPCOMING SCHEDULE -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-4">
-        
-        <!-- Performance Stats -->
-        <div class="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-5 shadow-xl space-y-4">
-          <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
-            <span>📊</span>
-            <span>MY PROGRESS IN THIS COURSE</span>
-          </h3>
-
-          <div class="grid grid-cols-2 gap-3 text-xs">
-            <div class="p-3 bg-slate-900/80 rounded-2xl border border-slate-700/60">
-              <p class="text-slate-400 text-[10px]">⏱ Time Spent</p>
-              <p class="text-base font-extrabold text-cyan-300 mt-1">12h 30m</p>
-            </div>
-            <div class="p-3 bg-slate-900/80 rounded-2xl border border-slate-700/60">
-              <p class="text-slate-400 text-[10px]">📝 Quiz Avg</p>
-              <p class="text-base font-extrabold text-indigo-300 mt-1">78%</p>
-            </div>
-            <div class="p-3 bg-slate-900/80 rounded-2xl border border-slate-700/60">
-              <p class="text-slate-400 text-[10px]">📎 Assignments</p>
-              <p class="text-base font-extrabold text-amber-300 mt-1">2/3 Done</p>
-            </div>
-            <div class="p-3 bg-slate-900/80 rounded-2xl border border-slate-700/60">
-              <p class="text-slate-400 text-[10px]">🏆 Cert Status</p>
-              <p class="text-xs font-extrabold text-slate-400 mt-1">⏳ Not Yet</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- AI Recommendation -->
-        <div class="bg-gradient-to-br from-indigo-900/40 via-purple-900/30 to-slate-800 border border-indigo-500/30 rounded-3xl p-5 shadow-xl space-y-3 flex flex-col justify-between">
-          <div>
-            <h3 class="text-xs font-bold text-indigo-300 uppercase tracking-wider flex items-center gap-2">
-              <span>🤖</span>
-              <span>AI RECOMMENDATION</span>
-            </h3>
-            <p class="text-xs text-slate-200 leading-relaxed mt-2">
-              "You're doing great! After completing Operators, focus on Loops next."
-            </p>
-          </div>
-
-          <button class="w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-md">
-            ▶ Start Recommended Lesson
-          </button>
-        </div>
-
-        <!-- Upcoming Schedule -->
-        <div class="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-5 shadow-xl space-y-3">
-          <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
-            <span>📅</span>
-            <span>UPCOMING FOR THIS COURSE</span>
-          </h3>
-
-          <div class="space-y-2 text-xs">
-            <div class="p-3 bg-slate-900/80 rounded-2xl border border-slate-700/60 flex items-center justify-between gap-2">
-              <div>
-                <p class="font-bold text-blue-300">🟦 May 20 • Live Class: Loops</p>
-                <p class="text-[10px] text-slate-400">02:00 PM</p>
+          <!-- AI Study Assistant Card matching screenshot -->
+          <div class="bg-gradient-to-br from-[#111827] via-slate-900 to-[#1e1b4b]/60 border border-purple-500/30 rounded-3xl p-5 shadow-2xl space-y-4">
+            <div class="flex items-center gap-2.5">
+              <div class="w-7 h-7 rounded-xl bg-purple-600 text-white flex items-center justify-center text-xs shadow-md shadow-purple-600/30">
+                🤖
               </div>
-              <button class="px-2.5 py-1 rounded-lg bg-blue-500/20 text-blue-300 text-[10px] font-bold border border-blue-500/30">
-                Set Reminder
+              <h3 class="text-xs font-bold text-white uppercase tracking-wider">AI Study Assistant</h3>
+            </div>
+
+            <!-- Messages Area -->
+            <div class="space-y-3 max-h-48 overflow-y-auto custom-scrollbar pr-1">
+              <div
+                v-for="(msg, idx) in aiMessages"
+                :key="idx"
+                :class="[
+                  msg.role === 'user' ? 'bg-purple-600/30 border border-purple-500/40 text-purple-100 ml-6' : 'bg-slate-800/80 border border-slate-700/60 text-slate-200 mr-2',
+                  'p-3 rounded-2xl text-xs space-y-1'
+                ]"
+              >
+                <p class="whitespace-pre-wrap leading-relaxed">{{ msg.text }}</p>
+              </div>
+            </div>
+
+            <!-- Suggested prompt chips -->
+            <div class="flex flex-wrap gap-1.5 pt-1">
+              <button
+                @click="sendAiPrompt('Explain this lesson')"
+                type="button"
+                class="px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 text-[10px] font-medium border border-slate-700/60 transition-colors cursor-pointer"
+              >
+                Explain this lesson
+              </button>
+              <button
+                @click="sendAiPrompt('Give me an example')"
+                type="button"
+                class="px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 text-[10px] font-medium border border-slate-700/60 transition-colors cursor-pointer"
+              >
+                Give me an example
+              </button>
+              <button
+                @click="sendAiPrompt('Summarize this topic')"
+                type="button"
+                class="px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 text-[10px] font-medium border border-slate-700/60 transition-colors cursor-pointer"
+              >
+                Summarize this topic
+              </button>
+              <button
+                @click="sendAiPrompt('Generate practice questions')"
+                type="button"
+                class="px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 text-[10px] font-medium border border-slate-700/60 transition-colors cursor-pointer"
+              >
+                Generate practice questions
               </button>
             </div>
 
-            <div class="p-3 bg-slate-900/80 rounded-2xl border border-slate-700/60 flex items-center justify-between gap-2">
-              <div>
-                <p class="font-bold text-rose-300">🟥 May 22 • Post-Test Module 2</p>
-                <p class="text-[10px] text-slate-400">Due 11:59 PM</p>
-              </div>
-            </div>
-
-            <div class="p-3 bg-slate-900/80 rounded-2xl border border-slate-700/60 flex items-center justify-between gap-2">
-              <div>
-                <p class="font-bold text-amber-300">🟧 May 25 • Assignment Due</p>
-                <p class="text-[10px] text-slate-400">Due 11:59 PM</p>
-              </div>
-            </div>
+            <!-- Chat Input form -->
+            <form @submit.prevent="handleSendAi" class="relative flex items-center pt-1">
+              <input
+                v-model="aiInput"
+                type="text"
+                placeholder="Type your question..."
+                class="w-full pl-3.5 pr-10 py-2 rounded-xl bg-slate-950 border border-slate-700/80 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-purple-500 transition-colors shadow-inner"
+              />
+              <button
+                type="submit"
+                class="absolute right-1.5 p-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white transition-all cursor-pointer"
+              >
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </button>
+            </form>
           </div>
+
         </div>
 
       </div>
