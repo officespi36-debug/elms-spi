@@ -258,6 +258,7 @@ const getDigitInput = (idx: number): HTMLInputElement | null => {
 
 const otpEmailInputRef = ref<HTMLInputElement | null>(null)
 const isEmailInputFocused = ref(false)
+const selectedSuggestionIndex = ref(-1)
 
 const emailDomains = [
   { domain: '@gmail.com', icon: '⚡', name: 'Gmail' },
@@ -287,7 +288,7 @@ const filteredEmailSuggestions = computed(() => {
 
   return emailDomains
     .filter(d => !domainPart || d.domain.toLowerCase().startsWith(domainPart))
-    .slice(0, 3)
+    .slice(0, 4)
     .map(d => ({
       username,
       domain: d.domain,
@@ -300,9 +301,39 @@ const filteredEmailSuggestions = computed(() => {
 const selectEmailSuggestion = (fullEmail: string) => {
   otpEmail.value = fullEmail
   isEmailInputFocused.value = false
+  selectedSuggestionIndex.value = -1
   nextTick(() => {
     otpEmailInputRef.value?.focus()
   })
+}
+
+const onEmailKeydown = (event: KeyboardEvent) => {
+  const suggestions = filteredEmailSuggestions.value
+  if (suggestions.length > 0 && isEmailInputFocused.value) {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      selectedSuggestionIndex.value = (selectedSuggestionIndex.value + 1) % suggestions.length
+      return
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      selectedSuggestionIndex.value = selectedSuggestionIndex.value <= 0
+        ? suggestions.length - 1
+        : selectedSuggestionIndex.value - 1
+      return
+    } else if ((event.key === 'Enter' || event.key === 'Tab') && selectedSuggestionIndex.value >= 0) {
+      event.preventDefault()
+      const chosen = suggestions[selectedSuggestionIndex.value]
+      if (chosen) {
+        selectEmailSuggestion(chosen.fullEmail)
+      }
+      return
+    }
+  }
+
+  if (event.key === 'Enter') {
+    event.preventDefault()
+    sendEmailOtp()
+  }
 }
 
 const clearOtpDigits = () => {
@@ -1552,12 +1583,15 @@ onUnmounted(() => {
                   type="email"
                   required
                   autofocus
-                  autocomplete="email"
+                  autocomplete="off"
+                  autocorrect="off"
+                  autocapitalize="none"
+                  spellcheck="false"
                   :placeholder="currentLang === 'km' ? 'បញ្ចូលអ៊ីមែល (ឧ. name@gmail.com)' : 'Enter email (e.g. name@gmail.com)'"
                   class="w-full h-11 pl-10 pr-9 bg-white dark:bg-[#121214] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 focus:border-blue-600 dark:focus:border-sky-400 focus:ring-2 focus:ring-blue-500/20 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 text-xs sm:text-sm rounded-xl outline-none shadow-2xs transition-all font-medium"
                   @focus="isEmailInputFocused = true"
                   @blur="setTimeout(() => { isEmailInputFocused = false }, 200)"
-                  @keydown.enter.prevent="sendEmailOtp"
+                  @keydown="onEmailKeydown"
                 />
                 <button
                   v-if="otpEmail"
@@ -1569,7 +1603,7 @@ onUnmounted(() => {
                   <i class="pi pi-times"></i>
                 </button>
 
-                <!-- Dynamic Auto-Popup Email Suggestions Dropdown (Only appears when typing!) -->
+                <!-- Dynamic Auto-Popup Email Suggestions Dropdown (High Contrast & No Browser Autofill Clash) -->
                 <Transition
                   enter-active-class="transition duration-150 ease-out"
                   enter-from-class="opacity-0 -translate-y-1 scale-98"
@@ -1580,24 +1614,31 @@ onUnmounted(() => {
                 >
                   <div
                     v-if="filteredEmailSuggestions.length > 0 && isEmailInputFocused"
-                    class="absolute left-0 right-0 top-full mt-1.5 z-40 bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-xl border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl py-1 overflow-hidden divide-y divide-zinc-100 dark:divide-zinc-800/60"
+                    class="absolute left-0 right-0 top-full mt-1.5 z-50 bg-white dark:bg-[#1a1a1f] border border-zinc-200 dark:border-zinc-700/80 rounded-2xl shadow-2xl py-1.5 overflow-hidden divide-y divide-zinc-100 dark:divide-zinc-800/80 select-none"
                   >
                     <button
                       v-for="(sug, sIdx) in filteredEmailSuggestions"
                       :key="sIdx"
                       type="button"
                       @mousedown.prevent="selectEmailSuggestion(sug.fullEmail)"
-                      class="w-full px-3.5 py-2.5 text-left text-xs flex items-center justify-between hover:bg-blue-50 dark:hover:bg-sky-950/40 transition-colors cursor-pointer group"
+                      :class="[
+                        'w-full px-3.5 py-2.5 text-left text-xs flex items-center justify-between transition-all cursor-pointer group',
+                        selectedSuggestionIndex === sIdx
+                          ? 'bg-blue-50 dark:bg-sky-950/70 ring-1 ring-blue-500/40 text-blue-900 dark:text-sky-200'
+                          : 'hover:bg-zinc-50 dark:hover:bg-zinc-800/70 text-zinc-900 dark:text-zinc-100'
+                      ]"
                     >
-                      <div class="flex items-center gap-2 min-w-0">
-                        <span class="text-sm shrink-0">{{ sug.icon }}</span>
-                        <div class="truncate text-zinc-900 dark:text-white font-medium text-xs">
-                          <span class="font-semibold">{{ sug.username }}</span>
+                      <div class="flex items-center gap-2.5 min-w-0">
+                        <div class="w-7 h-7 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200/80 dark:border-zinc-700/80 flex items-center justify-center text-xs shrink-0 shadow-2xs">
+                          <span>{{ sug.icon }}</span>
+                        </div>
+                        <div class="truncate text-xs">
+                          <span class="font-bold text-zinc-900 dark:text-zinc-100">{{ sug.username }}</span>
                           <span class="text-blue-600 dark:text-sky-400 font-bold font-mono">{{ sug.domain }}</span>
                         </div>
                       </div>
-                      <span class="text-[10px] font-semibold text-blue-600 dark:text-sky-400 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span>{{ currentLang === 'km' ? 'ជ្រើសរើស' : 'Select' }}</span>
+                      <span class="text-[10px] font-semibold text-blue-600 dark:text-sky-400 flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                        <span>{{ currentLang === 'km' ? 'បំពេញ' : 'Fill' }}</span>
                         <i class="pi pi-arrow-right text-[8px]"></i>
                       </span>
                     </button>
