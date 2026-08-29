@@ -1340,7 +1340,7 @@ onUnmounted(() => {
             <button
               type="button"
               :disabled="isAuthenticating"
-              @click="authMode = 'otp'; otpStep = 1; otpEmail = form.email || ''; otpCode = ''"
+              @click="authMode = 'otp'; otpStep = 1; otpEmail = form.email || ''; otpCode = ''; nextTick(() => { otpEmailInputRef?.focus(); isEmailInputFocused = true })"
               class="w-full h-11 px-4 rounded-xl bg-white hover:bg-zinc-50 dark:bg-[#18181b] dark:hover:bg-[#232327] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 text-zinc-900 dark:text-white text-xs sm:text-sm font-medium relative flex items-center justify-center transition-all duration-150 active:scale-[0.99] cursor-pointer disabled:opacity-50 select-none shadow-xs"
             >
               <svg class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 shrink-0 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
