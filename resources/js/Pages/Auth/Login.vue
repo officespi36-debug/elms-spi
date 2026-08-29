@@ -1553,8 +1553,7 @@ onUnmounted(() => {
         <!-- ========================================================================= -->
         <div v-else-if="authMode === 'otp'" class="w-full space-y-3 animate-fade-in">
           <div class="flex items-center justify-between pb-1 border-b border-zinc-200 dark:border-zinc-800">
-            <button type="button" @click="authMode = 'password'; step = 'identifier'" class="text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white flex items-center gap-1.5 cursor-pointer transition-colors">
-              <i class="pi pi-arrow-left text-[10px]"></i>
+            <button type="button" @click="authMode = 'password'; step = 'identifier'" class="text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white flex items-center cursor-pointer transition-colors">
               <span>{{ currentLang === 'km' ? 'ត្រឡប់ក្រោយ' : 'Back' }}</span>
             </button>
             <span class="text-[11px] text-zinc-500 font-medium">
@@ -1834,8 +1833,7 @@ onUnmounted(() => {
         <!-- ========================================================================= -->
         <div v-else-if="authMode === 'phone_otp'" class="w-full space-y-3 animate-fade-in">
           <div class="flex items-center justify-between pb-1 border-b border-zinc-200 dark:border-zinc-800">
-            <button type="button" @click="authMode = 'password'; step = 'identifier'" class="text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white flex items-center gap-1.5 cursor-pointer transition-colors">
-              <i class="pi pi-arrow-left text-[10px]"></i>
+            <button type="button" @click="authMode = 'password'; step = 'identifier'" class="text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white flex items-center cursor-pointer transition-colors">
               <span>{{ currentLang === 'km' ? 'ត្រឡប់ក្រោយ' : 'Back' }}</span>
             </button>
             <span class="text-[11px] text-zinc-500 font-medium">
