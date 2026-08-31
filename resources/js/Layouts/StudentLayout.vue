@@ -252,6 +252,20 @@ const dynamicBreadcrumbs = computed(() => {
       { label: 'Available Quizzes' }
     ]
   }
+  if (url.startsWith('/student/certificates/download-share')) {
+    return [
+      { label: 'Dashboard', href: '/student/dashboard' },
+      { label: 'Certificates', href: '/student/certificates/my-certificates' },
+      { label: 'Available Certificates' }
+    ]
+  }
+  if (url.startsWith('/student/certificates/verify')) {
+    return [
+      { label: 'Dashboard', href: '/student/dashboard' },
+      { label: 'Certificates', href: '/student/certificates/my-certificates' },
+      { label: 'Certificate Verification' }
+    ]
+  }
   if (url.startsWith('/student/certificates')) {
     return [
       { label: 'Dashboard', href: '/student/dashboard' },

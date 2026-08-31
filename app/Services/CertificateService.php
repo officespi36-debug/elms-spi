@@ -375,5 +375,215 @@ class CertificateService
             'total_count'         => 12,
         ];
     }
+
+    /**
+     * Get structured Available Certificates dashboard data.
+     */
+    public function getAvailableCertificatesData(?User $user = null, string $status = 'all', string $category = 'all', string $course = 'all', string $level = 'all', string $sort = 'progress', string $search = '', int $page = 1, int $perPage = 8): array
+    {
+        // 1. Summary Cards
+        $summary = [
+            'total_available'  => 15,
+            'total_note'       => 'Certificates available',
+            'in_progress'      => 6,
+            'in_progress_note' => 'You are working on',
+            'almost_there'     => 4,
+            'almost_note'      => '80% or more completed',
+            'not_started'      => 5,
+            'not_started_note' => 'Ready to begin',
+            'earned_this_year' => 5,
+            'earned_note'      => 'Certificates earned',
+        ];
+
+        // 2. Certificate Progress Overview (Donut Chart)
+        $progressOverview = [
+            'total' => 15,
+            'items' => [
+                ['label' => 'In Progress',  'count' => 6, 'percentage' => 40, 'color' => '#3B82F6'],
+                ['label' => 'Almost There', 'count' => 4, 'percentage' => 27, 'color' => '#10B981'],
+                ['label' => 'Not Started',  'count' => 5, 'percentage' => 33, 'color' => '#F59E0B'],
+            ]
+        ];
+
+        // 3. Popular Certificate Categories
+        $popularCategories = [
+            ['id' => 1, 'name' => 'Programming',     'count' => 6, 'color' => 'bg-purple-600/20 text-purple-300 border-purple-500/30'],
+            ['id' => 2, 'name' => 'Web Development', 'count' => 4, 'color' => 'bg-blue-600/20 text-blue-300 border-blue-500/30'],
+            ['id' => 3, 'name' => 'Data Science',    'count' => 2, 'color' => 'bg-emerald-600/20 text-emerald-300 border-emerald-500/30'],
+            ['id' => 4, 'name' => 'Design',          'count' => 2, 'color' => 'bg-amber-600/20 text-amber-300 border-amber-500/30'],
+            ['id' => 5, 'name' => 'Database',        'count' => 1, 'color' => 'bg-rose-600/20 text-rose-300 border-rose-500/30'],
+        ];
+
+        // 4. Available Certificates Catalog (8 items matching reference screenshot)
+        $certificates = [
+            [
+                'id'           => 1,
+                'title'        => 'JavaScript Advanced',
+                'issuer'       => 'SPI E-Learning Platform',
+                'description'  => 'Master advanced JavaScript concepts, ES6+, and modern development.',
+                'progress'     => 80,
+                'level'        => 'Intermediate',
+                'category'     => 'Programming',
+                'status_type'  => 'almost_there',
+                'badge_color'  => 'bg-purple-600 text-white',
+                'bar_color'    => 'bg-emerald-500',
+                'requirements' => [
+                    ['label' => 'Lessons Completed', 'value' => '10 / 12 (83%)', 'done' => true],
+                    ['label' => 'Quizzes Passed', 'value' => '2 / 2 (100%)', 'done' => true],
+                    ['label' => 'Assignments Submitted', 'value' => '1 / 1 (100%)', 'done' => true],
+                ]
+            ],
+            [
+                'id'           => 2,
+                'title'        => 'React Development',
+                'issuer'       => 'SPI E-Learning Platform',
+                'description'  => 'Build modern web applications with React, Hooks, and Context API.',
+                'progress'     => 65,
+                'level'        => 'Intermediate',
+                'category'     => 'Web Development',
+                'status_type'  => 'in_progress',
+                'badge_color'  => 'bg-blue-600 text-white',
+                'bar_color'    => 'bg-blue-500',
+                'requirements' => [
+                    ['label' => 'Lessons Completed', 'value' => '8 / 12 (67%)', 'done' => false],
+                    ['label' => 'Quizzes Passed', 'value' => '1 / 2 (50%)', 'done' => false],
+                    ['label' => 'Assignments Submitted', 'value' => '0 / 1 (0%)', 'done' => false],
+                ]
+            ],
+            [
+                'id'           => 3,
+                'title'        => 'Node.js Fundamentals',
+                'issuer'       => 'SPI E-Learning Platform',
+                'description'  => 'Learn backend development with Node.js, Express, and APIs.',
+                'progress'     => 90,
+                'level'        => 'Beginner',
+                'category'     => 'Web Development',
+                'status_type'  => 'almost_there',
+                'badge_color'  => 'bg-emerald-600 text-white',
+                'bar_color'    => 'bg-emerald-500',
+                'requirements' => [
+                    ['label' => 'Lessons Completed', 'value' => '9 / 10 (90%)', 'done' => true],
+                    ['label' => 'Quizzes Passed', 'value' => '2 / 2 (100%)', 'done' => true],
+                    ['label' => 'Assignments Submitted', 'value' => '1 / 1 (100%)', 'done' => true],
+                ]
+            ],
+            [
+                'id'           => 4,
+                'title'        => 'Python Programming',
+                'issuer'       => 'SPI E-Learning Platform',
+                'description'  => 'Learn Python from basics to advanced programming concepts.',
+                'progress'     => 30,
+                'level'        => 'Beginner',
+                'category'     => 'Programming',
+                'status_type'  => 'in_progress',
+                'badge_color'  => 'bg-amber-600 text-white',
+                'bar_color'    => 'bg-amber-500',
+                'requirements' => [
+                    ['label' => 'Lessons Completed', 'value' => '3 / 10 (30%)', 'done' => false],
+                    ['label' => 'Quizzes Passed', 'value' => '0 / 2 (0%)', 'done' => false],
+                    ['label' => 'Assignments Submitted', 'value' => '0 / 1 (0%)', 'done' => false],
+                ]
+            ],
+            [
+                'id'           => 5,
+                'title'        => 'Database Design',
+                'issuer'       => 'SPI E-Learning Platform',
+                'description'  => 'Design efficient databases and understand normalization.',
+                'progress'     => 75,
+                'level'        => 'Intermediate',
+                'category'     => 'Database',
+                'status_type'  => 'in_progress',
+                'badge_color'  => 'bg-rose-600 text-white',
+                'bar_color'    => 'bg-rose-500',
+                'requirements' => [
+                    ['label' => 'Lessons Completed', 'value' => '6 / 8 (75%)', 'done' => true],
+                    ['label' => 'Quizzes Passed', 'value' => '1 / 2 (50%)', 'done' => false],
+                    ['label' => 'Assignments Submitted', 'value' => '1 / 1 (100%)', 'done' => true],
+                ]
+            ],
+            [
+                'id'           => 6,
+                'title'        => 'UI/UX Design Basics',
+                'issuer'       => 'SPI E-Learning Platform',
+                'description'  => 'Learn the fundamentals of UI/UX design and user research.',
+                'progress'     => 40,
+                'level'        => 'Beginner',
+                'category'     => 'Design',
+                'status_type'  => 'in_progress',
+                'badge_color'  => 'bg-cyan-600 text-white',
+                'bar_color'    => 'bg-cyan-500',
+                'requirements' => [
+                    ['label' => 'Lessons Completed', 'value' => '4 / 10 (40%)', 'done' => false],
+                    ['label' => 'Quizzes Passed', 'value' => '1 / 1 (100%)', 'done' => true],
+                    ['label' => 'Assignments Submitted', 'value' => '0 / 1 (0%)', 'done' => false],
+                ]
+            ],
+            [
+                'id'           => 7,
+                'title'        => 'HTML & CSS Essentials',
+                'issuer'       => 'SPI E-Learning Platform',
+                'description'  => 'Build responsive websites using HTML5 and modern CSS.',
+                'progress'     => 10,
+                'level'        => 'Beginner',
+                'category'     => 'Web Development',
+                'status_type'  => 'in_progress',
+                'badge_color'  => 'bg-purple-600 text-white',
+                'bar_color'    => 'bg-purple-500',
+                'requirements' => [
+                    ['label' => 'Lessons Completed', 'value' => '1 / 10 (10%)', 'done' => false],
+                    ['label' => 'Quizzes Passed', 'value' => '0 / 2 (0%)', 'done' => false],
+                    ['label' => 'Assignments Submitted', 'value' => '0 / 1 (0%)', 'done' => false],
+                ]
+            ],
+            [
+                'id'           => 8,
+                'title'        => 'Git & GitHub',
+                'issuer'       => 'SPI E-Learning Platform',
+                'description'  => 'Master version control and collaborative development.',
+                'progress'     => 0,
+                'level'        => 'Beginner',
+                'category'     => 'Programming',
+                'status_type'  => 'not_started',
+                'badge_color'  => 'bg-slate-700 text-white',
+                'bar_color'    => 'bg-slate-600',
+                'requirements' => [
+                    ['label' => 'Lessons Completed', 'value' => '0 / 6 (0%)', 'done' => false],
+                    ['label' => 'Quizzes Passed', 'value' => '0 / 1 (0%)', 'done' => false],
+                    ['label' => 'Assignments Submitted', 'value' => '0 / 1 (0%)', 'done' => false],
+                ]
+            ],
+        ];
+
+        // Filter by tab
+        if ($status !== 'all') {
+            $certificates = array_values(array_filter($certificates, fn($c) => strtolower($c['status_type']) === strtolower($status)));
+        }
+
+        // Filter by category
+        if ($category !== 'all') {
+            $certificates = array_values(array_filter($certificates, fn($c) => strtolower($c['category']) === strtolower($category)));
+        }
+
+        // Filter by level
+        if ($level !== 'all') {
+            $certificates = array_values(array_filter($certificates, fn($c) => strtolower($c['level']) === strtolower($level)));
+        }
+
+        // Filter by search
+        if (!empty($search)) {
+            $s = strtolower($search);
+            $certificates = array_values(array_filter($certificates, fn($c) => str_contains(strtolower($c['title']), $s) || str_contains(strtolower($c['description']), $s)));
+        }
+
+        return [
+            'summary'            => $summary,
+            'progress_overview'  => $progressOverview,
+            'popular_categories' => $popularCategories,
+            'certificates'       => $certificates,
+            'total_count'        => 15,
+            'current_page'       => $page,
+            'per_page'           => $perPage,
+        ];
+    }
 }
 

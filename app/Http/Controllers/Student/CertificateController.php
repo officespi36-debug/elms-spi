@@ -53,7 +53,37 @@ class CertificateController extends Controller
 
     public function downloadShare(Request $request)
     {
-        return Inertia::render('Student/Certificates/DownloadShare');
+        $status = $request->query('status', 'all');
+        $category = $request->query('category', 'all');
+        $course = $request->query('course', 'all');
+        $level = $request->query('level', 'all');
+        $sort = $request->query('sort', 'progress');
+        $search = $request->query('search', '');
+        $page = (int) $request->query('page', 1);
+
+        $data = app(CertificateService::class)->getAvailableCertificatesData(
+            $request->user(),
+            $status,
+            $category,
+            $course,
+            $level,
+            $sort,
+            $search,
+            $page
+        );
+
+        return Inertia::render('Student/Certificates/DownloadShare', [
+            'analytics' => $data,
+            'filters'   => [
+                'status'   => $status,
+                'category' => $category,
+                'course'   => $course,
+                'level'    => $level,
+                'sort'     => $sort,
+                'search'   => $search,
+                'page'     => $page,
+            ]
+        ]);
     }
 
     public function verify(Request $request)
