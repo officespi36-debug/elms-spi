@@ -113,6 +113,22 @@ class CertificateService
             'source'             => $source,
         ]);
 
+        return [
+            'status'               => $result,
+            'certificate'          => $cert,
+            'student_name'         => $cert->student?->name ?? 'N/A',
+            'student_id'           => 'STU' . str_pad($cert->student_id ?? 1, 5, '0', STR_PAD_LEFT),
+            'course_name'          => $cert->course?->title ?? 'N/A',
+            'major_name'           => $cert->major?->name ?? 'IT & Networking',
+            'grade'                => $cert->grade ?? 'A',
+            'score'                => $cert->score ?? 85,
+            'issued_at'            => $cert->issued_at ? $cert->issued_at->format('d F Y') : 'N/A',
+            'certificate_number'   => $cert->certificate_number,
+            'revoked_at'           => $cert->revoked_at ? $cert->revoked_at->format('d F Y') : null,
+            'revocation_reason'    => $cert->show_reason_publicly ? $cert->revocation_reason : 'Revoked by institution policy',
+        ];
+    }
+
     /**
      * Get structured My Certificates dashboard data.
      */

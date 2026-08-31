@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\Certificate;
+use App\Services\CertificateService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -27,7 +28,7 @@ class CertificateController extends Controller
         $search = $request->query('search', '');
         $sort = $request->query('sort', 'newest');
 
-        $data = app(\App\Services\CertificateService::class)->getMyCertificatesData(
+        $data = app(CertificateService::class)->getMyCertificatesData(
             $request->user(),
             $status,
             $category,
