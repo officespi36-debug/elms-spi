@@ -72,7 +72,15 @@ class PaymentController extends Controller
 
     public function pending(Request $request)
     {
-        return Inertia::render('Student/Payments/PendingPayments');
+        $invoiceNo = $request->query('invoice', 'INV-2025-0012');
+        $sessionData = app(CourseFeeInvoiceService::class)->getAbaPaymentSessionData(
+            $invoiceNo,
+            $request->user()
+        );
+
+        return Inertia::render('Student/Payments/PendingPayments', [
+            'sessionData' => $sessionData
+        ]);
     }
 
     public function history(Request $request)

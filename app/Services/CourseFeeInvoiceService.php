@@ -292,4 +292,34 @@ class CourseFeeInvoiceService
             'per_page'            => $perPage,
         ];
     }
+
+    /**
+     * Get ABA KHQR Payment Session data for pending invoice.
+     */
+    public function getAbaPaymentSessionData(?string $invoiceNumber = null, ?User $user = null): array
+    {
+        $invoiceNo = $invoiceNumber ?: 'INV-2025-0012';
+
+        return [
+            'session_id'         => 'PAY-SESSION-2025-000124',
+            'invoice_number'     => $invoiceNo,
+            'course_name'        => 'Web Development Fundamentals',
+            'course_type'        => 'Self-Paced Course',
+            'student_name'       => $user?->name ?: 'Sok Pisey',
+            'student_id'         => 'STU2024001',
+            'amount_khr'         => '120,000 KHR',
+            'amount_khr_raw'     => 120000,
+            'amount_usd'         => '≈ $30.00 USD',
+            'amount_usd_raw'     => 30.00,
+            'merchant_name'      => 'Saint Paul Institute',
+            'merchant_id'        => '002 328 456',
+            'due_date'           => 'June 07, 2025',
+            'due_date_iso'       => '2025-06-07',
+            'payment_method'     => 'ABA KHQR',
+            'qr_code_url'        => 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=ABA_KHQR_SPI_INV20250012_120000KHR',
+            'expires_in_seconds' => 588, // 09:48
+            'status'             => 'WAITING_FOR_PAYMENT',
+        ];
+    }
 }
+

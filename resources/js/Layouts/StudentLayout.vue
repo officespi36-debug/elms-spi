@@ -273,6 +273,13 @@ const dynamicBreadcrumbs = computed(() => {
       { label: 'My Certificates' }
     ]
   }
+  if (url.startsWith('/student/payments/pending')) {
+    return [
+      { label: 'Dashboard', href: '/student/dashboard' },
+      { label: 'Payment & Billing', href: '/student/payments/my-payments' },
+      { label: 'Pay via ABA (KHR)' }
+    ]
+  }
   if (url.startsWith('/student/payments/methods')) {
     return [
       { label: 'Dashboard', href: '/student/dashboard' },
@@ -531,6 +538,7 @@ const studentNav: NavItem[] = [
     badge: { text: 'ABA', colorClass: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' },
     children: [
       { name: 'Course Fees & Invoices', khName: 'Course Fees & Invoices', href: '/student/payments/my-payments', iconUrl: '/images/nav/payment.svg' },
+      { name: 'Pay via ABA (KHR)', khName: 'Pay via ABA (KHR)', href: '/student/payments/pending', iconUrl: '/images/actions/payment.svg' },
       { name: 'Payment Methods', khName: 'Payment Methods', href: '/student/payments/methods', iconUrl: '/images/actions/payment.svg' },
       { name: 'Transaction History', khName: 'Transaction History', href: '/student/payments/transactions', iconUrl: '/images/nav/sub/history.svg' },
       { name: 'Payment Settings', khName: 'Payment Settings', href: '/student/payments/settings', iconUrl: '/images/nav/sub/roles.svg' },

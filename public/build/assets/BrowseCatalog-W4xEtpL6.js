@@ -1,1 +1,0 @@
-import{n as r}from"./rolldown-runtime-b3L32Ng1.js";import{F as t,d as s,x as a}from"./vendor-ui-C2HnsEsf.js";import{t as o}from"./Index-Ufg_9dYA.js";var l=a({__name:"BrowseCatalog",props:{courses:{},filters:{}},setup(e){return(_,f)=>(t(),s(o,{courses:e.courses,filters:e.filters},null,8,["courses","filters"]))}}),i=r({default:()=>u}),u=l;export{i as n,u as t};
