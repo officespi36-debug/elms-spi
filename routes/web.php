@@ -586,6 +586,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/my-certificates', [Student\CertificateController::class, 'myCertificates'])->name('my-certificates');
             Route::get('/download-share', [Student\CertificateController::class, 'downloadShare'])->name('download-share');
             Route::get('/verify', [Student\CertificateController::class, 'verify'])->name('verify');
+            Route::post('/verify-api', [Student\CertificateController::class, 'verifyApi'])->name('verify-api');
         });
 
         Route::get('/discussions', [Student\DiscussionController::class, 'index'])->name('discussions');

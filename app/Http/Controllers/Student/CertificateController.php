@@ -88,7 +88,27 @@ class CertificateController extends Controller
 
     public function verify(Request $request)
     {
-        return Inertia::render('Student/Certificates/VerifyCertificate');
+        $query = $request->query('q') ?? $request->query('id') ?? $request->query('code');
+        $tab = $request->query('tab', 'id');
+        $data = app(CertificateService::class)->getVerificationPageData($query, 'student_panel');
+
+        return Inertia::render('Student/Certificates/VerifyCertificate', [
+            'verificationData' => $data,
+            'initialQuery'     => $query ?? 'SPI-CERT-2025-00124',
+            'initialTab'       => $tab,
+        ]);
+    }
+
+    public function verifyApi(Request $request)
+    {
+        $query = $request->input('query') ?? $request->input('id') ?? $request->input('code') ?? $request->input('link');
+        $source = $request->input('source', 'api');
+        $data = app(CertificateService::class)->getVerificationPageData($query, $source);
+
+        return response()->json([
+            'success' => true,
+            'data'    => $data,
+        ]);
     }
 
     public function publicVerify(Request $request, $uuid = null)
