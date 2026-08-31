@@ -30,7 +30,22 @@ class ProgressController extends Controller
 
     public function weeklyProgress(Request $request)
     {
-        return Inertia::render('Student/ProgressTracking/WeeklyProgress');
+        $period = $request->query('period', 'this_month');
+        $granularity = $request->query('granularity', 'daily');
+
+        $analytics = app(\App\Services\QuizAnalyticsService::class)->getStudentAnalytics(
+            $request->user(),
+            $period,
+            $granularity
+        );
+
+        return Inertia::render('Student/ProgressTracking/WeeklyProgress', [
+            'analytics' => $analytics,
+            'filters' => [
+                'period' => $period,
+                'granularity' => $granularity,
+            ]
+        ]);
     }
 
     public function achievementsBadges(Request $request)

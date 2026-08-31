@@ -196,6 +196,13 @@ const dynamicBreadcrumbs = computed(() => {
       { label: 'Weak Topics Review' }
     ]
   }
+  if (url.startsWith('/student/progress/weekly')) {
+    return [
+      { label: 'Dashboard', href: '/student/dashboard' },
+      { label: 'Progress & Analytics', href: '/student/progress/overview' },
+      { label: 'Quiz Performance' }
+    ]
+  }
   if (url.startsWith('/student/progress')) {
     return [
       { label: 'Dashboard', href: '/student/dashboard' },
@@ -414,9 +421,10 @@ const studentNav: NavItem[] = [
     icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6',
     children: [
       { name: 'Learning Overview', khName: 'Learning Overview', href: '/student/progress/overview', iconUrl: '/images/nav/progress.svg' },
+      { name: 'Course Progress', khName: 'Course Progress', href: '/student/my-courses/enrolled', iconUrl: '/images/nav/courses.svg' },
       { name: 'Quiz Performance', khName: 'Quiz Performance', href: '/student/progress/weekly', iconUrl: '/images/nav/analytics.svg' },
-      { name: 'Time Tracker', khName: 'Time Tracker', href: '/student/progress/learning-time', iconUrl: '/images/nav/sub/history.svg' },
-      { name: 'Badges & Achievements', khName: 'Badges & Achievements', href: '/student/progress/achievements', iconUrl: '/images/nav/sub/roles.svg' },
+      { name: 'Skills Progress', khName: 'Skills Progress', href: '/student/progress/achievements', iconUrl: '/images/nav/sub/roles.svg' },
+      { name: 'Learning Activity', khName: 'Learning Activity', href: '/student/progress/learning-time', iconUrl: '/images/nav/sub/history.svg' },
     ]
   },
   {
