@@ -91,7 +91,37 @@ class QuizController extends Controller
 
     public function scores(Request $request)
     {
-        return Inertia::render('Student/Quizzes/Scores');
+        $status = $request->query('status', 'all');
+        $course = $request->query('course', 'all');
+        $category = $request->query('category', 'all');
+        $difficulty = $request->query('difficulty', 'all');
+        $dateRange = $request->query('date_range', 'all');
+        $search = $request->query('search', '');
+        $page = (int) $request->query('page', 1);
+
+        $data = app(\App\Services\QuizResultService::class)->getQuizResultsData(
+            $request->user(),
+            $status,
+            $course,
+            $category,
+            $difficulty,
+            $dateRange,
+            $search,
+            $page
+        );
+
+        return Inertia::render('Student/Quizzes/Scores', [
+            'analytics' => $data,
+            'filters'   => [
+                'status'     => $status,
+                'course'     => $course,
+                'category'   => $category,
+                'difficulty' => $difficulty,
+                'date_range' => $dateRange,
+                'search'     => $search,
+                'page'       => $page,
+            ]
+        ]);
     }
 
     public function show(Request $request, Quiz $quiz)
