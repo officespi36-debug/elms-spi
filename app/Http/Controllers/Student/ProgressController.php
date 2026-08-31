@@ -25,7 +25,22 @@ class ProgressController extends Controller
 
     public function learningTime(Request $request)
     {
-        return Inertia::render('Student/ProgressTracking/LearningTime');
+        $range = $request->query('range', '7d');
+        $granularity = $request->query('granularity', 'daily');
+
+        $analytics = app(\App\Services\LearningActivityService::class)->getStudentLearningActivity(
+            $request->user(),
+            $range,
+            $granularity
+        );
+
+        return Inertia::render('Student/ProgressTracking/LearningTime', [
+            'analytics' => $analytics,
+            'filters'   => [
+                'range'       => $range,
+                'granularity' => $granularity,
+            ]
+        ]);
     }
 
     public function weeklyProgress(Request $request)
