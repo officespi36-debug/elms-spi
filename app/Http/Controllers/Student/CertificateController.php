@@ -20,7 +20,34 @@ class CertificateController extends Controller
 
     public function myCertificates(Request $request)
     {
-        return Inertia::render('Student/Certificates/MyCertificates');
+        $status = $request->query('status', 'all');
+        $category = $request->query('category', 'all');
+        $course = $request->query('course', 'all');
+        $issuer = $request->query('issuer', 'all');
+        $search = $request->query('search', '');
+        $sort = $request->query('sort', 'newest');
+
+        $data = app(\App\Services\CertificateService::class)->getMyCertificatesData(
+            $request->user(),
+            $status,
+            $category,
+            $course,
+            $issuer,
+            $search,
+            $sort
+        );
+
+        return Inertia::render('Student/Certificates/MyCertificates', [
+            'analytics' => $data,
+            'filters'   => [
+                'status'   => $status,
+                'category' => $category,
+                'course'   => $course,
+                'issuer'   => $issuer,
+                'search'   => $search,
+                'sort'     => $sort,
+            ]
+        ]);
     }
 
     public function downloadShare(Request $request)
