@@ -167,11 +167,11 @@ const handleDownloadReceipt = () => {
       <!-- ================= 1. PAGE HEADER ================= -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2">
+          <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
             <span>Transaction History</span>
-            <span class="inline-flex p-1.5 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400 text-lg">📜</span>
+            <span class="inline-flex p-1.5 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-600 dark:text-purple-400 text-lg">📜</span>
           </h1>
-          <p class="text-xs sm:text-sm text-slate-400 mt-1 font-medium">
+          <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">
             View and track all your payment transactions.
           </p>
         </div>
@@ -179,7 +179,7 @@ const handleDownloadReceipt = () => {
         <div class="flex items-center gap-2.5">
           <Link
             href="/student/payments/my-payments"
-            class="px-4 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-slate-300 hover:text-white font-bold text-xs flex items-center gap-1.5 transition-colors"
+            class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs"
           >
             <span>←</span>
             <span>Back to Payments</span>
@@ -187,7 +187,7 @@ const handleDownloadReceipt = () => {
 
           <button
             @click="handleExport"
-            class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-950/40 flex items-center gap-1.5 transition-all cursor-pointer"
+            class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-950/20 flex items-center gap-1.5 transition-all cursor-pointer"
           >
             <span>⤓</span>
             <span>Export History</span>
@@ -199,49 +199,49 @@ const handleDownloadReceipt = () => {
       <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         <!-- Card 1: Total Transactions -->
-        <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex items-center justify-between group hover:border-blue-500/30 transition-all">
+        <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm dark:shadow-xl flex items-center justify-between group hover:border-blue-500/30 transition-all">
           <div class="space-y-0.5">
-            <p class="text-[10px] text-slate-400 font-medium">Total Transactions</p>
-            <p class="text-2xl font-black text-white font-mono">{{ summary.total_transactions }}</p>
-            <p class="text-[10px] text-slate-400 font-medium">{{ summary.total_tx_note }}</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Total Transactions</p>
+            <p class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ summary.total_transactions }}</p>
+            <p class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">{{ summary.total_tx_note }}</p>
           </div>
-          <div class="w-10 h-10 rounded-2xl bg-blue-600/20 border border-blue-500/30 text-blue-300 flex items-center justify-center text-base shadow-inner shrink-0 group-hover:scale-110 transition-transform">
+          <div class="w-10 h-10 rounded-2xl bg-blue-500/10 dark:bg-blue-600/20 border border-blue-500/20 dark:border-blue-500/30 text-blue-600 dark:text-blue-300 flex items-center justify-center text-base shadow-inner shrink-0 group-hover:scale-110 transition-transform">
             💳
           </div>
         </div>
 
         <!-- Card 2: Successful Payments -->
-        <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex items-center justify-between group hover:border-emerald-500/30 transition-all">
+        <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm dark:shadow-xl flex items-center justify-between group hover:border-emerald-500/30 transition-all">
           <div class="space-y-0.5">
-            <p class="text-[10px] text-slate-400 font-medium">Successful</p>
-            <p class="text-2xl font-black text-white font-mono">{{ summary.successful_payments }}</p>
-            <p class="text-[10px] text-emerald-400 font-medium">{{ summary.successful_note }}</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Successful</p>
+            <p class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ summary.successful_payments }}</p>
+            <p class="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">{{ summary.successful_note }}</p>
           </div>
-          <div class="w-10 h-10 rounded-2xl bg-emerald-600/20 border border-emerald-500/30 text-emerald-300 flex items-center justify-center text-base shadow-inner shrink-0 group-hover:scale-110 transition-transform">
+          <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 dark:bg-emerald-600/20 border border-emerald-500/20 dark:border-emerald-500/30 text-emerald-600 dark:text-emerald-300 flex items-center justify-center text-base shadow-inner shrink-0 group-hover:scale-110 transition-transform">
             ✓
           </div>
         </div>
 
         <!-- Card 3: Pending Payments -->
-        <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex items-center justify-between group hover:border-amber-500/30 transition-all">
+        <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm dark:shadow-xl flex items-center justify-between group hover:border-amber-500/30 transition-all">
           <div class="space-y-0.5">
-            <p class="text-[10px] text-slate-400 font-medium">Pending</p>
-            <p class="text-2xl font-black text-white font-mono">{{ summary.pending_payments }}</p>
-            <p class="text-[10px] text-amber-400 font-medium">{{ summary.pending_note }}</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Pending</p>
+            <p class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ summary.pending_payments }}</p>
+            <p class="text-[10px] text-amber-600 dark:text-amber-400 font-medium">{{ summary.pending_note }}</p>
           </div>
-          <div class="w-10 h-10 rounded-2xl bg-amber-600/20 border border-amber-500/30 text-amber-300 flex items-center justify-center text-base shadow-inner shrink-0 group-hover:scale-110 transition-transform">
+          <div class="w-10 h-10 rounded-2xl bg-amber-500/10 dark:bg-amber-600/20 border border-amber-500/20 dark:border-amber-500/30 text-amber-600 dark:text-amber-300 flex items-center justify-center text-base shadow-inner shrink-0 group-hover:scale-110 transition-transform">
             ⏳
           </div>
         </div>
 
         <!-- Card 4: Total Paid -->
-        <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex items-center justify-between group hover:border-purple-500/30 transition-all">
+        <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm dark:shadow-xl flex items-center justify-between group hover:border-purple-500/30 transition-all">
           <div class="space-y-0.5">
-            <p class="text-[10px] text-slate-400 font-medium">Total Paid</p>
-            <p class="text-2xl font-black text-white font-mono">{{ summary.total_paid }}</p>
-            <p class="text-[10px] text-purple-400 font-medium">{{ summary.total_paid_note }}</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Total Paid</p>
+            <p class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ summary.total_paid }}</p>
+            <p class="text-[10px] text-purple-600 dark:text-purple-400 font-medium">{{ summary.total_paid_note }}</p>
           </div>
-          <div class="w-10 h-10 rounded-2xl bg-purple-600/20 border border-purple-500/30 text-purple-300 flex items-center justify-center text-base shadow-inner shrink-0 group-hover:scale-110 transition-transform">
+          <div class="w-10 h-10 rounded-2xl bg-purple-500/10 dark:bg-purple-600/20 border border-purple-500/20 dark:border-purple-500/30 text-purple-600 dark:text-purple-300 flex items-center justify-center text-base shadow-inner shrink-0 group-hover:scale-110 transition-transform">
             💰
           </div>
         </div>
@@ -249,17 +249,17 @@ const handleDownloadReceipt = () => {
       </div>
 
       <!-- ================= 3. FILTER & SEARCH TOOLBAR ================= -->
-      <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-2xl p-3 shadow-lg flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+      <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-3 shadow-sm dark:shadow-lg flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         
         <!-- Search Input -->
         <div class="relative flex-1">
-          <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500 text-xs">🔎</span>
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 dark:text-slate-500 text-xs">🔎</span>
           <input
             v-model="searchQuery"
             @input="handleFilterChange"
             type="text"
             placeholder="Search transaction ID, invoice or course..."
-            class="w-full bg-slate-900 border border-slate-700/80 rounded-xl pl-8 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-colors"
+            class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl pl-8 pr-3 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-colors shadow-xs"
           />
         </div>
 
@@ -269,7 +269,7 @@ const handleDownloadReceipt = () => {
           <select
             v-model="selectedStatus"
             @change="handleFilterChange"
-            class="bg-slate-900 border border-slate-700/80 text-xs font-semibold text-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-purple-500 cursor-pointer"
+            class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 text-xs font-semibold text-slate-700 dark:text-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-purple-500 cursor-pointer shadow-xs"
           >
             <option value="all">All Status</option>
             <option value="successful">Successful</option>
@@ -283,7 +283,7 @@ const handleDownloadReceipt = () => {
           <select
             v-model="selectedMethod"
             @change="handleFilterChange"
-            class="bg-slate-900 border border-slate-700/80 text-xs font-semibold text-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-purple-500 cursor-pointer"
+            class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 text-xs font-semibold text-slate-700 dark:text-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-purple-500 cursor-pointer shadow-xs"
           >
             <option value="all">All Methods</option>
             <option value="aba">ABA KHQR</option>
@@ -294,7 +294,7 @@ const handleDownloadReceipt = () => {
 
           <!-- Date Range -->
           <button
-            class="bg-slate-900 border border-slate-700/80 text-xs font-semibold text-slate-300 rounded-xl px-3 py-2 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer"
+            class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 text-xs font-semibold text-slate-700 dark:text-slate-300 rounded-xl px-3 py-2 hover:text-slate-950 dark:hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
           >
             <span>📅</span>
             <span>Date Range ▾</span>
@@ -304,7 +304,7 @@ const handleDownloadReceipt = () => {
           <select
             v-model="selectedSort"
             @change="handleFilterChange"
-            class="bg-slate-900 border border-slate-700/80 text-xs font-semibold text-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-purple-500 cursor-pointer"
+            class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 text-xs font-semibold text-slate-700 dark:text-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:border-purple-500 cursor-pointer shadow-xs"
           >
             <option value="newest">Sort: Newest First</option>
             <option value="oldest">Sort: Oldest First</option>
@@ -320,17 +320,17 @@ const handleDownloadReceipt = () => {
 
         <!-- ================= LEFT COLUMN: PAYMENT TRANSACTIONS TABLE (lg:col-span-8) ================= -->
         <div class="lg:col-span-8 space-y-4">
-          <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-3xl p-5 shadow-xl space-y-4">
+          <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-4">
             
-            <div class="flex items-center justify-between border-b border-slate-800/60 pb-3">
-              <h3 class="text-sm font-bold text-white tracking-tight uppercase">Payment Transactions</h3>
-              <span class="text-xs text-slate-400 font-mono">{{ transactions.length }} Records</span>
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/60 pb-3">
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight uppercase">Payment Transactions</h3>
+              <span class="text-xs text-slate-500 dark:text-slate-400 font-mono">{{ transactions.length }} Records</span>
             </div>
 
             <!-- TABLE VIEW (DESKTOP / TABLET) -->
             <div class="overflow-x-auto">
               <table class="w-full text-left text-xs">
-                <thead class="bg-slate-900/90 text-slate-400 text-[10px] uppercase font-bold border-b border-slate-800">
+                <thead class="bg-slate-50 dark:bg-slate-900/90 text-slate-600 dark:text-slate-400 text-[10px] uppercase font-bold border-b border-slate-200 dark:border-slate-800">
                   <tr>
                     <th class="p-3">Transaction</th>
                     <th class="p-3">Course</th>
@@ -341,37 +341,37 @@ const handleDownloadReceipt = () => {
                     <th class="p-3 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-800/60 font-medium">
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
                   <tr
                     v-for="tx in transactions"
                     :key="tx.id"
-                    class="hover:bg-slate-800/30 transition-colors group"
+                    class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group"
                   >
                     <!-- Transaction ID -->
                     <td class="p-3 whitespace-nowrap">
-                      <p class="font-mono text-slate-200 font-bold">{{ tx.transaction_id }}</p>
-                      <p class="text-[10px] text-slate-500 font-mono">{{ tx.invoice_number }}</p>
+                      <p class="font-mono text-slate-700 dark:text-slate-200 font-bold">{{ tx.transaction_id }}</p>
+                      <p class="text-[10px] text-slate-400 dark:text-slate-500 font-mono">{{ tx.invoice_number }}</p>
                     </td>
 
                     <!-- Course Name -->
-                    <td class="p-3 font-bold text-white max-w-[150px] truncate">
+                    <td class="p-3 font-bold text-slate-900 dark:text-white max-w-[150px] truncate">
                       {{ tx.course_name }}
                     </td>
 
                     <!-- Method -->
-                    <td class="p-3 text-slate-300 whitespace-nowrap">
-                      <span class="px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800 text-[11px] font-medium">
+                    <td class="p-3 text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                      <span class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[11px] font-medium">
                         {{ tx.payment_method }}
                       </span>
                     </td>
 
                     <!-- Amount -->
-                    <td class="p-3 font-bold text-white font-mono whitespace-nowrap">
+                    <td class="p-3 font-bold text-slate-900 dark:text-white font-mono whitespace-nowrap">
                       {{ tx.amount_khr }}
                     </td>
 
                     <!-- Date & Time -->
-                    <td class="p-3 text-slate-400 font-mono text-[11px] whitespace-nowrap">
+                    <td class="p-3 text-slate-500 dark:text-slate-400 font-mono text-[11px] whitespace-nowrap">
                       {{ tx.date_time_text }}
                     </td>
 
@@ -379,11 +379,11 @@ const handleDownloadReceipt = () => {
                     <td class="p-3 whitespace-nowrap">
                       <span
                         :class="[
-                          tx.status_type === 'successful' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' :
-                          tx.status_type === 'pending' ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' :
-                          tx.status_type === 'processing' ? 'bg-purple-500/20 text-purple-300 border-purple-500/30' :
-                          tx.status_type === 'failed' ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' :
-                          'bg-blue-500/20 text-blue-300 border-blue-500/30',
+                          tx.status_type === 'successful' ? 'bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/30' :
+                          tx.status_type === 'pending' ? 'bg-amber-500/10 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/30' :
+                          tx.status_type === 'processing' ? 'bg-purple-500/10 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-500/30' :
+                          tx.status_type === 'failed' ? 'bg-rose-500/10 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/30' :
+                          'bg-blue-500/10 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/30',
                           'px-2.5 py-0.5 rounded-lg text-[10px] font-bold border inline-flex items-center gap-1'
                         ]"
                       >
@@ -400,14 +400,14 @@ const handleDownloadReceipt = () => {
                       <div class="flex items-center justify-end gap-1.5">
                         <button
                           @click="openDetailsModal(tx)"
-                          class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 text-[11px] font-bold transition-colors cursor-pointer"
+                          class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white border border-slate-200 dark:border-slate-800 text-[11px] font-bold transition-colors cursor-pointer shadow-xs"
                         >
                           View
                         </button>
                         <button
                           v-if="tx.status_type === 'successful'"
                           @click="openReceiptModal(tx)"
-                          class="p-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition-colors cursor-pointer"
+                          class="p-1 rounded-lg bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white border border-slate-200 dark:border-slate-800 transition-colors cursor-pointer shadow-xs"
                           title="Download Receipt"
                         >
                           ⤓
@@ -420,8 +420,8 @@ const handleDownloadReceipt = () => {
                   <tr v-if="transactions.length === 0">
                     <td colspan="7" class="p-8 text-center space-y-2">
                       <p class="text-2xl">💳</p>
-                      <p class="font-bold text-white text-sm">No Transactions Found</p>
-                      <p class="text-xs text-slate-400">No payment records matched your search or filters.</p>
+                      <p class="font-bold text-slate-900 dark:text-white text-sm">No Transactions Found</p>
+                      <p class="text-xs text-slate-500 dark:text-slate-400">No payment records matched your search or filters.</p>
                       <Link
                         href="/student/payments/my-payments"
                         class="inline-block mt-2 px-4 py-2 rounded-xl bg-purple-600 text-white font-bold text-xs shadow-md"
@@ -435,25 +435,25 @@ const handleDownloadReceipt = () => {
             </div>
 
             <!-- Table Pagination -->
-            <div class="pt-3 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-              <span class="text-slate-400 text-[11px]">
+            <div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+              <span class="text-slate-500 dark:text-slate-400 text-[11px]">
                 Showing 1 to 10 of 12 records
               </span>
 
               <div class="flex items-center gap-1.5">
-                <button class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white font-bold text-xs">
+                <button class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white font-bold text-xs shadow-xs">
                   ← Previous
                 </button>
                 <button class="w-7 h-7 rounded-lg bg-purple-600 text-white font-bold text-xs shadow-sm">
                   1
                 </button>
-                <button class="w-7 h-7 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white flex items-center justify-center font-bold text-xs">
+                <button class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white flex items-center justify-center font-bold text-xs shadow-xs">
                   2
                 </button>
-                <button class="w-7 h-7 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white flex items-center justify-center font-bold text-xs">
+                <button class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white flex items-center justify-center font-bold text-xs shadow-xs">
                   3
                 </button>
-                <button class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white font-bold text-xs">
+                <button class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white font-bold text-xs shadow-xs">
                   Next →
                 </button>
               </div>
@@ -466,9 +466,9 @@ const handleDownloadReceipt = () => {
         <div class="lg:col-span-4 space-y-6">
 
           <!-- WIDGET 1: PAYMENT SUMMARY -->
-          <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-3xl p-5 shadow-xl space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-800/60 pb-3">
-              <div class="flex items-center gap-2 text-white font-bold text-sm">
+          <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/60 pb-3">
+              <div class="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-sm">
                 <span>💳</span>
                 <span>Payment Summary</span>
               </div>
@@ -476,40 +476,40 @@ const handleDownloadReceipt = () => {
 
             <div class="space-y-3 text-xs">
               <div>
-                <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Total Paid</p>
-                <p class="text-xl font-black text-white font-mono mt-0.5">{{ paymentSummary.total_paid }}</p>
+                <p class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider">Total Paid</p>
+                <p class="text-xl font-black text-slate-900 dark:text-white font-mono mt-0.5">{{ paymentSummary.total_paid }}</p>
               </div>
 
               <!-- Progress Bar -->
               <div class="space-y-1.5">
-                <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden flex">
+                <div class="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden flex">
                   <div class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full" style="width: 83%"></div>
                 </div>
-                <div class="flex justify-between text-[10px] text-slate-400 font-mono">
+                <div class="flex justify-between text-[10px] text-slate-500 dark:text-slate-400 font-mono">
                   <span>83% Completed</span>
                   <span>10 / 12 Paid</span>
                 </div>
               </div>
 
               <!-- Stat Rows -->
-              <div class="p-3 bg-slate-900/80 rounded-2xl border border-slate-800 space-y-2 text-[11px]">
+              <div class="p-3 bg-slate-50 dark:bg-slate-900/80 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2 text-[11px]">
                 <div class="flex justify-between">
-                  <span class="text-slate-400 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Successful</span>
-                  <span class="font-bold text-white font-mono">{{ paymentSummary.successful_count }}</span>
+                  <span class="text-slate-600 dark:text-slate-400 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Successful</span>
+                  <span class="font-bold text-slate-900 dark:text-white font-mono">{{ paymentSummary.successful_count }}</span>
                 </div>
                 <div class="flex justify-between">
-                  <span class="text-slate-400 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500"></span> Pending</span>
-                  <span class="font-bold text-white font-mono">{{ paymentSummary.pending_count }}</span>
+                  <span class="text-slate-600 dark:text-slate-400 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500"></span> Pending</span>
+                  <span class="font-bold text-slate-900 dark:text-white font-mono">{{ paymentSummary.pending_count }}</span>
                 </div>
                 <div class="flex justify-between">
-                  <span class="text-slate-400 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-rose-500"></span> Failed</span>
-                  <span class="font-bold text-white font-mono">{{ paymentSummary.failed_count }}</span>
+                  <span class="text-slate-600 dark:text-slate-400 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-rose-500"></span> Failed</span>
+                  <span class="font-bold text-slate-900 dark:text-white font-mono">{{ paymentSummary.failed_count }}</span>
                 </div>
               </div>
 
               <Link
                 href="/student/payments/my-payments"
-                class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-purple-400 hover:text-purple-300 border border-slate-800 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
+                class="w-full py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 border border-slate-200 dark:border-slate-800 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-xs"
               >
                 <span>View Invoices</span>
                 <span>→</span>
@@ -518,23 +518,23 @@ const handleDownloadReceipt = () => {
           </div>
 
           <!-- WIDGET 2: LATEST PAYMENT -->
-          <div class="bg-gradient-to-br from-[#12142E] via-[#0F172A] to-[#1F1138] border border-purple-900/40 rounded-3xl p-5 shadow-xl space-y-3.5 text-xs">
-            <div class="flex items-center justify-between border-b border-slate-800/60 pb-2.5">
-              <div class="flex items-center gap-2 text-white font-bold text-sm">
+          <div class="bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/60 dark:from-[#12142E] dark:via-[#0F172A] dark:to-[#1F1138] border border-purple-200 dark:border-purple-900/40 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3.5 text-xs">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/60 pb-2.5">
+              <div class="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-sm">
                 <span>🧾</span>
                 <span>Latest Payment</span>
               </div>
             </div>
 
             <div class="space-y-1.5">
-              <p class="font-bold text-white text-sm">{{ latestPayment.course_name }}</p>
-              <p class="text-base font-black text-emerald-400 font-mono">{{ latestPayment.amount }}</p>
+              <p class="font-bold text-slate-900 dark:text-white text-sm">{{ latestPayment.course_name }}</p>
+              <p class="text-base font-black text-emerald-600 dark:text-emerald-400 font-mono">{{ latestPayment.amount }}</p>
               
               <div class="flex items-center gap-2 pt-1 text-[11px]">
-                <span class="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
+                <span class="px-2 py-0.5 rounded-md bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-500/30">
                   ✓ {{ latestPayment.status }}
                 </span>
-                <span class="text-slate-400 font-mono text-[10px]">{{ latestPayment.date_text }}</span>
+                <span class="text-slate-500 dark:text-slate-400 font-mono text-[10px]">{{ latestPayment.date_text }}</span>
               </div>
             </div>
 
@@ -556,18 +556,18 @@ const handleDownloadReceipt = () => {
     <!-- ================= MODAL 1: TRANSACTION DETAILS MODAL ================= -->
     <div
       v-if="isDetailsModalOpen && selectedTransaction"
-      class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
+      class="fixed inset-0 z-50 bg-slate-950/70 dark:bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
     >
-      <div class="bg-slate-900 border border-purple-500/40 rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl relative">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-purple-500/40 rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl relative">
         
-        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
           <div class="space-y-0.5">
-            <h3 class="text-base font-black text-white">Transaction Details</h3>
-            <p class="text-xs font-mono text-purple-300">{{ selectedTransaction.transaction_id }}</p>
+            <h3 class="text-base font-black text-slate-900 dark:text-white">Transaction Details</h3>
+            <p class="text-xs font-mono text-purple-600 dark:text-purple-300">{{ selectedTransaction.transaction_id }}</p>
           </div>
           <button
             @click="isDetailsModalOpen = false"
-            class="w-7 h-7 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center font-bold text-xs"
+            class="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white flex items-center justify-center font-bold text-xs cursor-pointer transition-colors"
           >
             ✕
           </button>
@@ -575,55 +575,55 @@ const handleDownloadReceipt = () => {
 
         <!-- Status Header Badge -->
         <div class="text-center py-2">
-          <div class="w-12 h-12 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center text-2xl mx-auto mb-2">
+          <div class="w-12 h-12 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/30 dark:border-emerald-500/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-2xl mx-auto mb-2">
             ✓
           </div>
-          <p class="text-sm font-black text-emerald-400">Payment {{ selectedTransaction.status }}</p>
+          <p class="text-sm font-black text-emerald-600 dark:text-emerald-400">Payment {{ selectedTransaction.status }}</p>
         </div>
 
         <!-- Key Details Box -->
-        <div class="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2.5 text-xs font-mono">
-          <div class="flex justify-between border-b border-slate-800/80 pb-2">
+        <div class="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2.5 text-xs font-mono">
+          <div class="flex justify-between border-b border-slate-200 dark:border-slate-800/80 pb-2">
             <span class="text-slate-500 font-sans">Transaction ID:</span>
-            <span class="text-white font-bold">{{ selectedTransaction.transaction_id }}</span>
+            <span class="text-slate-900 dark:text-white font-bold">{{ selectedTransaction.transaction_id }}</span>
           </div>
-          <div class="flex justify-between border-b border-slate-800/80 pb-2">
+          <div class="flex justify-between border-b border-slate-200 dark:border-slate-800/80 pb-2">
             <span class="text-slate-500 font-sans">Invoice:</span>
-            <span class="text-purple-300 font-bold">{{ selectedTransaction.invoice_number }}</span>
+            <span class="text-purple-600 dark:text-purple-300 font-bold">{{ selectedTransaction.invoice_number }}</span>
           </div>
-          <div class="flex justify-between border-b border-slate-800/80 pb-2">
+          <div class="flex justify-between border-b border-slate-200 dark:border-slate-800/80 pb-2">
             <span class="text-slate-500 font-sans">Course:</span>
-            <span class="text-white font-sans font-bold text-right">{{ selectedTransaction.course_name }}</span>
+            <span class="text-slate-900 dark:text-white font-sans font-bold text-right">{{ selectedTransaction.course_name }}</span>
           </div>
-          <div class="flex justify-between border-b border-slate-800/80 pb-2">
+          <div class="flex justify-between border-b border-slate-200 dark:border-slate-800/80 pb-2">
             <span class="text-slate-500 font-sans">Payment Method:</span>
-            <span class="text-slate-200">{{ selectedTransaction.payment_method }}</span>
+            <span class="text-slate-700 dark:text-slate-200">{{ selectedTransaction.payment_method }}</span>
           </div>
-          <div class="flex justify-between border-b border-slate-800/80 pb-2">
+          <div class="flex justify-between border-b border-slate-200 dark:border-slate-800/80 pb-2">
             <span class="text-slate-500 font-sans">Amount Paid:</span>
-            <span class="text-emerald-400 font-bold text-sm">{{ selectedTransaction.amount_khr }}</span>
+            <span class="text-emerald-600 dark:text-emerald-400 font-bold text-sm">{{ selectedTransaction.amount_khr }}</span>
           </div>
-          <div class="flex justify-between border-b border-slate-800/80 pb-2">
+          <div class="flex justify-between border-b border-slate-200 dark:border-slate-800/80 pb-2">
             <span class="text-slate-500 font-sans">Payment Date:</span>
-            <span class="text-slate-300">{{ selectedTransaction.date_time_text }}</span>
+            <span class="text-slate-700 dark:text-slate-300">{{ selectedTransaction.date_time_text }}</span>
           </div>
           <div class="flex justify-between pt-0.5">
             <span class="text-slate-500 font-sans">Reference Code:</span>
-            <span class="text-slate-400">{{ selectedTransaction.reference_code }}</span>
+            <span class="text-slate-600 dark:text-slate-400">{{ selectedTransaction.reference_code }}</span>
           </div>
         </div>
 
         <!-- Action Buttons -->
-        <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-800 text-xs">
+        <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
           <button
             @click="isDetailsModalOpen = false"
-            class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold"
+            class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-200 cursor-pointer"
           >
             Close
           </button>
           <button
             @click="openReceiptModal(selectedTransaction); isDetailsModalOpen = false"
-            class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow-md flex items-center gap-1.5"
+            class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow-md flex items-center gap-1.5 cursor-pointer"
           >
             <span>⤓</span>
             <span>Download Receipt</span>
@@ -636,9 +636,9 @@ const handleDownloadReceipt = () => {
     <!-- ================= MODAL 2: PRINTABLE E-RECEIPT MODAL ================= -->
     <div
       v-if="isReceiptModalOpen && selectedTransaction"
-      class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
+      class="fixed inset-0 z-50 bg-slate-950/70 dark:bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
     >
-      <div class="bg-white text-slate-900 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
+      <div class="bg-white text-slate-900 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl relative border border-slate-200">
         <div class="flex items-center justify-between border-b border-slate-200 pb-3">
           <div>
             <h3 class="text-base font-black font-serif uppercase tracking-wider text-slate-900">Official SPI e-Receipt</h3>
@@ -646,7 +646,7 @@ const handleDownloadReceipt = () => {
           </div>
           <button
             @click="isReceiptModalOpen = false"
-            class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs"
+            class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs cursor-pointer"
           >
             ✕
           </button>
@@ -668,7 +668,7 @@ const handleDownloadReceipt = () => {
         <div class="pt-2 border-t border-slate-200 flex justify-end gap-2 text-xs">
           <button
             @click="isReceiptModalOpen = false"
-            class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold"
+            class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200 cursor-pointer"
           >
             Close
           </button>

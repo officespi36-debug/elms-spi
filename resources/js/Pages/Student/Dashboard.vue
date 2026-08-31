@@ -302,11 +302,11 @@ const recentActivities = ref([
       
       <!-- TOP GREETING HEADER -->
       <div class="space-y-1">
-        <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2">
+        <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
           <span>Welcome back, {{ user.name || 'Sok Pisey' }}!</span>
           <span class="animate-waving-hand inline-block">👋</span>
         </h1>
-        <p class="text-xs text-slate-400 font-medium">
+        <p class="text-xs text-slate-600 dark:text-slate-400 font-medium">
           Keep learning and achieve your goals. You've got this! 💪
         </p>
       </div>
@@ -317,15 +317,15 @@ const recentActivities = ref([
           v-for="stat in stats"
           :key="stat.title"
           :href="stat.href"
-          class="bg-slate-900/80 border border-slate-800 hover:border-purple-500/40 rounded-2xl p-4 shadow-xl flex items-center gap-3.5 transition-all duration-200 hover:-translate-y-1 group"
+          class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 hover:border-purple-500/40 rounded-2xl p-4 shadow-sm dark:shadow-xl flex items-center gap-3.5 transition-all duration-200 hover:-translate-y-1 group"
         >
           <div :class="[stat.iconBg, 'w-10 h-10 rounded-xl flex items-center justify-center text-base shrink-0 shadow-sm group-hover:scale-105 transition-transform']">
             {{ stat.icon }}
           </div>
           <div class="min-w-0">
-            <p class="text-[10px] text-slate-400 font-medium truncate">{{ stat.title }}</p>
-            <h3 class="text-base sm:text-lg font-black text-white group-hover:text-purple-300 transition-colors truncate leading-tight">{{ stat.value }}</h3>
-            <p class="text-[9px] text-slate-500 truncate">{{ stat.subtitle }}</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium truncate">{{ stat.title }}</p>
+            <h3 class="text-base sm:text-lg font-black text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors truncate leading-tight">{{ stat.value }}</h3>
+            <p class="text-[9px] text-slate-400 dark:text-slate-500 truncate">{{ stat.subtitle }}</p>
           </div>
         </Link>
       </div>
@@ -339,44 +339,44 @@ const recentActivities = ref([
           <!-- FEATURED CONTINUE LEARNING CARD -->
           <div class="space-y-3">
             <div class="flex items-center justify-between">
-              <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Continue Learning</h2>
-              <Link href="/student/my-courses/enrolled" class="text-xs text-purple-400 hover:text-purple-300 font-semibold">
+              <h2 class="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">Continue Learning</h2>
+              <Link href="/student/my-courses/enrolled" class="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 font-semibold">
                 View All
               </Link>
             </div>
 
-            <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col md:flex-row items-center gap-5 relative overflow-hidden">
+            <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 sm:p-6 shadow-sm dark:shadow-xl flex flex-col md:flex-row items-center gap-5 relative overflow-hidden">
               
               <!-- 3D / Mock cover illustration -->
-              <div class="relative w-full md:w-36 h-28 rounded-2xl bg-gradient-to-br from-[#0c1322] via-[#0f172a] to-[#1e1b4b] border border-slate-800 flex items-center justify-center shrink-0 shadow-md">
+              <div class="relative w-full md:w-36 h-28 rounded-2xl bg-gradient-to-br from-indigo-50 via-slate-100 to-purple-100 dark:from-[#0c1322] dark:via-[#0f172a] dark:to-[#1e1b4b] border border-slate-200 dark:border-slate-800 flex items-center justify-center shrink-0 shadow-md">
                 <div class="text-center space-y-1">
                   <div class="inline-flex items-center justify-center px-2 py-0.5 rounded-lg bg-amber-400 text-slate-950 font-black text-xs shadow-sm">
                     JS
                   </div>
-                  <p class="text-[10px] font-mono text-purple-400">{ functions }</p>
+                  <p class="text-[10px] font-mono text-purple-600 dark:text-purple-400 font-bold">{ functions }</p>
                 </div>
               </div>
 
               <!-- Course Info and Progress -->
               <div class="flex-1 w-full space-y-3">
                 <div class="space-y-1">
-                  <span class="px-2.5 py-0.5 rounded-md bg-purple-500/20 text-purple-300 text-[10px] font-bold border border-purple-500/30">
+                  <span class="px-2.5 py-0.5 rounded-md bg-purple-500/10 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 text-[10px] font-bold border border-purple-500/20 dark:border-purple-500/30">
                     Teacher: {{ continueCourse.teacher }}
                   </span>
-                  <h3 class="text-base font-bold text-white leading-tight">
+                  <h3 class="text-base font-bold text-slate-900 dark:text-white leading-tight">
                     {{ continueCourse.title }}
                   </h3>
-                  <p class="text-xs text-slate-400 font-medium">
+                  <p class="text-xs text-slate-600 dark:text-slate-400 font-medium">
                     {{ continueCourse.chapter }}
                   </p>
                 </div>
 
                 <!-- Progress Bar -->
                 <div class="space-y-1.5">
-                  <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+                  <div class="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
                     <div class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full" :style="{ width: continueCourse.progress + '%' }"></div>
                   </div>
-                  <div class="flex items-center justify-between text-[11px] text-slate-400">
+                  <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
                     <span>Last lesson: {{ continueCourse.lastLesson }}</span>
                     <span class="font-mono flex items-center gap-1">⏱ {{ continueCourse.timeLeft }}</span>
                   </div>
@@ -401,38 +401,38 @@ const recentActivities = ref([
           <div class="space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div class="flex items-center gap-3">
-                <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider">My Courses</h2>
+                <h2 class="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">My Courses</h2>
                 
                 <!-- Filter Pills -->
-                <div class="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800">
+                <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-950/80 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
                   <button
                     @click="selectedCourseFilter = 'all'"
-                    :class="[selectedCourseFilter === 'all' ? 'bg-purple-600 text-white font-bold' : 'text-slate-400 hover:text-slate-200', 'px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer']"
+                    :class="[selectedCourseFilter === 'all' ? 'bg-purple-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200', 'px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer']"
                   >
                     All Courses
                   </button>
                   <button
                     @click="selectedCourseFilter = 'in_progress'"
-                    :class="[selectedCourseFilter === 'in_progress' ? 'bg-purple-600 text-white font-bold' : 'text-slate-400 hover:text-slate-200', 'px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer']"
+                    :class="[selectedCourseFilter === 'in_progress' ? 'bg-purple-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200', 'px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer']"
                   >
                     In Progress
                   </button>
                   <button
                     @click="selectedCourseFilter = 'completed'"
-                    :class="[selectedCourseFilter === 'completed' ? 'bg-purple-600 text-white font-bold' : 'text-slate-400 hover:text-slate-200', 'px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer']"
+                    :class="[selectedCourseFilter === 'completed' ? 'bg-purple-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200', 'px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer']"
                   >
                     Completed
                   </button>
                   <button
                     @click="selectedCourseFilter = 'not_started'"
-                    :class="[selectedCourseFilter === 'not_started' ? 'bg-purple-600 text-white font-bold' : 'text-slate-400 hover:text-slate-200', 'px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer']"
+                    :class="[selectedCourseFilter === 'not_started' ? 'bg-purple-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200', 'px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer']"
                   >
                     Not Started
                   </button>
                 </div>
               </div>
 
-              <Link href="/student/my-courses/enrolled" class="text-xs text-purple-400 hover:text-purple-300 font-semibold self-start sm:self-auto">
+              <Link href="/student/my-courses/enrolled" class="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 font-semibold self-start sm:self-auto">
                 View All
               </Link>
             </div>
@@ -443,10 +443,10 @@ const recentActivities = ref([
                 v-for="c in filteredCourses"
                 :key="c.id"
                 :href="c.href"
-                class="bg-slate-900/80 border border-slate-800 hover:border-purple-500/40 rounded-2xl p-4 shadow-xl flex flex-col justify-between space-y-3 transition-all duration-200 hover:-translate-y-1 group"
+                class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 hover:border-purple-500/40 rounded-2xl p-4 shadow-sm dark:shadow-xl flex flex-col justify-between space-y-3 transition-all duration-200 hover:-translate-y-1 group"
               >
                 <!-- Illustration Box with Badge -->
-                <div class="relative w-full h-24 rounded-xl bg-slate-950 flex items-center justify-center overflow-hidden">
+                <div class="relative w-full h-24 rounded-xl bg-slate-100 dark:bg-slate-950 flex items-center justify-center overflow-hidden">
                   <div :class="['w-10 h-10 rounded-xl bg-gradient-to-tr', c.iconColor, 'flex items-center justify-center text-white text-lg font-mono font-bold shadow-md']">
                     <span v-if="c.iconType === 'code'">&lt;/&gt;</span>
                     <span v-else-if="c.iconType === 'db'">🗄️</span>
@@ -461,18 +461,18 @@ const recentActivities = ref([
 
                 <!-- Course Title & Instructor -->
                 <div class="space-y-1">
-                  <h4 class="text-xs font-bold text-white group-hover:text-purple-300 transition-colors line-clamp-1">
+                  <h4 class="text-xs font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors line-clamp-1">
                     {{ c.title }}
                   </h4>
-                  <p class="text-[10px] text-slate-400">{{ c.teacher }}</p>
+                  <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ c.teacher }}</p>
                 </div>
 
                 <!-- Progress -->
                 <div class="space-y-1 pt-1">
-                  <div class="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                  <div class="w-full h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
                     <div class="h-full bg-purple-500 rounded-full" :style="{ width: c.progress + '%' }"></div>
                   </div>
-                  <span class="text-[10px] text-purple-400 font-bold font-mono">{{ c.progress }}%</span>
+                  <span class="text-[10px] text-purple-600 dark:text-purple-400 font-bold font-mono">{{ c.progress }}%</span>
                 </div>
               </Link>
             </div>
@@ -484,11 +484,11 @@ const recentActivities = ref([
             <!-- Learning Overview Line Chart Card -->
             <Link
               href="/student/progress"
-              class="bg-slate-900/80 border border-slate-800 hover:border-purple-500/40 rounded-3xl p-5 shadow-xl space-y-4 block transition-all hover:-translate-y-1"
+              class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 hover:border-purple-500/40 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-4 block transition-all hover:-translate-y-1"
             >
               <div class="flex items-center justify-between">
-                <h3 class="text-xs font-bold text-white uppercase tracking-wider">Learning Overview</h3>
-                <span class="text-[11px] text-slate-400 bg-slate-950 px-2 py-0.5 rounded-md border border-slate-800">This Week ⌄</span>
+                <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Learning Overview</h3>
+                <span class="text-[11px] text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-950 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-800">This Week ⌄</span>
               </div>
 
               <!-- SVG Line Chart Mockup -->
@@ -518,7 +518,7 @@ const recentActivities = ref([
                   <circle cx="130" cy="25" r="4" fill="#a855f7" stroke="#ffffff" stroke-width="2" />
                 </svg>
 
-                <div class="flex justify-between text-[9px] text-slate-500 font-mono pt-1">
+                <div class="flex justify-between text-[9px] text-slate-400 dark:text-slate-500 font-mono pt-1">
                   <span>Mon</span>
                   <span>Tue</span>
                   <span>Wed</span>
@@ -533,10 +533,10 @@ const recentActivities = ref([
             <!-- Study Time Donut Ring Chart Card -->
             <Link
               href="/student/progress"
-              class="bg-slate-900/80 border border-slate-800 hover:border-purple-500/40 rounded-3xl p-5 shadow-xl space-y-4 block transition-all hover:-translate-y-1"
+              class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 hover:border-purple-500/40 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-4 block transition-all hover:-translate-y-1"
             >
               <div class="flex items-center justify-between">
-                <h3 class="text-xs font-bold text-white uppercase tracking-wider">Study Time</h3>
+                <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Study Time</h3>
               </div>
 
               <div class="flex items-center justify-center gap-4">
@@ -544,7 +544,7 @@ const recentActivities = ref([
                 <div class="relative w-24 h-24 shrink-0 flex items-center justify-center">
                   <svg viewBox="0 0 36 36" class="w-24 h-24 -rotate-90">
                     <path
-                      class="text-slate-800"
+                      class="text-slate-200 dark:text-slate-800"
                       stroke-width="4"
                       stroke="currentColor"
                       fill="none"
@@ -571,13 +571,13 @@ const recentActivities = ref([
                     />
                   </svg>
                   <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-                    <span class="text-[11px] font-black text-white leading-none">28h 45m</span>
-                    <span class="text-[8px] text-slate-400">Total</span>
+                    <span class="text-[11px] font-black text-slate-900 dark:text-white leading-none">28h 45m</span>
+                    <span class="text-[8px] text-slate-500 dark:text-slate-400">Total</span>
                   </div>
                 </div>
 
                 <!-- Legend -->
-                <div class="space-y-1.5 text-[10px] text-slate-300">
+                <div class="space-y-1.5 text-[10px] text-slate-600 dark:text-slate-300">
                   <div class="flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-blue-500"></span>
                     <span>Lessons: 16h 30m</span>
@@ -587,7 +587,7 @@ const recentActivities = ref([
                     <span>Practice: 8h 15m</span>
                   </div>
                   <div class="flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                    <span class="w-2 h-2 rounded-full bg-cyan-500 dark:bg-cyan-400"></span>
                     <span>Quiz: 4h 00m</span>
                   </div>
                 </div>
@@ -597,11 +597,11 @@ const recentActivities = ref([
             <!-- Quiz Performance Radial Gauge Card -->
             <Link
               href="/student/quizzes/scores"
-              class="bg-slate-900/80 border border-slate-800 hover:border-purple-500/40 rounded-3xl p-5 shadow-xl space-y-4 block transition-all hover:-translate-y-1"
+              class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 hover:border-purple-500/40 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-4 block transition-all hover:-translate-y-1"
             >
               <div class="flex items-center justify-between">
-                <h3 class="text-xs font-bold text-white uppercase tracking-wider">Quiz Performance</h3>
-                <span class="text-[11px] text-slate-400 bg-slate-950 px-2 py-0.5 rounded-md border border-slate-800">This Month ⌄</span>
+                <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Quiz Performance</h3>
+                <span class="text-[11px] text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-950 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-800">This Month ⌄</span>
               </div>
 
               <div class="flex items-center justify-center gap-4">
@@ -609,14 +609,14 @@ const recentActivities = ref([
                 <div class="relative w-24 h-24 shrink-0 flex items-center justify-center">
                   <svg viewBox="0 0 36 36" class="w-24 h-24 -rotate-90">
                     <path
-                      class="text-rose-500/40"
+                      class="text-rose-500/20 dark:text-rose-500/40"
                       stroke-width="4"
                       stroke="currentColor"
                       fill="none"
                       d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                     />
                     <path
-                      class="text-emerald-400"
+                      class="text-emerald-500 dark:text-emerald-400"
                       stroke-dasharray="78, 100"
                       stroke-width="4"
                       stroke-linecap="round"
@@ -626,15 +626,15 @@ const recentActivities = ref([
                     />
                   </svg>
                   <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-                    <span class="text-sm font-black text-white leading-none">78%</span>
-                    <span class="text-[8px] text-slate-400">Average</span>
+                    <span class="text-sm font-black text-slate-900 dark:text-white leading-none">78%</span>
+                    <span class="text-[8px] text-slate-500 dark:text-slate-400">Average</span>
                   </div>
                 </div>
 
                 <!-- Legend -->
-                <div class="space-y-1.5 text-[10px] text-slate-300">
+                <div class="space-y-1.5 text-[10px] text-slate-600 dark:text-slate-300">
                   <div class="flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400"></span>
                     <span>Correct: 78%</span>
                   </div>
                   <div class="flex items-center gap-1.5">
@@ -650,30 +650,30 @@ const recentActivities = ref([
           <!-- RECENT ACTIVITY LIST -->
           <div class="space-y-3">
             <div class="flex items-center justify-between">
-              <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Recent Activity</h2>
-              <Link href="/student/progress" class="text-xs text-purple-400 hover:text-purple-300 font-semibold">
+              <h2 class="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">Recent Activity</h2>
+              <Link href="/student/progress" class="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 font-semibold">
                 View All
               </Link>
             </div>
 
-            <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-3">
+            <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3">
               <Link
                 v-for="act in recentActivities"
                 :key="act.id"
                 :href="act.href"
-                class="flex items-center justify-between p-3 rounded-2xl bg-slate-950/60 border border-slate-800/80 hover:border-purple-500/30 text-xs transition-all hover:bg-slate-950"
+                class="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800/80 hover:border-purple-500/30 text-xs transition-all hover:bg-slate-100 dark:hover:bg-slate-950"
               >
                 <div class="flex items-center gap-3">
                   <div :class="[act.iconBg, 'w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold shrink-0']">
                     {{ act.icon }}
                   </div>
                   <div>
-                    <h4 class="font-bold text-white">{{ act.title }}</h4>
-                    <p class="text-[10px] text-slate-400">{{ act.course }}</p>
+                    <h4 class="font-bold text-slate-900 dark:text-white">{{ act.title }}</h4>
+                    <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ act.course }}</p>
                   </div>
                 </div>
 
-                <span class="text-[10px] text-slate-400 font-mono shrink-0">{{ act.time }}</span>
+                <span class="text-[10px] text-slate-400 dark:text-slate-500 font-mono shrink-0">{{ act.time }}</span>
               </Link>
             </div>
           </div>
@@ -684,21 +684,21 @@ const recentActivities = ref([
         <div class="lg:col-span-4 space-y-6">
           
           <!-- TODAY'S GOAL CARD -->
-          <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-3">
+          <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3">
             <div class="flex items-center justify-between">
-              <h3 class="text-xs font-bold text-white uppercase tracking-wider">Today's Goal</h3>
-              <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold border border-emerald-500/30">
+              <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Today's Goal</h3>
+              <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold border border-emerald-500/20 dark:border-emerald-500/30">
                 {{ todayGoal.completedCount }} / {{ todayGoal.totalCount }} Completed
               </span>
             </div>
 
-            <p class="text-xs text-slate-300 font-medium">Learn 2 lessons today</p>
+            <p class="text-xs text-slate-600 dark:text-slate-300 font-medium">Learn 2 lessons today</p>
 
             <div class="space-y-1.5">
-              <div class="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
+              <div class="w-full h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
                 <div class="h-full bg-emerald-500 rounded-full transition-all duration-300" :style="{ width: todayGoal.percentage + '%' }"></div>
               </div>
-              <p class="text-[10px] text-right text-slate-400">{{ todayGoal.percentage }}% completed</p>
+              <p class="text-[10px] text-right text-slate-500 dark:text-slate-400">{{ todayGoal.percentage }}% completed</p>
             </div>
 
             <!-- Task Checklist -->
@@ -706,7 +706,7 @@ const recentActivities = ref([
               <div
                 v-for="item in todayGoal.items"
                 :key="item.id"
-                class="flex items-center justify-between p-2 rounded-xl bg-slate-950/60 border border-slate-800/60 text-xs"
+                class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800/60 text-xs"
               >
                 <button
                   @click="toggleTask(item)"
@@ -714,11 +714,11 @@ const recentActivities = ref([
                   class="flex items-center gap-2.5 text-left flex-1 cursor-pointer"
                 >
                   <span v-if="item.completed" class="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold">✓</span>
-                  <span v-else class="w-4 h-4 rounded-full border border-slate-600 flex items-center justify-center text-[9px]"></span>
-                  <span :class="[item.completed ? 'line-through text-slate-400' : 'text-slate-200']">{{ item.title }}</span>
+                  <span v-else class="w-4 h-4 rounded-full border border-slate-300 dark:border-slate-600 flex items-center justify-center text-[9px]"></span>
+                  <span :class="[item.completed ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-200 font-medium']">{{ item.title }}</span>
                 </button>
                 
-                <Link :href="item.href" class="text-purple-400 hover:text-purple-300 text-[11px] font-bold ml-2">
+                <Link :href="item.href" class="text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 text-[11px] font-bold ml-2">
                   Open →
                 </Link>
               </div>
@@ -726,32 +726,32 @@ const recentActivities = ref([
           </div>
 
           <!-- AI RECOMMENDED FOR YOU CARD (Prompt Section 8) -->
-          <div class="bg-gradient-to-br from-indigo-950/60 via-purple-950/40 to-slate-900 border border-purple-500/30 rounded-3xl p-5 shadow-2xl space-y-3.5">
+          <div class="bg-gradient-to-br from-indigo-50/80 via-purple-50/60 to-white dark:from-indigo-950/60 dark:via-purple-950/40 dark:to-slate-900 border border-purple-200 dark:border-purple-500/30 rounded-3xl p-5 shadow-sm dark:shadow-2xl space-y-3.5">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <span class="text-base">🤖</span>
-                <h3 class="text-xs font-bold text-white uppercase tracking-wider">AI Recommended For You</h3>
+                <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">AI Recommended For You</h3>
               </div>
-              <Link href="/student/ai-path/recommended" class="text-[10px] text-purple-400 hover:text-purple-300 font-semibold">
+              <Link href="/student/ai-path/recommended" class="text-[10px] text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 font-semibold">
                 Roadmap
               </Link>
             </div>
 
-            <p class="text-[11px] text-purple-300">Based on your recent quiz scores & learning pace:</p>
+            <p class="text-[11px] text-purple-700 dark:text-purple-300 font-medium">Based on your recent quiz scores & learning pace:</p>
 
             <div class="space-y-2.5">
               <div
                 v-for="rec in aiRecommendations"
                 :key="rec.id"
-                class="p-3 rounded-2xl bg-slate-950/80 border border-purple-500/20 space-y-2"
+                class="p-3 rounded-2xl bg-white dark:bg-slate-950/80 border border-purple-100 dark:border-purple-500/20 space-y-2 shadow-xs dark:shadow-none"
               >
                 <div class="flex items-center justify-between">
-                  <h4 class="font-bold text-white text-xs">{{ rec.title }}</h4>
-                  <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                  <h4 class="font-bold text-slate-900 dark:text-white text-xs">{{ rec.title }}</h4>
+                  <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-purple-500/10 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-500/20 dark:border-purple-500/30">
                     {{ rec.badge }}
                   </span>
                 </div>
-                <p class="text-[10px] text-slate-300 leading-relaxed">{{ rec.desc }}</p>
+                <p class="text-[10px] text-slate-600 dark:text-slate-300 leading-relaxed">{{ rec.desc }}</p>
                 
                 <div class="pt-1">
                   <Link
@@ -766,10 +766,10 @@ const recentActivities = ref([
           </div>
 
           <!-- UPCOMING SCHEDULE CARD -->
-          <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-3">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-              <h3 class="text-xs font-bold text-white uppercase tracking-wider">Upcoming</h3>
-              <Link href="/student/calendar" class="text-[11px] text-purple-400 hover:text-purple-300 font-semibold">
+          <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+              <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Upcoming</h3>
+              <Link href="/student/calendar" class="text-[11px] text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 font-semibold">
                 View Calendar
               </Link>
             </div>
@@ -779,18 +779,18 @@ const recentActivities = ref([
                 v-for="item in upcomingEvents"
                 :key="item.id"
                 :href="item.href"
-                class="flex items-start justify-between gap-2 p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/60 hover:border-purple-500/30 text-xs transition-colors block"
+                class="flex items-start justify-between gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800/60 hover:border-purple-500/30 text-xs transition-colors block hover:bg-slate-100 dark:hover:bg-slate-950"
               >
                 <div class="flex items-start gap-2.5">
                   <span class="text-sm mt-0.5">{{ item.icon }}</span>
                   <div>
-                    <h4 class="font-bold text-white text-[11px]">{{ item.title }}</h4>
-                    <p class="text-[10px] text-slate-400">{{ item.course }}</p>
+                    <h4 class="font-bold text-slate-900 dark:text-white text-[11px]">{{ item.title }}</h4>
+                    <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ item.course }}</p>
                   </div>
                 </div>
 
-                <div class="text-right text-[10px] text-slate-400 shrink-0 font-mono">
-                  <p class="font-bold text-slate-300">{{ item.date }}</p>
+                <div class="text-right text-[10px] text-slate-500 dark:text-slate-400 shrink-0 font-mono">
+                  <p class="font-bold text-slate-700 dark:text-slate-300">{{ item.date }}</p>
                   <p>{{ item.time }}</p>
                 </div>
               </Link>
@@ -798,15 +798,15 @@ const recentActivities = ref([
           </div>
 
           <!-- AI STUDY ASSISTANT WIDGET -->
-          <div class="bg-gradient-to-br from-[#111827] via-slate-900 to-[#1e1b4b]/60 border border-purple-500/30 rounded-3xl p-5 shadow-2xl space-y-3.5">
+          <div class="bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/60 dark:from-[#111827] dark:via-slate-900 dark:to-[#1e1b4b]/60 border border-purple-200 dark:border-purple-500/30 rounded-3xl p-5 shadow-sm dark:shadow-2xl space-y-3.5">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
-                <div class="w-6 h-6 rounded-lg bg-purple-600 text-white flex items-center justify-center text-xs">
+                <div class="w-6 h-6 rounded-lg bg-purple-600 text-white flex items-center justify-center text-xs shadow-sm">
                   🤖
                 </div>
-                <h3 class="text-xs font-bold text-white uppercase tracking-wider">AI Study Assistant</h3>
+                <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">AI Study Assistant</h3>
               </div>
-              <span class="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 text-[10px] font-bold border border-purple-500/30">
+              <span class="px-2 py-0.5 rounded-full bg-purple-500/10 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 text-[10px] font-bold border border-purple-500/20 dark:border-purple-500/30">
                 New
               </span>
             </div>
@@ -817,7 +817,7 @@ const recentActivities = ref([
                 v-for="(msg, idx) in aiMessages"
                 :key="idx"
                 :class="[
-                  msg.role === 'user' ? 'bg-purple-600/30 border border-purple-500/40 text-purple-100 ml-4' : 'bg-slate-800/80 border border-slate-700/60 text-slate-200 mr-2',
+                  msg.role === 'user' ? 'bg-purple-600/15 dark:bg-purple-600/30 border border-purple-500/30 dark:border-purple-500/40 text-purple-950 dark:text-purple-100 ml-4' : 'bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 text-slate-800 dark:text-slate-200 mr-2',
                   'p-2.5 rounded-2xl text-[11px] space-y-1'
                 ]"
               >
@@ -830,28 +830,28 @@ const recentActivities = ref([
               <button
                 @click="handleSendAiPrompt('Explain this lesson')"
                 type="button"
-                class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-medium border border-slate-700 text-center transition-colors cursor-pointer truncate"
+                class="p-1.5 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] font-medium border border-slate-200 dark:border-slate-700 text-center transition-colors cursor-pointer truncate shadow-xs"
               >
                 Explain this lesson
               </button>
               <button
                 @click="handleSendAiPrompt('Give me an example')"
                 type="button"
-                class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-medium border border-slate-700 text-center transition-colors cursor-pointer truncate"
+                class="p-1.5 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] font-medium border border-slate-200 dark:border-slate-700 text-center transition-colors cursor-pointer truncate shadow-xs"
               >
                 Give me an example
               </button>
               <button
                 @click="handleSendAiPrompt('Summarize this topic')"
                 type="button"
-                class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-medium border border-slate-700 text-center transition-colors cursor-pointer truncate"
+                class="p-1.5 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] font-medium border border-slate-200 dark:border-slate-700 text-center transition-colors cursor-pointer truncate shadow-xs"
               >
                 Summarize this topic
               </button>
               <button
                 @click="handleSendAiPrompt('What should I study today?')"
                 type="button"
-                class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-medium border border-slate-700 text-center transition-colors cursor-pointer truncate"
+                class="p-1.5 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] font-medium border border-slate-200 dark:border-slate-700 text-center transition-colors cursor-pointer truncate shadow-xs"
               >
                 What should I study?
               </button>
@@ -863,11 +863,11 @@ const recentActivities = ref([
                 v-model="aiPromptInput"
                 type="text"
                 placeholder="Type your question..."
-                class="w-full pl-3 pr-8 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-purple-500 shadow-inner"
+                class="w-full pl-3 pr-8 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-purple-500 shadow-inner"
               />
               <button
                 type="submit"
-                class="absolute right-1.5 p-1 rounded-lg bg-purple-600 hover:bg-purple-500 text-white transition-all cursor-pointer"
+                class="absolute right-1.5 p-1 rounded-lg bg-purple-600 hover:bg-purple-500 text-white transition-all cursor-pointer shadow-xs"
               >
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -877,10 +877,10 @@ const recentActivities = ref([
           </div>
 
           <!-- ACHIEVEMENTS BADGES CARD -->
-          <div class="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-3">
+          <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3">
             <div class="flex items-center justify-between">
-              <h3 class="text-xs font-bold text-white uppercase tracking-wider">Achievements</h3>
-              <Link href="/student/certificates/achievements" class="text-[11px] text-purple-400 hover:text-purple-300 font-semibold">
+              <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Achievements</h3>
+              <Link href="/student/certificates/achievements" class="text-[11px] text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 font-semibold">
                 View All
               </Link>
             </div>
@@ -895,7 +895,7 @@ const recentActivities = ref([
                 <div :class="['w-9 h-9 rounded-xl bg-gradient-to-tr', ach.color, 'flex items-center justify-center text-sm shadow-md group-hover:scale-110 transition-transform']">
                   {{ ach.icon }}
                 </div>
-                <span class="text-[8px] text-slate-400 leading-tight w-12 truncate">{{ ach.title }}</span>
+                <span class="text-[8px] text-slate-500 dark:text-slate-400 leading-tight w-12 truncate">{{ ach.title }}</span>
               </Link>
             </div>
           </div>
@@ -907,3 +907,4 @@ const recentActivities = ref([
     </div>
   </StudentLayout>
 </template>
+

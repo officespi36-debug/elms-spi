@@ -434,14 +434,14 @@ const handleNextLessonDirect = () => {
           <!-- Video Title Bar matching screenshot -->
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-purple-600/30 text-purple-400 border border-purple-500/40 flex items-center justify-center text-lg shrink-0 shadow-lg shadow-purple-900/30">
+              <div class="w-10 h-10 rounded-xl bg-purple-500/10 dark:bg-purple-600/30 text-purple-600 dark:text-purple-400 border border-purple-500/30 dark:border-purple-500/40 flex items-center justify-center text-lg shrink-0 shadow-sm">
                 ▶
               </div>
               <div>
-                <h1 class="text-lg sm:text-xl font-extrabold text-white tracking-tight">
+                <h1 class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                   {{ currentLesson.title }}
                 </h1>
-                <p class="text-xs text-purple-400/90 font-medium">
+                <p class="text-xs text-purple-600 dark:text-purple-400/90 font-medium">
                   Web Development Course
                 </p>
               </div>
@@ -452,7 +452,7 @@ const handleNextLessonDirect = () => {
               <button
                 @click="handlePreviousLesson"
                 type="button"
-                class="px-3.5 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700/80 flex items-center gap-1.5 transition-colors cursor-pointer"
+                class="px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-800/90 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold border border-slate-200 dark:border-slate-700/80 flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
               >
                 <span>‹</span>
                 <span>Previous</span>
@@ -460,7 +460,7 @@ const handleNextLessonDirect = () => {
               <button
                 @click="handleNextLessonDirect"
                 type="button"
-                class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/30 flex items-center gap-1.5 transition-colors cursor-pointer"
+                class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/20 flex items-center gap-1.5 transition-colors cursor-pointer"
               >
                 <span>Next</span>
                 <span>›</span>
@@ -572,14 +572,14 @@ const handleNextLessonDirect = () => {
           </div>
 
           <!-- Lesson Navigation Tabs (Overview, Lesson Content, Resources, Discussion) -->
-          <div class="border-b border-slate-800">
+          <div class="border-b border-slate-200 dark:border-slate-800">
             <nav class="flex items-center gap-6 text-xs font-semibold">
               <button
                 @click="activeTab = 'overview'"
                 :class="[
                   activeTab === 'overview'
-                    ? 'text-purple-400 border-b-2 border-purple-500 pb-3 font-bold'
-                    : 'text-slate-400 hover:text-slate-200 pb-3 border-b-2 border-transparent'
+                    ? 'text-purple-600 dark:text-purple-400 border-b-2 border-purple-500 pb-3 font-bold'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 pb-3 border-b-2 border-transparent'
                 ]"
                 class="transition-colors cursor-pointer"
               >
@@ -589,8 +589,8 @@ const handleNextLessonDirect = () => {
                 @click="activeTab = 'content'"
                 :class="[
                   activeTab === 'content'
-                    ? 'text-purple-400 border-b-2 border-purple-500 pb-3 font-bold'
-                    : 'text-slate-400 hover:text-slate-200 pb-3 border-b-2 border-transparent'
+                    ? 'text-purple-600 dark:text-purple-400 border-b-2 border-purple-500 pb-3 font-bold'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 pb-3 border-b-2 border-transparent'
                 ]"
                 class="transition-colors cursor-pointer"
               >
@@ -600,8 +600,8 @@ const handleNextLessonDirect = () => {
                 @click="activeTab = 'resources'"
                 :class="[
                   activeTab === 'resources'
-                    ? 'text-purple-400 border-b-2 border-purple-500 pb-3 font-bold'
-                    : 'text-slate-400 hover:text-slate-200 pb-3 border-b-2 border-transparent'
+                    ? 'text-purple-600 dark:text-purple-400 border-b-2 border-purple-500 pb-3 font-bold'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 pb-3 border-b-2 border-transparent'
                 ]"
                 class="transition-colors cursor-pointer"
               >
@@ -611,8 +611,8 @@ const handleNextLessonDirect = () => {
                 @click="activeTab = 'discussion'"
                 :class="[
                   activeTab === 'discussion'
-                    ? 'text-purple-400 border-b-2 border-purple-500 pb-3 font-bold'
-                    : 'text-slate-400 hover:text-slate-200 pb-3 border-b-2 border-transparent'
+                    ? 'text-purple-600 dark:text-purple-400 border-b-2 border-purple-500 pb-3 font-bold'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 pb-3 border-b-2 border-transparent'
                 ]"
                 class="transition-colors cursor-pointer"
               >
@@ -625,38 +625,38 @@ const handleNextLessonDirect = () => {
           <div v-show="activeTab === 'overview'" class="space-y-6">
             <!-- About This Lesson Section -->
             <div class="space-y-2.5">
-              <h3 class="text-sm font-bold text-white uppercase tracking-wider">About This Lesson</h3>
-              <p class="text-xs text-slate-300 leading-relaxed">
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">About This Lesson</h3>
+              <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                 {{ currentLesson.about || 'In this lesson, you will learn about JavaScript Functions, how to create them, use parameters, return values, and practical examples.' }}
               </p>
             </div>
 
             <!-- What you will learn Section -->
             <div class="space-y-2.5">
-              <h4 class="text-xs font-bold text-slate-200 uppercase tracking-wider">What you will learn:</h4>
-              <ul class="space-y-2 text-xs text-slate-300">
+              <h4 class="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">What you will learn:</h4>
+              <ul class="space-y-2 text-xs text-slate-600 dark:text-slate-300">
                 <li
                   v-for="(obj, idx) in (currentLesson.objectives || ['What is a function in JavaScript', 'How to declare and call functions', 'Function parameters and return values', 'Real world examples'])"
                   :key="idx"
                   class="flex items-center gap-2.5"
                 >
-                  <span class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-bold">✓</span>
+                  <span class="w-4 h-4 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[10px] font-bold">✓</span>
                   <span>{{ obj }}</span>
                 </li>
               </ul>
             </div>
 
             <!-- Need help banner with Ask AI Assistant -->
-            <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-indigo-950/60 via-purple-950/40 to-slate-900 border border-purple-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
+            <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-indigo-50/80 via-white to-purple-50/80 dark:from-indigo-950/60 dark:via-purple-950/40 dark:to-slate-900 border border-purple-200 dark:border-purple-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm dark:shadow-xl">
               <div>
-                <h4 class="text-xs font-bold text-white">Need help understanding this lesson?</h4>
-                <p class="text-[11px] text-slate-400 mt-0.5">Ask our AI Assistant to explain or give you examples.</p>
+                <h4 class="text-xs font-bold text-slate-900 dark:text-white">Need help understanding this lesson?</h4>
+                <p class="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">Ask our AI Assistant to explain or give you examples.</p>
               </div>
 
               <button
                 @click="sendAiPrompt('Explain this lesson')"
                 type="button"
-                class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 flex items-center gap-2 transition-all hover:scale-105 active:scale-95 cursor-pointer shrink-0"
+                class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/20 flex items-center gap-2 transition-all hover:scale-105 active:scale-95 cursor-pointer shrink-0"
               >
                 <span>✨ Ask AI Assistant</span>
                 <span>›</span>
@@ -665,10 +665,10 @@ const handleNextLessonDirect = () => {
           </div>
 
           <!-- TAB CONTENT: Lesson Content -->
-          <div v-show="activeTab === 'content'" class="space-y-4 text-xs text-slate-300 leading-relaxed bg-slate-900/60 border border-slate-800 p-5 rounded-2xl">
-            <h4 class="text-sm font-bold text-white">Detailed Lesson Transcript & Notes</h4>
+          <div v-show="activeTab === 'content'" class="space-y-4 text-xs text-slate-700 dark:text-slate-300 leading-relaxed bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-xs">
+            <h4 class="text-sm font-bold text-slate-900 dark:text-white">Detailed Lesson Transcript & Notes</h4>
             <p>1. <strong>Function Declarations</strong>: Declaring a function using the <code>function</code> keyword creates a named reusable function.</p>
-            <pre class="p-3 bg-slate-950 rounded-xl font-mono text-purple-300 text-[11px] overflow-x-auto">function calculateTotal(price, tax) {
+            <pre class="p-3 bg-slate-900 text-purple-300 dark:bg-slate-950 rounded-xl font-mono text-[11px] overflow-x-auto">function calculateTotal(price, tax) {
   return price + (price * tax);
 }</pre>
             <p>2. <strong>Function Expressions and Arrow Functions</strong>: Modern ES6 syntax offers concise arrow function syntax for callbacks and handlers.</p>
@@ -676,25 +676,25 @@ const handleNextLessonDirect = () => {
 
           <!-- TAB CONTENT: Resources -->
           <div v-show="activeTab === 'resources'" class="space-y-3">
-            <div class="p-3.5 bg-slate-900/80 border border-slate-800 rounded-xl flex items-center justify-between gap-3 text-xs">
+            <div class="p-3.5 bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-between gap-3 text-xs shadow-xs">
               <div class="flex items-center gap-2.5">
                 <span class="text-base">📄</span>
                 <div>
-                  <p class="font-bold text-white">JavaScript Functions Cheatsheet.pdf</p>
-                  <p class="text-[10px] text-slate-400">PDF Document • 2.4 MB</p>
+                  <p class="font-bold text-slate-900 dark:text-white">JavaScript Functions Cheatsheet.pdf</p>
+                  <p class="text-[10px] text-slate-500 dark:text-slate-400">PDF Document • 2.4 MB</p>
                 </div>
               </div>
-              <button class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-purple-400 text-xs font-bold border border-slate-700">Download</button>
+              <button class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-purple-600 dark:text-purple-400 text-xs font-bold border border-slate-200 dark:border-slate-700 cursor-pointer">Download</button>
             </div>
-            <div class="p-3.5 bg-slate-900/80 border border-slate-800 rounded-xl flex items-center justify-between gap-3 text-xs">
+            <div class="p-3.5 bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-between gap-3 text-xs shadow-xs">
               <div class="flex items-center gap-2.5">
                 <span class="text-base">💻</span>
                 <div>
-                  <p class="font-bold text-white">lesson-3-starter-code.zip</p>
-                  <p class="text-[10px] text-slate-400">Source Code • 150 KB</p>
+                  <p class="font-bold text-slate-900 dark:text-white">lesson-3-starter-code.zip</p>
+                  <p class="text-[10px] text-slate-500 dark:text-slate-400">Source Code • 150 KB</p>
                 </div>
               </div>
-              <button class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-purple-400 text-xs font-bold border border-slate-700">Download</button>
+              <button class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-purple-600 dark:text-purple-400 text-xs font-bold border border-slate-200 dark:border-slate-700 cursor-pointer">Download</button>
             </div>
           </div>
 
@@ -704,18 +704,18 @@ const handleNextLessonDirect = () => {
               <input
                 type="text"
                 placeholder="Ask a question about this lesson..."
-                class="flex-1 px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-purple-500"
+                class="flex-1 px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-purple-500 shadow-xs"
               />
-              <button class="px-4 py-2 rounded-xl bg-purple-600 text-white font-bold text-xs hover:bg-purple-500">Post</button>
+              <button class="px-4 py-2 rounded-xl bg-purple-600 text-white font-bold text-xs hover:bg-purple-500 cursor-pointer">Post</button>
             </div>
           </div>
 
           <!-- Bottom Action Buttons (Previous Lesson / Complete & Next Lesson) -->
-          <div class="flex items-center justify-between pt-4 border-t border-slate-800">
+          <div class="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800">
             <button
               @click="handlePreviousLesson"
               type="button"
-              class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs border border-slate-700 flex items-center gap-2 transition-colors cursor-pointer"
+              class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs border border-slate-200 dark:border-slate-700 flex items-center gap-2 transition-colors cursor-pointer shadow-xs"
             >
               <span>←</span>
               <span>Previous Lesson</span>
@@ -724,7 +724,7 @@ const handleNextLessonDirect = () => {
             <button
               @click="handleCompleteAndNext"
               type="button"
-              class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 flex items-center gap-2 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+              class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/20 flex items-center gap-2 hover:scale-105 active:scale-95 transition-all cursor-pointer"
             >
               <span>Complete & Next Lesson</span>
               <span>→</span>
@@ -737,26 +737,26 @@ const handleNextLessonDirect = () => {
         <div class="lg:col-span-4 space-y-6 sticky top-20">
           
           <!-- Course Progress Card -->
-          <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-3">
+          <div class="bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3">
             <div class="flex items-center justify-between text-xs font-bold">
-              <span class="text-white">Course Progress</span>
-              <span class="text-purple-400">{{ overallProgressPercentage }}%</span>
+              <span class="text-slate-900 dark:text-white">Course Progress</span>
+              <span class="text-purple-600 dark:text-purple-400">{{ overallProgressPercentage }}%</span>
             </div>
-            <p class="text-[11px] text-slate-400">{{ completedLessonsCount }} / {{ totalLessonsCount }} Lessons Completed</p>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ completedLessonsCount }} / {{ totalLessonsCount }} Lessons Completed</p>
             
-            <div class="w-full h-2.5 rounded-full bg-slate-800 overflow-hidden">
+            <div class="w-full h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
               <div class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-500" :style="{ width: overallProgressPercentage + '%' }"></div>
             </div>
           </div>
 
           <!-- Course Content Accordion -->
-          <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-3">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 class="text-xs font-bold text-white uppercase tracking-wider">Course Content</h3>
+          <div class="bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Course Content</h3>
               <button
                 @click="toggleExpandAll"
                 type="button"
-                class="text-[11px] font-semibold text-purple-400 hover:text-purple-300 transition-colors cursor-pointer"
+                class="text-[11px] font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 transition-colors cursor-pointer"
               >
                 Expand All
               </button>
@@ -767,57 +767,57 @@ const handleNextLessonDirect = () => {
               <div
                 v-for="chap in chapters"
                 :key="chap.id"
-                class="rounded-2xl border border-slate-800/80 bg-slate-950/60 overflow-hidden"
+                class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-950/60 overflow-hidden"
               >
                 <!-- Chapter Header -->
                 <button
                   @click="toggleChapter(chap)"
                   type="button"
                   :class="[
-                    chap.locked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-800/40',
+                    chap.locked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800/40',
                     'w-full p-3 flex items-center justify-between text-xs transition-colors'
                   ]"
                 >
                   <div class="flex items-center gap-2 text-left truncate">
-                    <span :class="[chap.expanded ? 'rotate-90 text-purple-400' : 'text-slate-500', 'transition-transform text-[10px]']">›</span>
-                    <span class="font-bold text-slate-200 truncate">{{ chap.title }}</span>
+                    <span :class="[chap.expanded ? 'rotate-90 text-purple-600 dark:text-purple-400' : 'text-slate-400 dark:text-slate-500', 'transition-transform text-[10px]']">›</span>
+                    <span class="font-bold text-slate-800 dark:text-slate-200 truncate">{{ chap.title }}</span>
                   </div>
 
                   <div class="flex items-center gap-1.5 shrink-0">
-                    <span :class="[chap.progress.startsWith(chap.progress.split('/')[1]) ? 'text-emerald-400 font-bold' : 'text-purple-400 font-bold', 'text-[11px]']">
+                    <span :class="[chap.progress.startsWith(chap.progress.split('/')[1]) ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-purple-600 dark:text-purple-400 font-bold', 'text-[11px]']">
                       {{ chap.progress }}
                     </span>
-                    <span v-if="chap.locked" class="text-xs text-slate-500">🔒</span>
-                    <span v-else :class="[chap.expanded ? 'rotate-180' : '', 'text-[10px] text-slate-500 transition-transform']">⌄</span>
+                    <span v-if="chap.locked" class="text-xs text-slate-400 dark:text-slate-500">🔒</span>
+                    <span v-else :class="[chap.expanded ? 'rotate-180' : '', 'text-[10px] text-slate-400 dark:text-slate-500 transition-transform']">⌄</span>
                   </div>
                 </button>
 
                 <!-- Lessons inside chapter -->
-                <div v-show="chap.expanded && !chap.locked" class="border-t border-slate-800/60 p-2 space-y-1 bg-slate-950/90">
+                <div v-show="chap.expanded && !chap.locked" class="border-t border-slate-200 dark:border-slate-800/60 p-2 space-y-1 bg-white dark:bg-slate-950/90">
                   <div
                     v-for="lsn in chap.lessons"
                     :key="lsn.id"
                     @click="selectLesson(chap, lsn)"
                     :class="[
                       lsn.status === 'active' || lsn.id === currentLessonId
-                        ? 'bg-purple-600/25 border-purple-500/40 text-white font-bold'
+                        ? 'bg-purple-50 dark:bg-purple-600/25 border-purple-300 dark:border-purple-500/40 text-purple-900 dark:text-white font-bold'
                         : lsn.status === 'completed'
-                        ? 'text-slate-300 hover:bg-slate-900 border-transparent cursor-pointer'
+                        ? 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900 border-transparent cursor-pointer'
                         : lsn.status === 'pending'
-                        ? 'text-slate-400 hover:bg-slate-900 border-transparent cursor-pointer'
-                        : 'text-slate-600 border-transparent opacity-60 cursor-not-allowed',
+                        ? 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 border-transparent cursor-pointer'
+                        : 'text-slate-400 dark:text-slate-600 border-transparent opacity-60 cursor-not-allowed',
                       'p-2.5 rounded-xl border text-xs flex items-center justify-between transition-colors'
                     ]"
                   >
                     <div class="flex items-center gap-2.5 truncate">
-                      <span v-if="lsn.status === 'completed'" class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-bold">✓</span>
-                      <span v-else-if="lsn.status === 'active' || lsn.id === currentLessonId" class="w-4 h-4 rounded-full bg-purple-500 text-white flex items-center justify-center text-[9px]">▶</span>
-                      <span v-else-if="lsn.status === 'locked'" class="w-4 h-4 text-slate-500 flex items-center justify-center text-[10px]">🔒</span>
-                      <span v-else class="w-4 h-4 rounded-full border border-slate-600 flex items-center justify-center text-[9px]">○</span>
+                      <span v-if="lsn.status === 'completed'" class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[10px] font-bold">✓</span>
+                      <span v-else-if="lsn.status === 'active' || lsn.id === currentLessonId" class="w-4 h-4 rounded-full bg-purple-600 text-white flex items-center justify-center text-[9px]">▶</span>
+                      <span v-else-if="lsn.status === 'locked'" class="w-4 h-4 text-slate-400 dark:text-slate-500 flex items-center justify-center text-[10px]">🔒</span>
+                      <span v-else class="w-4 h-4 rounded-full border border-slate-300 dark:border-slate-600 flex items-center justify-center text-[9px]">○</span>
                       <span class="truncate">{{ lsn.title }}</span>
                     </div>
 
-                    <span class="text-[10px] text-slate-400 shrink-0 font-mono">{{ lsn.duration }}</span>
+                    <span class="text-[10px] text-slate-500 dark:text-slate-400 shrink-0 font-mono">{{ lsn.duration }}</span>
                   </div>
                 </div>
               </div>
@@ -825,12 +825,12 @@ const handleNextLessonDirect = () => {
           </div>
 
           <!-- AI Study Assistant Card matching screenshot -->
-          <div class="bg-gradient-to-br from-[#111827] via-slate-900 to-[#1e1b4b]/60 border border-purple-500/30 rounded-3xl p-5 shadow-2xl space-y-4">
+          <div class="bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/60 dark:from-[#111827] dark:via-slate-900 dark:to-[#1e1b4b]/60 border border-purple-200 dark:border-purple-500/30 rounded-3xl p-5 shadow-sm dark:shadow-2xl space-y-4">
             <div class="flex items-center gap-2.5">
-              <div class="w-7 h-7 rounded-xl bg-purple-600 text-white flex items-center justify-center text-xs shadow-md shadow-purple-600/30">
+              <div class="w-7 h-7 rounded-xl bg-purple-600 text-white flex items-center justify-center text-xs shadow-md shadow-purple-600/20">
                 🤖
               </div>
-              <h3 class="text-xs font-bold text-white uppercase tracking-wider">AI Study Assistant</h3>
+              <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">AI Study Assistant</h3>
             </div>
 
             <!-- Messages Area -->
@@ -839,7 +839,7 @@ const handleNextLessonDirect = () => {
                 v-for="(msg, idx) in aiMessages"
                 :key="idx"
                 :class="[
-                  msg.role === 'user' ? 'bg-purple-600/30 border border-purple-500/40 text-purple-100 ml-6' : 'bg-slate-800/80 border border-slate-700/60 text-slate-200 mr-2',
+                  msg.role === 'user' ? 'bg-purple-50 dark:bg-purple-600/30 border border-purple-200 dark:border-purple-500/40 text-purple-900 dark:text-purple-100 ml-6' : 'bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 text-slate-800 dark:text-slate-200 mr-2',
                   'p-3 rounded-2xl text-xs space-y-1'
                 ]"
               >
@@ -852,28 +852,28 @@ const handleNextLessonDirect = () => {
               <button
                 @click="sendAiPrompt('Explain this lesson')"
                 type="button"
-                class="px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 text-[10px] font-medium border border-slate-700/60 transition-colors cursor-pointer"
+                class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/90 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] font-medium border border-slate-200 dark:border-slate-700/60 transition-colors cursor-pointer"
               >
                 Explain this lesson
               </button>
               <button
                 @click="sendAiPrompt('Give me an example')"
                 type="button"
-                class="px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 text-[10px] font-medium border border-slate-700/60 transition-colors cursor-pointer"
+                class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/90 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] font-medium border border-slate-200 dark:border-slate-700/60 transition-colors cursor-pointer"
               >
                 Give me an example
               </button>
               <button
                 @click="sendAiPrompt('Summarize this topic')"
                 type="button"
-                class="px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 text-[10px] font-medium border border-slate-700/60 transition-colors cursor-pointer"
+                class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/90 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] font-medium border border-slate-200 dark:border-slate-700/60 transition-colors cursor-pointer"
               >
                 Summarize this topic
               </button>
               <button
                 @click="sendAiPrompt('Generate practice questions')"
                 type="button"
-                class="px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 text-[10px] font-medium border border-slate-700/60 transition-colors cursor-pointer"
+                class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/90 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] font-medium border border-slate-200 dark:border-slate-700/60 transition-colors cursor-pointer"
               >
                 Generate practice questions
               </button>
@@ -885,7 +885,7 @@ const handleNextLessonDirect = () => {
                 v-model="aiInput"
                 type="text"
                 placeholder="Type your question..."
-                class="w-full pl-3.5 pr-10 py-2 rounded-xl bg-slate-950 border border-slate-700/80 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-purple-500 transition-colors shadow-inner"
+                class="w-full pl-3.5 pr-10 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-purple-500 transition-colors shadow-inner"
               />
               <button
                 type="submit"
@@ -905,26 +905,26 @@ const handleNextLessonDirect = () => {
       <!-- MINI QUIZ MODAL (Interactive Assessment Step) -->
       <div
         v-if="isQuizOpen"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md transition-opacity"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 dark:bg-slate-950/85 backdrop-blur-md transition-opacity"
       >
-        <div class="w-full max-w-2xl rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl p-6 sm:p-8 space-y-6 text-white animate-in zoom-in-95 duration-200">
+        <div class="w-full max-w-2xl rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 space-y-6 text-slate-900 dark:text-white animate-in zoom-in-95 duration-200">
           
           <!-- Modal Header -->
-          <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+          <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
             <div class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-xl bg-purple-600/30 text-purple-400 border border-purple-500/40 flex items-center justify-center text-sm font-bold">
+              <div class="w-9 h-9 rounded-xl bg-purple-500/10 dark:bg-purple-600/30 text-purple-600 dark:text-purple-400 border border-purple-500/30 dark:border-purple-500/40 flex items-center justify-center text-sm font-bold">
                 📝
               </div>
               <div>
-                <h3 class="text-base font-bold text-white">Lesson Practice / Mini Quiz</h3>
-                <p class="text-xs text-purple-400">{{ currentLesson.title }}</p>
+                <h3 class="text-base font-bold text-slate-900 dark:text-white">Lesson Practice / Mini Quiz</h3>
+                <p class="text-xs text-purple-600 dark:text-purple-400">{{ currentLesson.title }}</p>
               </div>
             </div>
 
             <button
               @click="isQuizOpen = false"
               type="button"
-              class="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
+              class="p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
               ✕
             </button>
@@ -932,13 +932,13 @@ const handleNextLessonDirect = () => {
 
           <!-- QUIZ IN PROGRESS VIEW -->
           <div v-if="!isQuizSubmitted" class="space-y-6">
-            <div class="flex items-center justify-between text-xs text-slate-400">
+            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
               <span>Question {{ currentQuestionIndex + 1 }} of {{ quizQuestions.length }}</span>
               <span class="font-mono">⏱ {{ formattedQuizTime }}</span>
             </div>
 
             <!-- Progress Bar -->
-            <div class="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
+            <div class="w-full h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
               <div
                 class="h-full bg-purple-500 rounded-full transition-all duration-300"
                 :style="{ width: `${((currentQuestionIndex + 1) / quizQuestions.length) * 100}%` }"
@@ -947,7 +947,7 @@ const handleNextLessonDirect = () => {
 
             <!-- Current Question -->
             <div class="space-y-4">
-              <h4 class="text-sm sm:text-base font-bold text-slate-100 leading-snug">
+              <h4 class="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100 leading-snug">
                 {{ quizQuestions[currentQuestionIndex].question }}
               </h4>
 
@@ -960,8 +960,8 @@ const handleNextLessonDirect = () => {
                   type="button"
                   :class="[
                     quizAnswers[currentQuestionIndex] === optIdx
-                      ? 'bg-purple-600/30 border-purple-500 text-white font-bold shadow-md shadow-purple-600/20'
-                      : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:bg-slate-800/60',
+                      ? 'bg-purple-50 dark:bg-purple-600/30 border-purple-500 text-purple-900 dark:text-white font-bold shadow-md shadow-purple-600/10'
+                      : 'bg-slate-50 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60',
                     'w-full p-3.5 rounded-2xl border text-xs text-left flex items-center justify-between transition-all cursor-pointer'
                   ]"
                 >
@@ -969,8 +969,8 @@ const handleNextLessonDirect = () => {
                     <span
                       :class="[
                         quizAnswers[currentQuestionIndex] === optIdx
-                          ? 'bg-purple-500 text-white'
-                          : 'bg-slate-800 text-slate-400',
+                          ? 'bg-purple-600 text-white'
+                          : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-400',
                         'w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px] shrink-0'
                       ]"
                     >
@@ -979,20 +979,20 @@ const handleNextLessonDirect = () => {
                     <span>{{ option }}</span>
                   </div>
 
-                  <span v-if="quizAnswers[currentQuestionIndex] === optIdx" class="text-purple-400 font-bold">●</span>
+                  <span v-if="quizAnswers[currentQuestionIndex] === optIdx" class="text-purple-600 dark:text-purple-400 font-bold">●</span>
                 </button>
               </div>
             </div>
 
             <!-- Navigation Controls inside Quiz -->
-            <div class="flex items-center justify-between pt-4 border-t border-slate-800">
+            <div class="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
               <button
                 :disabled="currentQuestionIndex === 0"
                 @click="currentQuestionIndex--"
                 type="button"
                 :class="[
-                  currentQuestionIndex === 0 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-800 cursor-pointer',
-                  'px-4 py-2 rounded-xl bg-slate-950 text-slate-300 border border-slate-800 text-xs font-bold transition-colors'
+                  currentQuestionIndex === 0 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer',
+                  'px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 text-xs font-bold transition-colors'
                 ]"
               >
                 Previous
@@ -1002,7 +1002,7 @@ const handleNextLessonDirect = () => {
                 v-if="currentQuestionIndex < quizQuestions.length - 1"
                 @click="currentQuestionIndex++"
                 type="button"
-                class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-md shadow-purple-600/30 transition-all cursor-pointer"
+                class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-md shadow-purple-600/20 transition-all cursor-pointer"
               >
                 Next Question ›
               </button>
@@ -1011,7 +1011,7 @@ const handleNextLessonDirect = () => {
                 v-else
                 @click="submitQuiz"
                 type="button"
-                class="px-6 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md shadow-emerald-600/30 transition-all cursor-pointer"
+                class="px-6 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
               >
                 Submit Quiz ✓
               </button>
@@ -1022,14 +1022,14 @@ const handleNextLessonDirect = () => {
           <div v-else class="space-y-6 text-center">
             <div
               :class="[
-                isQuizPassed ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300' : 'bg-rose-500/15 border-rose-500/30 text-rose-300',
+                isQuizPassed ? 'bg-emerald-500/10 dark:bg-emerald-500/15 border-emerald-500/30 text-emerald-800 dark:text-emerald-300' : 'bg-rose-500/10 dark:bg-rose-500/15 border-rose-500/30 text-rose-800 dark:text-rose-300',
                 'p-6 rounded-3xl border space-y-3'
               ]"
             >
               <div class="text-3xl">
                 {{ isQuizPassed ? '🎉' : '⚠️' }}
               </div>
-              <h4 class="text-lg font-black text-white">
+              <h4 class="text-lg font-black text-slate-900 dark:text-white">
                 {{ isQuizPassed ? 'Congratulations! You passed this lesson.' : 'You need more practice.' }}
               </h4>
               <p class="text-xs opacity-90">
@@ -1038,30 +1038,30 @@ const handleNextLessonDirect = () => {
 
               <!-- Score Summary Grid -->
               <div class="grid grid-cols-3 gap-3 pt-3 text-left">
-                <div class="p-3 rounded-2xl bg-slate-950/60 border border-slate-800/80">
-                  <p class="text-[10px] text-slate-400">Score</p>
-                  <p class="text-base font-black text-white mt-0.5">{{ quizScore }} / {{ quizQuestions.length }}</p>
+                <div class="p-3 rounded-2xl bg-white dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/80 shadow-xs">
+                  <p class="text-[10px] text-slate-500 dark:text-slate-400">Score</p>
+                  <p class="text-base font-black text-slate-900 dark:text-white mt-0.5">{{ quizScore }} / {{ quizQuestions.length }}</p>
                 </div>
-                <div class="p-3 rounded-2xl bg-slate-950/60 border border-slate-800/80">
-                  <p class="text-[10px] text-slate-400">Percentage</p>
-                  <p :class="[isQuizPassed ? 'text-emerald-400' : 'text-rose-400', 'text-base font-black mt-0.5']">
+                <div class="p-3 rounded-2xl bg-white dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/80 shadow-xs">
+                  <p class="text-[10px] text-slate-500 dark:text-slate-400">Percentage</p>
+                  <p :class="[isQuizPassed ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400', 'text-base font-black mt-0.5']">
                     {{ quizScorePercentage }}%
                   </p>
                 </div>
-                <div class="p-3 rounded-2xl bg-slate-950/60 border border-slate-800/80">
-                  <p class="text-[10px] text-slate-400">Time Used</p>
-                  <p class="text-base font-black text-cyan-300 font-mono mt-0.5">{{ formattedQuizTime }}</p>
+                <div class="p-3 rounded-2xl bg-white dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/80 shadow-xs">
+                  <p class="text-[10px] text-slate-500 dark:text-slate-400">Time Used</p>
+                  <p class="text-base font-black text-cyan-600 dark:text-cyan-300 font-mono mt-0.5">{{ formattedQuizTime }}</p>
                 </div>
               </div>
             </div>
 
             <!-- AI Analysis Placeholder Box -->
-            <div class="p-4 rounded-2xl bg-indigo-950/40 border border-indigo-500/30 text-left space-y-2">
+            <div class="p-4 rounded-2xl bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-500/30 text-left space-y-2 shadow-xs">
               <div class="flex items-center gap-2">
                 <span class="text-sm">🤖</span>
-                <span class="text-xs font-bold text-indigo-300 uppercase tracking-wider">AI Analysis & Feedback</span>
+                <span class="text-xs font-bold text-indigo-700 dark:text-indigo-300 uppercase tracking-wider">AI Analysis & Feedback</span>
               </div>
-              <p class="text-xs text-slate-300 leading-relaxed">
+              <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                 {{ isQuizPassed
                   ? 'Great performance! You demonstrated clear comprehension of function syntax and return mechanisms. Continue practicing parameter scoping in the next lesson.'
                   : 'Review the return statement logic in Chapter 3.2. Remember that without an explicit return, a function defaults to returning undefined.' }}
@@ -1074,7 +1074,7 @@ const handleNextLessonDirect = () => {
                 <button
                   @click="handlePassAndAdvance"
                   type="button"
-                  class="px-8 py-3 rounded-2xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-xl shadow-purple-600/30 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                  class="px-8 py-3 rounded-2xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-xl shadow-purple-600/20 transition-all hover:scale-105 active:scale-95 cursor-pointer"
                 >
                   Continue to Next Lesson →
                 </button>
@@ -1083,14 +1083,14 @@ const handleNextLessonDirect = () => {
                 <button
                   @click="isQuizOpen = false"
                   type="button"
-                  class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition-colors cursor-pointer"
+                  class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs transition-colors cursor-pointer"
                 >
                   Review Lesson
                 </button>
                 <button
                   @click="retakeQuiz"
                   type="button"
-                  class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 transition-all cursor-pointer"
+                  class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/20 transition-all cursor-pointer"
                 >
                   Retake Quiz 🔄
                 </button>
@@ -1104,29 +1104,29 @@ const handleNextLessonDirect = () => {
       <!-- COURSE COMPLETED CELEBRATION MODAL (Final Assessment Completed) -->
       <div
         v-if="isCourseCompletedModalOpen"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md transition-opacity"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 dark:bg-slate-950/85 backdrop-blur-md transition-opacity"
       >
-        <div class="w-full max-w-lg rounded-3xl bg-slate-900 border border-purple-500/40 shadow-2xl p-6 sm:p-8 space-y-6 text-center text-white animate-in zoom-in-95 duration-200">
-          <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white text-3xl flex items-center justify-center mx-auto shadow-2xl shadow-purple-600/40">
+        <div class="w-full max-w-lg rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-purple-500/40 shadow-2xl p-6 sm:p-8 space-y-6 text-center text-slate-900 dark:text-white animate-in zoom-in-95 duration-200">
+          <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white text-3xl flex items-center justify-center mx-auto shadow-2xl shadow-purple-600/30">
             🏆
           </div>
 
           <div class="space-y-2">
-            <h3 class="text-xl font-black text-white tracking-tight">Course Completed!</h3>
-            <p class="text-xs text-slate-300 leading-relaxed">
+            <h3 class="text-xl font-black text-slate-900 dark:text-white tracking-tight">Course Completed!</h3>
+            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
               Congratulations Sok Pisey! You have completed all 15 lessons and assessments for the <strong>Web Development Course</strong>.
             </p>
           </div>
 
-          <div class="p-4 rounded-2xl bg-purple-950/40 border border-purple-500/30 text-left flex items-center justify-between">
+          <div class="p-4 rounded-2xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-500/30 text-left flex items-center justify-between">
             <div class="flex items-center gap-3">
               <span class="text-2xl">🎓</span>
               <div>
-                <p class="text-xs font-bold text-white">Certificate of Completion</p>
-                <p class="text-[10px] text-purple-300">Verified by Saint Paul Institute</p>
+                <p class="text-xs font-bold text-slate-900 dark:text-white">Certificate of Completion</p>
+                <p class="text-[10px] text-purple-600 dark:text-purple-300">Verified by Saint Paul Institute</p>
               </div>
             </div>
-            <span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold border border-emerald-500/30">
+            <span class="px-2.5 py-1 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold border border-emerald-500/30">
               Ready
             </span>
           </div>
@@ -1135,7 +1135,7 @@ const handleNextLessonDirect = () => {
             <button
               @click="isCourseCompletedModalOpen = false"
               type="button"
-              class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs cursor-pointer"
+              class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs cursor-pointer"
             >
               Close
             </button>

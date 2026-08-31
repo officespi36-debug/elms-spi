@@ -133,21 +133,20 @@ onUnmounted(() => {
   clearInterval(timerInterval)
 })
 </script>
-
 <template>
-  <StudentLayout title="Pay via ABA (KHR) — Payment & Billing">
+  <StudentLayout title="Pay via ABA (KHR) — Payment Gateway">
     <div class="space-y-6 max-w-7xl mx-auto pb-12">
 
       <!-- ================= 1. PAGE HEADER ================= -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2.5">
+          <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
             <span>Pay via ABA (KHR)</span>
-            <span class="px-2 py-0.5 rounded-lg bg-[#005F86]/30 border border-[#00A3E0]/40 text-[#00A3E0] text-xs font-black tracking-wider uppercase">
+            <span class="px-2 py-0.5 rounded-lg bg-[#005F86]/10 dark:bg-[#005F86]/30 border border-[#00A3E0]/30 dark:border-[#00A3E0]/40 text-[#005F86] dark:text-[#00A3E0] text-xs font-black tracking-wider uppercase">
               ABA
             </span>
           </h1>
-          <p class="text-xs sm:text-sm text-slate-400 mt-1 font-medium">
+          <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">
             Scan the QR code with your ABA Mobile app to complete your payment securely.
           </p>
         </div>
@@ -158,7 +157,7 @@ onUnmounted(() => {
             v-if="currentState === 'WAITING_FOR_PAYMENT'"
             @click="simulatePaymentScan"
             :disabled="isSimulating"
-            class="px-3 py-1.5 rounded-xl bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 border border-purple-500/40 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
+            class="px-3 py-1.5 rounded-xl bg-purple-500/10 dark:bg-purple-600/20 hover:bg-purple-500/20 dark:hover:bg-purple-600/40 text-purple-700 dark:text-purple-300 border border-purple-500/30 dark:border-purple-500/40 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
           >
             <span>⚡</span>
             <span>Simulate ABA Scan &amp; Pay</span>
@@ -167,22 +166,22 @@ onUnmounted(() => {
       </div>
 
       <!-- ================= 2. 4-STEP PAYMENT PROGRESS STEPPER ================= -->
-      <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-2xl p-4 shadow-xl">
+      <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm dark:shadow-xl">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 relative">
           
           <!-- Step 1: Scan QR Code -->
           <div class="flex items-center gap-3">
             <div
               :class="[
-                currentStep >= 1 ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/40 ring-4 ring-purple-500/20' : 'bg-slate-800 text-slate-400',
+                currentStep >= 1 ? 'bg-purple-600 text-white shadow-md shadow-purple-900/20 ring-4 ring-purple-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-400',
                 'w-8 h-8 rounded-full flex items-center justify-center font-black text-xs shrink-0 transition-all'
               ]"
             >
               {{ currentStep > 1 ? '✓' : '1' }}
             </div>
             <div>
-              <p class="text-xs font-bold text-white leading-tight">Scan QR Code</p>
-              <p class="text-[10px] text-slate-400">Open ABA Mobile app</p>
+              <p class="text-xs font-bold text-slate-900 dark:text-white leading-tight">Scan QR Code</p>
+              <p class="text-[10px] text-slate-500 dark:text-slate-400">Open ABA Mobile app</p>
             </div>
           </div>
 
@@ -190,15 +189,15 @@ onUnmounted(() => {
           <div class="flex items-center gap-3">
             <div
               :class="[
-                currentStep >= 2 ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/40 ring-4 ring-purple-500/20' : 'bg-slate-800 text-slate-400',
+                currentStep >= 2 ? 'bg-purple-600 text-white shadow-md shadow-purple-900/20 ring-4 ring-purple-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-400',
                 'w-8 h-8 rounded-full flex items-center justify-center font-black text-xs shrink-0 transition-all'
               ]"
             >
               {{ currentStep > 2 ? '✓' : '2' }}
             </div>
             <div>
-              <p class="text-xs font-bold text-white leading-tight">Confirm Payment</p>
-              <p class="text-[10px] text-slate-400">Check payment details</p>
+              <p class="text-xs font-bold text-slate-900 dark:text-white leading-tight">Confirm Payment</p>
+              <p class="text-[10px] text-slate-500 dark:text-slate-400">Check payment details</p>
             </div>
           </div>
 
@@ -206,15 +205,15 @@ onUnmounted(() => {
           <div class="flex items-center gap-3">
             <div
               :class="[
-                currentStep >= 3 ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/40 ring-4 ring-purple-500/20' : 'bg-slate-800 text-slate-400',
+                currentStep >= 3 ? 'bg-purple-600 text-white shadow-md shadow-purple-900/20 ring-4 ring-purple-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-400',
                 'w-8 h-8 rounded-full flex items-center justify-center font-black text-xs shrink-0 transition-all'
               ]"
             >
               {{ currentStep > 3 ? '✓' : '3' }}
             </div>
             <div>
-              <p class="text-xs font-bold text-white leading-tight">Processing</p>
-              <p class="text-[10px] text-slate-400">We will verify your payment</p>
+              <p class="text-xs font-bold text-slate-900 dark:text-white leading-tight">Processing</p>
+              <p class="text-[10px] text-slate-500 dark:text-slate-400">We will verify your payment</p>
             </div>
           </div>
 
@@ -222,15 +221,15 @@ onUnmounted(() => {
           <div class="flex items-center gap-3">
             <div
               :class="[
-                currentStep >= 4 ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/40 ring-4 ring-emerald-500/20' : 'bg-slate-800 text-slate-400',
+                currentStep >= 4 ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/20 ring-4 ring-emerald-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-400',
                 'w-8 h-8 rounded-full flex items-center justify-center font-black text-xs shrink-0 transition-all'
               ]"
             >
               {{ currentStep >= 4 ? '✓' : '4' }}
             </div>
             <div>
-              <p class="text-xs font-bold text-white leading-tight">Payment Complete</p>
-              <p class="text-[10px] text-slate-400">Receive confirmation</p>
+              <p class="text-xs font-bold text-slate-900 dark:text-white leading-tight">Payment Complete</p>
+              <p class="text-[10px] text-slate-500 dark:text-slate-400">Receive confirmation</p>
             </div>
           </div>
 
@@ -242,15 +241,15 @@ onUnmounted(() => {
 
         <!-- ================= COLUMN 1: LEFT (~32% / lg:col-span-4) — SCAN QR CODE CARD ================= -->
         <div class="lg:col-span-4 space-y-4">
-          <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-3xl p-6 shadow-xl space-y-5 flex flex-col items-center text-center">
+          <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-6 shadow-sm dark:shadow-xl space-y-5 flex flex-col items-center text-center">
             
             <div class="w-full text-left space-y-0.5">
-              <h2 class="text-base font-bold text-white tracking-tight">Scan QR Code</h2>
-              <p class="text-xs text-slate-400">Use your ABA Mobile app to scan this QR code</p>
+              <h2 class="text-base font-bold text-slate-900 dark:text-white tracking-tight">Scan QR Code</h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Use your ABA Mobile app to scan this QR code</p>
             </div>
 
             <!-- OFFICIAL WHITE ABA KHQR POSTER CARD -->
-            <div class="w-full max-w-[290px] bg-white rounded-2xl p-5 shadow-2xl text-slate-900 space-y-3 relative overflow-hidden">
+            <div class="w-full max-w-[290px] bg-white rounded-2xl p-5 shadow-xl text-slate-900 space-y-3 relative overflow-hidden border border-slate-200">
               
               <!-- KHQR Header -->
               <div class="flex items-center justify-center gap-1">
@@ -284,7 +283,7 @@ onUnmounted(() => {
                   <p class="text-xs font-bold text-rose-400">QR Code Expired</p>
                   <button
                     @click="refreshQrCode"
-                    class="px-3 py-1.5 rounded-lg bg-purple-600 text-white font-bold text-[10px] shadow"
+                    class="px-3 py-1.5 rounded-lg bg-purple-600 text-white font-bold text-[10px] shadow cursor-pointer"
                   >
                     Generate New QR
                   </button>
@@ -298,7 +297,7 @@ onUnmounted(() => {
                   <span>Merchant ID: {{ session.merchant_id }}</span>
                   <button
                     @click="copyToClipboard(session.merchant_id, 'merchant_id')"
-                    class="hover:text-slate-900 transition-colors"
+                    class="hover:text-slate-900 transition-colors cursor-pointer"
                     title="Copy Merchant ID"
                   >
                     <span v-if="copiedField === 'merchant_id'" class="text-emerald-600 font-sans text-[9px] font-bold">Copied!</span>
@@ -314,7 +313,7 @@ onUnmounted(() => {
                   <p class="text-lg font-black text-[#005F86] font-mono tracking-tight">{{ session.amount_khr }}</p>
                   <button
                     @click="copyToClipboard(session.amount_khr, 'amount')"
-                    class="text-slate-400 hover:text-slate-700 transition-colors text-xs"
+                    class="text-slate-400 hover:text-slate-700 transition-colors text-xs cursor-pointer"
                     title="Copy Amount"
                   >
                     <span v-if="copiedField === 'amount'" class="text-emerald-600 font-sans text-[9px] font-bold">Copied!</span>
@@ -327,22 +326,22 @@ onUnmounted(() => {
 
             <!-- COUNTDOWN TIMER & ACTION -->
             <div class="w-full space-y-3">
-              <div class="flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-slate-900 border border-slate-800 text-xs">
-                <span class="text-slate-400">🕒 This QR code will expire in</span>
-                <span class="font-mono font-black text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-md border border-rose-500/20">
+              <div class="flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs">
+                <span class="text-slate-500 dark:text-slate-400">🕒 This QR code will expire in</span>
+                <span class="font-mono font-black text-rose-600 dark:text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-md border border-rose-500/20">
                   {{ formattedTimer }}
                 </span>
               </div>
 
               <button
                 @click="refreshQrCode"
-                class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white font-bold text-xs border border-slate-800 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white font-bold text-xs border border-slate-200 dark:border-slate-800 flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
               >
                 <span>🔄</span>
                 <span>Refresh QR Code</span>
               </button>
 
-              <p class="text-[10px] text-slate-500 flex items-center justify-center gap-1">
+              <p class="text-[10px] text-slate-500 dark:text-slate-400 flex items-center justify-center gap-1">
                 <span>🔒</span>
                 <span>Your payment is secured with ABA Bank KHQR</span>
               </p>
@@ -353,103 +352,103 @@ onUnmounted(() => {
 
         <!-- ================= COLUMN 2: CENTER (~38% / lg:col-span-5) — PAYMENT DETAILS ================= -->
         <div class="lg:col-span-5 space-y-4">
-          <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-3xl p-6 shadow-xl space-y-5">
+          <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-6 shadow-sm dark:shadow-xl space-y-5">
             
             <div class="space-y-0.5">
-              <h2 class="text-base font-bold text-white tracking-tight">Payment Details</h2>
-              <p class="text-xs text-slate-400">Please verify the information before making the payment.</p>
+              <h2 class="text-base font-bold text-slate-900 dark:text-white tracking-tight">Payment Details</h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Please verify the information before making the payment.</p>
             </div>
 
             <!-- KEY-VALUE ROWS -->
             <div class="space-y-3.5 text-xs">
               
               <!-- 1. Course Name -->
-              <div class="flex items-start justify-between gap-3 border-b border-slate-800/60 pb-3">
-                <div class="flex items-center gap-2 text-slate-400">
+              <div class="flex items-start justify-between gap-3 border-b border-slate-100 dark:border-slate-800/60 pb-3">
+                <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400">
                   <span class="text-sm">📺</span>
                   <span>Course Name</span>
                 </div>
                 <div class="text-right">
-                  <p class="font-bold text-white">{{ session.course_name }}</p>
-                  <p class="text-[10px] text-slate-400">{{ session.course_type }}</p>
+                  <p class="font-bold text-slate-900 dark:text-white">{{ session.course_name }}</p>
+                  <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ session.course_type }}</p>
                 </div>
               </div>
 
               <!-- 2. Invoice Number -->
-              <div class="flex items-center justify-between gap-3 border-b border-slate-800/60 pb-3">
-                <div class="flex items-center gap-2 text-slate-400">
+              <div class="flex items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800/60 pb-3">
+                <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400">
                   <span class="text-sm">📑</span>
                   <span>Invoice Number</span>
                 </div>
-                <div class="flex items-center gap-1.5 font-mono font-bold text-slate-200">
+                <div class="flex items-center gap-1.5 font-mono font-bold text-slate-700 dark:text-slate-200">
                   <span>{{ session.invoice_number }}</span>
                   <button
                     @click="copyToClipboard(session.invoice_number, 'invoice')"
-                    class="text-slate-500 hover:text-white transition-colors"
+                    class="text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
                   >
-                    <span v-if="copiedField === 'invoice'" class="text-emerald-400 text-[10px] font-sans">Copied!</span>
+                    <span v-if="copiedField === 'invoice'" class="text-emerald-600 dark:text-emerald-400 text-[10px] font-sans">Copied!</span>
                     <span v-else>⧉</span>
                   </button>
                 </div>
               </div>
 
               <!-- 3. Student Name -->
-              <div class="flex items-center justify-between gap-3 border-b border-slate-800/60 pb-3">
-                <div class="flex items-center gap-2 text-slate-400">
+              <div class="flex items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800/60 pb-3">
+                <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400">
                   <span class="text-sm">👤</span>
                   <span>Student Name</span>
                 </div>
-                <span class="font-bold text-white">{{ session.student_name }}</span>
+                <span class="font-bold text-slate-900 dark:text-white">{{ session.student_name }}</span>
               </div>
 
               <!-- 4. Student ID -->
-              <div class="flex items-center justify-between gap-3 border-b border-slate-800/60 pb-3">
-                <div class="flex items-center gap-2 text-slate-400">
+              <div class="flex items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800/60 pb-3">
+                <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400">
                   <span class="text-sm">🆔</span>
                   <span>Student ID</span>
                 </div>
-                <span class="font-mono font-bold text-slate-300">{{ session.student_id }}</span>
+                <span class="font-mono font-bold text-slate-700 dark:text-slate-300">{{ session.student_id }}</span>
               </div>
 
               <!-- 5. Amount -->
-              <div class="flex items-start justify-between gap-3 border-b border-slate-800/60 pb-3">
-                <div class="flex items-center gap-2 text-slate-400">
+              <div class="flex items-start justify-between gap-3 border-b border-slate-100 dark:border-slate-800/60 pb-3">
+                <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400">
                   <span class="text-sm">💲</span>
                   <span>Amount</span>
                 </div>
                 <div class="text-right">
                   <div class="flex items-center justify-end gap-1.5">
-                    <p class="font-black text-white font-mono text-sm">{{ session.amount_khr }}</p>
+                    <p class="font-black text-slate-900 dark:text-white font-mono text-sm">{{ session.amount_khr }}</p>
                     <button
                       @click="copyToClipboard(session.amount_khr, 'amount_row')"
-                      class="text-slate-500 hover:text-white transition-colors text-xs"
+                      class="text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors text-xs cursor-pointer"
                     >
-                      <span v-if="copiedField === 'amount_row'" class="text-emerald-400 text-[10px] font-sans">Copied!</span>
+                      <span v-if="copiedField === 'amount_row'" class="text-emerald-600 dark:text-emerald-400 text-[10px] font-sans">Copied!</span>
                       <span v-else>⧉</span>
                     </button>
                   </div>
-                  <p class="text-[10.5px] text-slate-400 font-mono">({{ session.amount_usd }})</p>
+                  <p class="text-[10.5px] text-slate-500 dark:text-slate-400 font-mono">({{ session.amount_usd }})</p>
                 </div>
               </div>
 
               <!-- 6. Due Date -->
               <div class="flex items-center justify-between gap-3">
-                <div class="flex items-center gap-2 text-slate-400">
+                <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400">
                   <span class="text-sm">📅</span>
                   <span>Due Date</span>
                 </div>
-                <span class="font-bold text-slate-200">{{ session.due_date }}</span>
+                <span class="font-bold text-slate-700 dark:text-slate-200">{{ session.due_date }}</span>
               </div>
 
             </div>
 
             <!-- IMPORTANT BLUE NOTICE BOX -->
-            <div class="p-4 rounded-2xl bg-blue-950/40 border border-blue-900/50 space-y-2.5 text-xs">
-              <div class="flex items-center gap-2 text-blue-400 font-bold">
+            <div class="p-4 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/50 space-y-2.5 text-xs">
+              <div class="flex items-center gap-2 text-blue-700 dark:text-blue-400 font-bold">
                 <span>ℹ️</span>
                 <span>Important</span>
               </div>
-              <ol class="space-y-1 text-slate-300 text-[11px] pl-4 list-decimal">
+              <ol class="space-y-1 text-slate-700 dark:text-slate-300 text-[11px] pl-4 list-decimal">
                 <li>Open ABA Mobile app on your phone</li>
                 <li>Tap on "Scan KHQR"</li>
                 <li>Scan the QR code on the left</li>
@@ -459,17 +458,17 @@ onUnmounted(() => {
             </div>
 
             <!-- NEED HELP? BOX -->
-            <div class="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800/80 flex items-center justify-between gap-3 text-xs">
+            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800/80 flex items-center justify-between gap-3 text-xs shadow-xs">
               <div class="flex items-center gap-2.5 min-w-0">
-                <div class="w-8 h-8 rounded-xl bg-purple-600/20 text-purple-300 border border-purple-500/30 flex items-center justify-center shrink-0">
+                <div class="w-8 h-8 rounded-xl bg-purple-500/10 dark:bg-purple-600/20 text-purple-600 dark:text-purple-300 border border-purple-500/20 dark:border-purple-500/30 flex items-center justify-center shrink-0">
                   🎧
                 </div>
                 <div class="min-w-0">
-                  <p class="font-bold text-white">Need help?</p>
-                  <p class="text-[10px] text-slate-400 truncate">If you face any issues, please contact our support team.</p>
+                  <p class="font-bold text-slate-900 dark:text-white">Need help?</p>
+                  <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate">If you face any issues, please contact our support team.</p>
                 </div>
               </div>
-              <a href="mailto:support@spilms.tech" class="text-xs text-purple-400 font-bold hover:underline shrink-0 whitespace-nowrap">
+              <a href="mailto:support@spilms.tech" class="text-xs text-purple-600 dark:text-purple-400 font-bold hover:underline shrink-0 whitespace-nowrap">
                 Contact Support →
               </a>
             </div>
@@ -481,114 +480,114 @@ onUnmounted(() => {
         <div class="lg:col-span-3 space-y-4">
           
           <!-- CARD 1: PAY WITH ABA MOBILE (5-STEP GUIDE) -->
-          <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-3xl p-5 shadow-xl space-y-4">
-            <div class="flex items-center gap-2.5 border-b border-slate-800/60 pb-3">
+          <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-4">
+            <div class="flex items-center gap-2.5 border-b border-slate-100 dark:border-slate-800/60 pb-3">
               <div class="w-8 h-8 rounded-xl bg-[#005F86] text-white flex items-center justify-center font-black text-xs shrink-0">
                 ABA'
               </div>
               <div>
-                <h3 class="text-xs font-black text-white">Pay with ABA Mobile</h3>
-                <p class="text-[10px] text-slate-400">Fast • Secure • Reliable</p>
+                <h3 class="text-xs font-black text-slate-900 dark:text-white">Pay with ABA Mobile</h3>
+                <p class="text-[10px] text-slate-500 dark:text-slate-400">Fast • Secure • Reliable</p>
               </div>
             </div>
 
             <div class="space-y-3 text-xs">
               <div class="flex items-start gap-2.5">
-                <div class="w-5 h-5 rounded-full bg-blue-600/30 text-blue-300 border border-blue-500/40 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
+                <div class="w-5 h-5 rounded-full bg-blue-500/10 dark:bg-blue-600/30 text-blue-700 dark:text-blue-300 border border-blue-500/30 dark:border-blue-500/40 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
                   1
                 </div>
                 <div>
-                  <p class="font-bold text-white text-[11px]">Open ABA Mobile</p>
-                  <p class="text-[9.5px] text-slate-400">Launch your ABA Mobile app</p>
+                  <p class="font-bold text-slate-900 dark:text-white text-[11px]">Open ABA Mobile</p>
+                  <p class="text-[9.5px] text-slate-500 dark:text-slate-400">Launch your ABA Mobile app</p>
                 </div>
               </div>
 
               <div class="flex items-start gap-2.5">
-                <div class="w-5 h-5 rounded-full bg-blue-600/30 text-blue-300 border border-blue-500/40 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
+                <div class="w-5 h-5 rounded-full bg-blue-500/10 dark:bg-blue-600/30 text-blue-700 dark:text-blue-300 border border-blue-500/30 dark:border-blue-500/40 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
                   2
                 </div>
                 <div>
-                  <p class="font-bold text-white text-[11px]">Tap Scan KHQR</p>
-                  <p class="text-[9.5px] text-slate-400">Select the KHQR scanner</p>
+                  <p class="font-bold text-slate-900 dark:text-white text-[11px]">Tap Scan KHQR</p>
+                  <p class="text-[9.5px] text-slate-500 dark:text-slate-400">Select the KHQR scanner</p>
                 </div>
               </div>
 
               <div class="flex items-start gap-2.5">
-                <div class="w-5 h-5 rounded-full bg-blue-600/30 text-blue-300 border border-blue-500/40 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
+                <div class="w-5 h-5 rounded-full bg-blue-500/10 dark:bg-blue-600/30 text-blue-700 dark:text-blue-300 border border-blue-500/30 dark:border-blue-500/40 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
                   3
                 </div>
                 <div>
-                  <p class="font-bold text-white text-[11px]">Scan this QR code</p>
-                  <p class="text-[9.5px] text-slate-400">Point your camera to the QR code</p>
+                  <p class="font-bold text-slate-900 dark:text-white text-[11px]">Scan this QR code</p>
+                  <p class="text-[9.5px] text-slate-500 dark:text-slate-400">Point your camera to the QR code</p>
                 </div>
               </div>
 
               <div class="flex items-start gap-2.5">
-                <div class="w-5 h-5 rounded-full bg-blue-600/30 text-blue-300 border border-blue-500/40 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
+                <div class="w-5 h-5 rounded-full bg-blue-500/10 dark:bg-blue-600/30 text-blue-700 dark:text-blue-300 border border-blue-500/30 dark:border-blue-500/40 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
                   4
                 </div>
                 <div>
-                  <p class="font-bold text-white text-[11px]">Check payment details</p>
-                  <p class="text-[9.5px] text-slate-400">Verify the amount and merchant name</p>
+                  <p class="font-bold text-slate-900 dark:text-white text-[11px]">Check payment details</p>
+                  <p class="text-[9.5px] text-slate-500 dark:text-slate-400">Verify the amount and merchant name</p>
                 </div>
               </div>
 
               <div class="flex items-start gap-2.5">
-                <div class="w-5 h-5 rounded-full bg-blue-600/30 text-blue-300 border border-blue-500/40 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
+                <div class="w-5 h-5 rounded-full bg-blue-500/10 dark:bg-blue-600/30 text-blue-700 dark:text-blue-300 border border-blue-500/30 dark:border-blue-500/40 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
                   5
                 </div>
                 <div>
-                  <p class="font-bold text-white text-[11px]">Confirm payment</p>
-                  <p class="text-[9.5px] text-slate-400">Enter your PIN to complete the payment</p>
+                  <p class="font-bold text-slate-900 dark:text-white text-[11px]">Confirm payment</p>
+                  <p class="text-[9.5px] text-slate-500 dark:text-slate-400">Enter your PIN to complete the payment</p>
                 </div>
               </div>
             </div>
           </div>
 
           <!-- CARD 2: ACCEPTED PAYMENT METHOD -->
-          <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-3xl p-5 shadow-xl space-y-3">
-            <h3 class="text-xs font-bold text-white">Accepted Payment Method</h3>
+          <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3">
+            <h3 class="text-xs font-bold text-slate-900 dark:text-white">Accepted Payment Method</h3>
 
-            <div class="p-3 rounded-2xl bg-slate-900 border border-slate-800 flex items-center gap-3">
+            <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center gap-3 shadow-xs">
               <div class="w-9 h-9 rounded-xl bg-[#005F86] text-white flex items-center justify-center font-black text-xs shrink-0">
                 ABA'
               </div>
               <div>
-                <p class="font-bold text-white text-xs">ABA KHQR</p>
-                <p class="text-[9.5px] text-slate-400">Pay directly from your ABA account</p>
+                <p class="font-bold text-slate-900 dark:text-white text-xs">ABA KHQR</p>
+                <p class="text-[9.5px] text-slate-500 dark:text-slate-400">Pay directly from your ABA account</p>
               </div>
             </div>
 
-            <div class="space-y-1.5 pt-1 text-[11px] text-slate-300">
+            <div class="space-y-1.5 pt-1 text-[11px] text-slate-600 dark:text-slate-300">
               <div class="flex items-center gap-2">
-                <span class="text-emerald-400">✓</span>
+                <span class="text-emerald-600 dark:text-emerald-400">✓</span>
                 <span>No additional fees</span>
               </div>
               <div class="flex items-center gap-2">
-                <span class="text-emerald-400">✓</span>
+                <span class="text-emerald-600 dark:text-emerald-400">✓</span>
                 <span>Instant confirmation</span>
               </div>
               <div class="flex items-center gap-2">
-                <span class="text-emerald-400">✓</span>
+                <span class="text-emerald-600 dark:text-emerald-400">✓</span>
                 <span>Secure and reliable</span>
               </div>
               <div class="flex items-center gap-2">
-                <span class="text-emerald-400">✓</span>
+                <span class="text-emerald-600 dark:text-emerald-400">✓</span>
                 <span>Supported by all ABA accounts</span>
               </div>
             </div>
           </div>
 
           <!-- CARD 3: SECURITY NOTICE -->
-          <div class="bg-gradient-to-br from-[#12142E] via-[#0F172A] to-[#1F1138] border border-purple-900/40 rounded-3xl p-5 shadow-xl space-y-2 text-xs">
-            <div class="flex items-center gap-2 text-purple-300 font-bold">
+          <div class="bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/60 dark:from-[#12142E] dark:via-[#0F172A] dark:to-[#1F1138] border border-purple-200 dark:border-purple-900/40 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-2 text-xs">
+            <div class="flex items-center gap-2 text-purple-700 dark:text-purple-300 font-bold">
               <span class="text-sm">🛡️</span>
               <span>Security Notice</span>
             </div>
-            <p class="text-[11px] text-slate-400 leading-relaxed">
+            <p class="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
               Only pay to the official SPI merchant account. Do not share your payment information with anyone.
             </p>
-            <a href="#" class="text-[10px] text-purple-400 font-bold hover:underline block pt-1">
+            <a href="#" class="text-[10px] text-purple-600 dark:text-purple-400 font-bold hover:underline block pt-1">
               Learn more about payment security →
             </a>
           </div>
@@ -598,22 +597,22 @@ onUnmounted(() => {
       </div>
 
       <!-- ================= 4. BOTTOM CONFIRMATION BANNER ================= -->
-      <div class="bg-gradient-to-r from-purple-950/70 via-[#0F172A] to-blue-950/70 border border-purple-900/40 rounded-3xl p-5 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+      <div class="bg-gradient-to-r from-purple-50/80 via-white to-blue-50/80 dark:from-purple-950/70 dark:via-[#0F172A] dark:to-blue-950/70 border border-purple-100 dark:border-purple-900/40 rounded-3xl p-5 shadow-sm dark:shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-purple-600/20 border border-purple-500/30 text-purple-300 flex items-center justify-center text-lg shrink-0">
+          <div class="w-10 h-10 rounded-2xl bg-purple-500/10 dark:bg-purple-600/20 border border-purple-500/20 dark:border-purple-500/30 text-purple-600 dark:text-purple-300 flex items-center justify-center text-lg shrink-0">
             🎓
           </div>
           <div>
-            <p class="font-bold text-white text-xs sm:text-sm">After payment completion</p>
-            <p class="text-[11px] text-slate-400">Your invoice will be automatically updated and you will receive a confirmation notification.</p>
+            <p class="font-bold text-slate-900 dark:text-white text-xs sm:text-sm">After payment completion</p>
+            <p class="text-[11px] text-slate-600 dark:text-slate-400">Your invoice will be automatically updated and you will receive a confirmation notification.</p>
           </div>
         </div>
 
-        <div class="flex items-center gap-2 px-4 py-2 rounded-2xl bg-slate-900/80 border border-slate-800 shrink-0">
-          <span class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-xs font-bold">✓</span>
+        <div class="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shrink-0 shadow-xs">
+          <span class="w-6 h-6 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 flex items-center justify-center text-xs font-bold">✓</span>
           <div>
-            <p class="font-bold text-white text-[11px]">Instant Confirmation</p>
-            <p class="text-[9.5px] text-slate-400">Usually within 1-2 minutes</p>
+            <p class="font-bold text-slate-900 dark:text-white text-[11px]">Instant Confirmation</p>
+            <p class="text-[9.5px] text-slate-500 dark:text-slate-400">Usually within 1-2 minutes</p>
           </div>
         </div>
       </div>
@@ -623,40 +622,40 @@ onUnmounted(() => {
     <!-- ================= MODAL: PAYMENT SUCCESS CONFIRMATION ================= -->
     <div
       v-if="currentState === 'SUCCESS'"
-      class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
+      class="fixed inset-0 z-50 bg-slate-950/70 dark:bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
     >
-      <div class="bg-slate-900 border border-emerald-500/40 rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl text-center relative">
+      <div class="bg-white dark:bg-slate-900 border border-emerald-500/30 dark:border-emerald-500/40 rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl text-center relative">
         
-        <div class="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center text-3xl mx-auto shadow-lg shadow-emerald-950/50">
+        <div class="w-16 h-16 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/30 dark:border-emerald-500/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-3xl mx-auto shadow-lg shadow-emerald-950/20">
           ✓
         </div>
 
         <div class="space-y-1">
-          <h3 class="text-xl font-black text-white">Payment Successful</h3>
-          <p class="text-xs text-slate-300">Your payment has been completed successfully.</p>
+          <h3 class="text-xl font-black text-slate-900 dark:text-white">Payment Successful</h3>
+          <p class="text-xs text-slate-600 dark:text-slate-300">Your payment has been completed successfully.</p>
         </div>
 
         <!-- Receipt Summary Box -->
-        <div class="p-4 bg-slate-950 rounded-2xl border border-slate-800 text-xs font-mono text-left space-y-2">
-          <div class="flex justify-between border-b border-slate-800/80 pb-1.5">
+        <div class="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs font-mono text-left space-y-2">
+          <div class="flex justify-between border-b border-slate-200 dark:border-slate-800/80 pb-1.5">
             <span class="text-slate-500 font-sans">Amount Paid:</span>
-            <span class="font-bold text-emerald-400 text-sm">{{ session.amount_khr }}</span>
+            <span class="font-bold text-emerald-600 dark:text-emerald-400 text-sm">{{ session.amount_khr }}</span>
           </div>
-          <div class="flex justify-between border-b border-slate-800/80 pb-1.5">
+          <div class="flex justify-between border-b border-slate-200 dark:border-slate-800/80 pb-1.5">
             <span class="text-slate-500 font-sans">Payment Method:</span>
-            <span class="text-slate-300">ABA KHQR</span>
+            <span class="text-slate-700 dark:text-slate-300">ABA KHQR</span>
           </div>
-          <div class="flex justify-between border-b border-slate-800/80 pb-1.5">
+          <div class="flex justify-between border-b border-slate-200 dark:border-slate-800/80 pb-1.5">
             <span class="text-slate-500 font-sans">Invoice Number:</span>
-            <span class="text-purple-300">{{ session.invoice_number }}</span>
+            <span class="text-purple-600 dark:text-purple-300">{{ session.invoice_number }}</span>
           </div>
-          <div class="flex justify-between border-b border-slate-800/80 pb-1.5">
+          <div class="flex justify-between border-b border-slate-200 dark:border-slate-800/80 pb-1.5">
             <span class="text-slate-500 font-sans">Transaction ID:</span>
-            <span class="text-slate-300">TRX-2025-ABA-000124</span>
+            <span class="text-slate-700 dark:text-slate-300">TRX-2025-ABA-000124</span>
           </div>
           <div class="flex justify-between pt-0.5">
             <span class="text-slate-500 font-sans">Payment Date:</span>
-            <span class="text-slate-300">May 28, 2025</span>
+            <span class="text-slate-700 dark:text-slate-300">May 28, 2025</span>
           </div>
         </div>
 
@@ -673,7 +672,7 @@ onUnmounted(() => {
           <div class="grid grid-cols-2 gap-2">
             <Link
               href="/student/payments/my-payments"
-              class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold flex items-center justify-center transition-colors"
+              class="py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white font-bold flex items-center justify-center transition-colors shadow-xs"
             >
               View Invoice
             </Link>
@@ -692,9 +691,9 @@ onUnmounted(() => {
     <!-- ================= PRINTABLE RECEIPT MODAL ================= -->
     <div
       v-if="showReceiptModal"
-      class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
+      class="fixed inset-0 z-50 bg-slate-950/70 dark:bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
     >
-      <div class="bg-white text-slate-900 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
+      <div class="bg-white text-slate-900 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl relative border border-slate-200">
         <div class="flex items-center justify-between border-b border-slate-200 pb-3">
           <div>
             <h3 class="text-base font-black font-serif uppercase tracking-wider text-slate-900">Official ABA e-Receipt</h3>
@@ -702,7 +701,7 @@ onUnmounted(() => {
           </div>
           <button
             @click="showReceiptModal = false"
-            class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs"
+            class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs cursor-pointer"
           >
             ✕
           </button>
@@ -723,13 +722,13 @@ onUnmounted(() => {
         <div class="pt-2 border-t border-slate-200 flex justify-end gap-2 text-xs">
           <button
             @click="showReceiptModal = false"
-            class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold"
+            class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200 cursor-pointer"
           >
             Close
           </button>
           <button
             @click="handleDownloadReceipt"
-            class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow-md flex items-center gap-1.5"
+            class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow-md flex items-center gap-1.5 cursor-pointer"
           >
             <span>⤓</span>
             <span>Download PDF</span>

@@ -294,10 +294,10 @@ onMounted(() => {
       <!-- 1. PAGE HEADER (Title, Subtitle & Search Bar) -->
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">
+          <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
             Enrolled Courses
           </h1>
-          <p class="text-xs sm:text-sm text-slate-400 mt-1">
+          <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
             All courses you have successfully enrolled in.
           </p>
         </div>
@@ -314,25 +314,25 @@ onMounted(() => {
               v-model="searchQuery"
               type="text"
               placeholder="Search courses..."
-              class="w-full pl-10 pr-16 py-2 rounded-xl bg-slate-900/90 border border-slate-800 focus:border-purple-500 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500/50 shadow-inner transition-all"
+              class="w-full pl-10 pr-16 py-2 rounded-xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 focus:border-purple-500 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500/50 shadow-xs dark:shadow-inner transition-all"
             />
             <div class="absolute right-2.5 flex items-center gap-1">
               <button
                 v-if="searchQuery"
                 @click="searchQuery = ''"
                 type="button"
-                class="text-slate-400 hover:text-white p-0.5 text-xs"
+                class="text-slate-400 hover:text-slate-600 dark:hover:text-white p-0.5 text-xs cursor-pointer"
               >
                 ✕
               </button>
-              <kbd class="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-slate-800 border border-slate-700 rounded shadow-xs">Ctrl K</kbd>
+              <kbd class="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded shadow-xs">Ctrl K</kbd>
             </div>
           </div>
         </div>
       </div>
 
       <!-- 2. FILTER CONTROLS & TABS ROW -->
-      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800/80 pb-4">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800/80 pb-4">
         
         <!-- Filter Tabs -->
         <div class="flex flex-wrap items-center gap-2">
@@ -341,13 +341,13 @@ onMounted(() => {
             type="button"
             :class="[
               activeTab === 'all'
-                ? 'bg-purple-600 text-white font-bold shadow-lg shadow-purple-600/30'
-                : 'bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 border border-slate-800',
-              'px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-2 transition-all cursor-pointer'
+                ? 'bg-purple-600 text-white font-bold shadow-md shadow-purple-600/20'
+                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-800',
+              'px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-2 transition-all cursor-pointer shadow-xs'
             ]"
           >
             <span>All Courses</span>
-            <span :class="[activeTab === 'all' ? 'bg-purple-700/80 text-white' : 'bg-slate-800 text-slate-300', 'px-1.5 py-0.5 rounded-md text-[10px] font-bold']">
+            <span :class="[activeTab === 'all' ? 'bg-purple-700/80 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300', 'px-1.5 py-0.5 rounded-md text-[10px] font-bold']">
               {{ counts.total }}
             </span>
           </button>
@@ -357,13 +357,13 @@ onMounted(() => {
             type="button"
             :class="[
               activeTab === 'in_progress'
-                ? 'bg-purple-600 text-white font-bold shadow-lg shadow-purple-600/30'
-                : 'bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 border border-slate-800',
-              'px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-2 transition-all cursor-pointer'
+                ? 'bg-purple-600 text-white font-bold shadow-md shadow-purple-600/20'
+                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-800',
+              'px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-2 transition-all cursor-pointer shadow-xs'
             ]"
           >
             <span>In Progress</span>
-            <span :class="[activeTab === 'in_progress' ? 'bg-purple-700/80 text-white' : 'bg-slate-800 text-slate-300', 'px-1.5 py-0.5 rounded-md text-[10px] font-bold']">
+            <span :class="[activeTab === 'in_progress' ? 'bg-purple-700/80 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300', 'px-1.5 py-0.5 rounded-md text-[10px] font-bold']">
               {{ counts.inProgress }}
             </span>
           </button>
@@ -373,13 +373,13 @@ onMounted(() => {
             type="button"
             :class="[
               activeTab === 'not_started'
-                ? 'bg-purple-600 text-white font-bold shadow-lg shadow-purple-600/30'
-                : 'bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 border border-slate-800',
-              'px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-2 transition-all cursor-pointer'
+                ? 'bg-purple-600 text-white font-bold shadow-md shadow-purple-600/20'
+                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-800',
+              'px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-2 transition-all cursor-pointer shadow-xs'
             ]"
           >
             <span>Not Started</span>
-            <span :class="[activeTab === 'not_started' ? 'bg-purple-700/80 text-white' : 'bg-slate-800 text-slate-300', 'px-1.5 py-0.5 rounded-md text-[10px] font-bold']">
+            <span :class="[activeTab === 'not_started' ? 'bg-purple-700/80 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300', 'px-1.5 py-0.5 rounded-md text-[10px] font-bold']">
               {{ counts.notStarted }}
             </span>
           </button>
@@ -389,13 +389,13 @@ onMounted(() => {
             type="button"
             :class="[
               activeTab === 'completed'
-                ? 'bg-purple-600 text-white font-bold shadow-lg shadow-purple-600/30'
-                : 'bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 border border-slate-800',
-              'px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-2 transition-all cursor-pointer'
+                ? 'bg-purple-600 text-white font-bold shadow-md shadow-purple-600/20'
+                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-800',
+              'px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-2 transition-all cursor-pointer shadow-xs'
             ]"
           >
             <span>Completed</span>
-            <span :class="[activeTab === 'completed' ? 'bg-purple-700/80 text-white' : 'bg-slate-800 text-slate-300', 'px-1.5 py-0.5 rounded-md text-[10px] font-bold']">
+            <span :class="[activeTab === 'completed' ? 'bg-purple-700/80 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300', 'px-1.5 py-0.5 rounded-md text-[10px] font-bold']">
               {{ counts.completed }}
             </span>
           </button>
@@ -408,7 +408,7 @@ onMounted(() => {
           <div class="relative">
             <select
               v-model="selectedCategory"
-              class="appearance-none bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 text-xs rounded-xl pl-3 pr-8 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-500/50 cursor-pointer shadow-sm"
+              class="appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300 text-xs rounded-xl pl-3 pr-8 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-500/50 cursor-pointer shadow-xs"
             >
               <option value="all">All Categories</option>
               <option value="Web Development">Web Development</option>
@@ -416,7 +416,7 @@ onMounted(() => {
               <option value="Programming">Programming</option>
               <option value="UI/UX Design">UI/UX Design</option>
             </select>
-            <div class="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 text-xs">
+            <div class="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 dark:text-slate-500 text-xs">
               ▼
             </div>
           </div>
@@ -425,7 +425,7 @@ onMounted(() => {
           <div class="relative">
             <select
               v-model="selectedSort"
-              class="appearance-none bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 text-xs rounded-xl pl-3 pr-8 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-500/50 cursor-pointer shadow-sm"
+              class="appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300 text-xs rounded-xl pl-3 pr-8 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-500/50 cursor-pointer shadow-xs"
             >
               <option value="newest">Sort by: Newest</option>
               <option value="recent">Recently Accessed</option>
@@ -433,18 +433,18 @@ onMounted(() => {
               <option value="highest_progress">Highest Progress</option>
               <option value="lowest_progress">Lowest Progress</option>
             </select>
-            <div class="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 text-xs">
+            <div class="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 dark:text-slate-500 text-xs">
               ▼
             </div>
           </div>
 
           <!-- Grid / List Switcher -->
-          <div class="flex items-center rounded-xl bg-slate-900 border border-slate-800 p-0.5">
+          <div class="flex items-center rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-0.5 shadow-xs">
             <button
               @click="viewMode = 'grid'"
               type="button"
               :class="[
-                viewMode === 'grid' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-400 hover:text-slate-200',
+                viewMode === 'grid' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200',
                 'p-1.5 rounded-lg text-xs transition-colors cursor-pointer'
               ]"
               title="Grid View"
@@ -457,7 +457,7 @@ onMounted(() => {
               @click="viewMode = 'list'"
               type="button"
               :class="[
-                viewMode === 'list' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-400 hover:text-slate-200',
+                viewMode === 'list' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200',
                 'p-1.5 rounded-lg text-xs transition-colors cursor-pointer'
               ]"
               title="List View"
@@ -480,13 +480,13 @@ onMounted(() => {
             v-for="course in filteredCourses"
             :key="course.id"
             @click="navigateToCourseOverview(course)"
-            class="bg-[#0e1424] border border-slate-800 hover:border-purple-500/40 rounded-3xl overflow-hidden shadow-2xl transition-all duration-200 hover:-translate-y-1 group flex flex-col justify-between cursor-pointer"
+            class="bg-white dark:bg-[#0e1424] border border-slate-200/90 dark:border-slate-800 hover:border-purple-400 dark:hover:border-purple-500/40 rounded-3xl overflow-hidden shadow-sm dark:shadow-2xl transition-all duration-200 hover:-translate-y-1 group flex flex-col justify-between cursor-pointer"
           >
             <!-- TOP CARD HEADER / 3D ILLUSTRATION BOX -->
-            <div class="relative w-full h-48 bg-slate-950 flex items-center justify-center overflow-hidden border-b border-slate-800/80">
+            <div class="relative w-full h-48 bg-slate-900 dark:bg-slate-950 flex items-center justify-center overflow-hidden border-b border-slate-100 dark:border-slate-800/80">
               
               <!-- Ambient Glow & Radial Gradient -->
-              <div class="absolute inset-0 bg-gradient-to-t from-[#0e1424] via-transparent to-transparent z-10"></div>
+              <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 dark:from-[#0e1424] via-transparent to-transparent z-10"></div>
               <div
                 class="absolute -inset-10 opacity-30 blur-2xl transition-all group-hover:opacity-50"
                 :class="[
@@ -535,35 +535,35 @@ onMounted(() => {
                 <div
                   v-show="activeDropdownId === course.id"
                   @click.stop
-                  class="absolute right-0 mt-2 w-52 rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl p-1.5 z-30 space-y-1 text-xs"
+                  class="absolute right-0 mt-2 w-52 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-1.5 z-30 space-y-1 text-xs"
                 >
                   <Link
                     :href="course.overviewHref"
-                    class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-300 hover:bg-purple-600/20 hover:text-purple-300 font-medium"
+                    class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-600/20 hover:text-purple-600 dark:hover:text-purple-300 font-medium"
                   >
                     <span>ℹ Course Details</span>
                   </Link>
                   <Link
                     :href="course.learningHref"
-                    class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-300 hover:bg-purple-600/20 hover:text-purple-300 font-medium"
+                    class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-600/20 hover:text-purple-600 dark:hover:text-purple-300 font-medium"
                   >
                     <span>▶ Continue / Resume</span>
                   </Link>
                   <button
                     @click="handleSaveCourseOffline(course)"
                     type="button"
-                    class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 font-medium text-left"
+                    class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium text-left cursor-pointer"
                   >
                     <span class="flex items-center gap-2">
                       <span>📥</span>
                       <span>{{ cachedCourseIds.includes(course.id) ? 'Saved Offline' : 'Save for Offline' }}</span>
                     </span>
-                    <span v-if="cachedCourseIds.includes(course.id)" class="text-emerald-400 font-bold">✓</span>
+                    <span v-if="cachedCourseIds.includes(course.id)" class="text-emerald-600 dark:text-emerald-400 font-bold">✓</span>
                   </button>
                 </div>
               </div>
 
-              <!-- 3D HIGH-TECH ILLUSTRATION FOR EACH COURSE (Matches screenshot) -->
+              <!-- 3D HIGH-TECH ILLUSTRATION FOR EACH COURSE -->
               
               <!-- 1. Web Development (Laptop with HTML, CSS, JS cubes) -->
               <div v-if="course.illustrationType === 'web'" class="relative flex items-center justify-center scale-95 group-hover:scale-105 transition-transform duration-300">
@@ -661,7 +661,7 @@ onMounted(() => {
               <div class="space-y-3">
                 <!-- Title & Teacher Row -->
                 <div>
-                  <h3 class="text-base sm:text-lg font-bold text-white group-hover:text-purple-300 transition-colors leading-snug">
+                  <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors leading-snug">
                     {{ course.title }}
                   </h3>
 
@@ -671,27 +671,27 @@ onMounted(() => {
                       :alt="course.teacher.name"
                       class="w-6 h-6 rounded-full object-cover border border-purple-500/40"
                     />
-                    <span class="text-xs text-slate-300 font-medium">{{ course.teacher.name }}</span>
+                    <span class="text-xs text-slate-600 dark:text-slate-300 font-medium">{{ course.teacher.name }}</span>
                   </div>
                 </div>
 
                 <!-- Progress Bar & Percentage -->
                 <div class="space-y-1.5 pt-1">
                   <div class="flex items-center justify-between text-xs font-bold">
-                    <span class="text-slate-400 text-[11px]">
+                    <span class="text-slate-500 dark:text-slate-400 text-[11px]">
                       {{ course.status === 'completed' ? 'Course Completed' : (course.status === 'not_started' ? 'Not Started' : 'Progress') }}
                     </span>
                     <span
                       :class="[
-                        course.status === 'completed' ? 'text-emerald-400 font-black' :
-                        course.status === 'not_started' ? 'text-slate-400' : 'text-purple-400 font-black'
+                        course.status === 'completed' ? 'text-emerald-600 dark:text-emerald-400 font-black' :
+                        course.status === 'not_started' ? 'text-slate-500 dark:text-slate-400' : 'text-purple-600 dark:text-purple-400 font-black'
                       ]"
                     >
                       {{ course.progress }}%
                     </span>
                   </div>
 
-                  <div class="w-full h-2 rounded-full bg-slate-800/80 overflow-hidden">
+                  <div class="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800/80 overflow-hidden">
                     <div
                       :class="[
                         course.status === 'completed'
@@ -705,7 +705,7 @@ onMounted(() => {
                 </div>
 
                 <!-- Metadata Row (Chapter, Lessons, Time Remaining) -->
-                <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400 pt-1 border-t border-slate-800/60 mt-2">
+                <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800/60 mt-2">
                   <div class="flex items-center gap-1.5">
                     <span>📖</span>
                     <span>{{ course.currentChapter }} of {{ course.totalChapters }}</span>
@@ -722,13 +722,13 @@ onMounted(() => {
               </div>
 
               <!-- ACTION BUTTONS ROW (Separating Resume vs Course Details) -->
-              <div class="grid grid-cols-2 gap-3 pt-3 border-t border-slate-800/80" @click.stop>
+              <div class="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100 dark:border-slate-800/80" @click.stop>
                 
                 <!-- Main Action Button (In Progress -> Resume, Not Started -> Start, Completed -> Review) -->
                 <Link
                   v-if="course.status === 'in_progress'"
                   :href="course.learningHref"
-                  class="py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all text-center cursor-pointer"
+                  class="py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-600/20 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all text-center cursor-pointer"
                 >
                   <span>▶</span>
                   <span>Continue Learning</span>
@@ -737,7 +737,7 @@ onMounted(() => {
                 <Link
                   v-else-if="course.status === 'not_started'"
                   :href="course.learningHref"
-                  class="py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all text-center cursor-pointer"
+                  class="py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-600/20 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all text-center cursor-pointer"
                 >
                   <span>▶</span>
                   <span>Start Learning</span>
@@ -746,7 +746,7 @@ onMounted(() => {
                 <Link
                   v-else-if="course.status === 'completed'"
                   :href="course.overviewHref"
-                  class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs border border-slate-700 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all text-center cursor-pointer"
+                  class="py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all text-center cursor-pointer"
                 >
                   <span>👁</span>
                   <span>Review Course</span>
@@ -756,7 +756,7 @@ onMounted(() => {
                 <Link
                   v-if="course.status === 'completed' && course.certificateHref"
                   :href="course.certificateHref"
-                  class="py-2.5 px-3 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 font-bold text-xs border border-emerald-500/40 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all text-center cursor-pointer"
+                  class="py-2.5 px-3 rounded-xl bg-emerald-500/10 dark:bg-emerald-600/20 hover:bg-emerald-500/20 dark:hover:bg-emerald-600/30 text-emerald-700 dark:text-emerald-300 font-bold text-xs border border-emerald-500/30 dark:border-emerald-500/40 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all text-center cursor-pointer"
                 >
                   <span>🏆</span>
                   <span>Certificate</span>
@@ -765,7 +765,7 @@ onMounted(() => {
                 <Link
                   v-else
                   :href="course.overviewHref"
-                  class="py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white font-semibold text-xs border border-slate-800 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all text-center cursor-pointer"
+                  class="py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-semibold text-xs border border-slate-200 dark:border-slate-800 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all text-center cursor-pointer"
                 >
                   <span>ⓘ</span>
                   <span>Course Details</span>
@@ -783,11 +783,11 @@ onMounted(() => {
             v-for="course in filteredCourses"
             :key="course.id"
             @click="navigateToCourseOverview(course)"
-            class="bg-[#0e1424] border border-slate-800 hover:border-purple-500/40 rounded-2xl p-4 sm:p-5 shadow-xl transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer group"
+            class="bg-white dark:bg-[#0e1424] border border-slate-200/90 dark:border-slate-800 hover:border-purple-400 dark:hover:border-purple-500/40 rounded-2xl p-4 sm:p-5 shadow-sm dark:shadow-xl transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer group"
           >
             <!-- Left Info -->
             <div class="flex items-center gap-4 min-w-0">
-              <div class="w-16 h-16 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center shrink-0">
+              <div class="w-16 h-16 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-center shrink-0">
                 <span class="text-2xl">{{ course.illustrationType === 'web' ? '💻' : (course.illustrationType === 'database' ? '🗄' : (course.illustrationType === 'python' ? '🐍' : '🎨')) }}</span>
               </div>
 
@@ -795,21 +795,21 @@ onMounted(() => {
                 <div class="flex items-center gap-2">
                   <span
                     :class="[
-                      course.status === 'completed' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' :
-                      course.status === 'not_started' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' : 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+                      course.status === 'completed' ? 'bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-500/30' :
+                      course.status === 'not_started' ? 'bg-blue-500/10 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/30' : 'bg-purple-500/10 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-500/30',
                       'px-2 py-0.5 rounded-full text-[10px] font-bold border'
                     ]"
                   >
                     {{ course.statusLabel }}
                   </span>
-                  <span class="text-xs text-slate-400 font-medium">• {{ course.category }}</span>
+                  <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">• {{ course.category }}</span>
                 </div>
 
-                <h3 class="text-sm sm:text-base font-bold text-white group-hover:text-purple-300 transition-colors truncate">
+                <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors truncate">
                   {{ course.title }}
                 </h3>
 
-                <div class="flex items-center gap-3 text-xs text-slate-400">
+                <div class="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
                   <span>Instructor: {{ course.teacher.name }}</span>
                   <span>•</span>
                   <span>{{ course.completedLessons }} / {{ course.totalLessons }} Lessons</span>
@@ -821,10 +821,10 @@ onMounted(() => {
             <div class="flex flex-col sm:flex-row sm:items-center gap-4 shrink-0" @click.stop>
               <div class="w-36 space-y-1">
                 <div class="flex items-center justify-between text-xs font-bold">
-                  <span class="text-slate-400 text-[10px]">Progress</span>
-                  <span :class="course.status === 'completed' ? 'text-emerald-400' : 'text-purple-400'">{{ course.progress }}%</span>
+                  <span class="text-slate-500 dark:text-slate-400 text-[10px]">Progress</span>
+                  <span :class="course.status === 'completed' ? 'text-emerald-600 dark:text-emerald-400' : 'text-purple-600 dark:text-purple-400'">{{ course.progress }}%</span>
                 </div>
-                <div class="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                <div class="w-full h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                   <div
                     :class="course.status === 'completed' ? 'bg-emerald-500' : 'bg-purple-600'"
                     class="h-full rounded-full"
@@ -837,28 +837,28 @@ onMounted(() => {
                 <Link
                   v-if="course.status === 'in_progress'"
                   :href="course.learningHref"
-                  class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-600/20"
+                  class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-600/20 cursor-pointer"
                 >
                   Continue
                 </Link>
                 <Link
                   v-else-if="course.status === 'not_started'"
                   :href="course.learningHref"
-                  class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-600/20"
+                  class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-600/20 cursor-pointer"
                 >
                   Start
                 </Link>
                 <Link
                   v-else-if="course.status === 'completed'"
                   :href="course.overviewHref"
-                  class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs"
+                  class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-bold text-xs cursor-pointer"
                 >
                   Review
                 </Link>
 
                 <Link
                   :href="course.overviewHref"
-                  class="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800"
+                  class="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 cursor-pointer"
                   title="Course Details"
                 >
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -870,8 +870,8 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- 4. PAGINATION FOOTER (Matches screenshot) -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-slate-800/80 text-xs text-slate-400">
+        <!-- 4. PAGINATION FOOTER -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-slate-200 dark:border-slate-800/80 text-xs text-slate-500 dark:text-slate-400">
           <div>
             Showing 1 to {{ filteredCourses.length }} of {{ counts.total }} courses
           </div>
@@ -880,7 +880,7 @@ onMounted(() => {
             <button
               type="button"
               disabled
-              class="px-2.5 py-1.5 rounded-lg bg-slate-900/60 border border-slate-800/60 text-slate-600 cursor-not-allowed"
+              class="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/60 text-slate-400 dark:text-slate-600 cursor-not-allowed"
             >
               ‹
             </button>
@@ -893,7 +893,7 @@ onMounted(() => {
             <button
               type="button"
               disabled
-              class="px-2.5 py-1.5 rounded-lg bg-slate-900/60 border border-slate-800/60 text-slate-600 cursor-not-allowed"
+              class="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/60 text-slate-400 dark:text-slate-600 cursor-not-allowed"
             >
               ›
             </button>
@@ -905,21 +905,21 @@ onMounted(() => {
       <!-- EMPTY STATE -->
       <div
         v-else
-        class="bg-slate-900/40 border border-dashed border-slate-800 rounded-3xl p-12 text-center space-y-4"
+        class="bg-white dark:bg-slate-900/40 border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-4 shadow-xs"
       >
-        <div class="w-16 h-16 rounded-full bg-slate-800/60 flex items-center justify-center mx-auto text-2xl">
+        <div class="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800/60 flex items-center justify-center mx-auto text-2xl">
           🔍
         </div>
         <div class="space-y-1">
-          <h3 class="text-base font-bold text-white">No courses match your criteria</h3>
-          <p class="text-xs text-slate-400 max-w-sm mx-auto">
+          <h3 class="text-base font-bold text-slate-900 dark:text-white">No courses match your criteria</h3>
+          <p class="text-xs text-slate-600 dark:text-slate-400 max-w-sm mx-auto">
             Try adjusting your search query or filter criteria to find the enrolled course you are looking for.
           </p>
         </div>
         <button
           @click="resetFilters"
           type="button"
-          class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 transition-all cursor-pointer"
+          class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/20 transition-all cursor-pointer"
         >
           Reset All Filters
         </button>

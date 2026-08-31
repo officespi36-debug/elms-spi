@@ -322,11 +322,11 @@ const handleFilterChange = (overrideTab?: string) => {
       <!-- ================= 1. PAGE HEADER ================= -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2">
+          <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
             <span>My Certificates</span>
-            <span class="inline-flex p-1.5 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400 text-lg">🛡️</span>
+            <span class="inline-flex p-1.5 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-600 dark:text-purple-400 text-lg">🛡️</span>
           </h1>
-          <p class="text-xs sm:text-sm text-slate-400 mt-1 font-medium">
+          <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">
             View and manage all your earned certificates. Share your achievements with the world!
           </p>
         </div>
@@ -336,61 +336,61 @@ const handleFilterChange = (overrideTab?: string) => {
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         
         <!-- Card 1: Total Certificates -->
-        <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex items-center justify-between group hover:border-purple-500/30 transition-all">
+        <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm dark:shadow-xl flex items-center justify-between group hover:border-purple-500/30 transition-all">
           <div class="space-y-0.5">
-            <p class="text-[10px] text-slate-400 font-medium">Total Certificates</p>
-            <p class="text-2xl font-black text-white font-mono">{{ summary.total_certificates }}</p>
-            <p class="text-[10px] text-slate-400 font-medium">{{ summary.total_note }}</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Total Certificates</p>
+            <p class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ summary.total_certificates }}</p>
+            <p class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">{{ summary.total_note }}</p>
           </div>
-          <div class="w-10 h-10 rounded-2xl bg-purple-600/20 border border-purple-500/30 text-purple-300 flex items-center justify-center text-base shadow-inner shrink-0 group-hover:scale-110 transition-transform">
+          <div class="w-10 h-10 rounded-2xl bg-purple-500/10 dark:bg-purple-600/20 border border-purple-500/20 dark:border-purple-500/30 text-purple-600 dark:text-purple-300 flex items-center justify-center text-base shadow-inner shrink-0 group-hover:scale-110 transition-transform">
             🛡️
           </div>
         </div>
 
         <!-- Card 2: Completed Courses -->
-        <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex items-center justify-between group hover:border-blue-500/30 transition-all">
+        <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm dark:shadow-xl flex items-center justify-between group hover:border-blue-500/30 transition-all">
           <div class="space-y-0.5">
-            <p class="text-[10px] text-slate-400 font-medium">Completed Courses</p>
-            <p class="text-2xl font-black text-white font-mono">{{ summary.completed_courses }}</p>
-            <p class="text-[10px] text-blue-400 font-medium font-mono">{{ summary.completed_note }}</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Completed Courses</p>
+            <p class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ summary.completed_courses }}</p>
+            <p class="text-[10px] text-blue-600 dark:text-blue-400 font-medium font-mono">{{ summary.completed_note }}</p>
           </div>
-          <div class="w-10 h-10 rounded-2xl bg-blue-600/20 border border-blue-500/30 text-blue-300 flex items-center justify-center text-base shadow-inner shrink-0 group-hover:scale-110 transition-transform">
+          <div class="w-10 h-10 rounded-2xl bg-blue-500/10 dark:bg-blue-600/20 border border-blue-500/20 dark:border-blue-500/30 text-blue-600 dark:text-blue-300 flex items-center justify-center text-base shadow-inner shrink-0 group-hover:scale-110 transition-transform">
             🏆
           </div>
         </div>
 
         <!-- Card 3: This Year -->
-        <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex items-center justify-between group hover:border-emerald-500/30 transition-all">
+        <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm dark:shadow-xl flex items-center justify-between group hover:border-emerald-500/30 transition-all">
           <div class="space-y-0.5">
-            <p class="text-[10px] text-slate-400 font-medium">This Year</p>
-            <p class="text-2xl font-black text-white font-mono">{{ summary.this_year }}</p>
-            <p class="text-[10px] text-emerald-400 font-medium font-mono">{{ summary.this_year_note }}</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">This Year</p>
+            <p class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ summary.this_year }}</p>
+            <p class="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium font-mono">{{ summary.this_year_note }}</p>
           </div>
-          <div class="w-10 h-10 rounded-2xl bg-emerald-600/20 border border-emerald-500/30 text-emerald-300 flex items-center justify-center text-base shadow-inner shrink-0 group-hover:scale-110 transition-transform">
+          <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 dark:bg-emerald-600/20 border border-emerald-500/20 dark:border-emerald-500/30 text-emerald-600 dark:text-emerald-300 flex items-center justify-center text-base shadow-inner shrink-0 group-hover:scale-110 transition-transform">
             🏅
           </div>
         </div>
 
         <!-- Card 4: Recent Certificate -->
-        <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex items-center justify-between group hover:border-amber-500/30 transition-all">
+        <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm dark:shadow-xl flex items-center justify-between group hover:border-amber-500/30 transition-all">
           <div class="space-y-0.5">
-            <p class="text-[10px] text-slate-400 font-medium">Recent Certificate</p>
-            <p class="text-xl font-black text-white font-mono leading-tight">{{ summary.recent_date }}</p>
-            <p class="text-[10px] text-slate-400 font-medium">{{ summary.recent_note }}</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Recent Certificate</p>
+            <p class="text-xl font-black text-slate-900 dark:text-white font-mono leading-tight">{{ summary.recent_date }}</p>
+            <p class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">{{ summary.recent_note }}</p>
           </div>
-          <div class="w-10 h-10 rounded-2xl bg-amber-600/20 border border-amber-500/30 text-amber-400 flex items-center justify-center text-base shadow-inner shrink-0 group-hover:scale-110 transition-transform">
+          <div class="w-10 h-10 rounded-2xl bg-amber-500/10 dark:bg-amber-600/20 border border-amber-500/20 dark:border-amber-500/30 text-amber-600 dark:text-amber-400 flex items-center justify-center text-base shadow-inner shrink-0 group-hover:scale-110 transition-transform">
             📅
           </div>
         </div>
 
         <!-- Card 5: Total Learning Time -->
-        <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex items-center justify-between group hover:border-purple-500/30 transition-all">
+        <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm dark:shadow-xl flex items-center justify-between group hover:border-purple-500/30 transition-all">
           <div class="space-y-0.5">
-            <p class="text-[10px] text-slate-400 font-medium">Total Learning Time</p>
-            <p class="text-2xl font-black text-white font-mono">{{ summary.total_learning_time }}</p>
-            <p class="text-[10px] text-slate-400 font-medium">{{ summary.time_note }}</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Total Learning Time</p>
+            <p class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ summary.total_learning_time }}</p>
+            <p class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">{{ summary.time_note }}</p>
           </div>
-          <div class="w-10 h-10 rounded-2xl bg-purple-600/20 border border-purple-500/30 text-purple-300 flex items-center justify-center text-base shadow-inner shrink-0 group-hover:scale-110 transition-transform">
+          <div class="w-10 h-10 rounded-2xl bg-purple-500/10 dark:bg-purple-600/20 border border-purple-500/20 dark:border-purple-500/30 text-purple-600 dark:text-purple-300 flex items-center justify-center text-base shadow-inner shrink-0 group-hover:scale-110 transition-transform">
             ⏱️
           </div>
         </div>
@@ -404,7 +404,7 @@ const handleFilterChange = (overrideTab?: string) => {
         <div class="lg:col-span-8 space-y-6">
 
           <!-- SEARCH & FILTER BAR -->
-          <div class="flex flex-wrap items-center justify-between gap-3 bg-[#0F172A]/80 border border-slate-800/80 rounded-2xl p-3 shadow-lg">
+          <div class="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-[#0F172A]/80 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-3 shadow-sm dark:shadow-lg">
             
             <!-- Search Input -->
             <div class="relative flex-1 min-w-[200px]">
@@ -413,9 +413,9 @@ const handleFilterChange = (overrideTab?: string) => {
                 v-model="searchQuery"
                 @keyup.enter="handleFilterChange()"
                 placeholder="Search certificates..."
-                class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                class="w-full bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700/80 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 shadow-xs"
               />
-              <span class="absolute left-3 top-2 text-xs text-slate-500">🔍</span>
+              <span class="absolute left-3 top-2 text-xs text-slate-400 dark:text-slate-500">🔍</span>
             </div>
 
             <!-- Filter Dropdowns -->
@@ -423,7 +423,7 @@ const handleFilterChange = (overrideTab?: string) => {
               <select
                 v-model="selectedCategory"
                 @change="handleFilterChange()"
-                class="bg-slate-900 border border-slate-700/80 text-xs font-semibold text-slate-200 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-purple-500 cursor-pointer"
+                class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 text-xs font-semibold text-slate-700 dark:text-slate-200 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-purple-500 cursor-pointer shadow-xs"
               >
                 <option value="all">All Categories</option>
                 <option value="Programming">Programming</option>
@@ -437,7 +437,7 @@ const handleFilterChange = (overrideTab?: string) => {
               <select
                 v-model="selectedCourse"
                 @change="handleFilterChange()"
-                class="bg-slate-900 border border-slate-700/80 text-xs font-semibold text-slate-200 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-purple-500 cursor-pointer"
+                class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 text-xs font-semibold text-slate-700 dark:text-slate-200 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-purple-500 cursor-pointer shadow-xs"
               >
                 <option value="all">All Courses</option>
                 <option value="JavaScript Advanced">JavaScript Advanced</option>
@@ -449,7 +449,7 @@ const handleFilterChange = (overrideTab?: string) => {
               <select
                 v-model="selectedIssuer"
                 @change="handleFilterChange()"
-                class="bg-slate-900 border border-slate-700/80 text-xs font-semibold text-slate-200 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-purple-500 cursor-pointer"
+                class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 text-xs font-semibold text-slate-700 dark:text-slate-200 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-purple-500 cursor-pointer shadow-xs"
               >
                 <option value="all">All Issuers</option>
                 <option value="SPI E-Learning Platform">SPI E-Learning Platform</option>
@@ -458,24 +458,24 @@ const handleFilterChange = (overrideTab?: string) => {
               <select
                 v-model="selectedSort"
                 @change="handleFilterChange()"
-                class="bg-slate-900 border border-slate-700/80 text-xs font-semibold text-slate-200 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-purple-500 cursor-pointer"
+                class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 text-xs font-semibold text-slate-700 dark:text-slate-200 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-purple-500 cursor-pointer shadow-xs"
               >
                 <option value="newest">Newest First</option>
                 <option value="oldest">Oldest First</option>
               </select>
 
               <!-- View Switch -->
-              <div class="flex items-center bg-slate-900 border border-slate-700/80 rounded-xl p-0.5">
+              <div class="flex items-center bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl p-0.5 shadow-xs">
                 <button
                   @click="isGridView = true"
-                  :class="[isGridView ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-white', 'p-1 rounded-lg text-xs transition-colors']"
+                  :class="[isGridView ? 'bg-purple-600 text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white', 'p-1 rounded-lg text-xs transition-colors cursor-pointer']"
                   title="Grid View"
                 >
                   ▦
                 </button>
                 <button
                   @click="isGridView = false"
-                  :class="[!isGridView ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-white', 'p-1 rounded-lg text-xs transition-colors']"
+                  :class="[!isGridView ? 'bg-purple-600 text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white', 'p-1 rounded-lg text-xs transition-colors cursor-pointer']"
                   title="List View"
                 >
                   ☰
@@ -486,7 +486,7 @@ const handleFilterChange = (overrideTab?: string) => {
           </div>
 
           <!-- STATUS TABS -->
-          <div class="flex items-center gap-1.5 bg-[#0F172A]/80 border border-slate-800/80 rounded-2xl p-1.5 shadow-lg overflow-x-auto custom-scrollbar">
+          <div class="flex items-center gap-1.5 bg-white dark:bg-[#0F172A]/80 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-1.5 shadow-sm dark:shadow-lg overflow-x-auto custom-scrollbar">
             <button
               v-for="tab in [
                 { key: 'all', label: 'All Certificates' },
@@ -498,8 +498,8 @@ const handleFilterChange = (overrideTab?: string) => {
               @click="handleFilterChange(tab.key)"
               :class="[
                 activeStatusTab === tab.key
-                  ? 'bg-purple-600 text-white shadow-md shadow-purple-900/40'
-                  : 'text-slate-400 hover:text-white',
+                  ? 'bg-purple-600 text-white shadow-md shadow-purple-900/20'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white',
                 'px-4 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer'
               ]"
             >
@@ -512,7 +512,7 @@ const handleFilterChange = (overrideTab?: string) => {
             <div
               v-for="cert in certificates"
               :key="cert.id"
-              class="bg-[#0F172A]/90 border border-slate-800/80 hover:border-purple-500/40 rounded-3xl p-4 shadow-xl flex flex-col justify-between group transition-all"
+              class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 hover:border-purple-500/40 rounded-3xl p-4 shadow-sm dark:shadow-xl flex flex-col justify-between group transition-all"
             >
               <!-- TOP: CERTIFICATE CANVAS MINI PREVIEW -->
               <div class="relative w-full aspect-[16/10] bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden shadow-inner flex flex-col items-center justify-between p-3 text-center group-hover:scale-[1.01] transition-transform">
@@ -557,23 +557,23 @@ const handleFilterChange = (overrideTab?: string) => {
               <!-- CARD BODY INFO -->
               <div class="pt-3 pb-1 space-y-1">
                 <div class="flex items-center justify-between">
-                  <h3 class="text-sm font-bold text-white group-hover:text-purple-300 transition-colors truncate max-w-[180px]">
+                  <h3 class="text-sm font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors truncate max-w-[180px]">
                     {{ cert.title }}
                   </h3>
-                  <span class="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold font-mono">
+                  <span class="px-2 py-0.5 rounded-md bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-[10px] font-bold font-mono">
                     {{ cert.status }}
                   </span>
                 </div>
 
-                <p class="text-[11px] text-slate-400">{{ cert.issuer }}</p>
-                <p class="text-[10px] text-slate-500 font-mono">{{ cert.issued_date }}</p>
+                <p class="text-[11px] text-slate-600 dark:text-slate-400">{{ cert.issuer }}</p>
+                <p class="text-[10px] text-slate-400 dark:text-slate-500 font-mono">{{ cert.issued_date }}</p>
               </div>
 
               <!-- CARD ACTIONS -->
-              <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800/80">
+              <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/80">
                 <button
                   @click="openPreviewModal(cert)"
-                  class="py-1.5 rounded-xl bg-slate-900 border border-slate-700/80 hover:border-purple-500/40 text-slate-300 hover:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  class="py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 hover:border-purple-500/40 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-xs"
                 >
                   <span>👁</span>
                   <span>View</span>
@@ -581,7 +581,7 @@ const handleFilterChange = (overrideTab?: string) => {
 
                 <button
                   @click="openPreviewModal(cert)"
-                  class="py-1.5 rounded-xl bg-purple-600/30 border border-purple-500/40 hover:bg-purple-600 text-purple-200 hover:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm"
+                  class="py-1.5 rounded-xl bg-purple-50 dark:bg-purple-600/30 border border-purple-200 dark:border-purple-500/40 hover:bg-purple-600 hover:text-white text-purple-700 dark:text-purple-200 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs"
                 >
                   <span>⬇</span>
                   <span>Download</span>
@@ -597,16 +597,16 @@ const handleFilterChange = (overrideTab?: string) => {
         <div class="lg:col-span-4 space-y-6">
 
           <!-- WIDGET 1: Certificate Stats Donut Chart -->
-          <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-3xl p-5 shadow-xl space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-800/60 pb-3">
-              <h3 class="text-sm font-bold text-white tracking-tight">Certificate Stats</h3>
+          <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/60 pb-3">
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">Certificate Stats</h3>
             </div>
 
             <div class="flex items-center justify-between gap-4">
               <!-- Donut Chart -->
               <div class="relative w-24 h-24 flex items-center justify-center shrink-0">
                 <svg class="w-24 h-24 -rotate-90 transform" viewBox="0 0 36 36">
-                  <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#1E293B" stroke-width="4.5" />
+                  <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#E2E8F0" class="dark:stroke-slate-800" stroke-width="4.5" />
                   <!-- Completed: 67% -->
                   <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#10B981" stroke-width="4.5" stroke-dasharray="67, 100" stroke-dashoffset="0" />
                   <!-- In Progress: 17% -->
@@ -616,8 +616,8 @@ const handleFilterChange = (overrideTab?: string) => {
                 </svg>
 
                 <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-                  <span class="text-base font-black text-white font-mono leading-none">{{ statistics.total }}</span>
-                  <span class="text-[8px] text-slate-400 mt-0.5 font-medium">Total</span>
+                  <span class="text-base font-black text-slate-900 dark:text-white font-mono leading-none">{{ statistics.total }}</span>
+                  <span class="text-[8px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium">Total</span>
                 </div>
               </div>
 
@@ -630,16 +630,16 @@ const handleFilterChange = (overrideTab?: string) => {
                 >
                   <div class="flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: item.color }"></span>
-                    <span class="text-slate-300 font-medium">{{ item.label }}</span>
+                    <span class="text-slate-600 dark:text-slate-300 font-medium">{{ item.label }}</span>
                   </div>
-                  <span class="font-bold text-white font-mono">{{ item.count }} ({{ item.percentage }}%)</span>
+                  <span class="font-bold text-slate-900 dark:text-white font-mono">{{ item.count }} ({{ item.percentage }}%)</span>
                 </div>
               </div>
             </div>
 
             <button
               @click="handleFilterChange('all')"
-              class="w-full py-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-purple-500/40 text-slate-300 hover:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              class="w-full py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-purple-500/40 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-xs"
             >
               <span>📊</span>
               <span>View All Statistics</span>
@@ -647,17 +647,17 @@ const handleFilterChange = (overrideTab?: string) => {
           </div>
 
           <!-- WIDGET 2: Recent Achievements -->
-          <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-3xl p-5 shadow-xl space-y-3">
-            <div class="flex items-center justify-between border-b border-slate-800/60 pb-2.5">
-              <h3 class="text-sm font-bold text-white tracking-tight">Recent Achievements</h3>
-              <span class="text-xs text-purple-400 font-bold hover:underline cursor-pointer">View All</span>
+          <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/60 pb-2.5">
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">Recent Achievements</h3>
+              <span class="text-xs text-purple-600 dark:text-purple-400 font-bold hover:underline cursor-pointer">View All</span>
             </div>
 
             <div class="space-y-2">
               <div
                 v-for="ach in recentAchievements"
                 :key="ach.id"
-                class="p-2.5 rounded-2xl bg-slate-900/70 border border-slate-800/60 flex items-center justify-between gap-3 hover:border-purple-500/30 transition-all cursor-pointer"
+                class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800/60 flex items-center justify-between gap-3 hover:border-purple-500/30 transition-all cursor-pointer shadow-xs"
               >
                 <div class="flex items-center gap-2.5 min-w-0">
                   <div
@@ -669,12 +669,12 @@ const handleFilterChange = (overrideTab?: string) => {
                     {{ ach.icon }}
                   </div>
                   <div class="min-w-0">
-                    <p class="text-xs font-bold text-white truncate">{{ ach.title }}</p>
-                    <p class="text-[10px] text-slate-400 truncate">{{ ach.description }}</p>
+                    <p class="text-xs font-bold text-slate-900 dark:text-white truncate">{{ ach.title }}</p>
+                    <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate">{{ ach.description }}</p>
                   </div>
                 </div>
 
-                <span class="text-[10px] text-slate-400 font-mono whitespace-nowrap shrink-0">
+                <span class="text-[10px] text-slate-500 dark:text-slate-400 font-mono whitespace-nowrap shrink-0">
                   {{ ach.date }}
                 </span>
               </div>
@@ -682,7 +682,7 @@ const handleFilterChange = (overrideTab?: string) => {
           </div>
 
           <!-- WIDGET 3: Share Your Achievement -->
-          <div class="bg-gradient-to-br from-[#10132B] via-[#0F172A] to-[#1E1138] border border-purple-900/50 rounded-3xl p-5 shadow-2xl space-y-3.5 relative overflow-hidden">
+          <div class="bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/60 dark:from-[#10132B] dark:via-[#0F172A] dark:to-[#1E1138] border border-purple-200 dark:border-purple-900/50 rounded-3xl p-5 shadow-sm dark:shadow-2xl space-y-3.5 relative overflow-hidden">
             
             <!-- Glowing Purple Rosette Medal -->
             <div class="absolute -right-2 top-4 w-16 h-16 opacity-30 text-purple-400 text-5xl pointer-events-none">
@@ -690,8 +690,8 @@ const handleFilterChange = (overrideTab?: string) => {
             </div>
 
             <div class="space-y-1">
-              <h3 class="text-sm font-bold text-white tracking-tight">Share Your Achievement</h3>
-              <p class="text-xs text-slate-400 leading-relaxed">
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">Share Your Achievement</h3>
+              <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                 Share your certificates on LinkedIn, Twitter, or download high-quality versions.
               </p>
             </div>
@@ -700,28 +700,28 @@ const handleFilterChange = (overrideTab?: string) => {
             <div class="flex items-center gap-2 pt-1">
               <button
                 @click="openShareModal(certificates[0])"
-                class="w-8 h-8 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center shadow-md transition-transform hover:scale-105"
+                class="w-8 h-8 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center shadow-md transition-transform hover:scale-105 cursor-pointer"
                 title="Share on LinkedIn"
               >
                 in
               </button>
               <button
                 @click="openShareModal(certificates[0])"
-                class="w-8 h-8 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-bold text-xs flex items-center justify-center shadow-md transition-transform hover:scale-105"
+                class="w-8 h-8 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-bold text-xs flex items-center justify-center shadow-md transition-transform hover:scale-105 cursor-pointer"
                 title="Share on Twitter / X"
               >
                 𝕏
               </button>
               <button
                 @click="openShareModal(certificates[0])"
-                class="w-8 h-8 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center justify-center shadow-md transition-transform hover:scale-105"
+                class="w-8 h-8 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center justify-center shadow-md transition-transform hover:scale-105 cursor-pointer"
                 title="Share on Facebook"
               >
                 f
               </button>
               <button
                 @click="copyVerificationLink()"
-                class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs flex items-center justify-center border border-slate-700 transition-transform hover:scale-105"
+                class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white font-bold text-xs flex items-center justify-center border border-slate-200 dark:border-slate-700 transition-transform hover:scale-105 cursor-pointer shadow-xs"
                 title="Copy Link"
               >
                 🔗
@@ -731,7 +731,7 @@ const handleFilterChange = (overrideTab?: string) => {
             <!-- Action Button -->
             <button
               @click="openShareModal(certificates[0])"
-              class="w-full py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-purple-950/50 transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+              class="w-full py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-purple-950/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
             >
               <span>📢</span>
               <span>Share Certificates</span>
@@ -743,20 +743,20 @@ const handleFilterChange = (overrideTab?: string) => {
       </div>
 
       <!-- ================= 4. CERTIFICATE SECURITY BANNER ================= -->
-      <div class="bg-gradient-to-r from-blue-950/70 via-slate-900/90 to-purple-950/70 border border-blue-900/50 rounded-3xl p-4 sm:p-5 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="bg-gradient-to-r from-blue-50/80 via-white to-purple-50/80 dark:from-blue-950/70 dark:via-slate-900/90 dark:to-purple-950/70 border border-blue-100 dark:border-blue-900/50 rounded-3xl p-4 sm:p-5 shadow-sm dark:shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-blue-600/20 border border-blue-500/30 text-blue-300 flex items-center justify-center text-lg shrink-0 shadow-inner">
+          <div class="w-10 h-10 rounded-2xl bg-blue-500/10 dark:bg-blue-600/20 border border-blue-500/20 dark:border-blue-500/30 text-blue-600 dark:text-blue-300 flex items-center justify-center text-lg shrink-0 shadow-inner">
             🛡️
           </div>
           <div>
-            <h4 class="text-sm font-bold text-white">All certificates are blockchain verified and tamper-proof</h4>
-            <p class="text-xs text-slate-400 mt-0.5">Your certificates are securely stored and can be verified by employers and institutions worldwide.</p>
+            <h4 class="text-sm font-bold text-slate-900 dark:text-white">All certificates are blockchain verified and tamper-proof</h4>
+            <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Your certificates are securely stored and can be verified by employers and institutions worldwide.</p>
           </div>
         </div>
 
         <Link
           href="/student/certificates/verify"
-          class="px-5 py-2 rounded-2xl bg-slate-900 border border-slate-700 hover:border-blue-500/50 text-white font-bold text-xs shadow-md whitespace-nowrap transition-colors"
+          class="px-5 py-2 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-blue-500/50 text-slate-900 dark:text-white font-bold text-xs shadow-sm whitespace-nowrap transition-colors"
         >
           Verify Certificate
         </Link>
@@ -767,17 +767,17 @@ const handleFilterChange = (overrideTab?: string) => {
     <!-- ================= MODAL: FULL RESOLUTION CERTIFICATE PREVIEW ================= -->
     <div
       v-if="isPreviewModalOpen && selectedCertForModal"
-      class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
+      class="fixed inset-0 z-50 bg-slate-950/70 dark:bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
     >
-      <div class="bg-slate-900 border border-purple-500/40 rounded-3xl max-w-2xl w-full p-6 space-y-4 shadow-2xl relative">
-        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-purple-500/40 rounded-3xl max-w-2xl w-full p-6 space-y-4 shadow-2xl relative">
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
           <div class="flex items-center gap-2">
             <span class="text-xl">🎓</span>
-            <h3 class="text-base font-black text-white">Official Certificate Verification</h3>
+            <h3 class="text-base font-black text-slate-900 dark:text-white">Official Certificate Verification</h3>
           </div>
           <button
             @click="isPreviewModalOpen = false"
-            class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center font-bold text-sm"
+            class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white flex items-center justify-center font-bold text-sm cursor-pointer transition-colors"
           >
             ✕
           </button>
@@ -810,10 +810,10 @@ const handleFilterChange = (overrideTab?: string) => {
         </div>
 
         <!-- MODAL ACTIONS -->
-        <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-800 text-xs">
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
           <Link
             :href="`/student/certificates/verify?code=${selectedCertForModal.cert_number}`"
-            class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold border border-slate-700 flex items-center gap-1.5"
+            class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-cyan-600 dark:text-cyan-300 font-bold border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 shadow-xs"
           >
             <span>🔍</span>
             <span>Verify on Registry</span>
@@ -822,13 +822,13 @@ const handleFilterChange = (overrideTab?: string) => {
           <div class="flex items-center gap-2">
             <button
               @click="isPreviewModalOpen = false; openShareModal(selectedCertForModal)"
-              class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold hover:text-white"
+              class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-200 dark:hover:text-white cursor-pointer"
             >
               Share Link
             </button>
             <a
               :href="`/student/certificates/download-share`"
-              class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold shadow-md flex items-center gap-1.5"
+              class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold shadow-md flex items-center gap-1.5 cursor-pointer"
             >
               <span>📥</span>
               <span>Download PDF</span>
@@ -841,39 +841,39 @@ const handleFilterChange = (overrideTab?: string) => {
     <!-- ================= MODAL: SOCIAL SHARING ================= -->
     <div
       v-if="isShareModalOpen && selectedCertForModal"
-      class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
+      class="fixed inset-0 z-50 bg-slate-950/70 dark:bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
     >
-      <div class="bg-slate-900 border border-purple-500/40 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
-        <div class="border-b border-slate-800 pb-3 flex items-center justify-between">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-purple-500/40 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
+        <div class="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
           <div class="flex items-center gap-2">
             <span class="text-xl">📢</span>
-            <h3 class="text-base font-black text-white">Share Your Certificate</h3>
+            <h3 class="text-base font-black text-slate-900 dark:text-white">Share Your Certificate</h3>
           </div>
           <button
             @click="isShareModalOpen = false"
-            class="text-slate-400 hover:text-white"
+            class="text-slate-400 hover:text-slate-950 dark:hover:text-white cursor-pointer"
           >
             ✕
           </button>
         </div>
 
-        <p class="text-xs text-slate-300">
-          Share your accomplishment in <strong class="text-purple-300">{{ selectedCertForModal.title }}</strong> with employers and your network.
+        <p class="text-xs text-slate-600 dark:text-slate-300">
+          Share your accomplishment in <strong class="text-purple-600 dark:text-purple-300">{{ selectedCertForModal.title }}</strong> with employers and your network.
         </p>
 
         <!-- Verification URL Copy Box -->
         <div class="space-y-1.5">
-          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Public Verification URL:</label>
+          <label class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Public Verification URL:</label>
           <div class="flex items-center gap-2">
             <input
               type="text"
               readonly
               :value="selectedCertForModal.qr_url"
-              class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-slate-300 select-all"
+              class="flex-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-slate-700 dark:text-slate-300 select-all"
             />
             <button
               @click="copyVerificationLink()"
-              class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md whitespace-nowrap"
+              class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md whitespace-nowrap cursor-pointer"
             >
               {{ copiedSuccess ? '✓ Copied!' : 'Copy' }}
             </button>
@@ -884,31 +884,31 @@ const handleFilterChange = (overrideTab?: string) => {
         <div class="grid grid-cols-3 gap-2 pt-2 text-xs">
           <button
             @click="copyVerificationLink()"
-            class="p-2.5 rounded-xl bg-blue-600/20 border border-blue-500/30 text-blue-300 hover:bg-blue-600 hover:text-white font-bold flex flex-col items-center gap-1 transition-all"
+            class="p-2.5 rounded-xl bg-blue-500/10 dark:bg-blue-600/20 border border-blue-500/20 dark:border-blue-500/30 text-blue-700 dark:text-blue-300 hover:bg-blue-600 hover:text-white font-bold flex flex-col items-center gap-1 transition-all cursor-pointer"
           >
             <span>💼</span>
             <span>LinkedIn</span>
           </button>
           <button
             @click="copyVerificationLink()"
-            class="p-2.5 rounded-xl bg-sky-500/20 border border-sky-500/30 text-sky-300 hover:bg-sky-500 hover:text-white font-bold flex flex-col items-center gap-1 transition-all"
+            class="p-2.5 rounded-xl bg-sky-500/10 dark:bg-sky-500/20 border border-sky-500/20 dark:border-sky-500/30 text-sky-700 dark:text-sky-300 hover:bg-sky-500 hover:text-white font-bold flex flex-col items-center gap-1 transition-all cursor-pointer"
           >
             <span>🐦</span>
             <span>Twitter / X</span>
           </button>
           <button
             @click="copyVerificationLink()"
-            class="p-2.5 rounded-xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-300 hover:bg-indigo-600 hover:text-white font-bold flex flex-col items-center gap-1 transition-all"
+            class="p-2.5 rounded-xl bg-indigo-500/10 dark:bg-indigo-600/20 border border-indigo-500/20 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-600 hover:text-white font-bold flex flex-col items-center gap-1 transition-all cursor-pointer"
           >
             <span>📘</span>
             <span>Facebook</span>
           </button>
         </div>
 
-        <div class="flex justify-end pt-2 border-t border-slate-800 text-xs">
+        <div class="flex justify-end pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
           <button
             @click="isShareModalOpen = false"
-            class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold"
+            class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-200 cursor-pointer"
           >
             Done
           </button>

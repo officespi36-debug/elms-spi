@@ -377,11 +377,11 @@ const savePreferences = () => {
       <!-- ================= 1. PAGE HEADER ================= -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2.5">
+          <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
             <span>System & Teacher Announcements</span>
-            <span class="inline-flex p-1.5 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400 text-lg">📢</span>
+            <span class="inline-flex p-1.5 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-600 dark:text-purple-400 text-lg">📢</span>
           </h1>
-          <p class="text-xs sm:text-sm text-slate-400 mt-1 font-medium">
+          <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">
             Stay updated with important announcements from the system and your teachers.
           </p>
         </div>
@@ -389,7 +389,7 @@ const savePreferences = () => {
         <div class="flex items-center gap-2 self-start sm:self-auto">
           <button
             @click="isMarkAllConfirmModalOpen = true"
-            class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-slate-300 hover:text-white font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-md active:scale-95"
+            class="px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700/80 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs active:scale-95"
           >
             <span>✓✓</span>
             <span>Mark All as Read</span>
@@ -409,8 +409,8 @@ const savePreferences = () => {
               @click="activeSourceTab = 'all'; currentPage = 1"
               :class="[
                 activeSourceTab === 'all'
-                  ? 'bg-purple-600 text-white font-bold shadow-md shadow-purple-950/50'
-                  : 'bg-slate-900/80 text-slate-400 hover:text-slate-200 border border-slate-800/80 font-medium',
+                  ? 'bg-purple-600 text-white font-bold shadow-md shadow-purple-950/20'
+                  : 'bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-800/80 font-medium shadow-xs',
                 'px-4 py-2 rounded-xl text-xs transition-all cursor-pointer whitespace-nowrap active:scale-95'
               ]"
             >
@@ -421,8 +421,8 @@ const savePreferences = () => {
               @click="activeSourceTab = 'system'; currentPage = 1"
               :class="[
                 activeSourceTab === 'system'
-                  ? 'bg-purple-600 text-white font-bold shadow-md shadow-purple-950/50'
-                  : 'bg-slate-900/80 text-slate-400 hover:text-slate-200 border border-slate-800/80 font-medium',
+                  ? 'bg-purple-600 text-white font-bold shadow-md shadow-purple-950/20'
+                  : 'bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-800/80 font-medium shadow-xs',
                 'px-4 py-2 rounded-xl text-xs transition-all cursor-pointer whitespace-nowrap active:scale-95'
               ]"
             >
@@ -433,8 +433,8 @@ const savePreferences = () => {
               @click="activeSourceTab = 'teacher'; currentPage = 1"
               :class="[
                 activeSourceTab === 'teacher'
-                  ? 'bg-purple-600 text-white font-bold shadow-md shadow-purple-950/50'
-                  : 'bg-slate-900/80 text-slate-400 hover:text-slate-200 border border-slate-800/80 font-medium',
+                  ? 'bg-purple-600 text-white font-bold shadow-md shadow-purple-950/20'
+                  : 'bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-800/80 font-medium shadow-xs',
                 'px-4 py-2 rounded-xl text-xs transition-all cursor-pointer whitespace-nowrap active:scale-95'
               ]"
             >
@@ -443,16 +443,16 @@ const savePreferences = () => {
           </div>
 
           <!-- 2.2 FILTER & SEARCH BAR -->
-          <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-2xl p-3 shadow-lg flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+          <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-3 shadow-sm dark:shadow-lg flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
             
             <!-- Search Input -->
             <div class="relative flex-1 min-w-[200px]">
-              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs">🔍</span>
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 text-xs">🔍</span>
               <input
                 v-model="searchQuery"
                 type="text"
                 placeholder="Search announcement..."
-                class="w-full pl-8 pr-3 py-1.5 bg-slate-950/70 border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-colors"
+                class="w-full pl-8 pr-3 py-1.5 bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 transition-colors"
               />
             </div>
 
@@ -463,7 +463,7 @@ const savePreferences = () => {
                 <select
                   v-model="selectedCategory"
                   @change="currentPage = 1"
-                  class="bg-slate-950/70 border border-slate-700/80 text-xs font-semibold text-slate-300 rounded-xl px-3 py-1.5 focus:outline-none focus:border-purple-500 cursor-pointer"
+                  class="bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-700/80 text-xs font-semibold text-slate-700 dark:text-slate-300 rounded-xl px-3 py-1.5 focus:outline-none focus:border-purple-500 cursor-pointer"
                 >
                   <option value="All Categories">⊞ All Categories</option>
                   <option value="General">General</option>
@@ -480,7 +480,7 @@ const savePreferences = () => {
               <div class="relative">
                 <select
                   v-model="selectedSort"
-                  class="bg-slate-950/70 border border-slate-700/80 text-xs font-semibold text-slate-300 rounded-xl px-3 py-1.5 focus:outline-none focus:border-purple-500 cursor-pointer"
+                  class="bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-700/80 text-xs font-semibold text-slate-700 dark:text-slate-300 rounded-xl px-3 py-1.5 focus:outline-none focus:border-purple-500 cursor-pointer"
                 >
                   <option value="newest">⇅ Newest First</option>
                   <option value="oldest">⇅ Oldest First</option>
@@ -492,7 +492,7 @@ const savePreferences = () => {
               <!-- Filter reset button -->
               <button
                 @click="searchQuery = ''; selectedCategory = 'All Categories'; selectedSort = 'newest'; activeSourceTab = 'all'"
-                class="bg-slate-950/70 border border-slate-700/80 hover:bg-slate-800 text-xs font-semibold text-slate-300 hover:text-white rounded-xl px-3 py-1.5 flex items-center gap-1.5 transition-colors cursor-pointer"
+                class="bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-700/80 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white rounded-xl px-3 py-1.5 flex items-center gap-1.5 transition-colors cursor-pointer"
                 title="Reset filters"
               >
                 <span>☡</span>
@@ -510,8 +510,8 @@ const savePreferences = () => {
               @click="openAnnouncementDetail(announcement)"
               :class="[
                 announcement.isUnread
-                  ? 'bg-slate-900/90 border-purple-500/30 hover:border-purple-500/60 shadow-lg shadow-purple-950/20'
-                  : 'bg-[#0F172A]/70 border-slate-800/80 hover:border-slate-700 text-slate-400',
+                  ? 'bg-white dark:bg-slate-900/90 border-purple-500/30 dark:border-purple-500/30 hover:border-purple-500/60 shadow-md shadow-purple-500/5 dark:shadow-purple-950/20'
+                  : 'bg-white/80 dark:bg-[#0F172A]/70 border-slate-200/90 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700 text-slate-600 dark:text-slate-400',
                 'border rounded-3xl p-4 sm:p-5 transition-all cursor-pointer group relative overflow-hidden'
               ]"
             >
@@ -529,12 +529,12 @@ const savePreferences = () => {
                   <!-- Icon Container -->
                   <div
                     :class="[
-                      announcement.category === 'General' ? 'bg-purple-600/20 text-purple-400 border border-purple-500/30' :
-                      announcement.category === 'Assignments' && announcement.sourceType === 'teacher' && announcement.id === 2 ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30' :
-                      announcement.category === 'Academic' ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30' :
-                      announcement.category === 'Assignments' ? 'bg-amber-600/20 text-amber-400 border border-amber-500/30' :
-                      announcement.category === 'Scholarship' ? 'bg-purple-600/20 text-purple-400 border border-purple-500/30' :
-                      'bg-cyan-600/20 text-cyan-400 border border-cyan-500/30',
+                      announcement.category === 'General' ? 'bg-purple-600/10 dark:bg-purple-600/20 text-purple-600 dark:text-purple-400 border border-purple-500/20 dark:border-purple-500/30' :
+                      announcement.category === 'Assignments' && announcement.sourceType === 'teacher' && announcement.id === 2 ? 'bg-emerald-600/10 dark:bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 dark:border-emerald-500/30' :
+                      announcement.category === 'Academic' ? 'bg-blue-600/10 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 border border-blue-500/20 dark:border-blue-500/30' :
+                      announcement.category === 'Assignments' ? 'bg-amber-600/10 dark:bg-amber-600/20 text-amber-600 dark:text-amber-400 border border-amber-500/20 dark:border-amber-500/30' :
+                      announcement.category === 'Scholarship' ? 'bg-purple-600/10 dark:bg-purple-600/20 text-purple-600 dark:text-purple-400 border border-purple-500/20 dark:border-purple-500/30' :
+                      'bg-cyan-600/10 dark:bg-cyan-600/20 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20 dark:border-cyan-500/30',
                       'w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center text-lg sm:text-xl shrink-0 mt-0.5 shadow-inner'
                     ]"
                   >
@@ -553,8 +553,8 @@ const savePreferences = () => {
                     <div class="flex flex-wrap items-center gap-2">
                       <h3
                         :class="[
-                          announcement.isUnread ? 'text-white font-bold' : 'text-slate-300 font-semibold',
-                          'text-xs sm:text-sm tracking-tight group-hover:text-purple-300 transition-colors line-clamp-1'
+                          announcement.isUnread ? 'text-slate-900 dark:text-white font-bold' : 'text-slate-700 dark:text-slate-300 font-semibold',
+                          'text-xs sm:text-sm tracking-tight group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors line-clamp-1'
                         ]"
                       >
                         {{ announcement.title }}
@@ -563,7 +563,7 @@ const savePreferences = () => {
                       <!-- New Badge -->
                       <span
                         v-if="announcement.isNew"
-                        class="px-2 py-0.5 rounded-full bg-purple-600 text-white text-[9.5px] font-bold uppercase tracking-wider"
+                        class="px-2 py-0.5 rounded-full bg-purple-600 text-white text-[9.5px] font-bold uppercase tracking-wider shadow-xs"
                       >
                         New
                       </span>
@@ -571,7 +571,7 @@ const savePreferences = () => {
                       <!-- Pinned Icon -->
                       <span
                         v-if="announcement.isPinned"
-                        class="text-rose-400 text-xs"
+                        class="text-rose-500 dark:text-rose-400 text-xs"
                         title="Pinned Announcement"
                       >
                         📌
@@ -579,7 +579,7 @@ const savePreferences = () => {
                     </div>
 
                     <!-- Description -->
-                    <p class="text-xs text-slate-400 line-clamp-2 leading-relaxed font-normal">
+                    <p class="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed font-normal">
                       {{ announcement.description }}
                     </p>
 
@@ -589,37 +589,37 @@ const savePreferences = () => {
                       <!-- Source & Category / Teacher Info -->
                       <span
                         v-if="announcement.sourceType === 'teacher'"
-                        class="text-emerald-400 font-semibold flex items-center gap-1"
+                        class="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1"
                       >
                         <span>{{ announcement.source }}</span>
-                        <span class="text-slate-600">•</span>
+                        <span class="text-slate-400 dark:text-slate-600">•</span>
                         <span>{{ announcement.teacherName }}</span>
                       </span>
 
                       <span
                         v-else-if="announcement.category === 'Academic'"
-                        class="text-blue-400 font-semibold flex items-center gap-1"
+                        class="text-blue-600 dark:text-blue-400 font-semibold flex items-center gap-1"
                       >
                         <span>{{ announcement.source }}</span>
-                        <span class="text-slate-600">•</span>
+                        <span class="text-slate-400 dark:text-slate-600">•</span>
                         <span>{{ announcement.category }}</span>
                       </span>
 
                       <span
                         v-else-if="announcement.category === 'Assignments'"
-                        class="text-amber-400 font-semibold flex items-center gap-1"
+                        class="text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1"
                       >
                         <span>{{ announcement.source }}</span>
-                        <span class="text-slate-600">•</span>
+                        <span class="text-slate-400 dark:text-slate-600">•</span>
                         <span>{{ announcement.teacherName }}</span>
                       </span>
 
                       <span
                         v-else
-                        class="text-purple-400 font-semibold flex items-center gap-1"
+                        class="text-purple-600 dark:text-purple-400 font-semibold flex items-center gap-1"
                       >
                         <span>{{ announcement.source }}</span>
-                        <span class="text-slate-600">•</span>
+                        <span class="text-slate-400 dark:text-slate-600">•</span>
                         <span>{{ announcement.category }}</span>
                       </span>
 
@@ -633,15 +633,15 @@ const savePreferences = () => {
                 <div class="flex flex-col items-end justify-between self-stretch shrink-0 text-right space-y-2">
                   
                   <div class="space-y-0.5">
-                    <p class="text-[11px] text-slate-400 font-mono font-medium">{{ announcement.date }}</p>
-                    <p v-if="announcement.time" class="text-[10px] text-slate-500 font-mono">{{ announcement.time }}</p>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 font-mono font-medium">{{ announcement.date }}</p>
+                    <p v-if="announcement.time" class="text-[10px] text-slate-400 dark:text-slate-500 font-mono">{{ announcement.time }}</p>
                   </div>
 
                   <!-- Status Badge -->
                   <div>
                     <span
                       v-if="announcement.isUnread"
-                      class="px-2.5 py-0.5 rounded-full bg-lime-500/20 text-lime-400 border border-lime-500/30 text-[10px] font-bold flex items-center gap-1"
+                      class="px-2.5 py-0.5 rounded-full bg-lime-500/10 dark:bg-lime-500/20 text-lime-600 dark:text-lime-400 border border-lime-500/30 text-[10px] font-bold flex items-center gap-1"
                     >
                       <span>!</span>
                       <span>Unread</span>
@@ -649,7 +649,7 @@ const savePreferences = () => {
 
                     <span
                       v-else
-                      class="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 text-[10px] font-medium flex items-center gap-1"
+                      class="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 text-[10px] font-medium flex items-center gap-1"
                     >
                       <span>👁</span>
                       <span>Read</span>
@@ -665,16 +665,16 @@ const savePreferences = () => {
             <!-- Empty State -->
             <div
               v-if="paginatedAnnouncements.length === 0"
-              class="p-12 text-center bg-[#0F172A]/70 border border-slate-800/80 rounded-3xl space-y-3"
+              class="p-12 text-center bg-white dark:bg-[#0F172A]/70 border border-slate-200 dark:border-slate-800/80 rounded-3xl space-y-3 shadow-xs"
             >
-              <div class="w-12 h-12 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center text-2xl mx-auto">
+              <div class="w-12 h-12 rounded-full bg-purple-500/10 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center text-2xl mx-auto">
                 📢
               </div>
-              <h3 class="text-sm font-bold text-white">No announcements found</h3>
-              <p class="text-xs text-slate-400">Try changing your search terms or filter criteria.</p>
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white">No announcements found</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Try changing your search terms or filter criteria.</p>
               <button
                 @click="searchQuery = ''; selectedCategory = 'All Categories'; activeSourceTab = 'all'"
-                class="px-4 py-2 rounded-xl bg-purple-600 text-white font-bold text-xs shadow-md"
+                class="px-4 py-2 rounded-xl bg-purple-600 text-white font-bold text-xs shadow-md cursor-pointer"
               >
                 Clear All Filters
               </button>
@@ -683,7 +683,7 @@ const savePreferences = () => {
 
           <!-- 2.4 PAGINATION BAR -->
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 text-xs">
-            <p class="text-slate-400 font-medium">
+            <p class="text-slate-500 dark:text-slate-400 font-medium">
               Showing 1 to {{ paginatedAnnouncements.length }} of {{ totalAnnouncementsCount }} announcements
             </p>
 
@@ -691,7 +691,7 @@ const savePreferences = () => {
               <button
                 @click="currentPage = Math.max(1, currentPage - 1)"
                 :disabled="currentPage === 1"
-                class="w-7 h-7 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white disabled:opacity-40 flex items-center justify-center font-bold cursor-pointer"
+                class="w-7 h-7 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white disabled:opacity-40 flex items-center justify-center font-bold cursor-pointer shadow-xs"
               >
                 «
               </button>
@@ -703,8 +703,8 @@ const savePreferences = () => {
                 :class="[
                   currentPage === p
                     ? 'bg-purple-600 text-white font-bold'
-                    : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white',
-                  'w-7 h-7 rounded-lg flex items-center justify-center text-xs transition-colors cursor-pointer'
+                    : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white',
+                  'w-7 h-7 rounded-lg flex items-center justify-center text-xs transition-colors cursor-pointer shadow-xs'
                 ]"
               >
                 {{ p }}
@@ -713,7 +713,7 @@ const savePreferences = () => {
               <button
                 @click="currentPage = Math.min(totalPages, currentPage + 1)"
                 :disabled="currentPage === totalPages"
-                class="w-7 h-7 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white disabled:opacity-40 flex items-center justify-center font-bold cursor-pointer"
+                class="w-7 h-7 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white disabled:opacity-40 flex items-center justify-center font-bold cursor-pointer shadow-xs"
               >
                 »
               </button>
@@ -726,59 +726,59 @@ const savePreferences = () => {
         <div class="lg:col-span-4 space-y-6">
 
           <!-- CARD 1: ANNOUNCEMENT SUMMARY -->
-          <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-3xl p-5 shadow-xl space-y-4">
-            <div class="border-b border-slate-800/60 pb-2.5">
-              <h3 class="text-sm font-bold text-white tracking-tight">Announcement Summary</h3>
+          <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-4">
+            <div class="border-b border-slate-100 dark:border-slate-800/60 pb-2.5">
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">Announcement Summary</h3>
             </div>
 
             <div class="grid grid-cols-2 gap-3 text-xs">
               
               <!-- Total -->
-              <div class="p-3 bg-purple-950/30 border border-purple-900/40 rounded-2xl space-y-1">
+              <div class="p-3 bg-purple-50 dark:bg-purple-950/30 border border-purple-100 dark:border-purple-900/40 rounded-2xl space-y-1">
                 <div class="flex items-center justify-between">
-                  <span class="text-purple-400 text-base">📢</span>
-                  <span class="text-lg font-black text-white font-mono">{{ summaryStats.total }}</span>
+                  <span class="text-purple-600 dark:text-purple-400 text-base">📢</span>
+                  <span class="text-lg font-black text-slate-900 dark:text-white font-mono">{{ summaryStats.total }}</span>
                 </div>
-                <p class="text-[10.5px] text-slate-400 font-medium leading-tight">Total Announcements</p>
+                <p class="text-[10.5px] text-slate-600 dark:text-slate-400 font-medium leading-tight">Total Announcements</p>
               </div>
 
               <!-- Unread -->
-              <div class="p-3 bg-emerald-950/30 border border-emerald-900/40 rounded-2xl space-y-1">
+              <div class="p-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/40 rounded-2xl space-y-1">
                 <div class="flex items-center justify-between">
-                  <span class="text-emerald-400 text-base">✉️</span>
-                  <span class="text-lg font-black text-emerald-400 font-mono">{{ summaryStats.unread }}</span>
+                  <span class="text-emerald-600 dark:text-emerald-400 text-base">✉️</span>
+                  <span class="text-lg font-black text-emerald-600 dark:text-emerald-400 font-mono">{{ summaryStats.unread }}</span>
                 </div>
-                <p class="text-[10.5px] text-slate-400 font-medium leading-tight">Unread Announcements</p>
+                <p class="text-[10.5px] text-slate-600 dark:text-slate-400 font-medium leading-tight">Unread Announcements</p>
               </div>
 
               <!-- Teacher -->
-              <div class="p-3 bg-blue-950/30 border border-blue-900/40 rounded-2xl space-y-1">
+              <div class="p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/40 rounded-2xl space-y-1">
                 <div class="flex items-center justify-between">
-                  <span class="text-blue-400 text-base">🎓</span>
-                  <span class="text-lg font-black text-white font-mono">{{ summaryStats.teacher }}</span>
+                  <span class="text-blue-600 dark:text-blue-400 text-base">🎓</span>
+                  <span class="text-lg font-black text-slate-900 dark:text-white font-mono">{{ summaryStats.teacher }}</span>
                 </div>
-                <p class="text-[10.5px] text-slate-400 font-medium leading-tight">Teacher Announcements</p>
+                <p class="text-[10.5px] text-slate-600 dark:text-slate-400 font-medium leading-tight">Teacher Announcements</p>
               </div>
 
               <!-- System -->
-              <div class="p-3 bg-amber-950/30 border border-amber-900/40 rounded-2xl space-y-1">
+              <div class="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/40 rounded-2xl space-y-1">
                 <div class="flex items-center justify-between">
-                  <span class="text-amber-400 text-base">⚙️</span>
-                  <span class="text-lg font-black text-white font-mono">{{ summaryStats.system }}</span>
+                  <span class="text-amber-600 dark:text-amber-400 text-base">⚙️</span>
+                  <span class="text-lg font-black text-slate-900 dark:text-white font-mono">{{ summaryStats.system }}</span>
                 </div>
-                <p class="text-[10.5px] text-slate-400 font-medium leading-tight">System Announcements</p>
+                <p class="text-[10.5px] text-slate-600 dark:text-slate-400 font-medium leading-tight">System Announcements</p>
               </div>
 
             </div>
           </div>
 
           <!-- CARD 2: IMPORTANT ANNOUNCEMENTS -->
-          <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-3xl p-5 shadow-xl space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-800/60 pb-2.5">
-              <h3 class="text-sm font-bold text-white tracking-tight">Important Announcements</h3>
+          <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/60 pb-2.5">
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">Important Announcements</h3>
               <button
                 @click="selectedSort = 'important'"
-                class="text-purple-400 hover:text-purple-300 font-bold text-xs transition-colors cursor-pointer"
+                class="text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 font-bold text-xs transition-colors cursor-pointer"
               >
                 View All
               </button>
@@ -789,20 +789,20 @@ const savePreferences = () => {
                 v-for="item in importantList"
                 :key="item.id"
                 @click="openAnnouncementDetail(item)"
-                class="p-3 bg-slate-900/60 hover:bg-slate-900 border border-slate-800 rounded-2xl space-y-1 cursor-pointer transition-all hover:border-purple-500/40 group"
+                class="p-3 bg-slate-50 hover:bg-slate-100 dark:bg-slate-900/60 dark:hover:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-1 cursor-pointer transition-all hover:border-purple-500/40 group shadow-xs"
               >
                 <div class="flex items-center justify-between gap-2">
                   <div class="flex items-center gap-2 min-w-0">
-                    <span class="text-purple-400">
+                    <span class="text-purple-600 dark:text-purple-400">
                       {{ item.id === 1 ? '📢' : item.id === 2 ? '🎓' : '📅' }}
                     </span>
-                    <p class="font-bold text-white truncate text-xs group-hover:text-purple-300">
+                    <p class="font-bold text-slate-900 dark:text-white truncate text-xs group-hover:text-purple-600 dark:group-hover:text-purple-300">
                       {{ item.title }}
                     </p>
                   </div>
                   <span
                     v-if="item.isNew"
-                    class="px-1.5 py-0.2 rounded bg-purple-600 text-[9px] font-bold text-white shrink-0"
+                    class="px-1.5 py-0.2 rounded bg-purple-600 text-[9px] font-bold text-white shrink-0 shadow-xs"
                   >
                     New
                   </span>
@@ -817,12 +817,12 @@ const savePreferences = () => {
           </div>
 
           <!-- CARD 3: ANNOUNCEMENT CATEGORIES -->
-          <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-3xl p-5 shadow-xl space-y-3">
-            <div class="flex items-center justify-between border-b border-slate-800/60 pb-2.5">
-              <h3 class="text-sm font-bold text-white tracking-tight">Announcement Categories</h3>
+          <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/60 pb-2.5">
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">Announcement Categories</h3>
               <button
                 @click="selectedCategory = 'All Categories'"
-                class="text-purple-400 hover:text-purple-300 font-bold text-xs transition-colors cursor-pointer"
+                class="text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 font-bold text-xs transition-colors cursor-pointer"
               >
                 View All
               </button>
@@ -831,26 +831,26 @@ const savePreferences = () => {
             <div class="space-y-2 text-xs">
               <div
                 v-for="cat in [
-                  { name: 'General', count: categoryCounts['General'], icon: '📢', color: 'text-purple-400' },
-                  { name: 'Academic', count: categoryCounts['Academic'], icon: '🎓', color: 'text-blue-400' },
-                  { name: 'Course Updates', count: categoryCounts['Course Updates'], icon: '📑', color: 'text-emerald-400' },
-                  { name: 'Assignments', count: categoryCounts['Assignments'], icon: '📝', color: 'text-amber-400' },
-                  { name: 'Exams', count: categoryCounts['Exams'], icon: '📋', color: 'text-rose-400' },
+                  { name: 'General', count: categoryCounts['General'], icon: '📢', color: 'text-purple-600 dark:text-purple-400' },
+                  { name: 'Academic', count: categoryCounts['Academic'], icon: '🎓', color: 'text-blue-600 dark:text-blue-400' },
+                  { name: 'Course Updates', count: categoryCounts['Course Updates'], icon: '📑', color: 'text-emerald-600 dark:text-emerald-400' },
+                  { name: 'Assignments', count: categoryCounts['Assignments'], icon: '📝', color: 'text-amber-600 dark:text-amber-400' },
+                  { name: 'Exams', count: categoryCounts['Exams'], icon: '📋', color: 'text-rose-600 dark:text-rose-400' },
                 ]"
                 :key="cat.name"
                 @click="filterByCategory(cat.name)"
                 :class="[
                   selectedCategory === cat.name
-                    ? 'bg-purple-600/20 border-purple-500/40 text-white'
-                    : 'bg-slate-900/60 border-slate-800 text-slate-300 hover:border-slate-700 hover:text-white',
-                  'flex items-center justify-between p-2.5 rounded-xl border transition-all cursor-pointer'
+                    ? 'bg-purple-50 dark:bg-purple-600/20 border-purple-500/40 text-purple-900 dark:text-white font-bold'
+                    : 'bg-slate-50 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700 hover:text-slate-950 dark:hover:text-white',
+                  'flex items-center justify-between p-2.5 rounded-xl border transition-all cursor-pointer shadow-xs'
                 ]"
               >
                 <div class="flex items-center gap-2">
                   <span :class="cat.color">{{ cat.icon }}</span>
                   <span class="font-semibold text-xs">{{ cat.name }}</span>
                 </div>
-                <span class="px-2 py-0.5 rounded-full bg-slate-950 font-bold font-mono text-[10px] text-slate-400">
+                <span class="px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-950 font-bold font-mono text-[10px] text-slate-700 dark:text-slate-400">
                   {{ cat.count }}
                 </span>
               </div>
@@ -858,15 +858,15 @@ const savePreferences = () => {
           </div>
 
           <!-- CARD 4: NOTIFICATION PREFERENCES -->
-          <div class="bg-gradient-to-br from-[#12142E] via-[#0F172A] to-[#1F1138] border border-purple-900/40 rounded-3xl p-5 shadow-xl space-y-3.5 text-xs">
+          <div class="bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/60 dark:from-[#12142E] dark:via-[#0F172A] dark:to-[#1F1138] border border-purple-200 dark:border-purple-900/40 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3.5 text-xs">
             <div class="space-y-1">
-              <h3 class="text-sm font-bold text-white">Notification Preferences</h3>
-              <p class="text-[11px] text-slate-400">Manage how you receive announcements and notifications.</p>
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white">Notification Preferences</h3>
+              <p class="text-[11px] text-slate-600 dark:text-slate-400">Manage how you receive announcements and notifications.</p>
             </div>
 
             <button
               @click="isPreferencesModalOpen = true"
-              class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-950/50 flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95"
+              class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-950/20 flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95"
             >
               <span>⚙</span>
               <span>Manage Preferences</span>
@@ -882,39 +882,39 @@ const savePreferences = () => {
     <!-- ================= MODAL 1: ANNOUNCEMENT DETAIL MODAL ================= -->
     <div
       v-if="isDetailModalOpen && selectedAnnouncement"
-      class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
+      class="fixed inset-0 z-50 bg-slate-950/70 dark:bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
     >
-      <div class="bg-slate-900 border border-purple-500/40 rounded-3xl max-w-2xl w-full p-6 sm:p-7 space-y-5 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-purple-500/40 rounded-3xl max-w-2xl w-full p-6 sm:p-7 space-y-5 shadow-2xl relative max-h-[90vh] overflow-y-auto">
         
         <!-- Header -->
-        <div class="flex items-start justify-between border-b border-slate-800 pb-4 gap-3">
+        <div class="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-4 gap-3">
           <div class="space-y-1 min-w-0 flex-1">
             <div class="flex flex-wrap items-center gap-2">
               <span
                 :class="[
-                  selectedAnnouncement.sourceType === 'teacher' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' : 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+                  selectedAnnouncement.sourceType === 'teacher' ? 'bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/30' : 'bg-purple-500/10 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-500/30',
                   'px-2.5 py-0.5 rounded-full border text-[10px] font-bold'
                 ]"
               >
                 {{ selectedAnnouncement.source }}
               </span>
-              <span class="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700 text-[10px] font-medium">
+              <span class="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-[10px] font-medium">
                 {{ selectedAnnouncement.category }}
               </span>
-              <span v-if="selectedAnnouncement.isPinned" class="text-rose-400 text-xs">📌 Pinned</span>
+              <span v-if="selectedAnnouncement.isPinned" class="text-rose-500 dark:text-rose-400 text-xs font-semibold">📌 Pinned</span>
             </div>
 
-            <h2 class="text-base sm:text-lg font-black text-white leading-snug pt-1">
+            <h2 class="text-base sm:text-lg font-black text-slate-900 dark:text-white leading-snug pt-1">
               {{ selectedAnnouncement.title }}
             </h2>
-            <p class="text-xs text-slate-400 font-mono">
+            <p class="text-xs text-slate-500 dark:text-slate-400 font-mono">
               Published on {{ selectedAnnouncement.date }} <span v-if="selectedAnnouncement.time">• {{ selectedAnnouncement.time }}</span>
             </p>
           </div>
 
           <button
             @click="isDetailModalOpen = false"
-            class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center font-bold text-sm shrink-0 cursor-pointer"
+            class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white flex items-center justify-center font-bold text-sm shrink-0 cursor-pointer transition-colors"
           >
             ✕
           </button>
@@ -923,30 +923,30 @@ const savePreferences = () => {
         <!-- Teacher / Author Info if applicable -->
         <div
           v-if="selectedAnnouncement.teacherName"
-          class="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 flex items-center justify-between text-xs"
+          class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs"
         >
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-xl bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-bold text-sm">
+            <div class="w-9 h-9 rounded-xl bg-emerald-600/10 dark:bg-emerald-600/20 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-sm">
               👨‍🏫
             </div>
             <div>
-              <p class="font-bold text-white">{{ selectedAnnouncement.teacherName }}</p>
-              <p class="text-[11px] text-slate-400">{{ selectedAnnouncement.courseName }}</p>
+              <p class="font-bold text-slate-900 dark:text-white">{{ selectedAnnouncement.teacherName }}</p>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ selectedAnnouncement.courseName }}</p>
             </div>
           </div>
-          <span class="px-2.5 py-0.5 rounded-lg bg-slate-900 border border-slate-700 text-[10px] text-slate-300 font-medium">
+          <span class="px-2.5 py-0.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-[10px] text-slate-700 dark:text-slate-300 font-medium">
             Course Instructor
           </span>
         </div>
 
         <!-- Full Content Body -->
-        <div class="space-y-3 text-xs sm:text-sm text-slate-300 leading-relaxed font-normal bg-slate-950/40 p-4 rounded-2xl border border-slate-800/60">
+        <div class="space-y-3 text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-normal bg-slate-50 dark:bg-slate-950/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-800/60">
           <p>{{ selectedAnnouncement.content || selectedAnnouncement.description }}</p>
         </div>
 
         <!-- Attachments Section if available -->
         <div v-if="selectedAnnouncement.attachments && selectedAnnouncement.attachments.length > 0" class="space-y-2 text-xs">
-          <h4 class="font-bold text-white text-xs flex items-center gap-1.5">
+          <h4 class="font-bold text-slate-900 dark:text-white text-xs flex items-center gap-1.5">
             <span>📎</span>
             <span>Attachments ({{ selectedAnnouncement.attachments.length }})</span>
           </h4>
@@ -956,25 +956,25 @@ const savePreferences = () => {
               v-for="att in selectedAnnouncement.attachments"
               :key="att.name"
               @click="downloadAttachment(att)"
-              class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-purple-500/40 flex items-center justify-between transition-colors cursor-pointer group"
+              class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 hover:border-purple-500/40 flex items-center justify-between transition-colors cursor-pointer group shadow-xs"
             >
               <div class="flex items-center gap-2 min-w-0">
-                <span class="text-purple-400 text-sm">📄</span>
+                <span class="text-purple-600 dark:text-purple-400 text-sm">📄</span>
                 <div class="min-w-0">
-                  <p class="font-bold text-white truncate text-[11px] group-hover:text-purple-300">{{ att.name }}</p>
+                  <p class="font-bold text-slate-900 dark:text-white truncate text-[11px] group-hover:text-purple-600 dark:group-hover:text-purple-300">{{ att.name }}</p>
                   <p class="text-[9.5px] text-slate-500 font-mono">{{ att.size }} • {{ att.type }}</p>
                 </div>
               </div>
-              <span class="text-xs text-slate-400 group-hover:text-purple-400">⤓</span>
+              <span class="text-xs text-slate-500 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400">⤓</span>
             </div>
           </div>
         </div>
 
         <!-- Modal Footer Actions (Phase 4 Cross-Module Linking) -->
-        <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-800 text-xs">
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs">
           <button
             @click="toggleReadStatus(selectedAnnouncement)"
-            class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold flex items-center gap-1.5 cursor-pointer"
+            class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
           >
             <span>{{ selectedAnnouncement.isUnread ? '✓ Mark as Read' : '✉ Mark as Unread' }}</span>
           </button>
@@ -991,7 +991,7 @@ const savePreferences = () => {
 
             <button
               @click="isDetailModalOpen = false"
-              class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-bold cursor-pointer"
+              class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:text-white font-bold cursor-pointer transition-colors"
             >
               Close
             </button>
@@ -1004,60 +1004,60 @@ const savePreferences = () => {
     <!-- ================= MODAL 2: NOTIFICATION PREFERENCES MODAL ================= -->
     <div
       v-if="isPreferencesModalOpen"
-      class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
+      class="fixed inset-0 z-50 bg-slate-950/70 dark:bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
     >
-      <div class="bg-slate-900 border border-purple-500/40 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
-        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-purple-500/40 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
           <div>
-            <h3 class="text-base font-black text-white">Notification Preferences</h3>
-            <p class="text-xs text-slate-400">Choose channels and types of announcements</p>
+            <h3 class="text-base font-black text-slate-900 dark:text-white">Notification Preferences</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Choose channels and types of announcements</p>
           </div>
           <button
             @click="isPreferencesModalOpen = false"
-            class="w-7 h-7 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center font-bold text-xs cursor-pointer"
+            class="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white flex items-center justify-center font-bold text-xs cursor-pointer"
           >
             ✕
           </button>
         </div>
 
         <div class="space-y-3 text-xs">
-          <div class="flex items-center justify-between p-3 bg-slate-950 rounded-xl border border-slate-800">
+          <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800">
             <div>
-              <p class="font-bold text-white">Email Notifications</p>
-              <p class="text-[10px] text-slate-400">Send copies to student email</p>
+              <p class="font-bold text-slate-900 dark:text-white">Email Notifications</p>
+              <p class="text-[10px] text-slate-500 dark:text-slate-400">Send copies to student email</p>
             </div>
             <input v-model="preferences.email" type="checkbox" class="w-4 h-4 accent-purple-600 rounded cursor-pointer" />
           </div>
 
-          <div class="flex items-center justify-between p-3 bg-slate-950 rounded-xl border border-slate-800">
+          <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800">
             <div>
-              <p class="font-bold text-white">Push &amp; In-App Notifications</p>
-              <p class="text-[10px] text-slate-400">Real-time alerts on platform</p>
+              <p class="font-bold text-slate-900 dark:text-white">Push &amp; In-App Notifications</p>
+              <p class="text-[10px] text-slate-500 dark:text-slate-400">Real-time alerts on platform</p>
             </div>
             <input v-model="preferences.push" type="checkbox" class="w-4 h-4 accent-purple-600 rounded cursor-pointer" />
           </div>
 
-          <div class="flex items-center justify-between p-3 bg-slate-950 rounded-xl border border-slate-800">
+          <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800">
             <div>
-              <p class="font-bold text-white">System Announcements</p>
-              <p class="text-[10px] text-slate-400">University-wide notices</p>
+              <p class="font-bold text-slate-900 dark:text-white">System Announcements</p>
+              <p class="text-[10px] text-slate-500 dark:text-slate-400">University-wide notices</p>
             </div>
             <input v-model="preferences.systemAlerts" type="checkbox" class="w-4 h-4 accent-purple-600 rounded cursor-pointer" />
           </div>
 
-          <div class="flex items-center justify-between p-3 bg-slate-950 rounded-xl border border-slate-800">
+          <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800">
             <div>
-              <p class="font-bold text-white">Teacher &amp; Course Alerts</p>
-              <p class="text-[10px] text-slate-400">Instructor messages &amp; assignments</p>
+              <p class="font-bold text-slate-900 dark:text-white">Teacher &amp; Course Alerts</p>
+              <p class="text-[10px] text-slate-500 dark:text-slate-400">Instructor messages &amp; assignments</p>
             </div>
             <input v-model="preferences.teacherAlerts" type="checkbox" class="w-4 h-4 accent-purple-600 rounded cursor-pointer" />
           </div>
         </div>
 
-        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800 text-xs">
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
           <button
             @click="isPreferencesModalOpen = false"
-            class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold"
+            class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-200 cursor-pointer"
           >
             Cancel
           </button>
@@ -1074,22 +1074,22 @@ const savePreferences = () => {
     <!-- ================= MODAL 3: MARK ALL AS READ CONFIRMATION ================= -->
     <div
       v-if="isMarkAllConfirmModalOpen"
-      class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
+      class="fixed inset-0 z-50 bg-slate-950/70 dark:bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
     >
-      <div class="bg-slate-900 border border-purple-500/40 rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl text-center">
-        <div class="w-12 h-12 rounded-full bg-purple-600/20 text-purple-400 flex items-center justify-center text-2xl mx-auto">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-purple-500/40 rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl text-center">
+        <div class="w-12 h-12 rounded-full bg-purple-600/10 dark:bg-purple-600/20 text-purple-600 dark:text-purple-400 flex items-center justify-center text-2xl mx-auto">
           ✓✓
         </div>
         <div class="space-y-1">
-          <h3 class="text-base font-black text-white">Mark All as Read?</h3>
-          <p class="text-xs text-slate-400">
+          <h3 class="text-base font-black text-slate-900 dark:text-white">Mark All as Read?</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400">
             This will mark all {{ summaryStats.unread }} unread announcements as read.
           </p>
         </div>
         <div class="flex items-center justify-center gap-2 pt-2 text-xs">
           <button
             @click="isMarkAllConfirmModalOpen = false"
-            class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold cursor-pointer"
+            class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold cursor-pointer hover:bg-slate-200"
           >
             Cancel
           </button>
@@ -1106,7 +1106,7 @@ const savePreferences = () => {
     <!-- ================= TOAST NOTIFICATION ================= -->
     <div
       v-if="toastMessage"
-      class="fixed bottom-6 right-6 z-50 bg-slate-900 border border-purple-500/50 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs font-bold animate-in slide-in-from-bottom-4 duration-200"
+      class="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl border border-purple-500/50 flex items-center gap-2.5 text-xs font-bold animate-in slide-in-from-bottom-4 duration-200"
     >
       <span class="w-5 h-5 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center text-xs">✓</span>
       <span>{{ toastMessage }}</span>
@@ -1114,3 +1114,4 @@ const savePreferences = () => {
 
   </StudentLayout>
 </template>
+

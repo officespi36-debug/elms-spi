@@ -291,11 +291,11 @@ const handleFilterChange = (overrideTab?: string) => {
       <!-- ================= 1. PAGE HEADER ================= -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2">
+          <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
             <span>Available Certificates</span>
-            <span class="inline-flex p-1.5 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400 text-lg">📄</span>
+            <span class="inline-flex p-1.5 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-600 dark:text-purple-400 text-lg">📄</span>
           </h1>
-          <p class="text-xs sm:text-sm text-slate-400 mt-1 font-medium">
+          <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">
             Explore all certificates you can earn. Complete courses and unlock your achievements.
           </p>
         </div>
@@ -305,61 +305,61 @@ const handleFilterChange = (overrideTab?: string) => {
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         
         <!-- Card 1: Total Available -->
-        <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex items-center justify-between group hover:border-purple-500/30 transition-all">
+        <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm dark:shadow-xl flex items-center justify-between group hover:border-purple-500/30 transition-all">
           <div class="space-y-0.5">
-            <p class="text-[10px] text-slate-400 font-medium">Total Available</p>
-            <p class="text-2xl font-black text-white font-mono">{{ summary.total_available }}</p>
-            <p class="text-[10px] text-slate-400 font-medium">{{ summary.total_note }}</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Total Available</p>
+            <p class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ summary.total_available }}</p>
+            <p class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">{{ summary.total_note }}</p>
           </div>
-          <div class="w-10 h-10 rounded-2xl bg-purple-600/20 border border-purple-500/30 text-purple-300 flex items-center justify-center text-base shadow-inner shrink-0 group-hover:scale-110 transition-transform">
+          <div class="w-10 h-10 rounded-2xl bg-purple-500/10 dark:bg-purple-600/20 border border-purple-500/20 dark:border-purple-500/30 text-purple-600 dark:text-purple-300 flex items-center justify-center text-base shadow-inner shrink-0 group-hover:scale-110 transition-transform">
             🛡️
           </div>
         </div>
 
         <!-- Card 2: In Progress -->
-        <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex items-center justify-between group hover:border-blue-500/30 transition-all">
+        <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm dark:shadow-xl flex items-center justify-between group hover:border-blue-500/30 transition-all">
           <div class="space-y-0.5">
-            <p class="text-[10px] text-slate-400 font-medium">In Progress</p>
-            <p class="text-2xl font-black text-white font-mono">{{ summary.in_progress }}</p>
-            <p class="text-[10px] text-blue-400 font-medium font-mono">{{ summary.in_progress_note }}</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">In Progress</p>
+            <p class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ summary.in_progress }}</p>
+            <p class="text-[10px] text-blue-600 dark:text-blue-400 font-medium font-mono">{{ summary.in_progress_note }}</p>
           </div>
-          <div class="w-10 h-10 rounded-2xl bg-blue-600/20 border border-blue-500/30 text-blue-300 flex items-center justify-center text-base shadow-inner shrink-0 group-hover:scale-110 transition-transform">
+          <div class="w-10 h-10 rounded-2xl bg-blue-500/10 dark:bg-blue-600/20 border border-blue-500/20 dark:border-blue-500/30 text-blue-600 dark:text-blue-300 flex items-center justify-center text-base shadow-inner shrink-0 group-hover:scale-110 transition-transform">
             📅
           </div>
         </div>
 
         <!-- Card 3: Almost There -->
-        <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex items-center justify-between group hover:border-emerald-500/30 transition-all">
+        <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm dark:shadow-xl flex items-center justify-between group hover:border-emerald-500/30 transition-all">
           <div class="space-y-0.5">
-            <p class="text-[10px] text-slate-400 font-medium">Almost There</p>
-            <p class="text-2xl font-black text-white font-mono">{{ summary.almost_there }}</p>
-            <p class="text-[10px] text-emerald-400 font-medium font-mono">{{ summary.almost_note }}</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Almost There</p>
+            <p class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ summary.almost_there }}</p>
+            <p class="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium font-mono">{{ summary.almost_note }}</p>
           </div>
-          <div class="w-10 h-10 rounded-2xl bg-emerald-600/20 border border-emerald-500/30 text-emerald-300 flex items-center justify-center text-base shadow-inner shrink-0 group-hover:scale-110 transition-transform">
+          <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 dark:bg-emerald-600/20 border border-emerald-500/20 dark:border-emerald-500/30 text-emerald-600 dark:text-emerald-300 flex items-center justify-center text-base shadow-inner shrink-0 group-hover:scale-110 transition-transform">
             🎯
           </div>
         </div>
 
         <!-- Card 4: Not Started -->
-        <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex items-center justify-between group hover:border-amber-500/30 transition-all">
+        <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm dark:shadow-xl flex items-center justify-between group hover:border-amber-500/30 transition-all">
           <div class="space-y-0.5">
-            <p class="text-[10px] text-slate-400 font-medium">Not Started</p>
-            <p class="text-2xl font-black text-white font-mono">{{ summary.not_started }}</p>
-            <p class="text-[10px] text-slate-400 font-medium">{{ summary.not_started_note }}</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Not Started</p>
+            <p class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ summary.not_started }}</p>
+            <p class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">{{ summary.not_started_note }}</p>
           </div>
-          <div class="w-10 h-10 rounded-2xl bg-amber-600/20 border border-amber-500/30 text-amber-300 flex items-center justify-center text-base shadow-inner shrink-0 group-hover:scale-110 transition-transform">
+          <div class="w-10 h-10 rounded-2xl bg-amber-500/10 dark:bg-amber-600/20 border border-amber-500/20 dark:border-amber-500/30 text-amber-600 dark:text-amber-300 flex items-center justify-center text-base shadow-inner shrink-0 group-hover:scale-110 transition-transform">
             ⭐
           </div>
         </div>
 
         <!-- Card 5: Earned This Year -->
-        <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex items-center justify-between group hover:border-purple-500/30 transition-all">
+        <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm dark:shadow-xl flex items-center justify-between group hover:border-purple-500/30 transition-all">
           <div class="space-y-0.5">
-            <p class="text-[10px] text-slate-400 font-medium">Earned This Year</p>
-            <p class="text-2xl font-black text-white font-mono">{{ summary.earned_this_year }}</p>
-            <p class="text-[10px] text-purple-400 font-medium font-mono">{{ summary.earned_note }}</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Earned This Year</p>
+            <p class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ summary.earned_this_year }}</p>
+            <p class="text-[10px] text-purple-600 dark:text-purple-400 font-medium font-mono">{{ summary.earned_note }}</p>
           </div>
-          <div class="w-10 h-10 rounded-2xl bg-purple-600/20 border border-purple-500/30 text-purple-300 flex items-center justify-center text-base shadow-inner shrink-0 group-hover:scale-110 transition-transform">
+          <div class="w-10 h-10 rounded-2xl bg-purple-500/10 dark:bg-purple-600/20 border border-purple-500/20 dark:border-purple-500/30 text-purple-600 dark:text-purple-300 flex items-center justify-center text-base shadow-inner shrink-0 group-hover:scale-110 transition-transform">
             🏆
           </div>
         </div>
@@ -373,7 +373,7 @@ const handleFilterChange = (overrideTab?: string) => {
         <div class="lg:col-span-8 space-y-6">
 
           <!-- SEARCH & FILTER CONTROLS BAR -->
-          <div class="flex flex-wrap items-center justify-between gap-3 bg-[#0F172A]/80 border border-slate-800/80 rounded-2xl p-3 shadow-lg">
+          <div class="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-[#0F172A]/80 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-3 shadow-sm dark:shadow-lg">
             
             <!-- Search Input -->
             <div class="relative flex-1 min-w-[180px]">
@@ -382,9 +382,9 @@ const handleFilterChange = (overrideTab?: string) => {
                 v-model="searchQuery"
                 @keyup.enter="handleFilterChange()"
                 placeholder="Search certificates..."
-                class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                class="w-full bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700/80 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 shadow-xs"
               />
-              <span class="absolute left-3 top-2 text-xs text-slate-500">🔍</span>
+              <span class="absolute left-3 top-2 text-xs text-slate-400 dark:text-slate-500">🔍</span>
             </div>
 
             <!-- Filter Dropdowns -->
@@ -392,7 +392,7 @@ const handleFilterChange = (overrideTab?: string) => {
               <select
                 v-model="selectedCategory"
                 @change="handleFilterChange()"
-                class="bg-slate-900 border border-slate-700/80 text-xs font-semibold text-slate-200 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-purple-500 cursor-pointer"
+                class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 text-xs font-semibold text-slate-700 dark:text-slate-200 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-purple-500 cursor-pointer shadow-xs"
               >
                 <option value="all">All Categories</option>
                 <option value="Programming">Programming</option>
@@ -404,7 +404,7 @@ const handleFilterChange = (overrideTab?: string) => {
               <select
                 v-model="selectedCourse"
                 @change="handleFilterChange()"
-                class="bg-slate-900 border border-slate-700/80 text-xs font-semibold text-slate-200 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-purple-500 cursor-pointer"
+                class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 text-xs font-semibold text-slate-700 dark:text-slate-200 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-purple-500 cursor-pointer shadow-xs"
               >
                 <option value="all">All Courses</option>
                 <option value="JavaScript Advanced">JavaScript Advanced</option>
@@ -416,7 +416,7 @@ const handleFilterChange = (overrideTab?: string) => {
               <select
                 v-model="selectedLevel"
                 @change="handleFilterChange()"
-                class="bg-slate-900 border border-slate-700/80 text-xs font-semibold text-slate-200 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-purple-500 cursor-pointer"
+                class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 text-xs font-semibold text-slate-700 dark:text-slate-200 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-purple-500 cursor-pointer shadow-xs"
               >
                 <option value="all">All Levels</option>
                 <option value="Beginner">Beginner</option>
@@ -427,24 +427,24 @@ const handleFilterChange = (overrideTab?: string) => {
               <select
                 v-model="selectedSort"
                 @change="handleFilterChange()"
-                class="bg-slate-900 border border-slate-700/80 text-xs font-semibold text-slate-200 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-purple-500 cursor-pointer"
+                class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 text-xs font-semibold text-slate-700 dark:text-slate-200 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-purple-500 cursor-pointer shadow-xs"
               >
                 <option value="progress">Sort by Progress</option>
                 <option value="title">Sort by Name</option>
               </select>
 
               <!-- View Switch -->
-              <div class="flex items-center bg-slate-900 border border-slate-700/80 rounded-xl p-0.5">
+              <div class="flex items-center bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl p-0.5 shadow-xs">
                 <button
                   @click="isGridView = true"
-                  :class="[isGridView ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-white', 'p-1 rounded-lg text-xs transition-colors cursor-pointer']"
+                  :class="[isGridView ? 'bg-purple-600 text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white', 'p-1 rounded-lg text-xs transition-colors cursor-pointer']"
                   title="Grid View"
                 >
                   ▦
                 </button>
                 <button
                   @click="isGridView = false"
-                  :class="[!isGridView ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-white', 'p-1 rounded-lg text-xs transition-colors cursor-pointer']"
+                  :class="[!isGridView ? 'bg-purple-600 text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white', 'p-1 rounded-lg text-xs transition-colors cursor-pointer']"
                   title="List View"
                 >
                   ☰
@@ -455,7 +455,7 @@ const handleFilterChange = (overrideTab?: string) => {
           </div>
 
           <!-- STATUS TABS -->
-          <div class="flex items-center gap-1.5 bg-[#0F172A]/80 border border-slate-800/80 rounded-2xl p-1.5 shadow-lg overflow-x-auto custom-scrollbar">
+          <div class="flex items-center gap-1.5 bg-white dark:bg-[#0F172A]/80 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-1.5 shadow-sm dark:shadow-lg overflow-x-auto custom-scrollbar">
             <button
               v-for="tab in [
                 { key: 'all', label: 'All Certificates' },
@@ -467,8 +467,8 @@ const handleFilterChange = (overrideTab?: string) => {
               @click="handleFilterChange(tab.key)"
               :class="[
                 activeStatusTab === tab.key
-                  ? 'bg-purple-600 text-white shadow-md shadow-purple-900/40'
-                  : 'text-slate-400 hover:text-white',
+                  ? 'bg-purple-600 text-white shadow-md shadow-purple-900/20'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white',
                 'px-4 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer'
               ]"
             >
@@ -481,7 +481,7 @@ const handleFilterChange = (overrideTab?: string) => {
             <div
               v-for="cert in certificates"
               :key="cert.id"
-              class="bg-[#0F172A]/90 border border-slate-800/80 hover:border-purple-500/40 rounded-3xl p-4 shadow-xl flex flex-col justify-between group transition-all cursor-pointer relative"
+              class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 hover:border-purple-500/40 rounded-3xl p-4 shadow-sm dark:shadow-xl flex flex-col justify-between group transition-all cursor-pointer relative"
               @click="openRequirementsModal(cert)"
             >
               <!-- TOP: MINI CERTIFICATE PREVIEW CANVAS + PROGRESS BADGE -->
@@ -523,23 +523,23 @@ const handleFilterChange = (overrideTab?: string) => {
               <!-- CARD BODY INFO -->
               <div class="pt-3 pb-1 space-y-1.5">
                 <div>
-                  <h3 class="text-sm font-bold text-white group-hover:text-purple-300 transition-colors truncate">
+                  <h3 class="text-sm font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors truncate">
                     {{ cert.title }}
                   </h3>
-                  <p class="text-[10px] text-slate-400 font-medium">{{ cert.issuer }}</p>
+                  <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{{ cert.issuer }}</p>
                 </div>
 
-                <p class="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
+                <p class="text-[11px] text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed">
                   {{ cert.description }}
                 </p>
 
                 <!-- Progress Bar -->
                 <div class="space-y-1 pt-1">
                   <div class="flex items-center justify-between text-[10px]">
-                    <span class="text-slate-400 font-medium">Progress</span>
-                    <span class="font-bold text-white font-mono">{{ cert.progress }}%</span>
+                    <span class="text-slate-500 dark:text-slate-400 font-medium">Progress</span>
+                    <span class="font-bold text-slate-900 dark:text-white font-mono">{{ cert.progress }}%</span>
                   </div>
-                  <div class="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden">
+                  <div class="w-full h-1.5 bg-slate-100 dark:bg-slate-950 rounded-full overflow-hidden">
                     <div
                       class="h-full rounded-full"
                       :class="cert.bar_color"
@@ -550,12 +550,12 @@ const handleFilterChange = (overrideTab?: string) => {
               </div>
 
               <!-- CARD FOOTER BADGES -->
-              <div class="flex items-center justify-between pt-2.5 border-t border-slate-800/80 text-[10px] text-slate-400">
-                <span class="flex items-center gap-1 font-medium text-slate-300">
+              <div class="flex items-center justify-between pt-2.5 border-t border-slate-100 dark:border-slate-800/80 text-[10px] text-slate-500 dark:text-slate-400">
+                <span class="flex items-center gap-1 font-medium text-slate-700 dark:text-slate-300">
                   <span>◈</span>
                   <span>{{ cert.level }}</span>
                 </span>
-                <span class="flex items-center gap-1 font-medium text-purple-300">
+                <span class="flex items-center gap-1 font-medium text-purple-600 dark:text-purple-300">
                   <span>📄</span>
                   <span>Certificate</span>
                 </span>
@@ -565,25 +565,25 @@ const handleFilterChange = (overrideTab?: string) => {
           </div>
 
           <!-- PAGINATION -->
-          <div class="p-4 bg-[#0F172A]/90 border border-slate-800/80 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-            <span class="text-slate-400 text-[11px]">
+          <div class="p-4 bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs shadow-xs dark:shadow-md">
+            <span class="text-slate-500 dark:text-slate-400 text-[11px]">
               Showing 1 to 8 of 15 certificates
             </span>
 
             <div class="flex items-center gap-1.5">
-              <button class="w-7 h-7 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white flex items-center justify-center font-bold text-xs disabled:opacity-40">
+              <button class="w-7 h-7 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white flex items-center justify-center font-bold text-xs disabled:opacity-40 cursor-pointer">
                 «
               </button>
-              <button class="w-7 h-7 rounded-lg bg-purple-600 text-white font-bold text-xs shadow-sm">
+              <button class="w-7 h-7 rounded-lg bg-purple-600 text-white font-bold text-xs shadow-xs">
                 1
               </button>
-              <button class="w-7 h-7 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white flex items-center justify-center font-bold text-xs">
+              <button class="w-7 h-7 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white flex items-center justify-center font-bold text-xs cursor-pointer">
                 2
               </button>
-              <button class="w-7 h-7 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white flex items-center justify-center font-bold text-xs">
+              <button class="w-7 h-7 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white flex items-center justify-center font-bold text-xs cursor-pointer">
                 ›
               </button>
-              <button class="w-7 h-7 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white flex items-center justify-center font-bold text-xs">
+              <button class="w-7 h-7 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white flex items-center justify-center font-bold text-xs cursor-pointer">
                 »
               </button>
             </div>
@@ -595,16 +595,16 @@ const handleFilterChange = (overrideTab?: string) => {
         <div class="lg:col-span-4 space-y-6">
 
           <!-- WIDGET 1: Certificate Progress Overview Donut Chart -->
-          <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-3xl p-5 shadow-xl space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-800/60 pb-3">
-              <h3 class="text-sm font-bold text-white tracking-tight">Certificate Progress Overview</h3>
+          <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/60 pb-3">
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">Certificate Progress Overview</h3>
             </div>
 
             <div class="flex items-center justify-between gap-4">
               <!-- Donut Chart -->
               <div class="relative w-24 h-24 flex items-center justify-center shrink-0">
                 <svg class="w-24 h-24 -rotate-90 transform" viewBox="0 0 36 36">
-                  <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#1E293B" stroke-width="4.5" />
+                  <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#E2E8F0" class="dark:stroke-slate-800" stroke-width="4.5" />
                   <!-- In Progress: 40% -->
                   <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#3B82F6" stroke-width="4.5" stroke-dasharray="40, 100" stroke-dashoffset="0" />
                   <!-- Almost There: 27% -->
@@ -614,8 +614,8 @@ const handleFilterChange = (overrideTab?: string) => {
                 </svg>
 
                 <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-                  <span class="text-base font-black text-white font-mono leading-none">{{ progressOverview.total }}</span>
-                  <span class="text-[8px] text-slate-400 mt-0.5 font-medium">Total</span>
+                  <span class="text-base font-black text-slate-900 dark:text-white font-mono leading-none">{{ progressOverview.total }}</span>
+                  <span class="text-[8px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium">Total</span>
                 </div>
               </div>
 
@@ -628,18 +628,18 @@ const handleFilterChange = (overrideTab?: string) => {
                 >
                   <div class="flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: item.color }"></span>
-                    <span class="text-slate-300 font-medium">{{ item.label }}</span>
+                    <span class="text-slate-600 dark:text-slate-300 font-medium">{{ item.label }}</span>
                   </div>
-                  <span class="font-bold text-white font-mono">{{ item.count }} ({{ item.percentage }}%)</span>
+                  <span class="font-bold text-slate-900 dark:text-white font-mono">{{ item.count }} ({{ item.percentage }}%)</span>
                 </div>
               </div>
             </div>
           </div>
 
           <!-- WIDGET 2: Popular Certificate Categories -->
-          <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-3xl p-5 shadow-xl space-y-3">
-            <div class="flex items-center justify-between border-b border-slate-800/60 pb-2.5">
-              <h3 class="text-sm font-bold text-white tracking-tight">Popular Certificate Categories</h3>
+          <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/60 pb-2.5">
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">Popular Certificate Categories</h3>
             </div>
 
             <div class="space-y-2">
@@ -647,7 +647,7 @@ const handleFilterChange = (overrideTab?: string) => {
                 v-for="cat in popularCategories"
                 :key="cat.id"
                 @click="selectedCategory = cat.name; handleFilterChange()"
-                class="p-2.5 rounded-2xl bg-slate-900/70 border border-slate-800/60 flex items-center justify-between gap-3 hover:border-purple-500/30 transition-all cursor-pointer group"
+                class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800/60 flex items-center justify-between gap-3 hover:border-purple-500/30 transition-all cursor-pointer group shadow-xs"
               >
                 <div class="flex items-center gap-2.5 min-w-0">
                   <div
@@ -658,77 +658,77 @@ const handleFilterChange = (overrideTab?: string) => {
                   >
                     📂
                   </div>
-                  <p class="text-xs font-bold text-white group-hover:text-purple-300 transition-colors truncate">
+                  <p class="text-xs font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors truncate">
                     {{ cat.name }}
                   </p>
                 </div>
 
                 <div class="flex items-center gap-1.5">
-                  <span class="text-[10px] text-slate-400 font-mono whitespace-nowrap">
+                  <span class="text-[10px] text-slate-500 dark:text-slate-400 font-mono whitespace-nowrap">
                     {{ cat.count }} certificates
                   </span>
-                  <span class="text-slate-500 group-hover:text-white transition-colors text-xs">›</span>
+                  <span class="text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors text-xs">›</span>
                 </div>
               </div>
             </div>
 
             <button
               @click="selectedCategory = 'all'; handleFilterChange()"
-              class="w-full text-center text-xs text-purple-400 font-bold hover:underline pt-1 cursor-pointer"
+              class="w-full text-center text-xs text-purple-600 dark:text-purple-400 font-bold hover:underline pt-1 cursor-pointer"
             >
               View All Categories
             </button>
           </div>
 
           <!-- WIDGET 3: How to Earn Certificates (4-Step Flow) -->
-          <div class="bg-gradient-to-br from-[#10132B] via-[#0F172A] to-[#1E1138] border border-purple-900/50 rounded-3xl p-5 shadow-2xl space-y-4">
-            <div class="border-b border-purple-900/40 pb-2.5">
-              <h3 class="text-sm font-bold text-white tracking-tight">How to Earn Certificates</h3>
+          <div class="bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/60 dark:from-[#10132B] dark:via-[#0F172A] dark:to-[#1E1138] border border-purple-200 dark:border-purple-900/50 rounded-3xl p-5 shadow-sm dark:shadow-2xl space-y-4">
+            <div class="border-b border-purple-200 dark:border-purple-900/40 pb-2.5">
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">How to Earn Certificates</h3>
             </div>
 
             <div class="space-y-3 text-xs">
               
               <!-- Step 1 -->
               <div class="flex items-start gap-3">
-                <div class="w-6 h-6 rounded-full bg-blue-600/30 border border-blue-500/50 text-blue-300 flex items-center justify-center text-xs font-black font-mono shrink-0">
+                <div class="w-6 h-6 rounded-full bg-blue-500/10 dark:bg-blue-600/30 border border-blue-500/30 dark:border-blue-500/50 text-blue-700 dark:text-blue-300 flex items-center justify-center text-xs font-black font-mono shrink-0">
                   1
                 </div>
                 <div>
-                  <p class="font-bold text-white">Enroll in a course</p>
-                  <p class="text-[10px] text-slate-400">Choose a course with a certificate.</p>
+                  <p class="font-bold text-slate-900 dark:text-white">Enroll in a course</p>
+                  <p class="text-[10px] text-slate-600 dark:text-slate-400">Choose a course with a certificate.</p>
                 </div>
               </div>
 
               <!-- Step 2 -->
               <div class="flex items-start gap-3">
-                <div class="w-6 h-6 rounded-full bg-blue-600/30 border border-blue-500/50 text-blue-300 flex items-center justify-center text-xs font-black font-mono shrink-0">
+                <div class="w-6 h-6 rounded-full bg-blue-500/10 dark:bg-blue-600/30 border border-blue-500/30 dark:border-blue-500/50 text-blue-700 dark:text-blue-300 flex items-center justify-center text-xs font-black font-mono shrink-0">
                   2
                 </div>
                 <div>
-                  <p class="font-bold text-white">Complete all requirements</p>
-                  <p class="text-[10px] text-slate-400">Finish lessons, quizzes, and assignments.</p>
+                  <p class="font-bold text-slate-900 dark:text-white">Complete all requirements</p>
+                  <p class="text-[10px] text-slate-600 dark:text-slate-400">Finish lessons, quizzes, and assignments.</p>
                 </div>
               </div>
 
               <!-- Step 3 -->
               <div class="flex items-start gap-3">
-                <div class="w-6 h-6 rounded-full bg-emerald-600/30 border border-emerald-500/50 text-emerald-300 flex items-center justify-center text-xs font-black font-mono shrink-0">
+                <div class="w-6 h-6 rounded-full bg-emerald-500/10 dark:bg-emerald-600/30 border border-emerald-500/30 dark:border-emerald-500/50 text-emerald-700 dark:text-emerald-300 flex items-center justify-center text-xs font-black font-mono shrink-0">
                   3
                 </div>
                 <div>
-                  <p class="font-bold text-white">Achieve passing score</p>
-                  <p class="text-[10px] text-slate-400">Meet the minimum score requirement.</p>
+                  <p class="font-bold text-slate-900 dark:text-white">Achieve passing score</p>
+                  <p class="text-[10px] text-slate-600 dark:text-slate-400">Meet the minimum score requirement.</p>
                 </div>
               </div>
 
               <!-- Step 4 -->
               <div class="flex items-start gap-3">
-                <div class="w-6 h-6 rounded-full bg-amber-600/30 border border-amber-500/50 text-amber-300 flex items-center justify-center text-xs font-black font-mono shrink-0">
+                <div class="w-6 h-6 rounded-full bg-amber-500/10 dark:bg-amber-600/30 border border-amber-500/30 dark:border-amber-500/50 text-amber-700 dark:text-amber-300 flex items-center justify-center text-xs font-black font-mono shrink-0">
                   4
                 </div>
                 <div>
-                  <p class="font-bold text-white">Earn your certificate</p>
-                  <p class="text-[10px] text-slate-400">Download and share your achievement!</p>
+                  <p class="font-bold text-slate-900 dark:text-white">Earn your certificate</p>
+                  <p class="text-[10px] text-slate-600 dark:text-slate-400">Download and share your achievement!</p>
                 </div>
               </div>
 
@@ -737,7 +737,7 @@ const handleFilterChange = (overrideTab?: string) => {
             <!-- Action Button -->
             <Link
               href="/student/progress/overview"
-              class="w-full py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-purple-950/50 transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+              class="w-full py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-purple-950/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
             >
               <span>📈</span>
               <span>View My Progress</span>
@@ -749,20 +749,20 @@ const handleFilterChange = (overrideTab?: string) => {
       </div>
 
       <!-- ================= 4. CAREER BOOSTER BANNER ================= -->
-      <div class="bg-gradient-to-r from-blue-950/70 via-slate-900/90 to-purple-950/70 border border-blue-900/50 rounded-3xl p-4 sm:p-5 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="bg-gradient-to-r from-blue-50/80 via-white to-purple-50/80 dark:from-blue-950/70 dark:via-slate-900/90 dark:to-purple-950/70 border border-blue-100 dark:border-blue-900/50 rounded-3xl p-4 sm:p-5 shadow-sm dark:shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-blue-600/20 border border-blue-500/30 text-blue-300 flex items-center justify-center text-lg shrink-0 shadow-inner">
+          <div class="w-10 h-10 rounded-2xl bg-blue-500/10 dark:bg-blue-600/20 border border-blue-500/20 dark:border-blue-500/30 text-blue-600 dark:text-blue-300 flex items-center justify-center text-lg shrink-0 shadow-inner">
             🛡️
           </div>
           <div>
-            <h4 class="text-sm font-bold text-white">Boost Your Career with Certificates</h4>
-            <p class="text-xs text-slate-400 mt-0.5">Certificates prove your skills and help you advance your career. Start learning today!</p>
+            <h4 class="text-sm font-bold text-slate-900 dark:text-white">Boost Your Career with Certificates</h4>
+            <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Certificates prove your skills and help you advance your career. Start learning today!</p>
           </div>
         </div>
 
         <Link
           href="/student/browse"
-          class="px-5 py-2 rounded-2xl bg-slate-900 border border-slate-700 hover:border-blue-500/50 text-white font-bold text-xs shadow-md whitespace-nowrap transition-colors"
+          class="px-5 py-2 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-blue-500/50 text-slate-900 dark:text-white font-bold text-xs shadow-xs whitespace-nowrap transition-colors"
         >
           Browse Courses
         </Link>
@@ -773,76 +773,76 @@ const handleFilterChange = (overrideTab?: string) => {
     <!-- ================= MODAL: COURSE REQUIREMENTS & PROGRESS ================= -->
     <div
       v-if="isRequirementsModalOpen && selectedCertForModal"
-      class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
+      class="fixed inset-0 z-50 bg-slate-950/70 dark:bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
     >
-      <div class="bg-slate-900 border border-purple-500/40 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative">
-        <div class="border-b border-slate-800 pb-3 flex items-center justify-between">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-purple-500/40 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative">
+        <div class="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <span class="text-2xl">🎓</span>
             <div>
-              <h3 class="text-base font-black text-white">{{ selectedCertForModal.title }}</h3>
-              <p class="text-[11px] text-purple-300">Certificate Eligibility Requirements</p>
+              <h3 class="text-base font-black text-slate-900 dark:text-white">{{ selectedCertForModal.title }}</h3>
+              <p class="text-[11px] text-purple-600 dark:text-purple-300">Certificate Eligibility Requirements</p>
             </div>
           </div>
           <button
             @click="isRequirementsModalOpen = false"
-            class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center font-bold text-sm"
+            class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white flex items-center justify-center font-bold text-sm cursor-pointer"
           >
             ✕
           </button>
         </div>
 
         <!-- Overall Progress Ring -->
-        <div class="p-4 bg-slate-950 rounded-2xl border border-slate-800 flex items-center justify-between">
+        <div class="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div>
-            <p class="text-xs text-slate-400 font-medium">Overall Course Progress</p>
-            <p class="text-2xl font-black text-white font-mono mt-0.5">{{ selectedCertForModal.progress }}%</p>
-            <p class="text-[10px] text-slate-500">Reach 100% to unlock official certificate</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Overall Course Progress</p>
+            <p class="text-2xl font-black text-slate-900 dark:text-white font-mono mt-0.5">{{ selectedCertForModal.progress }}%</p>
+            <p class="text-[10px] text-slate-400 dark:text-slate-500">Reach 100% to unlock official certificate</p>
           </div>
 
-          <div class="w-12 h-12 rounded-2xl bg-purple-600/20 border border-purple-500/30 text-purple-300 flex items-center justify-center text-lg font-mono font-bold">
+          <div class="w-12 h-12 rounded-2xl bg-purple-500/10 dark:bg-purple-600/20 border border-purple-500/20 dark:border-purple-500/30 text-purple-700 dark:text-purple-300 flex items-center justify-center text-lg font-mono font-bold">
             {{ selectedCertForModal.progress }}%
           </div>
         </div>
 
         <!-- Requirements Checklist -->
         <div class="space-y-2 text-xs">
-          <h4 class="font-bold text-white uppercase tracking-wider text-[11px]">Requirements Checklist:</h4>
+          <h4 class="font-bold text-slate-900 dark:text-white uppercase tracking-wider text-[11px]">Requirements Checklist:</h4>
           
           <div
             v-for="(req, idx) in selectedCertForModal.requirements"
             :key="idx"
-            class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between"
+            class="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between"
           >
             <div class="flex items-center gap-2.5">
               <span
                 :class="[
-                  req.done ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-slate-800 text-slate-500 border-slate-700',
+                  req.done ? 'bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/40' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700',
                   'w-5 h-5 rounded-md border flex items-center justify-center text-[10px] font-bold'
                 ]"
               >
                 {{ req.done ? '✓' : '•' }}
               </span>
-              <span class="text-slate-300 font-medium">{{ req.label }}</span>
+              <span class="text-slate-700 dark:text-slate-300 font-medium">{{ req.label }}</span>
             </div>
 
-            <span class="font-mono text-[11px] font-bold" :class="req.done ? 'text-emerald-400' : 'text-amber-400'">
+            <span class="font-mono text-[11px] font-bold" :class="req.done ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'">
               {{ req.value }}
             </span>
           </div>
         </div>
 
-        <div class="flex items-center justify-between pt-2 border-t border-slate-800 text-xs">
+        <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
           <button
             @click="isRequirementsModalOpen = false"
-            class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold"
+            class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-200 dark:hover:text-white cursor-pointer"
           >
             Close
           </button>
 
           <Link
             href="/student/my-courses/enrolled"
-            class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold shadow-md flex items-center gap-1.5"
+            class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold shadow-md flex items-center gap-1.5 cursor-pointer"
           >
             <span>▶</span>
             <span>Continue Course</span>

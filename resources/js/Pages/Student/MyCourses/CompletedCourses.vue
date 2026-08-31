@@ -250,14 +250,14 @@ const navigateToReview = (course: CompletedCourseItem) => {
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div class="flex items-center gap-2.5">
-            <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
               Completed Courses
             </h1>
-            <span class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center text-xs font-bold shadow-xs">
+            <span class="w-6 h-6 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 dark:border-emerald-500/40 flex items-center justify-center text-xs font-bold shadow-xs">
               ✓
             </span>
           </div>
-          <p class="text-xs sm:text-sm text-slate-400 mt-1">
+          <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
             Courses you have successfully completed.
           </p>
         </div>
@@ -274,25 +274,25 @@ const navigateToReview = (course: CompletedCourseItem) => {
               v-model="searchQuery"
               type="text"
               placeholder="Search courses..."
-              class="w-full pl-10 pr-16 py-2 rounded-xl bg-slate-900/90 border border-slate-800 focus:border-purple-500 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500/50 shadow-inner transition-all"
+              class="w-full pl-10 pr-16 py-2 rounded-xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 focus:border-purple-500 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500/50 shadow-xs dark:shadow-inner transition-all"
             />
             <div class="absolute right-2.5 flex items-center gap-1">
               <button
                 v-if="searchQuery"
                 @click="searchQuery = ''"
                 type="button"
-                class="text-slate-400 hover:text-white p-0.5 text-xs cursor-pointer"
+                class="text-slate-400 hover:text-slate-600 dark:hover:text-white p-0.5 text-xs cursor-pointer"
               >
                 ✕
               </button>
-              <kbd class="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-slate-800 border border-slate-700 rounded shadow-xs">Ctrl K</kbd>
+              <kbd class="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded shadow-xs">Ctrl K</kbd>
             </div>
           </div>
         </div>
       </div>
 
       <!-- 2. FILTER TABS, SORT DROPDOWN & VIEW MODE -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800/80 pb-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800/80 pb-4">
         
         <!-- Filter Tabs -->
         <div class="flex flex-wrap items-center gap-2">
@@ -301,13 +301,13 @@ const navigateToReview = (course: CompletedCourseItem) => {
             type="button"
             :class="[
               activeTab === 'all'
-                ? 'bg-purple-600 text-white font-bold shadow-lg shadow-purple-600/30'
-                : 'bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 border border-slate-800',
-              'px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-2 transition-all cursor-pointer'
+                ? 'bg-purple-600 text-white font-bold shadow-md shadow-purple-600/20'
+                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-800',
+              'px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-2 transition-all cursor-pointer shadow-xs'
             ]"
           >
             <span>All Completed</span>
-            <span :class="[activeTab === 'all' ? 'bg-purple-700/80 text-white' : 'bg-slate-800 text-slate-300', 'px-1.5 py-0.5 rounded-md text-[10px] font-bold']">
+            <span :class="[activeTab === 'all' ? 'bg-purple-700/80 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300', 'px-1.5 py-0.5 rounded-md text-[10px] font-bold']">
               {{ totalCount }}
             </span>
           </button>
@@ -317,13 +317,13 @@ const navigateToReview = (course: CompletedCourseItem) => {
             type="button"
             :class="[
               activeTab === 'certificates'
-                ? 'bg-purple-600 text-white font-bold shadow-lg shadow-purple-600/30'
-                : 'bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 border border-slate-800',
-              'px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-2 transition-all cursor-pointer'
+                ? 'bg-purple-600 text-white font-bold shadow-md shadow-purple-600/20'
+                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-800',
+              'px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-2 transition-all cursor-pointer shadow-xs'
             ]"
           >
             <span>Certificates Earned</span>
-            <span :class="[activeTab === 'certificates' ? 'bg-purple-700/80 text-white' : 'bg-slate-800 text-slate-300', 'px-1.5 py-0.5 rounded-md text-[10px] font-bold']">
+            <span :class="[activeTab === 'certificates' ? 'bg-purple-700/80 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300', 'px-1.5 py-0.5 rounded-md text-[10px] font-bold']">
               {{ certEarnedCount }}
             </span>
           </button>
@@ -333,13 +333,13 @@ const navigateToReview = (course: CompletedCourseItem) => {
             type="button"
             :class="[
               activeTab === 'no_certificate'
-                ? 'bg-purple-600 text-white font-bold shadow-lg shadow-purple-600/30'
-                : 'bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 border border-slate-800',
-              'px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-2 transition-all cursor-pointer'
+                ? 'bg-purple-600 text-white font-bold shadow-md shadow-purple-600/20'
+                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-800',
+              'px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-2 transition-all cursor-pointer shadow-xs'
             ]"
           >
             <span>No Certificate</span>
-            <span :class="[activeTab === 'no_certificate' ? 'bg-purple-700/80 text-white' : 'bg-slate-800 text-slate-300', 'px-1.5 py-0.5 rounded-md text-[10px] font-bold']">
+            <span :class="[activeTab === 'no_certificate' ? 'bg-purple-700/80 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300', 'px-1.5 py-0.5 rounded-md text-[10px] font-bold']">
               {{ noCertCount }}
             </span>
           </button>
@@ -350,7 +350,7 @@ const navigateToReview = (course: CompletedCourseItem) => {
           <div class="relative">
             <select
               v-model="selectedSort"
-              class="appearance-none bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 text-xs rounded-xl pl-3 pr-8 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-500/50 cursor-pointer shadow-sm"
+              class="appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300 text-xs rounded-xl pl-3 pr-8 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-500/50 cursor-pointer shadow-xs"
             >
               <option value="newest">Sort by: Newest</option>
               <option value="oldest">Sort by: Oldest</option>
@@ -358,17 +358,17 @@ const navigateToReview = (course: CompletedCourseItem) => {
               <option value="highest_score">Highest Quiz Score</option>
               <option value="most_time">Most Study Time</option>
             </select>
-            <div class="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 text-xs">
+            <div class="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 dark:text-slate-500 text-xs">
               ▼
             </div>
           </div>
 
-          <div class="flex items-center rounded-xl bg-slate-900 border border-slate-800 p-0.5">
+          <div class="flex items-center rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-0.5 shadow-xs">
             <button
               @click="viewMode = 'grid'"
               type="button"
               :class="[
-                viewMode === 'grid' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-400 hover:text-slate-200',
+                viewMode === 'grid' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200',
                 'p-1.5 rounded-lg text-xs transition-colors cursor-pointer'
               ]"
               title="Grid View"
@@ -381,7 +381,7 @@ const navigateToReview = (course: CompletedCourseItem) => {
               @click="viewMode = 'list'"
               type="button"
               :class="[
-                viewMode === 'list' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-400 hover:text-slate-200',
+                viewMode === 'list' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200',
                 'p-1.5 rounded-lg text-xs transition-colors cursor-pointer'
               ]"
               title="List View"
@@ -408,12 +408,12 @@ const navigateToReview = (course: CompletedCourseItem) => {
                 v-for="course in filteredCourses"
                 :key="course.id"
                 @click="navigateToReview(course)"
-                class="bg-[#0e1424] border border-slate-800 hover:border-purple-500/40 rounded-3xl overflow-hidden shadow-2xl transition-all duration-200 hover:-translate-y-1 group flex flex-col justify-between cursor-pointer"
+                class="bg-white dark:bg-[#0e1424] border border-slate-200/90 dark:border-slate-800 hover:border-purple-400 dark:hover:border-purple-500/40 rounded-3xl overflow-hidden shadow-sm dark:shadow-2xl transition-all duration-200 hover:-translate-y-1 group flex flex-col justify-between cursor-pointer"
               >
                 <!-- TOP CARD HEADER / 3D ILLUSTRATION BOX -->
-                <div class="relative w-full h-44 bg-slate-950 flex items-center justify-center overflow-hidden border-b border-slate-800/80">
+                <div class="relative w-full h-44 bg-slate-900 dark:bg-slate-950 flex items-center justify-center overflow-hidden border-b border-slate-100 dark:border-slate-800/80">
                   
-                  <div class="absolute inset-0 bg-gradient-to-t from-[#0e1424] via-transparent to-transparent z-10"></div>
+                  <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 dark:from-[#0e1424] via-transparent to-transparent z-10"></div>
                   <div
                     class="absolute -inset-10 opacity-25 blur-2xl transition-all group-hover:opacity-40"
                     :class="[
@@ -519,21 +519,21 @@ const navigateToReview = (course: CompletedCourseItem) => {
                   <div class="space-y-2.5">
                     <!-- Title & Teacher & Date -->
                     <div>
-                      <h3 class="text-base font-bold text-white group-hover:text-purple-300 transition-colors leading-snug">
+                      <h3 class="text-base font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors leading-snug">
                         {{ course.title }}
                       </h3>
 
-                      <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400 mt-2">
+                      <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400 mt-2">
                         <div class="flex items-center gap-2">
                           <img
                             :src="course.teacher.avatar"
                             :alt="course.teacher.name"
                             class="w-5 h-5 rounded-full object-cover border border-purple-500/40"
                           />
-                          <span class="text-slate-300 font-medium">{{ course.teacher.name }}</span>
+                          <span class="text-slate-700 dark:text-slate-300 font-medium">{{ course.teacher.name }}</span>
                         </div>
 
-                        <div class="flex items-center gap-1 text-[11px] text-slate-400">
+                        <div class="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400">
                           <span>📅</span>
                           <span>Completed on: {{ course.completedDate }}</span>
                         </div>
@@ -542,21 +542,21 @@ const navigateToReview = (course: CompletedCourseItem) => {
 
                     <!-- 100% Solid Emerald Green Progress Bar -->
                     <div class="space-y-1 pt-1">
-                      <div class="w-full h-1.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/30"></div>
+                      <div class="w-full h-1.5 rounded-full bg-emerald-500 shadow-xs shadow-emerald-500/30"></div>
                     </div>
 
                     <!-- Metadata Row (Chapters | Lessons | Time) -->
-                    <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-800/60">
+                    <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800/60">
                       <div class="flex items-center gap-1">
                         <span>📖</span>
                         <span>{{ course.chaptersCount }} Chapters</span>
                       </div>
-                      <span class="text-slate-700">|</span>
+                      <span class="text-slate-300 dark:text-slate-700">|</span>
                       <div class="flex items-center gap-1">
                         <span>📑</span>
                         <span>{{ course.lessonsCount }} Lessons</span>
                       </div>
-                      <span class="text-slate-700">|</span>
+                      <span class="text-slate-300 dark:text-slate-700">|</span>
                       <div class="flex items-center gap-1">
                         <span>⏱</span>
                         <span>{{ course.studyTime }}</span>
@@ -565,11 +565,11 @@ const navigateToReview = (course: CompletedCourseItem) => {
                   </div>
 
                   <!-- ACTIONS ROW: [ Review Course ] & [ Certificate ] -->
-                  <div class="grid grid-cols-2 gap-2.5 pt-2.5 border-t border-slate-800/80" @click.stop>
+                  <div class="grid grid-cols-2 gap-2.5 pt-2.5 border-t border-slate-100 dark:border-slate-800/80" @click.stop>
                     
                     <Link
                       :href="course.overviewHref"
-                      class="py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-600/30 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all text-center cursor-pointer"
+                      class="py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-600/20 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all text-center cursor-pointer"
                     >
                       <span>👁</span>
                       <span>Review Course</span>
@@ -580,9 +580,9 @@ const navigateToReview = (course: CompletedCourseItem) => {
                       type="button"
                       :class="[
                         course.hasCertificate
-                          ? 'bg-slate-900 hover:bg-slate-800 text-slate-200 border-slate-700'
-                          : 'bg-slate-900/60 hover:bg-slate-800 text-slate-400 border-slate-800',
-                        'py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all text-center cursor-pointer'
+                          ? 'bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700'
+                          : 'bg-slate-50 dark:bg-slate-900/60 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-800',
+                        'py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all text-center cursor-pointer shadow-xs'
                       ]"
                     >
                       <span>🏆</span>
@@ -601,37 +601,37 @@ const navigateToReview = (course: CompletedCourseItem) => {
                 v-for="course in filteredCourses"
                 :key="course.id"
                 @click="navigateToReview(course)"
-                class="bg-[#0e1424] border border-slate-800 hover:border-purple-500/40 rounded-2xl p-4 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer group transition-all"
+                class="bg-white dark:bg-[#0e1424] border border-slate-200/90 dark:border-slate-800 hover:border-purple-400 dark:hover:border-purple-500/40 rounded-2xl p-4 shadow-sm dark:shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer group transition-all"
               >
                 <div class="flex items-center gap-3.5 min-w-0">
-                  <div class="w-12 h-12 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center text-xl shrink-0">
+                  <div class="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-xl shrink-0">
                     <span>{{ course.medalType === 'gold' ? '🏆' : (course.medalType === 'silver' ? '🥈' : '🏅') }}</span>
                   </div>
                   <div class="min-w-0 space-y-1">
                     <div class="flex items-center gap-2">
-                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30">
                         Completed ✓
                       </span>
-                      <span class="text-xs text-slate-400">{{ course.completedDate }}</span>
+                      <span class="text-xs text-slate-500 dark:text-slate-400">{{ course.completedDate }}</span>
                     </div>
-                    <h3 class="text-sm font-bold text-white group-hover:text-purple-300 transition-colors truncate">
+                    <h3 class="text-sm font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors truncate">
                       {{ course.title }}
                     </h3>
-                    <p class="text-xs text-slate-400">{{ course.teacher.name }} • {{ course.lessonsCount }} Lessons • {{ course.studyTime }}</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">{{ course.teacher.name }} • {{ course.lessonsCount }} Lessons • {{ course.studyTime }}</p>
                   </div>
                 </div>
 
                 <div class="flex items-center gap-2 shrink-0" @click.stop>
                   <Link
                     :href="course.overviewHref"
-                    class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs"
+                    class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-xs"
                   >
                     Review
                   </Link>
                   <button
                     @click="handleCertificateClick(course, $event)"
                     type="button"
-                    class="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 text-xs font-semibold cursor-pointer"
+                    class="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs font-semibold cursor-pointer shadow-xs"
                   >
                     Certificate
                   </button>
@@ -640,7 +640,7 @@ const navigateToReview = (course: CompletedCourseItem) => {
             </div>
 
             <!-- Pagination Footer -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-slate-800/80 text-xs text-slate-400">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-slate-200 dark:border-slate-800/80 text-xs text-slate-500 dark:text-slate-400">
               <div>
                 Showing 1 to {{ filteredCourses.length }} of {{ totalCount }} courses
               </div>
@@ -649,7 +649,7 @@ const navigateToReview = (course: CompletedCourseItem) => {
                 <button
                   type="button"
                   disabled
-                  class="px-2.5 py-1.5 rounded-lg bg-slate-900/60 border border-slate-800/60 text-slate-600 cursor-not-allowed"
+                  class="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/60 text-slate-400 dark:text-slate-600 cursor-not-allowed"
                 >
                   ‹
                 </button>
@@ -662,7 +662,7 @@ const navigateToReview = (course: CompletedCourseItem) => {
                 <button
                   type="button"
                   disabled
-                  class="px-2.5 py-1.5 rounded-lg bg-slate-900/60 border border-slate-800/60 text-slate-600 cursor-not-allowed"
+                  class="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/60 text-slate-400 dark:text-slate-600 cursor-not-allowed"
                 >
                   ›
                 </button>
@@ -674,21 +674,21 @@ const navigateToReview = (course: CompletedCourseItem) => {
           <!-- Empty State -->
           <div
             v-else
-            class="bg-slate-900/40 border border-dashed border-slate-800 rounded-3xl p-12 text-center space-y-4"
+            class="bg-white dark:bg-slate-900/40 border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-4 shadow-xs"
           >
-            <div class="w-16 h-16 rounded-full bg-slate-800/60 flex items-center justify-center mx-auto text-2xl">
+            <div class="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800/60 flex items-center justify-center mx-auto text-2xl">
               🔍
             </div>
             <div class="space-y-1">
-              <h3 class="text-base font-bold text-white">No completed courses match your criteria</h3>
-              <p class="text-xs text-slate-400 max-w-sm mx-auto">
+              <h3 class="text-base font-bold text-slate-900 dark:text-white">No completed courses match your criteria</h3>
+              <p class="text-xs text-slate-600 dark:text-slate-400 max-w-sm mx-auto">
                 Try switching between tabs or adjusting your search keywords.
               </p>
             </div>
             <button
               @click="activeTab = 'all'; searchQuery = ''"
               type="button"
-              class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs cursor-pointer"
+              class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs cursor-pointer shadow-md shadow-purple-600/20"
             >
               Reset Filters
             </button>
@@ -700,8 +700,8 @@ const navigateToReview = (course: CompletedCourseItem) => {
         <div class="lg:col-span-4 space-y-6">
           
           <!-- WIDGET 1: Completion Overview (Donut Chart) -->
-          <div class="bg-[#0e1424] border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
-            <h3 class="text-xs font-bold text-white uppercase tracking-wider">
+          <div class="bg-white dark:bg-[#0e1424] border border-slate-200/90 dark:border-slate-800 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-4">
+            <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
               Completion Overview
             </h3>
 
@@ -711,7 +711,7 @@ const navigateToReview = (course: CompletedCourseItem) => {
                 <svg class="w-24 h-24 -rotate-90" viewBox="0 0 36 36">
                   <!-- Background Ring -->
                   <path
-                    class="text-slate-800"
+                    class="text-slate-100 dark:text-slate-800"
                     stroke-width="4"
                     stroke="currentColor"
                     fill="none"
@@ -740,8 +740,8 @@ const navigateToReview = (course: CompletedCourseItem) => {
                   />
                 </svg>
                 <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-                  <span class="text-base font-black text-white leading-none">{{ totalCount }}</span>
-                  <span class="text-[9px] text-slate-400 uppercase font-semibold mt-0.5">Total</span>
+                  <span class="text-base font-black text-slate-900 dark:text-white leading-none">{{ totalCount }}</span>
+                  <span class="text-[9px] text-slate-500 dark:text-slate-400 uppercase font-semibold mt-0.5">Total</span>
                 </div>
               </div>
 
@@ -750,16 +750,16 @@ const navigateToReview = (course: CompletedCourseItem) => {
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                    <span class="text-slate-300 font-medium">Certificates Earned</span>
+                    <span class="text-slate-700 dark:text-slate-300 font-medium">Certificates Earned</span>
                   </div>
-                  <span class="text-slate-400 font-mono text-[11px]">{{ certEarnedCount }} ({{ certPercent }}%)</span>
+                  <span class="text-slate-500 dark:text-slate-400 font-mono text-[11px]">{{ certEarnedCount }} ({{ certPercent }}%)</span>
                 </div>
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                    <span class="text-slate-300 font-medium">No Certificate</span>
+                    <span class="text-slate-700 dark:text-slate-300 font-medium">No Certificate</span>
                   </div>
-                  <span class="text-slate-400 font-mono text-[11px]">{{ noCertCount }} ({{ noCertPercent }}%)</span>
+                  <span class="text-slate-500 dark:text-slate-400 font-mono text-[11px]">{{ noCertCount }} ({{ noCertPercent }}%)</span>
                 </div>
               </div>
             </div>
@@ -768,46 +768,46 @@ const navigateToReview = (course: CompletedCourseItem) => {
           <!-- WIDGET 2: Total Study Time -->
           <Link
             href="/student/progress/learning-time"
-            class="bg-[#0e1424] border border-slate-800 hover:border-blue-500/40 rounded-3xl p-5 shadow-xl flex items-center gap-4 group transition-all cursor-pointer block"
+            class="bg-white dark:bg-[#0e1424] border border-slate-200/90 dark:border-slate-800 hover:border-blue-400 dark:hover:border-blue-500/40 rounded-3xl p-5 shadow-sm dark:shadow-xl flex items-center gap-4 group transition-all cursor-pointer block"
           >
-            <div class="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-500/40 text-blue-400 flex items-center justify-center text-xl shrink-0 group-hover:scale-110 transition-transform">
+            <div class="w-12 h-12 rounded-2xl bg-blue-500/10 dark:bg-blue-500/20 border border-blue-500/30 dark:border-blue-500/40 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xl shrink-0 group-hover:scale-110 transition-transform">
               ⏱
             </div>
             <div class="min-w-0 flex-1">
-              <p class="text-[11px] text-slate-400 font-semibold">Total Study Time</p>
-              <h4 class="text-xl font-black text-white mt-0.5 tracking-tight group-hover:text-blue-300 transition-colors">
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Total Study Time</p>
+              <h4 class="text-xl font-black text-slate-900 dark:text-white mt-0.5 tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-colors">
                 {{ totalStudyTimeFormatted }}
               </h4>
               <p class="text-[10px] text-slate-500 mt-0.5">Across all completed courses</p>
             </div>
-            <span class="text-slate-600 group-hover:text-slate-300 transition-colors text-sm">›</span>
+            <span class="text-slate-400 dark:text-slate-600 group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors text-sm">›</span>
           </Link>
 
           <!-- WIDGET 3: Average Quiz Score -->
           <Link
             href="/student/quizzes/scores"
-            class="bg-[#0e1424] border border-slate-800 hover:border-purple-500/40 rounded-3xl p-5 shadow-xl flex items-center gap-4 group transition-all cursor-pointer block"
+            class="bg-white dark:bg-[#0e1424] border border-slate-200/90 dark:border-slate-800 hover:border-purple-400 dark:hover:border-purple-500/40 rounded-3xl p-5 shadow-sm dark:shadow-xl flex items-center gap-4 group transition-all cursor-pointer block"
           >
-            <div class="w-12 h-12 rounded-2xl bg-purple-500/20 border border-purple-500/40 text-purple-400 flex items-center justify-center text-xl shrink-0 group-hover:scale-110 transition-transform">
+            <div class="w-12 h-12 rounded-2xl bg-purple-500/10 dark:bg-purple-500/20 border border-purple-500/30 dark:border-purple-500/40 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl shrink-0 group-hover:scale-110 transition-transform">
               📊
             </div>
             <div class="min-w-0 flex-1">
-              <p class="text-[11px] text-slate-400 font-semibold">Average Quiz Score</p>
-              <h4 class="text-xl font-black text-white mt-0.5 tracking-tight group-hover:text-purple-300 transition-colors">
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Average Quiz Score</p>
+              <h4 class="text-xl font-black text-slate-900 dark:text-white mt-0.5 tracking-tight group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors">
                 {{ averageQuizScore }}%
               </h4>
-              <p class="text-[10px] text-emerald-400 font-medium mt-0.5">{{ quizScoreLabel }}</p>
+              <p class="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">{{ quizScoreLabel }}</p>
             </div>
-            <span class="text-slate-600 group-hover:text-slate-300 transition-colors text-sm">›</span>
+            <span class="text-slate-400 dark:text-slate-600 group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors text-sm">›</span>
           </Link>
 
           <!-- WIDGET 4: Latest Certificate -->
-          <div class="bg-[#0e1424] border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
-            <h3 class="text-xs font-bold text-white uppercase tracking-wider">
+          <div class="bg-white dark:bg-[#0e1424] border border-slate-200/90 dark:border-slate-800 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-4">
+            <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
               Latest Certificate
             </h3>
 
-            <div class="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-950/80 border border-slate-800">
+            <div class="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800">
               <!-- Mini Certificate Thumbnail Mock -->
               <div class="w-14 h-16 rounded-lg bg-amber-50 border-2 border-amber-300 p-1 flex flex-col justify-between text-center shadow-md shrink-0">
                 <div class="text-[6px] font-bold text-amber-900">SAINT PAUL</div>
@@ -818,8 +818,8 @@ const navigateToReview = (course: CompletedCourseItem) => {
               </div>
 
               <div class="min-w-0 flex-1 space-y-1">
-                <h4 class="font-bold text-xs text-white truncate">{{ latestCertCourse.title }}</h4>
-                <p class="text-[10px] text-slate-400">Earned on: {{ latestCertCourse.certIssueDate }}</p>
+                <h4 class="font-bold text-xs text-slate-900 dark:text-white truncate">{{ latestCertCourse.title }}</h4>
+                <p class="text-[10px] text-slate-500 dark:text-slate-400">Earned on: {{ latestCertCourse.certIssueDate }}</p>
                 <button
                   @click="handleCertificateClick(latestCertCourse, $event)"
                   type="button"
@@ -832,14 +832,14 @@ const navigateToReview = (course: CompletedCourseItem) => {
           </div>
 
           <!-- WIDGET 5: Achievements Badges -->
-          <div class="bg-[#0e1424] border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
+          <div class="bg-white dark:bg-[#0e1424] border border-slate-200/90 dark:border-slate-800 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-4">
             <div class="flex items-center justify-between">
-              <h3 class="text-xs font-bold text-white uppercase tracking-wider">
+              <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                 Achievements
               </h3>
               <Link
                 href="/student/certificates/achievements"
-                class="text-[11px] text-purple-400 hover:text-purple-300 font-semibold"
+                class="text-[11px] text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 font-semibold"
               >
                 View All
               </Link>
@@ -848,35 +848,35 @@ const navigateToReview = (course: CompletedCourseItem) => {
             <!-- 4 Badges Row -->
             <div class="grid grid-cols-4 gap-2 text-center">
               <!-- Badge 1 -->
-              <div class="flex flex-col items-center gap-1.5 p-2 rounded-2xl bg-slate-950/60 border border-slate-800/80">
-                <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 flex items-center justify-center text-base shadow-sm">
+              <div class="flex flex-col items-center gap-1.5 p-2 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/80">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/30 dark:border-emerald-500/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-base shadow-xs">
                   📖
                 </div>
-                <span class="text-[10px] font-bold text-slate-300 leading-tight">Quick Learner</span>
+                <span class="text-[10px] font-bold text-slate-700 dark:text-slate-300 leading-tight">Quick Learner</span>
               </div>
 
               <!-- Badge 2 -->
-              <div class="flex flex-col items-center gap-1.5 p-2 rounded-2xl bg-slate-950/60 border border-slate-800/80">
-                <div class="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-500/50 text-blue-400 flex items-center justify-center text-base shadow-sm">
+              <div class="flex flex-col items-center gap-1.5 p-2 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/80">
+                <div class="w-10 h-10 rounded-xl bg-blue-500/10 dark:bg-blue-500/20 border border-blue-500/30 dark:border-blue-500/50 text-blue-600 dark:text-blue-400 flex items-center justify-center text-base shadow-xs">
                   ⭐
                 </div>
-                <span class="text-[10px] font-bold text-slate-300 leading-tight">Course Master</span>
+                <span class="text-[10px] font-bold text-slate-700 dark:text-slate-300 leading-tight">Course Master</span>
               </div>
 
               <!-- Badge 3 -->
-              <div class="flex flex-col items-center gap-1.5 p-2 rounded-2xl bg-slate-950/60 border border-slate-800/80">
-                <div class="w-10 h-10 rounded-xl bg-orange-500/20 border border-orange-500/50 text-orange-400 flex items-center justify-center text-base shadow-sm">
+              <div class="flex flex-col items-center gap-1.5 p-2 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/80">
+                <div class="w-10 h-10 rounded-xl bg-orange-500/10 dark:bg-orange-500/20 border border-orange-500/30 dark:border-orange-500/50 text-orange-600 dark:text-orange-400 flex items-center justify-center text-base shadow-xs">
                   🏆
                 </div>
-                <span class="text-[10px] font-bold text-slate-300 leading-tight">Top Performer</span>
+                <span class="text-[10px] font-bold text-slate-700 dark:text-slate-300 leading-tight">Top Performer</span>
               </div>
 
               <!-- Badge 4 -->
-              <div class="flex flex-col items-center gap-1.5 p-2 rounded-2xl bg-slate-950/60 border border-slate-800/80">
-                <div class="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/50 text-purple-400 flex items-center justify-center text-base shadow-sm">
+              <div class="flex flex-col items-center gap-1.5 p-2 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/80">
+                <div class="w-10 h-10 rounded-xl bg-purple-500/10 dark:bg-purple-500/20 border border-purple-500/30 dark:border-purple-500/50 text-purple-600 dark:text-purple-400 flex items-center justify-center text-base shadow-xs">
                   ⚡
                 </div>
-                <span class="text-[10px] font-bold text-slate-300 leading-tight">Consistent Learner</span>
+                <span class="text-[10px] font-bold text-slate-700 dark:text-slate-300 leading-tight">Consistent Learner</span>
               </div>
             </div>
           </div>
@@ -890,16 +890,16 @@ const navigateToReview = (course: CompletedCourseItem) => {
     <!-- CERTIFICATE MODAL (When Eligible) -->
     <div
       v-if="isCertModalOpen && selectedCertCourse"
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 dark:bg-slate-950/80 backdrop-blur-md"
       @click="isCertModalOpen = false"
     >
       <div
-        class="relative w-full max-w-2xl bg-[#0e1424] border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6"
+        class="relative w-full max-w-2xl bg-white dark:bg-[#0e1424] border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6"
         @click.stop
       >
         <button
           @click="isCertModalOpen = false"
-          class="absolute top-4 right-4 text-slate-400 hover:text-white p-1 text-sm cursor-pointer"
+          class="absolute top-4 right-4 text-slate-400 hover:text-slate-900 dark:hover:text-white p-1 text-sm cursor-pointer"
         >
           ✕
         </button>
@@ -948,7 +948,7 @@ const navigateToReview = (course: CompletedCourseItem) => {
           <button
             @click="isCertModalOpen = false"
             type="button"
-            class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer"
+            class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer"
           >
             Close
           </button>
@@ -959,49 +959,49 @@ const navigateToReview = (course: CompletedCourseItem) => {
     <!-- NO CERTIFICATE / ELIGIBILITY MODAL -->
     <div
       v-if="isNoCertModalOpen && selectedCertCourse"
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 dark:bg-slate-950/80 backdrop-blur-md"
       @click="isNoCertModalOpen = false"
     >
       <div
-        class="relative w-full max-w-lg bg-[#0e1424] border border-slate-800 rounded-3xl p-6 sm:p-7 shadow-2xl space-y-5"
+        class="relative w-full max-w-lg bg-white dark:bg-[#0e1424] border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-7 shadow-2xl space-y-5"
         @click.stop
       >
         <button
           @click="isNoCertModalOpen = false"
-          class="absolute top-4 right-4 text-slate-400 hover:text-white p-1 text-sm cursor-pointer"
+          class="absolute top-4 right-4 text-slate-400 hover:text-slate-900 dark:hover:text-white p-1 text-sm cursor-pointer"
         >
           ✕
         </button>
 
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center text-lg">
+          <div class="w-10 h-10 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/30 dark:border-amber-500/40 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg">
             ⚠️
           </div>
           <div>
-            <h3 class="text-base font-bold text-white">Certificate Not Yet Available</h3>
-            <p class="text-xs text-slate-400">{{ selectedCertCourse.title }}</p>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white">Certificate Not Yet Available</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">{{ selectedCertCourse.title }}</p>
           </div>
         </div>
 
-        <div class="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-3 text-xs">
-          <p class="font-bold text-slate-200">Completion Requirements Status:</p>
+        <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 space-y-3 text-xs">
+          <p class="font-bold text-slate-800 dark:text-slate-200">Completion Requirements Status:</p>
           <div class="space-y-2">
-            <div class="flex items-center justify-between text-emerald-400">
+            <div class="flex items-center justify-between text-emerald-600 dark:text-emerald-400">
               <span>✓ All Lessons Completed ({{ selectedCertCourse.lessonsCount }}/{{ selectedCertCourse.lessonsCount }})</span>
               <span class="font-bold">Passed</span>
             </div>
-            <div class="flex items-center justify-between text-emerald-400">
+            <div class="flex items-center justify-between text-emerald-600 dark:text-emerald-400">
               <span>✓ Course Hands-on Labs</span>
               <span class="font-bold">Passed</span>
             </div>
-            <div class="flex items-center justify-between text-rose-400">
+            <div class="flex items-center justify-between text-rose-600 dark:text-rose-400">
               <span>✗ Final Assessment (Passing: 70%)</span>
               <span class="font-bold font-mono">Score: {{ selectedCertCourse.quizScore }}%</span>
             </div>
           </div>
         </div>
 
-        <p class="text-xs text-slate-400 leading-relaxed">
+        <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
           {{ selectedCertCourse.missingCertReason }} You can retake the assessment at any time to qualify for the official SPI certificate.
         </p>
 
@@ -1015,7 +1015,7 @@ const navigateToReview = (course: CompletedCourseItem) => {
           <button
             @click="isNoCertModalOpen = false"
             type="button"
-            class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer"
+            class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer"
           >
             Close
           </button>
