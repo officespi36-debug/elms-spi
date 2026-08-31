@@ -549,6 +549,100 @@ class CourseFeeInvoiceService
             'per_page'            => $perPage,
         ];
     }
+
+    /**
+     * Get structured Student Payment Settings data.
+     */
+    public function getPaymentSettingsData(?User $user = null): array
+    {
+        return [
+            'saved_methods' => [
+                [
+                    'id'             => 1,
+                    'provider'       => 'aba',
+                    'name'           => 'ABA KHQR',
+                    'account_holder' => $user?->name ?: 'Sok Pisey',
+                    'account_number' => '002 348 567',
+                    'masked_info'    => '002 348 567',
+                    'is_primary'     => true,
+                    'status'         => 'Verified',
+                    'added_date'     => 'May 10, 2025',
+                ],
+                [
+                    'id'             => 2,
+                    'provider'       => 'wing',
+                    'name'           => 'Wing Account',
+                    'account_holder' => $user?->name ?: 'Sok Pisey',
+                    'account_number' => '092 345 678',
+                    'masked_info'    => '092 345 678',
+                    'is_primary'     => false,
+                    'status'         => 'Verified',
+                    'added_date'     => 'Apr 28, 2025',
+                ],
+                [
+                    'id'             => 3,
+                    'provider'       => 'visa',
+                    'name'           => 'Visa Card',
+                    'account_holder' => $user?->name ?: 'Sok Pisey',
+                    'account_number' => '•••• 4567',
+                    'masked_info'    => '•••• 4567',
+                    'expiry'         => '08/27',
+                    'is_primary'     => false,
+                    'status'         => 'Verified',
+                    'added_date'     => 'Apr 15, 2025',
+                ],
+                [
+                    'id'             => 4,
+                    'provider'       => 'mastercard',
+                    'name'           => 'Mastercard',
+                    'account_holder' => $user?->name ?: 'Sok Pisey',
+                    'account_number' => '•••• 7890',
+                    'masked_info'    => '•••• 7890',
+                    'expiry'         => '11/26',
+                    'is_primary'     => false,
+                    'status'         => 'Verified',
+                    'added_date'     => 'Apr 12, 2025',
+                ],
+            ],
+            'auto_pay' => [
+                'enabled'   => true,
+                'currency'  => 'KHR',
+                'threshold' => '50,000',
+                'reminder'  => '1 day before',
+            ],
+            'history_summary' => [
+                'total_paid'          => '1,320.00 KHR',
+                'total_paid_period'   => 'This Year',
+                'last_payment'        => '120.00 KHR',
+                'last_payment_date'   => 'May 28, 2025',
+                'successful_payments' => 9,
+                'successful_period'   => 'This Year',
+                'failed_payments'     => 0,
+                'failed_period'       => 'This Year',
+            ],
+            'billing_summary' => [
+                'total_invoices'      => 12,
+                'paid_invoices'       => 9,
+                'pending_invoices'    => 3,
+                'outstanding_balance' => '180.00 KHR',
+            ],
+            'default_currency' => 'KHR',
+            'security' => [
+                'two_factor_enabled' => true,
+                'encryption_active'  => true,
+                'fraud_protection'   => true,
+                'monitoring_active'  => true,
+            ],
+            'notifications' => [
+                'payment_successful' => true,
+                'payment_pending'    => true,
+                'payment_failed'     => true,
+                'invoice_reminder'   => true,
+                'due_date_reminder'  => true,
+            ],
+        ];
+    }
 }
+
 
 

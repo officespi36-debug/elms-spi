@@ -91,7 +91,11 @@ class PaymentController extends Controller
 
     public function settings(Request $request)
     {
-        return Inertia::render('Student/Payments/ReceiptsInvoices');
+        $settingsData = app(CourseFeeInvoiceService::class)->getPaymentSettingsData($request->user());
+
+        return Inertia::render('Student/Payments/PaymentSettings', [
+            'settingsData' => $settingsData
+        ]);
     }
 
     public function pending(Request $request)
