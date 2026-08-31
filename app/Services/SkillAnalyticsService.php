@@ -24,16 +24,26 @@ class SkillAnalyticsService
     /**
      * Get complete skill analytics for a student.
      */
-    public function getStudentSkillAnalytics(User $user, string $category = 'all', string $sort = 'progress_desc', string $tab = 'all', string $period = 'this_month'): array
+    public function getStudentSkillAnalytics(?User $user = null, string $category = 'all', string $sort = 'progress_desc', string $tab = 'all', string $period = 'this_month'): array
     {
-        // 1. Gather real user learning activities
-        $completedLessons = LessonProgress::where('user_id', $user->id)
-            ->where('status', 'completed')
-            ->count();
+        $completedLessons = 0;
+        $quizAttempts = collect();
 
-        $quizAttempts = QuizAttempt::where('user_id', $user->id)
-            ->whereNotNull('score')
-            ->get();
+        if ($user) {
+            try {
+                $completedLessons = LessonProgress::where('user_id', $user->id)
+                    ->where(function ($q) {
+                        $q->whereNotNull('completed_at')->orWhere('percent', '>=', 100);
+                    })
+                    ->count();
+
+                $quizAttempts = QuizAttempt::where('user_id', $user->id)
+                    ->whereNotNull('score')
+                    ->get();
+            } catch (\Throwable $e) {
+                \Log::warning('SkillAnalyticsService error: ' . $e->getMessage());
+            }
+        }
 
         // 2. Generate comprehensive analytics (using real student context with robust baseline data)
         return $this->buildSkillAnalytics($user, $completedLessons, $quizAttempts, $category, $sort, $tab, $period);
@@ -42,7 +52,7 @@ class SkillAnalyticsService
     /**
      * Build aggregated skill analytics.
      */
-    protected function buildSkillAnalytics(User $user, int $completedLessons, Collection $quizAttempts, string $category, string $sort, string $tab, string $period): array
+    protected function buildSkillAnalytics(?User $user, int $completedLessons, Collection $quizAttempts, string $category, string $sort, string $tab, string $period): array
     {
         $allSkills = $this->getMasterSkillsList();
 
