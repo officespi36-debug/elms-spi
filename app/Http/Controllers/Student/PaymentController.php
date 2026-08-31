@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Payment;
+use App\Services\CourseFeeInvoiceService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -27,7 +28,46 @@ class PaymentController extends Controller
 
     public function myPayments(Request $request)
     {
-        return Inertia::render('Student/Payments/MyPayments');
+        $status = $request->query('status', 'all');
+        $course = $request->query('course', 'all');
+        $dateRange = $request->query('date_range', 'all');
+        $search = $request->query('search', '');
+        $page = (int) $request->query('page', 1);
+
+        $data = app(CourseFeeInvoiceService::class)->getMyPaymentsData(
+            $request->user(),
+            $status,
+            $course,
+            $dateRange,
+            $search,
+            $page
+        );
+
+        return Inertia::render('Student/Payments/MyPayments', [
+            'analytics' => $data,
+            'filters'   => [
+                'status'     => $status,
+                'course'     => $course,
+                'date_range' => $dateRange,
+                'search'     => $search,
+                'page'       => $page,
+            ]
+        ]);
+    }
+
+    public function methods(Request $request)
+    {
+        return Inertia::render('Student/Payments/PendingPayments');
+    }
+
+    public function transactions(Request $request)
+    {
+        return Inertia::render('Student/Payments/PaymentHistory');
+    }
+
+    public function settings(Request $request)
+    {
+        return Inertia::render('Student/Payments/ReceiptsInvoices');
     }
 
     public function pending(Request $request)

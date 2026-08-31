@@ -589,6 +589,17 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/verify-api', [Student\CertificateController::class, 'verifyApi'])->name('verify-api');
         });
 
+        Route::get('/payments', [Student\PaymentController::class, 'index'])->name('payments');
+        Route::prefix('payments')->name('payments.')->group(function () {
+            Route::get('/my-payments', [Student\PaymentController::class, 'myPayments'])->name('my-payments');
+            Route::get('/methods', [Student\PaymentController::class, 'methods'])->name('methods');
+            Route::get('/transactions', [Student\PaymentController::class, 'transactions'])->name('transactions');
+            Route::get('/settings', [Student\PaymentController::class, 'settings'])->name('settings');
+            Route::get('/pending', [Student\PaymentController::class, 'pending'])->name('pending');
+            Route::get('/history', [Student\PaymentController::class, 'history'])->name('history');
+            Route::get('/receipts', [Student\PaymentController::class, 'receipts'])->name('receipts');
+        });
+
         Route::get('/discussions', [Student\DiscussionController::class, 'index'])->name('discussions');
         Route::prefix('discussions')->name('discussions.')->group(function () {
             Route::get('/ask', [Student\DiscussionController::class, 'ask'])->name('ask');
