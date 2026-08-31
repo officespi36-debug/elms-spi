@@ -60,7 +60,31 @@ class QuizController extends Controller
 
     public function assignments(Request $request)
     {
-        return Inertia::render('Student/Quizzes/Assignments');
+        $status = $request->query('status', 'all');
+        $course = $request->query('course', 'all');
+        $dateRange = $request->query('date_range', 'all');
+        $search = $request->query('search', '');
+        $page = (int) $request->query('page', 1);
+
+        $data = app(\App\Services\AssessmentService::class)->getAssessmentsData(
+            $request->user(),
+            $status,
+            $course,
+            $dateRange,
+            $search,
+            $page
+        );
+
+        return Inertia::render('Student/Quizzes/Assignments', [
+            'analytics' => $data,
+            'filters'   => [
+                'status'     => $status,
+                'course'     => $course,
+                'date_range' => $dateRange,
+                'search'     => $search,
+                'page'       => $page,
+            ]
+        ]);
     }
 
     public function history(Request $request)
