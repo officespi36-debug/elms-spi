@@ -630,6 +630,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/profile', [Student\ProfileController::class, 'update'])->name('profile.update');
         Route::post('/profile/password', [Student\ProfileController::class, 'updatePassword'])->name('profile.password');
 
+        // Route Aliases for Direct Dashboard Links
+        Route::get('/assignments', [Student\QuizController::class, 'assignments'])->name('assignments');
+        Route::get('/learning-content/resources', [Student\LearningController::class, 'notes'])->name('learning-content.resources');
+        Route::get('/certificates/achievements', [Student\ProgressController::class, 'achievementsBadges'])->name('certificates.achievements');
+
         // 14. 24/7 AI Academic Tutor Endpoint
         Route::post('/api/ai-tutor/chat', [Student\AiTutorController::class, 'askTutor'])->name('ai.tutor.chat');
     });

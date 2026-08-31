@@ -1,75 +1,113 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { Link, usePage } from '@inertiajs/vue3'
 import StudentLayout from '@/Layouts/StudentLayout.vue'
+
+const props = defineProps<{
+  stats?: {
+    enrolledCount: number
+    inProgressCount: number
+    completedCount: number
+    certificatesCount: number
+    learningTime: string
+    averageScore: string
+  }
+  continueCourse?: {
+    title: string
+    chapter: string
+    teacher: string
+    progress: number
+    lastLesson: string
+    timeLeft: string
+    href: string
+  }
+  dbCourses?: Array<{
+    id: number
+    title: string
+    teacher: string
+    progress: number
+    status: 'in_progress' | 'completed' | 'not_started'
+    statusLabel: string
+    badgeClass: string
+    iconType: string
+    iconColor: string
+    href: string
+  }>
+  enrollments?: any[]
+}>()
 
 const page = usePage<any>()
 const user = computed(() => page.props.auth?.user || {})
 
 // 6 Top Stats Metrics with dedicated links to real modules
-const stats = ref([
+const statsCards = computed(() => [
   {
     title: 'Enrolled Courses',
-    value: '4',
+    value: props.stats?.enrolledCount?.toString() || '4',
     subtitle: 'Total Courses',
     icon: '📚',
-    iconBg: 'bg-purple-600/20 text-purple-400 border border-purple-500/30',
+    iconBg: 'bg-purple-600/20 text-purple-600 dark:text-purple-400 border border-purple-500/30',
     href: '/student/my-courses/enrolled'
   },
   {
     title: 'In Progress',
-    value: '2',
+    value: props.stats?.inProgressCount?.toString() || '2',
     subtitle: 'Active Courses',
     icon: '🎓',
-    iconBg: 'bg-blue-600/20 text-blue-400 border border-blue-500/30',
+    iconBg: 'bg-blue-600/20 text-blue-600 dark:text-blue-400 border border-blue-500/30',
     href: '/student/my-courses/enrolled'
   },
   {
     title: 'Completed',
-    value: '1',
+    value: props.stats?.completedCount?.toString() || '1',
     subtitle: 'Finished Courses',
     icon: '✅',
-    iconBg: 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30',
+    iconBg: 'bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30',
     href: '/student/my-courses/completed'
   },
   {
     title: 'Certificates',
-    value: '1',
+    value: props.stats?.certificatesCount?.toString() || '1',
     subtitle: 'Earned',
     icon: '🏆',
-    iconBg: 'bg-amber-600/20 text-amber-400 border border-amber-500/30',
+    iconBg: 'bg-amber-600/20 text-amber-600 dark:text-amber-400 border border-amber-500/30',
     href: '/student/certificates/my-certificates'
   },
   {
     title: 'Study Time',
-    value: '28h 45m',
+    value: props.stats?.learningTime || '28h 45m',
     subtitle: 'Total Hours',
     icon: '⏱',
-    iconBg: 'bg-cyan-600/20 text-cyan-400 border border-cyan-500/30',
-    href: '/student/progress'
+    iconBg: 'bg-cyan-600/20 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30',
+    href: '/student/progress/learning-time'
   },
   {
     title: 'Quiz Average',
-    value: '78%',
+    value: props.stats?.averageScore || '78%',
     subtitle: 'Your Average',
     icon: '📊',
-    iconBg: 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30',
+    iconBg: 'bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30',
     href: '/student/quizzes/scores'
   }
 ])
 
 // Featured Continue Learning Course
-const continueCourse = ref({
-  title: 'Web Development Fundamentals',
-  chapter: 'Chapter 3 - JavaScript Functions',
-  teacher: 'Mr. Sophea',
-  progress: 53,
-  lastLesson: '3.2 JavaScript Functions',
-  timeLeft: '18:20 left',
-  href: '/student/my-courses/current'
+const continueCourseData = computed(() => {
+  if (props.continueCourse) {
+    return props.continueCourse
+  }
+  return {
+    title: 'Web Development Fundamentals',
+    chapter: 'Chapter 3 - JavaScript Functions',
+    teacher: 'Mr. Sophea Chem',
+    progress: 53,
+    lastLesson: '3.2 JavaScript Functions',
+    timeLeft: '18:20 left',
+    href: '/student/my-courses/current'
+  }
 })
 
-// Today's Goal (Interactive tasks)
+// Today's Goal (Interactive tasks with local persistence)
 const todayGoal = ref({
   completedCount: 1,
   totalCount: 2,
@@ -80,14 +118,35 @@ const todayGoal = ref({
   ]
 })
 
+const isAddGoalOpen = ref(false)
+const newGoalTitle = ref('')
+
 const toggleTask = (task: any) => {
   task.completed = !task.completed
+  recalculateGoals()
+}
+
+const recalculateGoals = () => {
   const done = todayGoal.value.items.filter(i => i.completed).length
   todayGoal.value.completedCount = done
+  todayGoal.value.totalCount = todayGoal.value.items.length || 1
   todayGoal.value.percentage = Math.round((done / todayGoal.value.totalCount) * 100)
 }
 
-// AI Recommended For You Widget Data (Prompt Section 8)
+const addNewGoal = () => {
+  if (!newGoalTitle.value.trim()) return
+  todayGoal.value.items.push({
+    id: Date.now(),
+    title: newGoalTitle.value.trim(),
+    completed: false,
+    href: '/student/my-courses/current'
+  })
+  newGoalTitle.value = ''
+  isAddGoalOpen.value = false
+  recalculateGoals()
+}
+
+// AI Recommended For You Widget Data
 const aiRecommendations = ref([
   {
     id: 1,
@@ -114,15 +173,15 @@ const aiRecommendations = ref([
 // My Courses Filter and List
 const selectedCourseFilter = ref<'all' | 'in_progress' | 'completed' | 'not_started'>('all')
 
-const myCoursesList = ref([
+const fallbackCoursesList = [
   {
     id: 1,
     title: 'Web Development Fundamentals',
-    teacher: 'Mr. Sophea',
+    teacher: 'Mr. Sophea Chem',
     progress: 53,
     status: 'in_progress',
     statusLabel: 'In Progress',
-    badgeClass: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+    badgeClass: 'bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/30',
     iconType: 'code',
     iconColor: 'from-blue-600 to-purple-600',
     href: '/student/courses/1/overview'
@@ -134,7 +193,7 @@ const myCoursesList = ref([
     progress: 35,
     status: 'in_progress',
     statusLabel: 'In Progress',
-    badgeClass: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+    badgeClass: 'bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/30',
     iconType: 'db',
     iconColor: 'from-purple-600 to-indigo-600',
     href: '/student/courses/2/overview'
@@ -146,7 +205,7 @@ const myCoursesList = ref([
     progress: 0,
     status: 'not_started',
     statusLabel: 'Not Started',
-    badgeClass: 'bg-slate-800 text-slate-400 border-slate-700',
+    badgeClass: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700',
     iconType: 'python',
     iconColor: 'from-amber-600 to-yellow-600',
     href: '/student/courses/3/overview'
@@ -155,20 +214,59 @@ const myCoursesList = ref([
     id: 4,
     title: 'UI/UX Design Basics',
     teacher: 'Ms. Nhean Sreymom',
-    progress: 0,
-    status: 'not_started',
-    statusLabel: 'Not Started',
-    badgeClass: 'bg-slate-800 text-slate-400 border-slate-700',
+    progress: 100,
+    status: 'completed',
+    statusLabel: 'Completed',
+    badgeClass: 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/30',
     iconType: 'design',
     iconColor: 'from-pink-600 to-purple-600',
     href: '/student/courses/4/overview'
   }
-])
+]
+
+const coursesToDisplay = computed(() => {
+  if (props.dbCourses && props.dbCourses.length > 0) {
+    return props.dbCourses
+  }
+  return fallbackCoursesList
+})
 
 const filteredCourses = computed(() => {
-  if (selectedCourseFilter.value === 'all') return myCoursesList.value
-  return myCoursesList.value.filter(c => c.status === selectedCourseFilter.value)
+  if (selectedCourseFilter.value === 'all') return coursesToDisplay.value
+  return coursesToDisplay.value.filter(c => c.status === selectedCourseFilter.value)
 })
+
+// Learning Overview Chart Range Switcher
+const selectedRange = ref<'week' | 'last_week' | 'month'>('week')
+const chartDataByRange = {
+  week: {
+    total: '2h 30m',
+    sub: 'Today vs average',
+    pathArea: 'M 10 60 Q 40 40 70 55 T 130 25 T 190 40 L 190 75 L 10 75 Z',
+    pathLine: 'M 10 60 Q 40 40 70 55 T 130 25 T 190 40',
+    dotX: 130,
+    dotY: 25,
+    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+  },
+  last_week: {
+    total: '14h 10m',
+    sub: 'Last week total',
+    pathArea: 'M 10 50 Q 40 30 70 45 T 130 35 T 190 20 L 190 75 L 10 75 Z',
+    pathLine: 'M 10 50 Q 40 30 70 45 T 130 35 T 190 20',
+    dotX: 190,
+    dotY: 20,
+    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+  },
+  month: {
+    total: '48h 20m',
+    sub: 'May 2025 cumulative',
+    pathArea: 'M 10 65 Q 50 50 90 35 T 150 20 T 190 15 L 190 75 L 10 75 Z',
+    pathLine: 'M 10 65 Q 50 50 90 35 T 150 20 T 190 15',
+    dotX: 150,
+    dotY: 20,
+    labels: ['W1', 'W2', 'W3', 'W4', '', '', '']
+  }
+}
 
 // Upcoming Schedule
 const upcomingEvents = ref([
@@ -188,12 +286,12 @@ const upcomingEvents = ref([
     course: 'Web Development Fundamentals',
     date: 'May 30, 2025',
     time: '02:00 PM',
-    href: '/student/my-courses/current'
+    href: '/student/calendar/live-class'
   },
   {
     id: 3,
     icon: '📄',
-    title: 'Assignment: Mini Project',
+    title: 'Assignment: Relational ER Model',
     course: 'Database Systems',
     date: 'Jun 01, 2025',
     time: '11:59 PM',
@@ -203,44 +301,54 @@ const upcomingEvents = ref([
 
 // AI Study Assistant Widget
 const aiPromptInput = ref('')
-const aiMessages = ref<Array<{ role: 'ai' | 'user'; text: string }>>([
+const isAiTyping = ref(false)
+const aiMessages = ref<Array<{ role: 'ai' | 'user'; text: string; time?: string }>>([
   {
     role: 'ai',
-    text: 'Hi Sok Pisey! 👋 How can I help you with your learning today?'
+    text: 'Hi ' + (user.value?.name || 'Sok Pisey') + '! 👋 How can I help you with your learning today?',
+    time: 'Just now'
   }
 ])
 
 const handleSendAiPrompt = (promptText: string) => {
-  aiMessages.value.push({ role: 'user', text: promptText })
+  aiMessages.value.push({ role: 'user', text: promptText, time: 'Now' })
+  isAiTyping.value = true
+
   setTimeout(() => {
+    isAiTyping.value = false
     const qLower = promptText.toLowerCase()
-    if (qLower.includes('example')) {
+    if (qLower.includes('example') || qLower.includes('function')) {
       aiMessages.value.push({
         role: 'ai',
-        text: 'Here is a quick JavaScript function example:\n```javascript\nfunction greet(name) {\n  return `Hello, ${name}!`;\n}\nconsole.log(greet("Pisey")); // Hello, Pisey!\n```'
+        text: 'Here is a clean JavaScript function example:\n```javascript\nfunction calculateTotal(price, taxRate = 0.1) {\n  return price + (price * taxRate);\n}\nconsole.log(calculateTotal(100)); // 110\n```',
+        time: 'Now'
       })
     } else if (qLower.includes('what should i study') || qLower.includes('recommend') || qLower.includes('plan')) {
       aiMessages.value.push({
         role: 'ai',
-        text: 'Based on your recent activity:\n1. 🎯 **Finish Lesson 3.2** in Web Development (18m remaining).\n2. ⚠️ **Review Function Parameters** to lift your 62% quiz score.\n3. ⚡ **Practice 5 drill questions** before the May 28 Chapter Quiz!'
+        text: 'Based on your recent learning data:\n1. 🎯 **Finish Lesson 3.2** in Web Development (18m left).\n2. ⚠️ **Review Function Parameters** to raise your 62% quiz score.\n3. ⚡ **Practice 5 drill questions** before the May 28 Chapter Quiz!',
+        time: 'Now'
       })
     } else if (qLower.includes('explain')) {
       aiMessages.value.push({
         role: 'ai',
-        text: 'A JavaScript function is a reusable block of code designed to perform a particular task. It executes when invoked and can return a computed result.'
+        text: 'A JavaScript function is a reusable block of code designed to perform a specific task. It executes when called (invoked) and can return calculated output with the return statement.',
+        time: 'Now'
       })
     } else if (qLower.includes('summarize')) {
       aiMessages.value.push({
         role: 'ai',
-        text: 'Summary: Functions accept parameters, execute logic in their local block scope, and pass back values with the return keyword.'
+        text: 'Summary: Functions accept parameters, execute logic in their local block scope, and return computed results using the return keyword.',
+        time: 'Now'
       })
     } else {
       aiMessages.value.push({
         role: 'ai',
-        text: 'Quick Quiz Check: What keyword declares a variable inside block scope? (A) var (B) let (C) define (D) dim'
+        text: `Great question about "${promptText}"! To succeed: break down the problem into smaller steps, practice coding in the editor, and test your understanding with mini-quizzes. Let me know if you want a step-by-step example!`,
+        time: 'Now'
       })
     }
-  }, 350)
+  }, 400)
 }
 
 const sendUserCustomAi = () => {
@@ -264,7 +372,7 @@ const recentActivities = ref([
   {
     id: 1,
     icon: '▶',
-    iconBg: 'bg-purple-600/20 text-purple-400 border border-purple-500/30',
+    iconBg: 'bg-purple-600/20 text-purple-600 dark:text-purple-400 border border-purple-500/30',
     title: 'Watched: 3.2 JavaScript Functions',
     course: 'Web Development Fundamentals',
     time: 'Today, 09:30 AM',
@@ -273,7 +381,7 @@ const recentActivities = ref([
   {
     id: 2,
     icon: '✓',
-    iconBg: 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30',
+    iconBg: 'bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30',
     title: 'Completed Quiz: Chapter 2 Quiz',
     course: 'Web Development Fundamentals',
     time: 'Yesterday, 04:15 PM',
@@ -282,7 +390,6 @@ const recentActivities = ref([
   {
     id: 3,
     icon: '📄',
-    iconBg: 'bg-amber-600/20 text-amber-400 border border-amber-500/30',
     title: 'Downloaded: JavaScript Cheat Sheet',
     course: 'Web Development Fundamentals',
     time: 'May 26, 03:20 PM',
@@ -300,21 +407,50 @@ const recentActivities = ref([
   >
     <div class="space-y-6 pb-12">
       
-      <!-- TOP GREETING HEADER -->
-      <div class="space-y-1">
-        <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-          <span>Welcome back, {{ user.name || 'Sok Pisey' }}!</span>
-          <span class="animate-waving-hand inline-block">👋</span>
-        </h1>
-        <p class="text-xs text-slate-600 dark:text-slate-400 font-medium">
-          Keep learning and achieve your goals. You've got this! 💪
-        </p>
+      <!-- TOP GREETING & QUICK SHORTCUTS ROW -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 p-5 rounded-3xl shadow-xs dark:shadow-xl">
+        <div class="space-y-1">
+          <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+            <span>Welcome back, {{ user.name || 'Sok Pisey' }}!</span>
+            <span class="animate-waving-hand inline-block">👋</span>
+          </h1>
+          <p class="text-xs text-slate-600 dark:text-slate-400 font-medium">
+            Continue where you left off or explore new courses today. You've got this! 💪
+          </p>
+        </div>
+
+        <!-- Quick Shortcut Actions -->
+        <div class="flex flex-wrap items-center gap-2">
+          <Link
+            href="/student/browse"
+            class="px-3.5 py-2 rounded-xl bg-purple-50 dark:bg-purple-950/50 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800/60 text-purple-700 dark:text-purple-300 font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs"
+          >
+            <span>🔍</span>
+            <span>Browse Courses</span>
+          </Link>
+
+          <Link
+            href="/student/payments/my-payments"
+            class="px-3.5 py-2 rounded-xl bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200 dark:border-blue-800/60 text-blue-700 dark:text-blue-300 font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs"
+          >
+            <span>💳</span>
+            <span>Pay via ABA</span>
+          </Link>
+
+          <Link
+            href="/student/notifications/announcements"
+            class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs"
+          >
+            <span>📢</span>
+            <span>Announcements</span>
+          </Link>
+        </div>
       </div>
 
       <!-- 6 METRICS CARDS ROW (Fully clickable and connected) -->
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         <Link
-          v-for="stat in stats"
+          v-for="stat in statsCards"
           :key="stat.title"
           :href="stat.href"
           class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 hover:border-purple-500/40 rounded-2xl p-4 shadow-sm dark:shadow-xl flex items-center gap-3.5 transition-all duration-200 hover:-translate-y-1 group"
@@ -361,24 +497,24 @@ const recentActivities = ref([
               <div class="flex-1 w-full space-y-3">
                 <div class="space-y-1">
                   <span class="px-2.5 py-0.5 rounded-md bg-purple-500/10 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 text-[10px] font-bold border border-purple-500/20 dark:border-purple-500/30">
-                    Teacher: {{ continueCourse.teacher }}
+                    Teacher: {{ continueCourseData.teacher }}
                   </span>
                   <h3 class="text-base font-bold text-slate-900 dark:text-white leading-tight">
-                    {{ continueCourse.title }}
+                    {{ continueCourseData.title }}
                   </h3>
                   <p class="text-xs text-slate-600 dark:text-slate-400 font-medium">
-                    {{ continueCourse.chapter }}
+                    {{ continueCourseData.chapter }}
                   </p>
                 </div>
 
                 <!-- Progress Bar -->
                 <div class="space-y-1.5">
                   <div class="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
-                    <div class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full" :style="{ width: continueCourse.progress + '%' }"></div>
+                    <div class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full" :style="{ width: continueCourseData.progress + '%' }"></div>
                   </div>
                   <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-                    <span>Last lesson: {{ continueCourse.lastLesson }}</span>
-                    <span class="font-mono flex items-center gap-1">⏱ {{ continueCourse.timeLeft }}</span>
+                    <span>Last lesson: {{ continueCourseData.lastLesson }}</span>
+                    <span class="font-mono flex items-center gap-1">⏱ {{ continueCourseData.timeLeft }}</span>
                   </div>
                 </div>
               </div>
@@ -386,7 +522,7 @@ const recentActivities = ref([
               <!-- CTA Button -->
               <div class="w-full md:w-auto shrink-0">
                 <Link
-                  :href="continueCourse.href"
+                  :href="continueCourseData.href"
                   class="w-full md:w-auto px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all text-center cursor-pointer"
                 >
                   <span>Continue Learning</span>
@@ -433,11 +569,11 @@ const recentActivities = ref([
               </div>
 
               <Link href="/student/my-courses/enrolled" class="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 font-semibold self-start sm:self-auto">
-                View All
+                View All ({{ coursesToDisplay.length }})
               </Link>
             </div>
 
-            <!-- 4 Courses Grid -->
+            <!-- Courses Grid -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <Link
                 v-for="c in filteredCourses"
@@ -447,10 +583,10 @@ const recentActivities = ref([
               >
                 <!-- Illustration Box with Badge -->
                 <div class="relative w-full h-24 rounded-xl bg-slate-100 dark:bg-slate-950 flex items-center justify-center overflow-hidden">
-                  <div :class="['w-10 h-10 rounded-xl bg-gradient-to-tr', c.iconColor, 'flex items-center justify-center text-white text-lg font-mono font-bold shadow-md']">
-                    <span v-if="c.iconType === 'code'">&lt;/&gt;</span>
-                    <span v-else-if="c.iconType === 'db'">🗄️</span>
-                    <span v-else-if="c.iconType === 'python'">🐍</span>
+                  <div :class="['w-10 h-10 rounded-xl bg-gradient-to-tr', c.iconColor || 'from-purple-600 to-indigo-600', 'flex items-center justify-center text-white text-lg font-mono font-bold shadow-md']">
+                    <span v-if="c.iconType === 'code' || c.iconType?.includes('web')">&lt;/&gt;</span>
+                    <span v-else-if="c.iconType === 'db' || c.iconType?.includes('database')">🗄️</span>
+                    <span v-else-if="c.iconType === 'python' || c.iconType?.includes('program')">🐍</span>
                     <span v-else>🎨</span>
                   </div>
 
@@ -470,9 +606,16 @@ const recentActivities = ref([
                 <!-- Progress -->
                 <div class="space-y-1 pt-1">
                   <div class="w-full h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
-                    <div class="h-full bg-purple-500 rounded-full" :style="{ width: c.progress + '%' }"></div>
+                    <div
+                      :class="c.progress === 100 ? 'bg-emerald-500' : 'bg-purple-500'"
+                      class="h-full rounded-full transition-all"
+                      :style="{ width: c.progress + '%' }"
+                    ></div>
                   </div>
-                  <span class="text-[10px] text-purple-600 dark:text-purple-400 font-bold font-mono">{{ c.progress }}%</span>
+                  <div class="flex items-center justify-between text-[10px]">
+                    <span :class="c.progress === 100 ? 'text-emerald-600 dark:text-emerald-400' : 'text-purple-600 dark:text-purple-400'" class="font-bold font-mono">{{ c.progress }}%</span>
+                    <span class="text-slate-400 dark:text-slate-500 text-[9px]">Open Overview →</span>
+                  </div>
                 </div>
               </Link>
             </div>
@@ -481,20 +624,46 @@ const recentActivities = ref([
           <!-- ANALYTICS CHARTS ROW (Learning Overview, Study Time Donut, Quiz Performance Gauge) -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             
-            <!-- Learning Overview Line Chart Card -->
-            <Link
-              href="/student/progress"
-              class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 hover:border-purple-500/40 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-4 block transition-all hover:-translate-y-1"
+            <!-- Learning Overview Line Chart Card with Range Switcher -->
+            <div
+              class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-4 block transition-all"
             >
               <div class="flex items-center justify-between">
-                <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Learning Overview</h3>
-                <span class="text-[11px] text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-950 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-800">This Week ⌄</span>
+                <Link href="/student/progress/learning-time" class="text-xs font-bold text-slate-900 dark:text-white hover:text-purple-600 dark:hover:text-purple-300 uppercase tracking-wider flex items-center gap-1">
+                  <span>Learning Overview</span>
+                  <span class="text-[10px]">↗</span>
+                </Link>
+
+                <!-- Range Selector -->
+                <div class="flex items-center gap-1 text-[10px] bg-slate-100 dark:bg-slate-950 p-0.5 rounded-lg border border-slate-200 dark:border-slate-800">
+                  <button
+                    @click="selectedRange = 'week'"
+                    :class="selectedRange === 'week' ? 'bg-purple-600 text-white font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
+                    class="px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                  >
+                    Week
+                  </button>
+                  <button
+                    @click="selectedRange = 'last_week'"
+                    :class="selectedRange === 'last_week' ? 'bg-purple-600 text-white font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
+                    class="px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                  >
+                    Last
+                  </button>
+                  <button
+                    @click="selectedRange = 'month'"
+                    :class="selectedRange === 'month' ? 'bg-purple-600 text-white font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
+                    class="px-2 py-0.5 rounded-md cursor-pointer transition-colors"
+                  >
+                    Month
+                  </button>
+                </div>
               </div>
 
               <!-- SVG Line Chart Mockup -->
               <div class="relative pt-2">
                 <div class="absolute top-2 left-1/2 -translate-x-1/2 px-2 py-1 rounded-lg bg-purple-600 text-white text-[10px] font-bold shadow-md">
-                  2h 30m
+                  {{ chartDataByRange[selectedRange].total }}
                 </div>
 
                 <svg viewBox="0 0 200 80" class="w-full h-20 overflow-visible">
@@ -505,38 +674,36 @@ const recentActivities = ref([
                     </linearGradient>
                   </defs>
                   <path
-                    d="M 10 60 Q 40 40 70 55 T 130 25 T 190 40 L 190 75 L 10 75 Z"
+                    :d="chartDataByRange[selectedRange].pathArea"
                     fill="url(#purpleGrad)"
                   />
                   <path
-                    d="M 10 60 Q 40 40 70 55 T 130 25 T 190 40"
+                    :d="chartDataByRange[selectedRange].pathLine"
                     fill="none"
                     stroke="#8b5cf6"
                     stroke-width="2.5"
                     stroke-linecap="round"
                   />
-                  <circle cx="130" cy="25" r="4" fill="#a855f7" stroke="#ffffff" stroke-width="2" />
+                  <circle :cx="chartDataByRange[selectedRange].dotX" :cy="chartDataByRange[selectedRange].dotY" r="4" fill="#a855f7" stroke="#ffffff" stroke-width="2" />
                 </svg>
 
                 <div class="flex justify-between text-[9px] text-slate-400 dark:text-slate-500 font-mono pt-1">
-                  <span>Mon</span>
-                  <span>Tue</span>
-                  <span>Wed</span>
-                  <span>Thu</span>
-                  <span>Fri</span>
-                  <span>Sat</span>
-                  <span>Sun</span>
+                  <span v-for="(lbl, idx) in chartDataByRange[selectedRange].labels" :key="idx">{{ lbl }}</span>
                 </div>
               </div>
-            </Link>
+            </div>
 
             <!-- Study Time Donut Ring Chart Card -->
             <Link
-              href="/student/progress"
+              href="/student/progress/learning-time"
               class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 hover:border-purple-500/40 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-4 block transition-all hover:-translate-y-1"
             >
               <div class="flex items-center justify-between">
-                <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Study Time</h3>
+                <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1">
+                  <span>Study Time</span>
+                  <span class="text-[10px]">↗</span>
+                </h3>
+                <span class="text-[10px] text-purple-600 dark:text-purple-400 font-semibold">Breakdown</span>
               </div>
 
               <div class="flex items-center justify-center gap-4">
@@ -571,7 +738,7 @@ const recentActivities = ref([
                     />
                   </svg>
                   <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-                    <span class="text-[11px] font-black text-slate-900 dark:text-white leading-none">28h 45m</span>
+                    <span class="text-[11px] font-black text-slate-900 dark:text-white leading-none">{{ props.stats?.learningTime || '28h 45m' }}</span>
                     <span class="text-[8px] text-slate-500 dark:text-slate-400">Total</span>
                   </div>
                 </div>
@@ -600,8 +767,11 @@ const recentActivities = ref([
               class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 hover:border-purple-500/40 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-4 block transition-all hover:-translate-y-1"
             >
               <div class="flex items-center justify-between">
-                <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Quiz Performance</h3>
-                <span class="text-[11px] text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-950 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-800">This Month ⌄</span>
+                <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1">
+                  <span>Quiz Performance</span>
+                  <span class="text-[10px]">↗</span>
+                </h3>
+                <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">Passing</span>
               </div>
 
               <div class="flex items-center justify-center gap-4">
@@ -626,7 +796,7 @@ const recentActivities = ref([
                     />
                   </svg>
                   <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-                    <span class="text-sm font-black text-slate-900 dark:text-white leading-none">78%</span>
+                    <span class="text-sm font-black text-slate-900 dark:text-white leading-none">{{ props.stats?.averageScore || '78%' }}</span>
                     <span class="text-[8px] text-slate-500 dark:text-slate-400">Average</span>
                   </div>
                 </div>
@@ -651,7 +821,7 @@ const recentActivities = ref([
           <div class="space-y-3">
             <div class="flex items-center justify-between">
               <h2 class="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">Recent Activity</h2>
-              <Link href="/student/progress" class="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 font-semibold">
+              <Link href="/student/progress/overview" class="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 font-semibold">
                 View All
               </Link>
             </div>
@@ -687,12 +857,46 @@ const recentActivities = ref([
           <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3">
             <div class="flex items-center justify-between">
               <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Today's Goal</h3>
-              <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold border border-emerald-500/20 dark:border-emerald-500/30">
-                {{ todayGoal.completedCount }} / {{ todayGoal.totalCount }} Completed
-              </span>
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold border border-emerald-500/20 dark:border-emerald-500/30">
+                  {{ todayGoal.completedCount }} / {{ todayGoal.totalCount }} Done
+                </span>
+                <button
+                  @click="isAddGoalOpen = !isAddGoalOpen"
+                  class="w-6 h-6 rounded-lg bg-purple-600/10 hover:bg-purple-600/20 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs font-bold cursor-pointer"
+                  title="Add custom task"
+                >
+                  +
+                </button>
+              </div>
             </div>
 
-            <p class="text-xs text-slate-600 dark:text-slate-300 font-medium">Learn 2 lessons today</p>
+            <!-- Add Task Form Modal / Inline -->
+            <div v-if="isAddGoalOpen" class="p-2.5 rounded-2xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/50 space-y-2">
+              <input
+                v-model="newGoalTitle"
+                type="text"
+                placeholder="Enter new study goal..."
+                class="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-purple-200 dark:border-purple-700 text-xs text-slate-900 dark:text-white"
+                @keyup.enter="addNewGoal"
+              />
+              <div class="flex justify-end gap-2 text-xs">
+                <button
+                  @click="isAddGoalOpen = false"
+                  class="px-2.5 py-1 rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 text-[11px]"
+                >
+                  Cancel
+                </button>
+                <button
+                  @click="addNewGoal"
+                  class="px-3 py-1 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-[11px]"
+                >
+                  Add Goal
+                </button>
+              </div>
+            </div>
+
+            <p class="text-xs text-slate-600 dark:text-slate-300 font-medium">Keep your study momentum going!</p>
 
             <div class="space-y-1.5">
               <div class="w-full h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
@@ -725,7 +929,7 @@ const recentActivities = ref([
             </div>
           </div>
 
-          <!-- AI RECOMMENDED FOR YOU CARD (Prompt Section 8) -->
+          <!-- AI RECOMMENDED FOR YOU CARD -->
           <div class="bg-gradient-to-br from-indigo-50/80 via-purple-50/60 to-white dark:from-indigo-950/60 dark:via-purple-950/40 dark:to-slate-900 border border-purple-200 dark:border-purple-500/30 rounded-3xl p-5 shadow-sm dark:shadow-2xl space-y-3.5">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
@@ -806,13 +1010,16 @@ const recentActivities = ref([
                 </div>
                 <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">AI Study Assistant</h3>
               </div>
-              <span class="px-2 py-0.5 rounded-full bg-purple-500/10 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 text-[10px] font-bold border border-purple-500/20 dark:border-purple-500/30">
-                New
-              </span>
+              <Link
+                href="/student/ai-tutor/chat"
+                class="px-2 py-0.5 rounded-full bg-purple-500/10 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 text-[10px] font-bold border border-purple-500/20 dark:border-purple-500/30 hover:bg-purple-600 hover:text-white transition-colors"
+              >
+                Full Chat ↗
+              </Link>
             </div>
 
             <!-- Messages Stream -->
-            <div class="space-y-2 max-h-40 overflow-y-auto custom-scrollbar pr-1">
+            <div class="space-y-2 max-h-44 overflow-y-auto custom-scrollbar pr-1">
               <div
                 v-for="(msg, idx) in aiMessages"
                 :key="idx"
@@ -822,6 +1029,11 @@ const recentActivities = ref([
                 ]"
               >
                 <p class="whitespace-pre-wrap leading-relaxed">{{ msg.text }}</p>
+              </div>
+
+              <div v-if="isAiTyping" class="p-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 text-slate-500 text-[10px] italic flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span>
+                <span>AI Tutor is thinking...</span>
               </div>
             </div>
 
@@ -862,7 +1074,7 @@ const recentActivities = ref([
               <input
                 v-model="aiPromptInput"
                 type="text"
-                placeholder="Type your question..."
+                placeholder="Ask your AI academic tutor..."
                 class="w-full pl-3 pr-8 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-purple-500 shadow-inner"
               />
               <button
@@ -908,3 +1120,19 @@ const recentActivities = ref([
   </StudentLayout>
 </template>
 
+<style scoped>
+.custom-scrollbar::-webkit-scrollbar {
+  height: 4px;
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+:global(.dark) .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+</style>
