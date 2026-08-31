@@ -50,6 +50,27 @@ class ProgressController extends Controller
 
     public function achievementsBadges(Request $request)
     {
-        return Inertia::render('Student/ProgressTracking/AchievementsBadges');
+        $category = $request->query('category', 'all');
+        $sort = $request->query('sort', 'progress_desc');
+        $tab = $request->query('tab', 'all');
+        $period = $request->query('period', 'this_month');
+
+        $analytics = app(\App\Services\SkillAnalyticsService::class)->getStudentSkillAnalytics(
+            $request->user(),
+            $category,
+            $sort,
+            $tab,
+            $period
+        );
+
+        return Inertia::render('Student/ProgressTracking/AchievementsBadges', [
+            'analytics' => $analytics,
+            'filters'   => [
+                'category' => $category,
+                'sort'     => $sort,
+                'tab'      => $tab,
+                'period'   => $period,
+            ]
+        ]);
     }
 }

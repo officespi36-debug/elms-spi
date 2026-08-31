@@ -196,6 +196,13 @@ const dynamicBreadcrumbs = computed(() => {
       { label: 'Weak Topics Review' }
     ]
   }
+  if (url.startsWith('/student/progress/achievements') || url.startsWith('/student/progress/skills')) {
+    return [
+      { label: 'Dashboard', href: '/student/dashboard' },
+      { label: 'Progress & Analytics', href: '/student/progress/overview' },
+      { label: 'Skills Progress' }
+    ]
+  }
   if (url.startsWith('/student/progress/weekly')) {
     return [
       { label: 'Dashboard', href: '/student/dashboard' },
