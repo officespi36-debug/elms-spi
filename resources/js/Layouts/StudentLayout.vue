@@ -449,8 +449,9 @@ const studentNav: NavItem[] = [
     icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
     children: [
       { name: 'Available Quizzes', khName: 'Available Quizzes', href: '/student/quizzes/practice', iconUrl: '/images/nav/quiz.svg' },
-      { name: 'Pre/Post-Test Results', khName: 'Pre/Post-Test Results', href: '/student/quizzes/scores', iconUrl: '/images/nav/sub/semesters.svg' },
-      { name: 'Detailed Performance', khName: 'Detailed Performance', href: '/student/quizzes/history', iconUrl: '/images/nav/analytics.svg' },
+      { name: 'My Quiz Attempts', khName: 'My Quiz Attempts', href: '/student/quizzes/history', iconUrl: '/images/nav/sub/history.svg' },
+      { name: 'Quiz Results', khName: 'Quiz Results', href: '/student/quizzes/scores', iconUrl: '/images/nav/sub/semesters.svg' },
+      { name: 'My Assessments', khName: 'My Assessments', href: '/student/quizzes/assignments', iconUrl: '/images/nav/analytics.svg' },
     ]
   },
   {

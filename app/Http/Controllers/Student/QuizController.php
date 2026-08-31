@@ -26,7 +26,31 @@ class QuizController extends Controller
 
     public function practice(Request $request)
     {
-        return Inertia::render('Student/Quizzes/Practice');
+        $category = $request->query('category', 'all');
+        $course = $request->query('course', 'all');
+        $difficulty = $request->query('difficulty', 'all');
+        $status = $request->query('status', 'available');
+        $search = $request->query('search', '');
+
+        $data = app(\App\Services\AvailableQuizService::class)->getAvailableQuizzesData(
+            $request->user(),
+            $category,
+            $course,
+            $difficulty,
+            $status,
+            $search
+        );
+
+        return Inertia::render('Student/Quizzes/Practice', [
+            'analytics' => $data,
+            'filters'   => [
+                'category'   => $category,
+                'course'     => $course,
+                'difficulty' => $difficulty,
+                'status'     => $status,
+                'search'     => $search,
+            ]
+        ]);
     }
 
     public function postTest(Request $request)
