@@ -65,7 +65,28 @@ class QuizController extends Controller
 
     public function history(Request $request)
     {
-        return Inertia::render('Student/Quizzes/History');
+        $status = $request->query('status', 'all');
+        $dateRange = $request->query('date_range', 'all');
+        $search = $request->query('search', '');
+        $page = (int) $request->query('page', 1);
+
+        $data = app(\App\Services\QuizAttemptHistoryService::class)->getAttemptsHistoryData(
+            $request->user(),
+            $status,
+            $dateRange,
+            $search,
+            $page
+        );
+
+        return Inertia::render('Student/Quizzes/History', [
+            'analytics' => $data,
+            'filters'   => [
+                'status'     => $status,
+                'date_range' => $dateRange,
+                'search'     => $search,
+                'page'       => $page,
+            ]
+        ]);
     }
 
     public function scores(Request $request)

@@ -224,6 +224,27 @@ const dynamicBreadcrumbs = computed(() => {
       { label: 'Learning Overview' }
     ]
   }
+  if (url.startsWith('/student/quizzes/history')) {
+    return [
+      { label: 'Dashboard', href: '/student/dashboard' },
+      { label: 'Quiz & Assessment', href: '/student/quizzes/practice' },
+      { label: 'My Quiz Attempts' }
+    ]
+  }
+  if (url.startsWith('/student/quizzes/scores')) {
+    return [
+      { label: 'Dashboard', href: '/student/dashboard' },
+      { label: 'Quiz & Assessment', href: '/student/quizzes/practice' },
+      { label: 'Quiz Results' }
+    ]
+  }
+  if (url.startsWith('/student/quizzes/assignments')) {
+    return [
+      { label: 'Dashboard', href: '/student/dashboard' },
+      { label: 'Quiz & Assessment', href: '/student/quizzes/practice' },
+      { label: 'My Assessments' }
+    ]
+  }
   if (url.startsWith('/student/quizzes')) {
     return [
       { label: 'Dashboard', href: '/student/dashboard' },
