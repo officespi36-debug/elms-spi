@@ -120,6 +120,11 @@ const simulatePaymentScan = () => {
 // Receipt Modal State
 const showReceiptModal = ref(false)
 
+const handleDownloadReceipt = () => {
+  showReceiptModal.value = false
+  window.alert('Receipt PDF downloaded successfully!')
+}
+
 onMounted(() => {
   startTimer()
 })
@@ -723,7 +728,7 @@ onUnmounted(() => {
             Close
           </button>
           <button
-            @click="showReceiptModal = false; alert('Receipt PDF downloaded successfully!')"
+            @click="handleDownloadReceipt"
             class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow-md flex items-center gap-1.5"
           >
             <span>⤓</span>

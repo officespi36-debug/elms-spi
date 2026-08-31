@@ -149,6 +149,15 @@ const openReceiptModal = (tx: TransactionItem) => {
   selectedTransaction.value = tx
   isReceiptModalOpen.value = true
 }
+
+const handleExport = () => {
+  window.alert('Exporting transaction history statement...')
+}
+
+const handleDownloadReceipt = () => {
+  isReceiptModalOpen.value = false
+  window.alert('Receipt PDF downloaded successfully!')
+}
 </script>
 
 <template>
@@ -177,7 +186,7 @@ const openReceiptModal = (tx: TransactionItem) => {
           </Link>
 
           <button
-            @click="alert('Exporting transaction history statement...')"
+            @click="handleExport"
             class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-950/40 flex items-center gap-1.5 transition-all cursor-pointer"
           >
             <span>⤓</span>
@@ -664,7 +673,7 @@ const openReceiptModal = (tx: TransactionItem) => {
             Close
           </button>
           <button
-            @click="isReceiptModalOpen = false; alert('Receipt PDF downloaded successfully!')"
+            @click="handleDownloadReceipt"
             class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow-md flex items-center gap-1.5 cursor-pointer"
           >
             <span>⤓</span>

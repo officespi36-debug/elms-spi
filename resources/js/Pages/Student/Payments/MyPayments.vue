@@ -197,6 +197,15 @@ const openPaymentModal = (inv: InvoiceItem) => {
   isPaymentModalOpen.value = true
 }
 
+const handleExport = () => {
+  window.alert('Exporting invoices statement...')
+}
+
+const handleDownloadReceipt = () => {
+  isReceiptModalOpen.value = false
+  window.alert('Receipt PDF downloaded successfully!')
+}
+
 // Confirm Payment Action
 const confirmPayment = () => {
   if (!selectedInvoice.value) return
@@ -369,7 +378,7 @@ const confirmPayment = () => {
               </button>
 
               <button
-                @click="alert('Exporting invoices statement...')"
+                @click="handleExport"
                 class="bg-slate-900 border border-slate-700/80 text-xs font-semibold text-slate-300 rounded-xl px-3 py-1.5 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer"
               >
                 <span>⤓</span>
@@ -867,7 +876,7 @@ const confirmPayment = () => {
             Close
           </button>
           <button
-            @click="isReceiptModalOpen = false; alert('Receipt PDF downloaded successfully!')"
+            @click="handleDownloadReceipt"
             class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow-md flex items-center gap-1.5"
           >
             <span>⤓</span>
