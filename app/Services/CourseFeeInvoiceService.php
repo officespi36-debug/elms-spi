@@ -321,5 +321,234 @@ class CourseFeeInvoiceService
             'status'             => 'WAITING_FOR_PAYMENT',
         ];
     }
+
+    /**
+     * Get structured Student Transaction History data.
+     */
+    public function getTransactionHistoryData(?User $user = null, string $status = 'all', string $method = 'all', string $sort = 'newest', string $search = '', int $page = 1, int $perPage = 10): array
+    {
+        // 1. Top 4 Summary Cards
+        $summary = [
+            'total_transactions'   => 12,
+            'total_tx_note'        => 'All payment records',
+            'successful_payments'  => 10,
+            'successful_note'      => 'Completed transactions',
+            'pending_payments'     => 2,
+            'pending_note'         => 'Awaiting confirmation',
+            'total_paid'           => '1,250,000 KHR',
+            'total_paid_note'      => 'Total successful payments',
+        ];
+
+        // 2. Right Sidebar Payment Summary
+        $paymentSummary = [
+            'total_paid'       => '1,250,000 KHR',
+            'progress_percent' => 83,
+            'successful_count' => 10,
+            'pending_count'    => 2,
+            'failed_count'     => 0,
+        ];
+
+        // 3. Right Sidebar Latest Payment
+        $latestPayment = [
+            'course_name'    => 'Web Development Fundamentals',
+            'amount'         => '120,000 KHR',
+            'status'         => 'Payment Successful',
+            'status_type'    => 'successful',
+            'date_text'      => 'Today • 09:45 AM',
+            'invoice_number' => 'INV-2025-0012',
+            'transaction_id' => 'TRX-2025-00124',
+        ];
+
+        // 4. Transactions List (10 items)
+        $transactions = [
+            [
+                'id'             => 1,
+                'transaction_id' => 'TRX-2025-00124',
+                'invoice_number' => 'INV-2025-0012',
+                'course_name'    => 'Web Development Fundamentals',
+                'payment_method' => 'ABA KHQR',
+                'method_type'    => 'aba',
+                'amount_khr'     => '120,000 KHR',
+                'amount_raw'     => 120000,
+                'date_formatted' => 'May 28, 2025',
+                'time_formatted' => '09:45 AM',
+                'date_time_text' => 'May 28, 2025 • 09:45 AM',
+                'status'         => 'Successful',
+                'status_type'    => 'successful',
+                'reference_code' => 'REF-ABA-98421045',
+            ],
+            [
+                'id'             => 2,
+                'transaction_id' => 'TRX-2025-00123',
+                'invoice_number' => 'INV-2025-0010',
+                'course_name'    => 'Database Systems',
+                'payment_method' => 'ABA KHQR',
+                'method_type'    => 'aba',
+                'amount_khr'     => '95,000 KHR',
+                'amount_raw'     => 95000,
+                'date_formatted' => 'May 20, 2025',
+                'time_formatted' => '02:30 PM',
+                'date_time_text' => 'May 20, 2025 • 02:30 PM',
+                'status'         => 'Successful',
+                'status_type'    => 'successful',
+                'reference_code' => 'REF-ABA-54120984',
+            ],
+            [
+                'id'             => 3,
+                'transaction_id' => 'TRX-2025-00122',
+                'invoice_number' => 'INV-2025-0009',
+                'course_name'    => 'Python Programming',
+                'payment_method' => 'ABA KHQR',
+                'method_type'    => 'aba',
+                'amount_khr'     => '80,000 KHR',
+                'amount_raw'     => 80000,
+                'date_formatted' => 'May 18, 2025',
+                'time_formatted' => '11:15 AM',
+                'date_time_text' => 'May 18, 2025 • 11:15 AM',
+                'status'         => 'Pending',
+                'status_type'    => 'pending',
+                'reference_code' => 'REF-ABA-45129871',
+            ],
+            [
+                'id'             => 4,
+                'transaction_id' => 'TRX-2025-00121',
+                'invoice_number' => 'INV-2025-0011',
+                'course_name'    => 'React Development',
+                'payment_method' => 'Card Payment',
+                'method_type'    => 'card',
+                'amount_khr'     => '150,000 KHR',
+                'amount_raw'     => 150000,
+                'date_formatted' => 'May 15, 2025',
+                'time_formatted' => '10:00 AM',
+                'date_time_text' => 'May 15, 2025 • 10:00 AM',
+                'status'         => 'Successful',
+                'status_type'    => 'successful',
+                'reference_code' => 'REF-VISA-67210982',
+            ],
+            [
+                'id'             => 5,
+                'transaction_id' => 'TRX-2025-00120',
+                'invoice_number' => 'INV-2025-0008',
+                'course_name'    => 'UI/UX Design Basics',
+                'payment_method' => 'Bank Transfer',
+                'method_type'    => 'bank',
+                'amount_khr'     => '120,000 KHR',
+                'amount_raw'     => 120000,
+                'date_formatted' => 'May 10, 2025',
+                'time_formatted' => '04:20 PM',
+                'date_time_text' => 'May 10, 2025 • 04:20 PM',
+                'status'         => 'Pending',
+                'status_type'    => 'pending',
+                'reference_code' => 'REF-BANK-38910245',
+            ],
+            [
+                'id'             => 6,
+                'transaction_id' => 'TRX-2025-00119',
+                'invoice_number' => 'INV-2025-0007',
+                'course_name'    => 'JavaScript Advanced',
+                'payment_method' => 'Wing',
+                'method_type'    => 'wing',
+                'amount_khr'     => '180,000 KHR',
+                'amount_raw'     => 180000,
+                'date_formatted' => 'May 05, 2025',
+                'time_formatted' => '01:10 PM',
+                'date_time_text' => 'May 05, 2025 • 01:10 PM',
+                'status'         => 'Successful',
+                'status_type'    => 'successful',
+                'reference_code' => 'REF-WING-78451290',
+            ],
+            [
+                'id'             => 7,
+                'transaction_id' => 'TRX-2025-00118',
+                'invoice_number' => 'INV-2025-0006',
+                'course_name'    => 'Node.js Backend',
+                'payment_method' => 'ABA KHQR',
+                'method_type'    => 'aba',
+                'amount_khr'     => '180,000 KHR',
+                'amount_raw'     => 180000,
+                'date_formatted' => 'Apr 28, 2025',
+                'time_formatted' => '08:50 AM',
+                'date_time_text' => 'Apr 28, 2025 • 08:50 AM',
+                'status'         => 'Successful',
+                'status_type'    => 'successful',
+                'reference_code' => 'REF-ABA-98124578',
+            ],
+            [
+                'id'             => 8,
+                'transaction_id' => 'TRX-2025-00117',
+                'invoice_number' => 'INV-2025-0005',
+                'course_name'    => 'Data Science Basics',
+                'payment_method' => 'ABA KHQR',
+                'method_type'    => 'aba',
+                'amount_khr'     => '150,000 KHR',
+                'amount_raw'     => 150000,
+                'date_formatted' => 'Apr 20, 2025',
+                'time_formatted' => '03:40 PM',
+                'date_time_text' => 'Apr 20, 2025 • 03:40 PM',
+                'status'         => 'Successful',
+                'status_type'    => 'successful',
+                'reference_code' => 'REF-ABA-34120985',
+            ],
+            [
+                'id'             => 9,
+                'transaction_id' => 'TRX-2025-00116',
+                'invoice_number' => 'INV-2025-0004',
+                'course_name'    => 'Git & GitHub',
+                'payment_method' => 'Card Payment',
+                'method_type'    => 'card',
+                'amount_khr'     => '100,000 KHR',
+                'amount_raw'     => 100000,
+                'date_formatted' => 'Apr 15, 2025',
+                'time_formatted' => '09:30 AM',
+                'date_time_text' => 'Apr 15, 2025 • 09:30 AM',
+                'status'         => 'Successful',
+                'status_type'    => 'successful',
+                'reference_code' => 'REF-VISA-23109842',
+            ],
+            [
+                'id'             => 10,
+                'transaction_id' => 'TRX-2025-00115',
+                'invoice_number' => 'INV-2025-0003',
+                'course_name'    => 'HTML & CSS Essentials',
+                'payment_method' => 'Wing',
+                'method_type'    => 'wing',
+                'amount_khr'     => '100,000 KHR',
+                'amount_raw'     => 100000,
+                'date_formatted' => 'Apr 10, 2025',
+                'time_formatted' => '02:15 PM',
+                'date_time_text' => 'Apr 10, 2025 • 02:15 PM',
+                'status'         => 'Successful',
+                'status_type'    => 'successful',
+                'reference_code' => 'REF-WING-12908341',
+            ],
+        ];
+
+        // Filter by status
+        if ($status !== 'all') {
+            $transactions = array_values(array_filter($transactions, fn($tx) => strtolower($tx['status_type']) === strtolower($status)));
+        }
+
+        // Filter by method
+        if ($method !== 'all') {
+            $transactions = array_values(array_filter($transactions, fn($tx) => strtolower($tx['method_type']) === strtolower($method)));
+        }
+
+        // Filter by search
+        if (!empty($search)) {
+            $s = strtolower($search);
+            $transactions = array_values(array_filter($transactions, fn($tx) => str_contains(strtolower($tx['transaction_id']), $s) || str_contains(strtolower($tx['invoice_number']), $s) || str_contains(strtolower($tx['course_name']), $s)));
+        }
+
+        return [
+            'summary'             => $summary,
+            'payment_summary'     => $paymentSummary,
+            'latest_payment'      => $latestPayment,
+            'transactions'        => $transactions,
+            'total_count'         => 12,
+            'current_page'        => $page,
+            'per_page'            => $perPage,
+        ];
+    }
 }
+
 

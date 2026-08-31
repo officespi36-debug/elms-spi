@@ -62,7 +62,31 @@ class PaymentController extends Controller
 
     public function transactions(Request $request)
     {
-        return Inertia::render('Student/Payments/PaymentHistory');
+        $status = $request->query('status', 'all');
+        $method = $request->query('method', 'all');
+        $sort = $request->query('sort', 'newest');
+        $search = $request->query('search', '');
+        $page = (int) $request->query('page', 1);
+
+        $data = app(CourseFeeInvoiceService::class)->getTransactionHistoryData(
+            $request->user(),
+            $status,
+            $method,
+            $sort,
+            $search,
+            $page
+        );
+
+        return Inertia::render('Student/Payments/PaymentHistory', [
+            'analytics' => $data,
+            'filters'   => [
+                'status' => $status,
+                'method' => $method,
+                'sort'   => $sort,
+                'search' => $search,
+                'page'   => $page,
+            ]
+        ]);
     }
 
     public function settings(Request $request)
@@ -85,7 +109,7 @@ class PaymentController extends Controller
 
     public function history(Request $request)
     {
-        return Inertia::render('Student/Payments/PaymentHistory');
+        return $this->transactions($request);
     }
 
     public function receipts(Request $request)
