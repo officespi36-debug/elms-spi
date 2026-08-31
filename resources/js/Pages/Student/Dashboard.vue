@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { Link, usePage } from '@inertiajs/vue3'
 import StudentLayout from '@/Layouts/StudentLayout.vue'
 
@@ -39,53 +39,53 @@ const props = defineProps<{
 const page = usePage<any>()
 const user = computed(() => page.props.auth?.user || {})
 
-// 6 Top Stats Metrics with dedicated links to real modules
+// 6 Top Stats Metrics with real Lucide SVG icons
 const statsCards = computed(() => [
   {
+    type: 'enrolled',
     title: 'Enrolled Courses',
     value: props.stats?.enrolledCount?.toString() || '4',
     subtitle: 'Total Courses',
-    icon: '📚',
     iconBg: 'bg-purple-600/20 text-purple-600 dark:text-purple-400 border border-purple-500/30',
     href: '/student/my-courses/enrolled'
   },
   {
+    type: 'in_progress',
     title: 'In Progress',
     value: props.stats?.inProgressCount?.toString() || '2',
     subtitle: 'Active Courses',
-    icon: '🎓',
     iconBg: 'bg-blue-600/20 text-blue-600 dark:text-blue-400 border border-blue-500/30',
     href: '/student/my-courses/enrolled'
   },
   {
+    type: 'completed',
     title: 'Completed',
     value: props.stats?.completedCount?.toString() || '1',
     subtitle: 'Finished Courses',
-    icon: '✅',
     iconBg: 'bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30',
     href: '/student/my-courses/completed'
   },
   {
+    type: 'certificates',
     title: 'Certificates',
     value: props.stats?.certificatesCount?.toString() || '1',
     subtitle: 'Earned',
-    icon: '🏆',
     iconBg: 'bg-amber-600/20 text-amber-600 dark:text-amber-400 border border-amber-500/30',
     href: '/student/certificates/my-certificates'
   },
   {
+    type: 'study_time',
     title: 'Study Time',
     value: props.stats?.learningTime || '28h 45m',
     subtitle: 'Total Hours',
-    icon: '⏱',
     iconBg: 'bg-cyan-600/20 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30',
     href: '/student/progress/learning-time'
   },
   {
+    type: 'quiz_avg',
     title: 'Quiz Average',
     value: props.stats?.averageScore || '78%',
     subtitle: 'Your Average',
-    icon: '📊',
     iconBg: 'bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30',
     href: '/student/quizzes/scores'
   }
@@ -268,11 +268,11 @@ const chartDataByRange = {
   }
 }
 
-// Upcoming Schedule
+// Upcoming Schedule with real SVG icon type
 const upcomingEvents = ref([
   {
     id: 1,
-    icon: '📅',
+    type: 'quiz',
     title: 'Quiz: Chapter 3 Quiz',
     course: 'Web Development Fundamentals',
     date: 'May 28, 2025',
@@ -281,7 +281,7 @@ const upcomingEvents = ref([
   },
   {
     id: 2,
-    icon: '📹',
+    type: 'live',
     title: 'Live Class: JavaScript DOM',
     course: 'Web Development Fundamentals',
     date: 'May 30, 2025',
@@ -290,7 +290,7 @@ const upcomingEvents = ref([
   },
   {
     id: 3,
-    icon: '📄',
+    type: 'assignment',
     title: 'Assignment: Relational ER Model',
     course: 'Database Systems',
     date: 'Jun 01, 2025',
@@ -305,7 +305,7 @@ const isAiTyping = ref(false)
 const aiMessages = ref<Array<{ role: 'ai' | 'user'; text: string; time?: string }>>([
   {
     role: 'ai',
-    text: 'Hi ' + (user.value?.name || 'Sok Pisey') + '! 👋 How can I help you with your learning today?',
+    text: 'Hi ' + (user.value?.name || 'Sok Pisey') + '! How can I assist with your coding & course questions today?',
     time: 'Just now'
   }
 ])
@@ -326,13 +326,13 @@ const handleSendAiPrompt = (promptText: string) => {
     } else if (qLower.includes('what should i study') || qLower.includes('recommend') || qLower.includes('plan')) {
       aiMessages.value.push({
         role: 'ai',
-        text: 'Based on your recent learning data:\n1. 🎯 **Finish Lesson 3.2** in Web Development (18m left).\n2. ⚠️ **Review Function Parameters** to raise your 62% quiz score.\n3. ⚡ **Practice 5 drill questions** before the May 28 Chapter Quiz!',
+        text: 'Based on your recent learning analytics:\n1. **Finish Lesson 3.2** in Web Development (18m left).\n2. **Review Function Parameters** to raise your 62% quiz score.\n3. **Practice 5 drill questions** before the May 28 Chapter Quiz!',
         time: 'Now'
       })
     } else if (qLower.includes('explain')) {
       aiMessages.value.push({
         role: 'ai',
-        text: 'A JavaScript function is a reusable block of code designed to perform a specific task. It executes when called (invoked) and can return calculated output with the return statement.',
+        text: 'A JavaScript function is a reusable block of code designed to perform a specific task. It executes when invoked and returns computed output with the return keyword.',
         time: 'Now'
       })
     } else if (qLower.includes('summarize')) {
@@ -344,11 +344,11 @@ const handleSendAiPrompt = (promptText: string) => {
     } else {
       aiMessages.value.push({
         role: 'ai',
-        text: `Great question about "${promptText}"! To succeed: break down the problem into smaller steps, practice coding in the editor, and test your understanding with mini-quizzes. Let me know if you want a step-by-step example!`,
+        text: `Great question about "${promptText}"! To master this: break down the problem, practice coding in the editor, and test your understanding with mini-quizzes. Let me know if you want a detailed code snippet!`,
         time: 'Now'
       })
     }
-  }, 400)
+  }, 350)
 }
 
 const sendUserCustomAi = () => {
@@ -358,20 +358,20 @@ const sendUserCustomAi = () => {
   handleSendAiPrompt(text)
 }
 
-// Achievements Badges
+// Achievements Badges with SVG type
 const achievements = ref([
-  { title: '7 Days Streak', icon: '🔥', color: 'from-orange-500 to-amber-500', href: '/student/certificates/achievements' },
-  { title: 'Quick Learner', icon: '📗', color: 'from-emerald-500 to-teal-500', href: '/student/certificates/achievements' },
-  { title: 'Quiz Master', icon: '🌟', color: 'from-blue-500 to-indigo-500', href: '/student/certificates/achievements' },
-  { title: 'Early Bird', icon: '⚡', color: 'from-amber-500 to-yellow-500', href: '/student/certificates/achievements' },
-  { title: 'Top Performer', icon: '🏆', color: 'from-yellow-500 to-amber-600', href: '/student/certificates/achievements' }
+  { title: '7 Days Streak', type: 'flame', color: 'from-orange-500 to-amber-500', href: '/student/certificates/achievements' },
+  { title: 'Quick Learner', type: 'book', color: 'from-emerald-500 to-teal-500', href: '/student/certificates/achievements' },
+  { title: 'Quiz Master', type: 'star', color: 'from-blue-500 to-indigo-500', href: '/student/certificates/achievements' },
+  { title: 'Early Bird', type: 'bolt', color: 'from-amber-500 to-yellow-500', href: '/student/certificates/achievements' },
+  { title: 'Top Performer', type: 'trophy', color: 'from-yellow-500 to-amber-600', href: '/student/certificates/achievements' }
 ])
 
-// Recent Activity
+// Recent Activity with SVG type
 const recentActivities = ref([
   {
     id: 1,
-    icon: '▶',
+    type: 'play',
     iconBg: 'bg-purple-600/20 text-purple-600 dark:text-purple-400 border border-purple-500/30',
     title: 'Watched: 3.2 JavaScript Functions',
     course: 'Web Development Fundamentals',
@@ -380,7 +380,7 @@ const recentActivities = ref([
   },
   {
     id: 2,
-    icon: '✓',
+    type: 'check',
     iconBg: 'bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30',
     title: 'Completed Quiz: Chapter 2 Quiz',
     course: 'Web Development Fundamentals',
@@ -389,7 +389,8 @@ const recentActivities = ref([
   },
   {
     id: 3,
-    icon: '📄',
+    type: 'doc',
+    iconBg: 'bg-amber-600/20 text-amber-600 dark:text-amber-400 border border-amber-500/30',
     title: 'Downloaded: JavaScript Cheat Sheet',
     course: 'Web Development Fundamentals',
     time: 'May 26, 03:20 PM',
@@ -412,42 +413,48 @@ const recentActivities = ref([
         <div class="space-y-1">
           <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
             <span>Welcome back, {{ user.name || 'Sok Pisey' }}!</span>
-            <span class="animate-waving-hand inline-block">👋</span>
+            <span class="inline-block animate-pulse text-indigo-500">✨</span>
           </h1>
           <p class="text-xs text-slate-600 dark:text-slate-400 font-medium">
-            Continue where you left off or explore new courses today. You've got this! 💪
+            Continue where you left off or explore new courses today. Keep moving forward!
           </p>
         </div>
 
-        <!-- Quick Shortcut Actions -->
+        <!-- Quick Shortcut Actions with Real SVGs -->
         <div class="flex flex-wrap items-center gap-2">
           <Link
             href="/student/browse"
-            class="px-3.5 py-2 rounded-xl bg-purple-50 dark:bg-purple-950/50 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800/60 text-purple-700 dark:text-purple-300 font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs"
+            class="px-3.5 py-2 rounded-xl bg-purple-50 dark:bg-purple-950/50 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800/60 text-purple-700 dark:text-purple-300 font-bold text-xs flex items-center gap-2 transition-colors shadow-xs"
           >
-            <span>🔍</span>
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+            </svg>
             <span>Browse Courses</span>
           </Link>
 
           <Link
             href="/student/payments/my-payments"
-            class="px-3.5 py-2 rounded-xl bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200 dark:border-blue-800/60 text-blue-700 dark:text-blue-300 font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs"
+            class="px-3.5 py-2 rounded-xl bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200 dark:border-blue-800/60 text-blue-700 dark:text-blue-300 font-bold text-xs flex items-center gap-2 transition-colors shadow-xs"
           >
-            <span>💳</span>
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
+            </svg>
             <span>Pay via ABA</span>
           </Link>
 
           <Link
             href="/student/notifications/announcements"
-            class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center gap-1.5 transition-colors shadow-xs"
+            class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center gap-2 transition-colors shadow-xs"
           >
-            <span>📢</span>
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+            </svg>
             <span>Announcements</span>
           </Link>
         </div>
       </div>
 
-      <!-- 6 METRICS CARDS ROW (Fully clickable and connected) -->
+      <!-- 6 METRICS CARDS ROW (Real SVG Icons) -->
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         <Link
           v-for="stat in statsCards"
@@ -455,8 +462,31 @@ const recentActivities = ref([
           :href="stat.href"
           class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 hover:border-purple-500/40 rounded-2xl p-4 shadow-sm dark:shadow-xl flex items-center gap-3.5 transition-all duration-200 hover:-translate-y-1 group"
         >
-          <div :class="[stat.iconBg, 'w-10 h-10 rounded-xl flex items-center justify-center text-base shrink-0 shadow-sm group-hover:scale-105 transition-transform']">
-            {{ stat.icon }}
+          <div :class="[stat.iconBg, 'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform']">
+            <!-- Book SVG (Enrolled) -->
+            <svg v-if="stat.type === 'enrolled'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+            <!-- Graduation Cap SVG (In Progress) -->
+            <svg v-else-if="stat.type === 'in_progress'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
+            </svg>
+            <!-- Check Circle SVG (Completed) -->
+            <svg v-else-if="stat.type === 'completed'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <!-- Trophy SVG (Certificates) -->
+            <svg v-else-if="stat.type === 'certificates'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.003 0H9.497m5.003 0a3 3 0 002.828-2.002l1.636-4.908A1.125 1.125 0 0017.896 6H6.104a1.125 1.125 0 00-1.068 1.465l1.636 4.908a3 3 0 002.828 2.002z" />
+            </svg>
+            <!-- Clock SVG (Study Time) -->
+            <svg v-else-if="stat.type === 'study_time'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <!-- Bar Chart SVG (Quiz Average) -->
+            <svg v-else class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+            </svg>
           </div>
           <div class="min-w-0">
             <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium truncate">{{ stat.title }}</p>
@@ -466,7 +496,7 @@ const recentActivities = ref([
         </Link>
       </div>
 
-      <!-- MAIN 2-COLUMN LAYOUT (Left Main 8 cols, Right Sidebar 4 cols) -->
+      <!-- MAIN 2-COLUMN LAYOUT -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
         <!-- LEFT 8 COLUMNS -->
@@ -514,7 +544,10 @@ const recentActivities = ref([
                   </div>
                   <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
                     <span>Last lesson: {{ continueCourseData.lastLesson }}</span>
-                    <span class="font-mono flex items-center gap-1">⏱ {{ continueCourseData.timeLeft }}</span>
+                    <span class="font-mono flex items-center gap-1">
+                      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      {{ continueCourseData.timeLeft }}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -526,7 +559,7 @@ const recentActivities = ref([
                   class="w-full md:w-auto px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all text-center cursor-pointer"
                 >
                   <span>Continue Learning</span>
-                  <span>→</span>
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                 </Link>
               </div>
 
@@ -584,10 +617,22 @@ const recentActivities = ref([
                 <!-- Illustration Box with Badge -->
                 <div class="relative w-full h-24 rounded-xl bg-slate-100 dark:bg-slate-950 flex items-center justify-center overflow-hidden">
                   <div :class="['w-10 h-10 rounded-xl bg-gradient-to-tr', c.iconColor || 'from-purple-600 to-indigo-600', 'flex items-center justify-center text-white text-lg font-mono font-bold shadow-md']">
-                    <span v-if="c.iconType === 'code' || c.iconType?.includes('web')">&lt;/&gt;</span>
-                    <span v-else-if="c.iconType === 'db' || c.iconType?.includes('database')">🗄️</span>
-                    <span v-else-if="c.iconType === 'python' || c.iconType?.includes('program')">🐍</span>
-                    <span v-else>🎨</span>
+                    <!-- Code </> SVG -->
+                    <svg v-if="c.iconType === 'code' || c.iconType?.includes('web')" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
+                    </svg>
+                    <!-- Database SVG -->
+                    <svg v-else-if="c.iconType === 'db' || c.iconType?.includes('database')" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 5.625c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
+                    </svg>
+                    <!-- Python / Algorithm SVG -->
+                    <svg v-else-if="c.iconType === 'python' || c.iconType?.includes('program')" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" />
+                    </svg>
+                    <!-- Design / Figma Palette SVG -->
+                    <svg v-else class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42" />
+                    </svg>
                   </div>
 
                   <span :class="[c.badgeClass, 'absolute top-2 right-2 px-2 py-0.5 rounded-md text-[9px] font-bold border']">
@@ -614,14 +659,17 @@ const recentActivities = ref([
                   </div>
                   <div class="flex items-center justify-between text-[10px]">
                     <span :class="c.progress === 100 ? 'text-emerald-600 dark:text-emerald-400' : 'text-purple-600 dark:text-purple-400'" class="font-bold font-mono">{{ c.progress }}%</span>
-                    <span class="text-slate-400 dark:text-slate-500 text-[9px]">Open Overview →</span>
+                    <span class="text-slate-400 dark:text-slate-500 text-[9px] flex items-center gap-0.5">
+                      <span>Overview</span>
+                      <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </span>
                   </div>
                 </div>
               </Link>
             </div>
           </div>
 
-          <!-- ANALYTICS CHARTS ROW (Learning Overview, Study Time Donut, Quiz Performance Gauge) -->
+          <!-- ANALYTICS CHARTS ROW -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             
             <!-- Learning Overview Line Chart Card with Range Switcher -->
@@ -631,7 +679,7 @@ const recentActivities = ref([
               <div class="flex items-center justify-between">
                 <Link href="/student/progress/learning-time" class="text-xs font-bold text-slate-900 dark:text-white hover:text-purple-600 dark:hover:text-purple-300 uppercase tracking-wider flex items-center gap-1">
                   <span>Learning Overview</span>
-                  <span class="text-[10px]">↗</span>
+                  <svg class="w-3 h-3 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                 </Link>
 
                 <!-- Range Selector -->
@@ -660,7 +708,7 @@ const recentActivities = ref([
                 </div>
               </div>
 
-              <!-- SVG Line Chart Mockup -->
+              <!-- SVG Line Chart -->
               <div class="relative pt-2">
                 <div class="absolute top-2 left-1/2 -translate-x-1/2 px-2 py-1 rounded-lg bg-purple-600 text-white text-[10px] font-bold shadow-md">
                   {{ chartDataByRange[selectedRange].total }}
@@ -701,7 +749,7 @@ const recentActivities = ref([
               <div class="flex items-center justify-between">
                 <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1">
                   <span>Study Time</span>
-                  <span class="text-[10px]">↗</span>
+                  <svg class="w-3 h-3 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                 </h3>
                 <span class="text-[10px] text-purple-600 dark:text-purple-400 font-semibold">Breakdown</span>
               </div>
@@ -769,7 +817,7 @@ const recentActivities = ref([
               <div class="flex items-center justify-between">
                 <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1">
                   <span>Quiz Performance</span>
-                  <span class="text-[10px]">↗</span>
+                  <svg class="w-3 h-3 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                 </h3>
                 <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">Passing</span>
               </div>
@@ -834,8 +882,13 @@ const recentActivities = ref([
                 class="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800/80 hover:border-purple-500/30 text-xs transition-all hover:bg-slate-100 dark:hover:bg-slate-950"
               >
                 <div class="flex items-center gap-3">
-                  <div :class="[act.iconBg, 'w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold shrink-0']">
-                    {{ act.icon }}
+                  <div :class="[act.iconBg, 'w-8 h-8 rounded-xl flex items-center justify-center shrink-0']">
+                    <!-- Play SVG -->
+                    <svg v-if="act.type === 'play'" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    <!-- Checkmark SVG -->
+                    <svg v-else-if="act.type === 'check'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                    <!-- Document SVG -->
+                    <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
                   </div>
                   <div>
                     <h4 class="font-bold text-slate-900 dark:text-white">{{ act.title }}</h4>
@@ -850,7 +903,7 @@ const recentActivities = ref([
 
         </div>
 
-        <!-- RIGHT 4 COLUMNS: Today's Goal, AI Recommended For You, Upcoming, AI Assistant, Achievements -->
+        <!-- RIGHT 4 COLUMNS -->
         <div class="lg:col-span-4 space-y-6">
           
           <!-- TODAY'S GOAL CARD -->
@@ -866,12 +919,12 @@ const recentActivities = ref([
                   class="w-6 h-6 rounded-lg bg-purple-600/10 hover:bg-purple-600/20 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs font-bold cursor-pointer"
                   title="Add custom task"
                 >
-                  +
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
                 </button>
               </div>
             </div>
 
-            <!-- Add Task Form Modal / Inline -->
+            <!-- Add Task Form -->
             <div v-if="isAddGoalOpen" class="p-2.5 rounded-2xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/50 space-y-2">
               <input
                 v-model="newGoalTitle"
@@ -917,13 +970,16 @@ const recentActivities = ref([
                   type="button"
                   class="flex items-center gap-2.5 text-left flex-1 cursor-pointer"
                 >
-                  <span v-if="item.completed" class="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold">✓</span>
+                  <span v-if="item.completed" class="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold">
+                    <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                  </span>
                   <span v-else class="w-4 h-4 rounded-full border border-slate-300 dark:border-slate-600 flex items-center justify-center text-[9px]"></span>
                   <span :class="[item.completed ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-200 font-medium']">{{ item.title }}</span>
                 </button>
                 
-                <Link :href="item.href" class="text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 text-[11px] font-bold ml-2">
-                  Open →
+                <Link :href="item.href" class="text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 text-[11px] font-bold ml-2 flex items-center gap-0.5">
+                  <span>Open</span>
+                  <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </Link>
               </div>
             </div>
@@ -933,7 +989,9 @@ const recentActivities = ref([
           <div class="bg-gradient-to-br from-indigo-50/80 via-purple-50/60 to-white dark:from-indigo-950/60 dark:via-purple-950/40 dark:to-slate-900 border border-purple-200 dark:border-purple-500/30 rounded-3xl p-5 shadow-sm dark:shadow-2xl space-y-3.5">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
-                <span class="text-base">🤖</span>
+                <div class="w-6 h-6 rounded-lg bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-sm">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"/></svg>
+                </div>
                 <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">AI Recommended For You</h3>
               </div>
               <Link href="/student/ai-path/recommended" class="text-[10px] text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 font-semibold">
@@ -960,9 +1018,10 @@ const recentActivities = ref([
                 <div class="pt-1">
                   <Link
                     :href="rec.actionHref"
-                    :class="[rec.btnClass, 'inline-block px-3 py-1 rounded-xl text-[10px] font-bold shadow-sm transition-transform hover:scale-105 active:scale-95']"
+                    :class="[rec.btnClass, 'inline-flex items-center gap-1 px-3 py-1 rounded-xl text-[10px] font-bold shadow-sm transition-transform hover:scale-105 active:scale-95']"
                   >
-                    {{ rec.actionLabel }} →
+                    <span>{{ rec.actionLabel }}</span>
+                    <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                   </Link>
                 </div>
               </div>
@@ -986,7 +1045,14 @@ const recentActivities = ref([
                 class="flex items-start justify-between gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800/60 hover:border-purple-500/30 text-xs transition-colors block hover:bg-slate-100 dark:hover:bg-slate-950"
               >
                 <div class="flex items-start gap-2.5">
-                  <span class="text-sm mt-0.5">{{ item.icon }}</span>
+                  <div class="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-950/50 border border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 mt-0.5">
+                    <!-- Calendar SVG -->
+                    <svg v-if="item.type === 'quiz'" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>
+                    <!-- Video Camera SVG -->
+                    <svg v-else-if="item.type === 'live'" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z"/></svg>
+                    <!-- Document SVG -->
+                    <svg v-else class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+                  </div>
                   <div>
                     <h4 class="font-bold text-slate-900 dark:text-white text-[11px]">{{ item.title }}</h4>
                     <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ item.course }}</p>
@@ -1006,7 +1072,7 @@ const recentActivities = ref([
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <div class="w-6 h-6 rounded-lg bg-purple-600 text-white flex items-center justify-center text-xs shadow-sm">
-                  🤖
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 002.25-2.25V6.75a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 6.75v10.5a2.25 2.25 0 002.25 2.25zm.75-12h9v9h-9v-9z"/></svg>
                 </div>
                 <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">AI Study Assistant</h3>
               </div>
@@ -1088,7 +1154,7 @@ const recentActivities = ref([
             </form>
           </div>
 
-          <!-- ACHIEVEMENTS BADGES CARD -->
+          <!-- ACHIEVEMENTS BADGES CARD with Real SVGs -->
           <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3">
             <div class="flex items-center justify-between">
               <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Achievements</h3>
@@ -1104,8 +1170,17 @@ const recentActivities = ref([
                 :href="ach.href"
                 class="flex flex-col items-center gap-1 group text-center"
               >
-                <div :class="['w-9 h-9 rounded-xl bg-gradient-to-tr', ach.color, 'flex items-center justify-center text-sm shadow-md group-hover:scale-110 transition-transform']">
-                  {{ ach.icon }}
+                <div :class="['w-9 h-9 rounded-xl bg-gradient-to-tr', ach.color, 'flex items-center justify-center text-white text-sm shadow-md group-hover:scale-110 transition-transform']">
+                  <!-- Flame / Streak SVG -->
+                  <svg v-if="ach.type === 'flame'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"/></svg>
+                  <!-- Book SVG -->
+                  <svg v-else-if="ach.type === 'book'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                  <!-- Star SVG -->
+                  <svg v-else-if="ach.type === 'star'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/></svg>
+                  <!-- Lightning Bolt SVG -->
+                  <svg v-else-if="ach.type === 'bolt'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
+                  <!-- Trophy SVG -->
+                  <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.003 0H9.497m5.003 0a3 3 0 002.828-2.002l1.636-4.908A1.125 1.125 0 0017.896 6H6.104a1.125 1.125 0 00-1.068 1.465l1.636 4.908a3 3 0 002.828 2.002z"/></svg>
                 </div>
                 <span class="text-[8px] text-slate-500 dark:text-slate-400 leading-tight w-12 truncate">{{ ach.title }}</span>
               </Link>
