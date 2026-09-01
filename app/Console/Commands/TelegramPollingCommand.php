@@ -205,11 +205,40 @@ class TelegramPollingCommand extends Command
         }
 
         $chatId = $message['chat']['id'];
+        $chatType = $message['chat']['type'] ?? 'private';
         $rawText = trim($message['text'] ?? '');
         $text = mb_strtolower($rawText, 'UTF-8');
         $cleanCmd = preg_replace('/^(\/\w+)@\w+/i', '$1', $text);
         $senderName = $message['from']['first_name'] ?? 'Student';
         $telegramUsername = $message['from']['username'] ?? null;
+
+        // Auto-detect and register Group for Security Alerts
+        $isGroup = in_array($chatType, ['group', 'supergroup', 'channel']);
+        if ($isGroup) {
+            Cache::forever('telegram_admin_chat_id', (string) $chatId);
+            Cache::forever('telegram_chat_id', (string) $chatId);
+
+            $groupTitle = $message['chat']['title'] ?? 'SPI LMS Security Alerts';
+            $this->safeLog('info', "🔔 Registered active security alerts group: '{$groupTitle}' (Chat ID: {$chatId})");
+
+            if (str_starts_with($cleanCmd, '/start') || str_starts_with($cleanCmd, '/alerts') || str_starts_with($cleanCmd, '/status') || str_starts_with($cleanCmd, '/setgroup') || str_starts_with($cleanCmd, '/test') || !empty($rawText)) {
+                $botUsername = config('services.telegram.bot_username', 'spi_elms_auth_bot');
+                $welcomeGroupText = "🛡️ <b>SPI LMS — Security Alerts Channel Activated!</b>\n" .
+                                   "━━━━━━━━━━━━━━━━━━━━━\n" .
+                                   "✅ <b>គ្រុបនេះត្រូវបានភ្ជាប់ជាផ្លូវការសម្រាប់ទទួល Security Alerts & Real-time Login Notifications!</b>\n\n" .
+                                   "• 🏛️ <b>វិទ្យាស្ថាន៖</b> សន្តប៉ូល (Saint Paul Institute)\n" .
+                                   "• 👥 <b>គ្រុប៖</b> {$groupTitle}\n" .
+                                   "• 🆔 <b>Group Chat ID:</b> <code>{$chatId}</code>\n" .
+                                   "• 🤖 <b>Bot៖</b> @{$botUsername} (Online 🟢)\n" .
+                                   "• 🛡️ <b>ស្ថានភាព៖</b> កំពុងការពារ និងផ្ញើសារ Real-time ២៤/៧\n\n" .
+                                   "✨ <i>រាល់សកម្មភាព Login (Google, Telegram, Email, Phone, Password) និងការវាយប្រហារ នឹងត្រូវ Alert មកកាន់ទីនេះភ្លាមៗ!</i>";
+
+                TelegramSecurityPipeline::sendMessage($chatId, $welcomeGroupText, 'HTML');
+                if (str_starts_with($cleanCmd, '/start') || str_starts_with($cleanCmd, '/alerts') || str_starts_with($cleanCmd, '/status') || str_starts_with($cleanCmd, '/setgroup')) {
+                    return;
+                }
+            }
+        }
 
         // Initialize $linkedUser for this chat (so it is never undefined)
         $linkedUser = User::where('telegram_id', (string) $chatId)

@@ -174,7 +174,7 @@ class TelegramSecurityPipeline
             Log::warning("Auto-Ban Cache error: " . $e->getMessage());
         }
 
-        $adminChatId = config('services.telegram.admin_chat_id') ?? config('services.telegram.chat_id');
+        $adminChatId = Cache::get('telegram_admin_chat_id') ?? config('services.telegram.admin_chat_id') ?? config('services.telegram.chat_id') ?? '-5560385465';
         $rawName = trim(($from['first_name'] ?? '') . ' ' . ($from['last_name'] ?? '')) ?: 'N/A';
         $rawUser = isset($from['username']) && !empty($from['username']) ? '@' . $from['username'] : 'None';
         $lang = strtoupper($from['language_code'] ?? 'KM');
