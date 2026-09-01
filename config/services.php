@@ -36,11 +36,12 @@ return [
     ],
 
     'telegram' => [
-        'bot_token'     => env('TELEGRAM_BOT_TOKEN', '8828915669:AAGmJB360sQzUM1GZqEMV_kntPGJLMi4Egs'),
-        'bot_username'  => env('TELEGRAM_BOT_USERNAME', 'spi_elms_auth_bot'),
-        'bot_id'        => env('TELEGRAM_BOT_ID', '8828915669'),
-        'admin_chat_id' => env('TELEGRAM_ADMIN_CHAT_ID', '-5560385465'),
-        'chat_id'       => env('TELEGRAM_CHAT_ID', env('TELEGRAM_ADMIN_CHAT_ID', '-5560385465')),
+        'bot_token'        => env('TELEGRAM_BOT_TOKEN'),
+        'bot_username'     => env('TELEGRAM_BOT_USERNAME', 'spi_elms_auth_bot'),
+        'bot_id'           => env('TELEGRAM_BOT_ID', '8828915669'),
+        'admin_chat_id'    => env('TELEGRAM_ADMIN_CHAT_ID', '-5560385465'),
+        'chat_id'          => env('TELEGRAM_CHAT_ID', env('TELEGRAM_ADMIN_CHAT_ID', '-5560385465')),
+        'webhook_secret'   => env('TELEGRAM_WEBHOOK_SECRET'),
     ],
 
     'cloudconvert' => [
@@ -76,6 +77,19 @@ return [
         'secret_key'  => env('PLASGATE_SECRET_KEY'),
         'private_key' => env('PLASGATE_PRIVATE_KEY'),
         'sender_name' => env('PLASGATE_SENDER_NAME', 'SMS Info'),
+    ],
+
+    'emergency' => [
+        'phone'              => env('ADMIN_EMERGENCY_PHONE', '0964618507'),
+        'call_enabled'       => env('EMERGENCY_CALL_ENABLED', false),
+        'sms_enabled'        => env('EMERGENCY_SMS_ENABLED', true),
+        'pushover_enabled'   => env('EMERGENCY_PUSHOVER_ENABLED', false),
+        'auto_isolation'     => env('EMERGENCY_AUTO_ISOLATION', true),
+        'twilio_account_sid' => env('TWILIO_ACCOUNT_SID'),
+        'twilio_auth_token'  => env('TWILIO_AUTH_TOKEN'),
+        'twilio_from'        => env('TWILIO_FROM_PHONE'),
+        'pushover_user_key'  => env('PUSHOVER_USER_KEY'),
+        'pushover_token'     => env('PUSHOVER_API_TOKEN'),
     ],
 
 ];

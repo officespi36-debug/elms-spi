@@ -123,14 +123,53 @@ class TelegramSecurityPipeline
     }
 
     /**
-     * កត់ត្រាព័ត៌មានលម្អិត បិទគណនី និងបាញ់ Alert ចូល Admin Group
+     * Geo-IP Lookup to extract Country, City, ISP, Coordinates from IP Address
      */
-    public static function triggerForensicAlert(array $from, string $threatType, string $severity, string $payload): void
+    public static function lookupGeoIp(?string $ip): array
     {
-        $userId = $from['id'];
+        if (empty($ip) || in_array($ip, ['127.0.0.1', '::1', 'localhost']) || str_starts_with($ip, '192.168.') || str_starts_with($ip, '10.')) {
+            return [
+                'status'   => 'local',
+                'country'  => 'Localhost / Internal Network',
+                'city'     => 'Local Server',
+                'isp'      => 'Internal / Private IP',
+                'lat'      => 11.5564, // Phnom Penh Default fallback coordinates
+                'lon'      => 104.9282,
+                'query'    => $ip ?? '127.0.0.1',
+            ];
+        }
+
+        try {
+            $response = Http::withoutVerifying()->timeout(4)->get("http://ip-api.com/json/{$ip}?fields=status,message,country,countryCode,regionName,city,zip,lat,lon,timezone,isp,org,as,query");
+            if ($response->successful() && $response->json('status') === 'success') {
+                return $response->json();
+            }
+        } catch (\Throwable $e) {
+            Log::warning("Geo-IP Lookup exception for [{$ip}]: " . $e->getMessage());
+        }
+
+        return [
+            'status'   => 'fail',
+            'country'  => 'Unknown Location',
+            'city'     => 'Unknown City',
+            'isp'      => 'Unknown ISP/Proxy',
+            'lat'      => 11.5564,
+            'lon'      => 104.9282,
+            'query'    => $ip,
+        ];
+    }
+
+    /**
+     * កត់ត្រាព័ត៌មានលម្អិត បិទគណនី និងបាញ់ Alert ជាមួយប៊ូតុង Interactive (Location & Ban) ចូល Admin Group
+     */
+    public static function triggerForensicAlert(array $from, string $threatType, string $severity, string $payload, ?string $ip = null, ?string $userAgent = null): void
+    {
+        $userId = $from['id'] ?? 'N/A';
         
         try {
-            Cache::put("tg_banned_{$userId}", true, now()->addHours(24));
+            if ($userId !== 'N/A') {
+                Cache::put("tg_banned_{$userId}", true, now()->addHours(24));
+            }
         } catch (\Throwable $e) {
             Log::warning("Auto-Ban Cache error: " . $e->getMessage());
         }
@@ -139,25 +178,85 @@ class TelegramSecurityPipeline
         $rawName = trim(($from['first_name'] ?? '') . ' ' . ($from['last_name'] ?? '')) ?: 'N/A';
         $rawUser = isset($from['username']) && !empty($from['username']) ? '@' . $from['username'] : 'None';
         $lang = strtoupper($from['language_code'] ?? 'KM');
+        $clientIp = $ip ?? request()->ip() ?? 'Unknown';
+        $clientUa = $userAgent ?? request()->userAgent() ?? 'Unknown';
 
-        Log::warning("TELEGRAM_SECURITY_ALERT: User [{$userId}] trigger [{$threatType}]. Payload: {$payload}");
+        // 1. Perform Geo-IP Resolution
+        $geo = self::lookupGeoIp($clientIp);
+        $country = $geo['country'] ?? 'Unknown Country';
+        $city = $geo['city'] ?? 'Unknown City';
+        $isp = $geo['isp'] ?? 'Unknown ISP';
+        $lat = $geo['lat'] ?? 11.5564;
+        $lon = $geo['lon'] ?? 104.9282;
+
+        // 2. Persist structured forensic records to logs and attacker_log.txt
+        try {
+            $forensicEntry = [
+                'timestamp'   => now()->toIso8601String(),
+                'user_id'     => $userId,
+                'name'        => $rawName,
+                'username'    => $rawUser,
+                'client_lang' => $lang,
+                'ip'          => $clientIp,
+                'country'     => $country,
+                'city'        => $city,
+                'isp'         => $isp,
+                'coordinates' => "{$lat},{$lon}",
+                'user_agent'  => $clientUa,
+                'threat_type' => $threatType,
+                'severity'    => $severity,
+                'payload'     => $payload,
+                'action'      => 'AUTO_BANNED_24H',
+            ];
+
+            // Append to telegram_forensics.log
+            file_put_contents(storage_path('logs/telegram_forensics.log'), json_encode($forensicEntry, JSON_UNESCAPED_UNICODE) . PHP_EOL, FILE_APPEND | LOCK_EX);
+
+            // Append to formatted attacker_log.txt for quick human audit
+            $txtRecord = sprintf(
+                "[%s] THREAT: %s | ID: %s | USER: %s | IP: %s (%s, %s - %s) | GEO: %s,%s | PAYLOAD: %s\n",
+                now()->toDateTimeString(),
+                $threatType,
+                $userId,
+                $rawUser,
+                $clientIp,
+                $city,
+                $country,
+                $isp,
+                $lat,
+                $lon,
+                substr(str_replace(["\r", "\n"], ' ', $payload), 0, 150)
+            );
+            file_put_contents(storage_path('logs/attacker_log.txt'), $txtRecord, FILE_APPEND | LOCK_EX);
+
+            // 3. Multi-Channel Emergency Alarm (Voice Call, SMS, Push, and Auto-Defense Isolation)
+            \App\Services\EmergencyAlertService::triggerEmergencyPipeline($forensicEntry);
+        } catch (\Throwable $e) {
+            Log::warning("Forensic Log write error: " . $e->getMessage());
+        }
+
+        Log::warning("TELEGRAM_SECURITY_ALERT: User [{$userId}] IP [{$clientIp}] trigger [{$threatType}]. Payload: {$payload}");
 
         if (!$adminChatId) {
             return;
         }
 
-        // Escape special Markdown characters for reliable Telegram rendering
+        // 3. Escape special Markdown characters for reliable Telegram rendering
         $name = str_replace(['_', '*', '`', '['], ['\_', '\*', '\`', '\['], $rawName);
         $user = str_replace(['_', '*', '`', '['], ['\_', '\*', '\`', '\['], $rawUser);
         $safeThreat = str_replace(['_', '*', '`', '['], ['\_', '\*', '\`', '\['], $threatType);
         $safePayload = str_replace(['`'], ["'"], substr($payload, 0, 500));
+        $safeIp = str_replace(['_', '*', '`', '['], ['\_', '\*', '\`', '\['], $clientIp);
+        $safeGeo = str_replace(['_', '*', '`', '['], ['\_', '\*', '\`', '\['], "{$city}, {$country} ({$isp})");
 
         $alert = "🚨 *SPI E-LMS: SECURITY INCIDENT REPORT* 🚨\n"
             . "━━━━━━━━━━━━━━━━━━━━━\n"
-            . "👤 *ATTACKER PROFILE*\n"
+            . "👤 *ATTACKER DIGITAL FOOTPRINT*\n"
             . " • *Name:* {$name}\n"
             . " • *Username:* {$user}\n"
             . " • *Telegram ID:* `{$userId}`\n"
+            . " • *IP Address:* `{$safeIp}`\n"
+            . " • *Location:* `{$safeGeo}`\n"
             . " • *Client Lang:* `{$lang}`\n\n"
             . "🎯 *THREAT ANALYSIS*\n"
             . " • *Classification:* `{$safeThreat}`\n"
@@ -169,7 +268,32 @@ class TelegramSecurityPipeline
             . "━━━━━━━━━━━━━━━━━━━━━\n"
             . "🛡️ *Status:* Traffic Blocked | LMS Protected";
 
-        self::sendMessage($adminChatId, $alert, 'Markdown');
+        // 4. Create Interactive Inline Keyboard with Google Maps & Instant Ban buttons
+        $inlineButtons = [];
+
+        // Row 1: Google Maps Button
+        $mapUrl = "https://maps.google.com/?q={$lat},{$lon}";
+        $row1 = [
+            ['text' => '📍 មើលទីតាំង (Google Maps)', 'url' => $mapUrl]
+        ];
+
+        // Row 2: Ban Attacker Button (if valid user ID)
+        $row2 = [];
+        if ($userId !== 'N/A' && is_numeric($userId)) {
+            $row2[] = ['text' => '⛔ Block & Ban ភ្លាមៗ', 'callback_data' => "ban_user_{$userId}"];
+        }
+        if ($clientIp !== 'Unknown' && $clientIp !== '127.0.0.1') {
+            $row2[] = ['text' => '🛡️ Blacklist IP', 'callback_data' => "ban_ip_" . str_replace('.', '-', $clientIp)];
+        }
+
+        $inlineButtons[] = $row1;
+        if (!empty($row2)) {
+            $inlineButtons[] = $row2;
+        }
+
+        $replyMarkup = ['inline_keyboard' => $inlineButtons];
+
+        self::sendMessage($adminChatId, $alert, 'Markdown', $replyMarkup);
     }
 
     /**

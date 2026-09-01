@@ -7,6 +7,10 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use App\Services\TelegramSecurityPipeline;
 use App\Models\User;
+use App\Models\Course;
+use App\Models\Deadline;
+use App\Models\Announcement;
+use App\Models\Enrollment;
 
 class TelegramPollingCommand extends Command
 {
@@ -100,6 +104,49 @@ class TelegramPollingCommand extends Command
 
             if ($cbData === 'support') {
                 TelegramSecurityPipeline::sendMessage($chatId, $supportText, 'HTML', $supportKeyboard);
+            } elseif (str_starts_with($cbData, 'ban_user_')) {
+                $targetUserId = substr($cbData, 9);
+                if (!empty($targetUserId)) {
+                    \Illuminate\Support\Facades\Cache::forever("tg_banned_{$targetUserId}", true);
+
+                    $adminChatId = config('services.telegram.admin_chat_id') ?? config('services.telegram.chat_id') ?? $chatId;
+                    app(\App\Services\TelegramService::class)->banChatMember($targetUserId, $adminChatId);
+
+                    if ($cbId) {
+                        Http::withoutVerifying()->post("https://api.telegram.org/bot{$botToken}/answerCallbackQuery", [
+                            'callback_query_id' => $cbId,
+                            'text' => "⛔ បាន Block និង Ban User ID {$targetUserId} រួចរាល់!",
+                            'show_alert' => true,
+                        ]);
+                    }
+
+                    TelegramSecurityPipeline::sendMessage(
+                        $chatId,
+                        "✅ <b>ប្រតិបត្តិការជោគជ័យ៖</b> User ID <code>{$targetUserId}</code> ត្រូវបាន Block និង Ban ចេញពី Group រួចរាល់!",
+                        'HTML'
+                    );
+                    $this->warn("⛔ Banned user ID {$targetUserId} via interactive Telegram button.");
+                }
+            } elseif (str_starts_with($cbData, 'ban_ip_')) {
+                $targetIp = str_replace('-', '.', substr($cbData, 7));
+                if (!empty($targetIp)) {
+                    \Illuminate\Support\Facades\Cache::forever("blacklisted_ip_{$targetIp}", true);
+
+                    if ($cbId) {
+                        Http::withoutVerifying()->post("https://api.telegram.org/bot{$botToken}/answerCallbackQuery", [
+                            'callback_query_id' => $cbId,
+                            'text' => "🛡️ បាន Blacklist IP {$targetIp} រួចរាល់!",
+                            'show_alert' => true,
+                        ]);
+                    }
+
+                    TelegramSecurityPipeline::sendMessage(
+                        $chatId,
+                        "🛡️ <b>FIREWALL BLACKLIST៖</b> IP <code>{$targetIp}</code> ត្រូវបានដាក់ចូលក្នុង Blacklist រួចរាល់!",
+                        'HTML'
+                    );
+                    $this->warn("🛡️ Blacklisted IP {$targetIp} via interactive Telegram button.");
+                }
             }
             return;
         }
@@ -318,6 +365,14 @@ class TelegramPollingCommand extends Command
             $this->info("Handled start/link for {$senderName} (Chat: {$chatId})");
             TelegramSecurityPipeline::sendMessage($chatId, $welcomeText, 'HTML', $replyMarkup);
             TelegramSecurityPipeline::sendMessage($chatId, "⚡ <b>រុករកទំព័រសំខាន់ៗ (Quick Links)៖</b>", 'HTML', $inlineKeyboard);
+        } elseif (str_starts_with($cleanCmd, '/courses') || str_contains($cleanCmd, 'វគ្គសិក្សា') || $cleanCmd === 'courses') {
+            $this->handleCoursesCommand($chatId, $linkedUser, $botToken);
+        } elseif (str_starts_with($cleanCmd, '/deadlines') || str_contains($cleanCmd, 'កាលបរិច្ឆេទ') || $cleanCmd === 'deadlines' || $cleanCmd === 'homework') {
+            $this->handleDeadlinesCommand($chatId, $botToken);
+        } elseif (str_starts_with($cleanCmd, '/announcements') || str_contains($cleanCmd, 'ដំណឹង') || $cleanCmd === 'announcements') {
+            $this->handleAnnouncementsCommand($chatId, $botToken);
+        } elseif (str_starts_with($cleanCmd, '/me') || str_starts_with($cleanCmd, '/profile') || str_starts_with($cleanCmd, '/id') || str_contains($cleanCmd, 'គណនី')) {
+            $this->handleProfileCommand($chatId, $linkedUser, $botToken);
         } elseif (str_starts_with($cleanCmd, '/support') || str_starts_with($cleanCmd, '/help') || $cleanCmd === 'support' || $cleanCmd === 'help') {
             TelegramSecurityPipeline::sendMessage($chatId, $supportText, 'HTML', $supportKeyboard);
         } elseif (str_starts_with($cleanCmd, '/dashboard')) {
@@ -353,5 +408,164 @@ class TelegramPollingCommand extends Command
             $greetingText = "👋 <b>សួស្តី {$senderName}!</b>\n\nតើខ្ញុំអាចជួយអ្វីអ្នកបានដែរទេ? សូមចុចពាក្យបញ្ជា /start ឬ /dashboard ដើម្បីប្រើប្រាស់មុខងាររបស់ប្រព័ន្ធ។ ✨";
             TelegramSecurityPipeline::sendMessage($chatId, $greetingText, 'HTML');
         }
+    }
+
+    private function handleCoursesCommand(int|string $chatId, ?User $linkedUser, string $botToken): void
+    {
+        if ($linkedUser) {
+            if ($linkedUser->role === 'teacher') {
+                $courses = Course::where('teacher_id', $linkedUser->id)->latest()->take(5)->get();
+                if ($courses->isNotEmpty()) {
+                    $responseText = "📚 <b>មុខវិជ្ជាដែលលោកគ្រូ/អ្នកគ្រូបង្រៀន (My Teaching Courses)</b>\n" .
+                                   "━━━━━━━━━━━━━━━━━━━━━\n\n";
+                    foreach ($courses as $idx => $c) {
+                        $num = $idx + 1;
+                        $responseText .= "{$num}. 📖 <b>{$c->title}</b>\n" .
+                                         "   • កម្រិត៖ <code>" . ($c->level ?? 'General') . "</code>\n" .
+                                         "   • ស្ថានភាព៖ <b>" . strtoupper($c->status ?? 'ACTIVE') . "</b>\n\n";
+                    }
+                } else {
+                    $responseText = "📚 <b>មុខវិជ្ជាបង្រៀន៖</b> លោកគ្រូ/អ្នកគ្រូមិនទាន់មានមុខវិជ្ជាបង្រៀននៅក្នុងប្រព័ន្ធនៅឡើយទេ។";
+                }
+            } else {
+                $enrollments = Enrollment::where('student_id', $linkedUser->id)
+                    ->with('course')
+                    ->latest()
+                    ->take(5)
+                    ->get();
+                if ($enrollments->isNotEmpty()) {
+                    $responseText = "📚 <b>វគ្គសិក្សារបស់អ្នក (Enrolled Courses)</b>\n" .
+                                   "━━━━━━━━━━━━━━━━━━━━━\n\n";
+                    foreach ($enrollments as $idx => $e) {
+                        $c = $e->course;
+                        $num = $idx + 1;
+                        $courseTitle = $c ? $c->title : 'General Subject';
+                        $status = $e->status ?? 'active';
+                        $responseText .= "{$num}. 📖 <b>{$courseTitle}</b>\n" .
+                                         "   • ស្ថានភាព៖ <b>" . strtoupper($status) . "</b>\n\n";
+                    }
+                } else {
+                    $responseText = "📚 <b>វគ្គសិក្សារបស់អ្នក៖</b> អ្នកមិនទាន់បានចុះឈ្មោះចូលរៀនមុខវិជ្ជាណាមួយនៅឡើយទេ។";
+                }
+            }
+        } else {
+            $responseText = "⚠️ <b>គណនីរបស់អ្នកមិនទាន់បានភ្ជាប់ជាមួយ Telegram ឡើយ</b>\n\n" .
+                            "👉 សូមវាយ<b>លេខទូរស័ព្ទ</b> ឬ <b>Email</b> របស់អ្នកផ្ញើមកកាន់ Bot នេះដើម្បីភ្ជាប់គណនី។";
+        }
+
+        $inlineKeyboard = [
+            'inline_keyboard' => [
+                [
+                    ['text' => '🚀 បើក E-LMS រៀនឥឡូវនេះ', 'web_app' => ['url' => 'https://spilms.tech/student/dashboard']]
+                ]
+            ]
+        ];
+
+        TelegramSecurityPipeline::sendMessage($chatId, $responseText, 'HTML', $inlineKeyboard);
+    }
+
+    private function handleDeadlinesCommand(int|string $chatId, string $botToken): void
+    {
+        $upcomingDeadlines = Deadline::with('course')
+            ->where('due_at', '>=', now())
+            ->orderBy('due_at', 'asc')
+            ->take(5)
+            ->get();
+
+        if ($upcomingDeadlines->isNotEmpty()) {
+            $responseText = "⏰ <b>កាលបរិច្ឆេទកិច្ចការ & ការប្រឡង (Upcoming Deadlines)</b>\n" .
+                             "━━━━━━━━━━━━━━━━━━━━━\n\n";
+            foreach ($upcomingDeadlines as $idx => $d) {
+                $num = $idx + 1;
+                $courseTitle = $d->course ? $d->course->title : 'General Course';
+                $dueStr = $d->due_at ? $d->due_at->format('d-M-Y h:i A') : 'N/A';
+                $responseText .= "{$num}. 📝 <b>{$d->title}</b>\n" .
+                                  "   • មុខវិជ្ជា៖ <i>{$courseTitle}</i>\n" .
+                                  "   • ផុតកំណត់៖ <code>{$dueStr}</code>\n\n";
+            }
+            $responseText .= "⚠️ <i>សូមរួសរាន់បញ្ចប់កិច្ចការឱ្យបានទាន់ពេលវេលា!</i>";
+        } else {
+            $responseText = "✅ <b>អបអរសាទរ!</b>\n\nបច្ចុប្បន្នគ្មានកិច្ចការ ឬការប្រឡងដែលជិតផុតកំណត់បន្ទាន់ឡើយ។ ✨";
+        }
+
+        $inlineKeyboard = [
+            'inline_keyboard' => [
+                [
+                    ['text' => '📋 មើលបញ្ជីកិច្ចការពេញលេញ', 'web_app' => ['url' => 'https://spilms.tech/student/dashboard']]
+                ]
+            ]
+        ];
+
+        TelegramSecurityPipeline::sendMessage($chatId, $responseText, 'HTML', $inlineKeyboard);
+    }
+
+    private function handleAnnouncementsCommand(int|string $chatId, string $botToken): void
+    {
+        $announcements = Announcement::latest()->take(3)->get();
+        if ($announcements->isNotEmpty()) {
+            $responseText = "📢 <b>សេចក្តីជូនដំណឹងចុងក្រោយ — SPI E-LMS</b>\n" .
+                           "━━━━━━━━━━━━━━━━━━━━━\n\n";
+            foreach ($announcements as $idx => $a) {
+                $num = $idx + 1;
+                $title = $a->title_kh ?: $a->title_en;
+                $body = strip_tags($a->body_kh ?: $a->body_en);
+                $snippet = mb_strlen($body) > 120 ? mb_substr($body, 0, 120) . '...' : $body;
+                $date = $a->created_at ? $a->created_at->format('d-M-Y') : 'Recent';
+                $responseText .= "📌 <b>{$num}. {$title}</b>\n" .
+                                "{$snippet}\n" .
+                                "⏰ <i>{$date}</i>\n\n";
+            }
+        } else {
+            $responseText = "📢 <b>សេចក្តីជូនដំណឹង៖</b> មិនទាន់មានសេចក្តីជូនដំណឹងថ្មីនៅឡើយទេ។";
+        }
+
+        $inlineKeyboard = [
+            'inline_keyboard' => [
+                [
+                    ['text' => '🌐 អានដំណឹងលើ E-LMS', 'url' => 'https://spilms.tech']
+                ]
+            ]
+        ];
+
+        TelegramSecurityPipeline::sendMessage($chatId, $responseText, 'HTML', $inlineKeyboard);
+    }
+
+    private function handleProfileCommand(int|string $chatId, ?User $linkedUser, string $botToken): void
+    {
+        if ($linkedUser) {
+            $majorName = $linkedUser->major ? $linkedUser->major->name : 'General Studies';
+            $deptName = $linkedUser->major && $linkedUser->major->department ? $linkedUser->major->department->name : 'Faculty Department';
+            $roleName = $linkedUser->role === 'teacher' ? '👨‍🏫 សាស្ត្រាចារ្យ (Teacher)' : ($linkedUser->role === 'admin' ? '🛡️ Administrator' : '🎓 និស្សិត (Student)');
+            $statusEmoji = $linkedUser->status === 'active' ? '🟢 សកម្ម (Active)' : '🟡 ' . ucfirst($linkedUser->status ?? 'Active');
+
+            $responseText = "🏛️ <b>វិទ្យាស្ថាន សន្តប៉ូល (Saint Paul Institute)</b>\n" .
+                            "🪪 <b>កាតព័ត៌មានគណនីឌីជីថល (Digital Academic ID)</b>\n" .
+                            "━━━━━━━━━━━━━━━━━━━━━\n\n" .
+                            "👤 <b>ឈ្មោះ (EN)៖</b> {$linkedUser->name}\n";
+            if (!empty($linkedUser->name_kh)) {
+                $responseText .= "🇰🇭 <b>ឈ្មោះ (KH)៖</b> {$linkedUser->name_kh}\n";
+            }
+            $responseText .= "🆔 <b>អត្តលេខ៖</b> <code>" . ($linkedUser->student_code ?? 'ID-' . $linkedUser->id) . "</code>\n" .
+                             "📧 <b>Email៖</b> {$linkedUser->email}\n" .
+                             "📱 <b>Phone៖</b> " . ($linkedUser->phone ?? 'N/A') . "\n" .
+                             "📚 <b>ជំនាញ៖</b> {$majorName}\n" .
+                             "🏢 <b>ដេប៉ាតឺម៉ង់៖</b> {$deptName}\n" .
+                             "🔰 <b>តួនាទី៖</b> {$roleName}\n" .
+                             "⚡ <b>ស្ថានភាព៖</b> {$statusEmoji}\n\n" .
+                             "🌐 <i>ចុចប៊ូតុងខាងក្រោមដើម្បីចូលមើល Profile ពេញលេញ៖</i>";
+        } else {
+            $responseText = "⚠️ <b>គណនីរបស់អ្នកមិនទាន់បានភ្ជាប់ឡើយ</b>\n\n" .
+                            "👉 សូមផ្ញើ<b>លេខទូរស័ព្ទ</b> ឬ <b>Email</b> របស់អ្នកមកទីនេះ ដើម្បីឱ្យ Bot ស្គាល់គណនីរបស់អ្នក។";
+        }
+
+        $inlineKeyboard = [
+            'inline_keyboard' => [
+                [
+                    ['text' => '👤 បើកទំព័រ Profile', 'web_app' => ['url' => 'https://spilms.tech/profile']]
+                ]
+            ]
+        ];
+
+        TelegramSecurityPipeline::sendMessage($chatId, $responseText, 'HTML', $inlineKeyboard);
     }
 }

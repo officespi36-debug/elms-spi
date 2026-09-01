@@ -8,6 +8,13 @@ Route::match(['get', 'post'], '/telegram/webhook', [\App\Http\Controllers\Auth\T
 Route::match(['get', 'post'], '/telegram-webhook', [\App\Http\Controllers\Auth\TelegramAuthController::class, 'handleWebhook']);
 Route::match(['get', 'post'], '/webhook/telegram', [\App\Http\Controllers\Auth\TelegramAuthController::class, 'handleWebhook']);
 
+// ─── Security Honeypot Decoy Traps (Attacker Footprint Logging) ───
+Route::match(['get', 'post'], '/security/honeypot', [\App\Http\Controllers\Security\HoneypotController::class, 'capture']);
+Route::match(['get', 'post'], '/admin-login-portal', [\App\Http\Controllers\Security\HoneypotController::class, 'capture']);
+Route::match(['get', 'post'], '/api/admin/credentials', [\App\Http\Controllers\Security\HoneypotController::class, 'capture']);
+Route::match(['get', 'post'], '/confidential/{any?}', [\App\Http\Controllers\Security\HoneypotController::class, 'capture'])->where('any', '.*');
+Route::match(['get', 'post'], '/trap/{token?}', [\App\Http\Controllers\Security\HoneypotController::class, 'capture']);
+
 // System Diagnostic & Database Migration Endpoint
 Route::get('/system/migrate', function () {
     try {

@@ -657,4 +657,214 @@ class AuthLogController extends Controller
 
         return redirect()->back()->with('success', 'Suspicious IP addresses blacklisted successfully.');
     }
+
+    /**
+     * Cyber Security & Threat Forensics Dashboard View
+     */
+    public function cyberSecurity(Request $request)
+    {
+        $this->ensureSampleDataExists();
+
+        // 1. Read and parse forensics logs
+        $forensicIncidents = [];
+        $logFile = storage_path('logs/telegram_forensics.log');
+        if (file_exists($logFile)) {
+            $lines = file($logFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            foreach (array_reverse($lines) as $line) {
+                $decoded = json_decode($line, true);
+                if (is_array($decoded)) {
+                    $forensicIncidents[] = $decoded;
+                }
+            }
+        }
+
+        // 2. Read attacker txt log
+        $rawAttackerLogs = [];
+        $attackerLogFile = storage_path('logs/attacker_log.txt');
+        if (file_exists($attackerLogFile)) {
+            $txtLines = file($attackerLogFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            $rawAttackerLogs = array_slice(array_reverse($txtLines), 0, 50);
+        }
+
+        // 3. Read Emergency Defense Logs
+        $emergencyLogs = [];
+        $emergencyLogFile = storage_path('logs/emergency_defense.log');
+        if (file_exists($emergencyLogFile)) {
+            $eLines = file($emergencyLogFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            $emergencyLogs = array_slice(array_reverse($eLines), 0, 30);
+        }
+
+        // 4. Collect System Security Status
+        $botToken = config('services.telegram.bot_token');
+        $botUsername = config('services.telegram.bot_username', 'spi_elms_auth_bot');
+        $adminChatId = config('services.telegram.admin_chat_id', '-5560385465');
+        $webhookSecret = config('services.telegram.webhook_secret');
+        $blockedIps = Setting::get('blocked_ips', []);
+
+        $emergencySettings = [
+            'phone'            => Setting::get('emergency_phone', config('services.emergency.phone', '0964618507')),
+            'call_enabled'     => (bool) Setting::get('emergency_call_enabled', config('services.emergency.call_enabled', false)),
+            'sms_enabled'      => (bool) Setting::get('emergency_sms_enabled', config('services.emergency.sms_enabled', true)),
+            'pushover_enabled' => (bool) Setting::get('emergency_pushover_enabled', config('services.emergency.pushover_enabled', false)),
+            'auto_defense'     => (bool) Setting::get('emergency_auto_defense', config('services.emergency.auto_isolation', true)),
+        ];
+
+        $honeypotTraps = [
+            [
+                'name'        => 'Fake Admin Login Portal',
+                'url'         => url('/admin-login-portal'),
+                'description' => 'Bait portal mimicking sensitive administrative interface',
+                'hits'        => count(array_filter($forensicIncidents, fn($i) => str_contains($i['payload'] ?? '', 'admin-login-portal'))),
+                'risk_level'  => 'CRITICAL',
+                'status'      => 'Active & Armed',
+            ],
+            [
+                'name'        => 'Security Honeypot Endpoint',
+                'url'         => url('/security/honeypot'),
+                'description' => 'Automated crawler & bot lure trap endpoint',
+                'hits'        => count(array_filter($forensicIncidents, fn($i) => str_contains($i['payload'] ?? '', 'security/honeypot'))),
+                'risk_level'  => 'HIGH',
+                'status'      => 'Active & Armed',
+            ],
+            [
+                'name'        => 'Confidential Credentials Decoy',
+                'url'         => url('/confidential/system-credentials'),
+                'description' => 'Decoy credential file route to intercept directory traversal',
+                'hits'        => count(array_filter($forensicIncidents, fn($i) => str_contains($i['payload'] ?? '', 'confidential'))),
+                'risk_level'  => 'HIGH',
+                'status'      => 'Active & Armed',
+            ],
+        ];
+
+        return Inertia::render('Admin/AuthenticationModule/CyberSecurity', [
+            'summaryStats'      => $this->getSummaryStats(),
+            'forensicIncidents' => $forensicIncidents,
+            'rawAttackerLogs'   => $rawAttackerLogs,
+            'emergencyLogs'     => $emergencyLogs,
+            'emergencySettings' => $emergencySettings,
+            'honeypotTraps'     => $honeypotTraps,
+            'blockedIps'        => $blockedIps,
+            'securityStatus'    => [
+                'bot_username'       => $botUsername,
+                'admin_chat_id'      => $adminChatId,
+                'bot_token_set'      => !empty($botToken),
+                'webhook_secret_set' => !empty($webhookSecret),
+                'total_threats'      => count($forensicIncidents),
+                'critical_threats'   => count(array_filter($forensicIncidents, fn($i) => ($i['severity'] ?? '') === 'CRITICAL')),
+                'banned_users_count' => count(array_unique(array_column($forensicIncidents, 'user_id'))),
+                'blocked_ips_count'  => count($blockedIps),
+            ]
+        ]);
+    }
+
+    /**
+     * Update Emergency Alert & Channels Configuration
+     */
+    public function updateEmergencySettings(Request $request)
+    {
+        $validated = $request->validate([
+            'phone'            => 'nullable|string|max:30',
+            'call_enabled'     => 'nullable|boolean',
+            'sms_enabled'      => 'nullable|boolean',
+            'pushover_enabled' => 'nullable|boolean',
+            'auto_defense'     => 'nullable|boolean',
+        ]);
+
+        if (isset($validated['phone'])) {
+            Setting::set('emergency_phone', trim($validated['phone']));
+        }
+        if (isset($validated['call_enabled'])) {
+            Setting::set('emergency_call_enabled', (bool) $validated['call_enabled']);
+        }
+        if (isset($validated['sms_enabled'])) {
+            Setting::set('emergency_sms_enabled', (bool) $validated['sms_enabled']);
+        }
+        if (isset($validated['pushover_enabled'])) {
+            Setting::set('emergency_pushover_enabled', (bool) $validated['pushover_enabled']);
+        }
+        if (isset($validated['auto_defense'])) {
+            Setting::set('emergency_auto_defense', (bool) $validated['auto_defense']);
+        }
+
+        return redirect()->back()->with('success', 'បានធ្វើបច្ចុប្បន្នភាពការកំណត់ប្រព័ន្ធប្រកាសអាសន្នបន្ទាន់ដោយជោគជ័យ!');
+    }
+
+    /**
+     * Test Emergency Voice Call Outbound
+     */
+    public function testEmergencyCall(Request $request)
+    {
+        $phone = $request->input('phone') ?: Setting::get('emergency_phone', config('services.emergency.phone', '0964618507'));
+        $msg = "This is a test emergency call from Saint Paul Institute Cyber Security Engine. All security channels are operational.";
+        
+        $sent = \App\Services\EmergencyAlertService::triggerVoiceCall($phone, $msg);
+        return redirect()->back()->with('success', "បានបញ្ជូនការសាកល្បង Call ទៅកាន់លេខទូរស័ព្ទ {$phone} រួចរាល់!");
+    }
+
+    /**
+     * Test Emergency SMS Outbound
+     */
+    public function testEmergencySms(Request $request)
+    {
+        $phone = $request->input('phone') ?: Setting::get('emergency_phone', config('services.emergency.phone', '0964618507'));
+        $msg = "🚨 [SPI E-LMS ALARM TEST] នេះជាសារតេស្តប្រព័ន្ធប្រកាសអាសន្នសន្តិសុខទូរស័ព្ទបន្ទាន់។ ប្រព័ន្ធដំណើរការបាន ១០០%!";
+        
+        $sent = \App\Services\EmergencyAlertService::sendEmergencySms($phone, $msg);
+        return redirect()->back()->with('success', "បានបញ្ជូនសារ SMS តេស្តទៅកាន់លេខទូរស័ព្ទ {$phone} រួចរាល់!");
+    }
+
+    /**
+     * Ban Telegram User directly from UI
+     */
+    public function banTelegramUser(Request $request)
+    {
+        $userId = $request->input('user_id');
+        if (empty($userId)) {
+            return redirect()->back()->with('error', 'User ID is required.');
+        }
+
+        \Illuminate\Support\Facades\Cache::forever("tg_banned_{$userId}", true);
+        $adminChatId = config('services.telegram.admin_chat_id');
+        if ($adminChatId) {
+            app(\App\Services\TelegramService::class)->banChatMember($userId, $adminChatId);
+        }
+
+        return redirect()->back()->with('success', "Telegram User ID {$userId} has been banned from the group.");
+    }
+
+    /**
+     * Clear Forensics and Honeypot Logs
+     */
+    public function clearForensics(Request $request)
+    {
+        @file_put_contents(storage_path('logs/telegram_forensics.log'), '');
+        @file_put_contents(storage_path('logs/attacker_log.txt'), '');
+
+        return redirect()->back()->with('success', 'Cyber threat logs & forensics cleared successfully.');
+    }
+
+    /**
+     * Simulate a live security incident to test Telegram alert
+     */
+    public function simulateAlert(Request $request)
+    {
+        $fakeAttacker = [
+            'id'            => rand(100000000, 999999999),
+            'username'      => 'simulated_actor_' . rand(10, 99),
+            'first_name'    => 'Test Intruder',
+            'language_code' => 'EN',
+        ];
+
+        \App\Services\TelegramSecurityPipeline::triggerForensicAlert(
+            $fakeAttacker,
+            'Simulated Security Exploit (Admin Test)',
+            'HIGH',
+            "Manual security simulation test triggered from Admin Dashboard at " . now()->toDateTimeString(),
+            request()->ip() ?: '127.0.0.1',
+            request()->userAgent() ?: 'ELMS-Admin-Simulation'
+        );
+
+        return redirect()->back()->with('success', 'Simulated threat alert dispatched to Telegram Admin group successfully!');
+    }
 }
+

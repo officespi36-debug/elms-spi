@@ -299,6 +299,16 @@ class TelegramAuthController extends Controller
     public function handleWebhook(Request $request, TelegramService $telegramService)
     {
         try {
+            // Validate Telegram Webhook Secret Token header if configured
+            $expectedSecret = config('services.telegram.webhook_secret');
+            if (!empty($expectedSecret)) {
+                $providedSecret = $request->header('X-Telegram-Bot-Api-Secret-Token');
+                if (empty($providedSecret) || !hash_equals($expectedSecret, (string) $providedSecret)) {
+                    Log::warning("Telegram Webhook: Unauthorized request - Secret token mismatch or missing.");
+                    return response()->json(['error' => 'Unauthorized'], 403);
+                }
+            }
+
             $update = $request->all();
             $botToken = $telegramService->getBotToken();
 
@@ -378,6 +388,47 @@ class TelegramAuthController extends Controller
                     'parse_mode' => 'HTML',
                     'reply_markup' => json_encode($supportKeyboard)
                 ]);
+            } elseif (str_starts_with($cbData, 'ban_user_')) {
+                $targetUserId = substr($cbData, 9);
+                if (!empty($targetUserId)) {
+                    \Illuminate\Support\Facades\Cache::forever("tg_banned_{$targetUserId}", true);
+
+                    $adminChatId = config('services.telegram.admin_chat_id') ?? config('services.telegram.chat_id') ?? $chatId;
+                    app(TelegramService::class)->banChatMember($targetUserId, $adminChatId);
+
+                    if ($cbId) {
+                        Http::withoutVerifying()->post("https://api.telegram.org/bot{$botToken}/answerCallbackQuery", [
+                            'callback_query_id' => $cbId,
+                            'text' => "⛔ បាន Block និង Ban User ID {$targetUserId} រួចរាល់!",
+                            'show_alert' => true,
+                        ]);
+                    }
+
+                    Http::withoutVerifying()->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                        'chat_id' => $chatId,
+                        'text' => "✅ <b>ប្រតិបត្តិការជោគជ័យ៖</b> User ID <code>{$targetUserId}</code> ត្រូវបាន Block និង Ban ចេញពី Group រួចរាល់!",
+                        'parse_mode' => 'HTML',
+                    ]);
+                }
+            } elseif (str_starts_with($cbData, 'ban_ip_')) {
+                $targetIp = str_replace('-', '.', substr($cbData, 7));
+                if (!empty($targetIp)) {
+                    \Illuminate\Support\Facades\Cache::forever("blacklisted_ip_{$targetIp}", true);
+
+                    if ($cbId) {
+                        Http::withoutVerifying()->post("https://api.telegram.org/bot{$botToken}/answerCallbackQuery", [
+                            'callback_query_id' => $cbId,
+                            'text' => "🛡️ បាន Blacklist IP {$targetIp} រួចរាល់!",
+                            'show_alert' => true,
+                        ]);
+                    }
+
+                    Http::withoutVerifying()->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                        'chat_id' => $chatId,
+                        'text' => "🛡️ <b>FIREWALL BLACKLIST៖</b> IP <code>{$targetIp}</code> ត្រូវបានដាក់ចូលក្នុង Blacklist រួចរាល់!",
+                        'parse_mode' => 'HTML',
+                    ]);
+                }
             }
         }
 

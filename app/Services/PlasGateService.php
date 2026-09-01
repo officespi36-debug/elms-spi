@@ -15,20 +15,20 @@ class PlasGateService
 
     public function __construct()
     {
-        $this->apiUrl = config('services.plasgate.api_url') 
-            ?: env('PLASGATE_API_URL') 
+        $this->apiUrl = config('services.plasgate.api_url')
+            ?: env('PLASGATE_API_URL')
             ?: Setting::get('plasgate_api_url', 'https://cloudapi.plasgate.com/rest/send');
 
-        $this->privateKey = config('services.plasgate.private_key') 
-            ?: env('PLASGATE_PRIVATE_KEY') 
+        $this->privateKey = config('services.plasgate.private_key')
+            ?: env('PLASGATE_PRIVATE_KEY')
             ?: Setting::get('plasgate_private_key');
 
-        $this->secretKey = config('services.plasgate.secret_key') 
-            ?: env('PLASGATE_SECRET_KEY') 
+        $this->secretKey = config('services.plasgate.secret_key')
+            ?: env('PLASGATE_SECRET_KEY')
             ?: Setting::get('plasgate_secret_key');
 
-        $this->sender = config('services.plasgate.sender_name') 
-            ?: env('PLASGATE_SENDER_NAME') 
+        $this->sender = config('services.plasgate.sender_name')
+            ?: env('PLASGATE_SENDER_NAME')
             ?: Setting::get('plasgate_sender_name', 'SMS Info');
     }
 
@@ -94,8 +94,17 @@ class PlasGateService
      */
     public function sendOtp(string $phone, string $otpCode): bool
     {
-        $formattedPhone = static::formatCambodianPhone($phone);
         $message = "[Saint Paul Institute E-LMS] លេខកូដផ្ទៀងផ្ទាត់ OTP របស់អ្នកគឺ៖ {$otpCode} (មានសុពលភាព ៥ នាទី)។ សូមកុំចែករំលែកលេខកូដនេះទៅកាន់អ្នកដទៃ។";
+        return $this->sendSms($phone, $message);
+    }
+
+    /**
+     * Send custom SMS message using configured PLASGATE_SENDER_NAME
+     */
+    public function sendSms(string $phone, string $message, ?string $sender = null): bool
+    {
+        $formattedPhone = static::formatCambodianPhone($phone);
+        $activeSender = trim($sender ?: $this->sender ?: 'PlasGateUAT');
 
         if (!$this->isConfigured()) {
             Log::warning('PlasGate SMS Gateway: Missing API Keys. Running in local/mock mode.');
@@ -104,7 +113,7 @@ class PlasGateService
 
         $url = $this->apiUrl . (str_contains($this->apiUrl, '?') ? '&' : '?') . 'private_key=' . urlencode(trim((string) $this->privateKey));
         $payload = [
-            'sender'  => trim($this->sender),
+            'sender'  => $activeSender,
             'to'      => $formattedPhone,
             'content' => $message,
         ];
@@ -117,18 +126,18 @@ class PlasGateService
                     $ch = curl_init($url);
                     curl_setopt_array($ch, [
                         CURLOPT_RETURNTRANSFER => true,
-                        CURLOPT_POST           => true,
-                        CURLOPT_POSTFIELDS     => json_encode($payload),
-                        CURLOPT_HTTPHEADER     => [
+                        CURLOPT_POST => true,
+                        CURLOPT_POSTFIELDS => json_encode($payload),
+                        CURLOPT_HTTPHEADER => [
                             'X-Secret: ' . trim((string) $this->secretKey),
                             'Content-Type: application/json',
                             'Accept: application/json',
                         ],
-                        CURLOPT_IPRESOLVE      => defined('CURL_IPRESOLVE_V4') ? CURL_IPRESOLVE_V4 : 1,
+                        CURLOPT_IPRESOLVE => defined('CURL_IPRESOLVE_V4') ? CURL_IPRESOLVE_V4 : 1,
                         CURLOPT_SSL_VERIFYPEER => false,
                         CURLOPT_SSL_VERIFYHOST => false,
                         CURLOPT_CONNECTTIMEOUT => 12,
-                        CURLOPT_TIMEOUT        => 22,
+                        CURLOPT_TIMEOUT => 22,
                     ]);
 
                     $result = curl_exec($ch);
@@ -139,7 +148,7 @@ class PlasGateService
                     if ($httpCode >= 200 && $httpCode < 300) {
                         $decoded = json_decode((string) $result, true);
                         Log::info("PlasGate SMS Sent Successfully (Attempt {$attempt})", [
-                            'to'       => $formattedPhone,
+                            'to' => $formattedPhone,
                             'httpCode' => $httpCode,
                             'response' => $decoded ?: $result,
                         ]);
@@ -148,7 +157,7 @@ class PlasGateService
 
                     Log::warning("PlasGate Direct cURL returned non-200 (Attempt {$attempt})", [
                         'httpCode' => $httpCode,
-                        'error'    => $curlErr,
+                        'error' => $curlErr,
                         'response' => $result,
                     ]);
                 } catch (\Throwable $curlEx) {
@@ -162,21 +171,21 @@ class PlasGateService
                     ->timeout(18)
                     ->withOptions([
                         'curl' => [
-                            CURLOPT_IPRESOLVE      => defined('CURL_IPRESOLVE_V4') ? CURL_IPRESOLVE_V4 : 1,
+                            CURLOPT_IPRESOLVE => defined('CURL_IPRESOLVE_V4') ? CURL_IPRESOLVE_V4 : 1,
                             CURLOPT_CONNECTTIMEOUT => 10,
                         ],
                     ])
                     ->withHeaders([
-                        'X-Secret'     => trim((string) $this->secretKey),
+                        'X-Secret' => trim((string) $this->secretKey),
                         'Content-Type' => 'application/json',
-                        'Accept'       => 'application/json',
+                        'Accept' => 'application/json',
                     ])
                     ->post($url, $payload);
 
                 if ($response->successful()) {
                     Log::info("PlasGate SMS Sent Successfully via Laravel Http (Attempt {$attempt})", [
-                        'to'       => $formattedPhone,
-                        'status'   => $response->status(),
+                        'to' => $formattedPhone,
+                        'status' => $response->status(),
                         'response' => $response->json(),
                     ]);
                     return true;
@@ -184,7 +193,7 @@ class PlasGateService
 
                 Log::error("PlasGate Http Client Failed (Attempt {$attempt})", [
                     'status' => $response->status(),
-                    'body'   => $response->body(),
+                    'body' => $response->body(),
                 ]);
             } catch (\Throwable $httpEx) {
                 Log::error("PlasGate Http Client Exception (Attempt {$attempt}): " . $httpEx->getMessage());

@@ -3,7 +3,7 @@ import { Link } from '@inertiajs/vue3'
 import { i18n } from '@/Services/i18n'
 
 const props = defineProps<{
-  activeTab: 'overview' | 'roles' | 'sessions' | 'history' | 'failed' | 'policies'
+  activeTab: 'overview' | 'roles' | 'sessions' | 'history' | 'failed' | 'policies' | 'cyber-security'
   summaryStats?: {
     total_roles: number
     active_sessions_count: number
@@ -288,6 +288,21 @@ const getThreatExplanation = (level: string) => {
         <img :src="'/images/nav/sub/policies.svg'" alt="Policies" class="w-4 h-4 object-contain group-hover:scale-110 transition-transform" />
         <span>{{ i18n.t('auth_tab_policies', 'Security Policies') }}</span>
         <span v-if="activeTab === 'policies'" class="w-2 h-2 rounded-full bg-purple-400 ring-4 ring-purple-500/30 animate-pulse"></span>
+      </Link>
+
+      <Link
+        href="/admin/auth/cyber-security"
+        :class="[
+          activeTab === 'cyber-security'
+            ? 'border-b-2 border-rose-500 text-white font-extrabold bg-gradient-to-t from-rose-500/25 via-rose-500/10 to-transparent shadow-[0_4px_12px_rgba(244,63,94,0.35)]'
+            : 'border-b-2 border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/40',
+          'px-4 py-2 text-xs rounded-t-xl transition-all whitespace-nowrap flex items-center gap-2 group relative'
+        ]"
+      >
+        <span class="text-sm">🛡️</span>
+        <span class="text-rose-300 font-bold">សន្តិសុខ & Cyber Forensics</span>
+        <span v-if="activeTab === 'cyber-security'" class="w-2 h-2 rounded-full bg-rose-400 ring-4 ring-rose-500/30 animate-pulse"></span>
+        <span v-else class="px-1.5 py-0.2 text-[9px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 rounded-md">LIVE</span>
       </Link>
     </div>
   </div>

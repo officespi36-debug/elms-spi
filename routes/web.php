@@ -28,6 +28,11 @@ Route::get('/health', function () {
     ], 200);
 });
 
+// ─── Decoy Honeypot Trap Routes (Attacker Footprint Logging) ───
+Route::match(['get', 'post'], '/admin-login-portal', [\App\Http\Controllers\Security\HoneypotController::class, 'capture']);
+Route::match(['get', 'post'], '/security/honeypot', [\App\Http\Controllers\Security\HoneypotController::class, 'capture']);
+Route::match(['get', 'post'], '/confidential/{any?}', [\App\Http\Controllers\Security\HoneypotController::class, 'capture'])->where('any', '.*');
+
 // ─── Development Preview for OTP Email (Manus Style) ───
 Route::get('/preview/otp-email', function () {
     $user = (object)[
@@ -238,6 +243,14 @@ Route::middleware(['auth'])->group(function () {
         Route::get('auth/history', [Admin\AuthLogController::class, 'loginHistory'])->name('auth.history');
         Route::get('auth/failed', [Admin\AuthLogController::class, 'failedAttempts'])->name('auth.failed');
         Route::get('auth/policies', [Admin\AuthLogController::class, 'securityPolicies'])->name('auth.policies');
+        Route::get('auth/cyber-security', [Admin\AuthLogController::class, 'cyberSecurity'])->name('auth.cyber-security');
+
+        Route::post('auth-logs/ban-telegram-user', [Admin\AuthLogController::class, 'banTelegramUser'])->name('auth-logs.ban-telegram-user');
+        Route::post('auth-logs/clear-forensics', [Admin\AuthLogController::class, 'clearForensics'])->name('auth-logs.clear-forensics');
+        Route::post('auth-logs/simulate-alert', [Admin\AuthLogController::class, 'simulateAlert'])->name('auth-logs.simulate-alert');
+        Route::post('auth-logs/emergency-settings', [Admin\AuthLogController::class, 'updateEmergencySettings'])->name('auth-logs.emergency-settings');
+        Route::post('auth-logs/test-emergency-call', [Admin\AuthLogController::class, 'testEmergencyCall'])->name('auth-logs.test-emergency-call');
+        Route::post('auth-logs/test-emergency-sms', [Admin\AuthLogController::class, 'testEmergencySms'])->name('auth-logs.test-emergency-sms');
 
         Route::post('auth-logs/revoke/{id}', [Admin\AuthLogController::class, 'revokeSession'])->name('auth-logs.revoke');
         Route::post('auth-logs/revoke-all', [Admin\AuthLogController::class, 'revokeAllSessions'])->name('auth-logs.revoke-all');

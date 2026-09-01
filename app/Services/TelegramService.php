@@ -246,7 +246,7 @@ class TelegramService
     }
 
     /**
-     * Register Bot Menu Slash Commands and native WebApp Menu Button with Telegram API
+     * Register Bot Name, Description, Menu Slash Commands, and native WebApp Menu Button with Telegram API
      */
     public function syncBotCommandsAndMenu(): bool
     {
@@ -255,7 +255,33 @@ class TelegramService
         }
 
         try {
-            // 1. Set slash command list
+            // 1. Restore official Bot Name
+            Http::withoutVerifying()->timeout(5)->post("https://api.telegram.org/bot{$this->botToken}/setMyName", [
+                'name' => 'SPI AI-ELMS Auth Bot',
+            ]);
+
+            // 2. Restore official Bot Description
+            $botDescription = "🏛️ វិទ្យាស្ថាន សន្តប៉ូល (Saint Paul Institute)\n" .
+                "ប្រព័ន្ធគ្រប់គ្រងការសិក្សាឆ្លាតវៃ SPI AI-ELMS (spilms.tech)\n\n" .
+                "🤖 មុខងាររបស់ Bot៖\n" .
+                "• 🔐 ផ្ញើលេខកូដផ្ទៀងផ្ទាត់ OTP (Password Reset)\n" .
+                "• 🎓 ភ្ជាប់គណនីនិស្សិត និងសាស្ត្រាចារ្យ\n" .
+                "• 📚 ពិនិត្យមើលវគ្គសិក្សា (Courses)\n" .
+                "• ⏰ ជូនដំណឹងកាលបរិច្ឆេទកិច្ចការ & ប្រឡង (Deadlines)\n" .
+                "• 📢 ទទួលដំណឹងសេចក្តីប្រកាសផ្លូវការរបស់សាលា\n" .
+                "• 🚀 ដំណើរការ SPI LMS Web Mini App\n\n" .
+                "📍 ទំនាក់ទំនង៖ info@spilms.tech | https://spilms.tech";
+
+            Http::withoutVerifying()->timeout(5)->post("https://api.telegram.org/bot{$this->botToken}/setMyDescription", [
+                'description' => $botDescription,
+            ]);
+
+            // 3. Restore official Bot Short Description
+            Http::withoutVerifying()->timeout(5)->post("https://api.telegram.org/bot{$this->botToken}/setMyShortDescription", [
+                'short_description' => 'Bot ផ្លូវការរបស់វិទ្យាស្ថាន សន្តប៉ូល (SPI AI-ELMS) សម្រាប់ទទួល OTP, ដំណឹងសាលា និង Mini App។',
+            ]);
+
+            // 4. Set slash command list
             $commands = [
                 ['command' => 'start', 'description' => '🚀 ចាប់ផ្តើម និងភ្ជាប់គណនី (Start & Connect)'],
                 ['command' => 'courses', 'description' => '📚 វគ្គសិក្សារបស់ខ្ញុំ (My Enrolled Courses)'],
@@ -263,13 +289,14 @@ class TelegramService
                 ['command' => 'announcements', 'description' => '📢 ដំណឹង និងសេចក្តីជូនដំណឹងសាលា (Campus News)'],
                 ['command' => 'me', 'description' => '👤 កាតព័ត៌មានគណនី (My Profile & ID)'],
                 ['command' => 'help', 'description' => '💬 ជំនួយបច្ចេកទេស និងទំនាក់ទំនង (Technical Support)'],
+                ['command' => 'unlink', 'description' => '🔓 ផ្តាច់គណនីចេញពី Telegram (Unlink Account)'],
             ];
 
             Http::withoutVerifying()->timeout(5)->post("https://api.telegram.org/bot{$this->botToken}/setMyCommands", [
                 'commands' => $commands,
             ]);
 
-            // 2. Set native WebApp launcher button next to input bar
+            // 5. Set native WebApp launcher button next to input bar
             Http::withoutVerifying()->timeout(5)->post("https://api.telegram.org/bot{$this->botToken}/setChatMenuButton", [
                 'menu_button' => [
                     'type' => 'web_app',
@@ -282,6 +309,71 @@ class TelegramService
         } catch (\Throwable $e) {
             Log::warning("Telegram syncBotCommandsAndMenu error: " . $e->getMessage());
             return false;
+        }
+    }
+
+    /**
+     * Set up Telegram Webhook with secret token for endpoint verification
+     */
+    public function setupWebhook(string $url, ?string $secretToken = null): array
+    {
+        if (empty($this->botToken)) {
+            return ['ok' => false, 'description' => 'Bot token not configured'];
+        }
+
+        $secret = $secretToken ?? config('services.telegram.webhook_secret');
+        $payload = [
+            'url' => $url,
+            'allowed_updates' => ['message', 'callback_query'],
+            'drop_pending_updates' => true,
+        ];
+
+        if (!empty($secret)) {
+            $payload['secret_token'] = $secret;
+        }
+
+        try {
+            $response = Http::withoutVerifying()->timeout(10)->post("https://api.telegram.org/bot{$this->botToken}/setWebhook", $payload);
+            return $response->json();
+        } catch (\Throwable $e) {
+            Log::error("Telegram setupWebhook error: " . $e->getMessage());
+            return ['ok' => false, 'description' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Get current Webhook Information
+     */
+    public function getWebhookInfo(): array
+    {
+        if (empty($this->botToken)) {
+            return ['ok' => false, 'description' => 'Bot token not configured'];
+        }
+
+        try {
+            $response = Http::withoutVerifying()->timeout(10)->get("https://api.telegram.org/bot{$this->botToken}/getWebhookInfo");
+            return $response->json();
+        } catch (\Throwable $e) {
+            return ['ok' => false, 'description' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Delete Webhook (switch back to polling or clean state)
+     */
+    public function deleteWebhook(): array
+    {
+        if (empty($this->botToken)) {
+            return ['ok' => false, 'description' => 'Bot token not configured'];
+        }
+
+        try {
+            $response = Http::withoutVerifying()->timeout(10)->post("https://api.telegram.org/bot{$this->botToken}/deleteWebhook", [
+                'drop_pending_updates' => true,
+            ]);
+            return $response->json();
+        } catch (\Throwable $e) {
+            return ['ok' => false, 'description' => $e->getMessage()];
         }
     }
 
@@ -310,6 +402,104 @@ class TelegramService
             'resize_keyboard' => true,
             'is_persistent' => true
         ];
+    }
+
+    /**
+     * Audit Administrators in a Telegram Group
+     */
+    public function getChatAdministrators(string|int|null $chatId = null): array
+    {
+        $target = $chatId ?? $this->chatId;
+        if (empty($this->botToken) || empty($target)) {
+            return [];
+        }
+
+        try {
+            $res = Http::withoutVerifying()->timeout(10)->get("https://api.telegram.org/bot{$this->botToken}/getChatAdministrators", [
+                'chat_id' => (string)$target,
+            ]);
+            return $res->json('result', []);
+        } catch (\Throwable $e) {
+            Log::error("getChatAdministrators error: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Ban / Kick a malicious user or bot from a Telegram Group
+     */
+    public function banChatMember(int|string $userId, string|int|null $chatId = null, int $untilDate = 0, bool $revokeMessages = true): bool
+    {
+        $target = $chatId ?? $this->chatId;
+        if (empty($this->botToken) || empty($target) || empty($userId)) {
+            return false;
+        }
+
+        try {
+            $payload = [
+                'chat_id'         => (string)$target,
+                'user_id'         => (int)$userId,
+                'revoke_messages' => $revokeMessages,
+            ];
+            if ($untilDate > 0) {
+                $payload['until_date'] = $untilDate;
+            }
+
+            $res = Http::withoutVerifying()->timeout(10)->post("https://api.telegram.org/bot{$this->botToken}/banChatMember", $payload);
+            return $res->json('ok', false);
+        } catch (\Throwable $e) {
+            Log::error("banChatMember error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Restrict member permissions (mute, disable link sending, etc.)
+     */
+    public function restrictChatMember(int|string $userId, array $permissions, string|int|null $chatId = null, int $untilDate = 0): bool
+    {
+        $target = $chatId ?? $this->chatId;
+        if (empty($this->botToken) || empty($target) || empty($userId)) {
+            return false;
+        }
+
+        try {
+            $payload = [
+                'chat_id'     => (string)$target,
+                'user_id'     => (int)$userId,
+                'permissions' => json_encode($permissions),
+            ];
+            if ($untilDate > 0) {
+                $payload['until_date'] = $untilDate;
+            }
+
+            $res = Http::withoutVerifying()->timeout(10)->post("https://api.telegram.org/bot{$this->botToken}/restrictChatMember", $payload);
+            return $res->json('ok', false);
+        } catch (\Throwable $e) {
+            Log::error("restrictChatMember error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Delete a spam message from a Telegram Group
+     */
+    public function deleteMessage(int $messageId, string|int|null $chatId = null): bool
+    {
+        $target = $chatId ?? $this->chatId;
+        if (empty($this->botToken) || empty($target) || empty($messageId)) {
+            return false;
+        }
+
+        try {
+            $res = Http::withoutVerifying()->timeout(5)->post("https://api.telegram.org/bot{$this->botToken}/deleteMessage", [
+                'chat_id'    => (string)$target,
+                'message_id' => $messageId,
+            ]);
+            return $res->json('ok', false);
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     /**
