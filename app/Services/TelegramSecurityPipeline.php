@@ -14,6 +14,11 @@ class TelegramSecurityPipeline
      */
     public static function validate(array $update): bool
     {
+        // Allow my_chat_member, chat_member, channel_post system events
+        if (isset($update['my_chat_member']) || isset($update['chat_member']) || isset($update['channel_post'])) {
+            return true;
+        }
+
         $message = $update['message'] ?? $update['callback_query']['message'] ?? null;
         $from = $update['message']['from'] ?? $update['callback_query']['from'] ?? null;
 
@@ -23,6 +28,8 @@ class TelegramSecurityPipeline
 
         $userId = $from['id'];
         $text = $update['message']['text'] ?? $update['callback_query']['data'] ?? '';
+        $chat = $update['message']['chat'] ?? $update['callback_query']['message']['chat'] ?? null;
+        $isGroup = $chat && in_array($chat['type'] ?? '', ['group', 'supergroup', 'channel']);
 
         // ជាន់ទី ៥៖ ពិនិត្យ Active Ban
         try {
@@ -31,6 +38,11 @@ class TelegramSecurityPipeline
             }
         } catch (\Throwable $e) {
             Log::warning("BanCheck Cache error: " . $e->getMessage());
+        }
+
+        // If in group or supergroup, allow interactions and command execution
+        if ($isGroup) {
+            return true;
         }
 
         // ជាន់ទី ២៖ Rate Limiting & Anti-Flood (អតិបរមា ៥ សារ ក្នុង ៥ វិនាទី)
