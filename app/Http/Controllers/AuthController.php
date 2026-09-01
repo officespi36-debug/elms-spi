@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AuthLog;
 use App\Models\User;
+use App\Services\TelegramService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -457,7 +458,7 @@ class AuthController extends Controller
                 ]);
 
                 // 🔔 Real-time Security Alert to Telegram Group
-                $telegramService = app(\App\Services\TelegramService::class);
+                $telegramService = app(TelegramService::class);
                 $telegramService->sendMessage(
                     "<b>✉️ EMAIL OTP LOGIN SUCCESSFUL</b>\n" .
                     "━━━━━━━━━━━━━━━━━━━━━\n" .
@@ -730,7 +731,7 @@ class AuthController extends Controller
                 ]);
 
                 // 🔔 Real-time Security Alert to Telegram Group
-                $telegramService = app(\App\Services\TelegramService::class);
+                $telegramService = app(TelegramService::class);
                 $telegramService->sendMessage(
                     "<b>📱 PHONE SMS OTP LOGIN SUCCESSFUL</b>\n" .
                     "━━━━━━━━━━━━━━━━━━━━━\n" .

@@ -233,7 +233,7 @@ class TelegramAuthController extends Controller
 
         // Security notification via Telegram
         try {
-            $tg = app(\App\Services\TelegramService::class);
+            $tg = app(TelegramService::class);
             $tg->sendMessage(
                 "<b>🔵 [TELEGRAM LOGIN ALERT]</b>\n" .
                 "━━━━━━━━━━━━━━━━━━━━━\n" .

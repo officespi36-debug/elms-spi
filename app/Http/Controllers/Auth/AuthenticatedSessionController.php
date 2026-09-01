@@ -225,7 +225,7 @@ class AuthenticatedSessionController extends Controller
             // 2. Telegram Admin & Personal Notifications for Login
             try {
                 // Admin Group Notification
-                $tg = app(\App\Services\TelegramService::class);
+                $tg = app(TelegramService::class);
                 $tg->sendMessage(
                     "<b>🔑 [PASSWORD LOGIN ALERT]</b>\n" .
                     "━━━━━━━━━━━━━━━━━━━━━\n" .

