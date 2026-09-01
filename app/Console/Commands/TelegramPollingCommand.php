@@ -125,7 +125,7 @@ class TelegramPollingCommand extends Command
                         "✅ <b>ប្រតិបត្តិការជោគជ័យ៖</b> User ID <code>{$targetUserId}</code> ត្រូវបាន Block និង Ban ចេញពី Group រួចរាល់!",
                         'HTML'
                     );
-                    $this->warn("⛔ Banned user ID {$targetUserId} via interactive Telegram button.");
+                    $this->safeLog('warn', "⛔ Banned user ID {$targetUserId} via interactive Telegram button.");
                 }
             } elseif (str_starts_with($cbData, 'ban_ip_')) {
                 $targetIp = str_replace('-', '.', substr($cbData, 7));
@@ -145,7 +145,7 @@ class TelegramPollingCommand extends Command
                         "🛡️ <b>FIREWALL BLACKLIST៖</b> IP <code>{$targetIp}</code> ត្រូវបានដាក់ចូលក្នុង Blacklist រួចរាល់!",
                         'HTML'
                     );
-                    $this->warn("🛡️ Blacklisted IP {$targetIp} via interactive Telegram button.");
+                    $this->safeLog('warn', "🛡️ Blacklisted IP {$targetIp} via interactive Telegram button.");
                 }
             }
             return;
@@ -362,9 +362,9 @@ class TelegramPollingCommand extends Command
                 ]
             ];
 
-            $this->info("Handled start/link for {$senderName} (Chat: {$chatId})");
             TelegramSecurityPipeline::sendMessage($chatId, $welcomeText, 'HTML', $replyMarkup);
             TelegramSecurityPipeline::sendMessage($chatId, "⚡ <b>រុករកទំព័រសំខាន់ៗ (Quick Links)៖</b>", 'HTML', $inlineKeyboard);
+            $this->safeLog('info', "Handled start/link for {$senderName} (Chat: {$chatId})");
         } elseif (str_starts_with($cleanCmd, '/courses') || str_contains($cleanCmd, 'វគ្គសិក្សា') || $cleanCmd === 'courses') {
             $this->handleCoursesCommand($chatId, $linkedUser, $botToken);
         } elseif (str_starts_with($cleanCmd, '/deadlines') || str_contains($cleanCmd, 'កាលបរិច្ឆេទ') || $cleanCmd === 'deadlines' || $cleanCmd === 'homework') {
@@ -375,6 +375,22 @@ class TelegramPollingCommand extends Command
             $this->handleProfileCommand($chatId, $linkedUser, $botToken);
         } elseif (str_starts_with($cleanCmd, '/support') || str_starts_with($cleanCmd, '/help') || $cleanCmd === 'support' || $cleanCmd === 'help') {
             TelegramSecurityPipeline::sendMessage($chatId, $supportText, 'HTML', $supportKeyboard);
+        } elseif (str_starts_with($cleanCmd, '/unlink')) {
+            if ($linkedUser) {
+                DB::table('users')->where('id', $linkedUser->id)->update([
+                    'telegram_chat_id' => null,
+                    'telegram_id' => null
+                ]);
+                $unlinkText = "🔓 <b>ផ្តាច់គណនីជោគជ័យ!</b>\n\n" .
+                              "គណនី Telegram របស់អ្នកត្រូវបានផ្តាច់ចេញពីគណនី SPI AI-ELMS (<b>{$linkedUser->name}</b>) រួចរាល់ហើយ។\n\n" .
+                              "ប្រសិនបើអ្នកចង់ភ្ជាប់ឡើងវិញ សូមវាយពាក្យបញ្ជា /start ឡើងវិញ។";
+            } else {
+                $unlinkText = "ℹ️ <b>គណនីមិនទាន់បានភ្ជាប់៖</b>\n\n" .
+                              "គណនី Telegram របស់អ្នកពុំទាន់ត្រូវបានភ្ជាប់ទៅកាន់គណនី SPI AI-ELMS ណាមួយនៅឡើយទេ។\n\n" .
+                              "👉 សូមវាយពាក្យបញ្ជា /start ដើម្បីចាប់ផ្តើមភ្ជាប់គណនី។";
+            }
+            TelegramSecurityPipeline::sendMessage($chatId, $unlinkText, 'HTML');
+            $this->safeLog('info', "Handled unlink command for {$senderName} (Chat: {$chatId})");
         } elseif (str_starts_with($cleanCmd, '/dashboard')) {
             $dashboardText = "📊 <b>ចូលទៅកាន់ប្រព័ន្ធគ្រប់គ្រងការសិក្សា Dashboard</b>\n\n" .
                              "សូមចុចប៊ូតុងខាងក្រោមដើម្បីចូលទៅកាន់ Dashboard របស់អ្នក៖";
@@ -567,5 +583,17 @@ class TelegramPollingCommand extends Command
         ];
 
         TelegramSecurityPipeline::sendMessage($chatId, $responseText, 'HTML', $inlineKeyboard);
+    }
+
+    private function safeLog(string $level, string $message): void
+    {
+        if ($this->output) {
+            if ($level === 'info') $this->info($message);
+            elseif ($level === 'warn') $this->warn($message);
+            elseif ($level === 'error') $this->error($message);
+            else $this->line($message);
+        } else {
+            \Illuminate\Support\Facades\Log::info("TelegramPolling: {$message}");
+        }
     }
 }
