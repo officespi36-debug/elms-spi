@@ -442,16 +442,35 @@ class AuthController extends Controller
 
             // Record AuthLog
             try {
+                $ip = $request->ip();
+                $userAgent = $request->userAgent() ?? '';
+                $device = str_contains(strtolower($userAgent), 'mobile') ? 'Mobile' : 'Desktop';
+
                 AuthLog::create([
                     'user_id' => $user->id,
                     'email' => $user->email,
-                    'ip_address' => $request->ip(),
-                    'user_agent' => $request->userAgent() ?? '',
-                    'device' => str_contains(strtolower($request->userAgent() ?? ''), 'mobile') ? 'Mobile' : 'Desktop',
+                    'ip_address' => $ip,
+                    'user_agent' => $userAgent,
+                    'device' => $device,
                     'browser' => 'Browser (Email OTP)',
                     'status' => 'success',
                 ]);
+
+                // 🔔 Real-time Security Alert to Telegram Group
+                $telegramService = app(\App\Services\TelegramService::class);
+                $telegramService->sendMessage(
+                    "<b>✉️ EMAIL OTP LOGIN SUCCESSFUL</b>\n" .
+                    "━━━━━━━━━━━━━━━━━━━━━\n" .
+                    "👤 <b>User:</b> {$user->name}\n" .
+                    "📧 <b>Email:</b> {$user->email}\n" .
+                    "🎓 <b>Role:</b> " . strtoupper($user->role) . "\n" .
+                    "🌐 <b>IP Address:</b> <code>{$ip}</code>\n" .
+                    "📱 <b>Device:</b> {$device}\n" .
+                    "⏰ <b>Time:</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i A') . "\n" .
+                    "🛡️ <b>Method:</b> Email OTP Verification"
+                );
             } catch (\Throwable $e) {
+                Log::warning('Email OTP security alert notice: ' . $e->getMessage());
             }
 
             $redirectUrl = match ($user->role) {
@@ -695,16 +714,37 @@ class AuthController extends Controller
 
             // Record AuthLog
             try {
+                $ip = $request->ip();
+                $userAgent = $request->userAgent() ?? '';
+                $device = str_contains(strtolower($userAgent), 'mobile') ? 'Mobile' : 'Desktop';
+                $phoneDisplay = $user->phone ?: $phoneInput;
+
                 AuthLog::create([
                     'user_id' => $user->id,
                     'email' => $user->email,
-                    'ip_address' => $request->ip(),
-                    'user_agent' => $request->userAgent() ?? '',
-                    'device' => str_contains(strtolower($request->userAgent() ?? ''), 'mobile') ? 'Mobile' : 'Desktop',
+                    'ip_address' => $ip,
+                    'user_agent' => $userAgent,
+                    'device' => $device,
                     'browser' => 'Browser (Phone OTP)',
                     'status' => 'success',
                 ]);
+
+                // 🔔 Real-time Security Alert to Telegram Group
+                $telegramService = app(\App\Services\TelegramService::class);
+                $telegramService->sendMessage(
+                    "<b>📱 PHONE SMS OTP LOGIN SUCCESSFUL</b>\n" .
+                    "━━━━━━━━━━━━━━━━━━━━━\n" .
+                    "👤 <b>User:</b> {$user->name}\n" .
+                    "📞 <b>Phone:</b> <code>{$phoneDisplay}</code>\n" .
+                    "📧 <b>Email:</b> {$user->email}\n" .
+                    "🎓 <b>Role:</b> " . strtoupper($user->role) . "\n" .
+                    "🌐 <b>IP Address:</b> <code>{$ip}</code>\n" .
+                    "📱 <b>Device:</b> {$device}\n" .
+                    "⏰ <b>Time:</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i A') . "\n" .
+                    "🛡️ <b>Method:</b> PlasGate SMS OTP"
+                );
             } catch (\Throwable $e) {
+                Log::warning('Phone OTP security alert notice: ' . $e->getMessage());
             }
 
             $redirectUrl = match ($user->role) {

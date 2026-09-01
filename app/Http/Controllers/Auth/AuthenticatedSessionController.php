@@ -122,9 +122,36 @@ class AuthenticatedSessionController extends Controller
             ]);
 
             if ($attempts >= 5) {
+                try {
+                    $telegramService->sendMessage(
+                        "🚨 <b>ACCOUNT LOCKED (30 MINS)</b>\n" .
+                        "━━━━━━━━━━━━━━━━━━━━━\n" .
+                        "👤 <b>User:</b> {$user->name}\n" .
+                        "📧 <b>Email:</b> {$user->email}\n" .
+                        "🌐 <b>IP Address:</b> <code>{$ip}</code>\n" .
+                        "📱 <b>Device:</b> {$device} ({$browser})\n" .
+                        "⚠️ <b>Reason:</b> 5 consecutive failed password attempts\n" .
+                        "⏰ <b>Time:</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i A')
+                    );
+                } catch (\Throwable $e) {}
+
                 return back()->withErrors([
                     'email' => 'អ្នកបានបញ្ចូលពាក្យសម្ងាត់ខុស ៥ ដង! គណនីត្រូវសោរ ៣០ នាទី។',
                 ]);
+            }
+
+            if ($attempts >= 3) {
+                try {
+                    $telegramService->sendMessage(
+                        "⚠️ <b>SUSPICIOUS LOGIN ATTEMPT</b>\n" .
+                        "━━━━━━━━━━━━━━━━━━━━━\n" .
+                        "👤 <b>Target:</b> {$user->name} ({$user->email})\n" .
+                        "🌐 <b>Attacker IP:</b> <code>{$ip}</code>\n" .
+                        "📱 <b>Device:</b> {$device} ({$browser})\n" .
+                        "🔢 <b>Failed Attempt:</b> {$attempts}/5\n" .
+                        "⏰ <b>Time:</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i A')
+                    );
+                } catch (\Throwable $e) {}
             }
 
             $remaining = 5 - $attempts;
