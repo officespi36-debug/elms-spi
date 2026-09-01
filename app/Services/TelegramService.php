@@ -14,19 +14,19 @@ class TelegramService
 
     public function __construct()
     {
-        $this->botToken = config('services.telegram.bot_token') ?? env('TELEGRAM_BOT_TOKEN');
-        $this->botUsername = config('services.telegram.bot_username') ?? env('TELEGRAM_BOT_USERNAME', 'spi_elms_auth_bot');
-        $this->chatId = config('services.telegram.chat_id') ?? env('TELEGRAM_CHAT_ID') ?? config('services.telegram.admin_chat_id') ?? '-5560385465';
+        $this->botToken = config('services.telegram.bot_token') ?: env('TELEGRAM_BOT_TOKEN') ?: '8828915669:AAHCBS8crm8t8zXlYPOGiGxmywXybrr-fm8';
+        $this->botUsername = config('services.telegram.bot_username') ?: env('TELEGRAM_BOT_USERNAME') ?: 'spi_elms_auth_bot';
+        $this->chatId = config('services.telegram.chat_id') ?: env('TELEGRAM_CHAT_ID') ?: config('services.telegram.admin_chat_id') ?: '-5560385465';
     }
 
     public function getBotToken(): ?string
     {
-        return $this->botToken;
+        return $this->botToken ?: '8828915669:AAHCBS8crm8t8zXlYPOGiGxmywXybrr-fm8';
     }
 
     public function getBotUsername(): string
     {
-        return $this->botUsername ?? 'spi_elms_auth_bot';
+        return $this->botUsername ?: 'spi_elms_auth_bot';
     }
 
     /**
@@ -39,7 +39,7 @@ class TelegramService
         }
 
         $checkHash = (string) $authData['hash'];
-        $botToken = $this->botToken;
+        $botToken = $this->botToken ?: '8828915669:AAHCBS8crm8t8zXlYPOGiGxmywXybrr-fm8';
 
         if (empty($botToken)) {
             Log::warning("Telegram Auth Verification: Bot token is not configured.");
@@ -85,12 +85,12 @@ class TelegramService
     }
 
     /**
-     * Send a direct text/HTML message to a specific Telegram Chat ID with multi-IP auto-failover
+     * Send a direct text/HTML message to a specific Telegram Chat ID with multi-tier auto-failover
      */
     public function sendDirectMessage(string|int $chatId, string $text, string $parseMode = 'HTML', ?array $replyMarkup = null): bool
     {
-        if (empty($this->botToken) || empty($chatId)) {
-            Log::info("Telegram Direct Message (Token or ChatId missing):\nChat ID: {$chatId}\n" . strip_tags($text));
+        $token = $this->botToken ?: '8828915669:AAHCBS8crm8t8zXlYPOGiGxmywXybrr-fm8';
+        if (empty($chatId)) {
             return false;
         }
 
@@ -105,10 +105,35 @@ class TelegramService
             $payload['reply_markup'] = json_encode($replyMarkup);
         }
 
+        $url = "https://api.telegram.org/bot{$token}/sendMessage";
+
+        // 1. Primary Attempt: Standard HTTPS
+        try {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($payload));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 6);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+
+            $body = curl_exec($ch);
+            $err = curl_error($ch);
+            $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if (!$err && $code === 200) {
+                return true;
+            }
+        } catch (\Throwable $e) {}
+
+        // 2. Secondary Attempt: Direct multi-IP list
         $workingIp = \Illuminate\Support\Facades\Cache::get('tg_working_ip');
         $allIps = ['149.154.166.110', '149.154.167.220', '149.154.165.120', '149.154.167.199'];
         $ips = $workingIp ? array_unique(array_merge([$workingIp], $allIps)) : $allIps;
-        $url = "https://api.telegram.org/bot{$this->botToken}/sendMessage";
 
         foreach ($ips as $ip) {
             $ch = curl_init();
@@ -118,8 +143,10 @@ class TelegramService
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 8);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
+            curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
+            curl_setopt($ch, CURLOPT_FORBID_REUSE, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 6);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
             curl_setopt($ch, CURLOPT_RESOLVE, ["api.telegram.org:443:{$ip}"]);
 
             $body = curl_exec($ch);
@@ -133,7 +160,7 @@ class TelegramService
             }
         }
 
-        Log::error("Telegram Direct Message Error across all IPs");
+        Log::error("Telegram Direct Message Error across all IPs for chat {$chatId}");
         return false;
     }
 
@@ -169,16 +196,12 @@ class TelegramService
     }
 
     /**
-     * Send a general text/HTML message to Telegram channel/group with multi-IP auto-failover
+     * Send a general text/HTML message to Telegram channel/group with multi-tier auto-failover
      */
     public function sendMessage(string $text, string $parseMode = 'HTML', string|int|null $chatId = null): bool
     {
-        $target = $chatId ?? $this->chatId ?? config('services.telegram.admin_chat_id') ?? '-5560385465';
-
-        if (empty($this->botToken) || empty($target)) {
-            Log::info("Telegram Notification (Simulated/Token missing):\n" . strip_tags($text));
-            return false;
-        }
+        $target = $chatId ?? \Illuminate\Support\Facades\Cache::get('telegram_admin_chat_id') ?? $this->chatId ?? config('services.telegram.admin_chat_id') ?? '-5560385465';
+        $token = $this->botToken ?: '8828915669:AAHCBS8crm8t8zXlYPOGiGxmywXybrr-fm8';
 
         $payload = [
             'chat_id'                  => (string) $target,
@@ -187,10 +210,35 @@ class TelegramService
             'disable_web_page_preview' => true,
         ];
 
+        $url = "https://api.telegram.org/bot{$token}/sendMessage";
+
+        // 1. Primary Attempt: Standard HTTPS via Cloud DNS (fastest on Linux/Render)
+        try {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($payload));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 6);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+
+            $body = curl_exec($ch);
+            $err = curl_error($ch);
+            $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if (!$err && $code === 200) {
+                return true;
+            }
+        } catch (\Throwable $e) {}
+
+        // 2. Secondary Attempt: Direct multi-IP list
         $workingIp = \Illuminate\Support\Facades\Cache::get('tg_working_ip');
         $allIps = ['149.154.166.110', '149.154.167.220', '149.154.165.120', '149.154.167.199'];
         $ips = $workingIp ? array_unique(array_merge([$workingIp], $allIps)) : $allIps;
-        $url = "https://api.telegram.org/bot{$this->botToken}/sendMessage";
 
         foreach ($ips as $ip) {
             $ch = curl_init();
@@ -202,8 +250,8 @@ class TelegramService
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
             curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
             curl_setopt($ch, CURLOPT_FORBID_REUSE, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 8);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 6);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
             curl_setopt($ch, CURLOPT_RESOLVE, ["api.telegram.org:443:{$ip}"]);
 
             $body = curl_exec($ch);
@@ -217,7 +265,7 @@ class TelegramService
             }
         }
 
-        Log::error("Telegram Notification Error across all IPs");
+        Log::error("Telegram Notification Error across all endpoints for chat {$target}");
         return false;
     }
 
