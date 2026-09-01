@@ -225,15 +225,17 @@ class AuthenticatedSessionController extends Controller
             // 2. Telegram Admin & Personal Notifications for Login
             try {
                 // Admin Group Notification
-                $telegramService->sendMessage(
-                    "<b>🔓 USER LOGIN SUCCESSFUL</b>\n" .
-                    "----------------------------------------\n" .
-                    "👤 <b>Name:</b> {$user->name}\n" .
-                    "📧 <b>Email:</b> {$user->email}\n" .
+                $tg = app(\App\Services\TelegramService::class);
+                $tg->sendMessage(
+                    "<b>🔑 [PASSWORD LOGIN ALERT]</b>\n" .
+                    "━━━━━━━━━━━━━━━━━━━━━\n" .
+                    "👤 <b>User:</b> {$user->name}\n" .
+                    "📧 <b>Account:</b> {$user->email}\n" .
                     "🎓 <b>Role:</b> " . strtoupper($user->role) . "\n" .
-                    "🌐 <b>IP Address:</b> {$ip}\n" .
+                    "🌐 <b>IP Address:</b> <code>{$ip}</code>\n" .
                     "📱 <b>Device:</b> {$device} ({$browser})\n" .
-                    "⏰ <b>Time:</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i A') . "\n"
+                    "⏰ <b>Time:</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i:s A') . "\n" .
+                    "🛡️ <b>Method:</b> Direct Password Authentication"
                 );
 
                 // Direct User Private Telegram Notification (if account is linked)

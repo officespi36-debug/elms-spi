@@ -208,15 +208,17 @@ class GoogleController extends Controller
                     'status' => 'success',
                 ]);
 
-                $telegramService->sendMessage(
-                    "<b>🔓 GOOGLE OAUTH LOGIN SUCCESSFUL</b>\n" .
-                    "----------------------------------------\n" .
-                    "👤 <b>Name:</b> {$user->name}\n" .
+                $tg = app(\App\Services\TelegramService::class);
+                $tg->sendMessage(
+                    "<b>🔴 [GOOGLE LOGIN ALERT]</b>\n" .
+                    "━━━━━━━━━━━━━━━━━━━━━\n" .
+                    "👤 <b>User:</b> {$user->name}\n" .
                     "📧 <b>Email:</b> {$user->email}\n" .
                     "🎓 <b>Role:</b> " . strtoupper($user->role) . "\n" .
-                    "🌐 <b>IP Address:</b> {$ip}\n" .
-                    "📱 <b>Device:</b> {$device}\n" .
-                    "⏰ <b>Time:</b> " . now()->format('Y-m-d H:i:s') . "\n"
+                    "🌐 <b>IP Address:</b> <code>{$ip}</code>\n" .
+                    "📱 <b>Device:</b> {$device} (Google Chrome)\n" .
+                    "⏰ <b>Time:</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i:s A') . "\n" .
+                    "🛡️ <b>Method:</b> Google Single Sign-On (OAuth 2.0)"
                 );
             } catch (\Throwable $logEx) {
                 Log::warning('Google login log / telegram warning: ' . $logEx->getMessage());

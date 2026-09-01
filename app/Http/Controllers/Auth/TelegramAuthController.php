@@ -233,15 +233,17 @@ class TelegramAuthController extends Controller
 
         // Security notification via Telegram
         try {
-            $telegramService->sendMessage(
-                "<b>🔓 TELEGRAM OAUTH LOGIN SUCCESSFUL</b>\n" .
-                "----------------------------------------\n" .
+            $tg = app(\App\Services\TelegramService::class);
+            $tg->sendMessage(
+                "<b>🔵 [TELEGRAM LOGIN ALERT]</b>\n" .
+                "━━━━━━━━━━━━━━━━━━━━━\n" .
                 "👤 <b>User:</b> {$user->name}\n" .
-                "✈️ <b>Telegram:</b> @" . ($telegramUsername ?? $telegramId) . "\n" .
+                "✈️ <b>Telegram:</b> @" . ($telegramUsername ?? $telegramId) . " (<code>{$telegramId}</code>)\n" .
                 "🎓 <b>Role:</b> " . strtoupper($user->role) . "\n" .
-                "🌐 <b>IP Address:</b> {$ip}\n" .
+                "🌐 <b>IP Address:</b> <code>{$ip}</code>\n" .
                 "📱 <b>Device:</b> {$device} ({$browser})\n" .
-                "⏰ <b>Time:</b> " . now()->format('Y-m-d H:i:s') . "\n"
+                "⏰ <b>Time:</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i:s A') . "\n" .
+                "🛡️ <b>Method:</b> Telegram OAuth Widget Login"
             );
         } catch (\Throwable $e) {
             Log::warning('Telegram login notify failed: ' . $e->getMessage());
