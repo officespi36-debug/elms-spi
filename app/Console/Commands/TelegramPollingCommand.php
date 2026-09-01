@@ -62,7 +62,7 @@ class TelegramPollingCommand extends Command
         $params = [
             'offset'          => $offset,
             'timeout'         => 15,
-            'allowed_updates' => json_encode(['message', 'callback_query']),
+            'allowed_updates' => json_encode(['message', 'callback_query', 'my_chat_member', 'chat_member', 'channel_post']),
         ];
         $url = "https://api.telegram.org/bot{$botToken}/getUpdates?" . http_build_query($params);
 
@@ -97,6 +97,34 @@ class TelegramPollingCommand extends Command
     private function handleBotCommand(array $update): void
     {
         $botToken = config('services.telegram.bot_token');
+
+        // Handle when Bot is added to group or promoted to Admin
+        $myChatMember = $update['my_chat_member'] ?? null;
+        if ($myChatMember && isset($myChatMember['chat']['id'])) {
+            $groupChatId = $myChatMember['chat']['id'];
+            $groupTitle = $myChatMember['chat']['title'] ?? 'SPI LMS Security Alerts';
+            $status = $myChatMember['new_chat_member']['status'] ?? '';
+
+            if (in_array($status, ['administrator', 'member'])) {
+                Cache::forever('telegram_admin_chat_id', (string) $groupChatId);
+                Cache::forever('telegram_chat_id', (string) $groupChatId);
+                $this->safeLog('info', "🎉 Bot promoted/added to Group: '{$groupTitle}' (Chat ID: {$groupChatId})");
+
+                $botUsername = config('services.telegram.bot_username', 'spi_elms_auth_bot');
+                $welcomeGroupText = "🛡️ <b>SPI LMS — Security Alerts Channel Activated!</b>\n" .
+                                   "━━━━━━━━━━━━━━━━━━━━━\n" .
+                                   "✅ <b>គ្រុបនេះត្រូវបានភ្ជាប់ជាផ្លូវការសម្រាប់ទទួល Security Alerts & Real-time Login Notifications!</b>\n\n" .
+                                   "• 🏛️ <b>វិទ្យាស្ថាន៖</b> សន្តប៉ូល (Saint Paul Institute)\n" .
+                                   "• 👥 <b>គ្រុប៖</b> {$groupTitle}\n" .
+                                   "• 🆔 <b>Group Chat ID:</b> <code>{$groupChatId}</code>\n" .
+                                   "• 🤖 <b>Bot៖</b> @{$botUsername} (Admin 🟢)\n" .
+                                   "• 🛡️ <b>ស្ថានភាព៖</b> កំពុងការពារ និងផ្ញើសារ Real-time ២៤/៧\n\n" .
+                                   "✨ <i>រាល់សកម្មភាព Login (Google, Telegram, Email, Phone, Password) និងការវាយប្រហារ នឹងត្រូវ Alert មកកាន់ទីនេះភ្លាមៗ!</i>";
+
+                TelegramSecurityPipeline::sendMessage($groupChatId, $welcomeGroupText, 'HTML');
+            }
+            return;
+        }
 
         $supportText = "💬 <b>ផ្នែកជំនួយបច្ចេកទេស SPI AI-ELMS</b>\n" .
                        "🏛️ <b>វិទ្យាស្ថាន សន្តប៉ូល (Saint Paul Institute)</b>\n" .
