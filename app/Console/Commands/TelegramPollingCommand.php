@@ -34,10 +34,16 @@ class TelegramPollingCommand extends Command
             try {
                 // ជាន់ទី ១៖ Stream Offset & Safe Long-Polling
                 $response = Http::withoutVerifying()
-                    ->timeout(35)
+                    ->timeout(30)
+                    ->withOptions([
+                        'connect_timeout' => 10,
+                        'curl' => [
+                            CURLOPT_IPRESOLVE => defined('CURL_IPRESOLVE_V4') ? CURL_IPRESOLVE_V4 : 1,
+                        ]
+                    ])
                     ->get("https://api.telegram.org/bot{$botToken}/getUpdates", [
                         'offset'          => $offset,
-                        'timeout'         => 30,
+                        'timeout'         => 15,
                         'allowed_updates' => json_encode(['message', 'callback_query']),
                     ]);
 
@@ -159,15 +165,25 @@ class TelegramPollingCommand extends Command
 
         $chatId = $message['chat']['id'];
         $rawText = trim($message['text'] ?? '');
-        $text = strtolower($rawText);
+        $text = mb_strtolower($rawText, 'UTF-8');
         $cleanCmd = preg_replace('/^(\/\w+)@\w+/i', '$1', $text);
         $senderName = $message['from']['first_name'] ?? 'Student';
         $telegramUsername = $message['from']['username'] ?? null;
 
+        // Initialize $linkedUser for this chat (so it is never undefined)
+        $linkedUser = User::where('telegram_id', (string) $chatId)
+            ->orWhere('telegram_chat_id', (string) $chatId)
+            ->orWhere(function ($q) use ($telegramUsername) {
+                if (!empty($telegramUsername)) {
+                    $q->where('telegram_username', $telegramUsername);
+                }
+            })
+            ->first();
+
         // Handle native contact sharing
         if (isset($message['contact']['phone_number'])) {
             $rawText = trim($message['contact']['phone_number']);
-            $text = strtolower($rawText);
+            $text = mb_strtolower($rawText, 'UTF-8');
             $cleanCmd = $text;
         }
 
@@ -211,8 +227,6 @@ class TelegramPollingCommand extends Command
             } else {
                 $deepLinkParam = $rawText;
             }
-
-            $linkedUser = null;
 
             if (!empty($deepLinkParam)) {
                 $cleanParam = trim($deepLinkParam);
@@ -365,15 +379,15 @@ class TelegramPollingCommand extends Command
             TelegramSecurityPipeline::sendMessage($chatId, $welcomeText, 'HTML', $replyMarkup);
             TelegramSecurityPipeline::sendMessage($chatId, "⚡ <b>រុករកទំព័រសំខាន់ៗ (Quick Links)៖</b>", 'HTML', $inlineKeyboard);
             $this->safeLog('info', "Handled start/link for {$senderName} (Chat: {$chatId})");
-        } elseif (str_starts_with($cleanCmd, '/courses') || str_contains($cleanCmd, 'វគ្គសិក្សា') || $cleanCmd === 'courses') {
+        } elseif (str_starts_with($cleanCmd, '/courses') || str_contains($cleanCmd, 'វគ្គសិក្សា') || str_contains($cleanCmd, 'វត្តសិក្សា') || $cleanCmd === 'courses') {
             $this->handleCoursesCommand($chatId, $linkedUser, $botToken);
         } elseif (str_starts_with($cleanCmd, '/deadlines') || str_contains($cleanCmd, 'កាលបរិច្ឆេទ') || $cleanCmd === 'deadlines' || $cleanCmd === 'homework') {
             $this->handleDeadlinesCommand($chatId, $botToken);
         } elseif (str_starts_with($cleanCmd, '/announcements') || str_contains($cleanCmd, 'ដំណឹង') || $cleanCmd === 'announcements') {
             $this->handleAnnouncementsCommand($chatId, $botToken);
-        } elseif (str_starts_with($cleanCmd, '/me') || str_starts_with($cleanCmd, '/profile') || str_starts_with($cleanCmd, '/id') || str_contains($cleanCmd, 'គណនី')) {
+        } elseif (str_starts_with($cleanCmd, '/me') || str_starts_with($cleanCmd, '/profile') || str_starts_with($cleanCmd, '/id') || str_contains($cleanCmd, 'គណនី') || $cleanCmd === 'profile') {
             $this->handleProfileCommand($chatId, $linkedUser, $botToken);
-        } elseif (str_starts_with($cleanCmd, '/support') || str_starts_with($cleanCmd, '/help') || $cleanCmd === 'support' || $cleanCmd === 'help') {
+        } elseif (str_starts_with($cleanCmd, '/support') || str_starts_with($cleanCmd, '/help') || str_contains($cleanCmd, 'ជំនួយ') || $cleanCmd === 'support' || $cleanCmd === 'help') {
             TelegramSecurityPipeline::sendMessage($chatId, $supportText, 'HTML', $supportKeyboard);
         } elseif (str_starts_with($cleanCmd, '/unlink')) {
             if ($linkedUser) {
@@ -428,56 +442,71 @@ class TelegramPollingCommand extends Command
 
     private function handleCoursesCommand(int|string $chatId, ?User $linkedUser, string $botToken): void
     {
-        if ($linkedUser) {
-            if ($linkedUser->role === 'teacher') {
-                $courses = Course::where('teacher_id', $linkedUser->id)->latest()->take(5)->get();
-                if ($courses->isNotEmpty()) {
-                    $responseText = "📚 <b>មុខវិជ្ជាដែលលោកគ្រូ/អ្នកគ្រូបង្រៀន (My Teaching Courses)</b>\n" .
-                                   "━━━━━━━━━━━━━━━━━━━━━\n\n";
-                    foreach ($courses as $idx => $c) {
-                        $num = $idx + 1;
-                        $responseText .= "{$num}. 📖 <b>{$c->title}</b>\n" .
-                                         "   • កម្រិត៖ <code>" . ($c->level ?? 'General') . "</code>\n" .
-                                         "   • ស្ថានភាព៖ <b>" . strtoupper($c->status ?? 'ACTIVE') . "</b>\n\n";
+        try {
+            if (!$linkedUser) {
+                $linkedUser = User::where('telegram_id', (string) $chatId)
+                    ->orWhere('telegram_chat_id', (string) $chatId)
+                    ->first();
+            }
+
+            if ($linkedUser) {
+                if ($linkedUser->role === 'teacher') {
+                    $courses = Course::where('teacher_id', $linkedUser->id)->latest()->take(5)->get();
+                    if ($courses->isNotEmpty()) {
+                        $responseText = "📚 <b>មុខវិជ្ជាដែលលោកគ្រូ/អ្នកគ្រូបង្រៀន (My Teaching Courses)</b>\n" .
+                                       "━━━━━━━━━━━━━━━━━━━━━\n\n";
+                        foreach ($courses as $idx => $c) {
+                            $num = $idx + 1;
+                            $responseText .= "{$num}. 📖 <b>{$c->title}</b>\n" .
+                                             "   • កម្រិត៖ <code>" . ($c->level ?? 'General') . "</code>\n" .
+                                             "   • ស្ថានភាព៖ <b>" . strtoupper($c->status ?? 'ACTIVE') . "</b>\n\n";
+                        }
+                    } else {
+                        $responseText = "📚 <b>មុខវិជ្ជាបង្រៀន៖</b> លោកគ្រូ/អ្នកគ្រូមិនទាន់មានមុខវិជ្ជាបង្រៀននៅក្នុងប្រព័ន្ធនៅឡើយទេ។";
                     }
                 } else {
-                    $responseText = "📚 <b>មុខវិជ្ជាបង្រៀន៖</b> លោកគ្រូ/អ្នកគ្រូមិនទាន់មានមុខវិជ្ជាបង្រៀននៅក្នុងប្រព័ន្ធនៅឡើយទេ។";
+                    $enrollments = Enrollment::where('student_id', $linkedUser->id)
+                        ->with('course')
+                        ->latest()
+                        ->take(5)
+                        ->get();
+                    if ($enrollments->isNotEmpty()) {
+                        $responseText = "📚 <b>វគ្គសិក្សារបស់អ្នក (Enrolled Courses)</b>\n" .
+                                       "━━━━━━━━━━━━━━━━━━━━━\n\n";
+                        foreach ($enrollments as $idx => $e) {
+                            $c = $e->course;
+                            $num = $idx + 1;
+                            $courseTitle = $c ? $c->title : 'General Subject';
+                            $status = $e->status ?? 'active';
+                            $responseText .= "{$num}. 📖 <b>{$courseTitle}</b>\n" .
+                                             "   • ស្ថានភាព៖ <b>" . strtoupper($status) . "</b>\n\n";
+                        }
+                    } else {
+                        $responseText = "📚 <b>វគ្គសិក្សារបស់អ្នក៖</b> អ្នកមិនទាន់បានចុះឈ្មោះចូលរៀនមុខវិជ្ជាណាមួយនៅឡើយទេ។";
+                    }
                 }
             } else {
-                $enrollments = Enrollment::where('student_id', $linkedUser->id)
-                    ->with('course')
-                    ->latest()
-                    ->take(5)
-                    ->get();
-                if ($enrollments->isNotEmpty()) {
-                    $responseText = "📚 <b>វគ្គសិក្សារបស់អ្នក (Enrolled Courses)</b>\n" .
-                                   "━━━━━━━━━━━━━━━━━━━━━\n\n";
-                    foreach ($enrollments as $idx => $e) {
-                        $c = $e->course;
-                        $num = $idx + 1;
-                        $courseTitle = $c ? $c->title : 'General Subject';
-                        $status = $e->status ?? 'active';
-                        $responseText .= "{$num}. 📖 <b>{$courseTitle}</b>\n" .
-                                         "   • ស្ថានភាព៖ <b>" . strtoupper($status) . "</b>\n\n";
-                    }
-                } else {
-                    $responseText = "📚 <b>វគ្គសិក្សារបស់អ្នក៖</b> អ្នកមិនទាន់បានចុះឈ្មោះចូលរៀនមុខវិជ្ជាណាមួយនៅឡើយទេ។";
-                }
+                $responseText = "⚠️ <b>គណនីរបស់អ្នកមិនទាន់បានភ្ជាប់ជាមួយ Telegram ឡើយ</b>\n\n" .
+                                "👉 សូមចុច <b>«📱 ចែករំលែកលេខទូរស័ព្ទ»</b> ឬ វាយ<b>លេខទូរស័ព្ទ</b> ឬ <b>Email</b> របស់អ្នកផ្ញើមកកាន់ Bot នេះដើម្បីភ្ជាប់គណនី។";
             }
-        } else {
-            $responseText = "⚠️ <b>គណនីរបស់អ្នកមិនទាន់បានភ្ជាប់ជាមួយ Telegram ឡើយ</b>\n\n" .
-                            "👉 សូមវាយ<b>លេខទូរស័ព្ទ</b> ឬ <b>Email</b> របស់អ្នកផ្ញើមកកាន់ Bot នេះដើម្បីភ្ជាប់គណនី។";
-        }
 
-        $inlineKeyboard = [
-            'inline_keyboard' => [
-                [
-                    ['text' => '🚀 បើក E-LMS រៀនឥឡូវនេះ', 'web_app' => ['url' => 'https://spilms.tech/student/dashboard']]
+            $inlineKeyboard = [
+                'inline_keyboard' => [
+                    [
+                        ['text' => '🚀 បើក E-LMS រៀនឥឡូវនេះ', 'web_app' => ['url' => 'https://spilms.tech/student/dashboard']]
+                    ]
                 ]
-            ]
-        ];
+            ];
 
-        TelegramSecurityPipeline::sendMessage($chatId, $responseText, 'HTML', $inlineKeyboard);
+            TelegramSecurityPipeline::sendMessage($chatId, $responseText, 'HTML', $inlineKeyboard);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("handleCoursesCommand error: " . $e->getMessage());
+            TelegramSecurityPipeline::sendMessage($chatId, "📚 <b>វគ្គសិក្សា (SPI E-LMS)</b>\n\nសូមចូលទៅកាន់ Dashboard របស់អ្នកដើម្បីពិនិត្យមើលវគ្គសិក្សា៖", 'HTML', [
+                'inline_keyboard' => [
+                    [['text' => '🌐 បើក E-LMS Dashboard', 'url' => 'https://spilms.tech/student/dashboard']]
+                ]
+            ]);
+        }
     }
 
     private function handleDeadlinesCommand(int|string $chatId, string $botToken): void
@@ -548,41 +577,56 @@ class TelegramPollingCommand extends Command
 
     private function handleProfileCommand(int|string $chatId, ?User $linkedUser, string $botToken): void
     {
-        if ($linkedUser) {
-            $majorName = $linkedUser->major ? $linkedUser->major->name : 'General Studies';
-            $deptName = $linkedUser->major && $linkedUser->major->department ? $linkedUser->major->department->name : 'Faculty Department';
-            $roleName = $linkedUser->role === 'teacher' ? '👨‍🏫 សាស្ត្រាចារ្យ (Teacher)' : ($linkedUser->role === 'admin' ? '🛡️ Administrator' : '🎓 និស្សិត (Student)');
-            $statusEmoji = $linkedUser->status === 'active' ? '🟢 សកម្ម (Active)' : '🟡 ' . ucfirst($linkedUser->status ?? 'Active');
-
-            $responseText = "🏛️ <b>វិទ្យាស្ថាន សន្តប៉ូល (Saint Paul Institute)</b>\n" .
-                            "🪪 <b>កាតព័ត៌មានគណនីឌីជីថល (Digital Academic ID)</b>\n" .
-                            "━━━━━━━━━━━━━━━━━━━━━\n\n" .
-                            "👤 <b>ឈ្មោះ (EN)៖</b> {$linkedUser->name}\n";
-            if (!empty($linkedUser->name_kh)) {
-                $responseText .= "🇰🇭 <b>ឈ្មោះ (KH)៖</b> {$linkedUser->name_kh}\n";
+        try {
+            if (!$linkedUser) {
+                $linkedUser = User::where('telegram_id', (string) $chatId)
+                    ->orWhere('telegram_chat_id', (string) $chatId)
+                    ->first();
             }
-            $responseText .= "🆔 <b>អត្តលេខ៖</b> <code>" . ($linkedUser->student_code ?? 'ID-' . $linkedUser->id) . "</code>\n" .
-                             "📧 <b>Email៖</b> {$linkedUser->email}\n" .
-                             "📱 <b>Phone៖</b> " . ($linkedUser->phone ?? 'N/A') . "\n" .
-                             "📚 <b>ជំនាញ៖</b> {$majorName}\n" .
-                             "🏢 <b>ដេប៉ាតឺម៉ង់៖</b> {$deptName}\n" .
-                             "🔰 <b>តួនាទី៖</b> {$roleName}\n" .
-                             "⚡ <b>ស្ថានភាព៖</b> {$statusEmoji}\n\n" .
-                             "🌐 <i>ចុចប៊ូតុងខាងក្រោមដើម្បីចូលមើល Profile ពេញលេញ៖</i>";
-        } else {
-            $responseText = "⚠️ <b>គណនីរបស់អ្នកមិនទាន់បានភ្ជាប់ឡើយ</b>\n\n" .
-                            "👉 សូមផ្ញើ<b>លេខទូរស័ព្ទ</b> ឬ <b>Email</b> របស់អ្នកមកទីនេះ ដើម្បីឱ្យ Bot ស្គាល់គណនីរបស់អ្នក។";
-        }
 
-        $inlineKeyboard = [
-            'inline_keyboard' => [
-                [
-                    ['text' => '👤 បើកទំព័រ Profile', 'web_app' => ['url' => 'https://spilms.tech/profile']]
+            if ($linkedUser) {
+                $majorName = $linkedUser->major ? $linkedUser->major->name : 'General Studies';
+                $deptName = ($linkedUser->major && $linkedUser->major->department) ? $linkedUser->major->department->name : 'Faculty Department';
+                $roleName = $linkedUser->role === 'teacher' ? '👨‍🏫 សាស្ត្រាចារ្យ (Teacher)' : ($linkedUser->role === 'admin' ? '🛡️ Administrator' : '🎓 និស្សិត (Student)');
+                $statusEmoji = $linkedUser->status === 'active' ? '🟢 សកម្ម (Active)' : '🟡 ' . ucfirst($linkedUser->status ?? 'Active');
+
+                $responseText = "🏛️ <b>វិទ្យាស្ថាន សន្តប៉ូល (Saint Paul Institute)</b>\n" .
+                                "🪪 <b>កាតព័ត៌មានគណនីឌីជីថល (Digital Academic ID)</b>\n" .
+                                "━━━━━━━━━━━━━━━━━━━━━\n\n" .
+                                "👤 <b>ឈ្មោះ (EN)៖</b> {$linkedUser->name}\n";
+                if (!empty($linkedUser->name_kh)) {
+                    $responseText .= "🇰🇭 <b>ឈ្មោះ (KH)៖</b> {$linkedUser->name_kh}\n";
+                }
+                $responseText .= "🆔 <b>អត្តលេខ៖</b> <code>" . ($linkedUser->student_code ?? 'ID-' . $linkedUser->id) . "</code>\n" .
+                                 "📧 <b>Email៖</b> {$linkedUser->email}\n" .
+                                 "📱 <b>Phone៖</b> " . ($linkedUser->phone ?? 'N/A') . "\n" .
+                                 "📚 <b>ជំនាញ៖</b> {$majorName}\n" .
+                                 "🏢 <b>ដេប៉ាតឺម៉ង់៖</b> {$deptName}\n" .
+                                 "🔰 <b>តួនាទី៖</b> {$roleName}\n" .
+                                 "⚡ <b>ស្ថានភាព៖</b> {$statusEmoji}\n\n" .
+                                 "🌐 <i>ចុចប៊ូតុងខាងក្រោមដើម្បីចូលមើល Profile ពេញលេញ៖</i>";
+            } else {
+                $responseText = "⚠️ <b>គណនីរបស់អ្នកមិនទាន់បានភ្ជាប់ឡើយ</b>\n\n" .
+                                "👉 សូមចុច <b>«📱 ចែករំលែកលេខទូរស័ព្ទ»</b> ខាងក្រោម ឬ វាយ<b>លេខទូរស័ព្ទ</b> ឬ <b>Email</b> របស់អ្នកមកទីនេះ ដើម្បីឱ្យ Bot ស្គាល់គណនីរបស់អ្នក។";
+            }
+
+            $inlineKeyboard = [
+                'inline_keyboard' => [
+                    [
+                        ['text' => '👤 បើកទំព័រ Profile', 'web_app' => ['url' => 'https://spilms.tech/profile']]
+                    ]
                 ]
-            ]
-        ];
+            ];
 
-        TelegramSecurityPipeline::sendMessage($chatId, $responseText, 'HTML', $inlineKeyboard);
+            TelegramSecurityPipeline::sendMessage($chatId, $responseText, 'HTML', $inlineKeyboard);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("handleProfileCommand error: " . $e->getMessage());
+            TelegramSecurityPipeline::sendMessage($chatId, "👤 <b>ព័ត៌មានគណនី (SPI E-LMS Profile)</b>\n\nសូមចូលទៅកាន់ Profile របស់អ្នកនៅលើប្រព័ន្ធ៖", 'HTML', [
+                'inline_keyboard' => [
+                    [['text' => '👤 បើកទំព័រ Profile', 'url' => 'https://spilms.tech/profile']]
+                ]
+            ]);
+        }
     }
 
     private function safeLog(string $level, string $message): void
