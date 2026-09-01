@@ -66,32 +66,32 @@ class TelegramPollingCommand extends Command
         ];
         $url = "https://api.telegram.org/bot{$botToken}/getUpdates?" . http_build_query($params);
 
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 25);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
-        curl_setopt($ch, CURLOPT_RESOLVE, ["api.telegram.org:443:149.154.166.110"]);
+        $ips = ['149.154.166.110', '149.154.167.220', '149.154.165.120', '149.154.167.199'];
 
-        $raw = curl_exec($ch);
-        $err = curl_error($ch);
-        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        foreach ($ips as $ip) {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 25);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4);
+            curl_setopt($ch, CURLOPT_RESOLVE, ["api.telegram.org:443:{$ip}"]);
 
-        if ($err) {
-            $this->error("cURL error: {$err}");
-            return null;
+            $raw = curl_exec($ch);
+            $err = curl_error($ch);
+            $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if (!$err && $code === 200) {
+                $json = json_decode($raw, true);
+                if ($json && !empty($json['ok'])) {
+                    return $json['result'] ?? [];
+                }
+            }
         }
 
-        if ($code !== 200) {
-            $this->error("Telegram API HTTP {$code}: {$raw}");
-            return null;
-        }
-
-        $json = json_decode($raw, true);
-        return ($json && !empty($json['ok'])) ? ($json['result'] ?? []) : null;
+        return null;
     }
 
     private function handleBotCommand(array $update): void
