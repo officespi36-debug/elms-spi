@@ -34,24 +34,9 @@ class TelegramPollingCommand extends Command
 
         while (true) {
             try {
-                // ជាន់ទី ១៖ Stream Offset & Safe Long-Polling
-                $response = Http::withoutVerifying()
-                    ->timeout(45)
-                    ->withOptions([
-                        'connect_timeout' => 25,
-                        'curl' => [
-                            CURLOPT_IPRESOLVE => defined('CURL_IPRESOLVE_V4') ? CURL_IPRESOLVE_V4 : 1,
-                        ]
-                    ])
-                    ->get("https://api.telegram.org/bot{$botToken}/getUpdates", [
-                        'offset'          => $offset,
-                        'timeout'         => 20,
-                        'allowed_updates' => json_encode(['message', 'callback_query']),
-                    ]);
+                $updates = $this->fetchUpdates($botToken, $offset);
 
-                if ($response->successful()) {
-                    $updates = $response->json('result', []);
-
+                if ($updates !== null) {
                     foreach ($updates as $update) {
                         $offset = $update['update_id'] + 1;
 
@@ -63,14 +48,50 @@ class TelegramPollingCommand extends Command
                         }
                     }
                 } else {
-                    $this->error('Telegram API Response Error: ' . $response->body());
                     sleep(2);
                 }
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 $this->error('Error: ' . $e->getMessage());
                 sleep(2);
             }
         }
+    }
+
+    private function fetchUpdates(string $botToken, int $offset): ?array
+    {
+        $params = [
+            'offset'          => $offset,
+            'timeout'         => 15,
+            'allowed_updates' => json_encode(['message', 'callback_query']),
+        ];
+        $url = "https://api.telegram.org/bot{$botToken}/getUpdates?" . http_build_query($params);
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 25);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_RESOLVE, ["api.telegram.org:443:149.154.166.110"]);
+
+        $raw = curl_exec($ch);
+        $err = curl_error($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($err) {
+            $this->error("cURL error: {$err}");
+            return null;
+        }
+
+        if ($code !== 200) {
+            $this->error("Telegram API HTTP {$code}: {$raw}");
+            return null;
+        }
+
+        $json = json_decode($raw, true);
+        return ($json && !empty($json['ok'])) ? ($json['result'] ?? []) : null;
     }
 
     private function handleBotCommand(array $update): void
@@ -105,9 +126,15 @@ class TelegramPollingCommand extends Command
             $cbId = $callbackQuery['id'] ?? null;
 
             if ($cbId) {
-                Http::withoutVerifying()->post("https://api.telegram.org/bot{$botToken}/answerCallbackQuery", [
-                    'callback_query_id' => $cbId,
-                ]);
+                Http::withoutVerifying()
+                    ->withOptions([
+                        'curl' => [
+                            CURLOPT_RESOLVE => ["api.telegram.org:443:149.154.166.110"],
+                        ]
+                    ])
+                    ->post("https://api.telegram.org/bot{$botToken}/answerCallbackQuery", [
+                        'callback_query_id' => $cbId,
+                    ]);
             }
 
             if ($cbData === 'support') {
@@ -121,11 +148,17 @@ class TelegramPollingCommand extends Command
                     app(\App\Services\TelegramService::class)->banChatMember($targetUserId, $adminChatId);
 
                     if ($cbId) {
-                        Http::withoutVerifying()->post("https://api.telegram.org/bot{$botToken}/answerCallbackQuery", [
-                            'callback_query_id' => $cbId,
-                            'text' => "⛔ បាន Block និង Ban User ID {$targetUserId} រួចរាល់!",
-                            'show_alert' => true,
-                        ]);
+                        Http::withoutVerifying()
+                            ->withOptions([
+                                'curl' => [
+                                    CURLOPT_RESOLVE => ["api.telegram.org:443:149.154.166.110"],
+                                ]
+                            ])
+                            ->post("https://api.telegram.org/bot{$botToken}/answerCallbackQuery", [
+                                'callback_query_id' => $cbId,
+                                'text' => "⛔ បាន Block និង Ban User ID {$targetUserId} រួចរាល់!",
+                                'show_alert' => true,
+                            ]);
                     }
 
                     TelegramSecurityPipeline::sendMessage(
@@ -141,11 +174,17 @@ class TelegramPollingCommand extends Command
                     Cache::forever("blacklisted_ip_{$targetIp}", true);
 
                     if ($cbId) {
-                        Http::withoutVerifying()->post("https://api.telegram.org/bot{$botToken}/answerCallbackQuery", [
-                            'callback_query_id' => $cbId,
-                            'text' => "🛡️ បាន Blacklist IP {$targetIp} រួចរាល់!",
-                            'show_alert' => true,
-                        ]);
+                        Http::withoutVerifying()
+                            ->withOptions([
+                                'curl' => [
+                                    CURLOPT_RESOLVE => ["api.telegram.org:443:149.154.166.110"],
+                                ]
+                            ])
+                            ->post("https://api.telegram.org/bot{$botToken}/answerCallbackQuery", [
+                                'callback_query_id' => $cbId,
+                                'text' => "🛡️ បាន Blacklist IP {$targetIp} រួចរាល់!",
+                                'show_alert' => true,
+                            ]);
                     }
 
                     TelegramSecurityPipeline::sendMessage(

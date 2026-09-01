@@ -333,9 +333,24 @@ class TelegramSecurityPipeline
         }
 
         try {
-            Http::withoutVerifying()
-                ->timeout(15)
-                ->post("https://api.telegram.org/bot{$token}/sendMessage", $payload);
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, "https://api.telegram.org/bot{$token}/sendMessage");
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($payload));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 8);
+            curl_setopt($ch, CURLOPT_RESOLVE, ["api.telegram.org:443:149.154.166.110"]);
+
+            $result = curl_exec($ch);
+            $err = curl_error($ch);
+            curl_close($ch);
+
+            if ($err) {
+                Log::error("Telegram sendMessage cURL error: " . $err);
+            }
         } catch (\Throwable $e) {
             Log::error("Telegram sendMessage exception: " . $e->getMessage());
         }

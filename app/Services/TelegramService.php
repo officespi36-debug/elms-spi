@@ -107,10 +107,24 @@ class TelegramService
                 $payload['reply_markup'] = json_encode($replyMarkup);
             }
 
-            $response = Http::withoutVerifying()->timeout(2)->post($url, $payload);
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($payload));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 8);
+            curl_setopt($ch, CURLOPT_RESOLVE, ["api.telegram.org:443:149.154.166.110"]);
 
-            if ($response->failed()) {
-                Log::error("Telegram API Direct Message Error: " . $response->body());
+            $body = curl_exec($ch);
+            $err = curl_error($ch);
+            $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($err || $code >= 400) {
+                Log::error("Telegram API Direct Message Error: {$err} | HTTP {$code} | Body: {$body}");
                 return false;
             }
 
