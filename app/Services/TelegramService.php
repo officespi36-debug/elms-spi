@@ -200,6 +200,8 @@ class TelegramService
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
+            curl_setopt($ch, CURLOPT_FORBID_REUSE, true);
             curl_setopt($ch, CURLOPT_TIMEOUT, 8);
             curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
             curl_setopt($ch, CURLOPT_RESOLVE, ["api.telegram.org:443:{$ip}"]);
