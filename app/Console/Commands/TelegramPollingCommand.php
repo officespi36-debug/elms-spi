@@ -5,6 +5,8 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use App\Services\TelegramSecurityPipeline;
 use App\Models\User;
 use App\Models\Course;
@@ -34,16 +36,16 @@ class TelegramPollingCommand extends Command
             try {
                 // ជាន់ទី ១៖ Stream Offset & Safe Long-Polling
                 $response = Http::withoutVerifying()
-                    ->timeout(30)
+                    ->timeout(45)
                     ->withOptions([
-                        'connect_timeout' => 10,
+                        'connect_timeout' => 25,
                         'curl' => [
                             CURLOPT_IPRESOLVE => defined('CURL_IPRESOLVE_V4') ? CURL_IPRESOLVE_V4 : 1,
                         ]
                     ])
                     ->get("https://api.telegram.org/bot{$botToken}/getUpdates", [
                         'offset'          => $offset,
-                        'timeout'         => 15,
+                        'timeout'         => 20,
                         'allowed_updates' => json_encode(['message', 'callback_query']),
                     ]);
 
@@ -113,7 +115,7 @@ class TelegramPollingCommand extends Command
             } elseif (str_starts_with($cbData, 'ban_user_')) {
                 $targetUserId = substr($cbData, 9);
                 if (!empty($targetUserId)) {
-                    \Illuminate\Support\Facades\Cache::forever("tg_banned_{$targetUserId}", true);
+                    Cache::forever("tg_banned_{$targetUserId}", true);
 
                     $adminChatId = config('services.telegram.admin_chat_id') ?? config('services.telegram.chat_id') ?? $chatId;
                     app(\App\Services\TelegramService::class)->banChatMember($targetUserId, $adminChatId);
@@ -136,7 +138,7 @@ class TelegramPollingCommand extends Command
             } elseif (str_starts_with($cbData, 'ban_ip_')) {
                 $targetIp = str_replace('-', '.', substr($cbData, 7));
                 if (!empty($targetIp)) {
-                    \Illuminate\Support\Facades\Cache::forever("blacklisted_ip_{$targetIp}", true);
+                    Cache::forever("blacklisted_ip_{$targetIp}", true);
 
                     if ($cbId) {
                         Http::withoutVerifying()->post("https://api.telegram.org/bot{$botToken}/answerCallbackQuery", [
@@ -500,7 +502,7 @@ class TelegramPollingCommand extends Command
 
             TelegramSecurityPipeline::sendMessage($chatId, $responseText, 'HTML', $inlineKeyboard);
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error("handleCoursesCommand error: " . $e->getMessage());
+            Log::error("handleCoursesCommand error: " . $e->getMessage());
             TelegramSecurityPipeline::sendMessage($chatId, "📚 <b>វគ្គសិក្សា (SPI E-LMS)</b>\n\nសូមចូលទៅកាន់ Dashboard របស់អ្នកដើម្បីពិនិត្យមើលវគ្គសិក្សា៖", 'HTML', [
                 'inline_keyboard' => [
                     [['text' => '🌐 បើក E-LMS Dashboard', 'url' => 'https://spilms.tech/student/dashboard']]
@@ -620,7 +622,7 @@ class TelegramPollingCommand extends Command
 
             TelegramSecurityPipeline::sendMessage($chatId, $responseText, 'HTML', $inlineKeyboard);
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error("handleProfileCommand error: " . $e->getMessage());
+            Log::error("handleProfileCommand error: " . $e->getMessage());
             TelegramSecurityPipeline::sendMessage($chatId, "👤 <b>ព័ត៌មានគណនី (SPI E-LMS Profile)</b>\n\nសូមចូលទៅកាន់ Profile របស់អ្នកនៅលើប្រព័ន្ធ៖", 'HTML', [
                 'inline_keyboard' => [
                     [['text' => '👤 បើកទំព័រ Profile', 'url' => 'https://spilms.tech/profile']]
@@ -637,7 +639,7 @@ class TelegramPollingCommand extends Command
             elseif ($level === 'error') $this->error($message);
             else $this->line($message);
         } else {
-            \Illuminate\Support\Facades\Log::info("TelegramPolling: {$message}");
+            Log::info("TelegramPolling: {$message}");
         }
     }
 }
