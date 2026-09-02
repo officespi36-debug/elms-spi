@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Services\EmergencyAlertService;
 
 class TelegramSecurityPipeline
 {
@@ -242,7 +243,9 @@ class TelegramSecurityPipeline
             file_put_contents(storage_path('logs/attacker_log.txt'), $txtRecord, FILE_APPEND | LOCK_EX);
 
             // 3. Multi-Channel Emergency Alarm (Voice Call, SMS, Push, and Auto-Defense Isolation)
-            \App\Services\EmergencyAlertService::triggerEmergencyPipeline($forensicEntry);
+            if (class_exists(EmergencyAlertService::class)) {
+                EmergencyAlertService::triggerEmergencyPipeline($forensicEntry);
+            }
         } catch (\Throwable $e) {
             Log::warning("Forensic Log write error: " . $e->getMessage());
         }

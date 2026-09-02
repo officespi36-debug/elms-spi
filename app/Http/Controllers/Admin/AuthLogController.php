@@ -9,6 +9,7 @@ use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Services\EmergencyAlertService;
 
 class AuthLogController extends Controller
 {
@@ -797,7 +798,7 @@ class AuthLogController extends Controller
         $phone = $request->input('phone') ?: Setting::get('emergency_phone', config('services.emergency.phone', '0964618507'));
         $msg = "This is a test emergency call from Saint Paul Institute Cyber Security Engine. All security channels are operational.";
         
-        $sent = \App\Services\EmergencyAlertService::triggerVoiceCall($phone, $msg);
+        $sent = EmergencyAlertService::triggerVoiceCall($phone, $msg);
         return redirect()->back()->with('success', "បានបញ្ជូនការសាកល្បង Call ទៅកាន់លេខទូរស័ព្ទ {$phone} រួចរាល់!");
     }
 
@@ -809,7 +810,7 @@ class AuthLogController extends Controller
         $phone = $request->input('phone') ?: Setting::get('emergency_phone', config('services.emergency.phone', '0964618507'));
         $msg = "🚨 [SPI E-LMS ALARM TEST] នេះជាសារតេស្តប្រព័ន្ធប្រកាសអាសន្នសន្តិសុខទូរស័ព្ទបន្ទាន់។ ប្រព័ន្ធដំណើរការបាន ១០០%!";
         
-        $sent = \App\Services\EmergencyAlertService::sendEmergencySms($phone, $msg);
+        $sent = EmergencyAlertService::sendEmergencySms($phone, $msg);
         return redirect()->back()->with('success', "បានបញ្ជូនសារ SMS តេស្តទៅកាន់លេខទូរស័ព្ទ {$phone} រួចរាល់!");
     }
 
