@@ -216,7 +216,7 @@ class GoogleController extends Controller
                     "📧 <b>Email:</b> {$user->email}\n" .
                     "🎓 <b>Role:</b> " . strtoupper($user->role) . "\n" .
                     "🌐 <b>IP Address:</b> <code>{$ip}</code>\n" .
-                    "📱 <b>Device:</b> {$device} (Google Chrome)\n" .
+                    "📱 <b>Device:</b> {$device} (Chrome)\n" .
                     "⏰ <b>Time:</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i:s A') . "\n" .
                     "🛡️ <b>Method:</b> Google Single Sign-On (OAuth 2.0)"
                 );

@@ -117,8 +117,8 @@ class TelegramService
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
             curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 6);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 8);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4);
 
             $body = curl_exec($ch);
             $err = curl_error($ch);
@@ -130,9 +130,9 @@ class TelegramService
             }
         } catch (\Throwable $e) {}
 
-        // 2. Secondary Attempt: Direct multi-IP list
-        $workingIp = \Illuminate\Support\Facades\Cache::get('tg_working_ip');
-        $allIps = ['149.154.166.110', '149.154.167.220', '149.154.165.120', '149.154.167.199'];
+        // 2. Secondary Attempt: Direct multi-IP list (Prioritizing best SEA datacenter IP)
+        $workingIp = \Illuminate\Support\Facades\Cache::get('tg_working_ip', '149.154.167.220');
+        $allIps = ['149.154.167.220', '149.154.166.110', '149.154.165.120', '149.154.167.199'];
         $ips = $workingIp ? array_unique(array_merge([$workingIp], $allIps)) : $allIps;
 
         foreach ($ips as $ip) {
@@ -145,8 +145,8 @@ class TelegramService
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
             curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
             curl_setopt($ch, CURLOPT_FORBID_REUSE, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 6);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 8);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4);
             curl_setopt($ch, CURLOPT_RESOLVE, ["api.telegram.org:443:{$ip}"]);
 
             $body = curl_exec($ch);
@@ -222,8 +222,8 @@ class TelegramService
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
             curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 6);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 8);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4);
 
             $body = curl_exec($ch);
             $err = curl_error($ch);
@@ -235,9 +235,9 @@ class TelegramService
             }
         } catch (\Throwable $e) {}
 
-        // 2. Secondary Attempt: Direct multi-IP list
-        $workingIp = \Illuminate\Support\Facades\Cache::get('tg_working_ip');
-        $allIps = ['149.154.166.110', '149.154.167.220', '149.154.165.120', '149.154.167.199'];
+        // 2. Secondary Attempt: Direct multi-IP list (Prioritizing best SEA datacenter IP)
+        $workingIp = \Illuminate\Support\Facades\Cache::get('tg_working_ip', '149.154.167.220');
+        $allIps = ['149.154.167.220', '149.154.166.110', '149.154.165.120', '149.154.167.199'];
         $ips = $workingIp ? array_unique(array_merge([$workingIp], $allIps)) : $allIps;
 
         foreach ($ips as $ip) {
@@ -250,8 +250,8 @@ class TelegramService
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
             curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
             curl_setopt($ch, CURLOPT_FORBID_REUSE, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 6);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 8);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4);
             curl_setopt($ch, CURLOPT_RESOLVE, ["api.telegram.org:443:{$ip}"]);
 
             $body = curl_exec($ch);

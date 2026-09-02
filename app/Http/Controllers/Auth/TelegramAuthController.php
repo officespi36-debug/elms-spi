@@ -234,14 +234,16 @@ class TelegramAuthController extends Controller
         // Security notification via Telegram
         try {
             $tg = app(TelegramService::class);
+            $cleanUsername = ltrim($telegramUsername ?? '', '@');
+            $tgUsernameStr = $cleanUsername ? "@{$cleanUsername}" : "@tg_{$telegramId}";
             $tg->sendMessage(
                 "<b>🔵 [TELEGRAM LOGIN ALERT]</b>\n" .
                 "━━━━━━━━━━━━━━━━━━━━━\n" .
                 "👤 <b>User:</b> {$user->name}\n" .
-                "✈️ <b>Telegram:</b> @" . ($telegramUsername ?? $telegramId) . " (<code>{$telegramId}</code>)\n" .
+                "✈️ <b>Telegram:</b> {$tgUsernameStr} (<code>{$telegramId}</code>)\n" .
                 "🎓 <b>Role:</b> " . strtoupper($user->role) . "\n" .
                 "🌐 <b>IP Address:</b> <code>{$ip}</code>\n" .
-                "📱 <b>Device:</b> {$device} ({$browser})\n" .
+                "📱 <b>Device:</b> Desktop / Mobile\n" .
                 "⏰ <b>Time:</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i:s A') . "\n" .
                 "🛡️ <b>Method:</b> Telegram OAuth Widget Login"
             );

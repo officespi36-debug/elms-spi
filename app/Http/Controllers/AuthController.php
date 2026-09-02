@@ -460,15 +460,15 @@ class AuthController extends Controller
                 // 🔔 Real-time Security Alert to Telegram Group
                 $telegramService = app(TelegramService::class);
                 $telegramService->sendMessage(
-                    "<b>✉️ EMAIL OTP LOGIN SUCCESSFUL</b>\n" .
+                    "<b>✉️ [EMAIL OTP LOGIN ALERT]</b>\n" .
                     "━━━━━━━━━━━━━━━━━━━━━\n" .
                     "👤 <b>User:</b> {$user->name}\n" .
                     "📧 <b>Email:</b> {$user->email}\n" .
                     "🎓 <b>Role:</b> " . strtoupper($user->role) . "\n" .
                     "🌐 <b>IP Address:</b> <code>{$ip}</code>\n" .
-                    "📱 <b>Device:</b> {$device}\n" .
-                    "⏰ <b>Time:</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i A') . "\n" .
-                    "🛡️ <b>Method:</b> Email OTP Verification"
+                    "📱 <b>Device:</b> Web Browser\n" .
+                    "⏰ <b>Time:</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i:s A') . "\n" .
+                    "🛡️ <b>Method:</b> 6-Digit Email OTP Verification"
                 );
             } catch (\Throwable $e) {
                 Log::warning('Email OTP security alert notice: ' . $e->getMessage());
@@ -733,16 +733,15 @@ class AuthController extends Controller
                 // 🔔 Real-time Security Alert to Telegram Group
                 $telegramService = app(TelegramService::class);
                 $telegramService->sendMessage(
-                    "<b>📱 PHONE SMS OTP LOGIN SUCCESSFUL</b>\n" .
+                    "<b>📞 [PHONE SMS OTP ALERT]</b>\n" .
                     "━━━━━━━━━━━━━━━━━━━━━\n" .
                     "👤 <b>User:</b> {$user->name}\n" .
                     "📞 <b>Phone:</b> <code>{$phoneDisplay}</code>\n" .
-                    "📧 <b>Email:</b> {$user->email}\n" .
                     "🎓 <b>Role:</b> " . strtoupper($user->role) . "\n" .
                     "🌐 <b>IP Address:</b> <code>{$ip}</code>\n" .
-                    "📱 <b>Device:</b> {$device}\n" .
-                    "⏰ <b>Time:</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i A') . "\n" .
-                    "🛡️ <b>Method:</b> PlasGate SMS OTP"
+                    "📱 <b>Device:</b> Mobile / PlasGate SMS\n" .
+                    "⏰ <b>Time:</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i:s A') . "\n" .
+                    "🛡️ <b>Method:</b> PlasGate SMS OTP Verification"
                 );
             } catch (\Throwable $e) {
                 Log::warning('Phone OTP security alert notice: ' . $e->getMessage());
