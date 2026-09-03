@@ -48,7 +48,7 @@ class GoogleController extends Controller
             $request->session()->save();
         }
 
-        $query = http_build_query([
+        $queryData = [
             'client_id' => $clientId,
             'redirect_uri' => $redirectUri,
             'response_type' => 'code',
@@ -59,7 +59,13 @@ class GoogleController extends Controller
             'code_challenge' => $codeChallenge,
             'code_challenge_method' => 'S256',
             'include_granted_scopes' => 'true',
-        ]);
+        ];
+
+        if ($request->filled('email')) {
+            $queryData['login_hint'] = trim($request->input('email'));
+        }
+
+        $query = http_build_query($queryData);
 
         return redirect("https://accounts.google.com/o/oauth2/v2/auth?{$query}");
     }
@@ -69,6 +75,14 @@ class GoogleController extends Controller
      */
     public function handleGoogleCallback(Request $request, TelegramService $telegramService)
     {
+        if ($request->filled('error')) {
+            $errDesc = $request->input('error_description') ?: $request->input('error');
+            Log::warning('Google OAuth cancelled or returned error: ' . $errDesc);
+            return redirect()->route('login')->withErrors([
+                'email' => 'ការចូលដោយប្រើប្រាស់ Google ត្រូវបានបោះបង់ ឬបរាជ័យ (' . $errDesc . ')។'
+            ]);
+        }
+
         $code = $request->input('code');
 
         if (empty($code)) {
@@ -155,12 +169,32 @@ class GoogleController extends Controller
             $user = User::where('email', $email)->first();
 
             if ($user) {
+                if ($user->is_active === false || $user->status === 'inactive') {
+                    return redirect()->route('login')->withErrors([
+                        'email' => 'គណនីរបស់អ្នកត្រូវបានបិទដំណើរការ។',
+                    ]);
+                }
+
+                if ($user->status === 'suspended' || $user->status === 'blocked') {
+                    return redirect()->route('login')->withErrors([
+                        'email' => 'គណនីរបស់អ្នកត្រូវបានព្យួរជាបណ្តោះអាសន្ន។ សូមទាក់ទងរដ្ឋបាលសាលា។',
+                    ]);
+                }
+
+                if ($user->status === 'pending_payment') {
+                    return redirect()->route('login')->withErrors([
+                        'email' => 'គណនីរបស់អ្នកកំពុងរង់ចាំការផ្ទៀងផ្ទាត់ការបង់ប្រាក់។',
+                    ]);
+                }
+
                 $user->update([
                     'google_id' => $googleId ?: $user->google_id,
                     'avatar' => $avatar ?: $user->avatar,
                     'email_verified_at' => $user->email_verified_at ?: now(),
                     'is_active' => true,
                     'status' => 'active',
+                    'login_attempts' => 0,
+                    'locked_until' => null,
                 ]);
             } else {
                 $studentCode = 'STU' . date('y') . rand(1000, 9999);
@@ -181,6 +215,8 @@ class GoogleController extends Controller
                     'email_verified_at' => now(),
                     'is_active' => true,
                     'status' => 'active',
+                    'login_attempts' => 0,
+                    'locked_until' => null,
                 ]);
             }
 
@@ -192,36 +228,94 @@ class GoogleController extends Controller
                 $request->session()->save();
             }
 
+            // Detect Client Environment
+            $ip = $request->ip() ?: '127.0.0.1';
+            $userAgent = $request->userAgent() ?? '';
+            $device = str_contains(strtolower($userAgent), 'mobile') ? 'Mobile' : 'Desktop';
+            $browser = $this->getBrowserName($userAgent);
+
             // Record AuthLog
             try {
-                $ip = $request->ip();
-                $userAgent = $request->userAgent() ?? '';
-                $device = str_contains(strtolower($userAgent), 'mobile') ? 'Mobile' : 'Desktop';
-
                 AuthLog::create([
                     'user_id' => $user->id,
                     'email' => $user->email,
                     'ip_address' => $ip,
                     'user_agent' => $userAgent,
                     'device' => $device,
-                    'browser' => 'Google Chrome',
+                    'browser' => $browser,
                     'status' => 'success',
                 ]);
+            } catch (\Throwable $logEx) {
+                Log::warning('AuthLog create failed for Google Login: ' . $logEx->getMessage());
+            }
 
-                $tg = app(TelegramService::class);
-                $tg->sendMessage(
+            // Real-time Telegram Alert & Email Dispatch
+            try {
+                $telegramService->sendMessage(
                     "<b>🔴 [GOOGLE LOGIN ALERT]</b>\n" .
                     "━━━━━━━━━━━━━━━━━━━━━\n" .
                     "👤 <b>User:</b> {$user->name}\n" .
                     "📧 <b>Email:</b> {$user->email}\n" .
                     "🎓 <b>Role:</b> " . strtoupper($user->role) . "\n" .
                     "🌐 <b>IP Address:</b> <code>{$ip}</code>\n" .
-                    "📱 <b>Device:</b> {$device} (Chrome)\n" .
+                    "📱 <b>Device:</b> {$device} ({$browser})\n" .
                     "⏰ <b>Time:</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i:s A') . "\n" .
                     "🛡️ <b>Method:</b> Google Single Sign-On (OAuth 2.0)"
                 );
-            } catch (\Throwable $logEx) {
-                Log::warning('Google login log / telegram warning: ' . $logEx->getMessage());
+
+                // Direct User Private Telegram Notification (if account is linked to Telegram)
+                $userChatId = $user->telegram_id ?: $user->telegram_chat_id;
+                if (!empty($userChatId)) {
+                    $telegramService->sendMessage(
+                        "🛡️ <b>ការជូនដំណឹងសុវត្ថិភាព៖ ការចូលប្រើប្រាស់គណនី</b>\n" .
+                        "━━━━━━━━━━━━━━━━━━━━━\n\n" .
+                        "សួស្តី <b>" . ($user->name_kh ?: $user->name) . "</b> 👋\n" .
+                        "គណនីរបស់អ្នកទើបតែបាន Login ចូលប្រើប្រាស់លើ SPI E-LMS ដោយជោគជ័យតាមរយៈ Google ៖\n\n" .
+                        "⏰ <b>ម៉ោង៖</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('d-M-Y h:i A') . "\n" .
+                        "📱 <b>ឧបករណ៍៖</b> {$device} ({$browser})\n" .
+                        "🌐 <b>IP Address៖</b> <code>{$ip}</code>\n" .
+                        "🛡️ <b>វិធីសាស្ត្រ៖</b> Google Single Sign-On (OAuth 2.0)\n\n" .
+                        "⚠️ <i>ប្រសិនបើមិនមែនជាអ្នកទេ សូមទាក់ទងមកកាន់រដ្ឋបាលជាបន្ទាន់!</i>",
+                        'HTML',
+                        $userChatId
+                    );
+                }
+            } catch (\Throwable $tgEx) {
+                Log::warning('Google login Telegram alert notice: ' . $tgEx->getMessage());
+            }
+
+            // Security Email alert
+            try {
+                if (!empty($user->email)) {
+                    $loginDetails = [
+                        'ip' => $ip,
+                        'device' => $device,
+                        'browser' => $browser,
+                        'time' => now()->setTimezone('Asia/Phnom_Penh')->format('d-M-Y h:i A'),
+                        'location' => 'Cambodia',
+                    ];
+                    (new AuthenticatedSessionController())->sendSecurityAlertEmail($user, $loginDetails);
+                }
+            } catch (\Throwable $mailEx) {
+                Log::warning('Google login security alert email notice: ' . $mailEx->getMessage());
+            }
+
+            // Generate JWT Token safely if configured
+            try {
+                if (config('jwt.secret')) {
+                    $token = \Tymon\JWTAuth\Facades\JWTAuth::fromUser($user);
+                    $payload = \Tymon\JWTAuth\Facades\JWTAuth::setToken($token)->getPayload();
+
+                    \App\Models\JwtSession::create([
+                        'user_id' => $user->id,
+                        'token' => $token,
+                        'expires_at' => \Carbon\Carbon::createFromTimestamp($payload->get('exp')),
+                        'ip_address' => $ip,
+                        'user_agent' => $userAgent,
+                    ]);
+                }
+            } catch (\Throwable $jwtEx) {
+                Log::warning('JWT token creation in Google Login: ' . $jwtEx->getMessage());
             }
 
             $redirectUrl = match ($user->role) {
@@ -230,11 +324,27 @@ class GoogleController extends Controller
                 default => '/student/dashboard',
             };
 
-            return redirect()->to($redirectUrl);
+            return redirect()->intended($redirectUrl);
 
         } catch (\Throwable $e) {
             Log::error('Google Callback Error: ' . $e->getMessage());
             return redirect()->route('login')->withErrors(['email' => 'Google Login Exception: ' . $e->getMessage()]);
         }
+    }
+
+    /**
+     * Parse browser name from User-Agent string.
+     */
+    private function getBrowserName(?string $userAgent): string
+    {
+        if (empty($userAgent)) {
+            return 'Web Browser';
+        }
+        if (str_contains($userAgent, 'Edge') || str_contains($userAgent, 'Edg/')) return 'Edge';
+        if (str_contains($userAgent, 'Chrome') || str_contains($userAgent, 'CriOS')) return 'Chrome';
+        if (str_contains($userAgent, 'Firefox') || str_contains($userAgent, 'FxiOS')) return 'Firefox';
+        if (str_contains($userAgent, 'Safari')) return 'Safari';
+        if (str_contains($userAgent, 'Opera') || str_contains($userAgent, 'OPR')) return 'Opera';
+        return 'Web Browser';
     }
 }
