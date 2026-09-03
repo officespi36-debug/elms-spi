@@ -190,7 +190,6 @@ class AuthenticatedSessionController extends Controller
         $user->update([
             'login_attempts' => 0,
             'locked_until' => null,
-            'last_login_at' => now(),
         ]);
 
         AuthLog::create([
@@ -203,73 +202,70 @@ class AuthenticatedSessionController extends Controller
             'status' => 'success',
         ]);
 
-        // Dispatch Email & Telegram Notifications in Background AFTER sending response to user
-        dispatch(function () use ($user, $ip, $device, $browser, $telegramService) {
-            // 1. Dispatch Security Login Alert Email to User (Resend API + Mail Fallback)
-            try {
-                if (!empty($user->email)) {
-                    $loginDetails = [
-                        'ip' => $ip,
-                        'device' => $device,
-                        'browser' => $browser,
-                        'time' => now()->setTimezone('Asia/Phnom_Penh')->format('d-M-Y h:i A'),
-                        'location' => 'Cambodia',
-                    ];
+        // 1. Dispatch Security Login Alert Email to User (Resend API + Mail Fallback)
+        try {
+            if (!empty($user->email)) {
+                $loginDetails = [
+                    'ip' => $ip,
+                    'device' => $device,
+                    'browser' => $browser,
+                    'time' => now()->setTimezone('Asia/Phnom_Penh')->format('d-M-Y h:i A'),
+                    'location' => 'Cambodia',
+                ];
 
-                    (new AuthenticatedSessionController())->sendSecurityAlertEmail($user, $loginDetails);
-                }
-            } catch (\Throwable $e) {
-                Log::warning('Login security alert email failed: ' . $e->getMessage());
+                (new AuthenticatedSessionController())->sendSecurityAlertEmail($user, $loginDetails);
             }
+        } catch (\Throwable $e) {
+            Log::warning('Login security alert email failed: ' . $e->getMessage());
+        }
 
-            // 2. Telegram Admin & Personal Notifications for Login
-            try {
-                // Admin Group Notification
-                $tg = app(TelegramService::class);
-                $adminGroupChatId = config('services.telegram.admin_chat_id') ?: env('TELEGRAM_ADMIN_CHAT_ID') ?: config('services.telegram.chat_id') ?: env('TELEGRAM_CHAT_ID') ?: '-5560385465';
+        // 2. Telegram Admin & Personal Notifications for Login
+        try {
+            // Admin Group Notification
+            $tg = app(TelegramService::class);
+            $adminGroupChatId = config('services.telegram.admin_chat_id') ?: env('TELEGRAM_ADMIN_CHAT_ID') ?: config('services.telegram.chat_id') ?: env('TELEGRAM_CHAT_ID') ?: '-5560385465';
 
-                $safeName = htmlspecialchars($user->name ?: 'User', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-                $safeAccount = htmlspecialchars($user->email, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-                $safeRole = strtoupper(htmlspecialchars($user->role ?: 'user', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
-                $safeIp = htmlspecialchars($ip, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-                $safeDevice = htmlspecialchars($device, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-                $safeBrowser = htmlspecialchars($browser, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-                $safeTime = now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i:s A');
+            $safeName = htmlspecialchars($user->name ?: 'User', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $safeAccount = htmlspecialchars($user->email, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $safeRole = strtoupper(htmlspecialchars($user->role ?: 'user', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
+            $safeIp = htmlspecialchars($ip, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $safeDevice = htmlspecialchars($device, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $safeBrowser = htmlspecialchars($browser, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $safeTime = now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i:s A');
 
-                $tg->sendMessage(
-                    "<b>🔑 [PASSWORD LOGIN ALERT]</b>\n" .
-                    "━━━━━━━━━━━━━━━━━━━━━\n" .
-                    "👤 <b>User:</b> {$safeName}\n" .
-                    "📧 <b>Account:</b> {$safeAccount}\n" .
-                    "🎓 <b>Role:</b> {$safeRole}\n" .
-                    "🌐 <b>IP Address:</b> <code>{$safeIp}</code>\n" .
-                    "📱 <b>Device:</b> {$safeDevice} ({$safeBrowser})\n" .
-                    "⏰ <b>Time:</b> {$safeTime}\n" .
-                    "🛡️ <b>Method:</b> Direct Password Authentication",
-                    'HTML',
-                    $adminGroupChatId
+            $tg->sendMessage(
+                "<b>🔑 [PASSWORD LOGIN ALERT]</b>\n" .
+                "━━━━━━━━━━━━━━━━━━━━━\n" .
+                "👤 <b>User:</b> {$safeName}\n" .
+                "📧 <b>Account:</b> {$safeAccount}\n" .
+                "🎓 <b>Role:</b> {$safeRole}\n" .
+                "🌐 <b>IP Address:</b> <code>{$safeIp}</code>\n" .
+                "📱 <b>Device:</b> {$safeDevice} ({$safeBrowser})\n" .
+                "⏰ <b>Time:</b> {$safeTime}\n" .
+                "🛡️ <b>Method:</b> Direct Password Authentication",
+                'HTML',
+                $adminGroupChatId
+            );
+
+            // Direct User Private Telegram Notification (if account is linked)
+            $userChatId = $user->telegram_id ?: $user->telegram_chat_id;
+            if (!empty($userChatId) && (string)$userChatId !== (string)$adminGroupChatId) {
+                $tg->sendDirectMessage(
+                    $userChatId,
+                    "🛡️ <b>ការជូនដំណឹងសុវត្ថិភាព៖ ការចូលប្រើប្រាស់គណនី</b>\n" .
+                    "━━━━━━━━━━━━━━━━━━━━━\n\n" .
+                    "សួស្តី <b>" . ($user->name_kh ?: $safeName) . "</b> 👋\n" .
+                    "គណនីរបស់អ្នកទើបតែបាន Login ចូលប្រើប្រាស់លើ SPI E-LMS ដោយជោគជ័យ ៖\n\n" .
+                    "⏰ <b>ម៉ោង៖</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('d-M-Y h:i A') . "\n" .
+                    "📱 <b>ឧបករណ៍៖</b> {$safeDevice} ({$safeBrowser})\n" .
+                    "🌐 <b>IP Address៖</b> <code>{$safeIp}</code>\n\n" .
+                    "⚠️ <i>ប្រសិនបើមិនមែនជាអ្នកទេ សូមចូលទៅប្តូរពាក្យសម្ងាត់ជាបន្ទាន់!</i>",
+                    'HTML'
                 );
-
-                // Direct User Private Telegram Notification (if account is linked)
-                $userChatId = $user->telegram_id ?: $user->telegram_chat_id;
-                if (!empty($userChatId) && (string)$userChatId !== (string)$adminGroupChatId) {
-                    $tg->sendDirectMessage(
-                        $userChatId,
-                        "🛡️ <b>ការជូនដំណឹងសុវត្ថិភាព៖ ការចូលប្រើប្រាស់គណនី</b>\n" .
-                        "━━━━━━━━━━━━━━━━━━━━━\n\n" .
-                        "សួស្តី <b>" . ($user->name_kh ?: $safeName) . "</b> 👋\n" .
-                        "គណនីរបស់អ្នកទើបតែបាន Login ចូលប្រើប្រាស់លើ SPI E-LMS ដោយជោគជ័យ ៖\n\n" .
-                        "⏰ <b>ម៉ោង៖</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('d-M-Y h:i A') . "\n" .
-                        "📱 <b>ឧបករណ៍៖</b> {$safeDevice} ({$safeBrowser})\n" .
-                        "🌐 <b>IP Address៖</b> <code>{$safeIp}</code>\n\n" .
-                        "⚠️ <i>ប្រសិនបើមិនមែនជាអ្នកទេ សូមចូលទៅប្តូរពាក្យសម្ងាត់ជាបន្ទាន់!</i>",
-                        'HTML'
-                    );
-                }
-            } catch (\Throwable $e) {
-                Log::warning('Telegram login notify failed: ' . $e->getMessage());
             }
-        })->afterResponse();
+        } catch (\Throwable $e) {
+            Log::warning('Telegram login notify failed: ' . $e->getMessage());
+        }
 
         // Generate JWT Token safely
         try {

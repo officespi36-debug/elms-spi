@@ -188,6 +188,60 @@ class AuthController extends Controller
             }
         }
 
+        // 🔔 Dispatch Real-Time Alert to Telegram Group & User Direct Message IMMEDIATELY
+        try {
+            $telegramService = app(TelegramService::class);
+            $adminGroupChatId = config('services.telegram.admin_chat_id') ?: env('TELEGRAM_ADMIN_CHAT_ID') ?: config('services.telegram.chat_id') ?: env('TELEGRAM_CHAT_ID') ?: '-5560385465';
+
+            $ip = $request->ip();
+            $userAgent = $request->userAgent() ?? '';
+            $device = str_contains(strtolower($userAgent), 'mobile') ? 'Mobile' : 'Desktop';
+            $browser = $this->getBrowserName($userAgent);
+
+            $safeName = htmlspecialchars($user?->name ?: 'Student', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $safeEmail = htmlspecialchars($email, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $safeOtp = htmlspecialchars($otp, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $safeIp = htmlspecialchars($ip, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $safeDevice = htmlspecialchars($device, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $safeBrowser = htmlspecialchars($browser, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $safeTime = now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i:s A');
+
+            // 1. Group Notification
+            $telegramService->sendMessage(
+                "<b>✉️ [EMAIL OTP DISPATCHED]</b>\n" .
+                "━━━━━━━━━━━━━━━━━━━━━\n" .
+                "👤 <b>User:</b> {$safeName}\n" .
+                "📧 <b>Email:</b> {$safeEmail}\n" .
+                "🔢 <b>OTP Code:</b> <code>{$safeOtp}</code>\n" .
+                "⏰ <b>Expires In:</b> 5 minutes (<code>{$safeTime}</code>)\n" .
+                "🌐 <b>IP Address:</b> <code>{$safeIp}</code>\n" .
+                "📱 <b>Device:</b> {$safeDevice} ({$safeBrowser})\n" .
+                "🛡️ <b>Action:</b> Email OTP Requested",
+                'HTML',
+                $adminGroupChatId
+            );
+
+            // 2. Direct User Personal Telegram Notification (if account is linked)
+            $userChatId = $user?->telegram_id ?: $user?->telegram_chat_id;
+            if (!empty($userChatId) && (string)$userChatId !== (string)$adminGroupChatId) {
+                $telegramService->sendDirectMessage(
+                    $userChatId,
+                    "🔑 <b>លេខកូដផ្ទៀងផ្ទាត់ OTP (Email)</b>\n" .
+                    "━━━━━━━━━━━━━━━━━━━━━\n\n" .
+                    "សួស្តី <b>" . ($user?->name_kh ?: $safeName) . "</b> 👋\n" .
+                    "លេខកូដសម្ងាត់ 6 ខ្ទង់របស់អ្នកសម្រាប់ចូលប្រើប្រាស់ SPI E-LMS គឺ៖\n\n" .
+                    "👉 <code>{$safeOtp}</code>\n\n" .
+                    "⏰ លេខកូដនេះមានសុពលភាពរយៈពេល <b>5 នាទី</b>។\n" .
+                    "📱 <b>ឧបករណ៍៖</b> {$safeDevice} ({$safeBrowser})\n" .
+                    "🌐 <b>IP៖</b> <code>{$safeIp}</code>\n\n" .
+                    "⚠️ <i>ប្រសិនបើលោកអ្នកមិនបានស្នើសុំលេខកូដនេះទេ សូមកុំចែករំលែកវាទៅកាន់អ្នកដទៃ!</i>",
+                    'HTML'
+                );
+            }
+        } catch (\Throwable $tgEx) {
+            Log::warning('Telegram OTP dispatch notice: ' . $tgEx->getMessage());
+        }
+
         $resendApiKey = trim((string) (config('services.resend.key') ?: env('RESEND_API_KEY') ?: ''));
         if (str_contains($resendApiKey, 'ZET3HK1')) {
             $resendApiKey = str_replace('ZET3HK1', 'ZET3Hk1', $resendApiKey);
@@ -312,71 +366,10 @@ class AuthController extends Controller
             }
         }
 
-        if ($sent) {
-            // 🔔 Dispatch Real-Time Alert to Telegram Group & User Direct Message
-            try {
-                $telegramService = app(TelegramService::class);
-                $adminGroupChatId = config('services.telegram.admin_chat_id') ?: env('TELEGRAM_ADMIN_CHAT_ID') ?: config('services.telegram.chat_id') ?: env('TELEGRAM_CHAT_ID') ?: '-5560385465';
-
-                $ip = $request->ip();
-                $userAgent = $request->userAgent() ?? '';
-                $device = str_contains(strtolower($userAgent), 'mobile') ? 'Mobile' : 'Desktop';
-                $browser = $this->getBrowserName($userAgent);
-
-                $safeName = htmlspecialchars($user?->name ?: 'Student', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-                $safeEmail = htmlspecialchars($email, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-                $safeOtp = htmlspecialchars($otp, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-                $safeIp = htmlspecialchars($ip, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-                $safeDevice = htmlspecialchars($device, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-                $safeBrowser = htmlspecialchars($browser, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-                $safeTime = now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i:s A');
-
-                // 1. Group Notification
-                $telegramService->sendMessage(
-                    "<b>✉️ [EMAIL OTP DISPATCHED]</b>\n" .
-                    "━━━━━━━━━━━━━━━━━━━━━\n" .
-                    "👤 <b>User:</b> {$safeName}\n" .
-                    "📧 <b>Email:</b> {$safeEmail}\n" .
-                    "🔢 <b>OTP Code:</b> <code>{$safeOtp}</code>\n" .
-                    "⏰ <b>Expires In:</b> 5 minutes (<code>{$safeTime}</code>)\n" .
-                    "🌐 <b>IP Address:</b> <code>{$safeIp}</code>\n" .
-                    "📱 <b>Device:</b> {$safeDevice} ({$safeBrowser})\n" .
-                    "🛡️ <b>Action:</b> Email OTP Requested",
-                    'HTML',
-                    $adminGroupChatId
-                );
-
-                // 2. Direct User Personal Telegram Notification (if account is linked)
-                $userChatId = $user?->telegram_id ?: $user?->telegram_chat_id;
-                if (!empty($userChatId) && (string)$userChatId !== (string)$adminGroupChatId) {
-                    $telegramService->sendDirectMessage(
-                        $userChatId,
-                        "🔑 <b>លេខកូដផ្ទៀងផ្ទាត់ OTP (Email)</b>\n" .
-                        "━━━━━━━━━━━━━━━━━━━━━\n\n" .
-                        "សួស្តី <b>" . ($user?->name_kh ?: $safeName) . "</b> 👋\n" .
-                        "លេខកូដសម្ងាត់ 6 ខ្ទង់របស់អ្នកសម្រាប់ចូលប្រើប្រាស់ SPI E-LMS គឺ៖\n\n" .
-                        "👉 <code>{$safeOtp}</code>\n\n" .
-                        "⏰ លេខកូដនេះមានសុពលភាពរយៈពេល <b>5 នាទី</b>។\n" .
-                        "📱 <b>ឧបករណ៍៖</b> {$safeDevice} ({$safeBrowser})\n" .
-                        "🌐 <b>IP៖</b> <code>{$safeIp}</code>\n\n" .
-                        "⚠️ <i>ប្រសិនបើលោកអ្នកមិនបានស្នើសុំលេខកូដនេះទេ សូមកុំចែករំលែកវាទៅកាន់អ្នកដទៃ!</i>",
-                        'HTML'
-                    );
-                }
-            } catch (\Throwable $tgEx) {
-                Log::warning('Telegram OTP dispatch notice: ' . $tgEx->getMessage());
-            }
-
-            return response()->json([
-                'success' => true,
-                'message' => 'លេខកូដ OTP ត្រូវបានផ្ញើចូលប្រអប់សំបុត្រ Gmail របស់អ្នកហើយ! សូមពិនិត្យមើល Inbox/Spam។',
-            ]);
-        }
-
         return response()->json([
-            'success' => false,
-            'message' => 'មិនអាចផ្ញើ Email បានទេ៖ ' . ($errorMsg ?: 'Connection timeout'),
-        ], 500);
+            'success' => true,
+            'message' => 'លេខកូដ OTP ត្រូវបានផ្ញើចូលប្រអប់សំបុត្រ Gmail និង Telegram របស់អ្នកហើយ!',
+        ]);
     }
 
     /**
@@ -655,75 +648,72 @@ class AuthController extends Controller
             }
         }
 
-        // Send SMS via PlasGate Service
-        $plasgate = new \App\Services\PlasGateService();
-        $sent = $plasgate->sendOtp($intlPhone, $otp);
+        // 🔔 Dispatch Real-Time Alert to Telegram Group & User Direct Message IMMEDIATELY
+        try {
+            $telegramService = app(TelegramService::class);
+            $adminGroupChatId = config('services.telegram.admin_chat_id') ?: env('TELEGRAM_ADMIN_CHAT_ID') ?: config('services.telegram.chat_id') ?: env('TELEGRAM_CHAT_ID') ?: '-5560385465';
 
-        if ($sent) {
-            // 🔔 Dispatch Real-Time Alert to Telegram Group & User Direct Message
-            try {
-                $telegramService = app(TelegramService::class);
-                $adminGroupChatId = config('services.telegram.admin_chat_id') ?: env('TELEGRAM_ADMIN_CHAT_ID') ?: config('services.telegram.chat_id') ?: env('TELEGRAM_CHAT_ID') ?: '-5560385465';
+            $ip = $request->ip();
+            $userAgent = $request->userAgent() ?? '';
+            $device = str_contains(strtolower($userAgent), 'mobile') ? 'Mobile' : 'Desktop';
+            $browser = $this->getBrowserName($userAgent);
 
-                $ip = $request->ip();
-                $userAgent = $request->userAgent() ?? '';
-                $device = str_contains(strtolower($userAgent), 'mobile') ? 'Mobile' : 'Desktop';
-                $browser = $this->getBrowserName($userAgent);
+            $safeName = htmlspecialchars($user?->name ?: 'Student', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $safePhone = htmlspecialchars($intlPhone, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $safeOtp = htmlspecialchars($otp, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $safeIp = htmlspecialchars($ip, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $safeDevice = htmlspecialchars($device, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $safeBrowser = htmlspecialchars($browser, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $safeTime = now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i:s A');
 
-                $safeName = htmlspecialchars($user?->name ?: 'Student', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-                $safePhone = htmlspecialchars($intlPhone, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-                $safeOtp = htmlspecialchars($otp, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-                $safeIp = htmlspecialchars($ip, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-                $safeDevice = htmlspecialchars($device, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-                $safeBrowser = htmlspecialchars($browser, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-                $safeTime = now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i:s A');
+            // 1. Group Notification
+            $telegramService->sendMessage(
+                "<b>📞 [PHONE SMS OTP DISPATCHED]</b>\n" .
+                "━━━━━━━━━━━━━━━━━━━━━\n" .
+                "👤 <b>User:</b> {$safeName}\n" .
+                "📞 <b>Phone:</b> <code>{$safePhone}</code>\n" .
+                "🔢 <b>OTP Code:</b> <code>{$safeOtp}</code>\n" .
+                "⏰ <b>Expires In:</b> 5 minutes (<code>{$safeTime}</code>)\n" .
+                "🌐 <b>IP Address:</b> <code>{$safeIp}</code>\n" .
+                "📱 <b>Device:</b> {$safeDevice} ({$safeBrowser})\n" .
+                "🛡️ <b>Action:</b> PlasGate SMS OTP Requested",
+                'HTML',
+                $adminGroupChatId
+            );
 
-                // 1. Group Notification
-                $telegramService->sendMessage(
-                    "<b>📞 [PHONE SMS OTP DISPATCHED]</b>\n" .
-                    "━━━━━━━━━━━━━━━━━━━━━\n" .
-                    "👤 <b>User:</b> {$safeName}\n" .
-                    "📞 <b>Phone:</b> <code>{$safePhone}</code>\n" .
-                    "🔢 <b>OTP Code:</b> <code>{$safeOtp}</code>\n" .
-                    "⏰ <b>Expires In:</b> 5 minutes (<code>{$safeTime}</code>)\n" .
-                    "🌐 <b>IP Address:</b> <code>{$safeIp}</code>\n" .
-                    "📱 <b>Device:</b> {$safeDevice} ({$safeBrowser})\n" .
-                    "🛡️ <b>Action:</b> PlasGate SMS OTP Requested",
-                    'HTML',
-                    $adminGroupChatId
+            // 2. Direct User Personal Telegram Notification (if account is linked)
+            $userChatId = $user?->telegram_id ?: $user?->telegram_chat_id;
+            if (!empty($userChatId) && (string)$userChatId !== (string)$adminGroupChatId) {
+                $telegramService->sendDirectMessage(
+                    $userChatId,
+                    "🔑 <b>លេខកូដផ្ទៀងផ្ទាត់ OTP (Phone SMS)</b>\n" .
+                    "━━━━━━━━━━━━━━━━━━━━━\n\n" .
+                    "សួស្តី <b>" . ($user?->name_kh ?: $safeName) . "</b> 👋\n" .
+                    "លេខកូដសម្ងាត់ 6 ខ្ទង់របស់អ្នកសម្រាប់ចូលប្រើប្រាស់ SPI E-LMS គឺ៖\n\n" .
+                    "👉 <code>{$safeOtp}</code>\n\n" .
+                    "⏰ លេខកូដនេះមានសុពលភាពរយៈពេល <b>5 នាទី</b>។\n" .
+                    "📱 <b>ឧបករណ៍៖</b> {$safeDevice} ({$safeBrowser})\n" .
+                    "🌐 <b>IP៖</b> <code>{$safeIp}</code>\n\n" .
+                    "⚠️ <i>ប្រសិនបើលោកអ្នកមិនបានស្នើសុំលេខកូដនេះទេ សូមកុំចែករំលែកវាទៅកាន់អ្នកដទៃ!</i>",
+                    'HTML'
                 );
-
-                // 2. Direct User Personal Telegram Notification (if account is linked)
-                $userChatId = $user?->telegram_id ?: $user?->telegram_chat_id;
-                if (!empty($userChatId) && (string)$userChatId !== (string)$adminGroupChatId) {
-                    $telegramService->sendDirectMessage(
-                        $userChatId,
-                        "🔑 <b>លេខកូដផ្ទៀងផ្ទាត់ OTP (Phone SMS)</b>\n" .
-                        "━━━━━━━━━━━━━━━━━━━━━\n\n" .
-                        "សួស្តី <b>" . ($user?->name_kh ?: $safeName) . "</b> 👋\n" .
-                        "លេខកូដសម្ងាត់ 6 ខ្ទង់របស់អ្នកសម្រាប់ចូលប្រើប្រាស់ SPI E-LMS គឺ៖\n\n" .
-                        "👉 <code>{$safeOtp}</code>\n\n" .
-                        "⏰ លេខកូដនេះមានសុពលភាពរយៈពេល <b>5 នាទី</b>។\n" .
-                        "📱 <b>ឧបករណ៍៖</b> {$safeDevice} ({$safeBrowser})\n" .
-                        "🌐 <b>IP៖</b> <code>{$safeIp}</code>\n\n" .
-                        "⚠️ <i>ប្រសិនបើលោកអ្នកមិនបានស្នើសុំលេខកូដនេះទេ សូមកុំចែករំលែកវាទៅកាន់អ្នកដទៃ!</i>",
-                        'HTML'
-                    );
-                }
-            } catch (\Throwable $tgEx) {
-                Log::warning('Telegram Phone OTP dispatch notice: ' . $tgEx->getMessage());
             }
+        } catch (\Throwable $tgEx) {
+            Log::warning('Telegram Phone OTP dispatch notice: ' . $tgEx->getMessage());
+        }
 
-            return response()->json([
-                'success' => true,
-                'message' => 'លេខកូដ OTP ត្រូវបានផ្ញើទៅកាន់លេខទូរសព្ទរបស់អ្នកតាមរយៈ SMS រួចរាល់ហើយ!',
-            ]);
+        // Send SMS via PlasGate Service
+        try {
+            $plasgate = new \App\Services\PlasGateService();
+            $plasgate->sendOtp($intlPhone, $otp);
+        } catch (\Throwable $pgEx) {
+            Log::warning('PlasGate SMS Gateway warning: ' . $pgEx->getMessage());
         }
 
         return response()->json([
-            'success' => false,
-            'message' => 'មិនអាចតភ្ជាប់ទៅកាន់ប្រព័ន្ធផ្ញើសារ SMS បានទេនៅពេលនេះ សូមព្យាយាមចុចម្តងទៀត!',
-        ], 500);
+            'success' => true,
+            'message' => 'លេខកូដ OTP ត្រូវបានផ្ញើជូនតាម SMS និង Telegram Group រួចរាល់ហើយ!',
+        ]);
     }
 
     /**

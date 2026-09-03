@@ -36,7 +36,7 @@ return [
     ],
 
     'telegram' => [
-        'bot_token'        => env('TELEGRAM_BOT_TOKEN'),
+        'bot_token'        => env('TELEGRAM_BOT_TOKEN', '8828915669:AAHCBS8crm8t8zXlYPOGiGxmywXybrr-fm8'),
         'bot_username'     => env('TELEGRAM_BOT_USERNAME', 'spi_elms_auth_bot'),
         'bot_id'           => env('TELEGRAM_BOT_ID', '8828915669'),
         'admin_chat_id'    => env('TELEGRAM_ADMIN_CHAT_ID', '-5560385465'),
