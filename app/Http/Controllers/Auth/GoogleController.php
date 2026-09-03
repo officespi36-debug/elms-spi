@@ -251,6 +251,8 @@ class GoogleController extends Controller
 
             // Real-time Telegram Alert & Email Dispatch
             try {
+                $groupChatId = config('services.telegram.admin_chat_id') ?: env('TELEGRAM_ADMIN_CHAT_ID') ?: config('services.telegram.chat_id') ?: env('TELEGRAM_CHAT_ID') ?: '-5560385465';
+
                 $telegramService->sendMessage(
                     "<b>🔴 [GOOGLE LOGIN ALERT]</b>\n" .
                     "━━━━━━━━━━━━━━━━━━━━━\n" .
@@ -260,13 +262,16 @@ class GoogleController extends Controller
                     "🌐 <b>IP Address:</b> <code>{$ip}</code>\n" .
                     "📱 <b>Device:</b> {$device} ({$browser})\n" .
                     "⏰ <b>Time:</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i:s A') . "\n" .
-                    "🛡️ <b>Method:</b> Google Single Sign-On (OAuth 2.0)"
+                    "🛡️ <b>Method:</b> Google Single Sign-On (OAuth 2.0)",
+                    'HTML',
+                    $groupChatId
                 );
 
                 // Direct User Private Telegram Notification (if account is linked to Telegram)
                 $userChatId = $user->telegram_id ?: $user->telegram_chat_id;
-                if (!empty($userChatId)) {
-                    $telegramService->sendMessage(
+                if (!empty($userChatId) && (string)$userChatId !== (string)$groupChatId) {
+                    $telegramService->sendDirectMessage(
+                        $userChatId,
                         "🛡️ <b>ការជូនដំណឹងសុវត្ថិភាព៖ ការចូលប្រើប្រាស់គណនី</b>\n" .
                         "━━━━━━━━━━━━━━━━━━━━━\n\n" .
                         "សួស្តី <b>" . ($user->name_kh ?: $user->name) . "</b> 👋\n" .
@@ -276,8 +281,7 @@ class GoogleController extends Controller
                         "🌐 <b>IP Address៖</b> <code>{$ip}</code>\n" .
                         "🛡️ <b>វិធីសាស្ត្រ៖</b> Google Single Sign-On (OAuth 2.0)\n\n" .
                         "⚠️ <i>ប្រសិនបើមិនមែនជាអ្នកទេ សូមទាក់ទងមកកាន់រដ្ឋបាលជាបន្ទាន់!</i>",
-                        'HTML',
-                        $userChatId
+                        'HTML'
                     );
                 }
             } catch (\Throwable $tgEx) {

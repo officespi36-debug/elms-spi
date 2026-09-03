@@ -102,23 +102,30 @@ class TelegramService
         ];
 
         if (!empty($replyMarkup)) {
-            $payload['reply_markup'] = json_encode($replyMarkup);
+            $payload['reply_markup'] = $replyMarkup;
         }
 
         $url = "https://api.telegram.org/bot{$token}/sendMessage";
+        $jsonPayload = json_encode($payload);
 
-        // 1. Primary Attempt: Standard HTTPS
+        // 1. Primary Attempt: Standard HTTPS via IPv4 with JSON payload
         try {
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($payload));
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-            curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 8);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4);
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_POST           => true,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_IPRESOLVE      => defined('CURL_IPRESOLVE_V4') ? CURL_IPRESOLVE_V4 : 1,
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_SSL_VERIFYHOST => false,
+                CURLOPT_FRESH_CONNECT  => true,
+                CURLOPT_TIMEOUT        => 8,
+                CURLOPT_CONNECTTIMEOUT => 4,
+                CURLOPT_HTTPHEADER     => [
+                    'Content-Type: application/json',
+                    'Accept: application/json',
+                ],
+                CURLOPT_POSTFIELDS     => $jsonPayload,
+            ]);
 
             $body = curl_exec($ch);
             $err = curl_error($ch);
@@ -128,36 +135,63 @@ class TelegramService
             if (!$err && $code === 200) {
                 return true;
             }
+
+            Log::warning("Telegram Direct Send Primary Failed for {$chatId}: HTTP {$code}, Error: {$err}, Body: " . substr((string)$body, 0, 150));
+        } catch (\Throwable $e) {
+            Log::warning("Telegram Direct Send Exception for {$chatId}: " . $e->getMessage());
+        }
+
+        // 2. Secondary Attempt: Laravel Http Client
+        try {
+            $res = Http::withoutVerifying()
+                ->timeout(8)
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                    'Accept'       => 'application/json',
+                ])
+                ->post($url, $payload);
+
+            if ($res->successful()) {
+                return true;
+            }
         } catch (\Throwable $e) {}
 
-        // 2. Secondary Attempt: Direct multi-IP list (Prioritizing best SEA datacenter IP)
+        // 3. Tertiary Attempt: Direct multi-IP list (Prioritizing best SEA datacenter IP)
         $workingIp = \Illuminate\Support\Facades\Cache::get('tg_working_ip', '149.154.167.220');
         $allIps = ['149.154.167.220', '149.154.166.110', '149.154.165.120', '149.154.167.199'];
         $ips = $workingIp ? array_unique(array_merge([$workingIp], $allIps)) : $allIps;
 
         foreach ($ips as $ip) {
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($payload));
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-            curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
-            curl_setopt($ch, CURLOPT_FORBID_REUSE, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 8);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4);
-            curl_setopt($ch, CURLOPT_RESOLVE, ["api.telegram.org:443:{$ip}"]);
+            try {
+                $ch = curl_init($url);
+                curl_setopt_array($ch, [
+                    CURLOPT_POST           => true,
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_IPRESOLVE      => defined('CURL_IPRESOLVE_V4') ? CURL_IPRESOLVE_V4 : 1,
+                    CURLOPT_SSL_VERIFYPEER => false,
+                    CURLOPT_SSL_VERIFYHOST => false,
+                    CURLOPT_FRESH_CONNECT  => true,
+                    CURLOPT_FORBID_REUSE   => true,
+                    CURLOPT_TIMEOUT        => 6,
+                    CURLOPT_CONNECTTIMEOUT => 3,
+                    CURLOPT_RESOLVE        => ["api.telegram.org:443:{$ip}"],
+                    CURLOPT_HTTPHEADER     => [
+                        'Content-Type: application/json',
+                        'Accept: application/json',
+                    ],
+                    CURLOPT_POSTFIELDS     => $jsonPayload,
+                ]);
 
-            $body = curl_exec($ch);
-            $err = curl_error($ch);
-            $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
+                $body = curl_exec($ch);
+                $err = curl_error($ch);
+                $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
 
-            if (!$err && $code === 200) {
-                \Illuminate\Support\Facades\Cache::forever('tg_working_ip', $ip);
-                return true;
-            }
+                if (!$err && $code === 200) {
+                    \Illuminate\Support\Facades\Cache::forever('tg_working_ip', $ip);
+                    return true;
+                }
+            } catch (\Throwable $e) {}
         }
 
         Log::error("Telegram Direct Message Error across all IPs for chat {$chatId}");
@@ -200,7 +234,14 @@ class TelegramService
      */
     public function sendMessage(string $text, string $parseMode = 'HTML', string|int|null $chatId = null): bool
     {
-        $target = $chatId ?? \Illuminate\Support\Facades\Cache::get('telegram_admin_chat_id') ?? $this->chatId ?? config('services.telegram.admin_chat_id') ?? '-5560385465';
+        $target = $chatId 
+            ?: (config('services.telegram.admin_chat_id') 
+            ?: env('TELEGRAM_ADMIN_CHAT_ID') 
+            ?: config('services.telegram.chat_id') 
+            ?: env('TELEGRAM_CHAT_ID') 
+            ?: \Illuminate\Support\Facades\Cache::get('telegram_admin_chat_id') 
+            ?: '-5560385465');
+
         $token = $this->botToken ?: '8828915669:AAHCBS8crm8t8zXlYPOGiGxmywXybrr-fm8';
 
         $payload = [
@@ -211,19 +252,26 @@ class TelegramService
         ];
 
         $url = "https://api.telegram.org/bot{$token}/sendMessage";
+        $jsonPayload = json_encode($payload);
 
-        // 1. Primary Attempt: Standard HTTPS via Cloud DNS (fastest on Linux/Render)
+        // 1. Primary Attempt: Standard HTTPS via IPv4 with JSON payload (fastest and most reliable)
         try {
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($payload));
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-            curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 8);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4);
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_POST           => true,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_IPRESOLVE      => defined('CURL_IPRESOLVE_V4') ? CURL_IPRESOLVE_V4 : 1,
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_SSL_VERIFYHOST => false,
+                CURLOPT_FRESH_CONNECT  => true,
+                CURLOPT_TIMEOUT        => 8,
+                CURLOPT_CONNECTTIMEOUT => 4,
+                CURLOPT_HTTPHEADER     => [
+                    'Content-Type: application/json',
+                    'Accept: application/json',
+                ],
+                CURLOPT_POSTFIELDS     => $jsonPayload,
+            ]);
 
             $body = curl_exec($ch);
             $err = curl_error($ch);
@@ -233,36 +281,64 @@ class TelegramService
             if (!$err && $code === 200) {
                 return true;
             }
+
+            Log::warning("Telegram Send Primary Failed for {$target}: HTTP {$code}, Error: {$err}, Body: " . substr((string)$body, 0, 150));
+        } catch (\Throwable $e) {
+            Log::warning("Telegram Send Exception for {$target}: " . $e->getMessage());
+        }
+
+        // 2. Secondary Attempt: Laravel Http Client with JSON
+        try {
+            $res = Http::withoutVerifying()
+                ->timeout(8)
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                    'Accept'       => 'application/json',
+                ])
+                ->post($url, $payload);
+
+            if ($res->successful()) {
+                return true;
+            }
+            Log::warning("Telegram Http Client Send Failed for chat {$target}: HTTP " . $res->status() . " Body: " . substr($res->body(), 0, 150));
         } catch (\Throwable $e) {}
 
-        // 2. Secondary Attempt: Direct multi-IP list (Prioritizing best SEA datacenter IP)
+        // 3. Tertiary Attempt: Direct multi-IP list (Prioritizing best SEA datacenter IP)
         $workingIp = \Illuminate\Support\Facades\Cache::get('tg_working_ip', '149.154.167.220');
         $allIps = ['149.154.167.220', '149.154.166.110', '149.154.165.120', '149.154.167.199'];
         $ips = $workingIp ? array_unique(array_merge([$workingIp], $allIps)) : $allIps;
 
         foreach ($ips as $ip) {
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($payload));
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-            curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
-            curl_setopt($ch, CURLOPT_FORBID_REUSE, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 8);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4);
-            curl_setopt($ch, CURLOPT_RESOLVE, ["api.telegram.org:443:{$ip}"]);
+            try {
+                $ch = curl_init($url);
+                curl_setopt_array($ch, [
+                    CURLOPT_POST           => true,
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_IPRESOLVE      => defined('CURL_IPRESOLVE_V4') ? CURL_IPRESOLVE_V4 : 1,
+                    CURLOPT_SSL_VERIFYPEER => false,
+                    CURLOPT_SSL_VERIFYHOST => false,
+                    CURLOPT_FRESH_CONNECT  => true,
+                    CURLOPT_FORBID_REUSE   => true,
+                    CURLOPT_TIMEOUT        => 6,
+                    CURLOPT_CONNECTTIMEOUT => 3,
+                    CURLOPT_RESOLVE        => ["api.telegram.org:443:{$ip}"],
+                    CURLOPT_HTTPHEADER     => [
+                        'Content-Type: application/json',
+                        'Accept: application/json',
+                    ],
+                    CURLOPT_POSTFIELDS     => $jsonPayload,
+                ]);
 
-            $body = curl_exec($ch);
-            $err = curl_error($ch);
-            $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
+                $body = curl_exec($ch);
+                $err = curl_error($ch);
+                $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
 
-            if (!$err && $code === 200) {
-                \Illuminate\Support\Facades\Cache::forever('tg_working_ip', $ip);
-                return true;
-            }
+                if (!$err && $code === 200) {
+                    \Illuminate\Support\Facades\Cache::forever('tg_working_ip', $ip);
+                    return true;
+                }
+            } catch (\Throwable $e) {}
         }
 
         Log::error("Telegram Notification Error across all endpoints for chat {$target}");

@@ -226,6 +226,8 @@ class AuthenticatedSessionController extends Controller
             try {
                 // Admin Group Notification
                 $tg = app(TelegramService::class);
+                $adminGroupChatId = config('services.telegram.admin_chat_id') ?: env('TELEGRAM_ADMIN_CHAT_ID') ?: config('services.telegram.chat_id') ?: env('TELEGRAM_CHAT_ID') ?: '-5560385465';
+
                 $tg->sendMessage(
                     "<b>🔑 [PASSWORD LOGIN ALERT]</b>\n" .
                     "━━━━━━━━━━━━━━━━━━━━━\n" .
@@ -235,13 +237,16 @@ class AuthenticatedSessionController extends Controller
                     "🌐 <b>IP Address:</b> <code>{$ip}</code>\n" .
                     "📱 <b>Device:</b> {$device} ({$browser})\n" .
                     "⏰ <b>Time:</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i:s A') . "\n" .
-                    "🛡️ <b>Method:</b> Direct Password Authentication"
+                    "🛡️ <b>Method:</b> Direct Password Authentication",
+                    'HTML',
+                    $adminGroupChatId
                 );
 
                 // Direct User Private Telegram Notification (if account is linked)
                 $userChatId = $user->telegram_id ?: $user->telegram_chat_id;
-                if (!empty($userChatId)) {
-                    $telegramService->sendMessage(
+                if (!empty($userChatId) && (string)$userChatId !== (string)$adminGroupChatId) {
+                    $tg->sendDirectMessage(
+                        $userChatId,
                         "🛡️ <b>ការជូនដំណឹងសុវត្ថិភាព៖ ការចូលប្រើប្រាស់គណនី</b>\n" .
                         "━━━━━━━━━━━━━━━━━━━━━\n\n" .
                         "សួស្តី <b>" . ($user->name_kh ?: $user->name) . "</b> 👋\n" .
@@ -250,8 +255,7 @@ class AuthenticatedSessionController extends Controller
                         "📱 <b>ឧបករណ៍៖</b> {$device} ({$browser})\n" .
                         "🌐 <b>IP Address៖</b> <code>{$ip}</code>\n\n" .
                         "⚠️ <i>ប្រសិនបើមិនមែនជាអ្នកទេ សូមចូលទៅប្តូរពាក្យសម្ងាត់ជាបន្ទាន់!</i>",
-                        'HTML',
-                        $userChatId
+                        'HTML'
                     );
                 }
             } catch (\Throwable $e) {
