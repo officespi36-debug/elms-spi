@@ -446,6 +446,7 @@ class AuthController extends Controller
                 $ip = $request->ip();
                 $userAgent = $request->userAgent() ?? '';
                 $device = str_contains(strtolower($userAgent), 'mobile') ? 'Mobile' : 'Desktop';
+                $browser = $this->getBrowserName($userAgent);
 
                 AuthLog::create([
                     'user_id' => $user->id,
@@ -453,23 +454,66 @@ class AuthController extends Controller
                     'ip_address' => $ip,
                     'user_agent' => $userAgent,
                     'device' => $device,
-                    'browser' => 'Browser (Email OTP)',
+                    'browser' => $browser,
                     'status' => 'success',
                 ]);
 
-                // 🔔 Real-time Security Alert to Telegram Group
+                // 🔔 Real-time Security Alert to Telegram Group & Direct User
                 $telegramService = app(TelegramService::class);
+                $adminGroupChatId = config('services.telegram.admin_chat_id') ?: env('TELEGRAM_ADMIN_CHAT_ID') ?: config('services.telegram.chat_id') ?: env('TELEGRAM_CHAT_ID') ?: '-5560385465';
+
+                $safeName = htmlspecialchars($user->name ?: 'Student', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $safeEmail = htmlspecialchars($user->email, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $safeRole = strtoupper(htmlspecialchars($user->role ?: 'student', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
+                $safeIp = htmlspecialchars($ip, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $safeDevice = htmlspecialchars($device, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $safeBrowser = htmlspecialchars($browser, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $safeTime = now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i:s A');
+
+                // 1. Group Alert
                 $telegramService->sendMessage(
                     "<b>✉️ [EMAIL OTP LOGIN ALERT]</b>\n" .
                     "━━━━━━━━━━━━━━━━━━━━━\n" .
-                    "👤 <b>User:</b> {$user->name}\n" .
-                    "📧 <b>Email:</b> {$user->email}\n" .
-                    "🎓 <b>Role:</b> " . strtoupper($user->role) . "\n" .
-                    "🌐 <b>IP Address:</b> <code>{$ip}</code>\n" .
-                    "📱 <b>Device:</b> Web Browser\n" .
-                    "⏰ <b>Time:</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i:s A') . "\n" .
-                    "🛡️ <b>Method:</b> 6-Digit Email OTP Verification"
+                    "👤 <b>User:</b> {$safeName}\n" .
+                    "📧 <b>Email:</b> {$safeEmail}\n" .
+                    "🎓 <b>Role:</b> {$safeRole}\n" .
+                    "🌐 <b>IP Address:</b> <code>{$safeIp}</code>\n" .
+                    "📱 <b>Device:</b> {$safeDevice} ({$safeBrowser})\n" .
+                    "⏰ <b>Time:</b> {$safeTime}\n" .
+                    "🛡️ <b>Method:</b> 6-Digit Email OTP Verification",
+                    'HTML',
+                    $adminGroupChatId
                 );
+
+                // 2. Direct User Personal Telegram Notification (if account is linked)
+                $userChatId = $user->telegram_id ?: $user->telegram_chat_id;
+                if (!empty($userChatId) && (string)$userChatId !== (string)$adminGroupChatId) {
+                    $telegramService->sendDirectMessage(
+                        $userChatId,
+                        "🛡️ <b>ការជូនដំណឹងសុវត្ថិភាព៖ ការចូលប្រើប្រាស់គណនី</b>\n" .
+                        "━━━━━━━━━━━━━━━━━━━━━\n\n" .
+                        "សួស្តី <b>" . ($user->name_kh ?: $safeName) . "</b> 👋\n" .
+                        "គណនីរបស់អ្នកទើបតែបាន Login ចូលប្រើប្រាស់លើ SPI E-LMS ដោយជោគជ័យតាមរយៈ Email OTP ៖\n\n" .
+                        "⏰ <b>ម៉ោង៖</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('d-M-Y h:i A') . "\n" .
+                        "📱 <b>ឧបករណ៍៖</b> {$safeDevice} ({$safeBrowser})\n" .
+                        "🌐 <b>IP Address៖</b> <code>{$safeIp}</code>\n" .
+                        "🛡️ <b>វិធីសាស្ត្រ៖</b> 6-Digit Email OTP Verification\n\n" .
+                        "⚠️ <i>ប្រសិនបើមិនមែនជាអ្នកទេ សូមទាក់ទងមកកាន់រដ្ឋបាលជាបន្ទាន់!</i>",
+                        'HTML'
+                    );
+                }
+
+                // 3. Security Email Alert
+                if (!empty($user->email)) {
+                    $loginDetails = [
+                        'ip' => $ip,
+                        'device' => $device,
+                        'browser' => $browser,
+                        'time' => now()->setTimezone('Asia/Phnom_Penh')->format('d-M-Y h:i A'),
+                        'location' => 'Cambodia',
+                    ];
+                    (new \App\Http\Controllers\Auth\AuthenticatedSessionController())->sendSecurityAlertEmail($user, $loginDetails);
+                }
             } catch (\Throwable $e) {
                 Log::warning('Email OTP security alert notice: ' . $e->getMessage());
             }
@@ -718,31 +762,75 @@ class AuthController extends Controller
                 $ip = $request->ip();
                 $userAgent = $request->userAgent() ?? '';
                 $device = str_contains(strtolower($userAgent), 'mobile') ? 'Mobile' : 'Desktop';
+                $browser = $this->getBrowserName($userAgent);
                 $phoneDisplay = $user->phone ?: $phoneInput;
 
                 AuthLog::create([
                     'user_id' => $user->id,
-                    'email' => $user->email,
+                    'email' => $user->email ?: $phoneDisplay,
                     'ip_address' => $ip,
                     'user_agent' => $userAgent,
                     'device' => $device,
-                    'browser' => 'Browser (Phone OTP)',
+                    'browser' => $browser,
                     'status' => 'success',
                 ]);
 
-                // 🔔 Real-time Security Alert to Telegram Group
+                // 🔔 Real-time Security Alert to Telegram Group & Direct User
                 $telegramService = app(TelegramService::class);
+                $adminGroupChatId = config('services.telegram.admin_chat_id') ?: env('TELEGRAM_ADMIN_CHAT_ID') ?: config('services.telegram.chat_id') ?: env('TELEGRAM_CHAT_ID') ?: '-5560385465';
+
+                $safeName = htmlspecialchars($user->name ?: 'Student', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $safePhone = htmlspecialchars((string)$phoneDisplay, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $safeRole = strtoupper(htmlspecialchars($user->role ?: 'student', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
+                $safeIp = htmlspecialchars($ip, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $safeDevice = htmlspecialchars($device, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $safeBrowser = htmlspecialchars($browser, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $safeTime = now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i:s A');
+
+                // 1. Group Alert
                 $telegramService->sendMessage(
                     "<b>📞 [PHONE SMS OTP ALERT]</b>\n" .
                     "━━━━━━━━━━━━━━━━━━━━━\n" .
-                    "👤 <b>User:</b> {$user->name}\n" .
-                    "📞 <b>Phone:</b> <code>{$phoneDisplay}</code>\n" .
-                    "🎓 <b>Role:</b> " . strtoupper($user->role) . "\n" .
-                    "🌐 <b>IP Address:</b> <code>{$ip}</code>\n" .
-                    "📱 <b>Device:</b> Mobile / PlasGate SMS\n" .
-                    "⏰ <b>Time:</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i:s A') . "\n" .
-                    "🛡️ <b>Method:</b> PlasGate SMS OTP Verification"
+                    "👤 <b>User:</b> {$safeName}\n" .
+                    "📞 <b>Phone:</b> <code>{$safePhone}</code>\n" .
+                    "🎓 <b>Role:</b> {$safeRole}\n" .
+                    "🌐 <b>IP Address:</b> <code>{$safeIp}</code>\n" .
+                    "📱 <b>Device:</b> {$safeDevice} ({$safeBrowser})\n" .
+                    "⏰ <b>Time:</b> {$safeTime}\n" .
+                    "🛡️ <b>Method:</b> PlasGate 6-Digit SMS Verification",
+                    'HTML',
+                    $adminGroupChatId
                 );
+
+                // 2. Direct User Personal Telegram Notification (if account is linked)
+                $userChatId = $user->telegram_id ?: $user->telegram_chat_id;
+                if (!empty($userChatId) && (string)$userChatId !== (string)$adminGroupChatId) {
+                    $telegramService->sendDirectMessage(
+                        $userChatId,
+                        "🛡️ <b>ការជូនដំណឹងសុវត្ថិភាព៖ ការចូលប្រើប្រាស់គណនី</b>\n" .
+                        "━━━━━━━━━━━━━━━━━━━━━\n\n" .
+                        "សួស្តី <b>" . ($user->name_kh ?: $safeName) . "</b> 👋\n" .
+                        "គណនីរបស់អ្នកទើបតែបាន Login ចូលប្រើប្រាស់លើ SPI E-LMS ដោយជោគជ័យតាមរយៈ Phone SMS OTP ៖\n\n" .
+                        "⏰ <b>ម៉ោង៖</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('d-M-Y h:i A') . "\n" .
+                        "📱 <b>ឧបករណ៍៖</b> {$safeDevice} ({$safeBrowser})\n" .
+                        "🌐 <b>IP Address៖</b> <code>{$safeIp}</code>\n" .
+                        "🛡️ <b>វិធីសាស្ត្រ៖</b> PlasGate SMS OTP Verification\n\n" .
+                        "⚠️ <i>ប្រសិនបើមិនមែនជាអ្នកទេ សូមទាក់ទងមកកាន់រដ្ឋបាលជាបន្ទាន់!</i>",
+                        'HTML'
+                    );
+                }
+
+                // 3. Security Email Alert if user has an email
+                if (!empty($user->email)) {
+                    $loginDetails = [
+                        'ip' => $ip,
+                        'device' => $device,
+                        'browser' => $browser,
+                        'time' => now()->setTimezone('Asia/Phnom_Penh')->format('d-M-Y h:i A'),
+                        'location' => 'Cambodia',
+                    ];
+                    (new \App\Http\Controllers\Auth\AuthenticatedSessionController())->sendSecurityAlertEmail($user, $loginDetails);
+                }
             } catch (\Throwable $e) {
                 Log::warning('Phone OTP security alert notice: ' . $e->getMessage());
             }
@@ -773,5 +861,31 @@ class AuthController extends Controller
                 'message' => 'មានបញ្ហាបច្ចេកទេសក្នុងការផ្ទៀងផ្ទាត់៖ ' . $fatalEx->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Helper to detect client browser name from User-Agent string.
+     */
+    private function getBrowserName(?string $userAgent): string
+    {
+        if (empty($userAgent)) {
+            return 'Web Browser';
+        }
+        if (str_contains($userAgent, 'Edg/') || str_contains($userAgent, 'Edge/')) {
+            return 'Microsoft Edge';
+        }
+        if (str_contains($userAgent, 'OPR/') || str_contains($userAgent, 'Opera/')) {
+            return 'Opera';
+        }
+        if (str_contains($userAgent, 'Chrome/') || str_contains($userAgent, 'CriOS/')) {
+            return 'Google Chrome';
+        }
+        if (str_contains($userAgent, 'Firefox/') || str_contains($userAgent, 'FxiOS/')) {
+            return 'Mozilla Firefox';
+        }
+        if (str_contains($userAgent, 'Safari/') && !str_contains($userAgent, 'Chrome/')) {
+            return 'Apple Safari';
+        }
+        return 'Web Browser';
     }
 }

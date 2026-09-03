@@ -228,15 +228,23 @@ class AuthenticatedSessionController extends Controller
                 $tg = app(TelegramService::class);
                 $adminGroupChatId = config('services.telegram.admin_chat_id') ?: env('TELEGRAM_ADMIN_CHAT_ID') ?: config('services.telegram.chat_id') ?: env('TELEGRAM_CHAT_ID') ?: '-5560385465';
 
+                $safeName = htmlspecialchars($user->name ?: 'User', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $safeAccount = htmlspecialchars($user->email, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $safeRole = strtoupper(htmlspecialchars($user->role ?: 'user', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
+                $safeIp = htmlspecialchars($ip, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $safeDevice = htmlspecialchars($device, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $safeBrowser = htmlspecialchars($browser, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $safeTime = now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i:s A');
+
                 $tg->sendMessage(
                     "<b>🔑 [PASSWORD LOGIN ALERT]</b>\n" .
                     "━━━━━━━━━━━━━━━━━━━━━\n" .
-                    "👤 <b>User:</b> {$user->name}\n" .
-                    "📧 <b>Account:</b> {$user->email}\n" .
-                    "🎓 <b>Role:</b> " . strtoupper($user->role) . "\n" .
-                    "🌐 <b>IP Address:</b> <code>{$ip}</code>\n" .
-                    "📱 <b>Device:</b> {$device} ({$browser})\n" .
-                    "⏰ <b>Time:</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i:s A') . "\n" .
+                    "👤 <b>User:</b> {$safeName}\n" .
+                    "📧 <b>Account:</b> {$safeAccount}\n" .
+                    "🎓 <b>Role:</b> {$safeRole}\n" .
+                    "🌐 <b>IP Address:</b> <code>{$safeIp}</code>\n" .
+                    "📱 <b>Device:</b> {$safeDevice} ({$safeBrowser})\n" .
+                    "⏰ <b>Time:</b> {$safeTime}\n" .
                     "🛡️ <b>Method:</b> Direct Password Authentication",
                     'HTML',
                     $adminGroupChatId
@@ -249,11 +257,11 @@ class AuthenticatedSessionController extends Controller
                         $userChatId,
                         "🛡️ <b>ការជូនដំណឹងសុវត្ថិភាព៖ ការចូលប្រើប្រាស់គណនី</b>\n" .
                         "━━━━━━━━━━━━━━━━━━━━━\n\n" .
-                        "សួស្តី <b>" . ($user->name_kh ?: $user->name) . "</b> 👋\n" .
+                        "សួស្តី <b>" . ($user->name_kh ?: $safeName) . "</b> 👋\n" .
                         "គណនីរបស់អ្នកទើបតែបាន Login ចូលប្រើប្រាស់លើ SPI E-LMS ដោយជោគជ័យ ៖\n\n" .
                         "⏰ <b>ម៉ោង៖</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('d-M-Y h:i A') . "\n" .
-                        "📱 <b>ឧបករណ៍៖</b> {$device} ({$browser})\n" .
-                        "🌐 <b>IP Address៖</b> <code>{$ip}</code>\n\n" .
+                        "📱 <b>ឧបករណ៍៖</b> {$safeDevice} ({$safeBrowser})\n" .
+                        "🌐 <b>IP Address៖</b> <code>{$safeIp}</code>\n\n" .
                         "⚠️ <i>ប្រសិនបើមិនមែនជាអ្នកទេ សូមចូលទៅប្តូរពាក្យសម្ងាត់ជាបន្ទាន់!</i>",
                         'HTML'
                     );

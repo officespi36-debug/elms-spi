@@ -218,7 +218,6 @@ class TelegramAuthController extends Controller
         $user->update([
             'login_attempts' => 0,
             'locked_until' => null,
-            'last_login_at' => now(),
         ]);
 
         AuthLog::create([
@@ -234,21 +233,69 @@ class TelegramAuthController extends Controller
         // Security notification via Telegram
         try {
             $tg = app(TelegramService::class);
+            $adminGroupChatId = config('services.telegram.admin_chat_id') ?: env('TELEGRAM_ADMIN_CHAT_ID') ?: config('services.telegram.chat_id') ?: env('TELEGRAM_CHAT_ID') ?: '-5560385465';
+
             $cleanUsername = ltrim($telegramUsername ?? '', '@');
             $tgUsernameStr = $cleanUsername ? "@{$cleanUsername}" : "@tg_{$telegramId}";
+
+            $safeName = htmlspecialchars($user->name ?: 'Telegram User', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $safeTgUser = htmlspecialchars($tgUsernameStr, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $safeTgId = htmlspecialchars((string)$telegramId, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $safeRole = strtoupper(htmlspecialchars($user->role ?: 'student', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
+            $safeIp = htmlspecialchars($ip, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $safeDevice = htmlspecialchars($device, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $safeBrowser = htmlspecialchars($browser, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $safeTime = now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i:s A');
+
+            // 1. Group Notification
             $tg->sendMessage(
                 "<b>🔵 [TELEGRAM LOGIN ALERT]</b>\n" .
                 "━━━━━━━━━━━━━━━━━━━━━\n" .
-                "👤 <b>User:</b> {$user->name}\n" .
-                "✈️ <b>Telegram:</b> {$tgUsernameStr} (<code>{$telegramId}</code>)\n" .
-                "🎓 <b>Role:</b> " . strtoupper($user->role) . "\n" .
-                "🌐 <b>IP Address:</b> <code>{$ip}</code>\n" .
-                "📱 <b>Device:</b> Desktop / Mobile\n" .
-                "⏰ <b>Time:</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i:s A') . "\n" .
-                "🛡️ <b>Method:</b> Telegram OAuth Widget Login"
+                "👤 <b>User:</b> {$safeName}\n" .
+                "✈️ <b>Telegram:</b> {$safeTgUser} (<code>{$safeTgId}</code>)\n" .
+                "🎓 <b>Role:</b> {$safeRole}\n" .
+                "🌐 <b>IP Address:</b> <code>{$safeIp}</code>\n" .
+                "📱 <b>Device:</b> {$safeDevice} ({$safeBrowser})\n" .
+                "⏰ <b>Time:</b> {$safeTime}\n" .
+                "🛡️ <b>Method:</b> Telegram OAuth Widget Login",
+                'HTML',
+                $adminGroupChatId
             );
+
+            // 2. Direct User Personal Alert
+            if (!empty($telegramId) && (string)$telegramId !== (string)$adminGroupChatId) {
+                $tg->sendDirectMessage(
+                    $telegramId,
+                    "🛡️ <b>ការជូនដំណឹងសុវត្ថិភាព៖ ការចូលប្រើប្រាស់គណនី</b>\n" .
+                    "━━━━━━━━━━━━━━━━━━━━━\n\n" .
+                    "សួស្តី <b>" . ($user->name_kh ?: $safeName) . "</b> 👋\n" .
+                    "គណនីរបស់អ្នកទើបតែបាន Login ចូលប្រើប្រាស់លើ SPI E-LMS ដោយជោគជ័យតាមរយៈ Telegram ៖\n\n" .
+                    "⏰ <b>ម៉ោង៖</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('d-M-Y h:i A') . "\n" .
+                    "📱 <b>ឧបករណ៍៖</b> {$safeDevice} ({$safeBrowser})\n" .
+                    "🌐 <b>IP Address៖</b> <code>{$safeIp}</code>\n" .
+                    "🛡️ <b>វិធីសាស្ត្រ៖</b> Telegram OAuth Widget Login\n\n" .
+                    "⚠️ <i>ប្រសិនបើមិនមែនជាអ្នកទេ សូមទាក់ទងមកកាន់រដ្ឋបាលជាបន្ទាន់!</i>",
+                    'HTML'
+                );
+            }
         } catch (\Throwable $e) {
             Log::warning('Telegram login notify failed: ' . $e->getMessage());
+        }
+
+        // Email Security Alert if email exists
+        try {
+            if (!empty($user->email)) {
+                $loginDetails = [
+                    'ip' => $ip,
+                    'device' => $device,
+                    'browser' => $browser,
+                    'time' => now()->setTimezone('Asia/Phnom_Penh')->format('d-M-Y h:i A'),
+                    'location' => 'Cambodia',
+                ];
+                (new \App\Http\Controllers\Auth\AuthenticatedSessionController())->sendSecurityAlertEmail($user, $loginDetails);
+            }
+        } catch (\Throwable $mailEx) {
+            Log::warning('Telegram login email alert notice: ' . $mailEx->getMessage());
         }
 
         // Generate JWT Token safely if configured

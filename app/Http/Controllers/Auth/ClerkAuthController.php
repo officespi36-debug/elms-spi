@@ -265,16 +265,27 @@ class ClerkAuthController extends Controller
                     'status' => 'success',
                 ]);
 
+                $adminGroupChatId = config('services.telegram.admin_chat_id') ?: env('TELEGRAM_ADMIN_CHAT_ID') ?: config('services.telegram.chat_id') ?: env('TELEGRAM_CHAT_ID') ?: '-5560385465';
                 $authProvider = $googleId ? 'GOOGLE' : 'CLERK';
+                $safeName = htmlspecialchars($user->name ?: 'User', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $safeEmail = htmlspecialchars($user->email, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $safeRole = strtoupper(htmlspecialchars($user->role ?: 'user', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
+                $safeIp = htmlspecialchars($ip, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $safeDevice = htmlspecialchars($device, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $safeTime = now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i:s A');
+
                 $telegramService->sendMessage(
-                    "<b>🔓 {$authProvider} OAUTH LOGIN SUCCESSFUL</b>\n" .
-                    "----------------------------------------\n" .
-                    "👤 <b>Name:</b> {$user->name}\n" .
-                    "📧 <b>Email:</b> {$user->email}\n" .
-                    "🎓 <b>Role:</b> " . strtoupper($user->role) . "\n" .
-                    "🌐 <b>IP Address:</b> {$ip}\n" .
-                    "📱 <b>Device:</b> {$device}\n" .
-                    "⏰ <b>Time:</b> " . now()->format('Y-m-d H:i:s') . "\n"
+                    "<b>🔓 [{$authProvider} OAUTH LOGIN ALERT]</b>\n" .
+                    "━━━━━━━━━━━━━━━━━━━━━\n" .
+                    "👤 <b>User:</b> {$safeName}\n" .
+                    "📧 <b>Email:</b> {$safeEmail}\n" .
+                    "🎓 <b>Role:</b> {$safeRole}\n" .
+                    "🌐 <b>IP Address:</b> <code>{$safeIp}</code>\n" .
+                    "📱 <b>Device:</b> {$safeDevice}\n" .
+                    "⏰ <b>Time:</b> {$safeTime}\n" .
+                    "🛡️ <b>Method:</b> {$authProvider} Single Sign-On",
+                    'HTML',
+                    $adminGroupChatId
                 );
             } catch (\Throwable $logEx) {
                 Log::warning('Clerk auth log warning: ' . $logEx->getMessage());
