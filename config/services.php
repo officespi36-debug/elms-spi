@@ -44,6 +44,12 @@ return [
         'webhook_secret'   => env('TELEGRAM_WEBHOOK_SECRET'),
     ],
 
+    'telegram_gateway' => [
+        'token'   => env('TELEGRAM_GATEWAY_TOKEN'),
+        'api_url' => env('TELEGRAM_GATEWAY_API_URL', 'https://gatewayapi.telegram.org'),
+        'ttl'     => (int) env('TELEGRAM_GATEWAY_TTL', 300),
+    ],
+
     'cloudconvert' => [
         'api_key' => env('CLOUDCONVERT_API_KEY'),
     ],

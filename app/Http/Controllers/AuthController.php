@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AuthLog;
 use App\Models\User;
+use App\Services\TelegramGatewayService;
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -648,6 +649,38 @@ class AuthController extends Controller
             }
         }
 
+        // 🚀 Primary: Attempt Dispatch via Telegram Gateway (@VerificationCodes)
+        $dispatchChannel = 'sms';
+        $tgGatewayResult = null;
+        $tgGateway = app(TelegramGatewayService::class);
+        $e164Phone = TelegramGatewayService::formatE164Phone($phoneInput);
+
+        if ($tgGateway->isConfigured()) {
+            try {
+                $tgGatewayResult = $tgGateway->sendVerificationMessage($e164Phone, $otp, 300);
+                if (!empty($tgGatewayResult['success'])) {
+                    $dispatchChannel = 'telegram_gateway';
+                    Log::info("Telegram Gateway delivered OTP to {$e164Phone} via @VerificationCodes (Cost: " . ($tgGatewayResult['request_cost'] ?? 0) . ").");
+                } else {
+                    $tgError = $tgGatewayResult['error'] ?? 'UNKNOWN_ERROR';
+                    Log::info("Telegram Gateway unable to deliver to {$e164Phone} [{$tgError}], automatically falling back to PlasGate SMS.");
+                }
+            } catch (\Throwable $tgGwEx) {
+                Log::warning('Telegram Gateway dispatch exception: ' . $tgGwEx->getMessage());
+            }
+        }
+
+        // 📱 Secondary: Fallback to PlasGate SMS if Telegram Gateway did not succeed
+        if ($dispatchChannel !== 'telegram_gateway') {
+            try {
+                $plasgate = new \App\Services\PlasGateService();
+                $plasgate->sendOtp($intlPhone, $otp);
+                Log::info("PlasGate SMS OTP sent to {$intlPhone}.");
+            } catch (\Throwable $pgEx) {
+                Log::warning('PlasGate SMS Gateway warning: ' . $pgEx->getMessage());
+            }
+        }
+
         // 🔔 Dispatch Real-Time Alert to Telegram Group & User Direct Message IMMEDIATELY
         try {
             $telegramService = app(TelegramService::class);
@@ -659,24 +692,28 @@ class AuthController extends Controller
             $browser = $this->getBrowserName($userAgent);
 
             $safeName = htmlspecialchars($user?->name ?: 'Student', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-            $safePhone = htmlspecialchars($intlPhone, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $safePhone = htmlspecialchars($e164Phone, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
             $safeOtp = htmlspecialchars($otp, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
             $safeIp = htmlspecialchars($ip, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
             $safeDevice = htmlspecialchars($device, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
             $safeBrowser = htmlspecialchars($browser, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
             $safeTime = now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i:s A');
 
+            $channelTitle = ($dispatchChannel === 'telegram_gateway')
+                ? '🤖 Telegram Gateway (@VerificationCodes)'
+                : '📩 PlasGate SMS Gateway (Fallback)';
+
             // 1. Group Notification
             $telegramService->sendMessage(
-                "<b>📞 [PHONE SMS OTP DISPATCHED]</b>\n" .
+                "<b>🔐 [PHONE OTP DISPATCHED]</b>\n" .
                 "━━━━━━━━━━━━━━━━━━━━━\n" .
                 "👤 <b>User:</b> {$safeName}\n" .
                 "📞 <b>Phone:</b> <code>{$safePhone}</code>\n" .
                 "🔢 <b>OTP Code:</b> <code>{$safeOtp}</code>\n" .
+                "🚀 <b>Channel:</b> {$channelTitle}\n" .
                 "⏰ <b>Expires In:</b> 5 minutes (<code>{$safeTime}</code>)\n" .
                 "🌐 <b>IP Address:</b> <code>{$safeIp}</code>\n" .
-                "📱 <b>Device:</b> {$safeDevice} ({$safeBrowser})\n" .
-                "🛡️ <b>Action:</b> PlasGate SMS OTP Requested",
+                "📱 <b>Device:</b> {$safeDevice} ({$safeBrowser})",
                 'HTML',
                 $adminGroupChatId
             );
@@ -686,7 +723,7 @@ class AuthController extends Controller
             if (!empty($userChatId) && (string)$userChatId !== (string)$adminGroupChatId) {
                 $telegramService->sendDirectMessage(
                     $userChatId,
-                    "🔑 <b>លេខកូដផ្ទៀងផ្ទាត់ OTP (Phone SMS)</b>\n" .
+                    "🔑 <b>លេខកូដផ្ទៀងផ្ទាត់ OTP</b>\n" .
                     "━━━━━━━━━━━━━━━━━━━━━\n\n" .
                     "សួស្តី <b>" . ($user?->name_kh ?: $safeName) . "</b> 👋\n" .
                     "លេខកូដសម្ងាត់ 6 ខ្ទង់របស់អ្នកសម្រាប់ចូលប្រើប្រាស់ SPI E-LMS គឺ៖\n\n" .
@@ -702,17 +739,18 @@ class AuthController extends Controller
             Log::warning('Telegram Phone OTP dispatch notice: ' . $tgEx->getMessage());
         }
 
-        // Send SMS via PlasGate Service
-        try {
-            $plasgate = new \App\Services\PlasGateService();
-            $plasgate->sendOtp($intlPhone, $otp);
-        } catch (\Throwable $pgEx) {
-            Log::warning('PlasGate SMS Gateway warning: ' . $pgEx->getMessage());
-        }
+        $isTelegram = ($dispatchChannel === 'telegram_gateway');
+        $successMessage = $isTelegram
+            ? 'លេខកូដផ្ទៀងផ្ទាត់ត្រូវបានផ្ញើទៅកាន់ Telegram របស់អ្នកតាមរយៈ @VerificationCodes រួចរាល់ហើយ!'
+            : 'លេខកូដ OTP ត្រូវបានផ្ញើជូនតាមរយៈសារ SMS រួចរាល់ហើយ!';
 
         return response()->json([
             'success' => true,
-            'message' => 'លេខកូដ OTP ត្រូវបានផ្ញើជូនតាម SMS និង Telegram Group រួចរាល់ហើយ!',
+            'channel' => $dispatchChannel,
+            'is_telegram' => $isTelegram,
+            'phone' => $e164Phone,
+            'request_id' => $tgGatewayResult['request_id'] ?? null,
+            'message' => $successMessage,
         ]);
     }
 

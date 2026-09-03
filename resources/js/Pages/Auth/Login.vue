@@ -146,7 +146,7 @@ const showSuccessModal = ref(false)
 const showErrorModal = ref(false)
 const statusMessage = ref<string | null>(null)
 const oauthNotice = ref<{
-  type: 'warning' | 'error' | 'success'
+  type: 'warning' | 'error' | 'success' | 'info'
   message: string
 } | null>(null)
 
@@ -233,6 +233,7 @@ const isOtpSending = ref(false)
 const isOtpVerifying = ref(false)
 const isPhoneOtpSending = ref(false)
 const isPhoneOtpVerifying = ref(false)
+const phoneOtpChannel = ref<'telegram_gateway' | 'sms' | null>(null)
 const otpCountdown = ref(0)
 const phoneOtpCountdown = ref(0)
 const emailResendCooldown = ref(0)
@@ -626,19 +627,24 @@ const sendPhoneOtp = async () => {
 
     const data = await response.json()
     if (response.ok && data.success) {
+      phoneOtpChannel.value = data.channel || (data.is_telegram ? 'telegram_gateway' : 'sms')
       phoneOtpStep.value = 2
       clearOtpDigits()
       startPhoneOtpTimer(300)
       startPhoneCooldown(60)
       focusFirstOtpDigit()
       oauthNotice.value = {
-        type: 'warning',
-        message: data.message || (currentLang.value === 'km' ? 'លេខកូដ OTP ត្រូវបានផ្ញើទៅកាន់លេខទូរសព្ទរបស់អ្នកតាមរយៈ SMS!' : 'OTP code has been sent to your phone via SMS!')
+        type: data.is_telegram ? 'info' : 'warning',
+        message: data.message || (
+          data.is_telegram
+            ? (currentLang.value === 'km' ? 'លេខកូដ OTP ត្រូវបានផ្ញើទៅកាន់ Telegram របស់អ្នកតាមរយៈ @VerificationCodes!' : 'OTP code sent to your Telegram via @VerificationCodes!')
+            : (currentLang.value === 'km' ? 'លេខកូដ OTP ត្រូវបានផ្ញើទៅកាន់លេខទូរសព្ទរបស់អ្នកតាមរយៈ SMS!' : 'OTP code has been sent to your phone via SMS!')
+        )
       }
     } else {
       oauthNotice.value = {
         type: 'error',
-        message: data.message || (currentLang.value === 'km' ? 'មិនអាចផ្ញើលេខកូដ SMS បានទេ!' : 'Failed to send SMS OTP code!')
+        message: data.message || (currentLang.value === 'km' ? 'មិនអាចផ្ញើលេខកូដ OTP បានទេ!' : 'Failed to send OTP code!')
       }
     }
   } catch (err: any) {
@@ -1301,13 +1307,20 @@ onUnmounted(() => {
             v-if="oauthNotice"
             :class="[
               'w-full mb-4 rounded-xl p-3 text-xs flex items-start justify-between gap-2.5 border transition-all',
-              oauthNotice.type === 'warning'
-                ? 'bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300 shadow-xs'
-                : 'bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-300 shadow-xs'
+              oauthNotice.type === 'info'
+                ? 'bg-sky-500/10 border-sky-500/30 text-sky-700 dark:text-sky-300 shadow-xs'
+                : oauthNotice.type === 'warning'
+                  ? 'bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300 shadow-xs'
+                  : 'bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-300 shadow-xs'
             ]"
           >
             <div class="flex items-start gap-2.5 min-w-0 flex-1">
-              <i :class="['shrink-0 text-sm mt-0.5', oauthNotice.type === 'warning' ? 'pi pi-exclamation-triangle text-amber-500 dark:text-amber-400' : 'pi pi-times-circle text-rose-500 dark:text-rose-400']"></i>
+              <i :class="[
+                'shrink-0 text-sm mt-0.5',
+                oauthNotice.type === 'info' ? 'pi pi-telegram text-sky-500 dark:text-sky-400' :
+                oauthNotice.type === 'warning' ? 'pi pi-exclamation-triangle text-amber-500 dark:text-amber-400' :
+                'pi pi-times-circle text-rose-500 dark:text-rose-400'
+              ]"></i>
               <div class="space-y-2 flex-1 min-w-0">
                 <span class="font-medium text-[11px] leading-relaxed block">{{ oauthNotice.message }}</span>
                 <!-- Quick Action: Direct Open Gmail Shortcut -->
@@ -1322,6 +1335,20 @@ onUnmounted(() => {
                       <path fill="#EA4335" d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.272H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L12 9.545l8.073-6.052C21.69 2.28 24 3.434 24 5.457z"/>
                     </svg>
                     <span>{{ currentLang === 'km' ? 'បើកមើលក្នុង Gmail' : 'Open Gmail Inbox' }}</span>
+                    <i class="pi pi-external-link text-[9px]"></i>
+                  </a>
+                </div>
+
+                <!-- Quick Action: Direct Open Telegram Shortcut for Verification Codes -->
+                <div v-if="authMode === 'phone_otp' && phoneOtpStep === 2 && oauthNotice.type === 'info'" class="pt-0.5">
+                  <a
+                    href="https://t.me/VerificationCodes"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-sky-800 dark:text-sky-200 font-bold text-[11px] transition-all active:scale-95 border border-sky-500/30"
+                  >
+                    <i class="pi pi-telegram text-xs text-sky-500"></i>
+                    <span>{{ currentLang === 'km' ? 'បើកមើលក្នុង @VerificationCodes' : 'Open @VerificationCodes' }}</span>
                     <i class="pi pi-external-link text-[9px]"></i>
                   </a>
                 </div>
@@ -1892,16 +1919,24 @@ onUnmounted(() => {
               ]"
             >
               <i v-if="isPhoneOtpSending" class="pi pi-spin pi-spinner text-sm mr-2"></i>
-              <span>{{ isPhoneOtpSending ? (currentLang === 'km' ? 'កំពុងផ្ញើសារ SMS...' : 'Sending SMS...') : (currentLang === 'km' ? 'ផ្ញើលេខកូដ OTP តាម SMS' : 'Send OTP via SMS') }}</span>
+              <span>{{ isPhoneOtpSending ? (currentLang === 'km' ? 'កំពុងផ្ញើលេខកូដ OTP...' : 'Sending OTP...') : (currentLang === 'km' ? 'ផ្ញើលេខកូដផ្ទៀងផ្ទាត់ OTP' : 'Send OTP Code') }}</span>
             </button>
           </div>
 
           <div v-else class="space-y-3.5 animate-fade-in">
             <div class="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-800 text-xs">
-              <div class="flex items-center gap-1.5 min-w-0">
-                <i class="pi pi-phone text-xs text-emerald-600 dark:text-emerald-400 shrink-0"></i>
+              <div class="flex items-center gap-1.5 min-w-0 flex-wrap">
+                <i :class="phoneOtpChannel === 'telegram_gateway' ? 'pi pi-telegram text-sky-500 text-xs shrink-0' : 'pi pi-phone text-emerald-600 dark:text-emerald-400 text-xs shrink-0'"></i>
                 <span class="text-zinc-500 dark:text-zinc-400">{{ currentLang === 'km' ? 'ផ្ញើទៅកាន់៖' : 'Sent to:' }}</span>
                 <strong class="text-zinc-800 dark:text-zinc-200 font-mono truncate">{{ formattedDisplayPhone }}</strong>
+                <span v-if="phoneOtpChannel === 'telegram_gateway'" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
+                  <i class="pi pi-check-circle text-[10px]"></i>
+                  Telegram @VerificationCodes
+                </span>
+                <span v-else class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  <i class="pi pi-envelope text-[10px]"></i>
+                  SMS Info
+                </span>
               </div>
               <button
                 type="button"
