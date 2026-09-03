@@ -253,14 +253,21 @@ class GoogleController extends Controller
             try {
                 $groupChatId = config('services.telegram.admin_chat_id') ?: env('TELEGRAM_ADMIN_CHAT_ID') ?: config('services.telegram.chat_id') ?: env('TELEGRAM_CHAT_ID') ?: '-5560385465';
 
+                $safeName = htmlspecialchars($user->name ?: 'Google User', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $safeEmail = htmlspecialchars($user->email, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $safeRole = strtoupper(htmlspecialchars($user->role ?: 'student', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
+                $safeIp = htmlspecialchars($ip, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $safeDevice = htmlspecialchars($device, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $safeBrowser = htmlspecialchars($browser, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
                 $telegramService->sendMessage(
                     "<b>🔴 [GOOGLE LOGIN ALERT]</b>\n" .
                     "━━━━━━━━━━━━━━━━━━━━━\n" .
-                    "👤 <b>User:</b> {$user->name}\n" .
-                    "📧 <b>Email:</b> {$user->email}\n" .
-                    "🎓 <b>Role:</b> " . strtoupper($user->role) . "\n" .
-                    "🌐 <b>IP Address:</b> <code>{$ip}</code>\n" .
-                    "📱 <b>Device:</b> {$device} ({$browser})\n" .
+                    "👤 <b>User:</b> {$safeName}\n" .
+                    "📧 <b>Email:</b> {$safeEmail}\n" .
+                    "🎓 <b>Role:</b> {$safeRole}\n" .
+                    "🌐 <b>IP Address:</b> <code>{$safeIp}</code>\n" .
+                    "📱 <b>Device:</b> {$safeDevice} ({$safeBrowser})\n" .
                     "⏰ <b>Time:</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i:s A') . "\n" .
                     "🛡️ <b>Method:</b> Google Single Sign-On (OAuth 2.0)",
                     'HTML',

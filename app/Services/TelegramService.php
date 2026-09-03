@@ -136,6 +136,34 @@ class TelegramService
                 return true;
             }
 
+            // If Telegram failed due to unparseable HTML tags/entities, retry as plain text
+            if ($code === 400 && str_contains((string)$body, "can't parse entities")) {
+                $plainPayload = $payload;
+                unset($plainPayload['parse_mode']);
+                $plainPayload['text'] = strip_tags($text);
+                $chPlain = curl_init($url);
+                curl_setopt_array($chPlain, [
+                    CURLOPT_POST           => true,
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_IPRESOLVE      => defined('CURL_IPRESOLVE_V4') ? CURL_IPRESOLVE_V4 : 1,
+                    CURLOPT_SSL_VERIFYPEER => false,
+                    CURLOPT_SSL_VERIFYHOST => false,
+                    CURLOPT_TIMEOUT        => 8,
+                    CURLOPT_CONNECTTIMEOUT => 4,
+                    CURLOPT_HTTPHEADER     => [
+                        'Content-Type: application/json',
+                        'Accept: application/json',
+                    ],
+                    CURLOPT_POSTFIELDS     => json_encode($plainPayload),
+                ]);
+                $plainBody = curl_exec($chPlain);
+                $plainCode = curl_getinfo($chPlain, CURLINFO_HTTP_CODE);
+                curl_close($chPlain);
+                if ($plainCode === 200) {
+                    return true;
+                }
+            }
+
             Log::warning("Telegram Direct Send Primary Failed for {$chatId}: HTTP {$code}, Error: {$err}, Body: " . substr((string)$body, 0, 150));
         } catch (\Throwable $e) {
             Log::warning("Telegram Direct Send Exception for {$chatId}: " . $e->getMessage());
@@ -280,6 +308,34 @@ class TelegramService
 
             if (!$err && $code === 200) {
                 return true;
+            }
+
+            // If Telegram failed due to unparseable HTML tags/entities, retry as plain text
+            if ($code === 400 && str_contains((string)$body, "can't parse entities")) {
+                $plainPayload = $payload;
+                unset($plainPayload['parse_mode']);
+                $plainPayload['text'] = strip_tags($text);
+                $chPlain = curl_init($url);
+                curl_setopt_array($chPlain, [
+                    CURLOPT_POST           => true,
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_IPRESOLVE      => defined('CURL_IPRESOLVE_V4') ? CURL_IPRESOLVE_V4 : 1,
+                    CURLOPT_SSL_VERIFYPEER => false,
+                    CURLOPT_SSL_VERIFYHOST => false,
+                    CURLOPT_TIMEOUT        => 8,
+                    CURLOPT_CONNECTTIMEOUT => 4,
+                    CURLOPT_HTTPHEADER     => [
+                        'Content-Type: application/json',
+                        'Accept: application/json',
+                    ],
+                    CURLOPT_POSTFIELDS     => json_encode($plainPayload),
+                ]);
+                $plainBody = curl_exec($chPlain);
+                $plainCode = curl_getinfo($chPlain, CURLINFO_HTTP_CODE);
+                curl_close($chPlain);
+                if ($plainCode === 200) {
+                    return true;
+                }
             }
 
             Log::warning("Telegram Send Primary Failed for {$target}: HTTP {$code}, Error: {$err}, Body: " . substr((string)$body, 0, 150));
