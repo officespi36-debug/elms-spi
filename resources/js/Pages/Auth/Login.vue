@@ -4,6 +4,7 @@ import { useForm, Link, router, usePage } from '@inertiajs/vue3'
 import { i18n, type LanguageCode } from '../../Services/i18n'
 import AuthAnimatedBackground from '../../Components/AuthAnimatedBackground.vue'
 import NetworkStatusPill from '../../Components/NetworkStatusPill.vue'
+import TelegramLoginModal from '../../Components/TelegramLoginModal.vue'
 
 const logoUrl = '/images/logo.png'
 
@@ -886,6 +887,14 @@ const authLoadingTitle = ref('')
 const authLoadingSubtitle = ref('')
 const isGoogleLoading = ref(false)
 const isTelegramLoading = ref(false)
+const showTelegramModal = ref(false)
+
+const onTelegramModalSuccess = (user: any) => {
+  showTelegramModal.value = false
+  isAuthenticating.value = true
+  authLoadingTitle.value = currentLang.value === 'km' ? 'ចូលប្រើប្រាស់ជោគជ័យ!' : 'Login Successful!'
+  authLoadingSubtitle.value = currentLang.value === 'km' ? 'កំពុងនាំអ្នកទៅកាន់ Dashboard...' : 'Redirecting to Dashboard...'
+}
 
 let activePopup: Window | null = null
 let popupCheckTimer: any = null
@@ -1391,7 +1400,7 @@ onUnmounted(() => {
             <button
               type="button"
               :disabled="isAuthenticating"
-              @click="redirectToTelegramOAuth"
+              @click="showTelegramModal = true"
               class="w-full h-11 px-4 rounded-xl bg-white hover:bg-zinc-50 dark:bg-[#18181b] dark:hover:bg-[#232327] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 text-zinc-900 dark:text-white text-xs sm:text-sm font-medium relative flex items-center justify-center transition-all duration-150 active:scale-[0.99] cursor-pointer disabled:opacity-50 select-none shadow-xs"
             >
               <svg class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 shrink-0 fill-[#0088cc] dark:fill-[#29b6f6]" viewBox="0 0 24 24">
@@ -2178,6 +2187,14 @@ onUnmounted(() => {
         </div>
       </div>
     </Transition>
+
+    <!-- Telegram Login Modal (KOOMPI ID / Device / Phone / QR code style) -->
+    <TelegramLoginModal
+      :show="showTelegramModal"
+      :current-lang="currentLang"
+      @close="showTelegramModal = false"
+      @success="onTelegramModalSuccess"
+    />
 
   </div>
 </template>

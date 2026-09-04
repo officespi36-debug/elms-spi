@@ -36,7 +36,9 @@ Route::match(['get', 'post'], 'auth/phone-otp/verify', [AuthController::class, '
 Route::match(['get', 'post'], 'api/auth/phone-otp/send', [AuthController::class, 'sendPhoneOtp'])->name('api.auth.phone-otp.send');
 Route::match(['get', 'post'], 'api/auth/phone-otp/verify', [AuthController::class, 'verifyPhoneOtp'])->name('api.auth.phone-otp.verify');
 
-// ─── Telegram OAuth Widget & Direct Redirect Routes ───
+// ─── Telegram OAuth Widget, QR Code & Direct Redirect Routes ───
+Route::post('auth/telegram/qr-init', [\App\Http\Controllers\Auth\TelegramAuthController::class, 'initQrSession'])->name('auth.telegram.qr-init');
+Route::get('auth/telegram/qr-status', [\App\Http\Controllers\Auth\TelegramAuthController::class, 'checkQrStatus'])->name('auth.telegram.qr-status');
 Route::match(['get', 'post'], 'auth/telegram', [\App\Http\Controllers\Auth\TelegramAuthController::class, 'handleCallback'])->name('auth.telegram');
 Route::get('auth/telegram/callback', [\App\Http\Controllers\Auth\TelegramAuthController::class, 'handleCallback'])->name('auth.telegram.callback');
 Route::match(['get', 'post'], 'api/auth/telegram', [\App\Http\Controllers\Auth\TelegramAuthController::class, 'handleCallback'])->name('api.auth.telegram');
