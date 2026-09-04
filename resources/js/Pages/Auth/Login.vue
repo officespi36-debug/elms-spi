@@ -896,6 +896,11 @@ const onTelegramModalSuccess = (user: any) => {
   authLoadingSubtitle.value = currentLang.value === 'km' ? 'កំពុងនាំអ្នកទៅកាន់ Dashboard...' : 'Redirecting to Dashboard...'
 }
 
+const onUseTelegramDevice = () => {
+  showTelegramModal.value = false
+  redirectToTelegramOAuth()
+}
+
 let activePopup: Window | null = null
 let popupCheckTimer: any = null
 
@@ -2194,6 +2199,7 @@ onUnmounted(() => {
       :current-lang="currentLang"
       @close="showTelegramModal = false"
       @success="onTelegramModalSuccess"
+      @use-device="onUseTelegramDevice"
     />
 
   </div>

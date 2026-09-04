@@ -10,6 +10,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'close'): void
   (e: 'success', user: any): void
+  (e: 'use-device'): void
 }>()
 
 type ScreenMode = 'options' | 'phone' | 'otp' | 'qr'
@@ -227,11 +228,26 @@ const onDigitKeydown = (index: number, e: KeyboardEvent) => {
   }
 }
 
+const executeDeviceOption = () => {
+  emit('use-device')
+  emit('close')
+}
+
+const chooseOption = (opt: SelectedOption) => {
+  selectedOption.value = opt
+  if (opt === 'device') {
+    executeDeviceOption()
+  } else if (opt === 'phone') {
+    screen.value = 'phone'
+  } else if (opt === 'qr') {
+    screen.value = 'qr'
+    generateQrCode()
+  }
+}
+
 const handleContinue = () => {
   if (selectedOption.value === 'device') {
-    // 1. Direct Telegram OAuth / Deep Link
-    const oauthUrl = 'https://oauth.telegram.org/auth?bot_id=8828915669&origin=https%3A%2F%2Fspilms.tech&return_to=https%3A%2F%2Fspilms.tech%2Fauth%2Ftelegram%2Fcallback&request_access=write'
-    window.open(oauthUrl, 'telegram_oauth', 'width=550,height=650')
+    executeDeviceOption()
   } else if (selectedOption.value === 'phone') {
     screen.value = 'phone'
   } else if (selectedOption.value === 'qr') {
@@ -316,10 +332,12 @@ onBeforeUnmount(() => {
             <!-- Radio Options Stack -->
             <div class="space-y-2.5">
               <!-- Option 1: Use Telegram on this device -->
-              <label
-                @click="selectedOption = 'device'"
+              <div
+                role="button"
+                tabindex="0"
+                @click="chooseOption('device')"
                 :class="[
-                  'flex items-center justify-between p-3.5 rounded-2xl border transition-all duration-150 cursor-pointer select-none',
+                  'flex items-center justify-between p-3.5 rounded-2xl border transition-all duration-150 cursor-pointer select-none active:scale-[0.99]',
                   selectedOption === 'device'
                     ? 'bg-[#202c3a] border-[#24A1DE] shadow-sm shadow-[#24A1DE]/20'
                     : 'bg-[#1c2633] border-slate-700/60 hover:border-slate-600 text-slate-300'
@@ -337,13 +355,15 @@ onBeforeUnmount(() => {
                 >
                   <div v-if="selectedOption === 'device'" class="w-2 h-2 rounded-full bg-white"></div>
                 </div>
-              </label>
+              </div>
 
               <!-- Option 2: Log in with a phone number -->
-              <label
-                @click="selectedOption = 'phone'"
+              <div
+                role="button"
+                tabindex="0"
+                @click="chooseOption('phone')"
                 :class="[
-                  'flex items-center justify-between p-3.5 rounded-2xl border transition-all duration-150 cursor-pointer select-none',
+                  'flex items-center justify-between p-3.5 rounded-2xl border transition-all duration-150 cursor-pointer select-none active:scale-[0.99]',
                   selectedOption === 'phone'
                     ? 'bg-[#202c3a] border-[#24A1DE] shadow-sm shadow-[#24A1DE]/20'
                     : 'bg-[#1c2633] border-slate-700/60 hover:border-slate-600 text-slate-300'
@@ -361,13 +381,15 @@ onBeforeUnmount(() => {
                 >
                   <div v-if="selectedOption === 'phone'" class="w-2 h-2 rounded-full bg-white"></div>
                 </div>
-              </label>
+              </div>
 
               <!-- Option 3: Scan a QR code -->
-              <label
-                @click="selectedOption = 'qr'"
+              <div
+                role="button"
+                tabindex="0"
+                @click="chooseOption('qr')"
                 :class="[
-                  'flex items-center justify-between p-3.5 rounded-2xl border transition-all duration-150 cursor-pointer select-none',
+                  'flex items-center justify-between p-3.5 rounded-2xl border transition-all duration-150 cursor-pointer select-none active:scale-[0.99]',
                   selectedOption === 'qr'
                     ? 'bg-[#202c3a] border-[#24A1DE] shadow-sm shadow-[#24A1DE]/20'
                     : 'bg-[#1c2633] border-slate-700/60 hover:border-slate-600 text-slate-300'
@@ -385,7 +407,7 @@ onBeforeUnmount(() => {
                 >
                   <div v-if="selectedOption === 'qr'" class="w-2 h-2 rounded-full bg-white"></div>
                 </div>
-              </label>
+              </div>
             </div>
 
             <!-- Continue Button -->
