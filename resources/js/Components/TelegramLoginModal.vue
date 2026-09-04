@@ -13,11 +13,16 @@ const emit = defineEmits<{
   (e: 'use-device'): void
 }>()
 
-type ScreenMode = 'options' | 'phone' | 'otp' | 'qr'
+type ScreenMode = 'options' | 'phone' | 'otp' | 'qr' | 'device_waiting'
 type SelectedOption = 'device' | 'phone' | 'qr'
 
 const screen = ref<ScreenMode>('options')
 const selectedOption = ref<SelectedOption>('device')
+
+// Device direct state
+const deviceTgAppUrl = ref('')
+const deviceTgWebUrl = ref('')
+const isDeviceLoading = ref(false)
 
 // Phone state
 const phone = ref('')
@@ -111,7 +116,7 @@ const startQrPolling = () => {
     } catch {
       // Keep polling on minor network glitches
     }
-  }, 2000)
+  }, 1500)
 }
 
 const stopQrPolling = () => {
@@ -228,9 +233,47 @@ const onDigitKeydown = (index: number, e: KeyboardEvent) => {
   }
 }
 
-const executeDeviceOption = () => {
-  emit('use-device')
-  emit('close')
+const executeDeviceOption = async () => {
+  screen.value = 'device_waiting'
+  isDeviceLoading.value = true
+  stopQrPolling()
+
+  try {
+    const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || ''
+    const res = await fetch('/auth/telegram/qr-init', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+    })
+    const data = await res.json()
+
+    if (res.ok && data.success && data.token) {
+      qrToken.value = data.token
+      const botUser = data.bot_username || 'spi_elms_auth_bot'
+      const appUrl = `tg://resolve?domain=${botUser}&start=login_${data.token}`
+      const webUrl = data.deep_link || `https://t.me/${botUser}?start=login_${data.token}`
+      deviceTgAppUrl.value = appUrl
+      deviceTgWebUrl.value = webUrl
+
+      // Automatically launch Telegram Desktop / Mobile App directly
+      try {
+        window.location.href = appUrl
+      } catch (_) {}
+
+      // Start polling for approval
+      startQrPolling()
+    } else {
+      screen.value = 'options'
+    }
+  } catch (e) {
+    screen.value = 'options'
+  } finally {
+    isDeviceLoading.value = false
+  }
 }
 
 const chooseOption = (opt: SelectedOption) => {
@@ -624,6 +667,67 @@ onBeforeUnmount(() => {
                   &lt; Other login options
                 </button>
               </div>
+            </div>
+          </div>
+
+          <!-- ═══════════════ SCREEN 4: USE TELEGRAM ON THIS DEVICE WAITING ═══════════════ -->
+          <div v-else-if="screen === 'device_waiting'" class="space-y-5 text-center">
+            <!-- Back Button -->
+            <div class="flex items-center justify-start">
+              <button
+                type="button"
+                @click="screen = 'options'; stopQrPolling()"
+                class="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition cursor-pointer"
+              >
+                <i class="pi pi-arrow-left text-xs"></i>
+                <span>{{ currentLang === 'km' ? 'ជម្រើសផ្សេងទៀត' : 'Other options' }}</span>
+              </button>
+            </div>
+
+            <!-- Pulsing Telegram Icon Animation -->
+            <div class="relative flex items-center justify-center my-3">
+              <div class="absolute w-24 h-24 rounded-full bg-[#24A1DE]/20 animate-ping pointer-events-none"></div>
+              <div class="relative w-20 h-20 rounded-full bg-[#24A1DE] flex items-center justify-center shadow-xl shadow-[#24A1DE]/40">
+                <svg class="w-10 h-10 text-white translate-x-[-1px] translate-y-[-1px]" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .4z"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="space-y-1.5">
+              <h2 class="text-xl font-bold text-white tracking-tight">
+                {{ currentLang === 'km' ? 'កំពុងបើក Telegram App...' : 'Opening Telegram App...' }}
+              </h2>
+              <p class="text-xs text-slate-400 leading-relaxed px-2">
+                {{ currentLang === 'km' ? 'សូមចុចប៊ូតុង START នៅក្នុង Telegram Bot ដើម្បីអនុញ្ញាតការចូលប្រើប្រាស់' : 'Please tap START in the Telegram Bot to confirm and log in.' }}
+              </p>
+            </div>
+
+            <!-- Pulsing Status Badge -->
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#202c3a] border border-[#24A1DE]/40 text-xs text-sky-300">
+              <span class="w-2 h-2 rounded-full bg-[#24A1DE] animate-pulse"></span>
+              <span>{{ currentLang === 'km' ? 'កំពុងរង់ចាំការបញ្ជាក់ពី Telegram...' : 'Waiting for Telegram confirmation...' }}</span>
+            </div>
+
+            <!-- Action Buttons Stack -->
+            <div class="space-y-2 pt-2">
+              <a
+                :href="deviceTgAppUrl"
+                class="w-full h-12 rounded-2xl font-semibold text-sm bg-[#24A1DE] hover:bg-[#1f93cc] active:scale-[0.99] text-white transition-all shadow-md shadow-[#24A1DE]/25 flex items-center justify-center gap-2 select-none"
+              >
+                <i class="pi pi-send"></i>
+                <span>{{ currentLang === 'km' ? 'បើក Telegram App លើឧបករណ៍នេះ' : 'Open Telegram on this device' }}</span>
+              </a>
+
+              <a
+                v-if="deviceTgWebUrl"
+                :href="deviceTgWebUrl"
+                target="_blank"
+                class="w-full h-10 rounded-xl text-xs font-medium text-slate-400 hover:text-white bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 transition flex items-center justify-center gap-1.5 select-none"
+              >
+                <i class="pi pi-external-link text-[11px]"></i>
+                <span>{{ currentLang === 'km' ? 'បើកតាម Telegram Web' : 'Open via Telegram Web' }}</span>
+              </a>
             </div>
           </div>
         </div>

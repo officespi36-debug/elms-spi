@@ -2199,7 +2199,6 @@ onUnmounted(() => {
       :current-lang="currentLang"
       @close="showTelegramModal = false"
       @success="onTelegramModalSuccess"
-      @use-device="onUseTelegramDevice"
     />
 
   </div>

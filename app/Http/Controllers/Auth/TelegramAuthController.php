@@ -938,7 +938,7 @@ class TelegramAuthController extends Controller
                         ],
                     ], now()->addMinutes(5));
 
-                    $replyText = "✅ <b>ការផ្ទៀងផ្ទាត់ Login តាម QR Code បានជោគជ័យ!</b>\n\n" .
+                    $replyText = "✅ <b>ការផ្ទៀងផ្ទាត់ Login តាម Telegram បានជោគជ័យ!</b>\n\n" .
                                  "សួស្តី <b>{$user->name}</b> 👋\n" .
                                  "គណនីរបស់អ្នកត្រូវបានផ្ទៀងផ្ទាត់ចូលប្រើប្រាស់ <b>spilms.tech</b> រួចរាល់ហើយ។\n\n" .
                                  "👉 <i>សូមក្រឡេកមើលទៅកាន់អេក្រង់កុំព្យូទ័ររបស់អ្នកដើម្បីបន្តការសិក្សា!</i>";
