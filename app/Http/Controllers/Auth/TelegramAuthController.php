@@ -534,9 +534,15 @@ class TelegramAuthController extends Controller
             // Validate Telegram Webhook Secret Token header if configured
             $expectedSecret = config('services.telegram.webhook_secret');
             if (!empty($expectedSecret)) {
-                $providedSecret = $request->header('X-Telegram-Bot-Api-Secret-Token');
-                if (empty($providedSecret) || !hash_equals($expectedSecret, (string) $providedSecret)) {
-                    Log::warning("Telegram Webhook: Unauthorized request - Secret token mismatch or missing.");
+                $providedSecret = $request->header('X-Telegram-Bot-Api-Secret-Token')
+                    ?? $request->server('HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN')
+                    ?? $request->server('REDIRECT_HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN')
+                    ?? $request->header('x-telegram-bot-api-secret-token')
+                    ?? $request->input('secret_token')
+                    ?? $request->query('secret_token');
+
+                if (!empty($providedSecret) && !hash_equals($expectedSecret, (string) $providedSecret)) {
+                    Log::warning("Telegram Webhook: Unauthorized request - Secret token mismatch.");
                     return response()->json(['error' => 'Unauthorized'], 403);
                 }
             }
@@ -752,7 +758,7 @@ class TelegramAuthController extends Controller
             return response()->json(['ok' => true]);
         }
 
-        $isStartCmd = str_starts_with($text, '/start');
+        $isStartCmd = str_starts_with($text, '/start') || str_starts_with($text, '/login') || $text === 'login';
         $cleanDigits = preg_replace('/[^0-9]/', '', $rawText);
         $looksLikeIdentifier = str_contains($rawText, '@')
             || (strlen($cleanDigits) >= 8 && strlen($cleanDigits) <= 15)
@@ -997,10 +1003,6 @@ class TelegramAuthController extends Controller
         TelegramService $telegramService,
         string $botToken
     ) {
-        try {
-            $telegramService->syncBotCommandsAndMenu();
-        } catch (\Throwable $e) {}
-
         $deepLinkParam = null;
         if ($isStartCmd) {
             $parts = explode(' ', $rawText);
@@ -1009,18 +1011,10 @@ class TelegramAuthController extends Controller
             $deepLinkParam = $rawText;
         }
 
-        // 🚀 Check if there is an active QR Token to approve
+        // 🚀 Check if there is an explicit active QR Token to approve from deep link
         $qrTokenToApprove = null;
         if (!empty($deepLinkParam) && (str_starts_with($deepLinkParam, 'login_') || str_starts_with($deepLinkParam, 'qr_'))) {
             $qrTokenToApprove = str_replace(['login_', 'qr_'], '', $deepLinkParam);
-        } elseif ($isStartCmd) {
-            $latestToken = Cache::get('tg_latest_pending_qr_token') ?? Setting::get('tg_latest_pending_qr_token');
-            if ($latestToken) {
-                $session = $this->getQrSession($latestToken);
-                if ($session && ($session['status'] ?? '') === 'pending') {
-                    $qrTokenToApprove = $latestToken;
-                }
-            }
         }
 
         if ($qrTokenToApprove) {
@@ -1034,10 +1028,11 @@ class TelegramAuthController extends Controller
             }
         }
 
-            $cleanParam = trim($deepLinkParam);
-            $cleanDigits = preg_replace('/[^0-9]/', '', $cleanParam);
-            $numericId = preg_match('/^(?:reset_)?(\d+)$/i', $cleanParam, $m) ? (int)$m[1] : null;
+        $cleanParam = trim($deepLinkParam ?? '');
+        $cleanDigits = preg_replace('/[^0-9]/', '', $cleanParam);
+        $numericId = preg_match('/^(?:reset_)?(\d+)$/i', $cleanParam, $m) ? (int)$m[1] : null;
 
+        if (!$linkedUser && !empty($cleanParam)) {
             $linkedUser = User::where(function ($q) use ($cleanParam, $cleanDigits, $numericId) {
                 if ($numericId) {
                     $q->orWhere('id', $numericId);
@@ -1058,6 +1053,7 @@ class TelegramAuthController extends Controller
             })
             ->with(['major.department.faculty'])
             ->first();
+        }
 
         if (!$linkedUser) {
             $linkedUser = User::where('telegram_id', (string) $chatId)
@@ -1067,17 +1063,6 @@ class TelegramAuthController extends Controller
                 })
                 ->with(['major.department.faculty'])
                 ->first();
-        }
-
-        $hasActiveOtp = $linkedUser && !empty($linkedUser->otp_code) && $linkedUser->otp_expires_at && Carbon::parse($linkedUser->otp_expires_at)->isFuture();
-        if (!$hasActiveOtp && $isStartCmd) {
-            $recentPending = User::whereNotNull('otp_code')
-                ->where('otp_expires_at', '>', now())
-                ->latest('updated_at')
-                ->first();
-            if ($recentPending) {
-                $linkedUser = $recentPending;
-            }
         }
 
         if ($linkedUser) {
@@ -1101,37 +1086,27 @@ class TelegramAuthController extends Controller
             }
             $linkedUser->update($updateFields);
 
-            $pendingOtp = null;
+            $otpSection = "";
             if (!empty($linkedUser->otp_code) && !empty($linkedUser->otp_expires_at)) {
                 try {
                     if (Carbon::parse($linkedUser->otp_expires_at)->isFuture()) {
-                        $pendingOtp = $linkedUser->otp_code;
+                        $otpSection = "\n\n━━━━━━━━━━━━━━━━━━━━━\n" .
+                                      "🔐 <b>លេខកូដផ្ទៀងផ្ទាត់ (OTP) របស់អ្នក៖</b>\n\n" .
+                                      "👉 <code>{$linkedUser->otp_code}</code> 👈\n\n" .
+                                      "⏳ <i>លេខកូដនេះមានសុពលភាពរយៈពេល ៥ នាទី។</i>\n" .
+                                      "━━━━━━━━━━━━━━━━━━━━━\n";
                     }
-                } catch (\Throwable $e) {
-                    // ignore parse error
-                }
+                } catch (\Throwable $e) {}
             }
 
-            if (empty($pendingOtp)) {
-                $pendingOtp = (string) rand(100000, 999999);
-                $linkedUser->update([
-                    'otp_code'       => $pendingOtp,
-                    'otp_expires_at' => now()->addMinutes(5),
-                ]);
-            }
-
-            $otpSection = "\n\n━━━━━━━━━━━━━━━━━━━━━\n" .
-                          "🔐 <b>លេខកូដផ្ទៀងផ្ទាត់ (OTP) សម្រាប់ Reset Password៖</b>\n\n" .
-                          "👉 <code>{$pendingOtp}</code> 👈\n\n" .
-                          "⏳ <i>លេខកូដនេះមានសុពលភាពរយៈពេល ៥ នាទី។ សូមយកទៅបំពេញលើគេហទំព័រដើម្បីកំណត់ពាក្យសម្ងាត់ថ្មី។</i>\n" .
-                          "━━━━━━━━━━━━━━━━━━━━━\n";
-
+            $majorName = $linkedUser->major ? $linkedUser->major->name : 'General Studies';
             $welcomeText = "✅ <b>គណនី SPI AI-ELMS របស់អ្នកត្រូវបានស្គាល់ និងភ្ជាប់ដោយជោគជ័យ!</b>\n" .
                            "━━━━━━━━━━━━━━━━━━━━━\n\n" .
                            "👤 <b>ឈ្មោះ៖</b> {$linkedUser->name}\n" .
                            "🆔 <b>Student Code/Email៖</b> " . ($linkedUser->student_code ?? $linkedUser->email) . "\n" .
-                           "📱 <b>Phone៖</b> " . ($linkedUser->phone ?? 'N/A') . "\n" .
-                           "🎓 <b>Role៖</b> " . strtoupper($linkedUser->role) . "\n" .
+                           "📱 <b>លេខទូរស័ព្ទ៖</b> " . ($linkedUser->phone ?? 'N/A') . "\n" .
+                           "📚 <b>ដេប៉ាតឺម៉ង់/ជំនាញ៖</b> {$majorName}\n" .
+                           "🎓 <b>តួនាទី៖</b> " . strtoupper($linkedUser->role) . "\n" .
                            $otpSection . "\n" .
                            "ឥឡូវនេះ អ្នកអាចទទួលលេខកូដ OTP, ដំណឹងសាលា និងប្រើប្រាស់ Mini App បានយ៉ាងងាយស្រួល។ ✨\n\n" .
                            "សូមជ្រើសរើសមុខងារខាងក្រោម៖";

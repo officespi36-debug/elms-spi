@@ -652,3 +652,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/api/ai-tutor/chat', [Student\AiTutorController::class, 'askTutor'])->name('ai.tutor.chat');
     });
 });
+
+// Direct Telegram Bot Webhook routes (supporting endpoints without /api prefix)
+Route::match(['get', 'post'], '/telegram/webhook', [\App\Http\Controllers\Auth\TelegramAuthController::class, 'handleWebhook']);
+Route::match(['get', 'post'], '/telegram-webhook', [\App\Http\Controllers\Auth\TelegramAuthController::class, 'handleWebhook']);
+Route::match(['get', 'post'], '/webhook/telegram', [\App\Http\Controllers\Auth\TelegramAuthController::class, 'handleWebhook']);
