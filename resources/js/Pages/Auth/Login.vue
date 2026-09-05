@@ -1604,21 +1604,52 @@ onUnmounted(() => {
         <!-- EMAIL OTP MODE VIEW (Optional Flow)                                       -->
         <!-- ========================================================================= -->
         <div v-else-if="authMode === 'otp'" class="w-full space-y-3 animate-fade-in">
-          <div class="flex items-center justify-between pb-1 border-b border-zinc-200 dark:border-zinc-800">
-            <button type="button" @click="authMode = 'password'; step = 'identifier'" class="text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white flex items-center cursor-pointer transition-colors">
+          <div class="flex items-center justify-between pb-2 border-b border-zinc-200 dark:border-zinc-800">
+            <button
+              type="button"
+              @click="authMode = 'password'; step = 'identifier'"
+              class="text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white flex items-center gap-1 cursor-pointer transition-colors"
+            >
+              <i class="pi pi-arrow-left text-[10px]"></i>
               <span>{{ currentLang === 'km' ? 'ត្រឡប់ក្រោយ' : 'Back' }}</span>
             </button>
-            <span class="text-[11px] text-zinc-500 font-medium">
-              {{ otpStep === 1 ? (currentLang === 'km' ? 'ជំហានទី ១: ផ្ញើកូដ' : 'Step 1: Send OTP') : (currentLang === 'km' ? 'ជំហានទី ២: ផ្ទៀងផ្ទាត់' : 'Step 2: Verify') }}
-            </span>
+            <!-- Sleek Minimalist Step Indicator (Circles) -->
+            <div class="flex items-center gap-1.5 select-none" aria-label="Step Indicator">
+              <span
+                :class="[
+                  'w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-200',
+                  otpStep === 1
+                    ? 'bg-blue-600 text-white shadow-xs shadow-blue-500/30 ring-2 ring-blue-500/20'
+                    : 'bg-emerald-500 text-white'
+                ]"
+              >
+                <i v-if="otpStep > 1" class="pi pi-check text-[8px]"></i>
+                <span v-else>1</span>
+              </span>
+              <span
+                :class="[
+                  'w-4 h-0.5 rounded-full transition-colors duration-200',
+                  otpStep > 1 ? 'bg-emerald-500' : 'bg-zinc-200 dark:bg-zinc-700'
+                ]"
+              ></span>
+              <span
+                :class="[
+                  'w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-200',
+                  otpStep === 2
+                    ? 'bg-blue-600 text-white shadow-xs shadow-blue-500/30 ring-2 ring-blue-500/20'
+                    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 border border-zinc-200 dark:border-zinc-700'
+                ]"
+              >
+                2
+              </span>
+            </div>
           </div>
 
           <div v-if="otpStep === 1" class="space-y-3.5">
             <!-- Email Input Field with Icon Prefix & Clear Button -->
             <div class="space-y-1.5">
-              <label class="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 flex items-center justify-between">
-                <span>{{ currentLang === 'km' ? 'អាសយដ្ឋានអ៊ីមែល' : 'Email Address' }}</span>
-                <span class="text-[10px] text-zinc-400 font-normal">{{ currentLang === 'km' ? 'ទទួលកូដ OTP 6 ខ្ទង់' : 'Receive 6-digit OTP' }}</span>
+              <label class="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                {{ currentLang === 'km' ? 'អាសយដ្ឋានអ៊ីមែល' : 'Email Address' }}
               </label>
 
               <div class="relative w-full group">
@@ -1716,7 +1747,7 @@ onUnmounted(() => {
               ]"
             >
               <i v-if="isOtpSending" class="pi pi-spin pi-spinner text-sm mr-2"></i>
-              <span>{{ isOtpSending ? (currentLang === 'km' ? 'កំពុងផ្ញើលេខកូដ...' : 'Sending code...') : (currentLang === 'km' ? 'ផ្ញើលេខកូដ OTP ទៅ Email' : 'Send OTP to Email') }}</span>
+              <span>{{ isOtpSending ? (currentLang === 'km' ? 'កំពុងផ្ញើលេខកូដ...' : 'Sending code...') : (currentLang === 'km' ? 'ផ្ញើលេខកូដ OTP' : 'Send OTP') }}</span>
             </button>
           </div>
 
@@ -1888,16 +1919,36 @@ onUnmounted(() => {
             <button type="button" @click="authMode = 'password'; step = 'identifier'" class="text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white flex items-center cursor-pointer transition-colors">
               <span>{{ currentLang === 'km' ? 'ត្រឡប់ក្រោយ' : 'Back' }}</span>
             </button>
-            <span class="text-[11px] text-zinc-500 font-medium">
-              {{ phoneOtpStep === 1 ? (currentLang === 'km' ? 'ជំហានទី ១: ផ្ញើកូដ SMS' : 'Step 1: Send SMS') : (currentLang === 'km' ? 'ជំហានទី ២: ផ្ទៀងផ្ទាត់' : 'Step 2: Verify') }}
-            </span>
+            <div class="flex items-center gap-1.5">
+              <span
+                :class="[
+                  'w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-all',
+                  phoneOtpStep === 1
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'bg-emerald-600 text-white'
+                ]"
+              >
+                <i v-if="phoneOtpStep > 1" class="pi pi-check text-[9px]"></i>
+                <span v-else>1</span>
+              </span>
+              <span class="w-3 h-0.5 rounded-full bg-zinc-300 dark:bg-zinc-700"></span>
+              <span
+                :class="[
+                  'w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-all',
+                  phoneOtpStep === 2
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 border border-zinc-200 dark:border-zinc-700'
+                ]"
+              >
+                2
+              </span>
+            </div>
           </div>
 
           <div v-if="phoneOtpStep === 1" class="space-y-3.5">
             <div class="space-y-1.5">
-              <label class="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 flex items-center justify-between">
-                <span>{{ currentLang === 'km' ? 'លេខទូរស័ព្ទ' : 'Phone Number' }}</span>
-                <span class="text-[10px] text-zinc-400 font-normal">{{ currentLang === 'km' ? 'ទទួលកូដ OTP តាម SMS' : 'Receive OTP via SMS' }}</span>
+              <label class="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                {{ currentLang === 'km' ? 'លេខទូរស័ព្ទ' : 'Phone Number' }}
               </label>
 
               <div class="relative w-full group">
@@ -1938,7 +1989,7 @@ onUnmounted(() => {
               ]"
             >
               <i v-if="isPhoneOtpSending" class="pi pi-spin pi-spinner text-sm mr-2"></i>
-              <span>{{ isPhoneOtpSending ? (currentLang === 'km' ? 'កំពុងផ្ញើលេខកូដ OTP...' : 'Sending OTP...') : (currentLang === 'km' ? 'ផ្ញើលេខកូដផ្ទៀងផ្ទាត់ OTP' : 'Send OTP Code') }}</span>
+              <span>{{ isPhoneOtpSending ? (currentLang === 'km' ? 'កំពុងផ្ញើលេខកូដ...' : 'Sending code...') : (currentLang === 'km' ? 'ផ្ញើលេខកូដ OTP' : 'Send OTP') }}</span>
             </button>
           </div>
 
