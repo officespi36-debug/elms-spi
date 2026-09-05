@@ -21,56 +21,9 @@ const logoUrl = '/images/logo.png'
 const screen = ref<ScreenMode>('options')
 const selectedOption = ref<SelectedOption>('device')
 
-interface CountryItem {
-  name: string
-  dialCode: string
-  flag: string
-  code: string
-}
+import { WORLD_COUNTRIES, type CountryItem } from '@/data/countries'
 
-const countries: CountryItem[] = [
-  { name: 'Cambodia', dialCode: '+855', flag: '🇰🇭', code: 'KH' },
-  { name: 'Afghanistan', dialCode: '+93', flag: '🇦🇫', code: 'AF' },
-  { name: 'Albania', dialCode: '+355', flag: '🇦🇱', code: 'AL' },
-  { name: 'Algeria', dialCode: '+213', flag: '🇩🇿', code: 'DZ' },
-  { name: 'American Samoa', dialCode: '+1684', flag: '🇦🇸', code: 'AS' },
-  { name: 'Andorra', dialCode: '+376', flag: '🇦🇩', code: 'AD' },
-  { name: 'Angola', dialCode: '+244', flag: '🇦🇴', code: 'AO' },
-  { name: 'Argentina', dialCode: '+54', flag: '🇦🇷', code: 'AR' },
-  { name: 'Australia', dialCode: '+61', flag: '🇦🇺', code: 'AU' },
-  { name: 'Austria', dialCode: '+43', flag: '🇦🇹', code: 'AT' },
-  { name: 'Bahrain', dialCode: '+973', flag: '🇧🇭', code: 'BH' },
-  { name: 'Bangladesh', dialCode: '+880', flag: '🇧🇩', code: 'BD' },
-  { name: 'Belgium', dialCode: '+32', flag: '🇧🇪', code: 'BE' },
-  { name: 'Brazil', dialCode: '+55', flag: '🇧🇷', code: 'BR' },
-  { name: 'Canada', dialCode: '+1', flag: '🇨🇦', code: 'CA' },
-  { name: 'China', dialCode: '+86', flag: '🇨🇳', code: 'CN' },
-  { name: 'Egypt', dialCode: '+20', flag: '🇪🇬', code: 'EG' },
-  { name: 'France', dialCode: '+33', flag: '🇫🇷', code: 'FR' },
-  { name: 'Germany', dialCode: '+49', flag: '🇩🇪', code: 'DE' },
-  { name: 'Hong Kong', dialCode: '+852', flag: '🇭🇰', code: 'HK' },
-  { name: 'India', dialCode: '+91', flag: '🇮🇳', code: 'IN' },
-  { name: 'Indonesia', dialCode: '+62', flag: '🇮🇩', code: 'ID' },
-  { name: 'Italy', dialCode: '+39', flag: '🇮🇹', code: 'IT' },
-  { name: 'Japan', dialCode: '+81', flag: '🇯🇵', code: 'JP' },
-  { name: 'Laos', dialCode: '+856', flag: '🇱🇦', code: 'LA' },
-  { name: 'Malaysia', dialCode: '+60', flag: '🇲🇾', code: 'MY' },
-  { name: 'Myanmar', dialCode: '+95', flag: '🇲🇲', code: 'MM' },
-  { name: 'New Zealand', dialCode: '+64', flag: '🇳🇿', code: 'NZ' },
-  { name: 'Philippines', dialCode: '+63', flag: '🇵🇭', code: 'PH' },
-  { name: 'Qatar', dialCode: '+974', flag: '🇶🇦', code: 'QA' },
-  { name: 'Saudi Arabia', dialCode: '+966', flag: '🇸🇦', code: 'SA' },
-  { name: 'Singapore', dialCode: '+65', flag: '🇸🇬', code: 'SG' },
-  { name: 'South Korea', dialCode: '+82', flag: '🇰🇷', code: 'KR' },
-  { name: 'Spain', dialCode: '+34', flag: '🇪🇸', code: 'ES' },
-  { name: 'Taiwan', dialCode: '+886', flag: '🇹🇼', code: 'TW' },
-  { name: 'Thailand', dialCode: '+66', flag: '🇹🇭', code: 'TH' },
-  { name: 'United Arab Emirates', dialCode: '+971', flag: '🇦🇪', code: 'AE' },
-  { name: 'United Kingdom', dialCode: '+44', flag: '🇬🇧', code: 'GB' },
-  { name: 'United States', dialCode: '+1', flag: '🇺🇸', code: 'US' },
-  { name: 'Vietnam', dialCode: '+84', flag: '🇻🇳', code: 'VN' },
-]
-
+const countries: CountryItem[] = WORLD_COUNTRIES
 const selectedCountry = ref<CountryItem>(countries[0])
 const isCountryDropdownOpen = ref(false)
 const countrySearch = ref('')
@@ -78,7 +31,12 @@ const countrySearch = ref('')
 const filteredCountries = computed(() => {
   const q = countrySearch.value.trim().toLowerCase()
   if (!q) return countries
-  return countries.filter(c => c.name.toLowerCase().includes(q) || c.dialCode.includes(q))
+  return countries.filter(c =>
+    c.name.toLowerCase().includes(q) ||
+    (c.nameKm && c.nameKm.toLowerCase().includes(q)) ||
+    c.dialCode.includes(q) ||
+    c.code.toLowerCase().includes(q)
+  )
 })
 
 const selectCountry = (c: CountryItem) => {
@@ -558,7 +516,7 @@ onBeforeUnmount(() => {
                             loading="lazy"
                           />
                         </span>
-                        <span class="truncate">{{ c.name }}</span>
+                        <span class="truncate">{{ currentLang === 'km' && c.nameKm ? `${c.nameKm} (${c.name})` : c.name }}</span>
                       </div>
                       <span class="text-xs font-mono text-zinc-400 shrink-0 ml-2">{{ c.dialCode }}</span>
                     </button>
