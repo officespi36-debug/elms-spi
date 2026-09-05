@@ -505,8 +505,15 @@ onBeforeUnmount(() => {
                   @click="isCountryDropdownOpen = !isCountryDropdownOpen"
                   class="w-full h-11 px-3.5 rounded-xl bg-white dark:bg-[#121214] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 text-xs sm:text-sm flex items-center justify-between text-zinc-900 dark:text-white transition cursor-pointer shadow-2xs"
                 >
-                  <div class="flex items-center gap-2 truncate">
-                    <span class="inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 font-mono">{{ selectedCountry.code }}</span>
+                  <div class="flex items-center gap-2.5 truncate">
+                    <span class="relative w-5 h-3.5 rounded-xs overflow-hidden shadow-xs border border-zinc-200/80 dark:border-zinc-700/80 shrink-0 inline-flex items-center justify-center bg-zinc-100 dark:bg-zinc-800">
+                      <img
+                        :src="`https://flagcdn.com/w40/${selectedCountry.code.toLowerCase()}.png`"
+                        :alt="selectedCountry.name"
+                        class="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    </span>
                     <span class="font-medium truncate">{{ selectedCountry.name }}</span>
                     <span class="text-xs font-mono text-zinc-400">({{ selectedCountry.dialCode }})</span>
                   </div>
@@ -538,12 +545,19 @@ onBeforeUnmount(() => {
                       type="button"
                       @click="selectCountry(c)"
                       :class="[
-                        'w-full px-3.5 py-2 text-xs flex items-center justify-between text-left hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition cursor-pointer',
+                        'w-full px-3.5 py-2.5 text-xs flex items-center justify-between text-left hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition cursor-pointer',
                         selectedCountry.code === c.code ? 'text-blue-600 dark:text-white font-semibold bg-blue-50 dark:bg-zinc-800' : 'text-zinc-700 dark:text-zinc-300'
                       ]"
                     >
-                      <div class="flex items-center gap-2 truncate">
-                        <span class="inline-flex items-center justify-center px-1.5 py-0.5 text-[9px] font-bold rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700 font-mono">{{ c.code }}</span>
+                      <div class="flex items-center gap-2.5 truncate">
+                        <span class="relative w-5 h-3.5 rounded-xs overflow-hidden shadow-xs border border-zinc-200/80 dark:border-zinc-700/80 shrink-0 inline-flex items-center justify-center bg-zinc-100 dark:bg-zinc-800">
+                          <img
+                            :src="`https://flagcdn.com/w40/${c.code.toLowerCase()}.png`"
+                            :alt="c.name"
+                            class="w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                        </span>
                         <span class="truncate">{{ c.name }}</span>
                       </div>
                       <span class="text-xs font-mono text-zinc-400 shrink-0 ml-2">{{ c.dialCode }}</span>
