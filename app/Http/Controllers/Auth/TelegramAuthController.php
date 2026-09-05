@@ -36,6 +36,8 @@ class TelegramAuthController extends Controller
             'created_at' => now()->timestamp,
         ], $expiresAt);
 
+        Cache::put('tg_latest_pending_qr_token', $token, $expiresAt);
+
         $deepLink = "https://t.me/{$botUsername}?start=login_{$token}";
 
         return response()->json([
@@ -550,6 +552,9 @@ class TelegramAuthController extends Controller
                         'parse_mode' => 'HTML',
                     ]);
                 }
+            } elseif (str_starts_with($cbData, 'approve_qr_')) {
+                $qrToken = substr($cbData, 11);
+                $this->approveQrSession($qrToken, $chatId, $callbackQuery['from'] ?? [], $botToken);
             }
         }
 
@@ -883,7 +888,9 @@ class TelegramAuthController extends Controller
         TelegramService $telegramService,
         string $botToken
     ) {
-        $telegramService->syncBotCommandsAndMenu();
+        try {
+            $telegramService->syncBotCommandsAndMenu();
+        } catch (\Throwable $e) {}
 
         $deepLinkParam = null;
         if ($isStartCmd) {
@@ -893,74 +900,30 @@ class TelegramAuthController extends Controller
             $deepLinkParam = $rawText;
         }
 
-        if (!empty($deepLinkParam)) {
-            // 🚀 Handle Telegram QR Code Scan Authentication (login_<token> or qr_<token>)
-            if (str_starts_with($deepLinkParam, 'login_') || str_starts_with($deepLinkParam, 'qr_')) {
-                $qrToken = str_replace(['login_', 'qr_'], '', $deepLinkParam);
-                $qrSession = Cache::get('tg_qr_' . $qrToken);
-
-                if ($qrSession && ($qrSession['status'] ?? '') === 'pending') {
-                    $user = User::where('telegram_id', (string) $chatId)
-                        ->orWhere('telegram_chat_id', (string) $chatId)
-                        ->first();
-
-                    if (!$user && !empty($telegramUsername)) {
-                        $user = User::where('telegram_username', $telegramUsername)->first();
-                    }
-
-                    if (!$user) {
-                        $user = User::create([
-                            'name' => $senderName ?: 'Telegram User',
-                            'email' => 'tg_' . $chatId . '@spilms.tech',
-                            'password' => Hash::make(Str::random(32)),
-                            'role' => 'student',
-                            'telegram_id' => (string) $chatId,
-                            'telegram_chat_id' => (string) $chatId,
-                            'telegram_username' => $telegramUsername,
-                            'status' => 'active',
-                        ]);
-                    } else {
-                        $user->update([
-                            'telegram_id' => (string) $chatId,
-                            'telegram_chat_id' => (string) $chatId,
-                            'telegram_username' => $telegramUsername ?: $user->telegram_username,
-                        ]);
-                    }
-
-                    Cache::put('tg_qr_' . $qrToken, [
-                        'status' => 'approved',
-                        'user_id' => $user->id,
-                        'user' => [
-                            'id' => $user->id,
-                            'name' => $user->name,
-                            'role' => $user->role,
-                            'avatar' => $user->avatar,
-                        ],
-                    ], now()->addMinutes(5));
-
-                    $replyText = "✅ <b>ការផ្ទៀងផ្ទាត់ Login តាម Telegram បានជោគជ័យ!</b>\n\n" .
-                                 "សួស្តី <b>{$user->name}</b> 👋\n" .
-                                 "គណនីរបស់អ្នកត្រូវបានផ្ទៀងផ្ទាត់ចូលប្រើប្រាស់ <b>spilms.tech</b> រួចរាល់ហើយ។\n\n" .
-                                 "👉 <i>សូមក្រឡេកមើលទៅកាន់អេក្រង់កុំព្យូទ័ររបស់អ្នកដើម្បីបន្តការសិក្សា!</i>";
-
-                    $inlineKeyboard = [
-                        'inline_keyboard' => [
-                            [
-                                ['text' => '🚀 បើក E-LMS Dashboard', 'web_app' => ['url' => 'https://spilms.tech/student/dashboard']]
-                            ]
-                        ]
-                    ];
-
-                    Http::withoutVerifying()->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
-                        'chat_id' => $chatId,
-                        'text' => $replyText,
-                        'parse_mode' => 'HTML',
-                        'reply_markup' => json_encode($inlineKeyboard)
-                    ]);
-
-                    return response()->json(['ok' => true]);
+        // 🚀 Check if there is an active QR Token to approve
+        $qrTokenToApprove = null;
+        if (!empty($deepLinkParam) && (str_starts_with($deepLinkParam, 'login_') || str_starts_with($deepLinkParam, 'qr_'))) {
+            $qrTokenToApprove = str_replace(['login_', 'qr_'], '', $deepLinkParam);
+        } elseif ($isStartCmd) {
+            $latestToken = Cache::get('tg_latest_pending_qr_token');
+            if ($latestToken) {
+                $session = Cache::get('tg_qr_' . $latestToken);
+                if ($session && ($session['status'] ?? '') === 'pending' && (now()->timestamp - ($session['created_at'] ?? 0) <= 300)) {
+                    $qrTokenToApprove = $latestToken;
                 }
             }
+        }
+
+        if ($qrTokenToApprove) {
+            $approved = $this->approveQrSession($qrTokenToApprove, $chatId, [
+                'first_name' => $senderName,
+                'username'   => $telegramUsername,
+            ], $botToken);
+
+            if ($approved) {
+                return response()->json(['ok' => true]);
+            }
+        }
 
             $cleanParam = trim($deepLinkParam);
             $cleanDigits = preg_replace('/[^0-9]/', '', $cleanParam);
@@ -986,7 +949,6 @@ class TelegramAuthController extends Controller
             })
             ->with(['major.department.faculty'])
             ->first();
-        }
 
         if (!$linkedUser) {
             $linkedUser = User::where('telegram_id', (string) $chatId)
@@ -1127,6 +1089,80 @@ class TelegramAuthController extends Controller
         ]);
 
         return response()->json(['ok' => true]);
+    }
+
+    /**
+     * Approve Telegram QR Code Login Session
+     */
+    private function approveQrSession(string $qrToken, int|string $chatId, array $from, string $botToken): bool
+    {
+        $qrSession = Cache::get('tg_qr_' . $qrToken);
+        if (!$qrSession || ($qrSession['status'] ?? '') !== 'pending') {
+            return false;
+        }
+
+        $senderName = $from['first_name'] ?? 'Student';
+        $telegramUsername = $from['username'] ?? null;
+
+        $user = User::where('telegram_id', (string) $chatId)
+            ->orWhere('telegram_chat_id', (string) $chatId)
+            ->first();
+
+        if (!$user && !empty($telegramUsername)) {
+            $user = User::where('telegram_username', $telegramUsername)->first();
+        }
+
+        if (!$user) {
+            $user = User::create([
+                'name' => $senderName ?: 'Telegram User',
+                'email' => 'tg_' . $chatId . '@spilms.tech',
+                'password' => Hash::make(Str::random(32)),
+                'role' => 'student',
+                'telegram_id' => (string) $chatId,
+                'telegram_chat_id' => (string) $chatId,
+                'telegram_username' => $telegramUsername,
+                'status' => 'active',
+            ]);
+        } else {
+            $user->update([
+                'telegram_id' => (string) $chatId,
+                'telegram_chat_id' => (string) $chatId,
+                'telegram_username' => $telegramUsername ?: $user->telegram_username,
+            ]);
+        }
+
+        Cache::put('tg_qr_' . $qrToken, [
+            'status' => 'approved',
+            'user_id' => $user->id,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'role' => $user->role,
+                'avatar' => $user->avatar,
+            ],
+        ], now()->addMinutes(5));
+
+        $replyText = "✅ <b>ការផ្ទៀងផ្ទាត់ Login តាម Telegram បានជោគជ័យ!</b>\n\n" .
+                     "សួស្តី <b>{$user->name}</b> 👋\n" .
+                     "គណនីរបស់អ្នកត្រូវបានផ្ទៀងផ្ទាត់ចូលប្រើប្រាស់ <b>spilms.tech</b> រួចរាល់ហើយ។\n\n" .
+                     "👉 <i>សូមក្រឡេកមើលទៅកាន់អេក្រង់កុំព្យូទ័ររបស់អ្នកដើម្បីបន្តការសិក្សា!</i>";
+
+        $inlineKeyboard = [
+            'inline_keyboard' => [
+                [
+                    ['text' => '🚀 បើក E-LMS Dashboard', 'web_app' => ['url' => 'https://spilms.tech/student/dashboard']]
+                ]
+            ]
+        ];
+
+        Http::withoutVerifying()->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+            'chat_id' => $chatId,
+            'text' => $replyText,
+            'parse_mode' => 'HTML',
+            'reply_markup' => json_encode($inlineKeyboard)
+        ]);
+
+        return true;
     }
 
     private function getBrowserName($userAgent)
