@@ -8,7 +8,6 @@ export interface CountryItem {
 export const WORLD_COUNTRIES: CountryItem[] = [
   // Primary & ASEAN
   { name: 'Cambodia', nameKm: 'កម្ពុជា', dialCode: '+855', code: 'KH' },
-  { name: 'Thailand', nameKm: 'ថៃ', dialCode: '+66', code: 'TH' },
   { name: 'Vietnam', nameKm: 'វៀតណាម', dialCode: '+84', code: 'VN' },
   { name: 'Laos', nameKm: 'ឡាវ', dialCode: '+856', code: 'LA' },
   { name: 'Singapore', nameKm: 'សិង្ហបុរី', dialCode: '+65', code: 'SG' },
