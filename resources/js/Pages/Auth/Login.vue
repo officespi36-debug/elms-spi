@@ -879,7 +879,12 @@ const submit = async () => {
 }
 
 const getTelegramOAuthUrl = () => {
-  return 'https://oauth.telegram.org/auth?bot_id=8828915669&origin=https%3A%2F%2Fspilms.tech&return_to=https%3A%2F%2Fspilms.tech%2Fauth%2Ftelegram%2Fcallback&request_access=write'
+  const botId = (page.props as any)?.telegram?.bot_id || '8828915669'
+  const origin = typeof window !== 'undefined' && window.location.origin.includes('spilms.tech')
+    ? 'https://spilms.tech'
+    : (typeof window !== 'undefined' ? window.location.origin : 'https://spilms.tech')
+  const returnTo = `${origin}/auth/telegram/callback`
+  return `https://oauth.telegram.org/auth?client_id=${botId}&bot_id=${botId}&origin=${encodeURIComponent(origin)}&return_to=${encodeURIComponent(returnTo)}&request_access=write`
 }
 
 const isAuthenticating = ref(false)
@@ -2199,6 +2204,7 @@ onUnmounted(() => {
       :current-lang="currentLang"
       @close="showTelegramModal = false"
       @success="onTelegramModalSuccess"
+      @use-device="onUseTelegramDevice"
     />
 
   </div>

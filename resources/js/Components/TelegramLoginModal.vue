@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onBeforeUnmount } from 'vue'
 import QRCode from 'qrcode'
 
 const props = defineProps<{
@@ -13,16 +13,77 @@ const emit = defineEmits<{
   (e: 'use-device'): void
 }>()
 
-type ScreenMode = 'options' | 'phone' | 'otp' | 'qr' | 'device_waiting'
+type ScreenMode = 'options' | 'phone' | 'otp' | 'qr'
 type SelectedOption = 'device' | 'phone' | 'qr'
 
 const screen = ref<ScreenMode>('options')
 const selectedOption = ref<SelectedOption>('device')
 
-// Device direct state
-const deviceTgAppUrl = ref('')
-const deviceTgWebUrl = ref('')
-const isDeviceLoading = ref(false)
+interface CountryItem {
+  name: string
+  dialCode: string
+  flag: string
+  code: string
+}
+
+const countries: CountryItem[] = [
+  { name: 'Cambodia', dialCode: '+855', flag: '🇰🇭', code: 'KH' },
+  { name: 'Afghanistan', dialCode: '+93', flag: '🇦🇫', code: 'AF' },
+  { name: 'Albania', dialCode: '+355', flag: '🇦🇱', code: 'AL' },
+  { name: 'Algeria', dialCode: '+213', flag: '🇩🇿', code: 'DZ' },
+  { name: 'American Samoa', dialCode: '+1684', flag: '🇦🇸', code: 'AS' },
+  { name: 'Andorra', dialCode: '+376', flag: '🇦🇩', code: 'AD' },
+  { name: 'Angola', dialCode: '+244', flag: '🇦🇴', code: 'AO' },
+  { name: 'Argentina', dialCode: '+54', flag: '🇦🇷', code: 'AR' },
+  { name: 'Australia', dialCode: '+61', flag: '🇦🇺', code: 'AU' },
+  { name: 'Austria', dialCode: '+43', flag: '🇦🇹', code: 'AT' },
+  { name: 'Bahrain', dialCode: '+973', flag: '🇧🇭', code: 'BH' },
+  { name: 'Bangladesh', dialCode: '+880', flag: '🇧🇩', code: 'BD' },
+  { name: 'Belgium', dialCode: '+32', flag: '🇧🇪', code: 'BE' },
+  { name: 'Brazil', dialCode: '+55', flag: '🇧🇷', code: 'BR' },
+  { name: 'Canada', dialCode: '+1', flag: '🇨🇦', code: 'CA' },
+  { name: 'China', dialCode: '+86', flag: '🇨🇳', code: 'CN' },
+  { name: 'Egypt', dialCode: '+20', flag: '🇪🇬', code: 'EG' },
+  { name: 'France', dialCode: '+33', flag: '🇫🇷', code: 'FR' },
+  { name: 'Germany', dialCode: '+49', flag: '🇩🇪', code: 'DE' },
+  { name: 'Hong Kong', dialCode: '+852', flag: '🇭🇰', code: 'HK' },
+  { name: 'India', dialCode: '+91', flag: '🇮🇳', code: 'IN' },
+  { name: 'Indonesia', dialCode: '+62', flag: '🇮🇩', code: 'ID' },
+  { name: 'Italy', dialCode: '+39', flag: '🇮🇹', code: 'IT' },
+  { name: 'Japan', dialCode: '+81', flag: '🇯🇵', code: 'JP' },
+  { name: 'Laos', dialCode: '+856', flag: '🇱🇦', code: 'LA' },
+  { name: 'Malaysia', dialCode: '+60', flag: '🇲🇾', code: 'MY' },
+  { name: 'Myanmar', dialCode: '+95', flag: '🇲🇲', code: 'MM' },
+  { name: 'New Zealand', dialCode: '+64', flag: '🇳🇿', code: 'NZ' },
+  { name: 'Philippines', dialCode: '+63', flag: '🇵🇭', code: 'PH' },
+  { name: 'Qatar', dialCode: '+974', flag: '🇶🇦', code: 'QA' },
+  { name: 'Saudi Arabia', dialCode: '+966', flag: '🇸🇦', code: 'SA' },
+  { name: 'Singapore', dialCode: '+65', flag: '🇸🇬', code: 'SG' },
+  { name: 'South Korea', dialCode: '+82', flag: '🇰🇷', code: 'KR' },
+  { name: 'Spain', dialCode: '+34', flag: '🇪🇸', code: 'ES' },
+  { name: 'Taiwan', dialCode: '+886', flag: '🇹🇼', code: 'TW' },
+  { name: 'Thailand', dialCode: '+66', flag: '🇹🇭', code: 'TH' },
+  { name: 'United Arab Emirates', dialCode: '+971', flag: '🇦🇪', code: 'AE' },
+  { name: 'United Kingdom', dialCode: '+44', flag: '🇬🇧', code: 'GB' },
+  { name: 'United States', dialCode: '+1', flag: '🇺🇸', code: 'US' },
+  { name: 'Vietnam', dialCode: '+84', flag: '🇻🇳', code: 'VN' },
+]
+
+const selectedCountry = ref<CountryItem>(countries[0])
+const isCountryDropdownOpen = ref(false)
+const countrySearch = ref('')
+
+const filteredCountries = computed(() => {
+  const q = countrySearch.value.trim().toLowerCase()
+  if (!q) return countries
+  return countries.filter(c => c.name.toLowerCase().includes(q) || c.dialCode.includes(q))
+})
+
+const selectCountry = (c: CountryItem) => {
+  selectedCountry.value = c
+  isCountryDropdownOpen.value = false
+  countrySearch.value = ''
+}
 
 // Phone state
 const phone = ref('')
@@ -45,9 +106,10 @@ let qrPollTimer: any = null
 const formattedIntlPhone = computed(() => {
   const raw = phone.value.trim().replace(/[^0-9]/g, '')
   if (!raw) return ''
-  if (raw.startsWith('855')) return '+' + raw
-  if (raw.startsWith('0')) return '+855' + raw.substring(1)
-  return '+855' + raw
+  const dial = selectedCountry.value.dialCode.replace('+', '')
+  if (raw.startsWith(dial)) return '+' + raw
+  if (raw.startsWith('0')) return '+' + dial + raw.substring(1)
+  return '+' + dial + raw
 })
 
 // Generate QR Code with canvas/DataURL
@@ -233,64 +295,14 @@ const onDigitKeydown = (index: number, e: KeyboardEvent) => {
   }
 }
 
-const executeDeviceOption = async () => {
-  screen.value = 'device_waiting'
-  isDeviceLoading.value = true
-  stopQrPolling()
-
-  try {
-    const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || ''
-    const res = await fetch('/auth/telegram/qr-init', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'X-CSRF-TOKEN': csrfToken,
-        'X-Requested-With': 'XMLHttpRequest',
-      },
-    })
-    const data = await res.json()
-
-    if (res.ok && data.success && data.token) {
-      qrToken.value = data.token
-      const botUser = data.bot_username || 'spi_elms_auth_bot'
-      const appUrl = `tg://resolve?domain=${botUser}&start=login_${data.token}`
-      const webUrl = data.deep_link || `https://t.me/${botUser}?start=login_${data.token}`
-      deviceTgAppUrl.value = appUrl
-      deviceTgWebUrl.value = webUrl
-
-      // Automatically launch Telegram Desktop / Mobile App directly
-      try {
-        window.location.href = appUrl
-      } catch (_) {}
-
-      // Start polling for approval
-      startQrPolling()
-    } else {
-      screen.value = 'options'
-    }
-  } catch (e) {
-    screen.value = 'options'
-  } finally {
-    isDeviceLoading.value = false
-  }
-}
-
 const chooseOption = (opt: SelectedOption) => {
   selectedOption.value = opt
-  if (opt === 'device') {
-    executeDeviceOption()
-  } else if (opt === 'phone') {
-    screen.value = 'phone'
-  } else if (opt === 'qr') {
-    screen.value = 'qr'
-    generateQrCode()
-  }
 }
 
 const handleContinue = () => {
   if (selectedOption.value === 'device') {
-    executeDeviceOption()
+    emit('use-device')
+    emit('close')
   } else if (selectedOption.value === 'phone') {
     screen.value = 'phone'
   } else if (selectedOption.value === 'qr') {
@@ -303,10 +315,13 @@ watch(() => props.show, (newVal) => {
   if (newVal) {
     screen.value = 'options'
     selectedOption.value = 'device'
+    isCountryDropdownOpen.value = false
+    countrySearch.value = ''
     otpError.value = null
     phone.value = ''
   } else {
     stopQrPolling()
+    isCountryDropdownOpen.value = false
   }
 })
 
@@ -363,7 +378,7 @@ onBeforeUnmount(() => {
             </div>
           </div>
 
-          <!-- ═══════════════ SCREEN 1: LOGIN OPTIONS ═══════════════ -->
+          <!-- ═══════════════ SCREEN 1: LOGIN OPTIONS (Screenshot 5) ═══════════════ -->
           <div v-if="screen === 'options'" class="space-y-6">
             <div class="text-center space-y-1">
               <h2 class="text-xl font-bold text-white tracking-tight">Login options</h2>
@@ -463,7 +478,7 @@ onBeforeUnmount(() => {
             </button>
           </div>
 
-          <!-- ═══════════════ SCREEN 2: PHONE NUMBER LOGIN ═══════════════ -->
+          <!-- ═══════════════ SCREEN 2: PHONE NUMBER LOGIN (Screenshot 4) ═══════════════ -->
           <div v-else-if="screen === 'phone'" class="space-y-5">
             <div class="text-center space-y-1">
               <h2 class="text-xl font-bold text-white tracking-tight">Log in to spilms.tech</h2>
@@ -473,20 +488,66 @@ onBeforeUnmount(() => {
             </div>
 
             <div class="space-y-3 pt-1">
-              <!-- Country Dropdown (Cambodia Default) -->
+              <!-- Searchable Country Dropdown (Screenshot 4 style) -->
               <div class="relative">
-                <div class="w-full h-11 px-3.5 rounded-xl bg-[#1c2633] border border-slate-700/70 text-sm flex items-center justify-between text-slate-200">
-                  <div class="flex items-center gap-2">
-                    <span class="text-base">🇰🇭</span>
-                    <span class="font-medium">Cambodia</span>
+                <button
+                  type="button"
+                  @click="isCountryDropdownOpen = !isCountryDropdownOpen"
+                  class="w-full h-11 px-3.5 rounded-xl bg-[#1c2633] border border-slate-700/70 text-sm flex items-center justify-between text-slate-200 hover:border-slate-600 transition cursor-pointer"
+                >
+                  <div class="flex items-center gap-2 truncate">
+                    <span class="text-base">{{ selectedCountry.flag }}</span>
+                    <span class="font-medium text-slate-200 truncate">{{ selectedCountry.name }}</span>
+                    <span class="text-xs font-mono text-slate-400">({{ selectedCountry.dialCode }})</span>
                   </div>
-                  <i class="pi pi-chevron-down text-xs text-slate-400"></i>
+                  <i :class="['pi text-xs text-slate-400 transition-transform duration-200', isCountryDropdownOpen ? 'pi-chevron-up' : 'pi-chevron-down']"></i>
+                </button>
+
+                <!-- Dropdown Menu with Search Input -->
+                <div
+                  v-if="isCountryDropdownOpen"
+                  class="absolute left-0 right-0 top-12 z-30 bg-[#1c2633] border border-slate-700 rounded-xl shadow-2xl overflow-hidden animate-fade-in"
+                >
+                  <div class="p-2 border-b border-slate-700/80 bg-[#17212b]">
+                    <div class="relative flex items-center">
+                      <i class="pi pi-search absolute left-3 text-xs text-slate-400"></i>
+                      <input
+                        v-model="countrySearch"
+                        type="text"
+                        placeholder="Search"
+                        autofocus
+                        class="w-full h-8 pl-8 pr-3 bg-[#111822] text-xs text-white rounded-lg border border-slate-700/70 focus:outline-none focus:border-[#24A1DE]"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="max-h-48 overflow-y-auto divide-y divide-slate-800/60 custom-scrollbar">
+                    <button
+                      v-for="c in filteredCountries"
+                      :key="c.code"
+                      type="button"
+                      @click="selectCountry(c)"
+                      :class="[
+                        'w-full px-3.5 py-2 text-xs flex items-center justify-between text-left hover:bg-[#202c3a] transition cursor-pointer',
+                        selectedCountry.code === c.code ? 'text-[#24A1DE] font-semibold bg-[#202c3a]/70' : 'text-slate-300'
+                      ]"
+                    >
+                      <div class="flex items-center gap-2 truncate">
+                        <span class="text-sm">{{ c.flag }}</span>
+                        <span class="truncate">{{ c.name }}</span>
+                      </div>
+                      <span class="text-xs font-mono text-slate-400 shrink-0 ml-2">{{ c.dialCode }}</span>
+                    </button>
+                    <div v-if="filteredCountries.length === 0" class="p-3 text-center text-xs text-slate-500">
+                      No country found
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <!-- Phone Number Input with Prefix -->
+              <!-- Phone Number Input with Dial Code Prefix -->
               <div class="relative flex items-center rounded-xl bg-[#1c2633] border border-slate-700/70 focus-within:border-[#24A1DE] focus-within:ring-2 focus-within:ring-[#24A1DE]/20 transition">
-                <span class="pl-3.5 pr-2 text-sm font-mono text-slate-400 select-none">+855</span>
+                <span class="pl-3.5 pr-2 text-sm font-mono text-slate-400 select-none">{{ selectedCountry.dialCode }}</span>
                 <input
                   v-model="phone"
                   type="tel"
@@ -520,19 +581,19 @@ onBeforeUnmount(() => {
               <span>{{ isSendingOtp ? 'Sending code...' : 'Continue' }}</span>
             </button>
 
-            <!-- Back Link -->
+            <!-- Other Login Options Link (Screenshot 4 style) -->
             <div class="text-center pt-1">
               <button
                 type="button"
                 @click="screen = 'options'"
                 class="text-xs text-[#24A1DE] hover:underline cursor-pointer flex items-center justify-center gap-1 mx-auto"
               >
-                <span>&lt; Other login options</span>
+                <span>Other login options &gt;</span>
               </button>
             </div>
           </div>
 
-          <!-- ═══════════════ SCREEN 2B: OTP VERIFICATION ═══════════════ -->
+          <!-- ═══════════════ SCREEN 3: OTP VERIFICATION ═══════════════ -->
           <div v-else-if="screen === 'otp'" class="space-y-5">
             <div class="text-center space-y-1">
               <h2 class="text-xl font-bold text-white tracking-tight">Enter confirmation code</h2>
@@ -596,7 +657,7 @@ onBeforeUnmount(() => {
             </div>
           </div>
 
-          <!-- ═══════════════ SCREEN 3: SCAN QR CODE ═══════════════ -->
+          <!-- ═══════════════ SCREEN 4: SCAN QR CODE (Screenshot 3 link) ═══════════════ -->
           <div v-else-if="screen === 'qr'" class="space-y-5">
             <div class="text-center space-y-1">
               <h2 class="text-xl font-bold text-white tracking-tight">Continue with Telegram</h2>
@@ -669,69 +730,24 @@ onBeforeUnmount(() => {
               </div>
             </div>
           </div>
-
-          <!-- ═══════════════ SCREEN 4: USE TELEGRAM ON THIS DEVICE WAITING ═══════════════ -->
-          <div v-else-if="screen === 'device_waiting'" class="space-y-5 text-center">
-            <!-- Back Button -->
-            <div class="flex items-center justify-start">
-              <button
-                type="button"
-                @click="screen = 'options'; stopQrPolling()"
-                class="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition cursor-pointer"
-              >
-                <i class="pi pi-arrow-left text-xs"></i>
-                <span>{{ currentLang === 'km' ? 'ជម្រើសផ្សេងទៀត' : 'Other options' }}</span>
-              </button>
-            </div>
-
-            <!-- Pulsing Telegram Icon Animation -->
-            <div class="relative flex items-center justify-center my-3">
-              <div class="absolute w-24 h-24 rounded-full bg-[#24A1DE]/20 animate-ping pointer-events-none"></div>
-              <div class="relative w-20 h-20 rounded-full bg-[#24A1DE] flex items-center justify-center shadow-xl shadow-[#24A1DE]/40">
-                <svg class="w-10 h-10 text-white translate-x-[-1px] translate-y-[-1px]" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .4z"/>
-                </svg>
-              </div>
-            </div>
-
-            <div class="space-y-1.5">
-              <h2 class="text-xl font-bold text-white tracking-tight">
-                {{ currentLang === 'km' ? 'កំពុងបើក Telegram App...' : 'Opening Telegram App...' }}
-              </h2>
-              <p class="text-xs text-slate-400 leading-relaxed px-2">
-                {{ currentLang === 'km' ? 'សូមចុចប៊ូតុង START នៅក្នុង Telegram Bot ដើម្បីអនុញ្ញាតការចូលប្រើប្រាស់' : 'Please tap START in the Telegram Bot to confirm and log in.' }}
-              </p>
-            </div>
-
-            <!-- Pulsing Status Badge -->
-            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#202c3a] border border-[#24A1DE]/40 text-xs text-sky-300">
-              <span class="w-2 h-2 rounded-full bg-[#24A1DE] animate-pulse"></span>
-              <span>{{ currentLang === 'km' ? 'កំពុងរង់ចាំការបញ្ជាក់ពី Telegram...' : 'Waiting for Telegram confirmation...' }}</span>
-            </div>
-
-            <!-- Action Buttons Stack -->
-            <div class="space-y-2 pt-2">
-              <a
-                :href="deviceTgAppUrl"
-                class="w-full h-12 rounded-2xl font-semibold text-sm bg-[#24A1DE] hover:bg-[#1f93cc] active:scale-[0.99] text-white transition-all shadow-md shadow-[#24A1DE]/25 flex items-center justify-center gap-2 select-none"
-              >
-                <i class="pi pi-send"></i>
-                <span>{{ currentLang === 'km' ? 'បើក Telegram App លើឧបករណ៍នេះ' : 'Open Telegram on this device' }}</span>
-              </a>
-
-              <a
-                v-if="deviceTgWebUrl"
-                :href="deviceTgWebUrl"
-                target="_blank"
-                class="w-full h-10 rounded-xl text-xs font-medium text-slate-400 hover:text-white bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 transition flex items-center justify-center gap-1.5 select-none"
-              >
-                <i class="pi pi-external-link text-[11px]"></i>
-                <span>{{ currentLang === 'km' ? 'បើកតាម Telegram Web' : 'Open via Telegram Web' }}</span>
-              </a>
-            </div>
-          </div>
         </div>
       </div>
     </Transition>
   </Teleport>
 </template>
+
+<style scoped>
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.4);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.5);
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.8);
+}
+</style>
