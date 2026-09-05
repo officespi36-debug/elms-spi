@@ -1301,6 +1301,7 @@ class TelegramAuthController extends Controller
         $browser = $session['browser'] ?? 'Chrome 152';
         $ip = $session['ip'] ?? ($request->ip() ?: '36.37.147.32');
         $location = $session['location'] ?? 'Cambodia';
+        $currentUser = Auth::user();
 
         return view('auth.telegram-confirm-sheet', [
             'token' => $token,
@@ -1309,6 +1310,56 @@ class TelegramAuthController extends Controller
             'ip' => $ip,
             'location' => $location,
             'session' => $session,
+            'currentUser' => $currentUser ? [
+                'id' => $currentUser->id,
+                'name' => $currentUser->name,
+                'email' => $currentUser->email,
+                'student_code' => $currentUser->student_code,
+                'phone' => $currentUser->phone,
+                'avatar' => $currentUser->avatar ?: $currentUser->telegram_photo_url,
+                'role' => $currentUser->role,
+            ] : null,
+            'botUsername' => config('services.telegram.bot_username') ?: 'spi_elms_auth_bot',
+        ]);
+    }
+
+    /**
+     * Quick account lookup for Switch Account modal
+     */
+    public function lookupAccount(Request $request)
+    {
+        $identifier = trim($request->input('identifier', ''));
+        if (empty($identifier)) {
+            return response()->json(['success' => false, 'message' => 'សូមបញ្ចូលលេខទូរស័ព្ទ ឬ Student Code'], 400);
+        }
+
+        $cleanDigits = preg_replace('/[^0-9]/', '', $identifier);
+        $user = User::where('student_code', $identifier)
+            ->orWhere('email', $identifier)
+            ->orWhere('phone', $identifier)
+            ->when(!empty($cleanDigits) && strlen($cleanDigits) >= 7, function ($q) use ($cleanDigits) {
+                $last7 = substr($cleanDigits, -7);
+                $q->orWhere('phone', 'like', '%' . $last7);
+            })
+            ->orWhere('telegram_username', ltrim($identifier, '@'))
+            ->orWhere('telegram_id', $identifier)
+            ->first();
+
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'រកមិនឃើញគណនីដែលមានព័ត៌មាននេះទេ។ សូមពិនិត្យឡើងវិញ។'], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'avatar' => $user->avatar ?: $user->telegram_photo_url,
+                'student_code' => $user->student_code,
+                'phone' => $user->phone,
+                'email' => $user->email,
+                'role' => $user->role,
+            ],
         ]);
     }
 
@@ -1329,6 +1380,36 @@ class TelegramAuthController extends Controller
 
         if (empty($token) && !empty($session['token'])) {
             $token = $session['token'];
+        }
+
+        // 0. Direct User ID from Selected Account
+        $userId = $request->input('user_id');
+        if (!empty($userId)) {
+            $user = User::find($userId);
+            if ($user) {
+                $session['status'] = 'approved';
+                $session['user_id'] = $user->id;
+                $session['user'] = [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'role' => $user->role,
+                    'avatar' => $user->avatar ?: $user->telegram_photo_url,
+                    'student_code' => $user->student_code,
+                ];
+                $this->saveQrSession($token, $session, 15);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => "Login ជោគជ័យសម្រាប់ {$user->name}!",
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'avatar' => $user->avatar ?: $user->telegram_photo_url,
+                        'role' => $user->role,
+                        'student_code' => $user->student_code,
+                    ],
+                ]);
+            }
         }
 
         // 1. Direct Student Code / Phone / Email / Telegram Username Confirmation
@@ -1353,7 +1434,8 @@ class TelegramAuthController extends Controller
                     'id' => $user->id,
                     'name' => $user->name,
                     'role' => $user->role,
-                    'avatar' => $user->avatar,
+                    'avatar' => $user->avatar ?: $user->telegram_photo_url,
+                    'student_code' => $user->student_code,
                 ];
                 $this->saveQrSession($token, $session, 15);
 
@@ -1363,6 +1445,9 @@ class TelegramAuthController extends Controller
                     'user' => [
                         'id' => $user->id,
                         'name' => $user->name,
+                        'avatar' => $user->avatar ?: $user->telegram_photo_url,
+                        'role' => $user->role,
+                        'student_code' => $user->student_code,
                     ],
                 ]);
             } else {

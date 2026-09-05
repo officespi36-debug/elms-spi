@@ -39,6 +39,13 @@
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
         }
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .animate-slide-up {
+            animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
     </style>
 </head>
 <body class="min-h-screen w-full text-white flex flex-col justify-between p-4 sm:p-6 relative overflow-x-hidden">
@@ -50,6 +57,7 @@
             type="button"
             onclick="handleClose()"
             class="w-9 h-9 rounded-full bg-zinc-800/80 hover:bg-zinc-700/80 border border-zinc-700/50 flex items-center justify-center text-zinc-400 hover:text-white transition cursor-pointer active:scale-90"
+            aria-label="Close"
         >
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -57,24 +65,34 @@
             </svg>
         </button>
 
-        <!-- User Profile Avatar with Account Switcher Badge -->
-        <div class="relative cursor-pointer group">
-            <div id="userAvatarContainer" class="w-9 h-9 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 p-[1.5px] shadow-md">
+        <!-- User Account Selector Pill (100% Matching Image 2) -->
+        <button
+            id="accountSwitcherPill"
+            type="button"
+            onclick="openAccountSelectorModal()"
+            class="h-9 sm:h-10 pl-1 pr-2.5 sm:pr-3 rounded-full bg-[#202022] hover:bg-[#2a2a2e] active:scale-95 border border-[#38383a] flex items-center gap-2 shadow-lg transition-all cursor-pointer select-none group"
+            title="ជ្រើសរើស ឬប្តូរគណនី (Switch Account)"
+        >
+            <!-- User Avatar Circle -->
+            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden bg-zinc-800 ring-1 ring-white/10 shrink-0 flex items-center justify-center">
                 <img
                     id="userAvatar"
-                    src="/images/logo.png"
-                    alt="User"
-                    class="w-full h-full rounded-full object-cover bg-zinc-900"
+                    src="{{ $currentUser['avatar'] ?? '/images/logo.png' }}"
+                    alt="User Avatar"
+                    class="w-full h-full object-cover"
+                    onerror="this.src='/images/logo.png'"
                 />
             </div>
-            <!-- Switcher Icon <> -->
-            <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-zinc-800 border border-zinc-600 flex items-center justify-center text-[8px] text-zinc-300 font-bold shadow-xs">
-                <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="16 18 22 12 16 6"></polyline>
-                    <polyline points="8 6 2 12 8 18"></polyline>
+            <!-- Vertical Up/Down Chevrons Matching Image 2 Exactly -->
+            <div class="flex flex-col items-center justify-center -space-y-1 text-zinc-400 group-hover:text-zinc-200 transition">
+                <svg class="w-3 h-3 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="18 15 12 9 6 15"></polyline>
+                </svg>
+                <svg class="w-3 h-3 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
             </div>
-        </div>
+        </button>
     </div>
 
     <!-- Center Stage: App Badge, Title & Details -->
@@ -141,6 +159,21 @@
         <!-- Status Message Banner (Success or Error) -->
         <div id="statusBanner" class="hidden w-full mt-4 p-3 rounded-xl text-xs font-semibold text-center transition-all animate-fade-in"></div>
 
+        <!-- Direct Telegram App Fallback Button (Visible outside Telegram or when needed) -->
+        <div id="openTgBtnContainer" class="w-full mt-3">
+            <a
+                id="directOpenTgBtn"
+                href="tg://resolve?domain={{ $botUsername ?? 'spi_elms_auth_bot' }}&start=login_{{ $token }}"
+                onclick="handleOpenTelegramApp(event)"
+                class="w-full py-2.5 px-4 rounded-xl bg-[#0088cc] hover:bg-[#0077b5] active:scale-95 text-white text-xs font-bold flex items-center justify-center gap-2 transition shadow-md shadow-sky-500/20 cursor-pointer select-none"
+            >
+                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.19-.08-.05-.19-.02-.27 0-.12.03-1.99 1.27-5.62 3.72-.53.37-1.01.55-1.44.54-.48-.01-1.4-.27-2.09-.49-.84-.27-1.51-.42-1.45-.88.03-.24.38-.49 1.04-.75 4.09-1.78 6.82-2.96 8.19-3.53 3.9-1.63 4.71-1.91 5.24-1.92.12 0 .37.03.54.17.14.12.18.28.2.45-.02.07-.02.18-.04.35z"/>
+                </svg>
+                <span>បើកក្នុង Telegram App ដើម្បី Confirm</span>
+            </a>
+        </div>
+
     </main>
 
     <!-- Bottom Actions (Cancel / Log In Buttons) -->
@@ -171,13 +204,103 @@
         </button>
     </div>
 
+    <!-- ═══════════════ ACCOUNT SELECTOR MODAL (Matching Image 2 Feature) ═══════════════ -->
+    <div id="accountModal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-sm p-3 sm:p-4 transition-all duration-200">
+        <div class="w-full max-w-sm rounded-3xl bg-[#1c1c1e] border border-zinc-800 p-5 shadow-2xl space-y-4 animate-slide-up select-none">
+            <!-- Header -->
+            <div class="flex items-center justify-between pb-2 border-b border-zinc-800/80">
+                <div class="flex items-center gap-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                    <h3 class="text-sm font-bold text-zinc-100">គណនីផ្ទៀងផ្ទាត់ (Account)</h3>
+                </div>
+                <button
+                    type="button"
+                    onclick="closeAccountSelectorModal()"
+                    class="w-7 h-7 rounded-full bg-zinc-800 text-zinc-400 hover:text-white flex items-center justify-center transition cursor-pointer"
+                >
+                    ✕
+                </button>
+            </div>
+
+            <!-- Current Active Account Card -->
+            <div id="activeAccountCard" class="p-3.5 rounded-2xl bg-zinc-900/90 border border-zinc-800 flex items-center gap-3">
+                <img
+                    id="modalUserAvatar"
+                    src="{{ $currentUser['avatar'] ?? '/images/logo.png' }}"
+                    class="w-12 h-12 rounded-full object-cover bg-zinc-800 ring-2 ring-emerald-500/40 shrink-0"
+                    alt="Active User"
+                    onerror="this.src='/images/logo.png'"
+                />
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-1.5">
+                        <h4 id="modalUserName" class="text-sm font-bold text-white truncate">{{ $currentUser['name'] ?? 'Guest / Telegram User' }}</h4>
+                        <span id="modalUserRoleBadge" class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                            {{ strtoupper($currentUser['role'] ?? 'ACTIVE') }}
+                        </span>
+                    </div>
+                    <p id="modalUserIdentifier" class="text-xs text-zinc-400 truncate mt-0.5">
+                        {{ $currentUser['student_code'] ?? ($currentUser['phone'] ?? ($currentUser['email'] ?? 'Ready to Confirm')) }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Switch / Change Account Form -->
+            <div class="space-y-2 pt-1">
+                <label class="text-[11px] font-semibold text-zinc-400 flex items-center justify-between">
+                    <span>ប្តូរគណនី ឬវាយបញ្ចូលដោយផ្ទាល់៖</span>
+                    <span class="text-emerald-400 text-[10px]">រហ័ស 100%</span>
+                </label>
+                <div class="flex items-center gap-2">
+                    <input
+                        type="text"
+                        id="customIdentifierInput"
+                        placeholder="លេខទូរស័ព្ទ / Student ID / Username"
+                        class="flex-1 bg-zinc-950 border border-zinc-700/80 rounded-xl px-3 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500 transition"
+                        onkeydown="if(event.key === 'Enter') lookupOrSwitchAccount()"
+                    />
+                    <button
+                        type="button"
+                        id="verifySwitchBtn"
+                        onclick="lookupOrSwitchAccount()"
+                        class="px-3.5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-black font-bold text-xs transition cursor-pointer shrink-0 select-none shadow-md shadow-emerald-500/20"
+                    >
+                        ផ្ទៀងផ្ទាត់
+                    </button>
+                </div>
+                <p id="accountLookupFeedback" class="hidden text-[11px] font-medium pt-1"></p>
+            </div>
+
+            <!-- Saved accounts list if available -->
+            <div id="savedAccountsContainer" class="hidden space-y-1.5 pt-1">
+                <span class="text-[10px] uppercase font-bold tracking-wider text-zinc-500">គណនីធ្លាប់ប្រើ៖</span>
+                <div id="savedAccountsList" class="space-y-1.5 max-h-32 overflow-y-auto"></div>
+            </div>
+
+            <!-- Fast Action Buttons -->
+            <div class="pt-2 border-t border-zinc-800/80 flex flex-col gap-2">
+                <button
+                    type="button"
+                    onclick="closeAccountSelectorModal()"
+                    class="w-full py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 hover:text-white text-xs font-semibold transition cursor-pointer"
+                >
+                    យល់ព្រម (Done)
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const qrToken = "{{ $token }}";
+        const botUsername = "{{ $botUsername ?? 'spi_elms_auth_bot' }}";
+        const initialUser = @json($currentUser ?? null);
+
+        let activeUser = initialUser || null;
         let tgUser = null;
         let isApproved = false;
 
-        // Initialize Telegram WebApp
+        // Initialize Telegram WebApp and User State
         document.addEventListener('DOMContentLoaded', () => {
+            // 1. Check if opened inside Telegram WebApp
             if (window.Telegram && window.Telegram.WebApp) {
                 const tg = window.Telegram.WebApp;
                 try {
@@ -190,18 +313,186 @@
                 // Extract User Data if opened inside Telegram
                 if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
                     tgUser = tg.initDataUnsafe.user;
-                    if (tgUser.photo_url) {
-                        const avatarEl = document.getElementById('userAvatar');
-                        if (avatarEl) avatarEl.src = tgUser.photo_url;
-                    }
+                    activeUser = {
+                        id: tgUser.id,
+                        name: [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') || tgUser.username || 'Telegram User',
+                        username: tgUser.username,
+                        avatar: tgUser.photo_url || '/images/logo.png',
+                        role: 'STUDENT',
+                        isTelegram: true,
+                    };
+                    saveAccountToHistory(activeUser);
                 }
             }
 
-            // Start polling status in background so if approved via Telegram, this sheet completes
+            // 2. Check localStorage if no active user from Telegram or session
+            if (!activeUser) {
+                const saved = localStorage.getItem('spi_selected_account');
+                if (saved) {
+                    try {
+                        activeUser = JSON.parse(saved);
+                    } catch (e) {}
+                }
+            }
+
+            // 3. Update the Top Right Pill UI (Image 2)
+            updateUserPillUI(activeUser);
+            renderSavedAccounts();
+
+            // 4. Start polling status in background
             if (qrToken) {
                 startPollingStatus();
             }
         });
+
+        function updateUserPillUI(user) {
+            const avatarEl = document.getElementById('userAvatar');
+            const modalAvatarEl = document.getElementById('modalUserAvatar');
+            const modalNameEl = document.getElementById('modalUserName');
+            const modalIdentifierEl = document.getElementById('modalUserIdentifier');
+            const modalRoleBadge = document.getElementById('modalUserRoleBadge');
+
+            const avatarUrl = user?.avatar || user?.photo_url || '/images/logo.png';
+            const name = user?.name || (user?.username ? '@' + user.username : 'Telegram User');
+            const identifier = user?.student_code || user?.phone || user?.email || (user?.username ? '@' + user.username : 'Ready to confirm');
+            const role = user?.role || 'ACTIVE';
+
+            if (avatarEl) avatarEl.src = avatarUrl;
+            if (modalAvatarEl) modalAvatarEl.src = avatarUrl;
+            if (modalNameEl) modalNameEl.textContent = name;
+            if (modalIdentifierEl) modalIdentifierEl.textContent = identifier;
+            if (modalRoleBadge) modalRoleBadge.textContent = role.toUpperCase();
+        }
+
+        function saveAccountToHistory(user) {
+            if (!user || !user.id) return;
+            localStorage.setItem('spi_selected_account', JSON.stringify(user));
+
+            try {
+                let list = JSON.parse(localStorage.getItem('spi_account_history') || '[]');
+                list = list.filter(item => item.id !== user.id);
+                list.unshift(user);
+                if (list.length > 5) list = list.slice(0, 5);
+                localStorage.setItem('spi_account_history', JSON.stringify(list));
+            } catch (e) {}
+        }
+
+        function renderSavedAccounts() {
+            try {
+                const list = JSON.parse(localStorage.getItem('spi_account_history') || '[]');
+                const container = document.getElementById('savedAccountsContainer');
+                const listEl = document.getElementById('savedAccountsList');
+                if (!container || !listEl) return;
+
+                if (list.length <= 1) {
+                    container.classList.add('hidden');
+                    return;
+                }
+
+                container.classList.remove('hidden');
+                listEl.innerHTML = '';
+
+                list.forEach(acc => {
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center justify-between p-2 rounded-xl bg-zinc-950/80 hover:bg-zinc-800 border border-zinc-800/80 cursor-pointer transition active:scale-98';
+                    div.innerHTML = `
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <img src="${acc.avatar || '/images/logo.png'}" class="w-7 h-7 rounded-full object-cover bg-zinc-900 shrink-0" onerror="this.src='/images/logo.png'" />
+                            <div class="min-w-0">
+                                <p class="text-xs font-semibold text-white truncate">${acc.name}</p>
+                                <p class="text-[10px] text-zinc-400 truncate">${acc.student_code || acc.phone || acc.email || ''}</p>
+                            </div>
+                        </div>
+                        <span class="text-[10px] text-emerald-400 font-bold shrink-0">ជ្រើសរើស</span>
+                    `;
+                    div.onclick = () => {
+                        activeUser = acc;
+                        updateUserPillUI(activeUser);
+                        saveAccountToHistory(activeUser);
+                        showFeedback('បានជ្រើសរើសគណនីរួចរាល់', 'success');
+                        setTimeout(() => closeAccountSelectorModal(), 300);
+                    };
+                    listEl.appendChild(div);
+                });
+            } catch (e) {}
+        }
+
+        function openAccountSelectorModal() {
+            const modal = document.getElementById('accountModal');
+            if (modal) modal.classList.remove('hidden');
+            renderSavedAccounts();
+        }
+
+        function closeAccountSelectorModal() {
+            const modal = document.getElementById('accountModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        async function lookupOrSwitchAccount() {
+            const input = document.getElementById('customIdentifierInput');
+            const btn = document.getElementById('verifySwitchBtn');
+            const val = input?.value.trim();
+
+            if (!val) {
+                showFeedback('សូមបញ្ចូលលេខទូរស័ព្ទ ឬ Student Code', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = '...';
+
+            try {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+                const res = await fetch('/auth/telegram/confirm-sheet/lookup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: JSON.stringify({ identifier: val }),
+                });
+
+                const data = await res.json();
+                btn.disabled = false;
+                btn.textContent = 'ផ្ទៀងផ្ទាត់';
+
+                if (res.ok && data.success && data.user) {
+                    activeUser = data.user;
+                    updateUserPillUI(activeUser);
+                    saveAccountToHistory(activeUser);
+                    showFeedback(`✅ ស្គាល់គណនី៖ ${data.user.name}`, 'success');
+                    if (input) input.value = '';
+                    setTimeout(() => closeAccountSelectorModal(), 800);
+                } else {
+                    showFeedback(data.message || 'រកមិនឃើញគណនីនេះទេ', 'error');
+                }
+            } catch (e) {
+                btn.disabled = false;
+                btn.textContent = 'ផ្ទៀងផ្ទាត់';
+                showFeedback('មានបញ្ហាក្នុងការតភ្ជាប់', 'error');
+            }
+        }
+
+        function showFeedback(msg, type) {
+            const el = document.getElementById('accountLookupFeedback');
+            if (!el) return;
+            el.textContent = msg;
+            el.classList.remove('hidden', 'text-emerald-400', 'text-rose-400');
+            el.classList.add(type === 'success' ? 'text-emerald-400' : 'text-rose-400');
+        }
+
+        function handleOpenTelegramApp(e) {
+            if (e) e.preventDefault();
+            const deepLink = `tg://resolve?domain=${botUsername}&start=login_${qrToken}`;
+            const webLink = `https://t.me/${botUsername}?start=login_${qrToken}`;
+
+            window.location.href = deepLink;
+            setTimeout(() => {
+                window.location.href = webLink;
+            }, 600);
+        }
 
         function handleClose() {
             if (window.Telegram && window.Telegram.WebApp) {
@@ -251,6 +542,13 @@
                 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
                 const initData = window.Telegram?.WebApp?.initData || '';
 
+                const payload = {
+                    token: qrToken,
+                    init_data: initData,
+                    user: tgUser || (activeUser?.isTelegram ? activeUser : null),
+                    user_id: activeUser?.id || null,
+                };
+
                 const response = await fetch('/auth/telegram/confirm-sheet/submit', {
                     method: 'POST',
                     headers: {
@@ -259,25 +557,24 @@
                         'X-CSRF-TOKEN': csrfToken,
                         'X-Requested-With': 'XMLHttpRequest',
                     },
-                    body: JSON.stringify({
-                        token: qrToken,
-                        init_data: initData,
-                        user: tgUser,
-                    }),
+                    body: JSON.stringify(payload),
                 });
 
                 const data = await response.json();
 
                 if (response.ok && data.success) {
+                    if (data.user) {
+                        saveAccountToHistory(data.user);
+                    }
                     markSuccessAndClose();
                 } else if (data.open_telegram) {
-                    // Outside Telegram: Seamlessly launch Telegram App
+                    // Prompt Telegram app launch
                     loginBtnSpinner.classList.add('hidden');
                     loginBtnText.textContent = '🚀 Opening Telegram...';
                     showStatus('🚀 កំពុងបើក Telegram App... សូមចុច START ដើម្បី Login', 'success');
 
-                    const tgDeepLink = data.tg_deep_link || ("tg://resolve?domain={{ config('services.telegram.bot_username') ?: 'spi_elms_auth_bot' }}&start=login_" + qrToken);
-                    const tgWebLink = data.telegram_url || ("https://t.me/{{ config('services.telegram.bot_username') ?: 'spi_elms_auth_bot' }}?start=login_" + qrToken);
+                    const tgDeepLink = data.tg_deep_link || (`tg://resolve?domain=${botUsername}&start=login_${qrToken}`);
+                    const tgWebLink = data.telegram_url || (`https://t.me/${botUsername}?start=login_${qrToken}`);
 
                     window.location.href = tgDeepLink;
                     setTimeout(() => {
@@ -293,15 +590,19 @@
                     loginBtnSpinner.classList.add('hidden');
                     loginBtnText.textContent = 'Log In';
                     showStatus(data.message || 'ការផ្ទៀងផ្ទាត់មិនទាន់ជោគជ័យ', 'error');
+
+                    // If user is unidentified, open the Account Selector modal so they can verify in 1 step!
+                    if (!activeUser) {
+                        openAccountSelectorModal();
+                    }
                 }
             } catch (err) {
-                // Network fallback: launch Telegram App directly
                 loginBtnSpinner.classList.add('hidden');
                 loginBtnText.textContent = 'Log In';
                 loginBtn.disabled = false;
-                window.location.href = "tg://resolve?domain={{ config('services.telegram.bot_username') ?: 'spi_elms_auth_bot' }}&start=login_" + qrToken;
+                window.location.href = `tg://resolve?domain=${botUsername}&start=login_${qrToken}`;
                 setTimeout(() => {
-                    window.location.href = "https://t.me/{{ config('services.telegram.bot_username') ?: 'spi_elms_auth_bot' }}?start=login_" + qrToken;
+                    window.location.href = `https://t.me/${botUsername}?start=login_${qrToken}`;
                 }, 600);
             }
         }

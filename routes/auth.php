@@ -41,6 +41,7 @@ Route::post('auth/telegram/qr-init', [\App\Http\Controllers\Auth\TelegramAuthCon
 Route::get('auth/telegram/qr-status', [\App\Http\Controllers\Auth\TelegramAuthController::class, 'checkQrStatus'])->name('auth.telegram.qr-status');
 Route::get('auth/telegram/confirm-sheet', [\App\Http\Controllers\Auth\TelegramAuthController::class, 'showConfirmSheet'])->name('auth.telegram.confirm-sheet');
 Route::post('auth/telegram/confirm-sheet/submit', [\App\Http\Controllers\Auth\TelegramAuthController::class, 'submitConfirmSheet'])->name('auth.telegram.confirm-sheet.submit');
+Route::post('auth/telegram/confirm-sheet/lookup', [\App\Http\Controllers\Auth\TelegramAuthController::class, 'lookupAccount'])->name('auth.telegram.confirm-sheet.lookup');
 Route::match(['get', 'post'], 'auth/telegram', [\App\Http\Controllers\Auth\TelegramAuthController::class, 'handleCallback'])->name('auth.telegram');
 Route::get('auth/telegram/callback', [\App\Http\Controllers\Auth\TelegramAuthController::class, 'handleCallback'])->name('auth.telegram.callback');
 Route::match(['get', 'post'], 'api/auth/telegram', [\App\Http\Controllers\Auth\TelegramAuthController::class, 'handleCallback'])->name('api.auth.telegram');
