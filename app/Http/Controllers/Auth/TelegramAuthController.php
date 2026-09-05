@@ -8,6 +8,7 @@ use App\Models\AuthLog;
 use App\Models\Course;
 use App\Models\Deadline;
 use App\Models\Enrollment;
+use App\Models\Setting;
 use App\Models\User;
 use App\Services\TelegramSecurityPipeline;
 use App\Services\TelegramService;
@@ -23,13 +24,71 @@ use Illuminate\Support\Str;
 class TelegramAuthController extends Controller
 {
     /**
+     * Persist QR session to both Cache and DB Setting (Survives server restarts)
+     */
+    private function saveQrSession(string $token, array $data, int $minutes = 15): void
+    {
+        $expiresAt = now()->addMinutes($minutes);
+        $data['expires_at'] = $expiresAt->timestamp;
+
+        Cache::put('tg_qr_' . $token, $data, $expiresAt);
+        Cache::put('tg_latest_pending_qr_token', $token, $expiresAt);
+
+        try {
+            Setting::set('tg_qr_' . $token, $data);
+            Setting::set('tg_latest_pending_qr_token', $token);
+        } catch (\Throwable $e) {
+            Log::warning("Could not persist QR session to Setting: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Retrieve QR session from Cache or DB Setting with fallback
+     */
+    private function getQrSession(string $token = ''): ?array
+    {
+        $session = null;
+        if (!empty($token)) {
+            $session = Cache::get('tg_qr_' . $token);
+            if (!$session) {
+                try {
+                    $session = Setting::get('tg_qr_' . $token);
+                } catch (\Throwable $e) {}
+            }
+        }
+
+        // Fallback: Check latest pending QR session
+        if (!$session) {
+            $latest = Cache::get('tg_latest_pending_qr_token');
+            if (!$latest) {
+                try {
+                    $latest = Setting::get('tg_latest_pending_qr_token');
+                } catch (\Throwable $e) {}
+            }
+            if ($latest) {
+                $session = Cache::get('tg_qr_' . $latest);
+                if (!$session) {
+                    try {
+                        $session = Setting::get('tg_qr_' . $latest);
+                    } catch (\Throwable $e) {}
+                }
+            }
+        }
+
+        if ($session && isset($session['expires_at']) && now()->timestamp > $session['expires_at']) {
+            return null;
+        }
+
+        return is_array($session) ? $session : null;
+    }
+
+    /**
      * Initialize a Telegram QR Login Session
      */
     public function initQrSession(Request $request)
     {
         $token = Str::random(32);
         $botUsername = config('services.telegram.bot_username') ?: 'spi_elms_auth_bot';
-        $expiresAt = now()->addMinutes(5);
 
         // Detect device, browser, IP and location
         $userAgent = $request->header('User-Agent', '');
@@ -72,16 +131,15 @@ class TelegramAuthController extends Controller
             $location = $country === 'KH' ? 'Cambodia' : $country;
         }
 
-        Cache::put('tg_qr_' . $token, [
+        $this->saveQrSession($token, [
+            'token' => $token,
             'status' => 'pending',
             'created_at' => now()->timestamp,
             'device' => $device,
             'browser' => $browser,
             'ip' => $ip,
             'location' => $location,
-        ], $expiresAt);
-
-        Cache::put('tg_latest_pending_qr_token', $token, $expiresAt);
+        ], 15);
 
         // Direct confirmation sheet for scanning (Option 1)
         $deepLink = "https://spilms.tech/auth/telegram/confirm-sheet?token={$token}";
@@ -93,7 +151,7 @@ class TelegramAuthController extends Controller
             'bot_username' => $botUsername,
             'deep_link' => $deepLink,
             'bot_link' => $botLink,
-            'expires_in' => 300,
+            'expires_in' => 900,
         ]);
     }
 
@@ -107,7 +165,7 @@ class TelegramAuthController extends Controller
             return response()->json(['status' => 'invalid'], 400);
         }
 
-        $session = Cache::get('tg_qr_' . $token);
+        $session = $this->getQrSession($token);
         if (!$session) {
             return response()->json(['status' => 'expired']);
         }
@@ -118,6 +176,9 @@ class TelegramAuthController extends Controller
                 Auth::login($user, true);
                 $request->session()->regenerate();
                 Cache::forget('tg_qr_' . $token);
+                try {
+                    Setting::where('key', 'tg_qr_' . $token)->delete();
+                } catch (\Throwable $e) {}
 
                 $redirectUrl = match ($user->role) {
                     'admin' => '/admin/dashboard',
@@ -1144,7 +1205,7 @@ class TelegramAuthController extends Controller
      */
     private function approveQrSession(string $qrToken, int|string $chatId, array $from, string $botToken): bool
     {
-        $qrSession = Cache::get('tg_qr_' . $qrToken);
+        $qrSession = $this->getQrSession($qrToken);
         if (!$qrSession || ($qrSession['status'] ?? '') !== 'pending') {
             return false;
         }
@@ -1179,16 +1240,15 @@ class TelegramAuthController extends Controller
             ]);
         }
 
-        Cache::put('tg_qr_' . $qrToken, [
-            'status' => 'approved',
-            'user_id' => $user->id,
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'role' => $user->role,
-                'avatar' => $user->avatar,
-            ],
-        ], now()->addMinutes(5));
+        $qrSession['status'] = 'approved';
+        $qrSession['user_id'] = $user->id;
+        $qrSession['user'] = [
+            'id' => $user->id,
+            'name' => $user->name,
+            'role' => $user->role,
+            'avatar' => $user->avatar,
+        ];
+        $this->saveQrSession($qrToken, $qrSession, 15);
 
         $replyText = "✅ <b>ការផ្ទៀងផ្ទាត់ Login តាម Telegram បានជោគជ័យ!</b>\n\n" .
                      "សួស្តី <b>{$user->name}</b> 👋\n" .
@@ -1232,10 +1292,13 @@ class TelegramAuthController extends Controller
     public function showConfirmSheet(Request $request)
     {
         $token = trim($request->query('token', ''));
-        $session = $token ? Cache::get('tg_qr_' . $token) : null;
+        $session = $this->getQrSession($token);
+        if ($session && empty($token) && !empty($session['token'])) {
+            $token = $session['token'];
+        }
 
         $device = $session['device'] ?? 'Windows';
-        $browser = $session['browser'] ?? 'Chrome';
+        $browser = $session['browser'] ?? 'Chrome 152';
         $ip = $session['ip'] ?? ($request->ip() ?: '36.37.147.32');
         $location = $session['location'] ?? 'Cambodia';
 
@@ -1255,17 +1318,62 @@ class TelegramAuthController extends Controller
     public function submitConfirmSheet(Request $request, TelegramService $telegramService)
     {
         $token = trim($request->input('token', ''));
-        if (empty($token)) {
-            return response()->json(['success' => false, 'message' => 'Missing session token'], 400);
-        }
+        $session = $this->getQrSession($token);
 
-        $session = Cache::get('tg_qr_' . $token);
         if (!$session) {
-            return response()->json(['success' => false, 'message' => 'QR Code ផុតកំណត់ ឬមិនត្រឹមត្រូវ សូម Refresh ទំព័រ Login ម្តងទៀត'], 410);
+            return response()->json([
+                'success' => false,
+                'message' => 'QR Code ផុតកំណត់ ឬមិនត្រឹមត្រូវ សូម Refresh ទំព័រ Login ម្តងទៀត',
+            ], 410);
         }
 
-        // Try to identify user from:
-        // 1. Telegram WebApp initData
+        if (empty($token) && !empty($session['token'])) {
+            $token = $session['token'];
+        }
+
+        // 1. Direct Student Code / Phone / Email / Telegram Username Confirmation
+        $identifier = trim($request->input('identifier', ''));
+        if (!empty($identifier)) {
+            $cleanDigits = preg_replace('/[^0-9]/', '', $identifier);
+            $user = User::where('student_code', $identifier)
+                ->orWhere('email', $identifier)
+                ->orWhere('phone', $identifier)
+                ->when(!empty($cleanDigits) && strlen($cleanDigits) >= 7, function ($q) use ($cleanDigits) {
+                    $last7 = substr($cleanDigits, -7);
+                    $q->orWhere('phone', 'like', '%' . $last7);
+                })
+                ->orWhere('telegram_username', ltrim($identifier, '@'))
+                ->orWhere('telegram_id', $identifier)
+                ->first();
+
+            if ($user) {
+                $session['status'] = 'approved';
+                $session['user_id'] = $user->id;
+                $session['user'] = [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'role' => $user->role,
+                    'avatar' => $user->avatar,
+                ];
+                $this->saveQrSession($token, $session, 15);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => "Login ជោគជ័យសម្រាប់ {$user->name}!",
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                    ],
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'រកមិនឃើញគណនីដែលមានព័ត៌មាននេះទេ។ សូមពិនិត្យលេខទូរស័ព្ទ ឬ Student Code ឡើងវិញ។',
+                ], 404);
+            }
+        }
+
+        // 2. Try to identify user from Telegram WebApp initData
         $initData = $request->input('init_data');
         $botToken = $telegramService->getBotToken();
         $tgUser = null;
@@ -1277,7 +1385,7 @@ class TelegramAuthController extends Controller
             }
         }
 
-        // 2. Direct user object passed from client
+        // 3. Direct user object passed from client
         if (!$tgUser && $request->has('user') && is_array($request->input('user'))) {
             $rawUser = $request->input('user');
             if (!empty($rawUser['id'])) {
@@ -1285,19 +1393,18 @@ class TelegramAuthController extends Controller
             }
         }
 
-        // 3. Logged-in web session fallback
+        // 4. Logged-in web session fallback
         if (!$tgUser && Auth::check()) {
             $authUser = Auth::user();
-            Cache::put('tg_qr_' . $token, [
-                'status' => 'approved',
-                'user_id' => $authUser->id,
-                'user' => [
-                    'id' => $authUser->id,
-                    'name' => $authUser->name,
-                    'role' => $authUser->role,
-                    'avatar' => $authUser->avatar,
-                ],
-            ], now()->addMinutes(5));
+            $session['status'] = 'approved';
+            $session['user_id'] = $authUser->id;
+            $session['user'] = [
+                'id' => $authUser->id,
+                'name' => $authUser->name,
+                'role' => $authUser->role,
+                'avatar' => $authUser->avatar,
+            ];
+            $this->saveQrSession($token, $session, 15);
 
             return response()->json([
                 'success' => true,
@@ -1305,11 +1412,16 @@ class TelegramAuthController extends Controller
             ]);
         }
 
+        // 5. If opened in regular browser without Telegram context, prompt to launch Telegram App!
         if (!$tgUser || empty($tgUser['id'])) {
+            $botUsername = config('services.telegram.bot_username') ?: 'spi_elms_auth_bot';
             return response()->json([
                 'success' => false,
-                'message' => 'មិនអាចទាញយកព័ត៌មាន Telegram User បានទេ។ សូមបើកក្នុង Telegram ឬភ្ជាប់គណនីជាមុនសិន។',
-            ], 422);
+                'open_telegram' => true,
+                'telegram_url' => "https://t.me/{$botUsername}?start=login_{$token}",
+                'tg_deep_link' => "tg://resolve?domain={$botUsername}&start=login_{$token}",
+                'message' => 'សូមបើក Telegram App ដើម្បីបញ្ជាក់ការចូលប្រើប្រាស់។',
+            ]);
         }
 
         $telegramId = (string) $tgUser['id'];
@@ -1375,17 +1487,16 @@ class TelegramAuthController extends Controller
             ]);
         }
 
-        // Approve QR session in Cache so computer logs in instantly
-        Cache::put('tg_qr_' . $token, [
-            'status' => 'approved',
-            'user_id' => $user->id,
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'role' => $user->role,
-                'avatar' => $user->avatar,
-            ],
-        ], now()->addMinutes(5));
+        // Approve QR session in Cache and DB Setting so computer logs in instantly
+        $session['status'] = 'approved';
+        $session['user_id'] = $user->id;
+        $session['user'] = [
+            'id' => $user->id,
+            'name' => $user->name,
+            'role' => $user->role,
+            'avatar' => $user->avatar,
+        ];
+        $this->saveQrSession($token, $session, 15);
 
         // Send Telegram confirmation notification
         if (!empty($botToken)) {
