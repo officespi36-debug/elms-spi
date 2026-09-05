@@ -1608,9 +1608,11 @@ onUnmounted(() => {
             <button
               type="button"
               @click="authMode = 'password'; step = 'identifier'"
-              class="text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white flex items-center gap-1 cursor-pointer transition-colors"
+              class="group text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-sky-400 flex items-center gap-1 cursor-pointer transition-colors"
             >
-              <i class="pi pi-arrow-left text-[10px]"></i>
+              <svg class="w-3.5 h-3.5 transition-transform duration-150 group-hover:-translate-x-0.5 text-zinc-500 group-hover:text-blue-600 dark:group-hover:text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m15 18-6-6 6-6"/>
+              </svg>
               <span>{{ currentLang === 'km' ? 'ត្រឡប់ក្រោយ' : 'Back' }}</span>
             </button>
             <!-- Sleek Minimalist Step Indicator (Circles) -->
@@ -1916,7 +1918,14 @@ onUnmounted(() => {
         <!-- ========================================================================= -->
         <div v-else-if="authMode === 'phone_otp'" class="w-full space-y-3 animate-fade-in">
           <div class="flex items-center justify-between pb-1 border-b border-zinc-200 dark:border-zinc-800">
-            <button type="button" @click="authMode = 'password'; step = 'identifier'" class="text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white flex items-center cursor-pointer transition-colors">
+            <button
+              type="button"
+              @click="authMode = 'password'; step = 'identifier'"
+              class="group text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400 flex items-center gap-1 cursor-pointer transition-colors"
+            >
+              <svg class="w-3.5 h-3.5 transition-transform duration-150 group-hover:-translate-x-0.5 text-zinc-500 group-hover:text-emerald-600 dark:group-hover:text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m15 18-6-6 6-6"/>
+              </svg>
               <span>{{ currentLang === 'km' ? 'ត្រឡប់ក្រោយ' : 'Back' }}</span>
             </button>
             <div class="flex items-center gap-1.5">
