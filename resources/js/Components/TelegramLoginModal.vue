@@ -241,6 +241,7 @@ const verifyOtp = async () => {
       body: JSON.stringify({
         phone: formattedIntlPhone.value,
         code: code,
+        otp: code,
       }),
     })
     const data = await res.json()

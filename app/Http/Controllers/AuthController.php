@@ -762,14 +762,20 @@ class AuthController extends Controller
         try {
             $request->validate([
                 'phone' => 'required|string',
-                'otp' => 'required|string',
             ]);
 
             $phoneInput = trim($request->phone);
             $intlPhone = \App\Services\PlasGateService::formatCambodianPhone($phoneInput);
             $localPhone = \App\Services\PlasGateService::toLocalPhone($phoneInput);
             $cleanPhone = preg_replace('/[^0-9]/', '', $phoneInput);
-            $otp = trim((string) $request->otp);
+            $otp = trim((string) ($request->otp ?? $request->code ?? ''));
+
+            if (empty($otp)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'សូមបញ្ចូលលេខកូដ OTP ៦ ខ្ទង់!',
+                ], 422);
+            }
 
             $cachedOtp = Cache::get('otp_phone_' . $cleanPhone)
                 ?: Cache::get('otp_phone_' . $localPhone)
