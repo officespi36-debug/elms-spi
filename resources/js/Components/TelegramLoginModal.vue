@@ -346,76 +346,80 @@ onBeforeUnmount(() => {
     >
       <div
         v-if="show"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm select-none"
         @click.self="emit('close')"
       >
         <div
-          class="relative w-full max-w-md p-6 sm:p-8 bg-[#18222d] border border-slate-700/60 rounded-3xl shadow-2xl text-white overflow-hidden animate-fade-in"
+          class="relative w-full max-w-[400px] p-6 sm:p-7 bg-white dark:bg-[#121214] border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl text-zinc-900 dark:text-white overflow-hidden animate-fade-in"
         >
-          <!-- Close button -->
+          <!-- Close button (matching Login style) -->
           <button
             type="button"
             @click="emit('close')"
-            class="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-full hover:bg-slate-700/50 transition cursor-pointer"
+            class="absolute top-4 right-4 p-1.5 text-zinc-400 hover:text-zinc-700 dark:hover:text-white rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition cursor-pointer"
           >
-            <i class="pi pi-times text-sm"></i>
+            <i class="pi pi-times text-xs"></i>
           </button>
 
-          <!-- Top Brand Logo (Telegram + Shield Fingerprint) -->
-          <div class="flex items-center justify-center mb-5">
+          <!-- Top Brand Logo (Telegram + E-LMS Official Logo) -->
+          <div class="flex items-center justify-center mb-4">
             <div class="relative flex items-center justify-center">
               <!-- Telegram Blue Circle -->
-              <div class="w-16 h-16 rounded-full bg-[#24A1DE] flex items-center justify-center shadow-lg shadow-[#24A1DE]/30">
-                <svg class="w-9 h-9 text-white translate-x-[-1px] translate-y-[-1px]" viewBox="0 0 24 24" fill="currentColor">
+              <div class="w-14 h-14 rounded-full bg-[#24A1DE] flex items-center justify-center shadow-lg shadow-sky-500/25">
+                <svg class="w-8 h-8 text-white translate-x-[-1px] translate-y-[-1px]" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .4z"/>
                 </svg>
               </div>
               <!-- E-LMS Logo Badge from Login Form -->
-              <div class="w-16 h-16 rounded-full bg-white border-2 border-[#24A1DE] flex items-center justify-center -ml-5 shadow-lg p-1.5 overflow-hidden">
+              <div class="w-14 h-14 rounded-full bg-white border-2 border-sky-500 flex items-center justify-center -ml-4 shadow-lg p-1 overflow-hidden drop-shadow">
                 <img
                   :src="logoUrl"
                   alt="E-LMS Logo"
-                  class="w-full h-full object-contain rounded-full drop-shadow"
+                  class="w-full h-full object-contain rounded-full"
                   onerror="this.src='/logo.png'"
                 />
               </div>
             </div>
           </div>
 
-          <!-- ═══════════════ SCREEN 1: LOGIN OPTIONS (Screenshot 5) ═══════════════ -->
-          <div v-if="screen === 'options'" class="space-y-6">
+          <!-- ═══════════════ SCREEN 1: LOGIN OPTIONS (Styled like Login Form) ═══════════════ -->
+          <div v-if="screen === 'options'" class="space-y-5">
             <div class="text-center space-y-1">
-              <h2 class="text-xl font-bold text-white tracking-tight">Login options</h2>
-              <p class="text-xs text-slate-400">
-                Choose how you'd like to log in to <span class="text-slate-300 font-medium">spilms.tech</span>.
+              <h2 class="text-xl sm:text-[22px] font-black tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 dark:from-white dark:via-zinc-100 dark:to-zinc-300 bg-clip-text text-transparent text-center">
+                Login options
+              </h2>
+              <p class="text-xs text-slate-600 dark:text-zinc-400 text-center">
+                Choose how you'd like to log in to <span class="font-semibold text-zinc-800 dark:text-zinc-200">spilms.tech</span>.
               </p>
             </div>
 
-            <!-- Radio Options Stack -->
-            <div class="space-y-2.5">
+            <!-- Radio Options Stack (Styled like Login Form Buttons) -->
+            <div class="space-y-2.5 pt-1">
               <!-- Option 1: Use Telegram on this device -->
               <div
                 role="button"
                 tabindex="0"
                 @click="chooseOption('device')"
                 :class="[
-                  'flex items-center justify-between p-3.5 rounded-2xl border transition-all duration-150 cursor-pointer select-none active:scale-[0.99]',
+                  'w-full h-12 px-4 rounded-xl border flex items-center justify-between transition-all duration-150 cursor-pointer select-none active:scale-[0.99] shadow-xs',
                   selectedOption === 'device'
-                    ? 'bg-[#202c3a] border-[#24A1DE] shadow-sm shadow-[#24A1DE]/20'
-                    : 'bg-[#1c2633] border-slate-700/60 hover:border-slate-600 text-slate-300'
+                    ? 'bg-blue-50/70 dark:bg-zinc-800/80 border-blue-600 dark:border-zinc-400 ring-1 ring-blue-500/20 dark:ring-zinc-400/20'
+                    : 'bg-white hover:bg-zinc-50 dark:bg-[#18181b] dark:hover:bg-[#232327] border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'
                 ]"
               >
                 <div class="flex items-center gap-3">
-                  <i class="pi pi-send text-[#24A1DE] text-base"></i>
-                  <span class="text-sm font-medium">Use Telegram on this device</span>
+                  <svg class="w-4 h-4 text-[#0088cc] dark:text-[#29b6f6] shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .4z"/>
+                  </svg>
+                  <span class="text-xs sm:text-sm font-medium text-zinc-900 dark:text-white">Use Telegram on this device</span>
                 </div>
                 <div
                   :class="[
-                    'w-5 h-5 rounded-full border flex items-center justify-center transition',
-                    selectedOption === 'device' ? 'border-[#24A1DE] bg-[#24A1DE]' : 'border-slate-500'
+                    'w-4 h-4 rounded-full border flex items-center justify-center transition-all',
+                    selectedOption === 'device' ? 'border-blue-600 dark:border-white bg-blue-600 dark:bg-white' : 'border-zinc-300 dark:border-zinc-700'
                   ]"
                 >
-                  <div v-if="selectedOption === 'device'" class="w-2 h-2 rounded-full bg-white"></div>
+                  <div v-if="selectedOption === 'device'" class="w-1.5 h-1.5 rounded-full bg-white dark:bg-zinc-950"></div>
                 </div>
               </div>
 
@@ -425,23 +429,23 @@ onBeforeUnmount(() => {
                 tabindex="0"
                 @click="chooseOption('phone')"
                 :class="[
-                  'flex items-center justify-between p-3.5 rounded-2xl border transition-all duration-150 cursor-pointer select-none active:scale-[0.99]',
+                  'w-full h-12 px-4 rounded-xl border flex items-center justify-between transition-all duration-150 cursor-pointer select-none active:scale-[0.99] shadow-xs',
                   selectedOption === 'phone'
-                    ? 'bg-[#202c3a] border-[#24A1DE] shadow-sm shadow-[#24A1DE]/20'
-                    : 'bg-[#1c2633] border-slate-700/60 hover:border-slate-600 text-slate-300'
+                    ? 'bg-blue-50/70 dark:bg-zinc-800/80 border-blue-600 dark:border-zinc-400 ring-1 ring-blue-500/20 dark:ring-zinc-400/20'
+                    : 'bg-white hover:bg-zinc-50 dark:bg-[#18181b] dark:hover:bg-[#232327] border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'
                 ]"
               >
                 <div class="flex items-center gap-3">
-                  <i class="pi pi-phone text-slate-400 text-base"></i>
-                  <span class="text-sm font-medium">Log in with a phone number</span>
+                  <i class="pi pi-phone text-emerald-600 dark:text-emerald-400 text-sm"></i>
+                  <span class="text-xs sm:text-sm font-medium text-zinc-900 dark:text-white">Log in with a phone number</span>
                 </div>
                 <div
                   :class="[
-                    'w-5 h-5 rounded-full border flex items-center justify-center transition',
-                    selectedOption === 'phone' ? 'border-[#24A1DE] bg-[#24A1DE]' : 'border-slate-500'
+                    'w-4 h-4 rounded-full border flex items-center justify-center transition-all',
+                    selectedOption === 'phone' ? 'border-blue-600 dark:border-white bg-blue-600 dark:bg-white' : 'border-zinc-300 dark:border-zinc-700'
                   ]"
                 >
-                  <div v-if="selectedOption === 'phone'" class="w-2 h-2 rounded-full bg-white"></div>
+                  <div v-if="selectedOption === 'phone'" class="w-1.5 h-1.5 rounded-full bg-white dark:bg-zinc-950"></div>
                 </div>
               </div>
 
@@ -451,98 +455,100 @@ onBeforeUnmount(() => {
                 tabindex="0"
                 @click="chooseOption('qr')"
                 :class="[
-                  'flex items-center justify-between p-3.5 rounded-2xl border transition-all duration-150 cursor-pointer select-none active:scale-[0.99]',
+                  'w-full h-12 px-4 rounded-xl border flex items-center justify-between transition-all duration-150 cursor-pointer select-none active:scale-[0.99] shadow-xs',
                   selectedOption === 'qr'
-                    ? 'bg-[#202c3a] border-[#24A1DE] shadow-sm shadow-[#24A1DE]/20'
-                    : 'bg-[#1c2633] border-slate-700/60 hover:border-slate-600 text-slate-300'
+                    ? 'bg-blue-50/70 dark:bg-zinc-800/80 border-blue-600 dark:border-zinc-400 ring-1 ring-blue-500/20 dark:ring-zinc-400/20'
+                    : 'bg-white hover:bg-zinc-50 dark:bg-[#18181b] dark:hover:bg-[#232327] border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'
                 ]"
               >
                 <div class="flex items-center gap-3">
-                  <i class="pi pi-qrcode text-slate-400 text-base"></i>
-                  <span class="text-sm font-medium">Scan a QR code</span>
+                  <i class="pi pi-qrcode text-indigo-600 dark:text-indigo-400 text-sm"></i>
+                  <span class="text-xs sm:text-sm font-medium text-zinc-900 dark:text-white">Scan a QR code</span>
                 </div>
                 <div
                   :class="[
-                    'w-5 h-5 rounded-full border flex items-center justify-center transition',
-                    selectedOption === 'qr' ? 'border-[#24A1DE] bg-[#24A1DE]' : 'border-slate-500'
+                    'w-4 h-4 rounded-full border flex items-center justify-center transition-all',
+                    selectedOption === 'qr' ? 'border-blue-600 dark:border-white bg-blue-600 dark:bg-white' : 'border-zinc-300 dark:border-zinc-700'
                   ]"
                 >
-                  <div v-if="selectedOption === 'qr'" class="w-2 h-2 rounded-full bg-white"></div>
+                  <div v-if="selectedOption === 'qr'" class="w-1.5 h-1.5 rounded-full bg-white dark:bg-zinc-950"></div>
                 </div>
               </div>
             </div>
 
-            <!-- Continue Button -->
+            <!-- Continue Button (Matching Login Continue button) -->
             <button
               type="button"
               @click="handleContinue"
-              class="w-full h-12 rounded-2xl font-semibold text-sm bg-[#24A1DE] hover:bg-[#1f93cc] active:scale-[0.99] text-white transition-all shadow-md shadow-[#24A1DE]/25 flex items-center justify-center cursor-pointer"
+              class="w-full h-11 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center transition-all duration-150 select-none shadow-sm bg-blue-600 hover:bg-blue-700 text-white dark:bg-[#e4e4e7] dark:hover:bg-white dark:text-zinc-950 cursor-pointer shadow-md shadow-blue-500/20 active:scale-[0.99] mt-2"
             >
               Continue
             </button>
           </div>
 
-          <!-- ═══════════════ SCREEN 2: PHONE NUMBER LOGIN (Screenshot 4) ═══════════════ -->
+          <!-- ═══════════════ SCREEN 2: PHONE NUMBER LOGIN ═══════════════ -->
           <div v-else-if="screen === 'phone'" class="space-y-5">
             <div class="text-center space-y-1">
-              <h2 class="text-xl font-bold text-white tracking-tight">Log in to spilms.tech</h2>
-              <p class="text-xs text-slate-400 leading-relaxed px-2">
+              <h2 class="text-xl sm:text-[22px] font-black tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 dark:from-white dark:via-zinc-100 dark:to-zinc-300 bg-clip-text text-transparent text-center">
+                Log in to spilms.tech
+              </h2>
+              <p class="text-xs text-slate-600 dark:text-zinc-400 text-center">
                 Enter the phone number linked to your Telegram to confirm your login there.
               </p>
             </div>
 
-            <div class="space-y-3 pt-1">
-              <!-- Searchable Country Dropdown (Screenshot 4 style) -->
+            <div class="space-y-2.5 pt-1">
+              <!-- Searchable Country Dropdown (Matching Login styles) -->
               <div class="relative">
                 <button
                   type="button"
                   @click="isCountryDropdownOpen = !isCountryDropdownOpen"
-                  class="w-full h-11 px-3.5 rounded-xl bg-[#1c2633] border border-slate-700/70 text-sm flex items-center justify-between text-slate-200 hover:border-slate-600 transition cursor-pointer"
+                  class="w-full h-11 px-3.5 rounded-xl bg-white dark:bg-[#121214] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 text-xs sm:text-sm flex items-center justify-between text-zinc-900 dark:text-white transition cursor-pointer shadow-2xs"
                 >
                   <div class="flex items-center gap-2 truncate">
-                    <span class="text-base">{{ selectedCountry.flag }}</span>
-                    <span class="font-medium text-slate-200 truncate">{{ selectedCountry.name }}</span>
-                    <span class="text-xs font-mono text-slate-400">({{ selectedCountry.dialCode }})</span>
+                    <span class="inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 font-mono">{{ selectedCountry.code }}</span>
+                    <span class="font-medium truncate">{{ selectedCountry.name }}</span>
+                    <span class="text-xs font-mono text-zinc-400">({{ selectedCountry.dialCode }})</span>
                   </div>
-                  <i :class="['pi text-xs text-slate-400 transition-transform duration-200', isCountryDropdownOpen ? 'pi-chevron-up' : 'pi-chevron-down']"></i>
+                  <i :class="['pi text-xs text-zinc-400 transition-transform duration-200', isCountryDropdownOpen ? 'pi-chevron-up' : 'pi-chevron-down']"></i>
                 </button>
 
                 <!-- Dropdown Menu with Search Input -->
                 <div
                   v-if="isCountryDropdownOpen"
-                  class="absolute left-0 right-0 top-12 z-30 bg-[#1c2633] border border-slate-700 rounded-xl shadow-2xl overflow-hidden animate-fade-in"
+                  class="absolute left-0 right-0 top-12 z-30 bg-white dark:bg-[#18181b] border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl overflow-hidden animate-fade-in"
                 >
-                  <div class="p-2 border-b border-slate-700/80 bg-[#17212b]">
+                  <div class="p-2 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-[#121214]">
                     <div class="relative flex items-center">
-                      <i class="pi pi-search absolute left-3 text-xs text-slate-400"></i>
+                      <i class="pi pi-search absolute left-3 text-xs text-zinc-400"></i>
                       <input
                         v-model="countrySearch"
                         type="text"
-                        placeholder="Search"
+                        placeholder="Search country..."
                         autofocus
-                        class="w-full h-8 pl-8 pr-3 bg-[#111822] text-xs text-white rounded-lg border border-slate-700/70 focus:outline-none focus:border-[#24A1DE]"
+                        class="w-full h-8 pl-8 pr-3 bg-white dark:bg-[#18181b] text-xs text-zinc-900 dark:text-white rounded-lg border border-zinc-200 dark:border-zinc-700 focus:outline-none focus:border-zinc-500"
                       />
                     </div>
                   </div>
 
-                  <div class="max-h-48 overflow-y-auto divide-y divide-slate-800/60 custom-scrollbar">
+                  <div class="max-h-48 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-800/60 custom-scrollbar">
                     <button
                       v-for="c in filteredCountries"
                       :key="c.code"
                       type="button"
                       @click="selectCountry(c)"
                       :class="[
-                        'w-full px-3.5 py-2 text-xs flex items-center justify-between text-left hover:bg-[#202c3a] transition cursor-pointer',
-                        selectedCountry.code === c.code ? 'text-[#24A1DE] font-semibold bg-[#202c3a]/70' : 'text-slate-300'
+                        'w-full px-3.5 py-2 text-xs flex items-center justify-between text-left hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition cursor-pointer',
+                        selectedCountry.code === c.code ? 'text-blue-600 dark:text-white font-semibold bg-blue-50 dark:bg-zinc-800' : 'text-zinc-700 dark:text-zinc-300'
                       ]"
                     >
                       <div class="flex items-center gap-2 truncate">
-                        <span class="text-sm">{{ c.flag }}</span>
+                        <span class="inline-flex items-center justify-center px-1.5 py-0.5 text-[9px] font-bold rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700 font-mono">{{ c.code }}</span>
                         <span class="truncate">{{ c.name }}</span>
                       </div>
-                      <span class="text-xs font-mono text-slate-400 shrink-0 ml-2">{{ c.dialCode }}</span>
+                      <span class="text-xs font-mono text-zinc-400 shrink-0 ml-2">{{ c.dialCode }}</span>
                     </button>
-                    <div v-if="filteredCountries.length === 0" class="p-3 text-center text-xs text-slate-500">
+                    <div v-if="filteredCountries.length === 0" class="p-3 text-center text-xs text-zinc-400">
                       No country found
                     </div>
                   </div>
@@ -550,8 +556,8 @@ onBeforeUnmount(() => {
               </div>
 
               <!-- Phone Number Input with Dial Code Prefix -->
-              <div class="relative flex items-center rounded-xl bg-[#1c2633] border border-slate-700/70 focus-within:border-[#24A1DE] focus-within:ring-2 focus-within:ring-[#24A1DE]/20 transition">
-                <span class="pl-3.5 pr-2 text-sm font-mono text-slate-400 select-none">{{ selectedCountry.dialCode }}</span>
+              <div class="relative flex items-center rounded-xl bg-white dark:bg-[#121214] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 focus-within:border-zinc-600 dark:focus-within:border-zinc-500 focus-within:ring-1 focus-within:ring-zinc-600 dark:focus-within:ring-zinc-500 transition shadow-2xs">
+                <span class="pl-3.5 pr-2 text-xs sm:text-sm font-mono text-zinc-500 dark:text-zinc-400 select-none">{{ selectedCountry.dialCode }}</span>
                 <input
                   v-model="phone"
                   type="tel"
@@ -559,11 +565,11 @@ onBeforeUnmount(() => {
                   autofocus
                   placeholder="88 801 0546"
                   @keydown.enter.prevent="sendOtp"
-                  class="w-full h-11 pr-3 bg-transparent text-sm font-mono text-white outline-none placeholder:text-slate-500"
+                  class="w-full h-11 pr-3 bg-transparent text-xs sm:text-sm font-mono text-zinc-900 dark:text-white outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                 />
               </div>
 
-              <p v-if="otpError" class="text-xs text-rose-400 flex items-center gap-1.5 px-1">
+              <p v-if="otpError" class="text-xs text-rose-500 dark:text-rose-400 flex items-center gap-1.5 px-1">
                 <i class="pi pi-times-circle text-xs"></i>
                 <span>{{ otpError }}</span>
               </p>
@@ -575,22 +581,22 @@ onBeforeUnmount(() => {
               :disabled="!phone || isSendingOtp"
               @click="sendOtp"
               :class="[
-                'w-full h-12 rounded-2xl font-semibold text-sm transition-all flex items-center justify-center cursor-pointer',
+                'w-full h-11 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center transition-all duration-150 select-none shadow-sm',
                 phone && !isSendingOtp
-                  ? 'bg-[#24A1DE] hover:bg-[#1f93cc] active:scale-[0.99] text-white shadow-md shadow-[#24A1DE]/25'
-                  : 'bg-slate-700/50 text-slate-400 cursor-not-allowed'
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white dark:bg-[#e4e4e7] dark:hover:bg-white dark:text-zinc-950 cursor-pointer shadow-md shadow-blue-500/20 active:scale-[0.99]'
+                  : 'bg-slate-200 dark:bg-[#18181b] text-slate-400 dark:text-zinc-600 border border-slate-300 dark:border-zinc-800 cursor-not-allowed opacity-70'
               ]"
             >
               <i v-if="isSendingOtp" class="pi pi-spin pi-spinner mr-2 text-sm"></i>
               <span>{{ isSendingOtp ? 'Sending code...' : 'Continue' }}</span>
             </button>
 
-            <!-- Other Login Options Link (Screenshot 4 style) -->
+            <!-- Other Login Options Link -->
             <div class="text-center pt-1">
               <button
                 type="button"
                 @click="screen = 'options'"
-                class="text-xs text-[#24A1DE] hover:underline cursor-pointer flex items-center justify-center gap-1 mx-auto"
+                class="text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 cursor-pointer font-medium flex items-center justify-center gap-1 mx-auto transition-colors"
               >
                 <span>Other login options &gt;</span>
               </button>
@@ -600,15 +606,17 @@ onBeforeUnmount(() => {
           <!-- ═══════════════ SCREEN 3: OTP VERIFICATION ═══════════════ -->
           <div v-else-if="screen === 'otp'" class="space-y-5">
             <div class="text-center space-y-1">
-              <h2 class="text-xl font-bold text-white tracking-tight">Enter confirmation code</h2>
-              <p class="text-xs text-slate-400 leading-relaxed">
+              <h2 class="text-xl sm:text-[22px] font-black tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 dark:from-white dark:via-zinc-100 dark:to-zinc-300 bg-clip-text text-transparent text-center">
+                Enter confirmation code
+              </h2>
+              <p class="text-xs text-slate-600 dark:text-zinc-400 text-center">
                 We sent a 6-digit verification code to your Telegram from
-                <span class="text-[#24A1DE] font-semibold">@VerificationCodes</span>.
+                <span class="text-sky-600 dark:text-sky-400 font-semibold">@VerificationCodes</span>.
               </p>
             </div>
 
-            <!-- 6 PIN inputs -->
-            <div class="flex items-center justify-center gap-2 my-4">
+            <!-- 6-digit Segmented PIN Input System matching Login.vue -->
+            <div class="flex items-center justify-center gap-1.5 sm:gap-2 my-4 select-none">
               <input
                 v-for="(_, i) in 6"
                 :key="i"
@@ -617,13 +625,20 @@ onBeforeUnmount(() => {
                 type="text"
                 maxlength="1"
                 inputmode="numeric"
-                class="w-11 h-12 text-center text-lg font-bold font-mono rounded-xl bg-[#1c2633] border border-slate-700/80 focus:border-[#24A1DE] focus:ring-2 focus:ring-[#24A1DE]/20 text-white outline-none transition"
+                pattern="[0-9]*"
+                placeholder="-"
+                :class="[
+                  'w-10 sm:w-11 h-12 text-center text-lg sm:text-xl font-bold font-mono rounded-xl bg-zinc-50 dark:bg-zinc-900/90 border text-zinc-900 dark:text-white outline-none shadow-xs transition-all duration-150',
+                  otpDigits[i]
+                    ? 'border-blue-600 dark:border-zinc-400 bg-blue-50/40 dark:bg-zinc-800/50'
+                    : 'border-zinc-300 dark:border-zinc-700 focus:border-blue-600 dark:focus:border-zinc-400 focus:ring-2 focus:ring-blue-500/20'
+                ]"
                 @input="onDigitInput(i, $event)"
                 @keydown="onDigitKeydown(i, $event)"
               />
             </div>
 
-            <p v-if="otpError" class="text-xs text-rose-400 text-center">
+            <p v-if="otpError" class="text-xs text-rose-500 dark:text-rose-400 text-center">
               {{ otpError }}
             </p>
 
@@ -632,21 +647,21 @@ onBeforeUnmount(() => {
               :disabled="otpDigits.some(d => !d) || isVerifyingOtp"
               @click="verifyOtp"
               :class="[
-                'w-full h-12 rounded-2xl font-semibold text-sm transition-all flex items-center justify-center cursor-pointer',
+                'w-full h-11 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center transition-all duration-150 select-none shadow-sm',
                 !otpDigits.some(d => !d) && !isVerifyingOtp
-                  ? 'bg-[#24A1DE] hover:bg-[#1f93cc] active:scale-[0.99] text-white shadow-md shadow-[#24A1DE]/25'
-                  : 'bg-slate-700/50 text-slate-400 cursor-not-allowed'
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white dark:bg-[#e4e4e7] dark:hover:bg-white dark:text-zinc-950 cursor-pointer shadow-md shadow-blue-500/20 active:scale-[0.99]'
+                  : 'bg-slate-200 dark:bg-[#18181b] text-slate-400 dark:text-zinc-600 border border-slate-300 dark:border-zinc-800 cursor-not-allowed opacity-70'
               ]"
             >
               <i v-if="isVerifyingOtp" class="pi pi-spin pi-spinner mr-2 text-sm"></i>
               <span>{{ isVerifyingOtp ? 'Verifying...' : 'Confirm Login' }}</span>
             </button>
 
-            <div class="flex items-center justify-between text-xs text-slate-400 px-1 pt-1">
+            <div class="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400 px-1 pt-1">
               <button
                 type="button"
                 @click="screen = 'phone'"
-                class="text-slate-400 hover:text-white cursor-pointer"
+                class="text-zinc-500 hover:text-zinc-900 dark:hover:text-white cursor-pointer"
               >
                 &lt; Change number
               </button>
@@ -654,33 +669,35 @@ onBeforeUnmount(() => {
                 type="button"
                 :disabled="otpCooldown > 0 || isSendingOtp"
                 @click="sendOtp"
-                class="text-[#24A1DE] hover:underline disabled:opacity-50 cursor-pointer"
+                class="text-blue-600 dark:text-sky-400 hover:underline disabled:opacity-50 cursor-pointer font-medium"
               >
                 {{ otpCooldown > 0 ? `Resend (${otpCooldown}s)` : 'Resend code' }}
               </button>
             </div>
           </div>
 
-          <!-- ═══════════════ SCREEN 4: SCAN QR CODE (Screenshot 3 link) ═══════════════ -->
+          <!-- ═══════════════ SCREEN 4: SCAN QR CODE ═══════════════ -->
           <div v-else-if="screen === 'qr'" class="space-y-5">
             <div class="text-center space-y-1">
-              <h2 class="text-xl font-bold text-white tracking-tight">Continue with Telegram</h2>
-              <p class="text-xs text-slate-400 leading-relaxed px-3">
+              <h2 class="text-xl sm:text-[22px] font-black tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 dark:from-white dark:via-zinc-100 dark:to-zinc-300 bg-clip-text text-transparent text-center">
+                Continue with Telegram
+              </h2>
+              <p class="text-xs text-slate-600 dark:text-zinc-400 text-center">
                 Scan this QR code with your camera on a device with Telegram installed.
               </p>
             </div>
 
             <!-- QR Code Card -->
             <div class="flex flex-col items-center justify-center py-2">
-              <div class="relative p-3.5 bg-white rounded-2xl shadow-xl">
+              <div class="relative p-3.5 bg-white rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-800">
                 <img
                   v-if="qrDataUrl"
                   :src="qrDataUrl"
                   alt="Telegram QR Login"
                   class="w-52 h-52 block rounded-lg"
                 />
-                <div v-else class="w-52 h-52 flex flex-col items-center justify-center text-slate-600 gap-2">
-                  <i class="pi pi-spin pi-spinner text-2xl text-[#24A1DE]"></i>
+                <div v-else class="w-52 h-52 flex flex-col items-center justify-center text-zinc-600 gap-2">
+                  <i class="pi pi-spin pi-spinner text-2xl text-sky-500"></i>
                   <span class="text-xs">Generating QR code...</span>
                 </div>
 
@@ -699,14 +716,14 @@ onBeforeUnmount(() => {
 
               <!-- Status indicator -->
               <div class="mt-3 text-center">
-                <span v-if="qrStatus === 'pending'" class="inline-flex items-center gap-1.5 text-xs text-slate-400">
-                  <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                <span v-if="qrStatus === 'pending'" class="inline-flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
                   <span>Waiting for scan...</span>
                 </span>
-                <span v-else-if="qrStatus === 'approved'" class="text-xs text-emerald-400 font-semibold">
+                <span v-else-if="qrStatus === 'approved'" class="text-xs text-emerald-500 font-semibold">
                   ✓ Verified! Logging in...
                 </span>
-                <span v-else-if="qrStatus === 'expired'" class="text-xs text-rose-400">
+                <span v-else-if="qrStatus === 'expired'" class="text-xs text-rose-500">
                   QR code expired. <button type="button" @click="generateQrCode" class="underline font-bold">Refresh</button>
                 </span>
               </div>
@@ -718,7 +735,7 @@ onBeforeUnmount(() => {
                 <button
                   type="button"
                   @click="screen = 'phone'"
-                  class="text-xs text-[#24A1DE] hover:underline cursor-pointer"
+                  class="text-xs text-sky-600 dark:text-sky-400 hover:underline cursor-pointer font-medium"
                 >
                   Or log in with a phone number &gt;
                 </button>
@@ -727,7 +744,7 @@ onBeforeUnmount(() => {
                 <button
                   type="button"
                   @click="screen = 'options'"
-                  class="text-xs text-slate-400 hover:text-white cursor-pointer"
+                  class="text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-white cursor-pointer"
                 >
                   &lt; Other login options
                 </button>
@@ -745,13 +762,13 @@ onBeforeUnmount(() => {
   width: 5px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.4);
+  background: rgba(24, 24, 27, 0.4);
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(100, 116, 139, 0.5);
+  background: rgba(113, 113, 122, 0.5);
   border-radius: 4px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.8);
+  background: rgba(161, 161, 170, 0.8);
 }
 </style>
