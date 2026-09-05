@@ -687,6 +687,42 @@ class TelegramAuthController extends Controller
         $text = strtolower($rawText);
         $senderName = $message['from']['first_name'] ?? 'Student';
         $telegramUsername = $message['from']['username'] ?? null;
+        $chatType = $message['chat']['type'] ?? 'private';
+        $isGroup = in_array($chatType, ['group', 'supergroup', 'channel']);
+
+        // In Group Chat: Handle group commands (/status, /help, /audit, /ping, /test, /start, etc.)
+        if ($isGroup) {
+            $cleanCmd = preg_replace('/@\w+/i', '', $text);
+            if (in_array($cleanCmd, ['/status', '/ping', '/test', '/audit', '/help', '/start', '/info'])) {
+                $groupReply = "🛡️ <b>[SPI LMS SECURITY BOT — ONLINE]</b>\n" .
+                              "━━━━━━━━━━━━━━━━━━━━━\n" .
+                              "🏛️ <b>វិទ្យាស្ថាន សន្តប៉ូល (Saint Paul Institute)</b>\n" .
+                              "✅ <b>ស្ថានភាពប្រព័ន្ធ៖</b> សកម្ម ១០០% (Active & Protected)\n" .
+                              "👥 <b>Group ID៖</b> <code>{$chatId}</code>\n" .
+                              "⏰ <b>កាលបរិច្ឆេទ៖</b> " . now()->format('d-M-Y h:i:s A') . "\n\n" .
+                              "👉 <b>មុខងារក្នុងគ្រុប៖</b>\n" .
+                              "• ទទួលការជូនដំណឹងសុវត្ថិភាពភ្លាមៗ (Real-time Login Alerts)\n" .
+                              "• តាមដានលេខកូដ OTP Dispatched\n" .
+                              "• ចាប់ និងរាយការណ៍ការវាយប្រហារ (Intrusion & Threat Detection)\n\n" .
+                              "💡 <i>ដើម្បីគ្រប់គ្រង ឬឆាតជាមួយ Bot ដោយផ្ទាល់ សូមចុចប៊ូតុងខាងក្រោម៖</i>";
+
+                $inlineKeyboard = [
+                    'inline_keyboard' => [
+                        [
+                            ['text' => '🚀 បើក E-LMS WebApp', 'url' => 'https://spilms.tech']
+                        ],
+                        [
+                            ['text' => '💬 ឆាតទៅកាន់ Bot ផ្ទាល់ (@spi_elms_auth_bot)', 'url' => 'https://t.me/spi_elms_auth_bot']
+                        ]
+                    ]
+                ];
+
+                $telegramService->sendDirectMessage($chatId, $groupReply, 'HTML', $inlineKeyboard);
+                return response()->json(['ok' => true]);
+            }
+
+            return response()->json(['ok' => true]);
+        }
 
         // Handle native phone number contact sharing
         if (isset($message['contact']['phone_number'])) {
