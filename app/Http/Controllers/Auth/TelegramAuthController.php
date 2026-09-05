@@ -1014,10 +1014,10 @@ class TelegramAuthController extends Controller
         if (!empty($deepLinkParam) && (str_starts_with($deepLinkParam, 'login_') || str_starts_with($deepLinkParam, 'qr_'))) {
             $qrTokenToApprove = str_replace(['login_', 'qr_'], '', $deepLinkParam);
         } elseif ($isStartCmd) {
-            $latestToken = Cache::get('tg_latest_pending_qr_token');
+            $latestToken = Cache::get('tg_latest_pending_qr_token') ?? Setting::get('tg_latest_pending_qr_token');
             if ($latestToken) {
-                $session = Cache::get('tg_qr_' . $latestToken);
-                if ($session && ($session['status'] ?? '') === 'pending' && (now()->timestamp - ($session['created_at'] ?? 0) <= 300)) {
+                $session = $this->getQrSession($latestToken);
+                if ($session && ($session['status'] ?? '') === 'pending') {
                     $qrTokenToApprove = $latestToken;
                 }
             }

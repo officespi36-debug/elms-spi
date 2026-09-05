@@ -141,31 +141,6 @@
         <!-- Status Message Banner (Success or Error) -->
         <div id="statusBanner" class="hidden w-full mt-4 p-3 rounded-xl text-xs font-semibold text-center transition-all animate-fade-in"></div>
 
-        <!-- Quick Identifier Option (For instant web confirmation if outside Telegram) -->
-        <div id="directVerifyContainer" class="w-full mt-4 p-3.5 rounded-2xl bg-zinc-900/90 border border-zinc-800 text-left">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-[11px] font-semibold text-zinc-400">ឬ ផ្ទៀងផ្ទាត់ដោយផ្ទាល់ (Direct Login)</span>
-                <span class="text-[10px] text-emerald-400 font-medium">រហ័ស 100%</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <input
-                    type="text"
-                    id="userIdentifierInput"
-                    placeholder="លេខទូរស័ព្ទ / Student ID / Username"
-                    class="flex-1 bg-zinc-950 border border-zinc-700/80 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500 transition"
-                    onkeydown="if(event.key === 'Enter') submitDirectIdentifier()"
-                />
-                <button
-                    type="button"
-                    id="directVerifyBtn"
-                    onclick="submitDirectIdentifier()"
-                    class="px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-black font-bold text-xs transition select-none"
-                >
-                    ផ្ទៀងផ្ទាត់
-                </button>
-            </div>
-        </div>
-
     </main>
 
     <!-- Bottom Actions (Cancel / Log In Buttons) -->
@@ -219,13 +194,10 @@
                         const avatarEl = document.getElementById('userAvatar');
                         if (avatarEl) avatarEl.src = tgUser.photo_url;
                     }
-                    // Hide direct input if inside Telegram app
-                    const directBox = document.getElementById('directVerifyContainer');
-                    if (directBox) directBox.classList.add('hidden');
                 }
             }
 
-            // Start polling status in background
+            // Start polling status in background so if approved via Telegram, this sheet completes
             if (qrToken) {
                 startPollingStatus();
             }
@@ -261,7 +233,7 @@
 
             setTimeout(() => {
                 handleClose();
-            }, 2000);
+            }, 1800);
         }
 
         async function submitLoginApproval() {
@@ -299,7 +271,7 @@
                 if (response.ok && data.success) {
                     markSuccessAndClose();
                 } else if (data.open_telegram) {
-                    // Outside Telegram: Seamlessly trigger Telegram App!
+                    // Outside Telegram: Seamlessly launch Telegram App
                     loginBtnSpinner.classList.add('hidden');
                     loginBtnText.textContent = '🚀 Opening Telegram...';
                     showStatus('🚀 កំពុងបើក Telegram App... សូមចុច START ដើម្បី Login', 'success');
@@ -310,9 +282,8 @@
                     window.location.href = tgDeepLink;
                     setTimeout(() => {
                         window.location.href = tgWebLink;
-                    }, 800);
+                    }, 600);
 
-                    // Re-enable button after short wait
                     setTimeout(() => {
                         loginBtn.disabled = false;
                         loginBtnText.textContent = 'Log In';
@@ -324,60 +295,14 @@
                     showStatus(data.message || 'ការផ្ទៀងផ្ទាត់មិនទាន់ជោគជ័យ', 'error');
                 }
             } catch (err) {
-                // If network fetch fails, fallback to opening Telegram App directly
+                // Network fallback: launch Telegram App directly
                 loginBtnSpinner.classList.add('hidden');
                 loginBtnText.textContent = 'Log In';
                 loginBtn.disabled = false;
                 window.location.href = "tg://resolve?domain={{ config('services.telegram.bot_username') ?: 'spi_elms_auth_bot' }}&start=login_" + qrToken;
                 setTimeout(() => {
                     window.location.href = "https://t.me/{{ config('services.telegram.bot_username') ?: 'spi_elms_auth_bot' }}?start=login_" + qrToken;
-                }, 800);
-            }
-        }
-
-        async function submitDirectIdentifier() {
-            if (isApproved) return;
-            const input = document.getElementById('userIdentifierInput');
-            const btn = document.getElementById('directVerifyBtn');
-            const val = input?.value.trim();
-
-            if (!val) {
-                showStatus('សូមបញ្ចូលលេខទូរស័ព្ទ ឬ Student Code របស់អ្នក', 'error');
-                return;
-            }
-
-            btn.disabled = true;
-            btn.textContent = '...';
-
-            try {
-                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-                const response = await fetch('/auth/telegram/confirm-sheet/submit', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken,
-                        'X-Requested-With': 'XMLHttpRequest',
-                    },
-                    body: JSON.stringify({
-                        token: qrToken,
-                        identifier: val,
-                    }),
-                });
-
-                const data = await response.json();
-                btn.disabled = false;
-                btn.textContent = 'ផ្ទៀងផ្ទាត់';
-
-                if (response.ok && data.success) {
-                    markSuccessAndClose();
-                } else {
-                    showStatus(data.message || 'រកមិនឃើញគណនី សូមពិនិត្យឡើងវិញ', 'error');
-                }
-            } catch (e) {
-                btn.disabled = false;
-                btn.textContent = 'ផ្ទៀងផ្ទាត់';
-                showStatus('មានបញ្ហាក្នុងការតភ្ជាប់', 'error');
+                }, 600);
             }
         }
 
@@ -395,7 +320,7 @@
                         markSuccessAndClose();
                     }
                 } catch (e) {}
-            }, 2000);
+            }, 1500);
         }
 
         function showStatus(msg, type) {
