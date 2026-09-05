@@ -31,20 +31,68 @@ class TelegramAuthController extends Controller
         $botUsername = config('services.telegram.bot_username') ?: 'spi_elms_auth_bot';
         $expiresAt = now()->addMinutes(5);
 
+        // Detect device, browser, IP and location
+        $userAgent = $request->header('User-Agent', '');
+        $ip = $request->header('CF-Connecting-IP') 
+            ?: $request->header('X-Forwarded-For') 
+            ?: $request->ip() 
+            ?: '127.0.0.1';
+        if (str_contains($ip, ',')) {
+            $ip = trim(explode(',', $ip)[0]);
+        }
+
+        $device = 'Windows';
+        if (str_contains($userAgent, 'Macintosh') || str_contains($userAgent, 'Mac OS')) {
+            $device = 'macOS';
+        } elseif (str_contains($userAgent, 'iPhone') || str_contains($userAgent, 'iPad')) {
+            $device = 'iOS Device';
+        } elseif (str_contains($userAgent, 'Android')) {
+            $device = 'Android Device';
+        } elseif (str_contains($userAgent, 'Linux')) {
+            $device = 'Linux';
+        }
+
+        $browser = $this->getBrowserName($userAgent);
+        if (preg_match('/Chrome\/([0-9]+)/', $userAgent, $m)) {
+            $browser = 'Chrome ' . $m[1];
+        } elseif (preg_match('/Version\/([0-9]+).*Safari/', $userAgent, $m)) {
+            $browser = 'Safari ' . $m[1];
+        } elseif (preg_match('/Firefox\/([0-9]+)/', $userAgent, $m)) {
+            $browser = 'Firefox ' . $m[1];
+        } elseif (preg_match('/Edg\/([0-9]+)/', $userAgent, $m)) {
+            $browser = 'Edge ' . $m[1];
+        }
+
+        $location = 'Cambodia';
+        $country = $request->header('CF-IPCountry');
+        $city = $request->header('CF-IPCity');
+        if ($city && $country) {
+            $location = "{$city}, {$country}";
+        } elseif ($country) {
+            $location = $country === 'KH' ? 'Cambodia' : $country;
+        }
+
         Cache::put('tg_qr_' . $token, [
             'status' => 'pending',
             'created_at' => now()->timestamp,
+            'device' => $device,
+            'browser' => $browser,
+            'ip' => $ip,
+            'location' => $location,
         ], $expiresAt);
 
         Cache::put('tg_latest_pending_qr_token', $token, $expiresAt);
 
-        $deepLink = "https://t.me/{$botUsername}?start=login_{$token}";
+        // Direct confirmation sheet for scanning (Option 1)
+        $deepLink = "https://spilms.tech/auth/telegram/confirm-sheet?token={$token}";
+        $botLink = "https://t.me/{$botUsername}?start=login_{$token}";
 
         return response()->json([
             'success' => true,
             'token' => $token,
             'bot_username' => $botUsername,
             'deep_link' => $deepLink,
+            'bot_link' => $botLink,
             'expires_in' => 300,
         ]);
     }
@@ -1176,5 +1224,227 @@ class TelegramAuthController extends Controller
         if (str_contains($userAgent, 'Edge'))
             return 'Edge';
         return 'Unknown';
+    }
+
+    /**
+     * Display Telegram Confirmation Bottom Sheet (Option 1)
+     */
+    public function showConfirmSheet(Request $request)
+    {
+        $token = trim($request->query('token', ''));
+        $session = $token ? Cache::get('tg_qr_' . $token) : null;
+
+        $device = $session['device'] ?? 'Windows';
+        $browser = $session['browser'] ?? 'Chrome';
+        $ip = $session['ip'] ?? ($request->ip() ?: '36.37.147.32');
+        $location = $session['location'] ?? 'Cambodia';
+
+        return view('auth.telegram-confirm-sheet', [
+            'token' => $token,
+            'device' => $device,
+            'browser' => $browser,
+            'ip' => $ip,
+            'location' => $location,
+            'session' => $session,
+        ]);
+    }
+
+    /**
+     * Submit confirmation from the Telegram Confirm Sheet (Option 1)
+     */
+    public function submitConfirmSheet(Request $request, TelegramService $telegramService)
+    {
+        $token = trim($request->input('token', ''));
+        if (empty($token)) {
+            return response()->json(['success' => false, 'message' => 'Missing session token'], 400);
+        }
+
+        $session = Cache::get('tg_qr_' . $token);
+        if (!$session) {
+            return response()->json(['success' => false, 'message' => 'QR Code ផុតកំណត់ ឬមិនត្រឹមត្រូវ សូម Refresh ទំព័រ Login ម្តងទៀត'], 410);
+        }
+
+        // Try to identify user from:
+        // 1. Telegram WebApp initData
+        $initData = $request->input('init_data');
+        $botToken = $telegramService->getBotToken();
+        $tgUser = null;
+
+        if (!empty($initData) && !empty($botToken)) {
+            $parsed = $this->validateTelegramWebAppData($initData, $botToken);
+            if ($parsed) {
+                $tgUser = $parsed;
+            }
+        }
+
+        // 2. Direct user object passed from client
+        if (!$tgUser && $request->has('user') && is_array($request->input('user'))) {
+            $rawUser = $request->input('user');
+            if (!empty($rawUser['id'])) {
+                $tgUser = $rawUser;
+            }
+        }
+
+        // 3. Logged-in web session fallback
+        if (!$tgUser && Auth::check()) {
+            $authUser = Auth::user();
+            Cache::put('tg_qr_' . $token, [
+                'status' => 'approved',
+                'user_id' => $authUser->id,
+                'user' => [
+                    'id' => $authUser->id,
+                    'name' => $authUser->name,
+                    'role' => $authUser->role,
+                    'avatar' => $authUser->avatar,
+                ],
+            ], now()->addMinutes(5));
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Login ជោគជ័យ! កុំព្យូទ័ររបស់អ្នកបានចូលប្រព័ន្ធរួចរាល់។',
+            ]);
+        }
+
+        if (!$tgUser || empty($tgUser['id'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'មិនអាចទាញយកព័ត៌មាន Telegram User បានទេ។ សូមបើកក្នុង Telegram ឬភ្ជាប់គណនីជាមុនសិន។',
+            ], 422);
+        }
+
+        $telegramId = (string) $tgUser['id'];
+        $telegramUsername = $tgUser['username'] ?? null;
+        $firstName = $tgUser['first_name'] ?? 'Telegram';
+        $lastName = $tgUser['last_name'] ?? '';
+        $fullName = trim($firstName . ' ' . $lastName) ?: 'Telegram User';
+        $photoUrl = $tgUser['photo_url'] ?? null;
+
+        $user = User::where('telegram_id', $telegramId)->first();
+        if (!$user && $telegramUsername) {
+            $user = User::where('telegram_username', $telegramUsername)
+                ->orWhere('email', "{$telegramUsername}@telegram.spi-elms.edu.kh")
+                ->first();
+        }
+
+        if ($user) {
+            $updateData = [
+                'telegram_id' => $telegramId,
+                'telegram_chat_id' => $telegramId,
+            ];
+            if ($telegramUsername) {
+                $updateData['telegram_username'] = $telegramUsername;
+            }
+            if ($photoUrl) {
+                $updateData['telegram_photo_url'] = $photoUrl;
+                if (empty($user->avatar)) {
+                    $updateData['avatar'] = $photoUrl;
+                }
+            }
+            $user->update($updateData);
+        } else {
+            $email = $telegramUsername
+                ? "{$telegramUsername}@telegram.spi-elms.edu.kh"
+                : "tg_{$telegramId}@telegram.spi-elms.edu.kh";
+
+            $counter = 1;
+            $baseEmail = $email;
+            while (User::where('email', $email)->exists()) {
+                $email = str_replace('@', "_{$counter}@", $baseEmail);
+                $counter++;
+            }
+
+            $studentCode = 'STU' . date('y') . rand(1000, 9999);
+            while (User::where('student_code', $studentCode)->exists()) {
+                $studentCode = 'STU' . date('y') . rand(1000, 9999);
+            }
+
+            $user = User::create([
+                'name' => $fullName,
+                'name_kh' => $fullName,
+                'email' => $email,
+                'password' => Hash::make(Str::random(32)),
+                'role' => 'student',
+                'student_code' => $studentCode,
+                'study_type' => 'on_campus',
+                'telegram_id' => $telegramId,
+                'telegram_chat_id' => $telegramId,
+                'telegram_username' => $telegramUsername,
+                'telegram_photo_url' => $photoUrl,
+                'avatar' => $photoUrl,
+                'email_verified_at' => now(),
+            ]);
+        }
+
+        // Approve QR session in Cache so computer logs in instantly
+        Cache::put('tg_qr_' . $token, [
+            'status' => 'approved',
+            'user_id' => $user->id,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'role' => $user->role,
+                'avatar' => $user->avatar,
+            ],
+        ], now()->addMinutes(5));
+
+        // Send Telegram confirmation notification
+        if (!empty($botToken)) {
+            try {
+                $replyText = "✅ <b>ការផ្ទៀងផ្ទាត់ Login តាម Telegram បានជោគជ័យ!</b>\n\n" .
+                             "សួស្តី <b>{$user->name}</b> 👋\n" .
+                             "គណនីរបស់អ្នកត្រូវបានផ្ទៀងផ្ទាត់ចូលប្រើប្រាស់ <b>spilms.tech</b> រួចរាល់ហើយ។\n\n" .
+                             "👉 <i>សូមក្រឡេកមើលទៅកាន់អេក្រង់កុំព្យូទ័ររបស់អ្នកដើម្បីបន្តការសិក្សា!</i>";
+
+                Http::withoutVerifying()->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                    'chat_id' => $telegramId,
+                    'text' => $replyText,
+                    'parse_mode' => 'HTML',
+                ]);
+            } catch (\Throwable $e) {
+                Log::warning("Could not send Telegram confirmation msg: " . $e->getMessage());
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Login ជោគជ័យ!',
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+            ],
+        ]);
+    }
+
+    /**
+     * Validate Telegram WebApp initData HMAC
+     */
+    private function validateTelegramWebAppData(string $initData, string $botToken): ?array
+    {
+        parse_str($initData, $data);
+        if (empty($data['hash'])) {
+            return null;
+        }
+
+        $hash = $data['hash'];
+        unset($data['hash']);
+
+        ksort($data);
+        $dataCheckArr = [];
+        foreach ($data as $key => $val) {
+            $dataCheckArr[] = "{$key}={$val}";
+        }
+        $dataCheckString = implode("\n", $dataCheckArr);
+
+        $secretKey = hash_hmac('sha256', $botToken, 'WebAppData', true);
+        $computedHash = hash_hmac('sha256', $dataCheckString, $secretKey);
+
+        if (hash_equals($computedHash, $hash)) {
+            if (!empty($data['user'])) {
+                return json_decode($data['user'], true);
+            }
+            return $data;
+        }
+
+        return null;
     }
 }
