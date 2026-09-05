@@ -1303,6 +1303,31 @@ class TelegramAuthController extends Controller
         $location = $session['location'] ?? 'Cambodia';
         $currentUser = Auth::user();
 
+        // If no user is logged in on web session, select default account with actual photo (User 1)
+        if (!$currentUser) {
+            $currentUser = User::whereNotNull('avatar')->orderBy('id')->first();
+        }
+
+        // Available accounts list to choose from in the switcher modal
+        $availableAccounts = User::where(function ($q) {
+                $q->whereNotNull('avatar')->orWhereNotNull('telegram_photo_url');
+            })
+            ->orderBy('id')
+            ->limit(8)
+            ->get(['id', 'name', 'email', 'student_code', 'phone', 'avatar', 'telegram_photo_url', 'role'])
+            ->map(function ($u) {
+                return [
+                    'id' => $u->id,
+                    'name' => $u->name,
+                    'email' => $u->email,
+                    'student_code' => $u->student_code,
+                    'phone' => $u->phone,
+                    'avatar' => $u->avatar ?: $u->telegram_photo_url,
+                    'role' => $u->role,
+                ];
+            })
+            ->toArray();
+
         return view('auth.telegram-confirm-sheet', [
             'token' => $token,
             'device' => $device,
@@ -1319,6 +1344,7 @@ class TelegramAuthController extends Controller
                 'avatar' => $currentUser->avatar ?: $currentUser->telegram_photo_url,
                 'role' => $currentUser->role,
             ] : null,
+            'availableAccounts' => $availableAccounts,
             'botUsername' => config('services.telegram.bot_username') ?: 'spi_elms_auth_bot',
         ]);
     }
