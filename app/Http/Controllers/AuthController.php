@@ -725,11 +725,16 @@ class AuthController extends Controller
         }
 
         // 3. Direct Phone SMS via PlasGate if not delivered via Telegram Bot or Gateway
+        $smsDelivered = false;
         if ($dispatchChannel === 'sms') {
             try {
                 $plasgate = new \App\Services\PlasGateService();
-                $plasgate->sendOtp($intlPhone, $otp);
-                Log::info("PlasGate SMS OTP dispatched to {$intlPhone}.");
+                $smsDelivered = $plasgate->sendOtp($intlPhone, $otp);
+                if ($smsDelivered) {
+                    Log::info("PlasGate SMS OTP dispatched successfully to {$intlPhone}.");
+                } else {
+                    Log::warning("PlasGate SMS OTP could not be sent to {$intlPhone} (Insufficient balance or gateway status).");
+                }
             } catch (\Throwable $pgEx) {
                 Log::warning('PlasGate SMS Gateway warning: ' . $pgEx->getMessage());
             }
@@ -753,7 +758,7 @@ class AuthController extends Controller
             $channelTitle = match ($dispatchChannel) {
                 'telegram_bot' => "🤖 Telegram Bot (@{$botUsername}) ផ្ទាល់",
                 'telegram_gateway' => '📱 Telegram Gateway (@VerificationCodes)',
-                default => '📩 PlasGate SMS (ប្រអប់សារទូរស័ព្ទ)',
+                default => $smsDelivered ? '📩 PlasGate SMS (ប្រអប់សារទូរស័ព្ទ)' : '⚠️ SMS Failed (Gateway Out of Balance)',
             };
 
             // Group Notification
@@ -779,7 +784,9 @@ class AuthController extends Controller
         $successMessage = match ($dispatchChannel) {
             'telegram_bot' => "លេខកូដ OTP ត្រូវបានផ្ញើចូលទៅកាន់ Telegram របស់អ្នក (@{$botUsername}) រួចរាល់ហើយ!",
             'telegram_gateway' => 'លេខកូដផ្ទៀងផ្ទាត់ត្រូវបានផ្ញើទៅកាន់ Telegram របស់អ្នកតាមរយៈ @VerificationCodes រួចរាល់ហើយ!',
-            default => 'លេខកូដ OTP ត្រូវបានផ្ញើជូនតាមរយៈសារ SMS រួចរាល់ហើយ!',
+            default => $smsDelivered 
+                ? 'លេខកូដ OTP ត្រូវបានផ្ញើជូនតាមរយៈសារ SMS រួចរាល់ហើយ!' 
+                : 'សូមចុចប៊ូតុង Telegram Bot ខាងក្រោម ដើម្បីទទួលលេខកូដ OTP ៦ ខ្ទង់ភ្លាមៗ (ឥតគិតថ្លៃ ១០០%)!',
         };
 
         $botOtpLink = "https://t.me/{$botUsername}?start=otp_" . $localPhone;
@@ -788,6 +795,7 @@ class AuthController extends Controller
             'success' => true,
             'channel' => $dispatchChannel,
             'is_telegram' => $isTelegram,
+            'sms_delivered' => $smsDelivered,
             'phone' => $e164Phone,
             'bot_username' => $botUsername,
             'bot_otp_link' => $botOtpLink,

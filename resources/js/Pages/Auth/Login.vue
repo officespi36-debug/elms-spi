@@ -733,11 +733,13 @@ const sendPhoneOtp = async (overrideChannel?: 'sms' | 'telegram' | any) => {
       startPhoneCooldown(60)
       focusFirstOtpDigit()
       oauthNotice.value = {
-        type: data.is_telegram ? 'info' : 'warning',
+        type: data.is_telegram || data.sms_delivered ? 'info' : 'warning',
         message: data.message || (
           data.is_telegram
             ? (currentLang.value === 'km' ? 'លេខកូដ OTP ត្រូវបានផ្ញើទៅកាន់ Telegram របស់អ្នករួចរាល់ហើយ!' : 'OTP code sent to your Telegram!')
-            : (currentLang.value === 'km' ? 'លេខកូដ OTP ត្រូវបានផ្ញើតាមសារ SMS ទៅកាន់ប្រអប់សារទូរស័ព្ទរបស់អ្នករួចរាល់ហើយ!' : 'OTP code has been sent to your phone via SMS!')
+            : (data.sms_delivered
+                ? (currentLang.value === 'km' ? 'លេខកូដ OTP ត្រូវបានផ្ញើតាមសារ SMS ទៅកាន់ប្រអប់សារទូរស័ព្ទរបស់អ្នករួចរាល់ហើយ!' : 'OTP code has been sent to your phone via SMS!')
+                : (currentLang.value === 'km' ? 'សូមចុចលើប៊ូតុង Telegram Bot ខាងក្រោម ដើម្បីទទួលកូដភ្លាមៗ (ឥតគិតថ្លៃ)!' : 'Please tap the Telegram Bot button below to get your OTP code instantly!'))
         )
       }
     } else {

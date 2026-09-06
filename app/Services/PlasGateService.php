@@ -91,11 +91,21 @@ class PlasGateService
 
     /**
      * Send 6-digit OTP code to the recipient phone number via PlasGate Official REST API.
+     * Includes automatic fallback from Khmer Unicode to standard GSM 7-bit ASCII.
      */
     public function sendOtp(string $phone, string $otpCode): bool
     {
-        $message = "[Saint Paul Institute E-LMS] លេខកូដផ្ទៀងផ្ទាត់ OTP របស់អ្នកគឺ៖ {$otpCode} (មានសុពលភាព ៥ នាទី)។ សូមកុំចែករំលែកលេខកូដនេះទៅកាន់អ្នកដទៃ។";
-        return $this->sendSms($phone, $message);
+        // 1. Primary: Standard Khmer OTP message
+        $khmerMessage = "[Saint Paul Institute E-LMS] លេខកូដផ្ទៀងផ្ទាត់ OTP របស់អ្នកគឺ៖ {$otpCode} (មានសុពលភាព ៥ នាទី)។";
+        $sent = $this->sendSms($phone, $khmerMessage);
+
+        // 2. Fallback: Compact ASCII message for maximum telecom compatibility
+        if (!$sent) {
+            $asciiMessage = "[SPI E-LMS] Your OTP verification code is: {$otpCode} (Valid for 5 mins).";
+            $sent = $this->sendSms($phone, $asciiMessage);
+        }
+
+        return $sent;
     }
 
     /**
