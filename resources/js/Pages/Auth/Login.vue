@@ -685,11 +685,13 @@ const verifyEmailOtp = async () => {
   }
 }
 
-const sendPhoneOtp = async (overrideChannel?: 'sms' | 'telegram') => {
+const sendPhoneOtp = async (overrideChannel?: 'sms' | 'telegram' | any) => {
   if (!otpPhone.value || isPhoneOtpSending.value) return
-  if (overrideChannel) {
-    preferredPhoneChannel.value = overrideChannel
-  }
+  const channel = (typeof overrideChannel === 'string' && (overrideChannel === 'sms' || overrideChannel === 'telegram'))
+    ? overrideChannel
+    : preferredPhoneChannel.value
+
+  preferredPhoneChannel.value = channel
   isPhoneOtpSending.value = true
   oauthNotice.value = null
 
@@ -705,7 +707,7 @@ const sendPhoneOtp = async (overrideChannel?: 'sms' | 'telegram') => {
       },
       body: JSON.stringify({
         phone: fullFormattedPhone.value || otpPhone.value.trim(),
-        channel: overrideChannel || preferredPhoneChannel.value,
+        channel: channel,
       }),
     })
 
@@ -2102,7 +2104,7 @@ onUnmounted(() => {
                     'w-full h-11 pr-9 bg-white dark:bg-[#121214] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 focus:border-emerald-600 dark:focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 text-xs sm:text-sm rounded-xl outline-none shadow-2xs font-mono transition-all font-medium',
                     selectedPhoneCountry.dialCode.length > 4 ? 'pl-32' : 'pl-28'
                   ]"
-                  @keydown.enter.prevent="sendPhoneOtp"
+                  @keydown.enter.prevent="sendPhoneOtp()"
                 />
 
                 <button
@@ -2364,7 +2366,7 @@ onUnmounted(() => {
 
               <button
                 type="button"
-                @click="sendPhoneOtp"
+                @click="sendPhoneOtp()"
                 :disabled="isPhoneOtpSending || phoneResendCooldown > 0"
                 :class="[
                   'font-medium text-xs transition-colors flex items-center gap-1',
