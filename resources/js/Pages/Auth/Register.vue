@@ -4,6 +4,7 @@ import { useForm, Link } from '@inertiajs/vue3'
 import { i18n, type LanguageCode } from '../../Services/i18n'
 import AuthAnimatedBackground from '../../Components/AuthAnimatedBackground.vue'
 import NetworkStatusPill from '../../Components/NetworkStatusPill.vue'
+import GlobalToast from '../../Components/GlobalToast.vue'
 
 const logoUrl = '/images/logo.png'
 
@@ -38,6 +39,7 @@ const errorTitle = ref('')
 const errorMessage = ref('')
 
 const isRegistering = ref(false)
+const registerSuccess = ref(false)
 const registerLoadingTitle = ref('')
 const registerLoadingSubtitle = ref('')
 
@@ -331,16 +333,19 @@ const submit = () => {
   showErrorModal.value = false
   showSuccessModal.value = false
   isRegistering.value = true
+  registerSuccess.value = false
   registerLoadingTitle.value = currentLang.value === 'km' ? 'កំពុងបង្កើតគណនី...' : 'Creating your account...'
   registerLoadingSubtitle.value = currentLang.value === 'km' ? 'សូមរង់ចាំមួយភ្លែត ប្រព័ន្ធកំពុងដំណើរការរៀបចំព័ត៌មាន...' : 'Please wait a moment while setting up your profile...'
 
   form.post('/register', {
     onSuccess: () => {
+      registerSuccess.value = true
       registerLoadingTitle.value = currentLang.value === 'km' ? 'ចុះឈ្មោះជោគជ័យ!' : 'Registration Successful!'
       registerLoadingSubtitle.value = currentLang.value === 'km' ? 'សូមរង់ចាំមួយភ្លែត កំពុងនាំអ្នកទៅកាន់ផ្ទាំងគ្រប់គ្រង...' : 'Please wait a moment, redirecting to your dashboard...'
     },
     onError: (errors) => {
       isRegistering.value = false
+      registerSuccess.value = false
       showErrorModal.value = true
       errorTitle.value = currentLang.value === 'km' ? 'ព័ត៌មានមិនត្រឹមត្រូវ' : 'Invalid Information'
       const firstKey = Object.keys(errors)[0]
@@ -825,10 +830,20 @@ const submit = () => {
         </div>
       </div>
 
-      <!-- Loading / Registration Processing Overlay (Like Screenshot) -->
+      <!-- Loading / Registration Processing Overlay -->
       <div v-else class="w-full max-w-sm flex flex-col items-center justify-center text-center animate-fade-in py-12">
-        <div class="w-12 h-12 rounded-full border-2 border-zinc-300 dark:border-zinc-800 border-t-blue-600 dark:border-t-white animate-spin mb-4"></div>
-        <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-wide mb-1.5">
+        <!-- Success State: Vibrant Emerald Checkmark Badge -->
+        <div v-if="registerSuccess" class="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-4 ring-8 ring-emerald-500/10 animate-bounce">
+          <i class="pi pi-check text-2xl font-black"></i>
+        </div>
+
+        <!-- Processing State: Animated Spinner with Center Logo -->
+        <div v-else class="relative w-16 h-16 mb-4 flex items-center justify-center">
+          <div class="w-16 h-16 rounded-full border-3 border-blue-500/20 dark:border-white/10 border-t-blue-600 dark:border-t-white animate-spin"></div>
+          <img :src="logoUrl" alt="Logo" class="w-7 h-7 object-contain rounded-full absolute" onerror="this.src='/logo.png'" />
+        </div>
+
+        <h3 :class="['text-base sm:text-lg font-black tracking-wide mb-1.5 transition-colors', registerSuccess ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-white']">
           {{ registerLoadingTitle || (currentLang === 'km' ? 'កំពុងបង្កើតគណនី...' : 'Creating your account...') }}
         </h3>
         <p class="text-xs text-slate-600 dark:text-zinc-400 max-w-xs leading-relaxed">
@@ -896,6 +911,9 @@ const submit = () => {
         </div>
       </div>
     </Transition>
+
+    <!-- Global Toast Notifications -->
+    <GlobalToast />
 
   </div>
 </template>

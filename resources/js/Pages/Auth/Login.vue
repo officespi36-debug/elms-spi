@@ -5,6 +5,7 @@ import { i18n, type LanguageCode } from '../../Services/i18n'
 import AuthAnimatedBackground from '../../Components/AuthAnimatedBackground.vue'
 import NetworkStatusPill from '../../Components/NetworkStatusPill.vue'
 import TelegramLoginModal from '../../Components/TelegramLoginModal.vue'
+import GlobalToast from '../../Components/GlobalToast.vue'
 
 const logoUrl = '/images/logo.png'
 
@@ -145,6 +146,10 @@ const isDark = ref(true)
 const isLangOpen = ref(false)
 const showSuccessModal = ref(false)
 const showErrorModal = ref(false)
+const isAuthenticating = ref(false)
+const authSuccess = ref(false)
+const authLoadingTitle = ref('')
+const authLoadingSubtitle = ref('')
 const statusMessage = ref<string | null>(null)
 const oauthNotice = ref<{
   type: 'warning' | 'error' | 'success' | 'info'
@@ -610,6 +615,7 @@ const verifyEmailOtp = async () => {
   if (!otpCode.value || otpCode.value.length < 6 || isOtpVerifying.value) return
   isOtpVerifying.value = true
   isAuthenticating.value = true
+  authSuccess.value = false
   authLoadingTitle.value = currentLang.value === 'km' ? 'កំពុងផ្ទៀងផ្ទាត់ OTP...' : 'Verifying OTP...'
   authLoadingSubtitle.value = currentLang.value === 'km' ? 'សូមរង់ចាំមួយភ្លែត ប្រព័ន្ធកំពុងផ្ទៀងផ្ទាត់ និងនាំអ្នកទៅកាន់ Dashboard' : 'Please wait a moment while verifying your OTP...'
 
@@ -635,6 +641,9 @@ const verifyEmailOtp = async () => {
       data = JSON.parse(rawText)
     } catch (e) {
       if (response.ok || response.status === 200 || response.redirected) {
+        authSuccess.value = true
+        authLoadingTitle.value = currentLang.value === 'km' ? 'ផ្ទៀងផ្ទាត់ជោគជ័យ!' : 'OTP Verified Successfully!'
+        authLoadingSubtitle.value = currentLang.value === 'km' ? 'សូមរង់ចាំមួយភ្លែត កំពុងនាំអ្នកទៅកាន់ Dashboard...' : 'Redirecting to your dashboard...'
         window.location.assign('/dashboard')
         return
       }
@@ -644,29 +653,30 @@ const verifyEmailOtp = async () => {
     }
 
     if (response.ok && data.success) {
+      authSuccess.value = true
+      authLoadingTitle.value = currentLang.value === 'km' ? 'ផ្ទៀងផ្ទាត់ជោគជ័យ!' : 'OTP Verified Successfully!'
+      authLoadingSubtitle.value = currentLang.value === 'km' ? 'សូមរង់ចាំមួយភ្លែត កំពុងនាំអ្នកទៅកាន់ Dashboard...' : 'Redirecting to your dashboard...'
       if (data.token) {
         try { localStorage.setItem('auth_token', data.token) } catch (e) {}
       }
       setTimeout(() => {
         window.location.assign(data.redirect || '/student/dashboard')
-      }, 1200)
+      }, 1000)
     } else {
       isAuthenticating.value = false
+      authSuccess.value = false
       let errMsg = data.message || ''
       if (typeof errMsg === 'string' && (errMsg.startsWith('<') || errMsg.includes('<!DOCTYPE'))) {
         errMsg = currentLang.value === 'km' ? 'មានបញ្ហាបច្ចេកទេសលើ Server សូមព្យាយាមម្តងទៀត' : 'Server error, please try again'
       }
-      oauthNotice.value = {
-        type: 'error',
-        message: errMsg || (currentLang.value === 'km' ? 'លេខកូដ OTP មិនត្រឹមត្រូវ ឬផុតកំណត់!' : 'Invalid or expired OTP code!')
-      }
+      errorMessage.value = errMsg || (currentLang.value === 'km' ? 'លេខកូដ OTP មិនត្រឹមត្រូវ ឬផុតកំណត់!' : 'Invalid or expired OTP code!')
+      showErrorModal.value = true
     }
   } catch (err: any) {
     isAuthenticating.value = false
-    oauthNotice.value = {
-      type: 'error',
-      message: err?.message || (currentLang.value === 'km' ? 'មានបញ្ហាក្នុងការផ្ទៀងផ្ទាត់ OTP' : 'OTP verification error')
-    }
+    authSuccess.value = false
+    showErrorModal.value = true
+    errorMessage.value = err?.message || (currentLang.value === 'km' ? 'មានបញ្ហាក្នុងការផ្ទៀងផ្ទាត់ OTP' : 'OTP verification error')
   } finally {
     isOtpVerifying.value = false
   }
@@ -726,6 +736,7 @@ const verifyPhoneOtp = async () => {
   if (!otpCode.value || otpCode.value.length < 6 || isPhoneOtpVerifying.value) return
   isPhoneOtpVerifying.value = true
   isAuthenticating.value = true
+  authSuccess.value = false
   authLoadingTitle.value = currentLang.value === 'km' ? 'កំពុងផ្ទៀងផ្ទាត់ OTP ទូរសព្ទ...' : 'Verifying Phone OTP...'
   authLoadingSubtitle.value = currentLang.value === 'km' ? 'សូមរង់ចាំមួយភ្លែត ប្រព័ន្ធកំពុងផ្ទៀងផ្ទាត់ និងនាំអ្នកទៅកាន់ Dashboard' : 'Please wait a moment while verifying your OTP...'
 
@@ -751,6 +762,9 @@ const verifyPhoneOtp = async () => {
       data = JSON.parse(rawText)
     } catch (e) {
       if (response.ok || response.status === 200 || response.redirected) {
+        authSuccess.value = true
+        authLoadingTitle.value = currentLang.value === 'km' ? 'ផ្ទៀងផ្ទាត់ជោគជ័យ!' : 'Phone OTP Verified Successfully!'
+        authLoadingSubtitle.value = currentLang.value === 'km' ? 'សូមរង់ចាំមួយភ្លែត កំពុងនាំអ្នកទៅកាន់ Dashboard...' : 'Redirecting to your dashboard...'
         window.location.assign('/dashboard')
         return
       }
@@ -760,29 +774,30 @@ const verifyPhoneOtp = async () => {
     }
 
     if (response.ok && data.success) {
+      authSuccess.value = true
+      authLoadingTitle.value = currentLang.value === 'km' ? 'ផ្ទៀងផ្ទាត់ជោគជ័យ!' : 'Phone OTP Verified Successfully!'
+      authLoadingSubtitle.value = currentLang.value === 'km' ? 'សូមរង់ចាំមួយភ្លែត កំពុងនាំអ្នកទៅកាន់ Dashboard...' : 'Redirecting to your dashboard...'
       if (data.token) {
         try { localStorage.setItem('auth_token', data.token) } catch (e) {}
       }
       setTimeout(() => {
         window.location.assign(data.redirect || '/student/dashboard')
-      }, 1200)
+      }, 1000)
     } else {
       isAuthenticating.value = false
+      authSuccess.value = false
       let errMsg = data.message || ''
       if (typeof errMsg === 'string' && (errMsg.startsWith('<') || errMsg.includes('<!DOCTYPE'))) {
         errMsg = currentLang.value === 'km' ? 'មានបញ្ហាបច្ចេកទេសលើ Server សូមព្យាយាមម្តងទៀត' : 'Server error, please try again'
       }
-      oauthNotice.value = {
-        type: 'error',
-        message: errMsg || (currentLang.value === 'km' ? 'លេខកូដ OTP មិនត្រឹមត្រូវ ឬផុតកំណត់!' : 'Invalid or expired OTP code!')
-      }
+      errorMessage.value = errMsg || (currentLang.value === 'km' ? 'លេខកូដ OTP មិនត្រឹមត្រូវ ឬផុតកំណត់!' : 'Invalid or expired OTP code!')
+      showErrorModal.value = true
     }
   } catch (err: any) {
     isAuthenticating.value = false
-    oauthNotice.value = {
-      type: 'error',
-      message: err?.message || (currentLang.value === 'km' ? 'មានបញ្ហាក្នុងការផ្ទៀងផ្ទាត់ OTP' : 'OTP verification error')
-    }
+    authSuccess.value = false
+    showErrorModal.value = true
+    errorMessage.value = err?.message || (currentLang.value === 'km' ? 'មានបញ្ហាក្នុងការផ្ទៀងផ្ទាត់ OTP' : 'OTP verification error')
   } finally {
     isPhoneOtpVerifying.value = false
   }
@@ -863,6 +878,12 @@ const submit = async () => {
   errorMessage.value = null
   form.clearErrors()
 
+  // Activate authenticating screen with loading indicator
+  isAuthenticating.value = true
+  authSuccess.value = false
+  authLoadingTitle.value = currentLang.value === 'km' ? 'កំពុងផ្ទៀងផ្ទាត់គណនី...' : 'Authenticating account...'
+  authLoadingSubtitle.value = currentLang.value === 'km' ? 'សូមរង់ចាំមួយភ្លែត ប្រព័ន្ធកំពុងពិនិត្យមើលព័ត៌មាន...' : 'Please wait a moment while checking your credentials...'
+
   // 1. Ensure Turnstile token is available before posting
   if (!form.turnstile_token) {
     if (typeof window !== 'undefined' && (window as any).turnstile && widgetId !== null) {
@@ -899,10 +920,14 @@ const submit = async () => {
   form.post('/login', {
     preserveScroll: true,
     onSuccess: () => {
-      showSuccessModal.value = true
+      authSuccess.value = true
+      authLoadingTitle.value = currentLang.value === 'km' ? 'ចូលប្រព័ន្ធជោគជ័យ!' : 'Sign In Successful!'
+      authLoadingSubtitle.value = currentLang.value === 'km' ? 'សូមរង់ចាំមួយភ្លែត កំពុងនាំអ្នកទៅកាន់ Dashboard...' : 'Redirecting to your dashboard...'
       isSubmitting.value = false
     },
     onError: (errors: any) => {
+      isAuthenticating.value = false
+      authSuccess.value = false
       showSuccessModal.value = false
       showErrorModal.value = true
       isSubmitting.value = false
@@ -951,9 +976,6 @@ const getTelegramOAuthUrl = () => {
   return `https://oauth.telegram.org/auth?client_id=${botId}&bot_id=${botId}&origin=${encodeURIComponent(origin)}&return_to=${encodeURIComponent(returnTo)}&request_access=write`
 }
 
-const isAuthenticating = ref(false)
-const authLoadingTitle = ref('')
-const authLoadingSubtitle = ref('')
 const isGoogleLoading = ref(false)
 const isTelegramLoading = ref(false)
 const showTelegramModal = ref(false)
@@ -961,8 +983,12 @@ const showTelegramModal = ref(false)
 const onTelegramModalSuccess = (user: any) => {
   showTelegramModal.value = false
   isAuthenticating.value = true
-  authLoadingTitle.value = currentLang.value === 'km' ? 'ចូលប្រើប្រាស់ជោគជ័យ!' : 'Login Successful!'
+  authSuccess.value = true
+  authLoadingTitle.value = currentLang.value === 'km' ? 'ចូលប្រើប្រាស់ Telegram ជោគជ័យ!' : 'Telegram Login Successful!'
   authLoadingSubtitle.value = currentLang.value === 'km' ? 'កំពុងនាំអ្នកទៅកាន់ Dashboard...' : 'Redirecting to Dashboard...'
+  setTimeout(() => {
+    window.location.href = '/student/dashboard'
+  }, 1000)
 }
 
 const onUseTelegramDevice = () => {
@@ -1088,14 +1114,19 @@ const handleTelegramAuthSuccess = async (tgUser: any) => {
     })
 
     const data = await response.json()
-    if (data.success && data.redirect) {
+    if (data.success) {
+      authSuccess.value = true
+      authLoadingTitle.value = currentLang.value === 'km' ? 'ចូលប្រើប្រាស់ Telegram ជោគជ័យ!' : 'Telegram Login Successful!'
+      authLoadingSubtitle.value = currentLang.value === 'km' ? 'កំពុងនាំអ្នកទៅកាន់ Dashboard...' : 'Redirecting to Dashboard...'
       setTimeout(() => {
-        window.location.href = data.redirect
-      }, 1200)
+        window.location.href = data.redirect || '/student/dashboard'
+      }, 1000)
     } else {
-      setTimeout(() => {
-        window.location.href = '/student/dashboard'
-      }, 1200)
+      isAuthenticating.value = false
+      authSuccess.value = false
+      isTelegramLoading.value = false
+      showErrorModal.value = true
+      errorMessage.value = data.message || (currentLang.value === 'km' ? 'ការផ្ទៀងផ្ទាត់ Telegram មិនជោគជ័យ!' : 'Telegram authentication failed!')
     }
   } catch (err: any) {
     try {
@@ -2325,9 +2356,19 @@ onUnmounted(() => {
       </div>
 
       <!-- Loading / Authenticating Overlay -->
-      <div v-else class="w-full max-w-sm flex flex-col items-center justify-center text-center animate-fade-in py-6">
-        <div class="w-12 h-12 rounded-full border-2 border-zinc-300 dark:border-zinc-800 border-t-zinc-900 dark:border-t-white animate-spin mb-4"></div>
-        <h3 class="text-base font-bold text-zinc-900 dark:text-white tracking-wide mb-1">
+      <div v-else class="w-full max-w-sm flex flex-col items-center justify-center text-center animate-fade-in py-10">
+        <!-- Success State: Vibrant Emerald Checkmark Badge -->
+        <div v-if="authSuccess" class="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-4 ring-8 ring-emerald-500/10 animate-bounce">
+          <i class="pi pi-check text-2xl font-black"></i>
+        </div>
+
+        <!-- Processing State: Animated Spinner with Center Logo -->
+        <div v-else class="relative w-16 h-16 mb-4 flex items-center justify-center">
+          <div class="w-16 h-16 rounded-full border-3 border-blue-500/20 dark:border-white/10 border-t-blue-600 dark:border-t-white animate-spin"></div>
+          <img :src="logoUrl" alt="Logo" class="w-7 h-7 object-contain rounded-full absolute" onerror="this.src='/logo.png'" />
+        </div>
+
+        <h3 :class="['text-lg font-black tracking-tight mb-1.5 transition-colors', authSuccess ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-900 dark:text-white']">
           {{ authLoadingTitle || (currentLang === 'km' ? 'កំពុងរៀបចំផ្ទាំងគ្រប់គ្រង...' : 'Setting up your dashboard...') }}
         </h3>
         <p class="text-xs text-zinc-500 dark:text-zinc-400 max-w-xs leading-relaxed">
@@ -2407,6 +2448,9 @@ onUnmounted(() => {
       @success="onTelegramModalSuccess"
       @use-device="onUseTelegramDevice"
     />
+
+    <!-- Global Toast Notifications -->
+    <GlobalToast />
 
   </div>
 </template>
