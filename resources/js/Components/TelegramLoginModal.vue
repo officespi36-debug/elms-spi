@@ -344,10 +344,10 @@ onBeforeUnmount(() => {
           <div v-if="screen === 'options'" class="space-y-5">
             <div class="text-center space-y-1">
               <h2 class="text-xl sm:text-[22px] font-black tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 dark:from-white dark:via-zinc-100 dark:to-zinc-300 bg-clip-text text-transparent text-center">
-                Login options
+                {{ currentLang === 'km' ? 'ជម្រើសនៃការចូលប្រើ' : 'Login options' }}
               </h2>
               <p class="text-xs text-slate-600 dark:text-zinc-400 text-center">
-                Choose how you'd like to log in to <span class="font-semibold text-zinc-800 dark:text-zinc-200">spilms.tech</span>.
+                {{ currentLang === 'km' ? 'ជ្រើសរើសរបៀបដែលអ្នកចង់ចូលប្រើប្រាស់' : "Choose how you'd like to log in to" }} <span class="font-semibold text-zinc-800 dark:text-zinc-200">spilms.tech</span>.
               </p>
             </div>
 
@@ -369,7 +369,9 @@ onBeforeUnmount(() => {
                   <svg class="w-4 h-4 text-[#0088cc] dark:text-[#29b6f6] shrink-0" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .4z"/>
                   </svg>
-                  <span class="text-xs sm:text-sm font-medium text-zinc-900 dark:text-white">Use Telegram on this device</span>
+                  <span class="text-xs sm:text-sm font-medium text-zinc-900 dark:text-white">
+                    {{ currentLang === 'km' ? 'ប្រើប្រាស់ Telegram លើឧបករណ៍នេះ' : 'Use Telegram on this device' }}
+                  </span>
                 </div>
                 <div
                   :class="[
@@ -395,7 +397,9 @@ onBeforeUnmount(() => {
               >
                 <div class="flex items-center gap-3">
                   <i class="pi pi-phone text-emerald-600 dark:text-emerald-400 text-sm"></i>
-                  <span class="text-xs sm:text-sm font-medium text-zinc-900 dark:text-white">Log in with a phone number</span>
+                  <span class="text-xs sm:text-sm font-medium text-zinc-900 dark:text-white">
+                    {{ currentLang === 'km' ? 'ចូលប្រើតាមរយៈលេខទូរស័ព្ទ' : 'Log in with a phone number' }}
+                  </span>
                 </div>
                 <div
                   :class="[
@@ -421,7 +425,9 @@ onBeforeUnmount(() => {
               >
                 <div class="flex items-center gap-3">
                   <i class="pi pi-qrcode text-indigo-600 dark:text-indigo-400 text-sm"></i>
-                  <span class="text-xs sm:text-sm font-medium text-zinc-900 dark:text-white">Scan a QR code</span>
+                  <span class="text-xs sm:text-sm font-medium text-zinc-900 dark:text-white">
+                    {{ currentLang === 'km' ? 'ស្កេនកូដ QR' : 'Scan a QR code' }}
+                  </span>
                 </div>
                 <div
                   :class="[
@@ -440,7 +446,7 @@ onBeforeUnmount(() => {
               @click="handleContinue"
               class="w-full h-11 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center transition-all duration-150 select-none shadow-sm bg-blue-600 hover:bg-blue-700 text-white dark:bg-[#e4e4e7] dark:hover:bg-white dark:text-zinc-950 cursor-pointer shadow-md shadow-blue-500/20 active:scale-[0.99] mt-2"
             >
-              Continue
+              {{ currentLang === 'km' ? 'បន្តទៅមុខ' : 'Continue' }}
             </button>
           </div>
 
@@ -448,10 +454,10 @@ onBeforeUnmount(() => {
           <div v-else-if="screen === 'phone'" class="space-y-5">
             <div class="text-center space-y-1">
               <h2 class="text-xl sm:text-[22px] font-black tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 dark:from-white dark:via-zinc-100 dark:to-zinc-300 bg-clip-text text-transparent text-center">
-                Log in to spilms.tech
+                {{ currentLang === 'km' ? 'ចូលប្រើប្រាស់ spilms.tech' : 'Log in to spilms.tech' }}
               </h2>
               <p class="text-xs text-slate-600 dark:text-zinc-400 text-center">
-                Enter the phone number linked to your Telegram to confirm your login there.
+                {{ currentLang === 'km' ? 'សូមបញ្ចូលលេខទូរស័ព្ទដែលភ្ជាប់ជាមួយ Telegram របស់អ្នកដើម្បីបញ្ជាក់ការចូលប្រើ។' : 'Enter the phone number linked to your Telegram to confirm your login there.' }}
               </p>
             </div>
 
@@ -489,7 +495,7 @@ onBeforeUnmount(() => {
                       <input
                         v-model="countrySearch"
                         type="text"
-                        placeholder="Search country..."
+                        :placeholder="currentLang === 'km' ? 'ស្វែងរកប្រទេស ឬកូដ...' : 'Search country...'"
                         autofocus
                         class="w-full h-8 pl-8 pr-3 bg-white dark:bg-[#18181b] text-xs text-zinc-900 dark:text-white rounded-lg border border-zinc-200 dark:border-zinc-700 focus:outline-none focus:border-zinc-500"
                       />
@@ -521,7 +527,7 @@ onBeforeUnmount(() => {
                       <span class="text-xs font-mono text-zinc-400 shrink-0 ml-2">{{ c.dialCode }}</span>
                     </button>
                     <div v-if="filteredCountries.length === 0" class="p-3 text-center text-xs text-zinc-400">
-                      No country found
+                      {{ currentLang === 'km' ? 'រកមិនឃើញប្រទេសទេ' : 'No country found' }}
                     </div>
                   </div>
                 </div>
@@ -560,7 +566,7 @@ onBeforeUnmount(() => {
               ]"
             >
               <i v-if="isSendingOtp" class="pi pi-spin pi-spinner mr-2 text-sm"></i>
-              <span>{{ isSendingOtp ? 'Sending code...' : 'Continue' }}</span>
+              <span>{{ isSendingOtp ? (currentLang === 'km' ? 'កំពុងផ្ញើកូដ...' : 'Sending code...') : (currentLang === 'km' ? 'បន្តទៅមុខ' : 'Continue') }}</span>
             </button>
 
             <!-- Other Login Options Link -->
@@ -570,7 +576,7 @@ onBeforeUnmount(() => {
                 @click="screen = 'options'"
                 class="text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 cursor-pointer font-medium flex items-center justify-center gap-1 mx-auto transition-colors"
               >
-                <span>Other login options &gt;</span>
+                <span>{{ currentLang === 'km' ? '< ជម្រើសចូលប្រើផ្សេងទៀត' : 'Other login options >' }}</span>
               </button>
             </div>
           </div>
@@ -579,10 +585,10 @@ onBeforeUnmount(() => {
           <div v-else-if="screen === 'otp'" class="space-y-5">
             <div class="text-center space-y-1">
               <h2 class="text-xl sm:text-[22px] font-black tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 dark:from-white dark:via-zinc-100 dark:to-zinc-300 bg-clip-text text-transparent text-center">
-                Enter confirmation code
+                {{ currentLang === 'km' ? 'ផ្ទៀងផ្ទាត់លេខកូដសម្ងាត់' : 'Enter confirmation code' }}
               </h2>
               <p class="text-xs text-slate-600 dark:text-zinc-400 text-center">
-                We sent a 6-digit verification code to your Telegram from
+                {{ currentLang === 'km' ? 'យើងបានផ្ញើកូដ ៦ ខ្ទង់ទៅកាន់ Telegram របស់អ្នកពី' : 'We sent a 6-digit verification code to your Telegram from' }}
                 <span class="text-sky-600 dark:text-sky-400 font-semibold">@VerificationCodes</span>.
               </p>
             </div>
@@ -626,7 +632,7 @@ onBeforeUnmount(() => {
               ]"
             >
               <i v-if="isVerifyingOtp" class="pi pi-spin pi-spinner mr-2 text-sm"></i>
-              <span>{{ isVerifyingOtp ? 'Verifying...' : 'Confirm Login' }}</span>
+              <span>{{ isVerifyingOtp ? (currentLang === 'km' ? 'កំពុងផ្ទៀងផ្ទាត់...' : 'Verifying...') : (currentLang === 'km' ? 'បញ្ជាក់ការចូលប្រើ' : 'Confirm Login') }}</span>
             </button>
 
             <div class="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400 px-1 pt-1">
@@ -635,7 +641,7 @@ onBeforeUnmount(() => {
                 @click="screen = 'phone'"
                 class="text-zinc-500 hover:text-zinc-900 dark:hover:text-white cursor-pointer"
               >
-                &lt; Change number
+                {{ currentLang === 'km' ? '< ប្តូរលេខទូរស័ព្ទ' : '< Change number' }}
               </button>
               <button
                 type="button"
@@ -643,7 +649,7 @@ onBeforeUnmount(() => {
                 @click="sendOtp"
                 class="text-blue-600 dark:text-sky-400 hover:underline disabled:opacity-50 cursor-pointer font-medium"
               >
-                {{ otpCooldown > 0 ? `Resend (${otpCooldown}s)` : 'Resend code' }}
+                {{ otpCooldown > 0 ? (currentLang === 'km' ? `ផ្ញើម្តងទៀត (${otpCooldown}s)` : `Resend (${otpCooldown}s)`) : (currentLang === 'km' ? 'ផ្ញើកូដម្តងទៀត' : 'Resend code') }}
               </button>
             </div>
           </div>
@@ -652,10 +658,10 @@ onBeforeUnmount(() => {
           <div v-else-if="screen === 'qr'" class="space-y-5">
             <div class="text-center space-y-1">
               <h2 class="text-xl sm:text-[22px] font-black tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 dark:from-white dark:via-zinc-100 dark:to-zinc-300 bg-clip-text text-transparent text-center">
-                Continue with Telegram
+                {{ currentLang === 'km' ? 'ចូលប្រើតាមរយៈ Telegram' : 'Continue with Telegram' }}
               </h2>
               <p class="text-xs text-slate-600 dark:text-zinc-400 text-center">
-                Scan this QR code with your camera on a device with Telegram installed.
+                {{ currentLang === 'km' ? 'សូមស្កេនកូដ QR នេះដោយប្រើកាមេរ៉ាទូរស័ព្ទដែលមានកម្មវិធី Telegram។' : 'Scan this QR code with your camera on a device with Telegram installed.' }}
               </p>
             </div>
 
@@ -670,7 +676,7 @@ onBeforeUnmount(() => {
                 />
                 <div v-else class="w-52 h-52 flex flex-col items-center justify-center text-zinc-600 gap-2">
                   <i class="pi pi-spin pi-spinner text-2xl text-sky-500"></i>
-                  <span class="text-xs">Generating QR code...</span>
+                  <span class="text-xs">{{ currentLang === 'km' ? 'កំពុងបង្កើតកូដ QR...' : 'Generating QR code...' }}</span>
                 </div>
 
                 <!-- Telegram Center Logo on QR -->
@@ -690,13 +696,13 @@ onBeforeUnmount(() => {
               <div class="mt-3 text-center">
                 <span v-if="qrStatus === 'pending'" class="inline-flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
                   <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                  <span>Waiting for scan...</span>
+                  <span>{{ currentLang === 'km' ? 'កំពុងរង់ចាំការស្កេន...' : 'Waiting for scan...' }}</span>
                 </span>
                 <span v-else-if="qrStatus === 'approved'" class="text-xs text-emerald-500 font-semibold">
-                  ✓ Verified! Logging in...
+                  {{ currentLang === 'km' ? '✓ ផ្ទៀងផ្ទាត់ជោគជ័យ! កំពុងចូល...' : '✓ Verified! Logging in...' }}
                 </span>
                 <span v-else-if="qrStatus === 'expired'" class="text-xs text-rose-500">
-                  QR code expired. <button type="button" @click="generateQrCode" class="underline font-bold">Refresh</button>
+                  {{ currentLang === 'km' ? 'កូដ QR ផុតកំណត់។ ' : 'QR code expired. ' }}<button type="button" @click="generateQrCode" class="underline font-bold">{{ currentLang === 'km' ? 'បង្កើតថ្មី' : 'Refresh' }}</button>
                 </span>
               </div>
             </div>
@@ -709,7 +715,7 @@ onBeforeUnmount(() => {
                   @click="screen = 'phone'"
                   class="text-xs text-sky-600 dark:text-sky-400 hover:underline cursor-pointer font-medium"
                 >
-                  Or log in with a phone number &gt;
+                  {{ currentLang === 'km' ? 'ឬ ចូលតាមរយៈលេខទូរស័ព្ទ >' : 'Or log in with a phone number >' }}
                 </button>
               </div>
               <div>
@@ -718,7 +724,7 @@ onBeforeUnmount(() => {
                   @click="screen = 'options'"
                   class="text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-white cursor-pointer"
                 >
-                  &lt; Other login options
+                  {{ currentLang === 'km' ? '< ជម្រើសចូលប្រើផ្សេងទៀត' : '< Other login options' }}
                 </button>
               </div>
             </div>
