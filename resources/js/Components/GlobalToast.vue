@@ -12,6 +12,8 @@ const currentLang = computed(() => i18n.locale.value)
 
 let removeStartListener: (() => void) | null = null
 let removeFinishListener: (() => void) | null = null
+let removeSuccessListener: (() => void) | null = null
+let removeErrorListener: (() => void) | null = null
 
 onMounted(() => {
   removeStartListener = router.on('start', (event) => {
@@ -21,14 +23,42 @@ onMounted(() => {
       isGlobalProcessing.value = true
     }
   })
+
   removeFinishListener = router.on('finish', () => {
     isGlobalProcessing.value = false
+  })
+
+  removeSuccessListener = router.on('success', (event) => {
+    const method = event.detail?.visit?.method?.toLowerCase()
+    if (method && method !== 'get') {
+      setTimeout(() => {
+        if (!page.props.flash?.success && !page.props.flash?.status && !page.props.flash?.info) {
+          appToast.success(
+            currentLang.value === 'km' ? 'ប្រតិបត្តិការត្រូវបានរក្សាទុកដោយជោគជ័យ!' : 'Operation completed successfully!',
+            currentLang.value === 'km' ? 'ជោគជ័យ' : 'Success'
+          )
+        }
+      }, 120)
+    }
+  })
+
+  removeErrorListener = router.on('error', (event) => {
+    const errs = event.detail?.errors || {}
+    const keys = Object.keys(errs)
+    if (keys.length > 0) {
+      const firstErr = errs[keys[0]]
+      if (typeof firstErr === 'string') {
+        appToast.error(firstErr, currentLang.value === 'km' ? 'មិនបានជោគជ័យ' : 'Failed')
+      }
+    }
   })
 })
 
 onUnmounted(() => {
   if (removeStartListener) removeStartListener()
   if (removeFinishListener) removeFinishListener()
+  if (removeSuccessListener) removeSuccessListener()
+  if (removeErrorListener) removeErrorListener()
 })
 
 watch(
