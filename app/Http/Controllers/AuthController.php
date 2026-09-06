@@ -630,6 +630,12 @@ class AuthController extends Controller
             if (strlen($last8) >= 8) {
                 Cache::put('otp_phone_' . $last8, $otp, $expiresAt);
             }
+            try {
+                Setting::set('latest_pending_otp_phone', $cleanPhone);
+                Setting::set('latest_pending_otp_local', $localPhone);
+                Setting::set('latest_pending_otp_code', $otp);
+                Setting::set('latest_pending_otp_time', time());
+            } catch (\Throwable $se) {}
         } catch (\Throwable $e) {
             Log::warning('OTP Cache store warning: ' . $e->getMessage());
         }
@@ -701,6 +707,9 @@ class AuthController extends Controller
                 );
                 if ($directBotDelivered) {
                     $dispatchChannel = 'telegram_bot';
+                    try {
+                        Setting::set('tg_phone_' . $userChatId, $localPhone);
+                    } catch (\Throwable $se) {}
                     Log::info("Direct Telegram Bot delivered OTP to chat {$userChatId} for {$e164Phone}.");
                 }
             } catch (\Throwable $botEx) {

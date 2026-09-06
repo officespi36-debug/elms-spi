@@ -795,12 +795,13 @@ class TelegramAuthController extends Controller
         }
 
         $isStartCmd = str_starts_with($text, '/start') || str_starts_with($text, '/login') || $text === 'login';
+        $isOtpCmd = str_starts_with($text, '/otp') || str_contains($text, 'otp') || str_contains($text, 'កូដ') || str_contains($text, 'code');
         $cleanDigits = preg_replace('/[^0-9]/', '', $rawText);
         $looksLikeIdentifier = str_contains($rawText, '@')
             || (strlen($cleanDigits) >= 8 && strlen($cleanDigits) <= 15)
             || preg_match('/^(stu|tch|adm|usr)[0-9]+/i', $rawText);
 
-        if ($isStartCmd || $looksLikeIdentifier) {
+        if ($isStartCmd || $isOtpCmd || $looksLikeIdentifier) {
             return $this->handleStartOrLinkCommand($chatId, $rawText, $isStartCmd, $senderName, $telegramUsername, $linkedUser, $telegramService, $botToken);
         }
 
@@ -839,7 +840,8 @@ class TelegramAuthController extends Controller
             return response()->json(['ok' => true]);
         }
 
-        return response()->json(['ok' => true]);
+        // Default fallback for any unhandled text in private chat: handle as start or account link/help
+        return $this->handleStartOrLinkCommand($chatId, $rawText, false, $senderName, $telegramUsername, $linkedUser, $telegramService, $botToken);
     }
 
     private function handleCoursesCommand(int|string $chatId, ?User $linkedUser, string $botToken)
@@ -1064,77 +1066,133 @@ class TelegramAuthController extends Controller
             }
         }
 
-        // 🚀 Check if there is an explicit OTP request deep link: /start otp_{phone} or /start otp
-        if (!empty($deepLinkParam) && (str_starts_with($deepLinkParam, 'otp_') || $deepLinkParam === 'otp')) {
-            $otpPhoneParam = str_starts_with($deepLinkParam, 'otp_') ? substr($deepLinkParam, 4) : '';
-            $otpDigits = preg_replace('/[^0-9]/', '', $otpPhoneParam);
-            $last8 = strlen($otpDigits) >= 8 ? substr($otpDigits, -8) : $otpDigits;
+        // 🚀 Comprehensive Phone & OTP Parameter Detection
+        $extractedDigits = preg_replace('/[^0-9]/', '', $rawText);
+        $otpDigits = '';
+        $isExplicitOtpRequest = false;
 
-            // 1. Try resolving OTP from cache
-            $foundOtp = null;
-            if (!empty($otpDigits)) {
-                $foundOtp = Cache::get('otp_phone_' . $otpDigits)
-                    ?: Cache::get('otp_phone_0' . ltrim($otpDigits, '0'))
-                    ?: Cache::get('otp_phone_855' . ltrim($otpDigits, '0'))
-                    ?: Cache::get('otp_phone_' . ltrim($otpDigits, '855'))
-                    ?: (strlen($last8) >= 8 ? Cache::get('otp_phone_' . $last8) : null);
+        if (!empty($deepLinkParam) && str_starts_with($deepLinkParam, 'otp_')) {
+            $otpDigits = preg_replace('/[^0-9]/', '', substr($deepLinkParam, 4));
+            $isExplicitOtpRequest = true;
+        } elseif (!empty($deepLinkParam) && preg_match('/^[0-9+ ]{8,16}$/', trim($deepLinkParam))) {
+            $otpDigits = preg_replace('/[^0-9]/', '', $deepLinkParam);
+            $isExplicitOtpRequest = true;
+        } elseif (strlen($extractedDigits) >= 8 && strlen($extractedDigits) <= 15) {
+            $otpDigits = $extractedDigits;
+            $isExplicitOtpRequest = true;
+        } elseif (str_contains(strtolower($rawText), 'otp') || str_contains($rawText, 'កូដ') || str_contains(strtolower($rawText), 'code')) {
+            $isExplicitOtpRequest = true;
+        }
+
+        // Check if there is an active OTP pending from web in the last 300 seconds
+        $latestPendingCode = null;
+        $latestPendingPhone = null;
+        try {
+            $pTime = (int) Setting::get('latest_pending_otp_time', 0);
+            if ((time() - $pTime) <= 300) {
+                $latestPendingCode = Setting::get('latest_pending_otp_code');
+                $latestPendingPhone = Setting::get('latest_pending_otp_phone');
             }
+        } catch (\Throwable $e) {}
 
-            // 2. Try resolving user and their latest active OTP
-            $matchedUser = null;
-            if (!empty($otpDigits)) {
-                $matchedUser = User::where(function ($q) use ($otpDigits, $last8) {
-                    $q->where('phone', $otpDigits)
-                      ->orWhere('phone', '0' . ltrim($otpDigits, '0'))
-                      ->orWhere('phone', '855' . ltrim($otpDigits, '0'))
-                      ->orWhere('phone', '+855' . ltrim($otpDigits, '0'));
-                    if (strlen($last8) >= 8) {
-                        $q->orWhere('phone', 'like', '%' . $last8);
-                    }
-                })->first();
+        // If no explicit phone in message, check user's linked phone or latest pending phone
+        if (empty($otpDigits)) {
+            $knownPhone = Setting::get('tg_phone_' . $chatId) 
+                ?: $linkedUser?->phone 
+                ?: Setting::get('phone_tg_' . $chatId);
+            
+            if (!empty($knownPhone)) {
+                $otpDigits = preg_replace('/[^0-9]/', '', $knownPhone);
+            } elseif (!empty($latestPendingPhone)) {
+                $otpDigits = preg_replace('/[^0-9]/', '', $latestPendingPhone);
             }
+        }
 
-            if (!$matchedUser && $linkedUser) {
-                $matchedUser = $linkedUser;
+        $last8 = strlen($otpDigits) >= 8 ? substr($otpDigits, -8) : $otpDigits;
+
+        // 1. Try resolving active OTP from cache across all phone representations
+        $foundOtp = null;
+        if (!empty($otpDigits)) {
+            $clean0 = '0' . ltrim($otpDigits, '0');
+            $clean855 = '855' . ltrim($otpDigits, '0');
+            $foundOtp = Cache::get('otp_phone_' . $otpDigits)
+                ?: Cache::get('otp_phone_' . $clean0)
+                ?: Cache::get('otp_phone_' . $clean855)
+                ?: Cache::get('otp_phone_' . ltrim($otpDigits, '855'))
+                ?: (strlen($last8) >= 8 ? Cache::get('otp_phone_' . $last8) : null);
+        }
+
+        // Fallback to latest pending OTP from web session
+        if (!$foundOtp && !empty($latestPendingCode)) {
+            $foundOtp = $latestPendingCode;
+            if (!empty($latestPendingPhone)) {
+                $otpDigits = preg_replace('/[^0-9]/', '', $latestPendingPhone);
+                $last8 = strlen($otpDigits) >= 8 ? substr($otpDigits, -8) : $otpDigits;
             }
+        }
 
-            if (!$foundOtp && $matchedUser && !empty($matchedUser->otp_code) && !empty($matchedUser->otp_expires_at)) {
-                try {
-                    if (Carbon::parse($matchedUser->otp_expires_at)->isFuture()) {
-                        $foundOtp = $matchedUser->otp_code;
-                    }
-                } catch (\Throwable $e) {}
-            }
+        // 2. Resolve user in database matching phone number
+        $matchedUser = null;
+        if (!empty($otpDigits)) {
+            $matchedUser = User::where(function ($q) use ($otpDigits, $last8) {
+                $q->where('phone', $otpDigits)
+                  ->orWhere('phone', '0' . ltrim($otpDigits, '0'))
+                  ->orWhere('phone', '855' . ltrim($otpDigits, '0'))
+                  ->orWhere('phone', '+855' . ltrim($otpDigits, '0'));
+                if (strlen($last8) >= 8) {
+                    $q->orWhere('phone', 'like', '%' . $last8);
+                }
+            })->first();
+        }
 
-            // 3. Link this Telegram account with the phone number
-            if (!empty($otpDigits)) {
+        if (!$matchedUser && $linkedUser) {
+            $matchedUser = $linkedUser;
+        }
+
+        if (!$foundOtp && $matchedUser && !empty($matchedUser->otp_code) && !empty($matchedUser->otp_expires_at)) {
+            try {
+                if (Carbon::parse($matchedUser->otp_expires_at)->isFuture()) {
+                    $foundOtp = $matchedUser->otp_code;
+                }
+            } catch (\Throwable $e) {}
+        }
+
+        // 3. Link this Telegram account with the phone number and user
+        if (!empty($otpDigits)) {
+            $localFmt = '0' . ltrim($otpDigits, '0');
+            $intlFmt = '855' . ltrim($otpDigits, '0');
+            try {
                 Setting::set('phone_tg_' . $otpDigits, (string) $chatId);
-                Setting::set('phone_tg_0' . ltrim($otpDigits, '0'), (string) $chatId);
-                Setting::set('phone_tg_855' . ltrim($otpDigits, '0'), (string) $chatId);
+                Setting::set('phone_tg_' . $localFmt, (string) $chatId);
+                Setting::set('phone_tg_' . $intlFmt, (string) $chatId);
+                Setting::set('tg_phone_' . $chatId, $localFmt);
                 if (strlen($last8) >= 8) {
                     Setting::set('phone_tg_' . $last8, (string) $chatId);
                 }
-            }
+            } catch (\Throwable $e) {}
+        }
 
-            if ($matchedUser) {
-                User::where('id', '!=', $matchedUser->id)
-                    ->where(function ($q) use ($chatId) {
-                        $q->where('telegram_id', (string) $chatId)
-                          ->orWhere('telegram_chat_id', (string) $chatId);
-                    })
-                    ->update([
-                        'telegram_id' => null,
-                        'telegram_chat_id' => null,
-                    ]);
-
-                $matchedUser->update([
-                    'telegram_id' => (string) $chatId,
-                    'telegram_chat_id' => (string) $chatId,
-                    'telegram_username' => $telegramUsername ?: $matchedUser->telegram_username,
+        if ($matchedUser) {
+            User::where('id', '!=', $matchedUser->id)
+                ->where(function ($q) use ($chatId) {
+                    $q->where('telegram_id', (string) $chatId)
+                      ->orWhere('telegram_chat_id', (string) $chatId);
+                })
+                ->update([
+                    'telegram_id' => null,
+                    'telegram_chat_id' => null,
                 ]);
-            }
 
-            // 4. Construct response message
+            $matchedUser->update([
+                'telegram_id' => (string) $chatId,
+                'telegram_chat_id' => (string) $chatId,
+                'telegram_username' => $telegramUsername ?: $matchedUser->telegram_username,
+            ]);
+            $linkedUser = $matchedUser;
+        }
+
+        // 4. If an active OTP is found OR this was an explicit OTP request, return immediate response
+        if ($foundOtp || $isExplicitOtpRequest || str_starts_with($deepLinkParam ?? '', 'otp_')) {
             $phoneDisplay = !empty($otpDigits) ? ('0' . ltrim($otpDigits, '0')) : ($matchedUser?->phone ?? 'ទូរស័ព្ទរបស់អ្នក');
             $greetingName = $matchedUser?->name_kh ?: ($matchedUser?->name ?: $senderName);
 
@@ -1296,14 +1354,15 @@ class TelegramAuthController extends Controller
                     ['text' => '🚀 បើក E-LMS (Mini App)', 'web_app' => ['url' => 'https://spilms.tech']]
                 ],
                 [
+                    ['text' => '🔑 ទទួលលេខកូដ OTP'],
+                    ['text' => '👤 គណនីខ្ញុំ']
+                ],
+                [
                     ['text' => '📚 វគ្គសិក្សា'],
                     ['text' => '⏰ កាលបរិច្ឆេទ']
                 ],
                 [
                     ['text' => '📢 ដំណឹងសាលា'],
-                    ['text' => '👤 គណនីខ្ញុំ']
-                ],
-                [
                     ['text' => '💬 ជំនួយការ']
                 ]
             ],

@@ -120,7 +120,9 @@ class TelegramSecurityPipeline
                 || str_contains($cleanCmd, 'សួស្តី')
                 || $looksLikeIdentifier;
 
-            if (!$isLinked && !$isCommandOrAction) {
+            // In private chat, allow all standard text messages through to the controller
+            // so users can freely request OTP, send phone numbers, or get guided assistance.
+            if (!$isLinked && !$isCommandOrAction && $isGroup) {
                 self::sendMessage(
                     $userId,
                     "⚠️ *ការអនុញ្ញាតត្រូវបានបដិសេធ*\n\nសូមភ្ជាប់គណនី LMS របស់អ្នកជាមុនសិនដោយចុចពាក្យបញ្ជា `/start` ឬ `/login`",
