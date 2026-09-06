@@ -649,13 +649,15 @@ class AuthController extends Controller
             }
         }
 
-        // 🚀 Primary: Attempt Dispatch via Telegram Gateway (@VerificationCodes)
+        // 🚀 Channel Selection: 'sms' (Direct Phone SMS via PlasGate) or 'telegram' (Telegram Gateway @VerificationCodes)
+        $requestedChannel = strtolower(trim((string) $request->input('channel', '')));
         $dispatchChannel = 'sms';
         $tgGatewayResult = null;
         $tgGateway = app(TelegramGatewayService::class);
         $e164Phone = TelegramGatewayService::formatE164Phone($phoneInput);
 
-        if ($tgGateway->isConfigured()) {
+        // Attempt Telegram Gateway only if user didn't explicitly request direct SMS
+        if ($requestedChannel !== 'sms' && $tgGateway->isConfigured()) {
             try {
                 $tgGatewayResult = $tgGateway->sendVerificationMessage($e164Phone, $otp, 300);
                 if (!empty($tgGatewayResult['success'])) {
@@ -670,7 +672,7 @@ class AuthController extends Controller
             }
         }
 
-        // 📱 Secondary: Fallback to PlasGate SMS if Telegram Gateway did not succeed
+        // 📱 Direct Phone SMS via PlasGate if requested as SMS or if Telegram Gateway was not used/failed
         if ($dispatchChannel !== 'telegram_gateway') {
             try {
                 $plasgate = new \App\Services\PlasGateService();
@@ -701,24 +703,24 @@ class AuthController extends Controller
 
             $channelTitle = ($dispatchChannel === 'telegram_gateway')
                 ? '🤖 Telegram Gateway (@VerificationCodes)'
-                : '📩 PlasGate SMS Gateway (Fallback)';
+                : '📩 PlasGate SMS (ប្រអប់សារទូរស័ព្ទ)';
 
             // 1. Group Notification
             $telegramService->sendMessage(
                 "<b>🔐 [PHONE OTP DISPATCHED]</b>\n" .
                 "━━━━━━━━━━━━━━━━━━━━━\n" .
                 "👤 <b>User:</b> {$safeName}\n" .
-                "📞 <b>Phone:</b> <code>{$safePhone}</code>\n" .
-                "🔢 <b>OTP Code:</b> <code>{$safeOtp}</code>\n" .
-                "🚀 <b>Channel:</b> {$channelTitle}\n" .
-                "⏰ <b>Expires In:</b> 5 minutes (<code>{$safeTime}</code>)\n" .
-                "🌐 <b>IP Address:</b> <code>{$safeIp}</code>\n" .
-                "📱 <b>Device:</b> {$safeDevice} ({$safeBrowser})",
+                "📱 <b>Phone:</b> <code>{$safePhone}</code>\n" .
+                "🔑 <b>Code:</b> <code>{$safeOtp}</code>\n" .
+                "📡 <b>Channel:</b> {$channelTitle}\n" .
+                "🌐 <b>IP:</b> <code>{$safeIp}</code>\n" .
+                "💻 <b>Device:</b> {$safeDevice} ({$safeBrowser})\n" .
+                "🕒 <b>Time:</b> {$safeTime}\n" .
+                "━━━━━━━━━━━━━━━━━━━━━",
                 'HTML',
                 $adminGroupChatId
             );
 
-            // 2. Direct User Personal Telegram Notification (if account is linked)
             $userChatId = $user?->telegram_id ?: $user?->telegram_chat_id;
             if (!empty($userChatId) && (string)$userChatId !== (string)$adminGroupChatId) {
                 $telegramService->sendDirectMessage(

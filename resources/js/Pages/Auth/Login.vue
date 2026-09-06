@@ -264,6 +264,7 @@ const isOtpVerifying = ref(false)
 const isPhoneOtpSending = ref(false)
 const isPhoneOtpVerifying = ref(false)
 const phoneOtpChannel = ref<'telegram_gateway' | 'sms' | null>(null)
+const preferredPhoneChannel = ref<'telegram' | 'sms'>('telegram')
 const otpCountdown = ref(0)
 const phoneOtpCountdown = ref(0)
 const emailResendCooldown = ref(0)
@@ -291,7 +292,9 @@ const pageSubtitle = computed(() => {
   }
   if (authMode.value === 'phone_otp') {
     if (phoneOtpStep.value === 2) {
-      return currentLang.value === 'km' ? 'លេខកូដ ៦ ខ្ទង់ត្រូវបានផ្ញើទៅកាន់លេខទូរស័ព្ទរបស់អ្នក' : 'A 6-digit code has been sent to your phone'
+      return phoneOtpChannel.value === 'telegram_gateway'
+        ? (currentLang.value === 'km' ? 'លេខកូដ ៦ ខ្ទង់ត្រូវបានផ្ញើទៅកាន់ Telegram (@VerificationCodes) របស់អ្នក' : 'A 6-digit code has been sent to your Telegram (@VerificationCodes)')
+        : (currentLang.value === 'km' ? 'លេខកូដ ៦ ខ្ទង់ត្រូវបានផ្ញើតាមសារ SMS ទៅកាន់ទូរស័ព្ទរបស់អ្នក' : 'A 6-digit code has been sent via SMS to your phone')
     }
     return currentLang.value === 'km' ? 'សូមបញ្ចូលលេខទូរស័ព្ទរបស់អ្នកដើម្បីទទួលលេខកូដ OTP' : 'Enter your phone number to receive an OTP code'
   }
@@ -682,8 +685,11 @@ const verifyEmailOtp = async () => {
   }
 }
 
-const sendPhoneOtp = async () => {
+const sendPhoneOtp = async (overrideChannel?: 'sms' | 'telegram') => {
   if (!otpPhone.value || isPhoneOtpSending.value) return
+  if (overrideChannel) {
+    preferredPhoneChannel.value = overrideChannel
+  }
   isPhoneOtpSending.value = true
   oauthNotice.value = null
 
@@ -697,7 +703,10 @@ const sendPhoneOtp = async () => {
         'X-CSRF-TOKEN': csrfToken,
         'X-Requested-With': 'XMLHttpRequest',
       },
-      body: JSON.stringify({ phone: fullFormattedPhone.value || otpPhone.value.trim() }),
+      body: JSON.stringify({
+        phone: fullFormattedPhone.value || otpPhone.value.trim(),
+        channel: overrideChannel || preferredPhoneChannel.value,
+      }),
     })
 
     const data = await response.json()
@@ -713,7 +722,7 @@ const sendPhoneOtp = async () => {
         message: data.message || (
           data.is_telegram
             ? (currentLang.value === 'km' ? 'លេខកូដ OTP ត្រូវបានផ្ញើទៅកាន់ Telegram របស់អ្នកតាមរយៈ @VerificationCodes!' : 'OTP code sent to your Telegram via @VerificationCodes!')
-            : (currentLang.value === 'km' ? 'លេខកូដ OTP ត្រូវបានផ្ញើទៅកាន់លេខទូរសព្ទរបស់អ្នកតាមរយៈ SMS!' : 'OTP code has been sent to your phone via SMS!')
+            : (currentLang.value === 'km' ? 'លេខកូដ OTP ត្រូវបានផ្ញើតាមសារ SMS ទៅកាន់ប្រអប់សារទូរស័ព្ទរបស់អ្នករួចរាល់ហើយ!' : 'OTP code has been sent to your phone via SMS!')
         )
       }
     } else {
@@ -2158,9 +2167,58 @@ onUnmounted(() => {
               </div>
             </div>
 
+            <!-- Delivery Channel Selector (Telegram @VerificationCodes vs Direct SMS) -->
+            <div class="space-y-1.5 pt-0.5">
+              <div class="flex items-center justify-between">
+                <label class="block text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
+                  {{ currentLang === 'km' ? 'វិធីសាស្ត្រទទួលលេខកូដ OTP' : 'Receive OTP Code Via' }}
+                </label>
+                <span class="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium">
+                  {{ preferredPhoneChannel === 'telegram' ? (currentLang === 'km' ? 'លឿន & ឥតគិតថ្លៃ' : 'Fast & Free') : (currentLang === 'km' ? 'ផ្ញើទៅប្រអប់សារ' : 'Direct to Phone') }}
+                </span>
+              </div>
+              <div class="grid grid-cols-2 gap-2 p-1 rounded-xl bg-zinc-100 dark:bg-zinc-800/70 border border-zinc-200/80 dark:border-zinc-700/60">
+                <!-- Telegram Option -->
+                <button
+                  type="button"
+                  @click="preferredPhoneChannel = 'telegram'"
+                  :class="[
+                    'flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer select-none',
+                    preferredPhoneChannel === 'telegram'
+                      ? 'bg-white dark:bg-zinc-900 text-sky-600 dark:text-sky-400 shadow-xs border border-zinc-200/80 dark:border-zinc-700'
+                      : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200'
+                  ]"
+                >
+                  <i class="pi pi-telegram text-sky-500 text-xs shrink-0"></i>
+                  <span class="truncate">Telegram</span>
+                  <span class="text-[9px] px-1 py-0.2 rounded bg-sky-500/10 text-sky-600 dark:text-sky-400 font-normal shrink-0">
+                    {{ currentLang === 'km' ? 'ឥតគិតថ្លៃ' : 'Free' }}
+                  </span>
+                </button>
+
+                <!-- Phone SMS Option -->
+                <button
+                  type="button"
+                  @click="preferredPhoneChannel = 'sms'"
+                  :class="[
+                    'flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer select-none',
+                    preferredPhoneChannel === 'sms'
+                      ? 'bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400 shadow-xs border border-zinc-200/80 dark:border-zinc-700'
+                      : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200'
+                  ]"
+                >
+                  <i class="pi pi-envelope text-emerald-500 text-xs shrink-0"></i>
+                  <span class="truncate">{{ currentLang === 'km' ? 'សារ SMS' : 'SMS' }}</span>
+                  <span class="text-[9px] px-1 py-0.2 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-normal shrink-0">
+                    {{ currentLang === 'km' ? 'ទូរស័ព្ទ' : 'Phone' }}
+                  </span>
+                </button>
+              </div>
+            </div>
+
             <button
               type="button"
-              @click="sendPhoneOtp"
+              @click="sendPhoneOtp()"
               :disabled="isPhoneOtpSending || !otpPhone"
               :class="[
                 'w-full h-11 rounded-xl font-semibold text-xs sm:text-sm flex items-center justify-center transition-all duration-200 select-none cursor-pointer',
@@ -2177,7 +2235,7 @@ onUnmounted(() => {
           <div v-else class="space-y-3.5 animate-fade-in">
             <div class="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-800 text-xs">
               <div class="flex items-center gap-1.5 min-w-0 flex-wrap">
-                <i :class="phoneOtpChannel === 'telegram_gateway' ? 'pi pi-telegram text-sky-500 text-xs shrink-0' : 'pi pi-phone text-emerald-600 dark:text-emerald-400 text-xs shrink-0'"></i>
+                <i :class="phoneOtpChannel === 'telegram_gateway' ? 'pi pi-telegram text-sky-500 text-xs shrink-0' : 'pi pi-envelope text-emerald-600 dark:text-emerald-400 text-xs shrink-0'"></i>
                 <span class="text-zinc-500 dark:text-zinc-400">{{ currentLang === 'km' ? 'ផ្ញើទៅកាន់៖' : 'Sent to:' }}</span>
                 <strong class="text-zinc-800 dark:text-zinc-200 font-mono truncate">{{ formattedDisplayPhone }}</strong>
                 <span v-if="phoneOtpChannel === 'telegram_gateway'" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
@@ -2186,7 +2244,7 @@ onUnmounted(() => {
                 </span>
                 <span v-else class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                   <i class="pi pi-envelope text-[10px]"></i>
-                  SMS Info
+                  {{ currentLang === 'km' ? 'សារ SMS ទូរស័ព្ទ' : 'Phone SMS' }}
                 </span>
               </div>
               <button
@@ -2339,6 +2397,33 @@ onUnmounted(() => {
               <i v-if="isPhoneOtpVerifying" class="pi pi-spin pi-spinner text-sm mr-2"></i>
               <span>{{ isPhoneOtpVerifying ? (currentLang === 'km' ? 'កំពុងផ្ទៀងផ្ទាត់...' : 'Verifying...') : (currentLang === 'km' ? 'ផ្ទៀងផ្ទាត់ និង ចូលប្រើប្រាស់' : 'Verify & Continue') }}</span>
             </button>
+
+            <!-- Alternate Channel Switch Fallback Option -->
+            <div class="pt-2 text-center border-t border-zinc-200/60 dark:border-zinc-800/80">
+              <button
+                v-if="phoneOtpChannel === 'telegram_gateway'"
+                type="button"
+                @click="sendPhoneOtp('sms')"
+                :disabled="isPhoneOtpSending"
+                class="inline-flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-medium cursor-pointer transition-colors hover:underline"
+              >
+                <i v-if="isPhoneOtpSending" class="pi pi-spin pi-spinner text-xs"></i>
+                <i v-else class="pi pi-envelope text-xs"></i>
+                <span>{{ currentLang === 'km' ? 'មិនបានទទួលកូដតាម Telegram? ផ្ញើតាមសារ SMS ទៅកាន់ទូរស័ព្ទ' : 'Didn\'t get code on Telegram? Send via SMS instead' }}</span>
+              </button>
+
+              <button
+                v-else
+                type="button"
+                @click="sendPhoneOtp('telegram')"
+                :disabled="isPhoneOtpSending"
+                class="inline-flex items-center gap-1.5 text-xs text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-medium cursor-pointer transition-colors hover:underline"
+              >
+                <i v-if="isPhoneOtpSending" class="pi pi-spin pi-spinner text-xs"></i>
+                <i v-else class="pi pi-telegram text-xs"></i>
+                <span>{{ currentLang === 'km' ? 'ផ្ញើតាម Telegram @VerificationCodes ជំនួសវិញ' : 'Send via Telegram @VerificationCodes instead' }}</span>
+              </button>
+            </div>
           </div>
         </div>
 
