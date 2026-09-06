@@ -1342,10 +1342,10 @@ onUnmounted(() => {
 
         <!-- Heading & Subtitle -->
         <h1 class="text-2xl sm:text-[26px] font-black tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 dark:from-white dark:via-zinc-100 dark:to-zinc-300 bg-clip-text text-transparent text-center transition-colors">
-          {{ step === 'enter_password' ? (currentLang === 'km' ? 'ចូលប្រើប្រាស់' : 'Sign in') : t('login_title_manus', 'ចូលប្រើប្រាស់ ឬ បង្កើតគណនី') }}
+          {{ step === 'enter_password' ? (currentLang === 'km' ? 'ចូលប្រើប្រាស់' : 'Sign in') : t('login_title_manus', 'ស្វាគមន៍មកកាន់ E-LMS') }}
         </h1>
         <p class="text-xs sm:text-sm text-slate-600 dark:text-zinc-400 text-center mt-1.5 mb-6 transition-colors">
-          {{ step === 'enter_password' ? (currentLang === 'km' ? 'សូមបញ្ចូលពាក្យសម្ងាត់គណនីរបស់អ្នក' : 'Please enter your password') : t('login_subtitle_manus', 'ចាប់ផ្តើមបង្កើត និងរៀនសូត្រជាមួយ E-LMS') }}
+          {{ step === 'enter_password' ? (currentLang === 'km' ? 'សូមបញ្ចូលពាក្យសម្ងាត់គណនីរបស់អ្នក' : 'Please enter your password') : t('login_subtitle_manus', 'សូមជ្រើសរើសវិធីសាស្ត្រដើម្បីចូលប្រើគណនីរបស់អ្នក') }}
         </p>
 
         <!-- OAuth Error / Notification Banner -->
