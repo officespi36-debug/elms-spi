@@ -263,8 +263,10 @@ const isOtpSending = ref(false)
 const isOtpVerifying = ref(false)
 const isPhoneOtpSending = ref(false)
 const isPhoneOtpVerifying = ref(false)
-const phoneOtpChannel = ref<'telegram_gateway' | 'sms' | null>(null)
+const phoneOtpChannel = ref<'telegram_bot' | 'telegram_gateway' | 'sms' | null>(null)
 const preferredPhoneChannel = ref<'telegram' | 'sms'>('telegram')
+const botOtpLink = ref('https://t.me/spi_elms_auth_bot')
+const hasTelegramDm = ref(false)
 const otpCountdown = ref(0)
 const phoneOtpCountdown = ref(0)
 const emailResendCooldown = ref(0)
@@ -292,9 +294,13 @@ const pageSubtitle = computed(() => {
   }
   if (authMode.value === 'phone_otp') {
     if (phoneOtpStep.value === 2) {
-      return phoneOtpChannel.value === 'telegram_gateway'
-        ? (currentLang.value === 'km' ? 'លេខកូដ ៦ ខ្ទង់ត្រូវបានផ្ញើទៅកាន់ Telegram (@VerificationCodes) របស់អ្នក' : 'A 6-digit code has been sent to your Telegram (@VerificationCodes)')
-        : (currentLang.value === 'km' ? 'លេខកូដ ៦ ខ្ទង់ត្រូវបានផ្ញើតាមសារ SMS ទៅកាន់ទូរស័ព្ទរបស់អ្នក' : 'A 6-digit code has been sent via SMS to your phone')
+      if (phoneOtpChannel.value === 'telegram_bot') {
+        return currentLang.value === 'km' ? 'លេខកូដ ៦ ខ្ទង់ត្រូវបានផ្ញើចូលទៅកាន់ Telegram (@spi_elms_auth_bot) របស់អ្នក' : 'A 6-digit code has been sent to your Telegram (@spi_elms_auth_bot)'
+      }
+      if (phoneOtpChannel.value === 'telegram_gateway') {
+        return currentLang.value === 'km' ? 'លេខកូដ ៦ ខ្ទង់ត្រូវបានផ្ញើទៅកាន់ Telegram (@VerificationCodes) របស់អ្នក' : 'A 6-digit code has been sent to your Telegram (@VerificationCodes)'
+      }
+      return currentLang.value === 'km' ? 'លេខកូដ ៦ ខ្ទង់ត្រូវបានផ្ញើតាមសារ SMS ទៅកាន់ទូរស័ព្ទរបស់អ្នក' : 'A 6-digit code has been sent via SMS to your phone'
     }
     return currentLang.value === 'km' ? 'សូមបញ្ចូលលេខទូរស័ព្ទរបស់អ្នកដើម្បីទទួលលេខកូដ OTP' : 'Enter your phone number to receive an OTP code'
   }
@@ -713,7 +719,14 @@ const sendPhoneOtp = async (overrideChannel?: 'sms' | 'telegram' | any) => {
 
     const data = await response.json()
     if (response.ok && data.success) {
-      phoneOtpChannel.value = data.channel || (data.is_telegram ? 'telegram_gateway' : 'sms')
+      phoneOtpChannel.value = data.channel || (data.is_telegram ? 'telegram_bot' : 'sms')
+      if (data.bot_otp_link) {
+        botOtpLink.value = data.bot_otp_link
+      } else {
+        const clean = (fullFormattedPhone.value || otpPhone.value).replace(/[^0-9]/g, '')
+        botOtpLink.value = `https://t.me/spi_elms_auth_bot?start=otp_${clean}`
+      }
+      hasTelegramDm.value = !!data.has_telegram_dm
       phoneOtpStep.value = 2
       clearOtpDigits()
       startPhoneOtpTimer(300)
@@ -723,7 +736,7 @@ const sendPhoneOtp = async (overrideChannel?: 'sms' | 'telegram' | any) => {
         type: data.is_telegram ? 'info' : 'warning',
         message: data.message || (
           data.is_telegram
-            ? (currentLang.value === 'km' ? 'លេខកូដ OTP ត្រូវបានផ្ញើទៅកាន់ Telegram របស់អ្នកតាមរយៈ @VerificationCodes!' : 'OTP code sent to your Telegram via @VerificationCodes!')
+            ? (currentLang.value === 'km' ? 'លេខកូដ OTP ត្រូវបានផ្ញើទៅកាន់ Telegram របស់អ្នករួចរាល់ហើយ!' : 'OTP code sent to your Telegram!')
             : (currentLang.value === 'km' ? 'លេខកូដ OTP ត្រូវបានផ្ញើតាមសារ SMS ទៅកាន់ប្រអប់សារទូរស័ព្ទរបស់អ្នករួចរាល់ហើយ!' : 'OTP code has been sent to your phone via SMS!')
         )
       }
@@ -2237,10 +2250,14 @@ onUnmounted(() => {
           <div v-else class="space-y-3.5 animate-fade-in">
             <div class="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-800 text-xs">
               <div class="flex items-center gap-1.5 min-w-0 flex-wrap">
-                <i :class="phoneOtpChannel === 'telegram_gateway' ? 'pi pi-telegram text-sky-500 text-xs shrink-0' : 'pi pi-envelope text-emerald-600 dark:text-emerald-400 text-xs shrink-0'"></i>
+                <i :class="phoneOtpChannel === 'sms' ? 'pi pi-envelope text-emerald-600 dark:text-emerald-400 text-xs shrink-0' : 'pi pi-telegram text-sky-500 text-xs shrink-0'"></i>
                 <span class="text-zinc-500 dark:text-zinc-400">{{ currentLang === 'km' ? 'ផ្ញើទៅកាន់៖' : 'Sent to:' }}</span>
                 <strong class="text-zinc-800 dark:text-zinc-200 font-mono truncate">{{ formattedDisplayPhone }}</strong>
-                <span v-if="phoneOtpChannel === 'telegram_gateway'" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
+                <span v-if="phoneOtpChannel === 'telegram_bot'" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
+                  <i class="pi pi-check-circle text-[10px]"></i>
+                  Telegram @spi_elms_auth_bot
+                </span>
+                <span v-else-if="phoneOtpChannel === 'telegram_gateway'" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
                   <i class="pi pi-check-circle text-[10px]"></i>
                   Telegram @VerificationCodes
                 </span>
@@ -2257,6 +2274,33 @@ onUnmounted(() => {
                 {{ currentLang === 'km' ? 'កែប្រែ' : 'Edit' }}
               </button>
             </div>
+
+            <!-- Instant Guaranteed Free Telegram Bot Delivery Card (Works 100% for all phone numbers) -->
+            <a
+              :href="botOtpLink"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-gradient-to-r from-sky-500/15 via-sky-500/10 to-indigo-500/15 hover:from-sky-500/25 hover:to-indigo-500/25 border border-sky-500/30 text-sky-700 dark:text-sky-300 transition-all cursor-pointer group shadow-xs"
+            >
+              <div class="flex items-center gap-2.5 min-w-0">
+                <div class="w-9 h-9 rounded-xl bg-sky-500 text-white flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                  <i class="pi pi-telegram text-lg"></i>
+                </div>
+                <div class="text-left min-w-0">
+                  <div class="text-xs font-bold leading-tight flex items-center gap-1.5 flex-wrap">
+                    <span>{{ currentLang === 'km' ? 'ទទួលកូដតាម Telegram Bot ភ្លាមៗ' : 'Get Code via Telegram Bot' }}</span>
+                    <span class="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-500 text-white animate-pulse">100% Free</span>
+                  </div>
+                  <div class="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">
+                    {{ currentLang === 'km' ? 'ចុចទីនេះដើម្បីទទួលកូដ ៦ ខ្ទង់លើ @spi_elms_auth_bot' : 'Tap to receive your 6-digit OTP code on Telegram' }}
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-1 text-sky-600 dark:text-sky-400 shrink-0 font-semibold text-xs ml-2">
+                <span class="hidden sm:inline">{{ currentLang === 'km' ? 'ទទួលកូដ' : 'Get Code' }}</span>
+                <i class="pi pi-arrow-up-right text-xs group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform"></i>
+              </div>
+            </a>
 
             <!-- 6-digit Segmented PIN Input -->
             <div class="flex items-center justify-center gap-1.5 sm:gap-2 my-2 select-none" @paste="onDigitPaste">
@@ -2401,29 +2445,42 @@ onUnmounted(() => {
             </button>
 
             <!-- Alternate Channel Switch Fallback Option -->
-            <div class="pt-2 text-center border-t border-zinc-200/60 dark:border-zinc-800/80">
+            <div class="pt-2 text-center border-t border-zinc-200/60 dark:border-zinc-800/80 flex flex-col sm:flex-row items-center justify-center gap-2">
+              <a
+                :href="botOtpLink"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center gap-1.5 text-xs text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-semibold cursor-pointer transition-colors hover:underline"
+              >
+                <i class="pi pi-telegram text-xs"></i>
+                <span>{{ currentLang === 'km' ? 'បើក Telegram @spi_elms_auth_bot ទទួលកូដ' : 'Open Telegram @spi_elms_auth_bot for code' }}</span>
+                <i class="pi pi-arrow-up-right text-[10px]"></i>
+              </a>
+
+              <span class="hidden sm:inline text-zinc-300 dark:text-zinc-700">•</span>
+
               <button
-                v-if="phoneOtpChannel === 'telegram_gateway'"
+                v-if="phoneOtpChannel === 'sms'"
                 type="button"
-                @click="sendPhoneOtp('sms')"
+                @click="sendPhoneOtp('telegram')"
                 :disabled="isPhoneOtpSending"
-                class="inline-flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-medium cursor-pointer transition-colors hover:underline"
+                class="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 font-medium cursor-pointer transition-colors hover:underline"
               >
                 <i v-if="isPhoneOtpSending" class="pi pi-spin pi-spinner text-xs"></i>
-                <i v-else class="pi pi-envelope text-xs"></i>
-                <span>{{ currentLang === 'km' ? 'មិនបានទទួលកូដតាម Telegram? ផ្ញើតាមសារ SMS ទៅកាន់ទូរស័ព្ទ' : 'Didn\'t get code on Telegram? Send via SMS instead' }}</span>
+                <i v-else class="pi pi-send text-xs"></i>
+                <span>{{ currentLang === 'km' ? 'ផ្ញើសារកូដម្តងទៀត' : 'Resend Code' }}</span>
               </button>
 
               <button
                 v-else
                 type="button"
-                @click="sendPhoneOtp('telegram')"
+                @click="sendPhoneOtp('sms')"
                 :disabled="isPhoneOtpSending"
-                class="inline-flex items-center gap-1.5 text-xs text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-medium cursor-pointer transition-colors hover:underline"
+                class="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 font-medium cursor-pointer transition-colors hover:underline"
               >
                 <i v-if="isPhoneOtpSending" class="pi pi-spin pi-spinner text-xs"></i>
-                <i v-else class="pi pi-telegram text-xs"></i>
-                <span>{{ currentLang === 'km' ? 'ផ្ញើតាម Telegram @VerificationCodes ជំនួសវិញ' : 'Send via Telegram @VerificationCodes instead' }}</span>
+                <i v-else class="pi pi-envelope text-xs"></i>
+                <span>{{ currentLang === 'km' ? 'សាកល្បងផ្ញើតាម SMS' : 'Try sending via SMS' }}</span>
               </button>
             </div>
           </div>

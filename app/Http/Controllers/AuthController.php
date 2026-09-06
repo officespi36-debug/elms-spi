@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AuthLog;
+use App\Models\Setting;
 use App\Models\User;
 use App\Services\TelegramGatewayService;
 use App\Services\TelegramService;
@@ -607,11 +608,12 @@ class AuthController extends Controller
         $intlPhone = \App\Services\PlasGateService::formatCambodianPhone($phoneInput);
         $localPhone = \App\Services\PlasGateService::toLocalPhone($phoneInput);
         $cleanPhone = preg_replace('/[^0-9]/', '', $phoneInput);
+        $last8 = strlen($cleanPhone) >= 8 ? substr($cleanPhone, -8) : $cleanPhone;
 
-        if (strlen($localPhone) < 8 || strlen($localPhone) > 11) {
+        if (strlen($cleanPhone) < 8 || strlen($cleanPhone) > 15) {
             return response()->json([
                 'success' => false,
-                'message' => 'សូមបញ្ចូលលេខទូរសព្ទកម្ពុជាឱ្យបានត្រឹមត្រូវ (ឧ. 012 345 678 ឬ +855...)',
+                'message' => 'សូមបញ្ចូលលេខទូរសព្ទឱ្យបានត្រឹមត្រូវ (ឧ. 012 345 678 ឬ +855...)',
             ], 422);
         }
 
@@ -625,17 +627,23 @@ class AuthController extends Controller
             Cache::put('otp_phone_' . $localPhone, $otp, $expiresAt);
             Cache::put('otp_phone_' . $intlPhone, $otp, $expiresAt);
             Cache::put('otp_phone_855' . ltrim($localPhone, '0'), $otp, $expiresAt);
+            if (strlen($last8) >= 8) {
+                Cache::put('otp_phone_' . $last8, $otp, $expiresAt);
+            }
         } catch (\Throwable $e) {
             Log::warning('OTP Cache store warning: ' . $e->getMessage());
         }
 
         // Find user by phone in any Cambodian format
-        $user = User::where(function ($query) use ($cleanPhone, $localPhone, $intlPhone, $phoneInput) {
+        $user = User::where(function ($query) use ($cleanPhone, $localPhone, $intlPhone, $phoneInput, $last8) {
             $query->where('phone', $phoneInput)
                 ->orWhere('phone', $localPhone)
                 ->orWhere('phone', $intlPhone)
                 ->orWhere('phone', '+' . $intlPhone)
                 ->orWhere('phone', $cleanPhone);
+            if (strlen($last8) >= 8) {
+                $query->orWhere('phone', 'like', '%' . $last8);
+            }
         })->first();
 
         if ($user) {
@@ -649,45 +657,86 @@ class AuthController extends Controller
             }
         }
 
-        // 🚀 Channel Selection: 'sms' (Direct Phone SMS via PlasGate) or 'telegram' (Telegram Gateway @VerificationCodes)
+        // 🚀 Check if user or phone has a linked Telegram Chat ID for 100% FREE direct bot delivery
+        $telegramService = app(TelegramService::class);
+        $adminGroupChatId = config('services.telegram.admin_chat_id') ?: env('TELEGRAM_ADMIN_CHAT_ID') ?: config('services.telegram.chat_id') ?: env('TELEGRAM_CHAT_ID') ?: '-5560385465';
+        $botUsername = config('services.telegram.bot_username') ?: 'spi_elms_auth_bot';
+
+        $userChatId = $user?->telegram_chat_id 
+            ?: $user?->telegram_id 
+            ?: Setting::get('phone_tg_' . $cleanPhone) 
+            ?: Setting::get('phone_tg_' . $localPhone) 
+            ?: Setting::get('phone_tg_' . $intlPhone)
+            ?: (strlen($last8) >= 8 ? Setting::get('phone_tg_' . $last8) : null);
+
         $requestedChannel = strtolower(trim((string) $request->input('channel', '')));
         $dispatchChannel = 'sms';
         $tgGatewayResult = null;
         $tgGateway = app(TelegramGatewayService::class);
         $e164Phone = TelegramGatewayService::formatE164Phone($phoneInput);
 
-        // Attempt Telegram Gateway only if user didn't explicitly request direct SMS
-        if ($requestedChannel !== 'sms' && $tgGateway->isConfigured()) {
+        // 1. Direct Telegram Bot delivery (Highest priority: 100% FREE, guaranteed & immediate)
+        $directBotDelivered = false;
+        if (!empty($userChatId) && (string)$userChatId !== (string)$adminGroupChatId) {
+            try {
+                $botKeyboard = [
+                    'inline_keyboard' => [
+                        [
+                            ['text' => '🚀 បើកគេហទំព័រ spilms.tech', 'url' => 'https://spilms.tech']
+                        ]
+                    ]
+                ];
+                $directBotDelivered = $telegramService->sendDirectMessage(
+                    $userChatId,
+                    "🔑 <b>លេខកូដផ្ទៀងផ្ទាត់ OTP</b>\n" .
+                    "━━━━━━━━━━━━━━━━━━━━━\n\n" .
+                    "សួស្តី <b>" . ($user?->name_kh ?: ($user?->name ?: 'Student')) . "</b> 👋\n" .
+                    "លេខកូដសម្ងាត់ 6 ខ្ទង់របស់អ្នកសម្រាប់ចូលប្រើប្រាស់ SPI E-LMS គឺ៖\n\n" .
+                    "👉 <code>{$otp}</code> 👈\n\n" .
+                    "⏰ លេខកូដនេះមានសុពលភាពរយៈពេល <b>5 នាទី</b>។\n" .
+                    "📱 សម្រាប់លេខទូរស័ព្ទ៖ <code>{$e164Phone}</code>\n\n" .
+                    "⚠️ <i>ប្រសិនបើលោកអ្នកមិនបានស្នើសុំលេខកូដនេះទេ សូមកុំចែករំលែកវាទៅកាន់អ្នកដទៃ!</i>",
+                    'HTML',
+                    $botKeyboard
+                );
+                if ($directBotDelivered) {
+                    $dispatchChannel = 'telegram_bot';
+                    Log::info("Direct Telegram Bot delivered OTP to chat {$userChatId} for {$e164Phone}.");
+                }
+            } catch (\Throwable $botEx) {
+                Log::warning('Direct Telegram Bot dispatch warning: ' . $botEx->getMessage());
+            }
+        }
+
+        // 2. Telegram Gateway (@VerificationCodes) only if direct bot was not delivered and not forced SMS
+        if (!$directBotDelivered && $requestedChannel !== 'sms' && $tgGateway->isConfigured()) {
             try {
                 $tgGatewayResult = $tgGateway->sendVerificationMessage($e164Phone, $otp, 300);
                 if (!empty($tgGatewayResult['success'])) {
                     $dispatchChannel = 'telegram_gateway';
-                    Log::info("Telegram Gateway delivered OTP to {$e164Phone} via @VerificationCodes (Cost: " . ($tgGatewayResult['request_cost'] ?? 0) . ").");
+                    Log::info("Telegram Gateway delivered OTP to {$e164Phone} via @VerificationCodes.");
                 } else {
                     $tgError = $tgGatewayResult['error'] ?? 'UNKNOWN_ERROR';
-                    Log::info("Telegram Gateway unable to deliver to {$e164Phone} [{$tgError}], automatically falling back to PlasGate SMS.");
+                    Log::info("Telegram Gateway unable to deliver to {$e164Phone} [{$tgError}], automatically falling back.");
                 }
             } catch (\Throwable $tgGwEx) {
                 Log::warning('Telegram Gateway dispatch exception: ' . $tgGwEx->getMessage());
             }
         }
 
-        // 📱 Direct Phone SMS via PlasGate if requested as SMS or if Telegram Gateway was not used/failed
-        if ($dispatchChannel !== 'telegram_gateway') {
+        // 3. Direct Phone SMS via PlasGate if not delivered via Telegram Bot or Gateway
+        if ($dispatchChannel === 'sms') {
             try {
                 $plasgate = new \App\Services\PlasGateService();
                 $plasgate->sendOtp($intlPhone, $otp);
-                Log::info("PlasGate SMS OTP sent to {$intlPhone}.");
+                Log::info("PlasGate SMS OTP dispatched to {$intlPhone}.");
             } catch (\Throwable $pgEx) {
                 Log::warning('PlasGate SMS Gateway warning: ' . $pgEx->getMessage());
             }
         }
 
-        // 🔔 Dispatch Real-Time Alert to Telegram Group & User Direct Message IMMEDIATELY
+        // 🔔 Dispatch Real-Time Alert to Telegram Admin Group IMMEDIATELY
         try {
-            $telegramService = app(TelegramService::class);
-            $adminGroupChatId = config('services.telegram.admin_chat_id') ?: env('TELEGRAM_ADMIN_CHAT_ID') ?: config('services.telegram.chat_id') ?: env('TELEGRAM_CHAT_ID') ?: '-5560385465';
-
             $ip = $request->ip();
             $userAgent = $request->userAgent() ?? '';
             $device = str_contains(strtolower($userAgent), 'mobile') ? 'Mobile' : 'Desktop';
@@ -701,11 +750,13 @@ class AuthController extends Controller
             $safeBrowser = htmlspecialchars($browser, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
             $safeTime = now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i:s A');
 
-            $channelTitle = ($dispatchChannel === 'telegram_gateway')
-                ? '🤖 Telegram Gateway (@VerificationCodes)'
-                : '📩 PlasGate SMS (ប្រអប់សារទូរស័ព្ទ)';
+            $channelTitle = match ($dispatchChannel) {
+                'telegram_bot' => "🤖 Telegram Bot (@{$botUsername}) ផ្ទាល់",
+                'telegram_gateway' => '📱 Telegram Gateway (@VerificationCodes)',
+                default => '📩 PlasGate SMS (ប្រអប់សារទូរស័ព្ទ)',
+            };
 
-            // 1. Group Notification
+            // Group Notification
             $telegramService->sendMessage(
                 "<b>🔐 [PHONE OTP DISPATCHED]</b>\n" .
                 "━━━━━━━━━━━━━━━━━━━━━\n" .
@@ -720,37 +771,27 @@ class AuthController extends Controller
                 'HTML',
                 $adminGroupChatId
             );
-
-            $userChatId = $user?->telegram_id ?: $user?->telegram_chat_id;
-            if (!empty($userChatId) && (string)$userChatId !== (string)$adminGroupChatId) {
-                $telegramService->sendDirectMessage(
-                    $userChatId,
-                    "🔑 <b>លេខកូដផ្ទៀងផ្ទាត់ OTP</b>\n" .
-                    "━━━━━━━━━━━━━━━━━━━━━\n\n" .
-                    "សួស្តី <b>" . ($user?->name_kh ?: $safeName) . "</b> 👋\n" .
-                    "លេខកូដសម្ងាត់ 6 ខ្ទង់របស់អ្នកសម្រាប់ចូលប្រើប្រាស់ SPI E-LMS គឺ៖\n\n" .
-                    "👉 <code>{$safeOtp}</code>\n\n" .
-                    "⏰ លេខកូដនេះមានសុពលភាពរយៈពេល <b>5 នាទី</b>។\n" .
-                    "📱 <b>ឧបករណ៍៖</b> {$safeDevice} ({$safeBrowser})\n" .
-                    "🌐 <b>IP៖</b> <code>{$safeIp}</code>\n\n" .
-                    "⚠️ <i>ប្រសិនបើលោកអ្នកមិនបានស្នើសុំលេខកូដនេះទេ សូមកុំចែករំលែកវាទៅកាន់អ្នកដទៃ!</i>",
-                    'HTML'
-                );
-            }
         } catch (\Throwable $tgEx) {
-            Log::warning('Telegram Phone OTP dispatch notice: ' . $tgEx->getMessage());
+            Log::warning('Telegram Phone OTP admin notice error: ' . $tgEx->getMessage());
         }
 
-        $isTelegram = ($dispatchChannel === 'telegram_gateway');
-        $successMessage = $isTelegram
-            ? 'លេខកូដផ្ទៀងផ្ទាត់ត្រូវបានផ្ញើទៅកាន់ Telegram របស់អ្នកតាមរយៈ @VerificationCodes រួចរាល់ហើយ!'
-            : 'លេខកូដ OTP ត្រូវបានផ្ញើជូនតាមរយៈសារ SMS រួចរាល់ហើយ!';
+        $isTelegram = in_array($dispatchChannel, ['telegram_bot', 'telegram_gateway']);
+        $successMessage = match ($dispatchChannel) {
+            'telegram_bot' => "លេខកូដ OTP ត្រូវបានផ្ញើចូលទៅកាន់ Telegram របស់អ្នក (@{$botUsername}) រួចរាល់ហើយ!",
+            'telegram_gateway' => 'លេខកូដផ្ទៀងផ្ទាត់ត្រូវបានផ្ញើទៅកាន់ Telegram របស់អ្នកតាមរយៈ @VerificationCodes រួចរាល់ហើយ!',
+            default => 'លេខកូដ OTP ត្រូវបានផ្ញើជូនតាមរយៈសារ SMS រួចរាល់ហើយ!',
+        };
+
+        $botOtpLink = "https://t.me/{$botUsername}?start=otp_" . $localPhone;
 
         return response()->json([
             'success' => true,
             'channel' => $dispatchChannel,
             'is_telegram' => $isTelegram,
             'phone' => $e164Phone,
+            'bot_username' => $botUsername,
+            'bot_otp_link' => $botOtpLink,
+            'has_telegram_dm' => $directBotDelivered,
             'request_id' => $tgGatewayResult['request_id'] ?? null,
             'message' => $successMessage,
         ]);
@@ -770,6 +811,7 @@ class AuthController extends Controller
             $intlPhone = \App\Services\PlasGateService::formatCambodianPhone($phoneInput);
             $localPhone = \App\Services\PlasGateService::toLocalPhone($phoneInput);
             $cleanPhone = preg_replace('/[^0-9]/', '', $phoneInput);
+            $last8 = strlen($cleanPhone) >= 8 ? substr($cleanPhone, -8) : $cleanPhone;
             $otp = trim((string) ($request->otp ?? $request->code ?? ''));
 
             if (empty($otp)) {
@@ -782,14 +824,18 @@ class AuthController extends Controller
             $cachedOtp = Cache::get('otp_phone_' . $cleanPhone)
                 ?: Cache::get('otp_phone_' . $localPhone)
                 ?: Cache::get('otp_phone_' . $intlPhone)
-                ?: Cache::get('otp_phone_855' . ltrim($localPhone, '0'));
+                ?: Cache::get('otp_phone_855' . ltrim($localPhone, '0'))
+                ?: (strlen($last8) >= 8 ? Cache::get('otp_phone_' . $last8) : null);
 
-            $user = User::where(function ($query) use ($cleanPhone, $localPhone, $intlPhone, $phoneInput) {
+            $user = User::where(function ($query) use ($cleanPhone, $localPhone, $intlPhone, $phoneInput, $last8) {
                 $query->where('phone', $phoneInput)
                     ->orWhere('phone', $localPhone)
                     ->orWhere('phone', $intlPhone)
                     ->orWhere('phone', '+' . $intlPhone)
                     ->orWhere('phone', $cleanPhone);
+                if (strlen($last8) >= 8) {
+                    $query->orWhere('phone', 'like', '%' . $last8);
+                }
             })->first();
 
             $isValidOtp = false;
@@ -877,6 +923,21 @@ class AuthController extends Controller
                     'message' => 'មិនអាចបង្កើតគណនីបានទេ សូមព្យាយាមម្តងទៀត!',
                 ], 500);
             }
+
+            // Sync Telegram Chat ID from Setting if user has previously interacted with bot
+            try {
+                if (empty($user->telegram_chat_id)) {
+                    $linkedChatId = Setting::get('phone_tg_' . $cleanPhone)
+                        ?: Setting::get('phone_tg_' . $localPhone)
+                        ?: Setting::get('phone_tg_' . $intlPhone)
+                        ?: (strlen($last8) >= 8 ? Setting::get('phone_tg_' . $last8) : null);
+                    if ($linkedChatId) {
+                        $user->telegram_id = (string) $linkedChatId;
+                        $user->telegram_chat_id = (string) $linkedChatId;
+                        $user->save();
+                    }
+                }
+            } catch (\Throwable $tgSyncEx) {}
 
             // Log user into Laravel session
             try {

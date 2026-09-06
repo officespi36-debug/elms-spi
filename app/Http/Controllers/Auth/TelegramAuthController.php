@@ -1064,6 +1064,117 @@ class TelegramAuthController extends Controller
             }
         }
 
+        // 🚀 Check if there is an explicit OTP request deep link: /start otp_{phone} or /start otp
+        if (!empty($deepLinkParam) && (str_starts_with($deepLinkParam, 'otp_') || $deepLinkParam === 'otp')) {
+            $otpPhoneParam = str_starts_with($deepLinkParam, 'otp_') ? substr($deepLinkParam, 4) : '';
+            $otpDigits = preg_replace('/[^0-9]/', '', $otpPhoneParam);
+            $last8 = strlen($otpDigits) >= 8 ? substr($otpDigits, -8) : $otpDigits;
+
+            // 1. Try resolving OTP from cache
+            $foundOtp = null;
+            if (!empty($otpDigits)) {
+                $foundOtp = Cache::get('otp_phone_' . $otpDigits)
+                    ?: Cache::get('otp_phone_0' . ltrim($otpDigits, '0'))
+                    ?: Cache::get('otp_phone_855' . ltrim($otpDigits, '0'))
+                    ?: Cache::get('otp_phone_' . ltrim($otpDigits, '855'))
+                    ?: (strlen($last8) >= 8 ? Cache::get('otp_phone_' . $last8) : null);
+            }
+
+            // 2. Try resolving user and their latest active OTP
+            $matchedUser = null;
+            if (!empty($otpDigits)) {
+                $matchedUser = User::where(function ($q) use ($otpDigits, $last8) {
+                    $q->where('phone', $otpDigits)
+                      ->orWhere('phone', '0' . ltrim($otpDigits, '0'))
+                      ->orWhere('phone', '855' . ltrim($otpDigits, '0'))
+                      ->orWhere('phone', '+855' . ltrim($otpDigits, '0'));
+                    if (strlen($last8) >= 8) {
+                        $q->orWhere('phone', 'like', '%' . $last8);
+                    }
+                })->first();
+            }
+
+            if (!$matchedUser && $linkedUser) {
+                $matchedUser = $linkedUser;
+            }
+
+            if (!$foundOtp && $matchedUser && !empty($matchedUser->otp_code) && !empty($matchedUser->otp_expires_at)) {
+                try {
+                    if (Carbon::parse($matchedUser->otp_expires_at)->isFuture()) {
+                        $foundOtp = $matchedUser->otp_code;
+                    }
+                } catch (\Throwable $e) {}
+            }
+
+            // 3. Link this Telegram account with the phone number
+            if (!empty($otpDigits)) {
+                Setting::set('phone_tg_' . $otpDigits, (string) $chatId);
+                Setting::set('phone_tg_0' . ltrim($otpDigits, '0'), (string) $chatId);
+                Setting::set('phone_tg_855' . ltrim($otpDigits, '0'), (string) $chatId);
+                if (strlen($last8) >= 8) {
+                    Setting::set('phone_tg_' . $last8, (string) $chatId);
+                }
+            }
+
+            if ($matchedUser) {
+                User::where('id', '!=', $matchedUser->id)
+                    ->where(function ($q) use ($chatId) {
+                        $q->where('telegram_id', (string) $chatId)
+                          ->orWhere('telegram_chat_id', (string) $chatId);
+                    })
+                    ->update([
+                        'telegram_id' => null,
+                        'telegram_chat_id' => null,
+                    ]);
+
+                $matchedUser->update([
+                    'telegram_id' => (string) $chatId,
+                    'telegram_chat_id' => (string) $chatId,
+                    'telegram_username' => $telegramUsername ?: $matchedUser->telegram_username,
+                ]);
+            }
+
+            // 4. Construct response message
+            $phoneDisplay = !empty($otpDigits) ? ('0' . ltrim($otpDigits, '0')) : ($matchedUser?->phone ?? 'ទូរស័ព្ទរបស់អ្នក');
+            $greetingName = $matchedUser?->name_kh ?: ($matchedUser?->name ?: $senderName);
+
+            if ($foundOtp) {
+                $otpMsg = "🔑 <b>លេខកូដផ្ទៀងផ្ទាត់ OTP របស់អ្នកគឺ៖</b>\n" .
+                          "━━━━━━━━━━━━━━━━━━━━━\n\n" .
+                          "សួស្តី <b>{$greetingName}</b> 👋\n" .
+                          "លេខកូដ ៦ ខ្ទង់សម្រាប់ចូលប្រើប្រាស់ SPI AI-ELMS គឺ៖\n\n" .
+                          "👉 <code>{$foundOtp}</code> 👈\n\n" .
+                          "⏰ លេខកូដនេះមានសុពលភាពរយៈពេល <b>៥ នាទី</b>។\n" .
+                          "📱 សម្រាប់លេខទូរស័ព្ទ៖ <code>{$phoneDisplay}</code>\n\n" .
+                          "✅ <i>គណនី Telegram របស់អ្នកត្រូវបានភ្ជាប់ដោយជោគជ័យ! រាល់លេខកូដ OTP លើកក្រោយនឹងផ្ញើមកទីនេះដោយផ្ទាល់ភ្លាមៗ។ ✨</i>";
+            } else {
+                $otpMsg = "👋 <b>សួស្តី {$greetingName}</b>\n\n" .
+                          "📱 គណនី Telegram របស់អ្នកត្រូវបានភ្ជាប់ជាមួយលេខទូរស័ព្ទ <code>{$phoneDisplay}</code> រួចរាល់ហើយ!\n\n" .
+                          "⚠️ <b>ពុំទាន់មានលេខកូដ OTP សកម្មនៅឡើយទេ ឬកូដមុនបានផុតកំណត់។</b>\n\n" .
+                          "👉 សូមត្រឡប់ទៅគេហទំព័រ <a href='https://spilms.tech'>spilms.tech</a> រួចចុច <b>«ផ្ញើលេខកូដ OTP»</b> ប្រព័ន្ធនឹងបញ្ជូនកូដមកទីនេះភ្លាមៗ!";
+            }
+
+            $inlineKeyboard = [
+                'inline_keyboard' => [
+                    [
+                        ['text' => '🚀 ត្រឡប់ទៅកាន់ spilms.tech', 'url' => 'https://spilms.tech']
+                    ],
+                    [
+                        ['text' => '📱 បើក E-LMS WebApp', 'web_app' => ['url' => 'https://spilms.tech']]
+                    ]
+                ]
+            ];
+
+            Http::withoutVerifying()->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                'chat_id' => $chatId,
+                'text' => $otpMsg,
+                'parse_mode' => 'HTML',
+                'reply_markup' => json_encode($inlineKeyboard)
+            ]);
+
+            return response()->json(['ok' => true]);
+        }
+
         $cleanParam = trim($deepLinkParam ?? '');
         $cleanDigits = preg_replace('/[^0-9]/', '', $cleanParam);
         $numericId = preg_match('/^(?:reset_)?(\d+)$/i', $cleanParam, $m) ? (int)$m[1] : null;
@@ -1123,14 +1234,37 @@ class TelegramAuthController extends Controller
             $linkedUser->update($updateFields);
 
             $otpSection = "";
-            if (!empty($linkedUser->otp_code) && !empty($linkedUser->otp_expires_at)) {
+            $phoneDigits = preg_replace('/[^0-9]/', '', $linkedUser->phone ?? '');
+            $foundCode = null;
+            if (!empty($phoneDigits)) {
+                $foundCode = Cache::get('otp_phone_' . $phoneDigits)
+                    ?: Cache::get('otp_phone_0' . ltrim($phoneDigits, '0'))
+                    ?: Cache::get('otp_phone_855' . ltrim($phoneDigits, '0'))
+                    ?: (strlen($phoneDigits) >= 8 ? Cache::get('otp_phone_' . substr($phoneDigits, -8)) : null);
+            }
+            if (!$foundCode && !empty($linkedUser->otp_code) && !empty($linkedUser->otp_expires_at)) {
                 try {
                     if (Carbon::parse($linkedUser->otp_expires_at)->isFuture()) {
-                        $otpSection = "\n\n━━━━━━━━━━━━━━━━━━━━━\n" .
-                                      "🔐 <b>លេខកូដផ្ទៀងផ្ទាត់ (OTP) របស់អ្នក៖</b>\n\n" .
-                                      "👉 <code>{$linkedUser->otp_code}</code> 👈\n\n" .
-                                      "⏳ <i>លេខកូដនេះមានសុពលភាពរយៈពេល ៥ នាទី។</i>\n" .
-                                      "━━━━━━━━━━━━━━━━━━━━━\n";
+                        $foundCode = $linkedUser->otp_code;
+                    }
+                } catch (\Throwable $e) {}
+            }
+
+            if ($foundCode) {
+                $otpSection = "\n\n━━━━━━━━━━━━━━━━━━━━━\n" .
+                              "🔐 <b>លេខកូដផ្ទៀងផ្ទាត់ (OTP) របស់អ្នក៖</b>\n\n" .
+                              "👉 <code>{$foundCode}</code> 👈\n\n" .
+                              "⏳ <i>លេខកូដនេះមានសុពលភាពរយៈពេល ៥ នាទី។</i>\n" .
+                              "━━━━━━━━━━━━━━━━━━━━━\n";
+            }
+
+            if (!empty($phoneDigits)) {
+                try {
+                    Setting::set('phone_tg_' . $phoneDigits, (string) $chatId);
+                    Setting::set('phone_tg_0' . ltrim($phoneDigits, '0'), (string) $chatId);
+                    Setting::set('phone_tg_855' . ltrim($phoneDigits, '0'), (string) $chatId);
+                    if (strlen($phoneDigits) >= 8) {
+                        Setting::set('phone_tg_' . substr($phoneDigits, -8), (string) $chatId);
                     }
                 } catch (\Throwable $e) {}
             }
