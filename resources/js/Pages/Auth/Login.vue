@@ -263,6 +263,35 @@ const otpCountdown = ref(0)
 const phoneOtpCountdown = ref(0)
 const emailResendCooldown = ref(0)
 const phoneResendCooldown = ref(0)
+
+const pageTitle = computed(() => {
+  if (step.value === 'enter_password') {
+    return currentLang.value === 'km' ? 'ចូលប្រើប្រាស់' : 'Sign in'
+  }
+  if ((authMode.value === 'otp' && otpStep.value === 2) || (authMode.value === 'phone_otp' && phoneOtpStep.value === 2)) {
+    return currentLang.value === 'km' ? 'ផ្ទៀងផ្ទាត់លេខកូដ OTP' : 'Verify OTP Code'
+  }
+  return t('login_title_manus', 'ស្វាគមន៍មកកាន់ E-LMS')
+})
+
+const pageSubtitle = computed(() => {
+  if (step.value === 'enter_password') {
+    return currentLang.value === 'km' ? 'សូមបញ្ចូលពាក្យសម្ងាត់គណនីរបស់អ្នក' : 'Please enter your password'
+  }
+  if (authMode.value === 'otp') {
+    if (otpStep.value === 2) {
+      return currentLang.value === 'km' ? 'លេខកូដ ៦ ខ្ទង់ត្រូវបានផ្ញើទៅកាន់អ៊ីមែលរបស់អ្នក' : 'A 6-digit code has been sent to your email'
+    }
+    return currentLang.value === 'km' ? 'សូមបញ្ចូលអ៊ីមែលរបស់អ្នកដើម្បីទទួលលេខកូដ OTP' : 'Enter your email to receive an OTP code'
+  }
+  if (authMode.value === 'phone_otp') {
+    if (phoneOtpStep.value === 2) {
+      return currentLang.value === 'km' ? 'លេខកូដ ៦ ខ្ទង់ត្រូវបានផ្ញើទៅកាន់លេខទូរស័ព្ទរបស់អ្នក' : 'A 6-digit code has been sent to your phone'
+    }
+    return currentLang.value === 'km' ? 'សូមបញ្ចូលលេខទូរស័ព្ទរបស់អ្នកដើម្បីទទួលលេខកូដ OTP' : 'Enter your phone number to receive an OTP code'
+  }
+  return t('login_subtitle_manus', 'សូមជ្រើសរើសវិធីសាស្ត្រដើម្បីចូលប្រើគណនីរបស់អ្នក')
+})
 let otpCountdownTimer: any = null
 let phoneOtpCountdownTimer: any = null
 let emailCooldownTimer: any = null
@@ -1342,10 +1371,10 @@ onUnmounted(() => {
 
         <!-- Heading & Subtitle -->
         <h1 class="text-2xl sm:text-[26px] font-black tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 dark:from-white dark:via-zinc-100 dark:to-zinc-300 bg-clip-text text-transparent text-center transition-colors">
-          {{ step === 'enter_password' ? (currentLang === 'km' ? 'ចូលប្រើប្រាស់' : 'Sign in') : t('login_title_manus', 'ស្វាគមន៍មកកាន់ E-LMS') }}
+          {{ pageTitle }}
         </h1>
         <p class="text-xs sm:text-sm text-slate-600 dark:text-zinc-400 text-center mt-1.5 mb-6 transition-colors">
-          {{ step === 'enter_password' ? (currentLang === 'km' ? 'សូមបញ្ចូលពាក្យសម្ងាត់គណនីរបស់អ្នក' : 'Please enter your password') : t('login_subtitle_manus', 'សូមជ្រើសរើសវិធីសាស្ត្រដើម្បីចូលប្រើគណនីរបស់អ្នក') }}
+          {{ pageSubtitle }}
         </p>
 
         <!-- OAuth Error / Notification Banner -->
