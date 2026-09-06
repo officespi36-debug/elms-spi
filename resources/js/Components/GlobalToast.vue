@@ -10,14 +10,16 @@ const appToast = useAppToast()
 const isGlobalProcessing = ref(false)
 const currentLang = computed(() => i18n.locale.value)
 
+let lastMethod = ''
 let removeStartListener: (() => void) | null = null
 let removeFinishListener: (() => void) | null = null
 let removeSuccessListener: (() => void) | null = null
 let removeErrorListener: (() => void) | null = null
 
 onMounted(() => {
-  removeStartListener = router.on('start', (event) => {
-    const method = event.detail?.visit?.method?.toLowerCase()
+  removeStartListener = router.on('start', (event: any) => {
+    const method = event?.detail?.visit?.method?.toLowerCase() || ''
+    lastMethod = method
     // Show global processing indicator only for mutating requests (POST, PUT, PATCH, DELETE)
     if (method && method !== 'get') {
       isGlobalProcessing.value = true
@@ -28,9 +30,8 @@ onMounted(() => {
     isGlobalProcessing.value = false
   })
 
-  removeSuccessListener = router.on('success', (event) => {
-    const method = event.detail?.visit?.method?.toLowerCase()
-    if (method && method !== 'get') {
+  removeSuccessListener = router.on('success', () => {
+    if (lastMethod && lastMethod !== 'get') {
       setTimeout(() => {
         if (!page.props.flash?.success && !page.props.flash?.status && !page.props.flash?.info) {
           appToast.success(
@@ -42,8 +43,8 @@ onMounted(() => {
     }
   })
 
-  removeErrorListener = router.on('error', (event) => {
-    const errs = event.detail?.errors || {}
+  removeErrorListener = router.on('error', (event: any) => {
+    const errs = event?.detail?.errors || {}
     const keys = Object.keys(errs)
     if (keys.length > 0) {
       const firstErr = errs[keys[0]]
