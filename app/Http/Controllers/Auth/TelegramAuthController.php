@@ -1327,78 +1327,39 @@ class TelegramAuthController extends Controller
                 } catch (\Throwable $e) {}
             }
 
-            $majorName = $linkedUser->major ? $linkedUser->major->name : 'General Studies';
-            $welcomeText = "✅ <b>គណនី SPI AI-ELMS របស់អ្នកត្រូវបានស្គាល់ និងភ្ជាប់ដោយជោគជ័យ!</b>\n" .
-                           "━━━━━━━━━━━━━━━━━━━━━\n\n" .
-                           "👤 <b>ឈ្មោះ៖</b> {$linkedUser->name}\n" .
-                           "🆔 <b>Student Code/Email៖</b> " . ($linkedUser->student_code ?? $linkedUser->email) . "\n" .
-                           "📱 <b>លេខទូរស័ព្ទ៖</b> " . ($linkedUser->phone ?? 'N/A') . "\n" .
-                           "📚 <b>ដេប៉ាតឺម៉ង់/ជំនាញ៖</b> {$majorName}\n" .
-                           "🎓 <b>តួនាទី៖</b> " . strtoupper($linkedUser->role) . "\n" .
-                           $otpSection . "\n" .
-                           "ឥឡូវនេះ អ្នកអាចទទួលលេខកូដ OTP, ដំណឹងសាលា និងប្រើប្រាស់ Mini App បានយ៉ាងងាយស្រួល។ ✨\n\n" .
-                           "សូមជ្រើសរើសមុខងារខាងក្រោម៖";
+            $userName = $linkedUser->name_kh ?: $linkedUser->name;
+            $userPhone = $linkedUser->phone ?? 'N/A';
+            $welcomeText = "👋 <b>សួស្តី {$userName}</b>\n" .
+                           "✅ <b>គណនី Telegram របស់អ្នកត្រូវបានភ្ជាប់ជាមួយ SPI AI-ELMS រួចរាល់!</b>\n\n" .
+                           "📱 <b>លេខទូរស័ព្ទ៖</b> <code>{$userPhone}</code>\n\n" .
+                           "💡 ដើម្បីទទួលលេខកូដ OTP ៦ ខ្ទង់ សូមចុច <b>«🔑 ទទួលលេខកូដ OTP»</b> ខាងក្រោម ឬស្នើសុំនៅលើគេហទំព័រ spilms.tech។";
         } else {
-            $welcomeText = "👋 <b>សូមស្វាគមន៍ {$senderName} មកកាន់ប្រព័ន្ធ SPI AI-ELMS!</b>\n\n" .
-                           "🏛️ <b>វិទ្យាស្ថាន សន្តប៉ូល (Saint Paul Institute)</b>\n" .
-                           "គណនី Bot នេះត្រូវបានប្រើប្រាស់សម្រាប់ការផ្ទៀងផ្ទាត់ ជូនដំណឹង និងសិក្សាលើប្រព័ន្ធ AI-ELMS (spilms.tech)។\n\n" .
-                           "💡 <b>ដើម្បីភ្ជាប់គណនី ឬទទួលលេខកូដ OTP៖</b>\n" .
-                           "👉 សូមចុចប៊ូតុង <b>«📱 ចែករំលែកលេខទូរស័ព្ទ»</b> ខាងក្រោម ឬ វាយ<b>លេខទូរស័ព្ទ</b> (ឧទាហរណ៍៖ <code>0964618507</code>) ឬ <b>Email</b> របស់អ្នកផ្ញើមកទីនេះ ប្រព័ន្ធនឹងស្គាល់ភ្លាម!\n\n" .
-                           "សូមជ្រើសរើសមុខងារខាងក្រោម៖";
+            $welcomeText = "👋 <b>សូមស្វាគមន៍ {$senderName} មកកាន់ SPI AI-ELMS!</b>\n\n" .
+                           "💡 <b>ដើម្បីភ្ជាប់គណនី ឬទទួលលេខកូដ OTP ៦ ខ្ទង់៖</b>\n" .
+                           "👉 សូមចុចប៊ូតុង <b>«📱 ចែករំលែកលេខទូរស័ព្ទ»</b> ខាងក្រោម ឬ វាយ<b>លេខទូរស័ព្ទរបស់អ្នក</b>ផ្ញើមកទីនេះ ប្រព័ន្ធនឹងស្គាល់ភ្លាមៗ!";
         }
 
         $replyMarkup = [
             'keyboard' => [
                 [
-                    ['text' => '📱 ចែករំលែកលេខទូរស័ព្ទ (Share Phone)', 'request_contact' => true],
-                    ['text' => '🚀 បើក E-LMS (Mini App)', 'web_app' => ['url' => 'https://spilms.tech']]
-                ],
-                [
                     ['text' => '🔑 ទទួលលេខកូដ OTP'],
+                    ['text' => '📱 ចែករំលែកលេខទូរស័ព្ទ (Share Phone)', 'request_contact' => true]
+                ],
+                [
+                    ['text' => '🚀 បើក E-LMS (WebApp)', 'web_app' => ['url' => 'https://spilms.tech']],
                     ['text' => '👤 គណនីខ្ញុំ']
-                ],
-                [
-                    ['text' => '📚 វគ្គសិក្សា'],
-                    ['text' => '⏰ កាលបរិច្ឆេទ']
-                ],
-                [
-                    ['text' => '📢 ដំណឹងសាលា'],
-                    ['text' => '💬 ជំនួយការ']
                 ]
             ],
             'resize_keyboard' => true,
             'is_persistent' => true
         ];
 
-        $inlineKeyboard = [
-            'inline_keyboard' => [
-                [
-                    ['text' => '🌐 បើកទំព័រ Reset Password', 'url' => 'https://spilms.tech/forgot-password']
-                ],
-                [
-                    ['text' => '🚀 បើក SPI LMS (Mini App)', 'web_app' => ['url' => 'https://spilms.tech']]
-                ],
-                [
-                    ['text' => '📊 ចូលទៅ Dashboard', 'url' => 'https://spilms.tech/student/dashboard'],
-                    ['text' => '💬 ជំនួយការបច្ចេកទេស', 'callback_data' => 'support']
-                ]
-            ]
-        ];
-
-        // Send Persistent Keyboard
+        // Send single clean message with persistent keyboard
         Http::withoutVerifying()->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
             'chat_id' => $chatId,
             'text' => $welcomeText,
             'parse_mode' => 'HTML',
             'reply_markup' => json_encode($replyMarkup)
-        ]);
-
-        // Send Inline Actions
-        Http::withoutVerifying()->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
-            'chat_id' => $chatId,
-            'text' => "⚡ <b>រុករកទំព័រសំខាន់ៗ (Quick Links)៖</b>",
-            'parse_mode' => 'HTML',
-            'reply_markup' => json_encode($inlineKeyboard)
         ]);
 
         return response()->json(['ok' => true]);

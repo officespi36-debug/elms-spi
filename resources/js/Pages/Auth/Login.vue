@@ -1444,7 +1444,7 @@ onUnmounted(() => {
           leave-to-class="opacity-0 -translate-y-2"
         >
           <div
-            v-if="oauthNotice"
+            v-if="oauthNotice && !(authMode === 'phone_otp' && phoneOtpStep === 2)"
             :class="[
               'w-full mb-4 rounded-xl p-3 text-xs flex items-start justify-between gap-2.5 border transition-all',
               oauthNotice.type === 'info'
@@ -2447,42 +2447,16 @@ onUnmounted(() => {
             </button>
 
             <!-- Alternate Channel Switch Fallback Option -->
-            <div class="pt-2 text-center border-t border-zinc-200/60 dark:border-zinc-800/80 flex flex-col sm:flex-row items-center justify-center gap-2">
-              <a
-                :href="botOtpLink"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="inline-flex items-center gap-1.5 text-xs text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-semibold cursor-pointer transition-colors hover:underline"
-              >
-                <i class="pi pi-telegram text-xs"></i>
-                <span>{{ currentLang === 'km' ? 'បើក Telegram @spi_elms_auth_bot ទទួលកូដ' : 'Open Telegram @spi_elms_auth_bot for code' }}</span>
-                <i class="pi pi-arrow-up-right text-[10px]"></i>
-              </a>
-
-              <span class="hidden sm:inline text-zinc-300 dark:text-zinc-700">•</span>
-
+            <div class="pt-2 text-center border-t border-zinc-200/60 dark:border-zinc-800/80 flex items-center justify-center">
               <button
-                v-if="phoneOtpChannel === 'sms'"
                 type="button"
-                @click="sendPhoneOtp('telegram')"
+                @click="sendPhoneOtp(phoneOtpChannel === 'sms' ? 'telegram' : 'sms')"
                 :disabled="isPhoneOtpSending"
                 class="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 font-medium cursor-pointer transition-colors hover:underline"
               >
                 <i v-if="isPhoneOtpSending" class="pi pi-spin pi-spinner text-xs"></i>
-                <i v-else class="pi pi-send text-xs"></i>
-                <span>{{ currentLang === 'km' ? 'ផ្ញើសារកូដម្តងទៀត' : 'Resend Code' }}</span>
-              </button>
-
-              <button
-                v-else
-                type="button"
-                @click="sendPhoneOtp('sms')"
-                :disabled="isPhoneOtpSending"
-                class="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 font-medium cursor-pointer transition-colors hover:underline"
-              >
-                <i v-if="isPhoneOtpSending" class="pi pi-spin pi-spinner text-xs"></i>
-                <i v-else class="pi pi-envelope text-xs"></i>
-                <span>{{ currentLang === 'km' ? 'សាកល្បងផ្ញើតាម SMS' : 'Try sending via SMS' }}</span>
+                <i v-else :class="phoneOtpChannel === 'sms' ? 'pi pi-telegram text-xs' : 'pi pi-envelope text-xs'"></i>
+                <span>{{ phoneOtpChannel === 'sms' ? (currentLang === 'km' ? 'ផ្ញើតាម Telegram Bot ជំនួសវិញ' : 'Send via Telegram Bot instead') : (currentLang === 'km' ? 'សាកល្បងផ្ញើតាម SMS' : 'Try sending via SMS') }}</span>
               </button>
             </div>
           </div>
