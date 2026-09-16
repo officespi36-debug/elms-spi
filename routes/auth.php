@@ -47,13 +47,17 @@ Route::get('auth/telegram/callback', [\App\Http\Controllers\Auth\TelegramAuthCon
 Route::match(['get', 'post'], 'api/auth/telegram', [\App\Http\Controllers\Auth\TelegramAuthController::class, 'handleCallback'])->name('api.auth.telegram');
 Route::get('api/auth/telegram/callback', [\App\Http\Controllers\Auth\TelegramAuthController::class, 'handleCallback'])->name('api.auth.telegram.callback');
 
-// ─── Clerk & Google OAuth Routes ───
+// ─── Clerk, Google & GitHub OAuth Routes ───
 Route::get('auth/google/redirect', [\App\Http\Controllers\Auth\GoogleController::class, 'redirectToGoogle'])->name('auth.google.redirect');
 Route::match(['get', 'post'], 'auth/google/callback', [\App\Http\Controllers\Auth\GoogleController::class, 'handleGoogleCallback'])->name('auth.google.callback');
 Route::match(['get', 'post'], 'auth/clerk', [\App\Http\Controllers\Auth\ClerkAuthController::class, 'handleCallback'])->name('auth.clerk');
 Route::match(['get', 'post'], 'auth/google', [\App\Http\Controllers\Auth\GoogleController::class, 'handleGoogleCallback'])->name('auth.google');
 Route::get('auth/clerk/callback', [\App\Http\Controllers\Auth\ClerkAuthController::class, 'handleCallback'])->name('auth.clerk.callback');
 Route::match(['get', 'post'], 'api/auth/clerk', [\App\Http\Controllers\Auth\ClerkAuthController::class, 'handleCallback'])->name('api.auth.clerk');
+
+Route::get('auth/github/redirect', [\App\Http\Controllers\Auth\GitHubController::class, 'redirectToGitHub'])->name('auth.github.redirect');
+Route::match(['get', 'post'], 'auth/github/callback', [\App\Http\Controllers\Auth\GitHubController::class, 'handleGitHubCallback'])->name('auth.github.callback');
+Route::match(['get', 'post'], 'auth/github', [\App\Http\Controllers\Auth\GitHubController::class, 'handleGitHubCallback'])->name('auth.github');
 
 Route::middleware('auth')->group(function () {
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
