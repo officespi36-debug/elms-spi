@@ -14,12 +14,12 @@ const emit = defineEmits<{
 }>()
 
 type ScreenMode = 'options' | 'phone' | 'otp' | 'qr'
-type SelectedOption = 'device' | 'phone' | 'qr'
+type SelectedOption = 'phone' | 'qr'
 
 const logoUrl = '/images/logo.png'
 
 const screen = ref<ScreenMode>('options')
-const selectedOption = ref<SelectedOption>('device')
+const selectedOption = ref<SelectedOption>('phone')
 
 import { WORLD_COUNTRIES, type CountryItem } from '@/data/countries'
 
@@ -261,10 +261,7 @@ const chooseOption = (opt: SelectedOption) => {
 }
 
 const handleContinue = () => {
-  if (selectedOption.value === 'device') {
-    emit('use-device')
-    emit('close')
-  } else if (selectedOption.value === 'phone') {
+  if (selectedOption.value === 'phone') {
     screen.value = 'phone'
   } else if (selectedOption.value === 'qr') {
     screen.value = 'qr'
@@ -275,7 +272,7 @@ const handleContinue = () => {
 watch(() => props.show, (newVal) => {
   if (newVal) {
     screen.value = 'options'
-    selectedOption.value = 'device'
+    selectedOption.value = 'phone'
     isCountryDropdownOpen.value = false
     countrySearch.value = ''
     otpError.value = null
@@ -353,37 +350,7 @@ onBeforeUnmount(() => {
 
             <!-- Radio Options Stack (Styled like Login Form Buttons) -->
             <div class="space-y-2.5 pt-1">
-              <!-- Option 1: Use Telegram on this device -->
-              <div
-                role="button"
-                tabindex="0"
-                @click="chooseOption('device')"
-                :class="[
-                  'w-full h-12 px-4 rounded-xl border flex items-center justify-between transition-all duration-150 cursor-pointer select-none active:scale-[0.99] shadow-xs',
-                  selectedOption === 'device'
-                    ? 'bg-blue-50/70 dark:bg-zinc-800/80 border-blue-600 dark:border-zinc-400 ring-1 ring-blue-500/20 dark:ring-zinc-400/20'
-                    : 'bg-white hover:bg-zinc-50 dark:bg-[#18181b] dark:hover:bg-[#232327] border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'
-                ]"
-              >
-                <div class="flex items-center gap-3">
-                  <svg class="w-4 h-4 text-[#0088cc] dark:text-[#29b6f6] shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .4z"/>
-                  </svg>
-                  <span class="text-xs sm:text-sm font-medium text-zinc-900 dark:text-white">
-                    {{ currentLang === 'km' ? 'ប្រើប្រាស់ Telegram លើឧបករណ៍នេះ' : 'Use Telegram on this device' }}
-                  </span>
-                </div>
-                <div
-                  :class="[
-                    'w-4 h-4 rounded-full border flex items-center justify-center transition-all',
-                    selectedOption === 'device' ? 'border-blue-600 dark:border-white bg-blue-600 dark:bg-white' : 'border-zinc-300 dark:border-zinc-700'
-                  ]"
-                >
-                  <div v-if="selectedOption === 'device'" class="w-1.5 h-1.5 rounded-full bg-white dark:bg-zinc-950"></div>
-                </div>
-              </div>
-
-              <!-- Option 2: Log in with a phone number -->
+              <!-- Option 1: Log in with a phone number -->
               <div
                 role="button"
                 tabindex="0"
