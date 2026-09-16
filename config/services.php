@@ -99,7 +99,7 @@ return [
     ],
 
     'github' => [
-        'client_id'     => env('GITHUB_CLIENT_ID', 'Ov23liDNj4TYTQF3pkpc'),
+        'client_id'     => env('GITHUB_CLIENT_ID', 'Ov23liDMj4TYTQFJpXpo'),
         'client_secret' => env('GITHUB_CLIENT_SECRET', '34d618e0c33ba012ca079038c5e79d55e7c4d6bf'),
         'redirect'      => env('GITHUB_REDIRECT_URI', 'https://spilms.tech/auth/github/callback'),
     ],

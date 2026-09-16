@@ -20,7 +20,7 @@ class GitHubController extends Controller
      */
     public function redirectToGitHub(Request $request)
     {
-        $clientId = config('services.github.client_id') ?: env('GITHUB_CLIENT_ID') ?: 'Ov23liDNj4TYTQF3pkpc';
+        $clientId = config('services.github.client_id') ?: env('GITHUB_CLIENT_ID') ?: 'Ov23liDMj4TYTQFJpXpo';
         $redirectUri = config('services.github.redirect') ?: env('GITHUB_REDIRECT_URI') ?: 'https://spilms.tech/auth/github/callback';
 
         if (empty($clientId)) {
