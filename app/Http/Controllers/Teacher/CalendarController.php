@@ -471,11 +471,11 @@ class CalendarController extends Controller
 
     public function bulkExtendDeadlines(Request $request)
     {
-        $days = $request->input('days', 2);
+        $days = (int) $request->input('days', 2);
         Deadline::where('teacher_id', $request->user()->id)
             ->where('status', 'active')
             ->get()
-            ->each(function ($dl) use ($days) {
+            ->each(function (Deadline $dl) use ($days) {
                 $dl->due_at = Carbon::parse($dl->due_at)->addDays($days);
                 $dl->status = 'extended';
                 $dl->save();

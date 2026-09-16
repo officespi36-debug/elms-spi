@@ -98,12 +98,6 @@ return [
         'pushover_token'     => env('PUSHOVER_API_TOKEN'),
     ],
 
-    'google' => [
-        'client_id'     => env('GOOGLE_CLIENT_ID'),
-        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
-        'redirect'      => env('GOOGLE_REDIRECT_URI', 'https://spilms.tech/auth/google/callback'),
-    ],
-
     'github' => [
         'client_id'     => env('GITHUB_CLIENT_ID', 'Ov23liDNj4TYTQF3pkpc'),
         'client_secret' => env('GITHUB_CLIENT_SECRET', '34d618e0c33ba012ca079038c5e79d55e7c4d6bf'),
