@@ -2626,49 +2626,14 @@ onUnmounted(() => {
   border: 1px solid transparent !important;
   background-clip: padding-box, border-box !important;
   background-origin: padding-box, border-box !important;
-}
-
-/* Dark Mode: Sleek dark surface with glowing amber/copper beam */
-:is(.dark .border-beam-btn) {
-  background-image:
-    linear-gradient(#18181b, #18181b),
-    conic-gradient(
-      from var(--beam-angle),
-      #27272a 0deg,
-      #27272a 260deg,
-      rgba(249, 115, 22, 0.2) 285deg,
-      #f97316 325deg,
-      #fed7aa 355deg,
-      #27272a 360deg
-    ) !important;
-  animation: beam-rotate 4s linear infinite;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
-}
-
-:is(.dark .border-beam-btn:hover) {
-  background-image:
-    linear-gradient(#232327, #232327),
-    conic-gradient(
-      from var(--beam-angle),
-      #3f3f46 0deg,
-      #3f3f46 240deg,
-      rgba(249, 115, 22, 0.4) 275deg,
-      #f97316 325deg,
-      #fed7aa 355deg,
-      #3f3f46 360deg
-    ) !important;
-  box-shadow: 0 0 16px -2px rgba(249, 115, 22, 0.35);
-}
-
-/* Light Mode: Clean white surface with glowing amber beam */
-:is(:not(.dark) .border-beam-btn) {
+  /* Light Mode (Default): Clean white surface with glowing amber beam */
   background-image:
     linear-gradient(#ffffff, #ffffff),
     conic-gradient(
       from var(--beam-angle),
       #e4e4e7 0deg,
       #e4e4e7 260deg,
-      rgba(249, 115, 22, 0.2) 285deg,
+      rgba(249, 115, 22, 0.25) 285deg,
       #f97316 325deg,
       #fed7aa 355deg,
       #e4e4e7 360deg
@@ -2677,18 +2642,51 @@ onUnmounted(() => {
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
-:is(:not(.dark) .border-beam-btn:hover) {
+.border-beam-btn:hover {
   background-image:
     linear-gradient(#f9fafb, #f9fafb),
     conic-gradient(
       from var(--beam-angle),
       #d4d4d8 0deg,
       #d4d4d8 240deg,
-      rgba(249, 115, 22, 0.4) 275deg,
+      rgba(249, 115, 22, 0.45) 275deg,
       #f97316 325deg,
       #fed7aa 355deg,
       #d4d4d8 360deg
     ) !important;
   box-shadow: 0 0 14px -2px rgba(249, 115, 22, 0.25);
+}
+
+/* Dark Mode: Sleek dark surface with glowing amber/copper beam */
+:global(html.dark) .border-beam-btn,
+:global(.dark) .border-beam-btn {
+  background-image:
+    linear-gradient(#18181b, #18181b),
+    conic-gradient(
+      from var(--beam-angle),
+      #27272a 0deg,
+      #27272a 260deg,
+      rgba(249, 115, 22, 0.25) 285deg,
+      #f97316 325deg,
+      #fed7aa 355deg,
+      #27272a 360deg
+    ) !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+}
+
+:global(html.dark) .border-beam-btn:hover,
+:global(.dark) .border-beam-btn:hover {
+  background-image:
+    linear-gradient(#232327, #232327),
+    conic-gradient(
+      from var(--beam-angle),
+      #3f3f46 0deg,
+      #3f3f46 240deg,
+      rgba(249, 115, 22, 0.45) 275deg,
+      #f97316 325deg,
+      #fed7aa 355deg,
+      #3f3f46 360deg
+    ) !important;
+  box-shadow: 0 0 16px -2px rgba(249, 115, 22, 0.35);
 }
 </style>
