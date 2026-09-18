@@ -65,13 +65,13 @@ export function useTheme() {
       document.documentElement.animate(
         [
           { clipPath: 'polygon(50% 0%, 50% 0%, 50% 0%, 50% 0%)', offset: 0 },
-          { clipPath: 'polygon(50% 0%, 50% 0%, 85% 100%, 15% 100%)', offset: 0.4 },
-          { clipPath: 'polygon(20% 0%, 80% 0%, 115% 100%, -15% 100%)', offset: 0.7 },
-          { clipPath: 'polygon(-20% 0%, 120% 0%, 140% 100%, -40% 100%)', offset: 1 }
+          { clipPath: 'polygon(50% 0%, 50% 0%, 82% 100%, 18% 100%)', offset: 0.42 },
+          { clipPath: 'polygon(18% 0%, 82% 0%, 115% 100%, -15% 100%)', offset: 0.72 },
+          { clipPath: 'polygon(-25% 0%, 125% 0%, 145% 100%, -45% 100%)', offset: 1 }
         ],
         {
-          duration: 550,
-          easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
+          duration: 850,
+          easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
           pseudoElement: '::view-transition-new(root)'
         }
       )
