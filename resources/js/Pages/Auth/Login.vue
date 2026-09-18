@@ -877,6 +877,7 @@ const languages = [
 ]
 
 // Web Audio API Sound Synthesizer for Top Control Buttons (Theme, Language, Network)
+// Web Audio API Sound Synthesizer for Top Control Buttons (Theme, Language, Network)
 let audioCtx: AudioContext | null = null
 
 const getAudioContext = (): AudioContext | null => {
@@ -887,75 +888,132 @@ const getAudioContext = (): AudioContext | null => {
     if (!audioCtx || audioCtx.state === 'closed') {
       audioCtx = new AudioContextClass()
     }
-    if (audioCtx.state === 'suspended') {
-      audioCtx.resume()
-    }
     return audioCtx
   } catch {
     return null
   }
 }
 
-const playTopBarSound = (type: 'theme' | 'lang_open' | 'lang_select' | 'network' = 'lang_open') => {
+// Proactive audio unlock on first user gesture (click/keydown/touchstart)
+if (typeof window !== 'undefined') {
+  const unlockAudio = () => {
+    try {
+      const ctx = getAudioContext()
+      if (ctx && ctx.state === 'suspended') {
+        ctx.resume()
+      }
+    } catch {}
+    window.removeEventListener('click', unlockAudio)
+    window.removeEventListener('keydown', unlockAudio)
+    window.removeEventListener('touchstart', unlockAudio)
+  }
+  window.addEventListener('click', unlockAudio, { once: true, passive: true })
+  window.addEventListener('keydown', unlockAudio, { once: true, passive: true })
+  window.addEventListener('touchstart', unlockAudio, { once: true, passive: true })
+}
+
+const playTopBarSound = async (type: 'theme' | 'lang_open' | 'lang_select' | 'network' = 'lang_open') => {
   try {
     const ctx = getAudioContext()
     if (!ctx) return
 
-    const now = ctx.currentTime
-    const osc = ctx.createOscillator()
-    const gain = ctx.createGain()
+    // Ensure audio context is running before scheduling audio nodes
+    if (ctx.state === 'suspended') {
+      await ctx.resume()
+    }
 
-    osc.connect(gain)
-    gain.connect(ctx.destination)
+    const now = ctx.currentTime
 
     if (type === 'theme') {
-      // Gentle tactile mechanical switch (rising tone for light mode, warm lower tone for dark mode)
-      const startFreq = isDark.value ? 420 : 640
-      const endFreq = isDark.value ? 640 : 420
-      osc.type = 'sine'
-      osc.frequency.setValueAtTime(startFreq, now)
-      osc.frequency.exponentialRampToValueAtTime(endFreq, now + 0.07)
+      // Clear, satisfying tactile mechanical switch click & melodic chime
+      // Sound 1: Tactile snap impulse (physical switch click)
+      const clickOsc = ctx.createOscillator()
+      const clickGain = ctx.createGain()
+      clickOsc.connect(clickGain)
+      clickGain.connect(ctx.destination)
 
-      gain.gain.setValueAtTime(0.08, now)
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08)
+      clickOsc.type = 'triangle'
+      clickOsc.frequency.setValueAtTime(1500, now)
+      clickOsc.frequency.exponentialRampToValueAtTime(450, now + 0.035)
 
-      osc.start(now)
-      osc.stop(now + 0.08)
+      clickGain.gain.setValueAtTime(0.3, now)
+      clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04)
+
+      clickOsc.start(now)
+      clickOsc.stop(now + 0.04)
+
+      // Sound 2: Resonant melodic tone (clearly audible & pleasant)
+      const toneOsc = ctx.createOscillator()
+      const toneGain = ctx.createGain()
+      toneOsc.connect(toneGain)
+      toneGain.connect(ctx.destination)
+
+      toneOsc.type = 'sine'
+      // If currently dark, we are switching to light mode: bright uplifting chime
+      // If currently light, switching to dark mode: warm comforting tone
+      if (isDark.value) {
+        toneOsc.frequency.setValueAtTime(520, now + 0.01)
+        toneOsc.frequency.exponentialRampToValueAtTime(880, now + 0.15)
+      } else {
+        toneOsc.frequency.setValueAtTime(880, now + 0.01)
+        toneOsc.frequency.exponentialRampToValueAtTime(440, now + 0.15)
+      }
+
+      toneGain.gain.setValueAtTime(0.35, now + 0.01)
+      toneGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18)
+
+      toneOsc.start(now + 0.01)
+      toneOsc.stop(now + 0.18)
     } else if (type === 'lang_select') {
-      // Sweet subtle selection chime
-      osc.type = 'sine'
-      osc.frequency.setValueAtTime(800, now)
-      osc.frequency.exponentialRampToValueAtTime(1050, now + 0.06)
+      // Sweet clear selection chime
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.connect(gain)
+      gain.connect(ctx.destination)
 
-      gain.gain.setValueAtTime(0.07, now)
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07)
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(750, now)
+      osc.frequency.exponentialRampToValueAtTime(1150, now + 0.09)
+
+      gain.gain.setValueAtTime(0.3, now)
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.11)
 
       osc.start(now)
-      osc.stop(now + 0.07)
+      osc.stop(now + 0.11)
     } else if (type === 'network') {
       // High-tech subtle radar ping
-      osc.type = 'triangle'
-      osc.frequency.setValueAtTime(980, now)
-      osc.frequency.exponentialRampToValueAtTime(1250, now + 0.05)
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.connect(gain)
+      gain.connect(ctx.destination)
 
-      gain.gain.setValueAtTime(0.06, now)
+      osc.type = 'triangle'
+      osc.frequency.setValueAtTime(950, now)
+      osc.frequency.exponentialRampToValueAtTime(1300, now + 0.07)
+
+      gain.gain.setValueAtTime(0.28, now)
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.085)
+
+      osc.start(now)
+      osc.stop(now + 0.085)
+    } else {
+      // Crisp subtle pop / tap for language button
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(850, now)
+      osc.frequency.exponentialRampToValueAtTime(420, now + 0.05)
+
+      gain.gain.setValueAtTime(0.28, now)
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06)
 
       osc.start(now)
       osc.stop(now + 0.06)
-    } else {
-      // Crisp subtle pop / tap for language button
-      osc.type = 'sine'
-      osc.frequency.setValueAtTime(750, now)
-      osc.frequency.exponentialRampToValueAtTime(380, now + 0.04)
-
-      gain.gain.setValueAtTime(0.08, now)
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05)
-
-      osc.start(now)
-      osc.stop(now + 0.05)
     }
-  } catch {
+  } catch (e) {
     // Ignore audio restriction gracefully
   }
 }
