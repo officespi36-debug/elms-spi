@@ -152,6 +152,32 @@ const authSuccess = ref(false)
 const authLoadingTitle = ref('')
 const authLoadingSubtitle = ref('')
 const statusMessage = ref<string | null>(null)
+
+// Dynamic Last Used Login Method ('google' | 'github' | 'email' | 'phone')
+const lastUsedMethod = ref<string>('google')
+
+const initLastUsedMethod = () => {
+  if (typeof window === 'undefined') return
+  try {
+    const saved = localStorage.getItem('elms_last_login_method')
+    if (saved && ['google', 'github', 'email', 'phone'].includes(saved)) {
+      lastUsedMethod.value = saved
+    }
+  } catch (e) {}
+}
+
+const recordLoginMethod = (method: 'google' | 'github' | 'email' | 'phone') => {
+  try {
+    localStorage.setItem('elms_last_login_method', method)
+    lastUsedMethod.value = method
+
+    const countsStr = localStorage.getItem('elms_login_method_counts')
+    const counts = countsStr ? JSON.parse(countsStr) : {}
+    counts[method] = (counts[method] || 0) + 1
+    localStorage.setItem('elms_login_method_counts', JSON.stringify(counts))
+  } catch (e) {}
+}
+
 const oauthNotice = ref<{
   type: 'warning' | 'error' | 'success' | 'info'
   message: string
@@ -623,6 +649,7 @@ const sendEmailOtp = async () => {
 
 const verifyEmailOtp = async () => {
   if (!otpCode.value || otpCode.value.length < 6 || isOtpVerifying.value) return
+  recordLoginMethod('email')
   isOtpVerifying.value = true
   isAuthenticating.value = true
   authSuccess.value = false
@@ -761,6 +788,7 @@ const sendPhoneOtp = async (overrideChannel?: 'sms' | 'telegram' | any) => {
 
 const verifyPhoneOtp = async () => {
   if (!otpCode.value || otpCode.value.length < 6 || isPhoneOtpVerifying.value) return
+  recordLoginMethod('phone')
   isPhoneOtpVerifying.value = true
   isAuthenticating.value = true
   authSuccess.value = false
@@ -1185,6 +1213,7 @@ const handleTelegramAuthSuccess = async (tgUser: any) => {
 }
 
 const redirectToGoogleOAuth = () => {
+  recordLoginMethod('google')
   isGoogleLoading.value = true
   isAuthenticating.value = true
   authLoadingTitle.value = currentLang.value === 'km' ? 'កំពុងតភ្ជាប់ទៅកាន់ Google...' : 'Connecting to Google...'
@@ -1197,6 +1226,7 @@ const redirectToGoogleOAuth = () => {
 }
 
 const redirectToGitHubOAuth = () => {
+  recordLoginMethod('github')
   isGitHubLoading.value = true
   isAuthenticating.value = true
   authLoadingTitle.value = currentLang.value === 'km' ? 'កំពុងតភ្ជាប់ទៅកាន់ GitHub...' : 'Connecting to GitHub...'
@@ -1225,6 +1255,7 @@ const handleClickOutside = (e: MouseEvent) => {
 onMounted(() => {
   if (typeof window !== 'undefined') {
     initTheme()
+    initLastUsedMethod()
     window.addEventListener('keydown', handleKeyCheck)
     window.addEventListener('keyup', handleKeyCheck)
     document.addEventListener('click', handleClickOutside)
@@ -1536,7 +1567,10 @@ onUnmounted(() => {
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
               </svg>
               <span class="text-center font-medium">{{ t('login_btn_continue_google', 'បន្តជាមួយ Google') }}</span>
-              <span class="absolute right-3.5 text-[10px] font-semibold px-2 py-0.5 rounded-md bg-sky-50 dark:bg-[#132337] text-sky-700 dark:text-sky-400 border border-sky-200 dark:border-sky-500/20">
+              <span
+                v-if="lastUsedMethod === 'google'"
+                class="absolute right-3.5 text-[10px] font-semibold px-2 py-0.5 rounded-md bg-sky-50 dark:bg-[#132337] text-sky-700 dark:text-sky-400 border border-sky-200 dark:border-sky-500/20 animate-fade-in"
+              >
                 {{ t('login_badge_last_used', 'បានប្រើចុងក្រោយ') }}
               </span>
             </button>
@@ -1553,14 +1587,19 @@ onUnmounted(() => {
                 <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
               </svg>
               <span class="text-center font-medium">{{ t('login_btn_continue_github', 'បន្តជាមួយ GitHub') }}</span>
+              <span
+                v-if="lastUsedMethod === 'github'"
+                class="absolute right-3.5 text-[10px] font-semibold px-2 py-0.5 rounded-md bg-sky-50 dark:bg-[#132337] text-sky-700 dark:text-sky-400 border border-sky-200 dark:border-sky-500/20 animate-fade-in"
+              >
+                {{ t('login_badge_last_used', 'បានប្រើចុងក្រោយ') }}
+              </span>
             </button>
-
 
             <!-- 3. Email Button -->
             <button
               type="button"
               :disabled="isAuthenticating"
-              @click="authMode = 'otp'; otpStep = 1; otpEmail = form.email || ''; otpCode = ''; nextTick(() => { otpEmailInputRef?.focus(); isEmailInputFocused = true })"
+              @click="recordLoginMethod('email'); authMode = 'otp'; otpStep = 1; otpEmail = form.email || ''; otpCode = ''; nextTick(() => { otpEmailInputRef?.focus(); isEmailInputFocused = true })"
               class="border-beam-btn w-full h-11 px-4 rounded-xl text-zinc-900 dark:text-white text-xs sm:text-sm font-medium relative flex items-center justify-center transition-all duration-150 active:scale-[0.99] cursor-pointer disabled:opacity-50 select-none shadow-xs"
               style="animation-delay: -2s;"
             >
@@ -1569,13 +1608,19 @@ onUnmounted(() => {
                 <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
               </svg>
               <span class="text-center font-medium">{{ t('login_btn_continue_email_otp', 'បន្តជាមួយ Email') }}</span>
+              <span
+                v-if="lastUsedMethod === 'email'"
+                class="absolute right-3.5 text-[10px] font-semibold px-2 py-0.5 rounded-md bg-sky-50 dark:bg-[#132337] text-sky-700 dark:text-sky-400 border border-sky-200 dark:border-sky-500/20 animate-fade-in"
+              >
+                {{ t('login_badge_last_used', 'បានប្រើចុងក្រោយ') }}
+              </span>
             </button>
 
             <!-- 4. Phone Number Button -->
             <button
               type="button"
               :disabled="isAuthenticating"
-              @click="authMode = 'phone_otp'; phoneOtpStep = 1; otpPhone = form.email && /^[0-9+ ]+$/.test(form.email) ? form.email : ''; otpCode = ''"
+              @click="recordLoginMethod('phone'); authMode = 'phone_otp'; phoneOtpStep = 1; otpPhone = form.email && /^[0-9+ ]+$/.test(form.email) ? form.email : ''; otpCode = ''"
               class="border-beam-btn w-full h-11 px-4 rounded-xl text-zinc-900 dark:text-white text-xs sm:text-sm font-medium relative flex items-center justify-center transition-all duration-150 active:scale-[0.99] cursor-pointer disabled:opacity-50 select-none shadow-xs"
               style="animation-delay: -3s;"
             >
@@ -1583,6 +1628,12 @@ onUnmounted(() => {
                 <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
               </svg>
               <span class="text-center font-medium">{{ t('login_btn_continue_phone', 'បន្តជាមួយ Phone Number') }}</span>
+              <span
+                v-if="lastUsedMethod === 'phone'"
+                class="absolute right-3.5 text-[10px] font-semibold px-2 py-0.5 rounded-md bg-sky-50 dark:bg-[#132337] text-sky-700 dark:text-sky-400 border border-sky-200 dark:border-sky-500/20 animate-fade-in"
+              >
+                {{ t('login_badge_last_used', 'បានប្រើចុងក្រោយ') }}
+              </span>
             </button>
 
 
