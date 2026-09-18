@@ -968,6 +968,12 @@ const selectLanguage = (code: LanguageCode) => {
   isLangOpen.value = false
 }
 
+const toggleLanguage = () => {
+  const nextLang: LanguageCode = currentLang.value === 'km' ? 'en' : 'km'
+  playTopBarSound('lang_select')
+  i18n.setLanguage(nextLang)
+}
+
 const t = (key: string, defaultText?: string) => {
   return i18n.t(key, defaultText)
 }
@@ -1475,58 +1481,19 @@ onUnmounted(() => {
         <!-- Network Status Pill (Online / Offline) -->
         <NetworkStatusPill :current-lang="currentLang" @click="playTopBarSound('network')" />
         
-        <!-- Language Switcher Pill -->
-        <div class="relative lang-switcher-container">
-          <button
-            type="button"
-            @click.stop="playTopBarSound('lang_open'); isLangOpen = !isLangOpen"
-            class="px-3 py-1.5 rounded-full bg-white/90 dark:bg-[#121214]/80 backdrop-blur-md hover:bg-zinc-100 dark:hover:bg-[#1c1c1f] text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white transition-all duration-150 border border-zinc-300/80 dark:border-zinc-800 shadow-xs flex items-center gap-2 text-xs font-semibold cursor-pointer"
-          >
-            <img
-              :src="languages.find(l => l.code === currentLang)?.flagUrl || '/images/flags/km.svg'"
-              :alt="currentLang"
-              class="w-3.5 h-3.5 rounded-full object-cover shrink-0 ring-1 ring-zinc-300 dark:ring-zinc-700"
-            />
-            <span class="text-[11px] font-bold tracking-wide">
-              {{ currentLang === 'km' ? 'KH' : 'EN' }}
-            </span>
-            <i :class="['pi pi-chevron-down text-[9px] text-zinc-400 transition-transform duration-200', isLangOpen ? 'rotate-180 text-zinc-950 dark:text-white' : '']"></i>
-          </button>
-
-          <!-- Dropdown Menu -->
-          <Transition
-            enter-active-class="transition duration-150 ease-out"
-            enter-from-class="transform opacity-0 scale-95 -translate-y-1"
-            enter-to-class="transform opacity-100 scale-100 translate-y-0"
-            leave-active-class="transition duration-100 ease-in"
-            leave-from-class="transform opacity-100 scale-100 translate-y-0"
-            leave-to-class="transform opacity-0 scale-95 -translate-y-1"
-          >
-            <div
-              v-if="isLangOpen"
-              class="absolute right-0 mt-2 w-36 rounded-xl bg-white/95 dark:bg-[#121214]/95 backdrop-blur-xl border border-zinc-200 dark:border-zinc-800 shadow-2xl py-1.5 z-50 overflow-hidden"
-            >
-              <button
-                v-for="lang in languages"
-                :key="lang.code"
-                type="button"
-                @click="selectLanguage(lang.code)"
-                :class="[
-                  'w-full flex items-center justify-between px-3 py-2 text-xs font-semibold transition-colors cursor-pointer',
-                  currentLang === lang.code
-                    ? 'bg-zinc-100 dark:bg-zinc-800/70 text-zinc-900 dark:text-white font-bold'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/40 hover:text-zinc-900 dark:hover:text-zinc-200'
-                ]"
-              >
-                <span class="flex items-center gap-2">
-                  <img :src="lang.flagUrl" :alt="lang.name" class="w-3.5 h-3.5 rounded-full object-cover shrink-0" />
-                  <span>{{ lang.name }}</span>
-                </span>
-                <i v-if="currentLang === lang.code" class="pi pi-check text-[10px] text-zinc-900 dark:text-white font-bold"></i>
-              </button>
-            </div>
-          </Transition>
-        </div>
+        <!-- Language Switcher Pill (Direct 1-Click Toggle: Khmer / English) -->
+        <button
+          type="button"
+          @click="toggleLanguage"
+          class="p-1.5 px-2.5 h-8 rounded-full bg-white/90 dark:bg-[#121214]/80 backdrop-blur-md hover:bg-zinc-100 dark:hover:bg-[#1c1c1f] text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white transition-all duration-150 border border-zinc-300/80 dark:border-zinc-800 shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 group"
+          :title="currentLang === 'km' ? 'Switch to English' : 'ប្តូរទៅជាភាសាខ្មែរ'"
+        >
+          <img
+            :src="currentLang === 'km' ? '/images/flags/km.svg' : '/images/flags/en.svg'"
+            :alt="currentLang"
+            class="w-5 h-3.5 object-cover rounded-[3px] shadow-xs ring-1 ring-zinc-300/60 dark:ring-zinc-700/60 transition-transform duration-200 group-hover:scale-110"
+          />
+        </button>
 
         <!-- Theme Switcher Pill -->
         <button
