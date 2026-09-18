@@ -56,27 +56,22 @@ export function useTheme() {
       return
     }
 
-    // Symmetrical Center Point Reveal (Starts in center and smoothly expands outwards to both sides)
-    const x = window.innerWidth / 2
-    const y = window.innerHeight / 2
-    const endRadius = Math.hypot(x, y)
-
+    // Triangular Spotlight Cone Reveal (Apex at top-center, flaring down to both sides)
     const transition = (document as any).startViewTransition(() => {
       applyThemeChange()
     })
 
     transition.ready.then(() => {
-      const clipPath = [
-        `circle(0px at 50% 50%)`,
-        `circle(${endRadius}px at 50% 50%)`
-      ]
       document.documentElement.animate(
+        [
+          { clipPath: 'polygon(50% 0%, 50% 0%, 50% 0%, 50% 0%)', offset: 0 },
+          { clipPath: 'polygon(50% 0%, 50% 0%, 85% 100%, 15% 100%)', offset: 0.4 },
+          { clipPath: 'polygon(20% 0%, 80% 0%, 115% 100%, -15% 100%)', offset: 0.7 },
+          { clipPath: 'polygon(-20% 0%, 120% 0%, 140% 100%, -40% 100%)', offset: 1 }
+        ],
         {
-          clipPath: clipPath
-        },
-        {
-          duration: 450,
-          easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+          duration: 550,
+          easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
           pseudoElement: '::view-transition-new(root)'
         }
       )
