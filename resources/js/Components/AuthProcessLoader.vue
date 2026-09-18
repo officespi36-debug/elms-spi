@@ -148,19 +148,10 @@ const detectedProvider = computed(() => {
 </script>
 
 <template>
-  <!-- Luxury Frosted Glassmorphic Card Modal Container -->
-  <div class="w-full max-w-sm mx-auto relative select-none animate-fade-in my-auto">
+  <!-- Seamless Minimalist Loader (Borderless & Pure Floating Aura) -->
+  <div class="w-full max-w-sm mx-auto flex flex-col items-center justify-center text-center py-6 select-none animate-fade-in my-auto">
     
-    <!-- Top Ambient Flare Glow -->
-    <div class="absolute -top-10 left-1/2 -translate-x-1/2 w-48 h-24 bg-sky-500/20 dark:bg-sky-500/25 blur-3xl pointer-events-none rounded-full"></div>
-
-    <!-- The Glassmorphic Card Frame -->
-    <div class="relative w-full p-6 sm:p-8 rounded-3xl bg-white/80 dark:bg-[#111522]/85 border border-zinc-200/90 dark:border-white/10 backdrop-blur-2xl shadow-2xl shadow-black/5 dark:shadow-black/60 flex flex-col items-center justify-center text-center overflow-hidden">
-      
-      <!-- Top Subtle Edge Shimmer Light -->
-      <div class="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-[1.5px] bg-gradient-to-r from-transparent via-sky-400 to-transparent pointer-events-none opacity-80"></div>
-
-      <!-- Hero Halo & Central Dual Emblem System -->
+    <!-- Hero Halo & Central Dual Emblem System -->
       <div class="relative w-28 h-28 sm:w-32 sm:h-32 mb-5 flex items-center justify-center">
         
         <!-- Soft Ambient Glow Bloom -->
@@ -314,8 +305,6 @@ const detectedProvider = computed(() => {
         </svg>
         <span>{{ lang === 'km' ? 'ការតភ្ជាប់សុវត្ថិភាព SPI Secure Gateway' : 'SPI Secure Gateway' }}</span>
       </div>
-
-    </div>
 
   </div>
 </template>
