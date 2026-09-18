@@ -149,7 +149,7 @@ const detectedProvider = computed(() => {
 
 <template>
   <!-- Seamless Minimalist Loader (Borderless & Pure Floating Aura) -->
-  <div class="w-full max-w-sm mx-auto flex flex-col items-center justify-center text-center py-6 select-none animate-fade-in my-auto">
+  <div class="w-full max-w-lg mx-auto flex flex-col items-center justify-center text-center py-6 select-none animate-fade-in my-auto px-4">
     
     <!-- Hero Halo & Central Dual Emblem System -->
       <div class="relative w-28 h-28 sm:w-32 sm:h-32 mb-5 flex items-center justify-center">
@@ -240,7 +240,7 @@ const detectedProvider = computed(() => {
       </div>
 
       <!-- Title with Clean Single Bouncing Dots -->
-      <div class="space-y-1.5 mb-4 max-w-xs">
+      <div class="space-y-1.5 mb-4 w-full max-w-lg mx-auto flex flex-col items-center">
         <h3
           :class="[
             'text-base sm:text-lg font-bold tracking-tight transition-colors duration-300 flex items-center justify-center gap-0.5',
@@ -254,7 +254,7 @@ const detectedProvider = computed(() => {
             <span class="dot-bounce delay-300">.</span>
           </span>
         </h3>
-        <p class="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed max-w-[270px]">
+        <p class="text-xs sm:text-[13px] text-zinc-500 dark:text-zinc-400 leading-relaxed max-w-full whitespace-nowrap px-2">
           {{ displaySubtitle }}
         </p>
       </div>
