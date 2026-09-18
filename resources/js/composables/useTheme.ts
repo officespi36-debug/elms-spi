@@ -56,12 +56,10 @@ export function useTheme() {
       return
     }
 
-    const x = event?.clientX ?? window.innerWidth / 2
-    const y = event?.clientY ?? window.innerHeight / 2
-    const endRadius = Math.hypot(
-      Math.max(x, window.innerWidth - x),
-      Math.max(y, window.innerHeight - y)
-    )
+    // Symmetrical Center Point Reveal (Starts in center and smoothly expands outwards to both sides)
+    const x = window.innerWidth / 2
+    const y = window.innerHeight / 2
+    const endRadius = Math.hypot(x, y)
 
     const transition = (document as any).startViewTransition(() => {
       applyThemeChange()
@@ -69,16 +67,16 @@ export function useTheme() {
 
     transition.ready.then(() => {
       const clipPath = [
-        `circle(0px at ${x}px ${y}px)`,
-        `circle(${endRadius}px at ${x}px ${y}px)`
+        `circle(0px at 50% 50%)`,
+        `circle(${endRadius}px at 50% 50%)`
       ]
       document.documentElement.animate(
         {
           clipPath: clipPath
         },
         {
-          duration: 550,
-          easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+          duration: 450,
+          easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
           pseudoElement: '::view-transition-new(root)'
         }
       )
