@@ -230,3 +230,18 @@ html.dark .custom-scrollbar-slim::-webkit-scrollbar-thumb:hover,
   transform-origin: 70% 70%;
   animation: wave 2.2s infinite ease-in-out;
 }
+
+/* View Transition API: High-End Circular Wave Reveal for Dark/Light Mode Switch */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 99999;
+}

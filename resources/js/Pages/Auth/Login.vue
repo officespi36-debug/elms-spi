@@ -992,16 +992,61 @@ const initTheme = () => {
   applyTheme()
 }
 
-const toggleTheme = () => {
+const toggleTheme = (event?: MouseEvent) => {
   playTopBarSound('theme')
-  isDark.value = !isDark.value
-  try {
-    localStorage.setItem('theme', isDark.value ? 'dark' : 'light')
-  } catch (e) {}
-  applyTheme()
-  removeTurnstile()
-  nextTick(() => {
+  const nextDark = !isDark.value
+
+  const isAppearanceTransition =
+    typeof document !== 'undefined' &&
+    'startViewTransition' in document &&
+    !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+  if (!isAppearanceTransition) {
+    isDark.value = nextDark
+    try {
+      localStorage.setItem('theme', nextDark ? 'dark' : 'light')
+    } catch (e) {}
+    applyTheme()
+    removeTurnstile()
+    nextTick(() => {
+      initTurnstile()
+    })
+    return
+  }
+
+  const x = event?.clientX ?? window.innerWidth / 2
+  const y = event?.clientY ?? window.innerHeight / 2
+  const endRadius = Math.hypot(
+    Math.max(x, window.innerWidth - x),
+    Math.max(y, window.innerHeight - y)
+  )
+
+  const transition = (document as any).startViewTransition(async () => {
+    isDark.value = nextDark
+    try {
+      localStorage.setItem('theme', nextDark ? 'dark' : 'light')
+    } catch (e) {}
+    applyTheme()
+    removeTurnstile()
+    await nextTick()
     initTurnstile()
+  })
+
+  transition.ready.then(() => {
+    const clipPath = [
+      `circle(0px at ${x}px ${y}px)`,
+      `circle(${endRadius}px at ${x}px ${y}px)`
+    ]
+    document.documentElement.animate(
+      {
+        clipPath: clipPath
+      },
+      {
+        duration: 550,
+        easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+        pseudoElement: '::view-transition-new(root)'
+      }
+    )
   })
 }
 
@@ -1468,6 +1513,13 @@ onUnmounted(() => {
       <AuthAnimatedBackground />
     </div>
 
+    <!-- Ambient Luminous Aurora Glow for Ultra-Sleek Light Mode -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none z-0 transition-opacity duration-700 dark:opacity-0 opacity-100">
+      <div class="absolute -top-[15%] -left-[10%] w-[55vw] h-[55vw] rounded-full bg-gradient-to-br from-sky-200/50 via-indigo-100/40 to-transparent blur-3xl"></div>
+      <div class="absolute top-[5%] -right-[15%] w-[50vw] h-[50vw] rounded-full bg-gradient-to-bl from-amber-100/50 via-orange-50/40 to-transparent blur-3xl"></div>
+      <div class="absolute -bottom-[20%] left-[20%] w-[60vw] h-[60vw] rounded-full bg-gradient-to-t from-blue-100/40 via-purple-50/20 to-transparent blur-3xl"></div>
+    </div>
+
     <!-- Top Navigation: Left Branding & Right Language/Theme Switchers -->
     <header class="w-full relative z-20 flex items-center justify-between px-6 py-5 sm:px-8">
       <!-- Logo Mark -->
@@ -1498,11 +1550,11 @@ onUnmounted(() => {
         <!-- Theme Switcher Pill -->
         <button
           type="button"
-          @click="toggleTheme"
-          class="p-1.5 px-2.5 rounded-full bg-white/90 dark:bg-[#121214]/80 backdrop-blur-md hover:bg-zinc-100 dark:hover:bg-[#1c1c1f] text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white transition-all duration-150 border border-zinc-300/80 dark:border-zinc-800 shadow-xs flex items-center gap-1.5 text-xs font-semibold cursor-pointer select-none"
+          @click="toggleTheme($event)"
+          class="p-1.5 px-2.5 rounded-full bg-white/90 dark:bg-[#121214]/80 backdrop-blur-md hover:bg-zinc-100 dark:hover:bg-[#1c1c1f] text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white transition-all duration-150 border border-zinc-300/80 dark:border-zinc-800 shadow-xs flex items-center gap-1.5 text-xs font-semibold cursor-pointer select-none active:scale-95 group"
           :title="isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
         >
-          <i :class="['pi text-xs transition-transform duration-200', isDark ? 'pi-sun text-amber-400' : 'pi-moon text-indigo-500']"></i>
+          <i :class="['pi text-xs transition-transform duration-500 group-hover:rotate-45', isDark ? 'pi-sun text-amber-400' : 'pi-moon text-indigo-500']"></i>
         </button>
 
       </div>
@@ -2727,13 +2779,40 @@ onUnmounted(() => {
 
 .border-beam-btn {
   --beam-bg: #ffffff;
-  --beam-border-base: #e4e4e7;
-  --beam-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --beam-border-base: #e2e8f0;
+  --beam-shadow: 0 2px 10px -2px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
 
   position: relative;
   border: 1px solid transparent !important;
   background-clip: padding-box, border-box !important;
   background-origin: padding-box, border-box !important;
+  background-image:
+    linear-gradient(var(--beam-bg), var(--beam-bg)),
+    conic-gradient(
+      from var(--beam-angle),
+      var(--beam-border-base) 0deg,
+      var(--beam-border-base) 250deg,
+      rgba(37, 99, 235, 0.35) 280deg,
+      #2563eb 320deg,
+      #38bdf8 355deg,
+      var(--beam-border-base) 360deg
+    ) !important;
+  animation: beam-rotate 4s linear infinite;
+  box-shadow: var(--beam-shadow);
+}
+
+.border-beam-btn:hover {
+  --beam-bg: #f8fafc;
+  --beam-border-base: #cbd5e1;
+  --beam-shadow: 0 0 16px -2px rgba(37, 99, 235, 0.25);
+}
+
+/* Dark Mode: When <html> or parent has .dark class */
+html.dark .border-beam-btn,
+.dark .border-beam-btn {
+  --beam-bg: #18181b !important;
+  --beam-border-base: #27272a !important;
+  --beam-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4) !important;
   background-image:
     linear-gradient(var(--beam-bg), var(--beam-bg)),
     conic-gradient(
@@ -2745,22 +2824,6 @@ onUnmounted(() => {
       #fed7aa 355deg,
       var(--beam-border-base) 360deg
     ) !important;
-  animation: beam-rotate 4s linear infinite;
-  box-shadow: var(--beam-shadow);
-}
-
-.border-beam-btn:hover {
-  --beam-bg: #f9fafb;
-  --beam-border-base: #d4d4d8;
-  --beam-shadow: 0 0 14px -2px rgba(249, 115, 22, 0.25);
-}
-
-/* Dark Mode: When <html> or parent has .dark class */
-html.dark .border-beam-btn,
-.dark .border-beam-btn {
-  --beam-bg: #18181b !important;
-  --beam-border-base: #27272a !important;
-  --beam-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4) !important;
 }
 
 html.dark .border-beam-btn:hover,
@@ -2768,5 +2831,18 @@ html.dark .border-beam-btn:hover,
   --beam-bg: #232327 !important;
   --beam-border-base: #3f3f46 !important;
   --beam-shadow: 0 0 16px -2px rgba(249, 115, 22, 0.35) !important;
+}
+
+/* High-Definition Circular Theme Reveal Transition */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 99999;
 }
 </style>
