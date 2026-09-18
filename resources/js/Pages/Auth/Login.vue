@@ -6,6 +6,7 @@ import AuthAnimatedBackground from '../../Components/AuthAnimatedBackground.vue'
 import NetworkStatusPill from '../../Components/NetworkStatusPill.vue'
 import TelegramLoginModal from '../../Components/TelegramLoginModal.vue'
 import GlobalToast from '../../Components/GlobalToast.vue'
+import AuthProcessLoader from '../../Components/AuthProcessLoader.vue'
 
 const logoUrl = '/images/logo.png'
 
@@ -1526,7 +1527,7 @@ onUnmounted(() => {
               type="button"
               :disabled="isAuthenticating"
               @click="redirectToGoogleOAuth"
-              class="w-full h-11 px-4 rounded-xl bg-white hover:bg-zinc-50 dark:bg-[#18181b] dark:hover:bg-[#232327] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 text-zinc-900 dark:text-white text-xs sm:text-sm font-medium relative flex items-center justify-center transition-all duration-150 active:scale-[0.99] cursor-pointer disabled:opacity-50 select-none shadow-xs"
+              class="border-beam-btn w-full h-11 px-4 rounded-xl text-zinc-900 dark:text-white text-xs sm:text-sm font-medium relative flex items-center justify-center transition-all duration-150 active:scale-[0.99] cursor-pointer disabled:opacity-50 select-none shadow-xs"
             >
               <svg class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 shrink-0" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -1545,7 +1546,8 @@ onUnmounted(() => {
               type="button"
               :disabled="isAuthenticating"
               @click="redirectToGitHubOAuth"
-              class="w-full h-11 px-4 rounded-xl bg-white hover:bg-zinc-50 dark:bg-[#18181b] dark:hover:bg-[#232327] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 text-zinc-900 dark:text-white text-xs sm:text-sm font-medium relative flex items-center justify-center transition-all duration-150 active:scale-[0.99] cursor-pointer disabled:opacity-50 select-none shadow-xs"
+              class="border-beam-btn w-full h-11 px-4 rounded-xl text-zinc-900 dark:text-white text-xs sm:text-sm font-medium relative flex items-center justify-center transition-all duration-150 active:scale-[0.99] cursor-pointer disabled:opacity-50 select-none shadow-xs"
+              style="animation-delay: -1s;"
             >
               <svg class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 shrink-0 fill-zinc-900 dark:fill-white" viewBox="0 0 24 24">
                 <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
@@ -1559,7 +1561,8 @@ onUnmounted(() => {
               type="button"
               :disabled="isAuthenticating"
               @click="authMode = 'otp'; otpStep = 1; otpEmail = form.email || ''; otpCode = ''; nextTick(() => { otpEmailInputRef?.focus(); isEmailInputFocused = true })"
-              class="w-full h-11 px-4 rounded-xl bg-white hover:bg-zinc-50 dark:bg-[#18181b] dark:hover:bg-[#232327] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 text-zinc-900 dark:text-white text-xs sm:text-sm font-medium relative flex items-center justify-center transition-all duration-150 active:scale-[0.99] cursor-pointer disabled:opacity-50 select-none shadow-xs"
+              class="border-beam-btn w-full h-11 px-4 rounded-xl text-zinc-900 dark:text-white text-xs sm:text-sm font-medium relative flex items-center justify-center transition-all duration-150 active:scale-[0.99] cursor-pointer disabled:opacity-50 select-none shadow-xs"
+              style="animation-delay: -2s;"
             >
               <svg class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 shrink-0 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect width="20" height="16" x="2" y="4" rx="2"/>
@@ -1573,7 +1576,8 @@ onUnmounted(() => {
               type="button"
               :disabled="isAuthenticating"
               @click="authMode = 'phone_otp'; phoneOtpStep = 1; otpPhone = form.email && /^[0-9+ ]+$/.test(form.email) ? form.email : ''; otpCode = ''"
-              class="w-full h-11 px-4 rounded-xl bg-white hover:bg-zinc-50 dark:bg-[#18181b] dark:hover:bg-[#232327] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 text-zinc-900 dark:text-white text-xs sm:text-sm font-medium relative flex items-center justify-center transition-all duration-150 active:scale-[0.99] cursor-pointer disabled:opacity-50 select-none shadow-xs"
+              class="border-beam-btn w-full h-11 px-4 rounded-xl text-zinc-900 dark:text-white text-xs sm:text-sm font-medium relative flex items-center justify-center transition-all duration-150 active:scale-[0.99] cursor-pointer disabled:opacity-50 select-none shadow-xs"
+              style="animation-delay: -3s;"
             >
               <svg class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 shrink-0 text-emerald-600 dark:text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
@@ -2490,25 +2494,15 @@ onUnmounted(() => {
       </div>
 
       <!-- Loading / Authenticating Overlay -->
-      <div v-else class="w-full max-w-sm flex flex-col items-center justify-center text-center animate-fade-in py-10">
-        <!-- Success State: Vibrant Emerald Checkmark Badge -->
-        <div v-if="authSuccess" class="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-4 ring-8 ring-emerald-500/10 animate-bounce">
-          <i class="pi pi-check text-2xl font-black"></i>
-        </div>
-
-        <!-- Processing State: Animated Spinner with Center Logo -->
-        <div v-else class="relative w-16 h-16 mb-4 flex items-center justify-center">
-          <div class="w-16 h-16 rounded-full border-3 border-blue-500/20 dark:border-white/10 border-t-blue-600 dark:border-t-white animate-spin"></div>
-          <img :src="logoUrl" alt="Logo" class="w-7 h-7 object-contain rounded-full absolute" onerror="this.src='/logo.png'" />
-        </div>
-
-        <h3 :class="['text-lg font-black tracking-tight mb-1.5 transition-colors', authSuccess ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-900 dark:text-white']">
-          {{ authLoadingTitle || (currentLang === 'km' ? 'កំពុងរៀបចំផ្ទាំងគ្រប់គ្រង...' : 'Setting up your dashboard...') }}
-        </h3>
-        <p class="text-xs text-zinc-500 dark:text-zinc-400 max-w-xs leading-relaxed">
-          {{ authLoadingSubtitle || (currentLang === 'km' ? 'សូមរង់ចាំមួយភ្លែត ប្រព័ន្ធកំពុងដំណើរការផ្ទៀងផ្ទាត់...' : 'Please wait a moment while verifying your account...') }}
-        </p>
-      </div>
+      <AuthProcessLoader
+        v-else
+        :is-success="authSuccess"
+        :title="authLoadingTitle"
+        :subtitle="authLoadingSubtitle"
+        :logo-url="logoUrl"
+        :lang="currentLang"
+        mode="login"
+      />
 
     </main>
 
@@ -2607,5 +2601,94 @@ onUnmounted(() => {
   max-width: 100% !important;
   display: block !important;
   margin: 0 auto !important;
+}
+
+/* ========================================================================= */
+/* Border Beam (Animated Glowing Running Border)                            */
+/* ========================================================================= */
+@property --beam-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes beam-rotate {
+  0% {
+    --beam-angle: 0deg;
+  }
+  100% {
+    --beam-angle: 360deg;
+  }
+}
+
+.border-beam-btn {
+  position: relative;
+  border: 1px solid transparent !important;
+  background-clip: padding-box, border-box !important;
+  background-origin: padding-box, border-box !important;
+}
+
+/* Dark Mode: Sleek dark surface with glowing amber/copper beam */
+:is(.dark .border-beam-btn) {
+  background-image:
+    linear-gradient(#18181b, #18181b),
+    conic-gradient(
+      from var(--beam-angle),
+      #27272a 0deg,
+      #27272a 260deg,
+      rgba(249, 115, 22, 0.2) 285deg,
+      #f97316 325deg,
+      #fed7aa 355deg,
+      #27272a 360deg
+    ) !important;
+  animation: beam-rotate 4s linear infinite;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+}
+
+:is(.dark .border-beam-btn:hover) {
+  background-image:
+    linear-gradient(#232327, #232327),
+    conic-gradient(
+      from var(--beam-angle),
+      #3f3f46 0deg,
+      #3f3f46 240deg,
+      rgba(249, 115, 22, 0.4) 275deg,
+      #f97316 325deg,
+      #fed7aa 355deg,
+      #3f3f46 360deg
+    ) !important;
+  box-shadow: 0 0 16px -2px rgba(249, 115, 22, 0.35);
+}
+
+/* Light Mode: Clean white surface with glowing amber beam */
+:is(:not(.dark) .border-beam-btn) {
+  background-image:
+    linear-gradient(#ffffff, #ffffff),
+    conic-gradient(
+      from var(--beam-angle),
+      #e4e4e7 0deg,
+      #e4e4e7 260deg,
+      rgba(249, 115, 22, 0.2) 285deg,
+      #f97316 325deg,
+      #fed7aa 355deg,
+      #e4e4e7 360deg
+    ) !important;
+  animation: beam-rotate 4s linear infinite;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+:is(:not(.dark) .border-beam-btn:hover) {
+  background-image:
+    linear-gradient(#f9fafb, #f9fafb),
+    conic-gradient(
+      from var(--beam-angle),
+      #d4d4d8 0deg,
+      #d4d4d8 240deg,
+      rgba(249, 115, 22, 0.4) 275deg,
+      #f97316 325deg,
+      #fed7aa 355deg,
+      #d4d4d8 360deg
+    ) !important;
+  box-shadow: 0 0 14px -2px rgba(249, 115, 22, 0.25);
 }
 </style>
