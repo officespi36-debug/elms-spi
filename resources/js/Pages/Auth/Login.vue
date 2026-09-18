@@ -2602,10 +2602,10 @@ onUnmounted(() => {
   display: block !important;
   margin: 0 auto !important;
 }
+</style>
 
-/* ========================================================================= */
-/* Border Beam (Animated Glowing Running Border)                            */
-/* ========================================================================= */
+<!-- Unscoped styles so html.dark / .dark selectors work seamlessly in both modes -->
+<style>
 @property --beam-angle {
   syntax: '<angle>';
   inherits: false;
@@ -2622,71 +2622,47 @@ onUnmounted(() => {
 }
 
 .border-beam-btn {
+  --beam-bg: #ffffff;
+  --beam-border-base: #e4e4e7;
+  --beam-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+
   position: relative;
   border: 1px solid transparent !important;
   background-clip: padding-box, border-box !important;
   background-origin: padding-box, border-box !important;
-  /* Light Mode (Default): Clean white surface with glowing amber beam */
   background-image:
-    linear-gradient(#ffffff, #ffffff),
+    linear-gradient(var(--beam-bg), var(--beam-bg)),
     conic-gradient(
       from var(--beam-angle),
-      #e4e4e7 0deg,
-      #e4e4e7 260deg,
+      var(--beam-border-base) 0deg,
+      var(--beam-border-base) 260deg,
       rgba(249, 115, 22, 0.25) 285deg,
       #f97316 325deg,
       #fed7aa 355deg,
-      #e4e4e7 360deg
+      var(--beam-border-base) 360deg
     ) !important;
   animation: beam-rotate 4s linear infinite;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  box-shadow: var(--beam-shadow);
 }
 
 .border-beam-btn:hover {
-  background-image:
-    linear-gradient(#f9fafb, #f9fafb),
-    conic-gradient(
-      from var(--beam-angle),
-      #d4d4d8 0deg,
-      #d4d4d8 240deg,
-      rgba(249, 115, 22, 0.45) 275deg,
-      #f97316 325deg,
-      #fed7aa 355deg,
-      #d4d4d8 360deg
-    ) !important;
-  box-shadow: 0 0 14px -2px rgba(249, 115, 22, 0.25);
+  --beam-bg: #f9fafb;
+  --beam-border-base: #d4d4d8;
+  --beam-shadow: 0 0 14px -2px rgba(249, 115, 22, 0.25);
 }
 
-/* Dark Mode: Sleek dark surface with glowing amber/copper beam */
-:global(html.dark) .border-beam-btn,
-:global(.dark) .border-beam-btn {
-  background-image:
-    linear-gradient(#18181b, #18181b),
-    conic-gradient(
-      from var(--beam-angle),
-      #27272a 0deg,
-      #27272a 260deg,
-      rgba(249, 115, 22, 0.25) 285deg,
-      #f97316 325deg,
-      #fed7aa 355deg,
-      #27272a 360deg
-    ) !important;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+/* Dark Mode: When <html> or parent has .dark class */
+html.dark .border-beam-btn,
+.dark .border-beam-btn {
+  --beam-bg: #18181b !important;
+  --beam-border-base: #27272a !important;
+  --beam-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4) !important;
 }
 
-:global(html.dark) .border-beam-btn:hover,
-:global(.dark) .border-beam-btn:hover {
-  background-image:
-    linear-gradient(#232327, #232327),
-    conic-gradient(
-      from var(--beam-angle),
-      #3f3f46 0deg,
-      #3f3f46 240deg,
-      rgba(249, 115, 22, 0.45) 275deg,
-      #f97316 325deg,
-      #fed7aa 355deg,
-      #3f3f46 360deg
-    ) !important;
-  box-shadow: 0 0 16px -2px rgba(249, 115, 22, 0.35);
+html.dark .border-beam-btn:hover,
+.dark .border-beam-btn:hover {
+  --beam-bg: #232327 !important;
+  --beam-border-base: #3f3f46 !important;
+  --beam-shadow: 0 0 16px -2px rgba(249, 115, 22, 0.35) !important;
 }
 </style>
