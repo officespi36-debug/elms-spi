@@ -134,106 +134,48 @@ const displaySubtitle = computed(() => {
 </script>
 
 <template>
-  <div class="w-full max-w-sm mx-auto flex flex-col items-center justify-center text-center py-6 select-none animate-fade-in">
+  <div class="w-full max-w-xs mx-auto flex flex-col items-center justify-center text-center py-6 select-none animate-fade-in">
     
-    <!-- Central Sci-Fi Orbital Holographic System -->
-    <div class="relative w-36 h-36 sm:w-40 sm:h-40 mb-6 flex items-center justify-center">
+    <!-- Hero Halo & Core Logo (Apple / Linear Minimalist Luxury) -->
+    <div class="relative w-28 h-28 sm:w-32 sm:h-32 mb-5 flex items-center justify-center">
       
-      <!-- Ambient Glow Aura -->
+      <!-- Soft Ambient Glow Bloom -->
       <div
         :class="[
           'absolute inset-0 rounded-full blur-2xl transition-all duration-700 pointer-events-none',
           isSuccess
-            ? 'bg-emerald-500/35 scale-125'
-            : 'bg-gradient-to-tr from-cyan-500/25 via-blue-600/25 to-indigo-500/25 scale-110 animate-pulse-glow'
+            ? 'bg-emerald-500/25 scale-125'
+            : 'bg-gradient-to-tr from-sky-500/20 via-blue-600/20 to-indigo-500/20 scale-110 animate-ambient-breathe'
         ]"
       ></div>
 
-      <!-- Ring 1: Outer Dashed Radar Scanner (Counter-Rotating) -->
-      <svg class="absolute inset-0 w-full h-full animate-spin-reverse pointer-events-none" viewBox="0 0 160 160">
-        <circle
-          cx="80"
-          cy="80"
-          r="74"
-          fill="none"
-          :stroke="isSuccess ? 'rgba(16, 185, 129, 0.4)' : 'rgba(56, 189, 248, 0.25)'"
-          stroke-width="1.5"
-          stroke-dasharray="6 8"
-        />
-        <!-- 4 Cyber Corner Ticks -->
-        <circle cx="80" cy="6" r="2.5" :fill="isSuccess ? '#10b981' : '#38bdf8'" class="animate-ping-dot" />
-        <circle cx="154" cy="80" r="2.5" :fill="isSuccess ? '#10b981' : '#818cf8'" />
-        <circle cx="80" cy="154" r="2.5" :fill="isSuccess ? '#10b981' : '#38bdf8'" />
-        <circle cx="6" cy="80" r="2.5" :fill="isSuccess ? '#10b981' : '#818cf8'" />
-      </svg>
+      <!-- Outer Minimal Spinner Ring -->
+      <div
+        v-if="!isSuccess"
+        class="absolute inset-0 rounded-full border-2 border-transparent border-t-sky-500 border-r-indigo-500/40 animate-spin-smooth pointer-events-none"
+      ></div>
 
-      <!-- Ring 2: Active Dynamic Progress Arc with Glowing Comet Head -->
-      <svg class="absolute inset-1.5 w-[calc(100%-12px)] h-[calc(100%-12px)] -rotate-90 pointer-events-none" viewBox="0 0 148 148">
-        <defs>
-          <linearGradient id="cyberGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#00f2fe" />
-            <stop offset="50%" stop-color="#38bdf8" />
-            <stop offset="100%" stop-color="#6366f1" />
-          </linearGradient>
-          <linearGradient id="emeraldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#34d399" />
-            <stop offset="100%" stop-color="#059669" />
-          </linearGradient>
-          <filter id="glowFilter" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="3" result="blur" />
-            <feComposite in="SourceGraphic" in2="blur" operator="over" />
-          </filter>
-        </defs>
+      <!-- Outer Subtle Track Ring -->
+      <div
+        class="absolute inset-0 rounded-full border border-zinc-200/60 dark:border-zinc-800/80 pointer-events-none"
+      ></div>
 
-        <!-- Background Track Ring -->
-        <circle
-          cx="74"
-          cy="74"
-          r="66"
-          fill="none"
-          stroke="currentColor"
-          class="text-slate-200/50 dark:text-zinc-800/80"
-          stroke-width="3"
-        />
-
-        <!-- Active Progress Arc -->
-        <circle
-          cx="74"
-          cy="74"
-          r="66"
-          fill="none"
-          :stroke="isSuccess ? 'url(#emeraldGradient)' : 'url(#cyberGradient)'"
-          stroke-width="3.5"
-          stroke-linecap="round"
-          stroke-dasharray="414.7"
-          :stroke-dashoffset="414.7 - (414.7 * progress) / 100"
-          filter="url(#glowFilter)"
-          class="transition-[stroke-dashoffset] duration-300 ease-out"
-        />
-      </svg>
-
-      <!-- Ring 3: High-speed Orbital Tracer Dot -->
-      <div v-if="!isSuccess" class="absolute inset-2 w-[calc(100%-16px)] h-[calc(100%-16px)] animate-spin-fast pointer-events-none">
-        <div class="w-3 h-3 rounded-full bg-cyan-300 shadow-[0_0_12px_#38bdf8] -top-1.5 left-1/2 -translate-x-1/2 absolute"></div>
-      </div>
-
-      <!-- Core Glassmorphic Badge with Logo or Success Checkmark -->
+      <!-- Core Glassmorphic Badge -->
       <div
         :class="[
-          'relative w-20 h-20 sm:w-22 sm:h-22 rounded-full flex items-center justify-center transition-all duration-500 shadow-2xl backdrop-blur-xl z-10 border',
+          'relative w-20 h-20 sm:w-22 sm:h-22 rounded-full flex items-center justify-center transition-all duration-500 shadow-xl backdrop-blur-2xl z-10 border',
           isSuccess
-            ? 'bg-emerald-500/15 border-emerald-500/60 shadow-[0_0_35px_rgba(16,185,129,0.5)] scale-105'
-            : 'bg-white/80 dark:bg-[#091122]/90 border-cyan-400/40 dark:border-cyan-500/30 shadow-[0_0_30px_rgba(56,189,248,0.3)]'
+            ? 'bg-emerald-500/10 border-emerald-500/40 shadow-emerald-500/20 scale-105'
+            : 'bg-white/95 dark:bg-[#141721]/95 border-zinc-200/80 dark:border-zinc-800/80 shadow-black/5 dark:shadow-black/40'
         ]"
       >
-        <!-- Success Checkmark -->
+        <!-- Success State: Smooth Animated Checkmark -->
         <div v-if="isSuccess" class="flex items-center justify-center animate-scale-bounce">
-          <svg class="w-10 h-10 text-emerald-500 dark:text-emerald-400" viewBox="0 0 48 48" fill="none">
-            <circle cx="24" cy="24" r="22" stroke="currentColor" stroke-width="2.5" class="opacity-25" />
+          <svg class="w-9 h-9 text-emerald-500 dark:text-emerald-400" viewBox="0 0 48 48" fill="none">
             <path
               d="M14 24.5L21 31.5L34 17.5"
               stroke="currentColor"
-              stroke-width="3.8"
+              stroke-width="3.6"
               stroke-linecap="round"
               stroke-linejoin="round"
               class="checkmark-path"
@@ -241,156 +183,91 @@ const displaySubtitle = computed(() => {
           </svg>
         </div>
 
-        <!-- E-LMS Logo with High-Tech Breathing Pulse -->
-        <div v-else class="relative flex items-center justify-center group">
-          <div class="absolute -inset-1 rounded-full bg-cyan-400/20 blur-sm animate-pulse"></div>
+        <!-- Loading State: Clean Floating E-LMS Logo -->
+        <div v-else class="relative flex items-center justify-center">
           <img
             :src="logoUrl"
             alt="E-LMS"
-            class="w-11 h-11 sm:w-12 sm:h-12 rounded-full object-contain drop-shadow-md relative transform transition-transform duration-500 animate-float-micro"
+            class="w-11 h-11 sm:w-12 sm:h-12 rounded-full object-contain drop-shadow-sm transform transition-transform duration-500 animate-float-micro"
             onerror="this.src='/logo.png'"
           />
-          <!-- Holographic Shimmer Line -->
-          <div class="absolute inset-0 rounded-full overflow-hidden pointer-events-none">
-            <div class="w-full h-full bg-gradient-to-b from-transparent via-white/20 to-transparent -translate-y-full animate-scanner-sweep"></div>
-          </div>
         </div>
-
-      </div>
-
-      <!-- Real-time HUD Percentage Badge -->
-      <div
-        :class="[
-          'absolute -bottom-2.5 z-20 px-2.5 py-0.5 rounded-full text-[11px] font-black tracking-wider flex items-center gap-1.5 shadow-lg border backdrop-blur-md transition-all duration-300',
-          isSuccess
-            ? 'bg-emerald-500 text-white border-emerald-400 shadow-emerald-500/40 scale-105'
-            : 'bg-slate-900/90 text-cyan-400 border-cyan-500/40 shadow-cyan-500/20'
-        ]"
-      >
-        <span v-if="!isSuccess" class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
-        <span>{{ progress }}%</span>
       </div>
 
     </div>
 
-    <!-- Title & Subtitle with Rich Modern Typography -->
-    <div class="space-y-1 mb-5 max-w-xs">
+    <!-- Title with Animated Trailing Dots -->
+    <div class="space-y-1 mb-4 max-w-xs">
       <h3
         :class="[
-          'text-lg sm:text-xl font-black tracking-tight transition-colors duration-300',
-          isSuccess ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-white'
+          'text-base sm:text-lg font-bold tracking-tight transition-colors duration-300 flex items-center justify-center gap-0.5',
+          isSuccess ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-900 dark:text-white'
         ]"
       >
-        {{ displayTitle }}
+        <span>{{ displayTitle }}</span>
+        <span v-if="!isSuccess" class="inline-flex items-center ml-0.5 text-sky-500">
+          <span class="dot-bounce">.</span>
+          <span class="dot-bounce delay-150">.</span>
+          <span class="dot-bounce delay-300">.</span>
+        </span>
       </h3>
-      <p class="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed font-medium">
+      <p class="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed max-w-[270px]">
         {{ displaySubtitle }}
       </p>
     </div>
 
-    <!-- The Running Cyber Progress Track (Process វា រត់) -->
-    <div class="w-full max-w-[270px] space-y-2 mb-6">
-      <div class="h-2 w-full rounded-full bg-slate-200/80 dark:bg-zinc-800/80 p-0.5 border border-slate-300/40 dark:border-zinc-700/50 shadow-inner relative overflow-hidden">
-        <!-- Running Progress Bar -->
+    <!-- Ultra-Slim Glowing Progress Line (Minimalist 3px Bar) -->
+    <div class="w-full max-w-[230px] space-y-2 mb-4">
+      <div class="h-1 w-full rounded-full bg-zinc-200/80 dark:bg-zinc-800/80 overflow-hidden relative shadow-inner">
         <div
           :class="[
-            'h-full rounded-full transition-all duration-300 ease-out relative overflow-hidden',
+            'h-full rounded-full transition-all duration-300 ease-out relative',
             isSuccess
-              ? 'bg-gradient-to-r from-emerald-500 to-teal-400 shadow-[0_0_15px_rgba(16,185,129,0.8)]'
-              : 'bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 shadow-[0_0_15px_rgba(56,189,248,0.7)]'
+              ? 'bg-gradient-to-r from-emerald-500 to-teal-400 shadow-[0_0_10px_rgba(16,185,129,0.7)]'
+              : 'bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500 shadow-[0_0_10px_rgba(56,189,248,0.6)]'
           ]"
           :style="{ width: `${progress}%` }"
-        >
-          <!-- Shimmering Laser Ray -->
-          <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent -translate-x-full animate-laser-run"></div>
-        </div>
-      </div>
-      
-      <!-- Secondary Status Text Under Bar -->
-      <div class="flex items-center justify-between text-[10px] font-semibold text-slate-400 dark:text-zinc-500 px-0.5">
-        <span class="flex items-center gap-1">
-          <span :class="['w-1.5 h-1.5 rounded-full', isSuccess ? 'bg-emerald-400' : 'bg-blue-400 animate-pulse']"></span>
-          {{ isSuccess ? (lang === 'km' ? 'រួចរាល់' : 'Completed') : (lang === 'km' ? 'កំពុងដំណើរការ...' : 'Running...') }}
-        </span>
-        <span class="font-mono tracking-wider">{{ progress }}/100</span>
+        ></div>
       </div>
     </div>
 
-    <!-- Dynamic 3-Step Pipeline Card (Visualizing the Steps) -->
-    <div class="w-full max-w-[290px] rounded-2xl bg-white/70 dark:bg-[#111625]/80 border border-slate-200/80 dark:border-zinc-800/90 p-3 shadow-lg backdrop-blur-md space-y-2.5 text-left">
-      <div
-        v-for="(st, idx) in steps"
-        :key="idx"
+    <!-- Sleek Current Phase Capsule (Clean Single-Line Badge Replacing Cluttered Box) -->
+    <div
+      :class="[
+        'inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium border shadow-xs backdrop-blur-md transition-all duration-300',
+        isSuccess
+          ? 'bg-emerald-50/80 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-300'
+          : 'bg-zinc-100/90 dark:bg-zinc-900/90 border-zinc-200/80 dark:border-zinc-800/80 text-zinc-700 dark:text-zinc-300'
+      ]"
+    >
+      <span
         :class="[
-          'flex items-center justify-between p-2 rounded-xl transition-all duration-300 text-xs',
-          activeStepIndex === idx && !isSuccess
-            ? 'bg-blue-500/10 dark:bg-blue-500/15 border border-blue-500/30 text-blue-600 dark:text-blue-300 shadow-xs'
-            : activeStepIndex > idx || isSuccess
-            ? 'text-emerald-600 dark:text-emerald-400 opacity-90'
-            : 'text-slate-400 dark:text-zinc-600 opacity-50'
+          'w-1.5 h-1.5 rounded-full shrink-0',
+          isSuccess ? 'bg-emerald-500' : 'bg-sky-500 animate-ping-dot'
         ]"
-      >
-        <div class="flex items-center gap-2.5 min-w-0">
-          <!-- Step Indicator Icon -->
-          <div
-            :class="[
-              'w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 transition-all',
-              activeStepIndex > idx || isSuccess
-                ? 'bg-emerald-500 text-white shadow-xs shadow-emerald-500/50'
-                : activeStepIndex === idx
-                ? 'bg-blue-600 text-white shadow-xs shadow-blue-500/50 animate-pulse'
-                : 'bg-slate-200 dark:bg-zinc-800 text-slate-500 dark:text-zinc-500'
-            ]"
-          >
-            <i v-if="activeStepIndex > idx || isSuccess" class="pi pi-check text-[9px]"></i>
-            <span v-else>{{ idx + 1 }}</span>
-          </div>
-
-          <div class="min-w-0">
-            <p class="font-bold text-[11px] truncate leading-tight">{{ st.label }}</p>
-            <p class="text-[9px] text-slate-400 dark:text-zinc-500 truncate leading-none mt-0.5">{{ st.sub }}</p>
-          </div>
-        </div>
-
-        <!-- Right Mini Status Pill -->
-        <div class="shrink-0 text-[10px]">
-          <span
-            v-if="activeStepIndex > idx || isSuccess"
-            class="text-emerald-500 dark:text-emerald-400 font-semibold"
-          >
-            <i class="pi pi-check-circle"></i>
-          </span>
-          <span
-            v-else-if="activeStepIndex === idx"
-            class="flex items-center gap-1 font-mono text-blue-500 dark:text-cyan-400"
-          >
-            <span class="w-1 h-1 rounded-full bg-current animate-ping"></span>
-            <span>LIVE</span>
-          </span>
-          <span v-else class="text-slate-300 dark:text-zinc-700">
-            <i class="pi pi-clock"></i>
-          </span>
-        </div>
-      </div>
+      ></span>
+      <span class="truncate max-w-[200px]">
+        {{ isSuccess ? (lang === 'km' ? 'ផ្ទៀងផ្ទាត់រួចរាល់' : 'Verification Complete') : (steps[activeStepIndex]?.label || (lang === 'km' ? 'កំពុងដំណើរការ' : 'Processing')) }}
+      </span>
+      <span class="text-[10px] font-mono text-zinc-400 dark:text-zinc-500 ml-1">
+        {{ progress }}%
+      </span>
     </div>
 
-    <!-- Security & Encryption Telemetry Footer Badge -->
-    <div class="mt-4 flex items-center gap-2 text-[10px] text-slate-400 dark:text-zinc-500 tracking-wide font-mono">
-      <span class="inline-flex items-center gap-1 text-emerald-500 dark:text-emerald-400">
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-        TLS 1.3
-      </span>
-      <span>•</span>
-      <span>256-BIT AES</span>
-      <span>•</span>
-      <span>SPI SECURE CLOUD</span>
+    <!-- Whisper-Light Security Watermark -->
+    <div class="mt-5 flex items-center gap-1.5 text-[11px] text-zinc-400 dark:text-zinc-600 font-medium">
+      <svg class="w-3.5 h-3.5 text-emerald-500/80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+      <span>{{ lang === 'km' ? 'ការតភ្ជាប់សុវត្ថិភាព SPI Secure' : 'SPI Secure Gateway' }}</span>
     </div>
 
   </div>
 </template>
 
 <style scoped>
-@keyframes spinFast {
+@keyframes spinSmooth {
   from {
     transform: rotate(0deg);
   }
@@ -399,23 +276,14 @@ const displaySubtitle = computed(() => {
   }
 }
 
-@keyframes spinReverse {
-  from {
-    transform: rotate(360deg);
-  }
-  to {
-    transform: rotate(0deg);
-  }
-}
-
-@keyframes pulseGlow {
+@keyframes ambientBreathe {
   0%, 100% {
-    opacity: 0.4;
+    opacity: 0.35;
     transform: scale(1.05);
   }
   50% {
-    opacity: 0.75;
-    transform: scale(1.2);
+    opacity: 0.65;
+    transform: scale(1.18);
   }
 }
 
@@ -424,25 +292,21 @@ const displaySubtitle = computed(() => {
     transform: translateY(0px) scale(1);
   }
   50% {
-    transform: translateY(-3px) scale(1.03);
+    transform: translateY(-2px) scale(1.02);
   }
 }
 
-@keyframes scannerSweep {
+@keyframes scaleBounce {
   0% {
-    transform: translateY(-100%);
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.12);
   }
   100% {
-    transform: translateY(100%);
-  }
-}
-
-@keyframes laserRun {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
+    transform: scale(1);
+    opacity: 1;
   }
 }
 
@@ -457,51 +321,68 @@ const displaySubtitle = computed(() => {
   }
 }
 
-@keyframes scaleBounce {
-  0% {
-    transform: scale(0.6);
-    opacity: 0;
+@keyframes dotPulse {
+  0%, 100% {
+    opacity: 0.2;
+    transform: translateY(0px);
   }
-  60% {
-    transform: scale(1.15);
+  50% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes pingDot {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 4px rgba(56, 189, 248, 0);
   }
   100% {
-    transform: scale(1);
-    opacity: 1;
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(56, 189, 248, 0);
   }
 }
 
-.animate-spin-fast {
-  animation: spinFast 2.2s linear infinite;
+.animate-spin-smooth {
+  animation: spinSmooth 1.6s linear infinite;
 }
 
-.animate-spin-reverse {
-  animation: spinReverse 14s linear infinite;
-}
-
-.animate-pulse-glow {
-  animation: pulseGlow 3s ease-in-out infinite;
+.animate-ambient-breathe {
+  animation: ambientBreathe 3s ease-in-out infinite;
 }
 
 .animate-float-micro {
-  animation: floatMicro 3.5s ease-in-out infinite;
-}
-
-.animate-scanner-sweep {
-  animation: scannerSweep 2.5s ease-in-out infinite;
-}
-
-.animate-laser-run {
-  animation: laserRun 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation: floatMicro 3s ease-in-out infinite;
 }
 
 .animate-scale-bounce {
-  animation: scaleBounce 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  animation: scaleBounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
 .checkmark-path {
   stroke-dasharray: 45;
   stroke-dashoffset: 45;
-  animation: checkmarkDraw 0.5s cubic-bezier(0.65, 0, 0.45, 1) 0.1s forwards;
+  animation: checkmarkDraw 0.45s cubic-bezier(0.65, 0, 0.45, 1) 0.1s forwards;
+}
+
+.dot-bounce {
+  display: inline-block;
+  animation: dotPulse 1.2s infinite ease-in-out;
+}
+
+.delay-150 {
+  animation-delay: 0.2s;
+}
+
+.delay-300 {
+  animation-delay: 0.4s;
+}
+
+.animate-ping-dot {
+  animation: pingDot 1.8s infinite;
 }
 </style>
