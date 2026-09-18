@@ -876,9 +876,94 @@ const languages = [
   { code: 'en' as LanguageCode, name: 'English', label: 'English', short: 'EN', flagUrl: '/images/flags/en.svg' },
 ]
 
+// Web Audio API Sound Synthesizer for Top Control Buttons (Theme, Language, Network)
+let audioCtx: AudioContext | null = null
+
+const getAudioContext = (): AudioContext | null => {
+  if (typeof window === 'undefined') return null
+  try {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext
+    if (!AudioContextClass) return null
+    if (!audioCtx || audioCtx.state === 'closed') {
+      audioCtx = new AudioContextClass()
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume()
+    }
+    return audioCtx
+  } catch {
+    return null
+  }
+}
+
+const playTopBarSound = (type: 'theme' | 'lang_open' | 'lang_select' | 'network' = 'lang_open') => {
+  try {
+    const ctx = getAudioContext()
+    if (!ctx) return
+
+    const now = ctx.currentTime
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+
+    if (type === 'theme') {
+      // Gentle tactile mechanical switch (rising tone for light mode, warm lower tone for dark mode)
+      const startFreq = isDark.value ? 420 : 640
+      const endFreq = isDark.value ? 640 : 420
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(startFreq, now)
+      osc.frequency.exponentialRampToValueAtTime(endFreq, now + 0.07)
+
+      gain.gain.setValueAtTime(0.08, now)
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08)
+
+      osc.start(now)
+      osc.stop(now + 0.08)
+    } else if (type === 'lang_select') {
+      // Sweet subtle selection chime
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(800, now)
+      osc.frequency.exponentialRampToValueAtTime(1050, now + 0.06)
+
+      gain.gain.setValueAtTime(0.07, now)
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07)
+
+      osc.start(now)
+      osc.stop(now + 0.07)
+    } else if (type === 'network') {
+      // High-tech subtle radar ping
+      osc.type = 'triangle'
+      osc.frequency.setValueAtTime(980, now)
+      osc.frequency.exponentialRampToValueAtTime(1250, now + 0.05)
+
+      gain.gain.setValueAtTime(0.06, now)
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06)
+
+      osc.start(now)
+      osc.stop(now + 0.06)
+    } else {
+      // Crisp subtle pop / tap for language button
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(750, now)
+      osc.frequency.exponentialRampToValueAtTime(380, now + 0.04)
+
+      gain.gain.setValueAtTime(0.08, now)
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05)
+
+      osc.start(now)
+      osc.stop(now + 0.05)
+    }
+  } catch {
+    // Ignore audio restriction gracefully
+  }
+}
+
 const currentLang = computed(() => i18n.locale.value)
 
 const selectLanguage = (code: LanguageCode) => {
+  playTopBarSound('lang_select')
   i18n.setLanguage(code)
   isLangOpen.value = false
 }
@@ -902,6 +987,7 @@ const initTheme = () => {
 }
 
 const toggleTheme = () => {
+  playTopBarSound('theme')
   isDark.value = !isDark.value
   try {
     localStorage.setItem('theme', isDark.value ? 'dark' : 'light')
@@ -1387,13 +1473,13 @@ onUnmounted(() => {
       <!-- Right Controls: Language & Theme Switchers -->
       <div class="flex items-center gap-2.5">
         <!-- Network Status Pill (Online / Offline) -->
-        <NetworkStatusPill :current-lang="currentLang" />
+        <NetworkStatusPill :current-lang="currentLang" @click="playTopBarSound('network')" />
         
         <!-- Language Switcher Pill -->
         <div class="relative lang-switcher-container">
           <button
             type="button"
-            @click.stop="isLangOpen = !isLangOpen"
+            @click.stop="playTopBarSound('lang_open'); isLangOpen = !isLangOpen"
             class="px-3 py-1.5 rounded-full bg-white/90 dark:bg-[#121214]/80 backdrop-blur-md hover:bg-zinc-100 dark:hover:bg-[#1c1c1f] text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white transition-all duration-150 border border-zinc-300/80 dark:border-zinc-800 shadow-xs flex items-center gap-2 text-xs font-semibold cursor-pointer"
           >
             <img
