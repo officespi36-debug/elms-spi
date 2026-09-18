@@ -329,13 +329,13 @@ class GoogleController extends Controller
                 Log::warning('JWT token creation in Google Login: ' . $jwtEx->getMessage());
             }
 
-            $redirectUrl = match ($user->role) {
-                'admin' => '/admin/dashboard',
-                'teacher' => '/teacher/dashboard',
-                default => '/student/dashboard',
-            };
+            if ($user->role === 'admin') {
+                return redirect()->route('admin.dashboard');
+            } elseif ($user->role === 'teacher') {
+                return redirect()->route('teacher.dashboard');
+            }
 
-            return redirect()->intended($redirectUrl);
+            return redirect()->route('student.dashboard');
 
         } catch (\Throwable $e) {
             Log::error('Google Callback Error: ' . $e->getMessage());
