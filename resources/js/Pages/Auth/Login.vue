@@ -1619,13 +1619,13 @@ onUnmounted(() => {
       <div v-if="!isAuthenticating" class="w-full max-w-[420px] flex flex-col items-center relative my-auto py-2">
         
         <!-- Ambient Radial Glow behind the Card -->
-        <div class="absolute -inset-1.5 bg-gradient-to-r from-blue-600/15 via-sky-500/20 to-indigo-600/15 rounded-[36px] blur-2xl opacity-60 dark:opacity-40 pointer-events-none -z-10"></div>
+        <div class="absolute -inset-2 bg-gradient-to-r from-blue-600/25 via-sky-500/25 to-indigo-600/25 rounded-[36px] blur-2xl opacity-60 dark:opacity-40 pointer-events-none -z-10"></div>
 
         <!-- Glassmorphic Card Container -->
-        <div class="w-full rounded-2xl sm:rounded-3xl bg-white/90 dark:bg-[#0c0c0e]/85 backdrop-blur-2xl border border-zinc-200/90 dark:border-zinc-800/80 p-6 sm:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85),0_0_1px_1px_rgba(255,255,255,0.05)] relative overflow-hidden transition-all duration-300">
+        <div class="w-full rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-[#121215]/95 backdrop-blur-2xl border border-slate-200/90 dark:border-zinc-700/60 dark:border-t-zinc-600/70 p-6 sm:p-8 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.1),0_0_0_1px_rgba(0,0,0,0.04)] dark:shadow-[0_25px_70px_-15px_rgba(0,0,0,0.95),0_0_0_1px_rgba(255,255,255,0.08)] relative overflow-hidden transition-all duration-300">
           
           <!-- Subtle Top Edge Light Shimmer -->
-          <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500/30 dark:via-sky-400/30 to-transparent pointer-events-none"></div>
+          <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500/40 dark:via-sky-400/40 to-transparent pointer-events-none"></div>
 
           <div class="w-full flex flex-col items-center">
             <!-- Center E-LMS Logo -->
