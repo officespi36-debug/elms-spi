@@ -191,7 +191,6 @@ const isValidIdentifier = computed(() => {
 
 const isTurnstileVerified = computed(() => {
   return !!form.turnstile_token
-  
 })
 
 const canContinue = computed(() => {
@@ -1616,35 +1615,25 @@ onUnmounted(() => {
     <main class="w-full flex-grow flex flex-col items-center justify-center px-4 py-6 relative z-10">
       
       <!-- Normal Form View (When not in full loading overlay) -->
-      <div v-if="!isAuthenticating" class="w-full max-w-[420px] flex flex-col items-center relative my-auto py-2">
+      <div v-if="!isAuthenticating" class="w-full max-w-[390px] flex flex-col items-center">
         
-        <!-- Ambient Radial Glow behind the Card -->
-        <div class="absolute -inset-2 bg-gradient-to-r from-blue-600/25 via-sky-500/25 to-indigo-600/25 rounded-[36px] blur-2xl opacity-60 dark:opacity-40 pointer-events-none -z-10"></div>
+        <!-- Center E-LMS Logo -->
+        <div class="mb-3.5 relative group">
+          <div class="absolute -inset-1.5 bg-sky-500/20 rounded-full blur-md opacity-40 group-hover:opacity-80 transition duration-300 pointer-events-none"></div>
+          <img
+            :src="logoUrl"
+            alt="E-LMS Logo"
+            class="relative w-[72px] h-[72px] rounded-full drop-shadow-lg object-contain transition-transform duration-300 group-hover:scale-105"
+          />
+        </div>
 
-        <!-- Glassmorphic Card Container -->
-        <div class="w-full rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-[#121215]/95 backdrop-blur-2xl border border-slate-200/90 dark:border-zinc-700/60 dark:border-t-zinc-600/70 p-6 sm:p-8 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.1),0_0_0_1px_rgba(0,0,0,0.04)] dark:shadow-[0_25px_70px_-15px_rgba(0,0,0,0.95),0_0_0_1px_rgba(255,255,255,0.08)] relative overflow-hidden transition-all duration-300">
-          
-          <!-- Subtle Top Edge Light Shimmer -->
-          <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500/40 dark:via-sky-400/40 to-transparent pointer-events-none"></div>
-
-          <div class="w-full flex flex-col items-center">
-            <!-- Center E-LMS Logo -->
-            <div class="mb-3.5 relative group">
-              <div class="absolute -inset-1.5 bg-sky-500/20 rounded-full blur-md opacity-40 group-hover:opacity-80 transition duration-300 pointer-events-none"></div>
-              <img
-                :src="logoUrl"
-                alt="E-LMS Logo"
-                class="relative w-[68px] h-[68px] rounded-full drop-shadow-md object-contain transition-transform duration-300 group-hover:scale-105"
-              />
-            </div>
-
-            <!-- Heading & Subtitle -->
-            <h1 class="text-2xl sm:text-[25px] font-black tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 dark:from-white dark:via-zinc-100 dark:to-zinc-300 bg-clip-text text-transparent text-center transition-colors">
-              {{ pageTitle }}
-            </h1>
-            <p class="text-xs sm:text-sm text-slate-600 dark:text-zinc-400 text-center mt-1 mb-5 transition-colors">
-              {{ pageSubtitle }}
-            </p>
+        <!-- Heading & Subtitle -->
+        <h1 class="text-2xl sm:text-[26px] font-black tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 dark:from-white dark:via-zinc-100 dark:to-zinc-300 bg-clip-text text-transparent text-center transition-colors">
+          {{ pageTitle }}
+        </h1>
+        <p class="text-xs sm:text-sm text-slate-600 dark:text-zinc-400 text-center mt-1.5 mb-6 transition-colors">
+          {{ pageSubtitle }}
+        </p>
 
         <!-- OAuth Error / Notification Banner -->
         <Transition
@@ -1861,7 +1850,7 @@ onUnmounted(() => {
               :class="[
                 'w-full h-11 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center transition-all duration-150 select-none shadow-sm',
                 canContinue && !isCheckingUser
-                  ? 'bg-blue-600 hover:bg-blue-700 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 font-bold cursor-pointer shadow-md shadow-blue-500/20 dark:shadow-white/10 active:scale-[0.99]'
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white dark:bg-[#e4e4e7] dark:hover:bg-white dark:text-zinc-950 cursor-pointer shadow-md shadow-blue-500/20 active:scale-[0.99]'
                   : 'bg-slate-200 dark:bg-[#18181b] text-slate-400 dark:text-zinc-600 border border-slate-300 dark:border-zinc-800 cursor-not-allowed opacity-70'
               ]"
             >
@@ -1936,8 +1925,8 @@ onUnmounted(() => {
             </div>
 
             <!-- Forgot Password Link -->
-            <div class="flex justify-end pt-0.5">
-              <Link href="/forgot-password" class="text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-sky-400 dark:hover:text-sky-300 transition-colors">
+            <div class="flex justify-end">
+              <Link href="/forgot-password" class="text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 transition-colors">
                 {{ t('login_forgot_password', 'ភ្លេចពាក្យសម្ងាត់?') }}
               </Link>
             </div>
@@ -1946,7 +1935,7 @@ onUnmounted(() => {
             <button
               type="submit"
               :disabled="isSubmitting || form.processing || !form.password"
-              class="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-950 font-bold text-xs sm:text-sm flex items-center justify-center transition-all duration-150 cursor-pointer shadow-md shadow-blue-500/20 dark:shadow-white/10 active:scale-[0.99] disabled:opacity-50 disabled:shadow-none select-none"
+              class="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white dark:bg-[#e4e4e7] dark:hover:bg-white dark:text-zinc-950 font-semibold text-xs sm:text-sm flex items-center justify-center transition-all duration-150 cursor-pointer shadow-md shadow-blue-500/20 active:scale-[0.99] disabled:opacity-50 disabled:shadow-none"
             >
               <i v-if="isSubmitting || form.processing" class="pi pi-spin pi-spinner text-sm mr-2"></i>
               <span>{{ currentLang === 'km' ? 'ចូលប្រព័ន្ធ' : 'Sign in' }}</span>
@@ -2698,17 +2687,14 @@ onUnmounted(() => {
           </div>
         </div>
 
-          </div>
-        </div>
-
-        <!-- Footer Terms & Policy Legal Statement (Outside the card) -->
-        <p class="text-[11px] text-slate-500 dark:text-zinc-400 leading-normal text-center mt-5 w-full max-w-md px-3 select-text sm:whitespace-nowrap">
+        <!-- Footer Terms & Policy Legal Statement -->
+        <p class="text-[11px] text-slate-500 dark:text-zinc-500 leading-normal text-center mt-6 w-full sm:w-auto max-w-lg px-2 select-text sm:whitespace-nowrap">
           {{ currentLang === 'km' ? 'តាមរយៈការបន្ត អ្នកយល់ព្រមតាម ' : 'By continuing, you agree to our ' }}
-          <Link href="/terms" class="text-blue-600 dark:text-sky-400 hover:underline font-medium transition-colors">
+          <Link href="/terms" class="text-slate-700 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-zinc-200 underline underline-offset-2 transition-colors">
             {{ currentLang === 'km' ? 'លក្ខខណ្ឌប្រើប្រាស់' : 'Terms of Service' }}
           </Link>
           {{ currentLang === 'km' ? ' និងបានអាន ' : ' and have read our ' }}
-          <Link href="/privacy" class="text-blue-600 dark:text-sky-400 hover:underline font-medium transition-colors">
+          <Link href="/privacy" class="text-slate-700 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-zinc-200 underline underline-offset-2 transition-colors">
             {{ currentLang === 'km' ? 'គោលការណ៍ឯកជនភាព' : 'Privacy Policy' }}</Link>{{ currentLang === 'km' ? '។' : '.' }}
         </p>
 
