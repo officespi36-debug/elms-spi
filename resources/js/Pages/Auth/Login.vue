@@ -1741,7 +1741,7 @@ onUnmounted(() => {
         <div v-if="step === 'identifier' && authMode === 'password'" class="w-full space-y-4">
           
           <!-- Social Buttons Stack (Google, Telegram, Email) -->
-          <div class="w-full space-y-2.5 pt-2">
+          <div class="w-full space-y-2.5 pt-2.5">
             
             <!-- 1. Google Button -->
             <button
@@ -1760,7 +1760,7 @@ onUnmounted(() => {
               <span class="text-center font-medium">{{ t('login_btn_continue_google', 'បន្តតាមរយៈគណនី ហ្គូហ្គល') }}</span>
               <span
                 v-if="mostUsedMethod === 'google'"
-                class="absolute top-0 -translate-y-1/2 right-4 z-10 text-[10px] sm:text-[10.5px] font-semibold px-2.5 py-0.5 rounded-full bg-gradient-to-r from-[#e84e27] via-[#ea580c] to-[#f7931e] text-white shadow-[0_2px_6px_rgba(234,88,12,0.35)] animate-fade-in tracking-wide select-none leading-none flex items-center justify-center pointer-events-none"
+                class="absolute top-0 -translate-y-1/2 right-4 z-10 text-[11px] sm:text-[11.5px] font-bold px-3 py-0.5 sm:py-1 rounded-full bg-gradient-to-r from-[#e84e27] via-[#ea580c] to-[#f7931e] text-white shadow-[0_2px_8px_rgba(234,88,12,0.4)] animate-fade-in tracking-wide select-none leading-none flex items-center justify-center pointer-events-none"
               >
                 {{ t('login_badge_best_choice', 'ជម្រើសល្អបំផុត') }}
               </span>
@@ -1781,7 +1781,7 @@ onUnmounted(() => {
               <span class="text-center font-medium">{{ t('login_btn_continue_github', 'បន្តតាមរយៈគណនី ហ្គីតហាប់') }}</span>
               <span
                 v-if="mostUsedMethod === 'github'"
-                class="absolute top-0 -translate-y-1/2 right-4 z-10 text-[10px] sm:text-[10.5px] font-semibold px-2.5 py-0.5 rounded-full bg-gradient-to-r from-[#e84e27] via-[#ea580c] to-[#f7931e] text-white shadow-[0_2px_6px_rgba(234,88,12,0.35)] animate-fade-in tracking-wide select-none leading-none flex items-center justify-center pointer-events-none"
+                class="absolute top-0 -translate-y-1/2 right-4 z-10 text-[11px] sm:text-[11.5px] font-bold px-3 py-0.5 sm:py-1 rounded-full bg-gradient-to-r from-[#e84e27] via-[#ea580c] to-[#f7931e] text-white shadow-[0_2px_8px_rgba(234,88,12,0.4)] animate-fade-in tracking-wide select-none leading-none flex items-center justify-center pointer-events-none"
               >
                 {{ t('login_badge_best_choice', 'ជម្រើសល្អបំផុត') }}
               </span>
@@ -1803,7 +1803,7 @@ onUnmounted(() => {
               <span class="text-center font-medium">{{ t('login_btn_continue_email_otp', 'បន្តតាមរយៈគណនី អ៊ីមែល') }}</span>
               <span
                 v-if="mostUsedMethod === 'email'"
-                class="absolute top-0 -translate-y-1/2 right-4 z-10 text-[10px] sm:text-[10.5px] font-semibold px-2.5 py-0.5 rounded-full bg-gradient-to-r from-[#e84e27] via-[#ea580c] to-[#f7931e] text-white shadow-[0_2px_6px_rgba(234,88,12,0.35)] animate-fade-in tracking-wide select-none leading-none flex items-center justify-center pointer-events-none"
+                class="absolute top-0 -translate-y-1/2 right-4 z-10 text-[11px] sm:text-[11.5px] font-bold px-3 py-0.5 sm:py-1 rounded-full bg-gradient-to-r from-[#e84e27] via-[#ea580c] to-[#f7931e] text-white shadow-[0_2px_8px_rgba(234,88,12,0.4)] animate-fade-in tracking-wide select-none leading-none flex items-center justify-center pointer-events-none"
               >
                 {{ t('login_badge_best_choice', 'ជម្រើសល្អបំផុត') }}
               </span>
@@ -1824,7 +1824,7 @@ onUnmounted(() => {
               <span class="text-center font-medium">{{ t('login_btn_continue_phone', 'បន្តតាមរយៈ លេខទូរសព្ទ') }}</span>
               <span
                 v-if="mostUsedMethod === 'phone'"
-                class="absolute top-0 -translate-y-1/2 right-4 z-10 text-[10px] sm:text-[10.5px] font-semibold px-2.5 py-0.5 rounded-full bg-gradient-to-r from-[#e84e27] via-[#ea580c] to-[#f7931e] text-white shadow-[0_2px_6px_rgba(234,88,12,0.35)] animate-fade-in tracking-wide select-none leading-none flex items-center justify-center pointer-events-none"
+                class="absolute top-0 -translate-y-1/2 right-4 z-10 text-[11px] sm:text-[11.5px] font-bold px-3 py-0.5 sm:py-1 rounded-full bg-gradient-to-r from-[#e84e27] via-[#ea580c] to-[#f7931e] text-white shadow-[0_2px_8px_rgba(234,88,12,0.4)] animate-fade-in tracking-wide select-none leading-none flex items-center justify-center pointer-events-none"
               >
                 {{ t('login_badge_best_choice', 'ជម្រើសល្អបំផុត') }}
               </span>
