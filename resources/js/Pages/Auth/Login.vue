@@ -1609,7 +1609,9 @@ onUnmounted(() => {
     <header class="w-full relative z-20 flex items-center justify-between px-6 py-5 sm:px-8">
       <!-- Logo Mark -->
       <div class="flex items-center gap-2.5 cursor-pointer transition-opacity hover:opacity-80 group" @click="router.visit('/')">
-        <img :src="logoUrl" alt="E-LMS" class="w-7 h-7 rounded-full object-contain shadow-xs transition-transform duration-200 group-hover:scale-105" />
+        <div class="border-beam-logo-sm p-[1.5px] rounded-full flex items-center justify-center shrink-0">
+          <img :src="logoUrl" alt="E-LMS" class="w-7 h-7 rounded-full object-contain block transition-transform duration-200 group-hover:scale-105" />
+        </div>
         <span class="font-extrabold tracking-tight text-lg font-sans bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-white dark:to-zinc-200 bg-clip-text text-transparent">E LMS</span>
       </div>
 
@@ -1651,14 +1653,19 @@ onUnmounted(() => {
       <!-- Normal Form View (When not in full loading overlay) -->
       <div v-if="!isAuthenticating" class="w-full max-w-[390px] flex flex-col items-center">
         
-        <!-- Center E-LMS Logo -->
-        <div class="mb-3.5 relative group">
-          <div class="absolute -inset-1.5 bg-sky-500/20 rounded-full blur-md opacity-40 group-hover:opacity-80 transition duration-300 pointer-events-none"></div>
-          <img
-            :src="logoUrl"
-            alt="E-LMS Logo"
-            class="relative w-[72px] h-[72px] rounded-full drop-shadow-lg object-contain transition-transform duration-300 group-hover:scale-105"
-          />
+        <!-- Center E-LMS Logo with Glowing Border Beam -->
+        <div class="mb-4 relative group flex items-center justify-center">
+          <!-- Ambient Glow behind Logo -->
+          <div class="absolute -inset-2 bg-gradient-to-r from-orange-500/25 via-sky-500/20 to-orange-500/25 dark:from-orange-500/30 dark:via-amber-500/20 dark:to-orange-500/30 rounded-full blur-lg opacity-60 group-hover:opacity-100 transition duration-500 pointer-events-none"></div>
+          
+          <!-- Border Beam Ring around Center Logo -->
+          <div class="border-beam-logo p-[2px] rounded-full relative flex items-center justify-center transition-transform duration-300 group-hover:scale-105 shadow-md">
+            <img
+              :src="logoUrl"
+              alt="E-LMS Logo"
+              class="relative w-[72px] h-[72px] rounded-full object-contain block drop-shadow-md"
+            />
+          </div>
         </div>
 
         <!-- Heading & Subtitle -->
@@ -2920,6 +2927,93 @@ html.dark .border-beam-btn:hover,
   --beam-bg: #232327 !important;
   --beam-border-base: #3f3f46 !important;
   --beam-shadow: 0 0 16px -2px rgba(249, 115, 22, 0.35) !important;
+}
+
+/* Circular Border Beam for E-LMS Logo */
+.border-beam-logo {
+  --beam-bg: #ffffff;
+  --beam-border-base: #e2e8f0;
+  --beam-shadow: 0 4px 20px -2px rgba(37, 99, 235, 0.25);
+
+  position: relative;
+  border-radius: 9999px !important;
+  border: 2px solid transparent !important;
+  background-clip: padding-box, border-box !important;
+  background-origin: padding-box, border-box !important;
+  background-image:
+    linear-gradient(var(--beam-bg), var(--beam-bg)),
+    conic-gradient(
+      from var(--beam-angle),
+      var(--beam-border-base) 0deg,
+      var(--beam-border-base) 250deg,
+      rgba(37, 99, 235, 0.35) 280deg,
+      #2563eb 320deg,
+      #38bdf8 355deg,
+      var(--beam-border-base) 360deg
+    ) !important;
+  animation: beam-rotate 4s linear infinite;
+  box-shadow: var(--beam-shadow);
+}
+
+.border-beam-logo-sm {
+  --beam-bg: #ffffff;
+  --beam-border-base: #e2e8f0;
+  --beam-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+
+  position: relative;
+  border-radius: 9999px !important;
+  border: 1.5px solid transparent !important;
+  background-clip: padding-box, border-box !important;
+  background-origin: padding-box, border-box !important;
+  background-image:
+    linear-gradient(var(--beam-bg), var(--beam-bg)),
+    conic-gradient(
+      from var(--beam-angle),
+      var(--beam-border-base) 0deg,
+      var(--beam-border-base) 250deg,
+      rgba(37, 99, 235, 0.35) 280deg,
+      #2563eb 320deg,
+      #38bdf8 355deg,
+      var(--beam-border-base) 360deg
+    ) !important;
+  animation: beam-rotate 4s linear infinite;
+  box-shadow: var(--beam-shadow);
+}
+
+html.dark .border-beam-logo,
+.dark .border-beam-logo {
+  --beam-bg: #18181b !important;
+  --beam-border-base: #27272a !important;
+  --beam-shadow: 0 0 24px -2px rgba(249, 115, 22, 0.4) !important;
+  background-image:
+    linear-gradient(var(--beam-bg), var(--beam-bg)),
+    conic-gradient(
+      from var(--beam-angle),
+      var(--beam-border-base) 0deg,
+      var(--beam-border-base) 260deg,
+      rgba(249, 115, 22, 0.25) 285deg,
+      #f97316 325deg,
+      #fed7aa 355deg,
+      var(--beam-border-base) 360deg
+    ) !important;
+}
+
+html.dark .border-beam-logo-sm,
+.dark .border-beam-logo-sm {
+  --beam-bg: #18181b !important;
+  --beam-border-base: #27272a !important;
+  --beam-shadow: 0 0 10px -1px rgba(249, 115, 22, 0.3) !important;
+  background-image:
+    linear-gradient(var(--beam-bg), var(--beam-bg)),
+    conic-gradient(
+      from var(--beam-angle),
+      var(--beam-border-base) 0deg,
+      var(--beam-border-base) 260deg,
+      rgba(249, 115, 22, 0.25) 285deg,
+      #f97316 325deg,
+      #fed7aa 355deg,
+      var(--beam-border-base) 360deg
+    ) !important;
 }
 
 /* High-Definition Circular Theme Reveal Transition */
