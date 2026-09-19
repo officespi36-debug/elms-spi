@@ -1653,19 +1653,14 @@ onUnmounted(() => {
       <!-- Normal Form View (When not in full loading overlay) -->
       <div v-if="!isAuthenticating" class="w-full max-w-[390px] flex flex-col items-center">
         
-        <!-- Center E-LMS Logo with Glowing Border Beam -->
-        <div class="mb-4 relative group flex items-center justify-center">
-          <!-- Ambient Glow behind Logo -->
-          <div class="absolute -inset-2 bg-gradient-to-r from-orange-500/25 via-sky-500/20 to-orange-500/25 dark:from-orange-500/30 dark:via-amber-500/20 dark:to-orange-500/30 rounded-full blur-lg opacity-60 group-hover:opacity-100 transition duration-500 pointer-events-none"></div>
-          
-          <!-- Border Beam Ring around Center Logo -->
-          <div class="border-beam-logo p-[2px] rounded-full relative flex items-center justify-center transition-transform duration-300 group-hover:scale-105 shadow-md">
-            <img
-              :src="logoUrl"
-              alt="E-LMS Logo"
-              class="relative w-[72px] h-[72px] rounded-full object-contain block drop-shadow-md"
-            />
-          </div>
+        <!-- Center E-LMS Logo -->
+        <div class="mb-3.5 relative group">
+          <div class="absolute -inset-1.5 bg-sky-500/20 rounded-full blur-md opacity-40 group-hover:opacity-80 transition duration-300 pointer-events-none"></div>
+          <img
+            :src="logoUrl"
+            alt="E-LMS Logo"
+            class="relative w-[72px] h-[72px] rounded-full drop-shadow-lg object-contain transition-transform duration-300 group-hover:scale-105"
+          />
         </div>
 
         <!-- Heading & Subtitle -->
