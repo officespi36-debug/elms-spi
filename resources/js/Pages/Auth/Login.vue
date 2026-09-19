@@ -1707,7 +1707,7 @@ onUnmounted(() => {
         <div v-if="step === 'identifier' && authMode === 'password'" class="w-full space-y-4">
           
           <!-- Social Buttons Stack (Google, Telegram, Email) -->
-          <div class="w-full space-y-2.5">
+          <div class="w-full space-y-2.5 pt-2">
             
             <!-- 1. Google Button -->
             <button
@@ -1724,7 +1724,7 @@ onUnmounted(() => {
               </svg>
               <span class="text-center font-medium">{{ t('login_btn_continue_google', 'បន្តទៅមុខទៀតដោយប្រើគណនី ហ្គូហ្គល') }}</span>
               <span
-                class="absolute right-3.5 text-[10px] font-semibold px-2 py-0.5 rounded-[5px] bg-gradient-to-r from-[#e84e27] via-[#ea580c] to-[#f7931e] text-white shadow-xs animate-fade-in tracking-wide select-none leading-tight flex items-center justify-center"
+                class="absolute top-0 -translate-y-1/2 right-4 z-10 text-[10px] sm:text-[10.5px] font-semibold px-2.5 py-0.5 rounded-full bg-gradient-to-r from-[#e84e27] via-[#ea580c] to-[#f7931e] text-white shadow-[0_2px_6px_rgba(234,88,12,0.35)] animate-fade-in tracking-wide select-none leading-none flex items-center justify-center pointer-events-none"
               >
                 {{ t('login_badge_best_choice', 'ជម្រើសល្អបំផុត') }}
               </span>
