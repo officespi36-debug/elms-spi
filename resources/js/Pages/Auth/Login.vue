@@ -154,7 +154,7 @@ const authLoadingSubtitle = ref('')
 const statusMessage = ref<string | null>(null)
 
 // Dynamic Last Used Login Method ('google' | 'github' | 'email' | 'phone')
-const lastUsedMethod = ref<string>('google')
+const lastUsedMethod = ref<string>('')
 
 const initLastUsedMethod = () => {
   if (typeof window === 'undefined') return
@@ -1724,10 +1724,9 @@ onUnmounted(() => {
               </svg>
               <span class="text-center font-medium">{{ t('login_btn_continue_google', 'បន្តជាមួយ Google') }}</span>
               <span
-                v-if="lastUsedMethod === 'google'"
-                class="absolute right-3.5 text-[10px] font-semibold px-2 py-0.5 rounded-md bg-sky-50 dark:bg-[#132337] text-sky-700 dark:text-sky-400 border border-sky-200 dark:border-sky-500/20 animate-fade-in"
+                class="absolute right-3.5 text-[10px] font-semibold px-2 py-0.5 rounded-[5px] bg-gradient-to-r from-[#e84e27] via-[#ea580c] to-[#f7931e] text-white shadow-xs animate-fade-in tracking-wide select-none leading-tight flex items-center justify-center"
               >
-                {{ t('login_badge_last_used', 'បានប្រើចុងក្រោយ') }}
+                {{ t('login_badge_best_choice', 'ជម្រើសល្អបំផុត') }}
               </span>
             </button>
 
