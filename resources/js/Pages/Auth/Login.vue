@@ -153,8 +153,40 @@ const authLoadingTitle = ref('')
 const authLoadingSubtitle = ref('')
 const statusMessage = ref<string | null>(null)
 
-// Dynamic Last Used Login Method ('google' | 'github' | 'email' | 'phone')
+// Dynamic Most Used Login Method for 'ជម្រើសល្អបំផុត' / 'Best Choice' badge (Defaults to 'google')
+const mostUsedMethod = ref<'google' | 'github' | 'email' | 'phone'>('google')
 const lastUsedMethod = ref<string>('')
+
+const calculateMostUsedMethod = () => {
+  if (typeof window === 'undefined') return
+  try {
+    const countsStr = localStorage.getItem('elms_login_method_counts')
+    if (!countsStr) {
+      mostUsedMethod.value = 'google'
+      return
+    }
+    const counts = JSON.parse(countsStr) as Record<string, number>
+    
+    // Default is Google
+    let topMethod: 'google' | 'github' | 'email' | 'phone' = 'google'
+    let maxCount = Number(counts['google']) || 0
+
+    // Compare with github, email, phone.
+    // If any method has strictly more usages than Google, it wins
+    const candidates: ('github' | 'email' | 'phone')[] = ['github', 'email', 'phone']
+    for (const m of candidates) {
+      const count = Number(counts[m]) || 0
+      if (count > maxCount) {
+        maxCount = count
+        topMethod = m
+      }
+    }
+
+    mostUsedMethod.value = topMethod
+  } catch (e) {
+    mostUsedMethod.value = 'google'
+  }
+}
 
 const initLastUsedMethod = () => {
   if (typeof window === 'undefined') return
@@ -163,6 +195,7 @@ const initLastUsedMethod = () => {
     if (saved && ['google', 'github', 'email', 'phone'].includes(saved)) {
       lastUsedMethod.value = saved
     }
+    calculateMostUsedMethod()
   } catch (e) {}
 }
 
@@ -175,6 +208,7 @@ const recordLoginMethod = (method: 'google' | 'github' | 'email' | 'phone') => {
     const counts = countsStr ? JSON.parse(countsStr) : {}
     counts[method] = (counts[method] || 0) + 1
     localStorage.setItem('elms_login_method_counts', JSON.stringify(counts))
+    calculateMostUsedMethod()
   } catch (e) {}
 }
 
@@ -1715,6 +1749,7 @@ onUnmounted(() => {
               :disabled="isAuthenticating"
               @click="redirectToGoogleOAuth"
               class="border-beam-btn w-full h-11 px-4 rounded-xl text-zinc-900 dark:text-white text-xs sm:text-sm font-medium relative flex items-center justify-center transition-all duration-150 active:scale-[0.99] cursor-pointer disabled:opacity-50 select-none shadow-xs"
+              :class="{ 'z-[5]': mostUsedMethod === 'google' }"
             >
               <svg class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 shrink-0" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -1724,6 +1759,7 @@ onUnmounted(() => {
               </svg>
               <span class="text-center font-medium">{{ t('login_btn_continue_google', 'បន្តតាមរយៈគណនី Google') }}</span>
               <span
+                v-if="mostUsedMethod === 'google'"
                 class="absolute top-0 -translate-y-1/2 right-4 z-10 text-[10px] sm:text-[10.5px] font-semibold px-2.5 py-0.5 rounded-full bg-gradient-to-r from-[#e84e27] via-[#ea580c] to-[#f7931e] text-white shadow-[0_2px_6px_rgba(234,88,12,0.35)] animate-fade-in tracking-wide select-none leading-none flex items-center justify-center pointer-events-none"
               >
                 {{ t('login_badge_best_choice', 'ជម្រើសល្អបំផុត') }}
@@ -1736,6 +1772,7 @@ onUnmounted(() => {
               :disabled="isAuthenticating"
               @click="redirectToGitHubOAuth"
               class="border-beam-btn w-full h-11 px-4 rounded-xl text-zinc-900 dark:text-white text-xs sm:text-sm font-medium relative flex items-center justify-center transition-all duration-150 active:scale-[0.99] cursor-pointer disabled:opacity-50 select-none shadow-xs"
+              :class="{ 'z-[5]': mostUsedMethod === 'github' }"
               style="animation-delay: -1s;"
             >
               <svg class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 shrink-0 fill-zinc-900 dark:fill-white" viewBox="0 0 24 24">
@@ -1743,10 +1780,10 @@ onUnmounted(() => {
               </svg>
               <span class="text-center font-medium">{{ t('login_btn_continue_github', 'បន្តតាមរយៈគណនី GitHub') }}</span>
               <span
-                v-if="lastUsedMethod === 'github'"
-                class="absolute right-3.5 text-[10px] font-semibold px-2 py-0.5 rounded-md bg-sky-50 dark:bg-[#132337] text-sky-700 dark:text-sky-400 border border-sky-200 dark:border-sky-500/20 animate-fade-in"
+                v-if="mostUsedMethod === 'github'"
+                class="absolute top-0 -translate-y-1/2 right-4 z-10 text-[10px] sm:text-[10.5px] font-semibold px-2.5 py-0.5 rounded-full bg-gradient-to-r from-[#e84e27] via-[#ea580c] to-[#f7931e] text-white shadow-[0_2px_6px_rgba(234,88,12,0.35)] animate-fade-in tracking-wide select-none leading-none flex items-center justify-center pointer-events-none"
               >
-                {{ t('login_badge_last_used', 'បានប្រើចុងក្រោយ') }}
+                {{ t('login_badge_best_choice', 'ជម្រើសល្អបំផុត') }}
               </span>
             </button>
 
@@ -1756,6 +1793,7 @@ onUnmounted(() => {
               :disabled="isAuthenticating"
               @click="recordLoginMethod('email'); authMode = 'otp'; otpStep = 1; otpEmail = form.email || ''; otpCode = ''; nextTick(() => { otpEmailInputRef?.focus(); isEmailInputFocused = true })"
               class="border-beam-btn w-full h-11 px-4 rounded-xl text-zinc-900 dark:text-white text-xs sm:text-sm font-medium relative flex items-center justify-center transition-all duration-150 active:scale-[0.99] cursor-pointer disabled:opacity-50 select-none shadow-xs"
+              :class="{ 'z-[5]': mostUsedMethod === 'email' }"
               style="animation-delay: -2s;"
             >
               <svg class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 shrink-0 text-blue-600 dark:text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1764,10 +1802,10 @@ onUnmounted(() => {
               </svg>
               <span class="text-center font-medium">{{ t('login_btn_continue_email_otp', 'បន្តតាមរយៈគណនី អ៊ីមែល') }}</span>
               <span
-                v-if="lastUsedMethod === 'email'"
-                class="absolute right-3.5 text-[10px] font-semibold px-2 py-0.5 rounded-md bg-sky-50 dark:bg-[#132337] text-sky-700 dark:text-sky-400 border border-sky-200 dark:border-sky-500/20 animate-fade-in"
+                v-if="mostUsedMethod === 'email'"
+                class="absolute top-0 -translate-y-1/2 right-4 z-10 text-[10px] sm:text-[10.5px] font-semibold px-2.5 py-0.5 rounded-full bg-gradient-to-r from-[#e84e27] via-[#ea580c] to-[#f7931e] text-white shadow-[0_2px_6px_rgba(234,88,12,0.35)] animate-fade-in tracking-wide select-none leading-none flex items-center justify-center pointer-events-none"
               >
-                {{ t('login_badge_last_used', 'បានប្រើចុងក្រោយ') }}
+                {{ t('login_badge_best_choice', 'ជម្រើសល្អបំផុត') }}
               </span>
             </button>
 
@@ -1777,6 +1815,7 @@ onUnmounted(() => {
               :disabled="isAuthenticating"
               @click="recordLoginMethod('phone'); authMode = 'phone_otp'; phoneOtpStep = 1; otpPhone = form.email && /^[0-9+ ]+$/.test(form.email) ? form.email : ''; otpCode = ''"
               class="border-beam-btn w-full h-11 px-4 rounded-xl text-zinc-900 dark:text-white text-xs sm:text-sm font-medium relative flex items-center justify-center transition-all duration-150 active:scale-[0.99] cursor-pointer disabled:opacity-50 select-none shadow-xs"
+              :class="{ 'z-[5]': mostUsedMethod === 'phone' }"
               style="animation-delay: -3s;"
             >
               <svg class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 shrink-0 text-emerald-600 dark:text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1784,10 +1823,10 @@ onUnmounted(() => {
               </svg>
               <span class="text-center font-medium">{{ t('login_btn_continue_phone', 'បន្តតាមរយៈ លេខទូរសព្ទ') }}</span>
               <span
-                v-if="lastUsedMethod === 'phone'"
-                class="absolute right-3.5 text-[10px] font-semibold px-2 py-0.5 rounded-md bg-sky-50 dark:bg-[#132337] text-sky-700 dark:text-sky-400 border border-sky-200 dark:border-sky-500/20 animate-fade-in"
+                v-if="mostUsedMethod === 'phone'"
+                class="absolute top-0 -translate-y-1/2 right-4 z-10 text-[10px] sm:text-[10.5px] font-semibold px-2.5 py-0.5 rounded-full bg-gradient-to-r from-[#e84e27] via-[#ea580c] to-[#f7931e] text-white shadow-[0_2px_6px_rgba(234,88,12,0.35)] animate-fade-in tracking-wide select-none leading-none flex items-center justify-center pointer-events-none"
               >
-                {{ t('login_badge_last_used', 'បានប្រើចុងក្រោយ') }}
+                {{ t('login_badge_best_choice', 'ជម្រើសល្អបំផុត') }}
               </span>
             </button>
 
