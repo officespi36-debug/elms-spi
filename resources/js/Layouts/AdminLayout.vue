@@ -384,6 +384,159 @@ const isStatusOpen = ref(false)
 const isFullscreen = ref(false)
 const currentLang = computed(() => i18n.locale.value)
 
+const navTranslations: Record<string, { km: string; en: string }> = {
+  // Main Navigation Modules
+  'Dashboard': { km: 'ផ្ទាំងគ្រប់គ្រង', en: 'Dashboard' },
+  'Authentication Module': { km: 'ម៉ូឌុលផ្ទៀងផ្ទាត់សុវត្ថិភាព', en: 'Authentication Module' },
+  'User Management': { km: 'ការគ្រប់គ្រងអ្នកប្រើប្រាស់', en: 'User Management' },
+  'Academic Structure': { km: 'រចនាសម្ព័ន្ធអប់រំ', en: 'Academic Structure' },
+  'Course Management': { km: 'ការគ្រប់គ្រងវគ្គសិក្សា', en: 'Course Management' },
+  'Enrollment Management': { km: 'ការគ្រប់គ្រងការចុះឈ្មោះ', en: 'Enrollment Management' },
+  'Payment & ABA Management': { km: 'ការគ្រប់គ្រងការទូទាត់ & ABA', en: 'Payment & ABA Management' },
+  'Content Delivery Module': { km: 'ម៉ូឌុលចែកចាយមាតិកា', en: 'Content Delivery Module' },
+  'Quiz & Assessment Module': { km: 'ម៉ូឌុលកម្រងសំណួរ & ការវាយតម្លៃ', en: 'Quiz & Assessment Module' },
+  'Progress Tracking Module': { km: 'ម៉ូឌុលតាមដានវឌ្ឍនភាព', en: 'Progress Tracking Module' },
+  'Analytics & Reporting Module': { km: 'ម៉ូឌុលវិភាគ & របាយការណ៍', en: 'Analytics & Reporting Module' },
+  'AI Recommendation Module': { km: 'ម៉ូឌុលអនុសាសន៍ AI', en: 'AI Recommendation Module' },
+  'Certificate Module': { km: 'ម៉ូឌុលវិញ្ញាបនបត្រ', en: 'Certificate Module' },
+  'Notification Module': { km: 'ម៉ូឌុលការជូនដំណឹង', en: 'Notification Module' },
+  'Notifications': { km: 'ការជូនដំណឹង', en: 'Notifications' },
+  'Discussions & Support': { km: 'ការពិភាក្សា & ការគាំទ្រ', en: 'Discussions & Support' },
+  'Settings': { km: 'ការកំណត់ប្រព័ន្ធ', en: 'Settings' },
+  'System Settings': { km: 'ការកំណត់ប្រព័ន្ធ', en: 'System Settings' },
+
+  // Authentication Submenu
+  'Overview Hub': { km: 'ទិដ្ឋភាពទូទៅ', en: 'Overview Hub' },
+  'Roles & Permissions': { km: 'សិទ្ធិ & តួនាទី', en: 'Roles & Permissions' },
+  'Active Sessions': { km: 'កម្រងប្រតិបត្តិការសកម្ម', en: 'Active Sessions' },
+  'Login History': { km: 'ប្រវត្តិ Login', en: 'Login History' },
+  'Failed Login Attempts': { km: 'ការ Login បរាជ័យ', en: 'Failed Login Attempts' },
+  'Security Policies': { km: 'គោលការណ៍សុវត្ថិភាព', en: 'Security Policies' },
+
+  // Users Submenu
+  'All Users': { km: 'អ្នកប្រើប្រាស់ទាំងអស់', en: 'All Users' },
+  'Administrators': { km: 'អ្នកគ្រប់គ្រង (Admins)', en: 'Administrators' },
+  'Teachers': { km: 'សាស្ត្រាចារ្យ/គ្រូ', en: 'Teachers' },
+  'Students': { km: 'និស្សិត/សិស្ស', en: 'Students' },
+  'Suspended Users': { km: 'គណនីត្រូវផ្អាក', en: 'Suspended Users' },
+  'Import / Export Users': { km: 'នាំចូល / នាំចេញទិន្នន័យ', en: 'Import / Export Users' },
+
+  // Academic Structure Submenu
+  'Faculties': { km: 'មហាវិទ្យាល័យ', en: 'Faculties' },
+  'Departments': { km: 'ដេប៉ាតឺម៉ង់', en: 'Departments' },
+  'Majors': { km: 'ជំនាញឯកទេស', en: 'Majors' },
+  'Academic Years': { km: 'ឆ្នាំសិក្សា', en: 'Academic Years' },
+  'Semesters': { km: 'ឆមាស', en: 'Semesters' },
+
+  // Courses Submenu
+  'All Courses': { km: 'វគ្គសិក្សាទាំងអស់', en: 'All Courses' },
+  'Subjects': { km: 'មុខវិជ្ជា', en: 'Subjects' },
+  'Teacher Assignment': { km: 'ការចាត់តាំងគ្រូ', en: 'Teacher Assignment' },
+  'Teacher-Led Courses': { km: 'វគ្គសិក្សាមានគ្រូបង្រៀន', en: 'Teacher-Led Courses' },
+  'Self-Study Courses': { km: 'វគ្គសិក្សាស្វ័យសិក្សា', en: 'Self-Study Courses' },
+  'Free Courses': { km: 'វគ្គសិក្សាឥតគិតថ្លៃ', en: 'Free Courses' },
+  'Paid Courses': { km: 'វគ្គសិក្សាគិតថ្លៃ', en: 'Paid Courses' },
+
+  // Enrollment Submenu
+  'Major Enrollments': { km: 'ការចុះឈ្មោះតាមជំនាញ', en: 'Major Enrollments' },
+  'Course Enrollments': { km: 'ការចុះឈ្មោះតាមវគ្គ', en: 'Course Enrollments' },
+  'Single Enrollment': { km: 'ចុះឈ្មោះម្នាក់ៗ', en: 'Single Enrollment' },
+  'Bulk Enrollment': { km: 'ចុះឈ្មោះច្រើននាក់', en: 'Bulk Enrollment' },
+  'Enrollment History': { km: 'ប្រវត្តិចុះឈ្មោះ', en: 'Enrollment History' },
+
+  // Payment Submenu
+  'Payment Dashboard': { km: 'ផ្ទាំងគ្រប់គ្រងការទូទាត់', en: 'Payment Dashboard' },
+  'Course Pricing': { km: 'តម្លៃវគ្គសិក្សា', en: 'Course Pricing' },
+  'ABA Transactions': { km: 'ប្រតិបត្តិការ ABA', en: 'ABA Transactions' },
+  'Receipt Verification': { km: 'ផ្ទៀងផ្ទាត់វិក្កយបត្រ', en: 'Receipt Verification' },
+  'Payment History': { km: 'ប្រវត្តិការទូទាត់', en: 'Payment History' },
+  'Refunds': { km: 'ការសងប្រាក់វិញ', en: 'Refunds' },
+  'Revenue Reports': { km: 'របាយការណ៍ចំណូល', en: 'Revenue Reports' },
+
+  // Content Delivery Submenu
+  'Content Library': { km: 'បណ្ណាល័យមាតិកា', en: 'Content Library' },
+  'Videos': { km: 'វីដេអូ', en: 'Videos' },
+  'PDFs': { km: 'ឯកសារ PDF', en: 'PDFs' },
+  'Slides': { km: 'ស្លាយបង្រៀន', en: 'Slides' },
+  'Notes/Documents': { km: 'កំណត់ចំណាំ/ឯកសារ', en: 'Notes/Documents' },
+  'Modules & Chapters': { km: 'ម៉ូឌុល & ជំពូក', en: 'Modules & Chapters' },
+  'Offline Content': { km: 'មាតិកាក្រៅបណ្តាញ', en: 'Offline Content' },
+
+  // Quiz Submenu
+  'Question Bank': { km: 'ធនាគារសំណួរ', en: 'Question Bank' },
+  'All Quizzes': { km: 'កម្រងសំណួរទាំងអស់', en: 'All Quizzes' },
+  'Pre-Tests': { km: 'តេស្តមុនរៀន (Pre-Test)', en: 'Pre-Tests' },
+  'Practice Quizzes': { km: 'កម្រងសំណួរអនុវត្ត', en: 'Practice Quizzes' },
+  'Post-Tests': { km: 'តេស្តបញ្ចប់ (Post-Test)', en: 'Post-Tests' },
+  'Assignments': { km: 'កិច្ចការផ្ទះ', en: 'Assignments' },
+  'Quiz Results': { km: 'លទ្ធផលកម្រងសំណួរ', en: 'Quiz Results' },
+
+  // Progress Submenu
+  'Student Progress': { km: 'វឌ្ឍនភាពនិស្សិត', en: 'Student Progress' },
+  'Course Completion': { km: 'ការបញ្ចប់វគ្គសិក្សា', en: 'Course Completion' },
+  'Module Completion': { km: 'ការបញ្ចប់ម៉ូឌុល', en: 'Module Completion' },
+  'Learning Time': { km: 'រយៈពេលសិក្សា', en: 'Learning Time' },
+  'At-Risk Students': { km: 'និស្សិតប្រឈមហានិភ័យ', en: 'At-Risk Students' },
+  'Weekly Progress': { km: 'វឌ្ឍនភាពប្រចាំសប្តាហ៍', en: 'Weekly Progress' },
+
+  // Analytics Submenu
+  'Overview': { km: 'ទិដ្ឋភាពទូទៅ', en: 'Overview' },
+  'Student Analytics': { km: 'ស្ថិតិវិភាគនិស្សិត', en: 'Student Analytics' },
+  'Teacher Analytics': { km: 'ស្ថិតិវិភាគគ្រូ', en: 'Teacher Analytics' },
+  'Course Analytics': { km: 'ស្ថិតិវិភាគវគ្គសិក្សា', en: 'Course Analytics' },
+  'Quiz Analytics': { km: 'ស្ថិតិវិភាគកម្រងសំណួរ', en: 'Quiz Analytics' },
+  'Payment Analytics': { km: 'ស្ថិតិវិភាគការទូទាត់', en: 'Payment Analytics' },
+  'Export Reports': { km: 'នាំចេញរបាយការណ៍', en: 'Export Reports' },
+
+  // AI Submenu
+  'AI Rules': { km: 'វិធាន AI', en: 'AI Rules' },
+  'Weak Topic Rules': { km: 'វិធានប្រធានបទខ្សោយ', en: 'Weak Topic Rules' },
+  'Learning Path Rules': { km: 'វិធានគន្លងសិក្សា', en: 'Learning Path Rules' },
+  'Recommendation Logs': { km: 'កំណត់ហេតុអនុសាសន៍', en: 'Recommendation Logs' },
+  'AI Configuration': { km: 'ការកំណត់រចនាសម្ព័ន្ធ AI', en: 'AI Configuration' },
+  'Student View Preview': { km: 'ទិដ្ឋភាពសម្រាប់និស្សិត', en: 'Student View Preview' },
+
+  // Certificate Submenu
+  'Templates': { km: 'គំរូវិញ្ញាបនបត្រ', en: 'Templates' },
+  'Issue Certificate': { km: 'ចេញវិញ្ញាបនបត្រ', en: 'Issue Certificate' },
+  'Issued Certificates': { km: 'វិញ្ញាបនបត្របានចេញ', en: 'Issued Certificates' },
+  'Certificate Verification': { km: 'ផ្ទៀងផ្ទាត់វិញ្ញាបនបត្រ', en: 'Certificate Verification' },
+  'Revoked Certificates': { km: 'វិញ្ញាបនបត្រដកហូត', en: 'Revoked Certificates' },
+
+  // Notifications Submenu
+  'Announcements': { km: 'សេចក្តីប្រកាស', en: 'Announcements' },
+  'Email Notifications': { km: 'អ៊ីមែលជូនដំណឹង', en: 'Email Notifications' },
+  'Push Notifications': { km: 'Push Notifications', en: 'Push Notifications' },
+  'Scheduled Notifications': { km: 'ការជូនដំណឹងតាមកាលវិភាគ', en: 'Scheduled Notifications' },
+  'Notification History': { km: 'ប្រវត្តិការជូនដំណឹង', en: 'Notification History' },
+
+  // Discussions Submenu
+  'Discussions': { km: 'ការពិភាក្សា', en: 'Discussions' },
+  'Student Questions': { km: 'សំណួរនិស្សិត', en: 'Student Questions' },
+  'Support Tickets': { km: 'សំបុត្រជំនួយ (Tickets)', en: 'Support Tickets' },
+  'Reported Content': { km: 'មាតិកាដែលបានរាយការណ៍', en: 'Reported Content' },
+
+  // Settings Submenu
+  'General Settings': { km: 'ការកំណត់ទូទៅ', en: 'General Settings' },
+  'Language & Localization': { km: 'ភាសា & តំបន់', en: 'Language & Localization' },
+  'Email / SMTP': { km: 'អ៊ីមែល / SMTP', en: 'Email / SMTP' },
+  'S3 Storage': { km: 'ទំហំផ្ទុក Cloud S3', en: 'S3 Storage' },
+  'Video CDN': { km: 'បណ្តាញចែកចាយវីដេអូ CDN', en: 'Video CDN' },
+  'Redis / Queue': { km: 'Redis / ជួរការងារ (Queue)', en: 'Redis / Queue' },
+  'Reverb / Real-time': { km: 'Reverb / Real-time', en: 'Reverb / Real-time' },
+  'PWA & Offline Settings': { km: 'ការកំណត់ PWA & Offline', en: 'PWA & Offline Settings' },
+  'ABA Payment Settings': { km: 'ការកំណត់ការទូទាត់ ABA', en: 'ABA Payment Settings' },
+  'Backup & Restore': { km: 'ការបម្រុងទុក & ស្តារឡើងវិញ', en: 'Backup & Restore' },
+  'System / Audit Logs': { km: 'កំណត់ហេតុប្រព័ន្ធ / Audit', en: 'System / Audit Logs' },
+}
+
+const getNavTitle = (name: string): string => {
+  if (navTranslations[name]) {
+    return currentLang.value === 'km' ? navTranslations[name].km : navTranslations[name].en
+  }
+  return name
+}
+
 const isOnline = ref(typeof window !== 'undefined' ? window.navigator.onLine : true)
 const manualStatusOverride = ref<boolean | null>(null)
 const onlineIconUrl = '/images/nav/online.svg'
@@ -469,23 +622,24 @@ const toggleLanguage = () => {
 
 const currentBreadcrumb = computed(() => {
   const url = page.url
-  if (url.startsWith('/admin/dashboard')) return ['Admin', 'Dashboard']
-  if (url.startsWith('/admin/user-management')) return ['Admin', 'User Management']
-  if (url.startsWith('/admin/academic-structure')) return ['Admin', 'Academic Structure']
-  if (url.startsWith('/admin/course-module') || url.startsWith('/admin/courses')) return ['Admin', 'Course Management']
-  if (url.startsWith('/admin/enrollment')) return ['Admin', 'Enrollment']
-  if (url.startsWith('/admin/payments')) return ['Admin', 'Payment & ABA']
-  if (url.startsWith('/admin/content')) return ['Admin', 'Content Delivery']
-  if (url.startsWith('/admin/quizzes')) return ['Admin', 'Quiz & Assessment']
-  if (url.startsWith('/admin/progress')) return ['Admin', 'Progress Tracking']
-  if (url.startsWith('/admin/reports')) return ['Admin', 'Analytics & Reports']
-  if (url.startsWith('/admin/ai-rules')) return ['Admin', 'AI Recommendation']
-  if (url.startsWith('/admin/certificates')) return ['Admin', 'Certificate Module']
-  if (url.startsWith('/admin/notifications')) return ['Admin', 'Notifications']
-  if (url.startsWith('/admin/discussions')) return ['Admin', 'Discussions & Support']
-  if (url.startsWith('/admin/settings')) return ['Admin', 'Settings']
-  if (url.startsWith('/admin/auth')) return ['Admin', 'Authentication']
-  return ['Admin', 'Overview']
+  const prefix = currentLang.value === 'km' ? 'អ្នកគ្រប់គ្រង' : 'Admin'
+  if (url.startsWith('/admin/dashboard')) return [prefix, getNavTitle('Dashboard')]
+  if (url.startsWith('/admin/user-management')) return [prefix, getNavTitle('User Management')]
+  if (url.startsWith('/admin/academic-structure')) return [prefix, getNavTitle('Academic Structure')]
+  if (url.startsWith('/admin/course-module') || url.startsWith('/admin/courses')) return [prefix, getNavTitle('Course Management')]
+  if (url.startsWith('/admin/enrollment')) return [prefix, getNavTitle('Enrollment Management')]
+  if (url.startsWith('/admin/payments')) return [prefix, getNavTitle('Payment & ABA Management')]
+  if (url.startsWith('/admin/content')) return [prefix, getNavTitle('Content Delivery Module')]
+  if (url.startsWith('/admin/quizzes')) return [prefix, getNavTitle('Quiz & Assessment Module')]
+  if (url.startsWith('/admin/progress')) return [prefix, getNavTitle('Progress Tracking Module')]
+  if (url.startsWith('/admin/reports')) return [prefix, getNavTitle('Analytics & Reporting Module')]
+  if (url.startsWith('/admin/ai-rules')) return [prefix, getNavTitle('AI Recommendation Module')]
+  if (url.startsWith('/admin/certificates')) return [prefix, getNavTitle('Certificate Module')]
+  if (url.startsWith('/admin/notifications')) return [prefix, getNavTitle('Notification Module')]
+  if (url.startsWith('/admin/discussions')) return [prefix, getNavTitle('Discussions & Support')]
+  if (url.startsWith('/admin/settings')) return [prefix, getNavTitle('Settings')]
+  if (url.startsWith('/admin/auth')) return [prefix, getNavTitle('Authentication Module')]
+  return [prefix, currentLang.value === 'km' ? 'ទិដ្ឋភាពទូទៅ' : 'Overview']
 })
 
 const pageTitle = computed(() => {
@@ -494,22 +648,23 @@ const pageTitle = computed(() => {
   return crumb.length > 1 ? crumb[crumb.length - 1] : 'Admin Dashboard'
 })
 
-const quickActions = [
-  { name: 'បង្កើតអ្នកប្រើប្រាស់ (Add User)', href: '/admin/user-management/all', iconUrl: '/images/actions/add-user.svg' },
-  { name: 'បង្កើតវគ្គសិក្សា (Add Course)', href: '/admin/course-module/all', iconUrl: '/images/actions/add-course.svg' },
-  { name: 'ផ្ទៀងផ្ទាត់ការបង់ប្រាក់ (Verify ABA)', href: '/admin/payments?status=pending', iconUrl: '/images/actions/payment.svg' },
-  { name: 'ផ្ញើសារប្រកាស (Announcement)', href: '/admin/notifications/announcements', iconUrl: '/images/actions/announcement.svg' },
-  { name: 'ចេញវិញ្ញាបនបត្រ (Issue Certificate)', href: '/admin/certificates/issue', iconUrl: '/images/actions/certificate.svg' }
-]
+const quickActions = computed(() => [
+  { name: currentLang.value === 'km' ? 'បង្កើតអ្នកប្រើប្រាស់' : 'Add User', href: '/admin/user-management/all', iconUrl: '/images/actions/add-user.svg' },
+  { name: currentLang.value === 'km' ? 'បង្កើតវគ្គសិក្សា' : 'Add Course', href: '/admin/course-module/all', iconUrl: '/images/actions/add-course.svg' },
+  { name: currentLang.value === 'km' ? 'ផ្ទៀងផ្ទាត់ការបង់ប្រាក់ ABA' : 'Verify ABA Payment', href: '/admin/payments?status=pending', iconUrl: '/images/actions/payment.svg' },
+  { name: currentLang.value === 'km' ? 'ផ្ញើសារប្រកាស' : 'Announcement', href: '/admin/notifications/announcements', iconUrl: '/images/actions/announcement.svg' },
+  { name: currentLang.value === 'km' ? 'ចេញវិញ្ញាបនបត្រ' : 'Issue Certificate', href: '/admin/certificates/issue', iconUrl: '/images/actions/certificate.svg' }
+])
 
 const searchableLinks = computed(() => {
   const list: { name: string; category: string; href: string; icon?: string; iconUrl?: string }[] = []
   navigation.forEach(nav => {
+    const parentName = getNavTitle(nav.name)
     if (nav.children && nav.children.length > 0) {
       nav.children.forEach(sub => {
         list.push({
-          name: sub.name,
-          category: nav.name,
+          name: getNavTitle(sub.name),
+          category: parentName,
           href: sub.href,
           icon: sub.icon || nav.icon,
           iconUrl: sub.iconUrl || nav.iconUrl
@@ -517,8 +672,8 @@ const searchableLinks = computed(() => {
       })
     } else if (nav.href) {
       list.push({
-        name: nav.name,
-        category: 'Main Navigation',
+        name: parentName,
+        category: currentLang.value === 'km' ? 'ម៉ឺនុយមេ' : 'Main Navigation',
         href: nav.href,
         icon: nav.icon,
         iconUrl: nav.iconUrl
@@ -696,7 +851,7 @@ onUnmounted(() => {
             <h1 class="text-base font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-cyan-300 to-sky-400 tracking-tight whitespace-nowrap">
               E-LMS Admin
             </h1>
-            <p class="text-[10px] text-slate-400 font-medium tracking-wide uppercase whitespace-nowrap">Admin Panel</p>
+            <p class="text-[10px] text-slate-400 font-medium tracking-wide uppercase whitespace-nowrap">{{ currentLang === 'km' ? 'ផ្ទាំងគ្រប់គ្រង' : 'Admin Panel' }}</p>
           </div>
         </div>
 
@@ -767,7 +922,7 @@ onUnmounted(() => {
                   <path stroke-linecap="round" stroke-linejoin="round" :d="item.icon || 'M4 6h16M4 12h16M4 18h16'" />
                 </svg>
               </div>
-              <span v-show="!isSidebarCollapsed" class="flex-1 truncate">{{ item.name }}</span>
+              <span v-show="!isSidebarCollapsed" class="flex-1 truncate">{{ getNavTitle(item.name) }}</span>
               <span v-if="item.badge && !isSidebarCollapsed" class="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
                 {{ item.badge }}
               </span>
@@ -807,7 +962,7 @@ onUnmounted(() => {
                       <path stroke-linecap="round" stroke-linejoin="round" :d="item.icon || 'M4 6h16M4 12h16M4 18h16'" />
                     </svg>
                   </div>
-                  <span v-show="!isSidebarCollapsed" class="truncate">{{ item.name }}</span>
+                  <span v-show="!isSidebarCollapsed" class="truncate">{{ getNavTitle(item.name) }}</span>
                 </div>
 
                 <div v-show="!isSidebarCollapsed" class="flex items-center gap-1.5">
@@ -883,7 +1038,7 @@ onUnmounted(() => {
                     </div>
 
                     <!-- Item Name -->
-                    <span class="truncate">{{ sub.name }}</span>
+                    <span class="truncate">{{ getNavTitle(sub.name) }}</span>
                   </Link>
                 </div>
               </div>
@@ -919,7 +1074,7 @@ onUnmounted(() => {
                         <path stroke-linecap="round" stroke-linejoin="round" :d="item.icon || 'M4 6h16M4 12h16M4 18h16'" />
                       </svg>
                     </div>
-                    <span class="text-xs font-bold text-white truncate">{{ item.name }}</span>
+                    <span class="text-xs font-bold text-white truncate">{{ getNavTitle(item.name) }}</span>
                   </div>
                   <span v-if="item.badge" class="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shrink-0">
                     {{ item.badge }}
@@ -958,7 +1113,7 @@ onUnmounted(() => {
                         <path stroke-linecap="round" stroke-linejoin="round" :d="sub.icon || 'M4 6h16M4 12h16M4 18h16'" />
                       </svg>
                     </div>
-                    <span class="truncate">{{ sub.name }}</span>
+                    <span class="truncate">{{ getNavTitle(sub.name) }}</span>
                   </Link>
                 </div>
               </div>
@@ -973,7 +1128,7 @@ onUnmounted(() => {
                 <!-- Directional Caret / Arrow Pointer Pointing Left to the Source Icon -->
                 <div class="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-slate-900 border-l border-b border-slate-700/80 rotate-45 z-10 pointer-events-none"></div>
 
-                <span class="relative z-20">{{ item.name }}</span>
+                <span class="relative z-20">{{ getNavTitle(item.name) }}</span>
                 <span v-if="item.badge" class="relative z-20 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
                   {{ item.badge }}
                 </span>
@@ -1079,7 +1234,7 @@ onUnmounted(() => {
             >
               <div class="flex items-center gap-2 truncate min-w-0 flex-1">
                 <svg class="w-3.5 h-3.5 text-indigo-400 shrink-0 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                <span class="truncate text-slate-400 group-hover:text-slate-300">{{ i18n.t('nav_search_placeholder', 'ស្វែងរកប្រព័ន្ធ (Global Search)...') }}</span>
+                <span class="truncate text-slate-400 group-hover:text-slate-300">{{ currentLang === 'km' ? 'ស្វែងរកប្រព័ន្ធ... (Ctrl K)' : 'Global Search... (Ctrl K)' }}</span>
               </div>
               <kbd class="hidden lg:inline-flex items-center shrink-0 whitespace-nowrap px-1.5 py-0.5 text-[10px] font-mono font-semibold text-slate-400 bg-slate-900/80 border border-slate-700/60 rounded shadow-xs leading-none">Ctrl K</kbd>
             </button>
@@ -1094,7 +1249,7 @@ onUnmounted(() => {
             @click="toggleDropdown('search')"
             type="button"
             class="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg md:hidden focus:outline-none transition-colors"
-            title="Search"
+            :title="currentLang === 'km' ? 'ស្វែងរក' : 'Search'"
           >
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           </button>
@@ -1109,10 +1264,10 @@ onUnmounted(() => {
               @click="isQuickActionOpen = !isQuickActionOpen"
               type="button"
               class="h-8 px-2.5 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 rounded-lg transition-all flex items-center gap-2 cursor-pointer group select-none focus:outline-none focus:ring-0 focus-visible:outline-none"
-              title="Quick Actions"
+              :title="currentLang === 'km' ? 'បង្កើតរហ័ស' : 'Quick Actions'"
             >
               <img :src="actionBtnIcon" alt="Actions" class="w-4 h-4 shrink-0 group-hover:scale-105 transition-transform" />
-              <span class="hidden sm:inline text-xs font-semibold text-slate-300 group-hover:text-white font-sans tracking-wide">{{ i18n.t('nav_create_new', 'បង្កើតរហ័ស') }}</span>
+              <span class="hidden sm:inline text-xs font-semibold text-slate-300 group-hover:text-white font-sans tracking-wide">{{ currentLang === 'km' ? 'បង្កើតរហ័ស' : 'Quick Create' }}</span>
               <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-200 transition-transform duration-200" :class="isQuickActionOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
 
@@ -1129,7 +1284,7 @@ onUnmounted(() => {
                 class="absolute right-0 mt-1.5 w-60 rounded-xl bg-slate-800/95 backdrop-blur-xl border border-slate-700/80 shadow-2xl py-1.5 z-50 overflow-hidden"
               >
                 <div class="px-3.5 py-1.5 border-b border-slate-700/60 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  បង្កើត/បន្ថែមរហ័ស (Quick Create)
+                  {{ currentLang === 'km' ? 'បង្កើត / បន្ថែមរហ័ស' : 'Quick Create' }}
                 </div>
                 <Link
                   v-for="act in quickActions"
@@ -1155,7 +1310,7 @@ onUnmounted(() => {
               @click="toggleDropdown('status')"
               type="button"
               class="h-8 px-2.5 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 rounded-lg transition-all flex items-center gap-2 cursor-pointer group select-none focus:outline-none focus:ring-0 focus-visible:outline-none"
-              :title="isOnline ? 'អនឡាញ (Online)' : 'អូហ្វឡាញ (Offline)'"
+              :title="isOnline ? (currentLang === 'km' ? 'ស្ថានភាព: អនឡាញ' : 'Status: Online') : (currentLang === 'km' ? 'ស្ថានភាព: អូហ្វឡាញ' : 'Status: Offline')"
             >
               <div class="relative flex items-center justify-center shrink-0">
                 <img 
@@ -1172,7 +1327,7 @@ onUnmounted(() => {
                 :class="[isOnline ? 'text-emerald-400' : 'text-rose-400']"
                 class="hidden sm:inline text-xs font-semibold font-sans tracking-wide"
               >
-                {{ isOnline ? 'Online' : 'Offline' }}
+                {{ isOnline ? (currentLang === 'km' ? 'អនឡាញ' : 'Online') : (currentLang === 'km' ? 'អូហ្វឡាញ' : 'Offline') }}
               </span>
               <svg 
                 :class="[isStatusOpen ? 'rotate-180 text-slate-200' : 'text-slate-400']" 
@@ -1200,12 +1355,12 @@ onUnmounted(() => {
                 class="absolute right-0 mt-1.5 w-56 rounded-xl bg-slate-800/95 backdrop-blur-xl border border-slate-700/80 shadow-2xl py-1.5 z-50 overflow-hidden"
               >
                 <div class="px-3.5 py-1.5 border-b border-slate-700/60 flex items-center justify-between">
-                  <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">ស្ថានភាពប្រព័ន្ធ (Status)</span>
+                  <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ currentLang === 'km' ? 'ស្ថានភាពប្រព័ន្ធ' : 'System Status' }}</span>
                   <span 
                     :class="[isOnline ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' : 'bg-rose-500/20 text-rose-300 border-rose-500/30']"
                     class="px-2 py-0.5 text-[9px] font-bold rounded-full border"
                   >
-                    {{ isOnline ? 'Connected' : 'Disconnected' }}
+                    {{ isOnline ? (currentLang === 'km' ? 'បានភ្ជាប់' : 'Connected') : (currentLang === 'km' ? 'ដាច់ការតភ្ជាប់' : 'Disconnected') }}
                   </span>
                 </div>
 
@@ -1218,8 +1373,8 @@ onUnmounted(() => {
                     <div class="flex items-center gap-2.5">
                       <img :src="onlineIconUrl" alt="Online" class="w-4 h-4 object-contain" />
                       <div>
-                        <p class="font-medium text-xs text-white">អនឡាញ (Online)</p>
-                        <p class="text-[10px] text-slate-400">ភ្ជាប់អ៊ីនធឺណិតធម្មតា</p>
+                        <p class="font-medium text-xs text-white">{{ currentLang === 'km' ? 'អនឡាញ' : 'Online' }}</p>
+                        <p class="text-[10px] text-slate-400">{{ currentLang === 'km' ? 'ភ្ជាប់អ៊ីនធឺណិតធម្មតា' : 'Connected to internet' }}</p>
                       </div>
                     </div>
                     <svg v-if="isOnline" class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -1235,8 +1390,8 @@ onUnmounted(() => {
                     <div class="flex items-center gap-2.5">
                       <img :src="offlineIconUrl" alt="Offline" class="w-4 h-4 object-contain" />
                       <div>
-                        <p class="font-medium text-xs text-white">អូហ្វឡាញ (Offline)</p>
-                        <p class="text-[10px] text-slate-400">ដាច់អ៊ីនធឺណិត / Offline</p>
+                        <p class="font-medium text-xs text-white">{{ currentLang === 'km' ? 'អូហ្វឡាញ' : 'Offline' }}</p>
+                        <p class="text-[10px] text-slate-400">{{ currentLang === 'km' ? 'ដាច់ការតភ្ជាប់អ៊ីនធឺណិត' : 'No internet connection' }}</p>
                       </div>
                     </div>
                     <svg v-if="!isOnline" class="w-3.5 h-3.5 text-rose-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -1298,17 +1453,17 @@ onUnmounted(() => {
             >
               <div class="px-4 py-3 border-b border-slate-700/80 flex items-center justify-between bg-slate-800/80">
                 <div class="flex items-center gap-2">
-                  <h3 class="text-xs font-bold text-white">ការជូនដំណឹង (Notifications)</h3>
+                  <h3 class="text-xs font-bold text-white">{{ currentLang === 'km' ? 'ការជូនដំណឹង' : 'Notifications' }}</h3>
                   <span v-if="unreadNotificationsCount > 0" class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-indigo-500/20 text-indigo-300">
-                    {{ unreadNotificationsCount }} ថ្មី
+                    {{ unreadNotificationsCount }} {{ currentLang === 'km' ? 'ថ្មី' : 'New' }}
                   </span>
                 </div>
                 <button
                   v-if="unreadNotificationsCount > 0"
                   @click="markAllAsRead"
-                  class="text-[11px] text-indigo-400 hover:text-indigo-300 transition-colors font-medium"
+                  class="text-[11px] text-indigo-400 hover:text-indigo-300 transition-colors font-medium cursor-pointer"
                 >
-                  អានទាំងអស់
+                  {{ currentLang === 'km' ? 'អានទាំងអស់' : 'Mark all read' }}
                 </button>
               </div>
 
@@ -1351,7 +1506,7 @@ onUnmounted(() => {
                   @click="isNotificationOpen = false"
                   class="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors"
                 >
-                  មើលការជូនដំណឹងទាំងអស់ →
+                  {{ currentLang === 'km' ? 'មើលការជូនដំណឹងទាំងអស់ →' : 'View All Notifications →' }}
                 </Link>
               </div>
             </div>
@@ -1399,7 +1554,7 @@ onUnmounted(() => {
                     </div>
                     <p class="text-[11px] text-slate-400 truncate">{{ user.email }}</p>
                     <span class="inline-block mt-1 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                      {{ user.role === 'admin' ? 'Super Admin' : (user.role === 'teacher' ? 'Teacher' : 'Student') }}
+                      {{ currentLang === 'km' ? (user.role === 'admin' ? 'អ្នកគ្រប់គ្រងជាន់ខ្ពស់' : (user.role === 'teacher' ? 'សាស្ត្រាចារ្យ' : 'និស្សិត')) : (user.role === 'admin' ? 'Super Admin' : (user.role === 'teacher' ? 'Teacher' : 'Student')) }}
                     </span>
                   </div>
                 </div>
@@ -1413,7 +1568,7 @@ onUnmounted(() => {
                   class="flex items-center gap-2.5 px-4 py-2 text-xs text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors"
                 >
                   <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                  <span>ការកំណត់ប្រព័ន្ធ (Settings)</span>
+                  <span>{{ currentLang === 'km' ? 'ការកំណត់ប្រព័ន្ធ' : 'System Settings' }}</span>
                 </Link>
                 <Link
                   href="/admin/auth/roles"
@@ -1421,7 +1576,7 @@ onUnmounted(() => {
                   class="flex items-center gap-2.5 px-4 py-2 text-xs text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors"
                 >
                   <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                  <span>សិទ្ធិ និង តួនាទី (Roles & Security)</span>
+                  <span>{{ currentLang === 'km' ? 'សិទ្ធិ និង តួនាទី' : 'Roles & Permissions' }}</span>
                 </Link>
                 <Link
                   href="/admin/auth-logs"
@@ -1429,14 +1584,14 @@ onUnmounted(() => {
                   class="flex items-center gap-2.5 px-4 py-2 text-xs text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors"
                 >
                   <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                  <span>កំណត់ត្រាសកម្មភាព (System Logs)</span>
+                  <span>{{ currentLang === 'km' ? 'កំណត់ត្រាសកម្មភាព' : 'System Logs' }}</span>
                 </Link>
                 <button
                   @click="triggerAvatarUpload(); isProfileOpen = false;"
-                  class="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors text-left"
+                  class="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors text-left cursor-pointer"
                 >
                   <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                  <span>ប្ដូររូបថត (Change Avatar)</span>
+                  <span>{{ currentLang === 'km' ? 'ប្ដូររូបថត' : 'Change Avatar' }}</span>
                 </button>
               </div>
 
@@ -1444,10 +1599,10 @@ onUnmounted(() => {
               <div class="pt-1">
                 <button
                   @click="logout"
-                  class="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-rose-400 hover:bg-rose-500/10 transition-colors font-medium text-left"
+                  class="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-rose-400 hover:bg-rose-500/10 transition-colors font-medium text-left cursor-pointer"
                 >
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-                  <span>ចាកចេញពីប្រព័ន្ធ (Log Out)</span>
+                  <span>{{ currentLang === 'km' ? 'ចាកចេញពីប្រព័ន្ធ' : 'Log Out' }}</span>
                 </button>
               </div>
             </div>
@@ -1468,11 +1623,11 @@ onUnmounted(() => {
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="ស្វែងរកម៉ូឌុល ទំព័រ ឬមុខងារគ្រប់គ្រងទាំងអស់... (Search modules, pages...)"
+            :placeholder="currentLang === 'km' ? 'ស្វែងរកម៉ូឌុល ទំព័រ ឬមុខងារគ្រប់គ្រងទាំងអស់...' : 'Search modules, pages, or admin functions...'"
             class="w-full bg-transparent py-4 text-sm text-white placeholder-slate-500 focus:outline-none"
             autofocus
           />
-          <button @click="isSearchOpen = false" class="p-1 text-slate-400 hover:text-white rounded-lg">
+          <button @click="isSearchOpen = false" class="p-1 text-slate-400 hover:text-white rounded-lg cursor-pointer">
             <kbd class="px-2 py-0.5 text-xs bg-slate-800 rounded border border-slate-700">ESC</kbd>
           </button>
         </div>
@@ -1480,7 +1635,7 @@ onUnmounted(() => {
         <!-- Search Results List -->
         <div class="max-h-96 overflow-y-auto p-2 custom-scrollbar">
           <div v-if="filteredSearchResults.length === 0" class="p-8 text-center text-slate-400 text-sm">
-            មិនរកឃើញទិន្នន័យស្វែងរកឡើយ (No results found)
+            {{ currentLang === 'km' ? 'មិនរកឃើញទិន្នន័យស្វែងរកឡើយ' : 'No results found' }}
           </div>
           <div v-else class="space-y-1">
             <Link

@@ -129,10 +129,20 @@ function resetWidgetConfig() {
   localStorage.removeItem('elms_dashboard_widgets_v2')
 }
 
+// ── Language & Localization ─────────────────────────────────
+const currentLang = computed(() => i18n.locale.value)
+
 // ── Date Formatting ─────────────────────────────────────────
 const todayFormatted = computed(() => {
   const now = new Date()
   const options: Intl.DateTimeFormatOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }
+  if (currentLang.value === 'km') {
+    try {
+      return now.toLocaleDateString('km-KH', options)
+    } catch {
+      return now.toLocaleDateString('en-US', options)
+    }
+  }
   return now.toLocaleDateString('en-US', options)
 })
 
@@ -164,8 +174,8 @@ const activeChartData = computed(() => {
 })
 
 const enrollmentSeries = computed(() => [
-  { name: 'New Enrollments', data: activeChartData.value.enrollments },
-  { name: 'Course Completions', data: activeChartData.value.completions },
+  { name: currentLang.value === 'km' ? 'ការចុះឈ្មោះថ្មី' : 'New Enrollments', data: activeChartData.value.enrollments },
+  { name: currentLang.value === 'km' ? 'ការបញ្ចប់វគ្គសិក្សា' : 'Course Completions', data: activeChartData.value.completions },
 ])
 
 const enrollmentChartOptions = computed<any>(() => ({
@@ -189,7 +199,7 @@ const completionDonutSeries = computed(() => [
 
 const completionDonutOptions = computed<any>(() => ({
   chart: { type: 'donut', background: 'transparent' },
-  labels: ['Completed', 'In Progress', 'Not Started'],
+  labels: currentLang.value === 'km' ? ['បានបញ្ចប់', 'កំពុងរៀន', 'មិនទាន់ចាប់ផ្តើម'] : ['Completed', 'In Progress', 'Not Started'],
   colors: ['#10b981', '#f59e0b', '#64748b'],
   legend: { show: false },
   stroke: { colors: ['#0f172a'] },
@@ -202,7 +212,7 @@ const completionDonutOptions = computed<any>(() => ({
           show: true,
           total: {
             show: true,
-            label: 'Completion',
+            label: currentLang.value === 'km' ? 'ការបញ្ចប់' : 'Completion',
             color: '#94a3b8',
             fontSize: '12px',
             formatter: () => `${props.stats?.completion_rate || 76}%`,
@@ -218,39 +228,39 @@ const completionDonutOptions = computed<any>(() => ({
 const actionTasks = computed(() => [
   {
     id: 1,
-    title: 'Pending ABA Payment Reviews',
-    badge: `${props.stats?.receipts_need_review || 18} Receipts`,
+    title: currentLang.value === 'km' ? 'ផ្ទៀងផ្ទាត់ការទូទាត់ ABA' : 'Pending ABA Payment Reviews',
+    badge: currentLang.value === 'km' ? `${props.stats?.receipts_need_review || 18} វិក្កយបត្រ` : `${props.stats?.receipts_need_review || 18} Receipts`,
     color: 'amber',
     url: '/admin/payments?status=pending',
-    desc: 'Student slips awaiting verification before course unlocking',
-    btn: 'Review Slips →'
+    desc: currentLang.value === 'km' ? 'បង្កាន់ដៃទូទាត់របស់និស្សិតរង់ចាំការបញ្ជាក់' : 'Student slips awaiting verification before course unlocking',
+    btn: currentLang.value === 'km' ? 'ពិនិត្យវិក្កយបត្រ →' : 'Review Slips →'
   },
   {
     id: 2,
-    title: 'At-Risk Students Alert',
-    badge: `${props.stats?.at_risk_students || 213} Students`,
+    title: currentLang.value === 'km' ? 'ការជូនដំណឹងនិស្សិតប្រឈមហានិភ័យ' : 'At-Risk Students Alert',
+    badge: currentLang.value === 'km' ? `${props.stats?.at_risk_students || 213} និស្សិត` : `${props.stats?.at_risk_students || 213} Students`,
     color: 'red',
     url: '/admin/progress?tab=at_risk',
-    desc: 'Students falling behind completion rate (< 30%)',
-    btn: 'View Students →'
+    desc: currentLang.value === 'km' ? 'និស្សិតដែលមានអត្រាបញ្ចប់ការសិក្សាទាប (< 30%)' : 'Students falling behind completion rate (< 30%)',
+    btn: currentLang.value === 'km' ? 'មើលបញ្ជីនិស្សិត →' : 'View Students →'
   },
   {
     id: 3,
-    title: 'Failed Security Login Attempts',
-    badge: `${props.stats?.failed_login_alerts || 12} Alerts`,
+    title: currentLang.value === 'km' ? 'ការប៉ុនប៉ងចូលប្រព័ន្ធមិនជោគជ័យ' : 'Failed Security Login Attempts',
+    badge: currentLang.value === 'km' ? `${props.stats?.failed_login_alerts || 12} ការជូនដំណឹង` : `${props.stats?.failed_login_alerts || 12} Alerts`,
     color: 'rose',
     url: '/admin/auth/failed',
-    desc: 'Suspicious repetitive authentication failures today',
-    btn: 'Inspect Logs →'
+    desc: currentLang.value === 'km' ? 'កំណត់ហេតុការផ្ទៀងផ្ទាត់មិនប្រក្រតីក្នុងថ្ងៃនេះ' : 'Suspicious repetitive authentication failures today',
+    btn: currentLang.value === 'km' ? 'ពិនិត្យកំណត់ហេតុ →' : 'Inspect Logs →'
   },
   {
     id: 4,
-    title: 'Draft Courses Pending Publish',
-    badge: `${props.stats?.draft_courses || 12} Courses`,
+    title: currentLang.value === 'km' ? 'វគ្គសិក្សាព្រាងរង់ចាំការបោះពុម្ព' : 'Draft Courses Pending Publish',
+    badge: currentLang.value === 'km' ? `${props.stats?.draft_courses || 12} វគ្គសិក្សា` : `${props.stats?.draft_courses || 12} Courses`,
     color: 'purple',
     url: '/admin/course-module/all?status=draft',
-    desc: 'Courses created by teachers waiting for admin approval',
-    btn: 'Review Courses →'
+    desc: currentLang.value === 'km' ? 'វគ្គសិក្សាបង្កើតដោយគ្រូរង់ចាំការអនុម័ត' : 'Courses created by teachers waiting for admin approval',
+    btn: currentLang.value === 'km' ? 'ពិនិត្យវគ្គសិក្សា →' : 'Review Courses →'
   }
 ])
 </script>
@@ -269,17 +279,17 @@ const actionTasks = computed(() => [
             <div class="flex items-center gap-2.5">
               <span class="text-xl">📊</span>
               <h2 class="text-xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-cyan-300 to-sky-400 tracking-tight">
-                Admin Executive Dashboard
+                {{ currentLang === 'km' ? 'ផ្ទាំងគ្រប់គ្រងប្រតិបត្តិការទូទៅ' : 'Admin Executive Dashboard' }}
               </h2>
             </div>
             <p class="text-xs text-slate-300 mt-1 flex flex-wrap items-center gap-2 font-medium">
-              <span>Welcome back, <strong class="text-indigo-300 font-bold">{{ userName }}</strong> 👋</span>
+              <span>{{ currentLang === 'km' ? 'សូមស្វាគមន៍ការត្រឡប់មកវិញ,' : 'Welcome back,' }} <strong class="text-indigo-300 font-bold">{{ userName }}</strong> 👋</span>
               <span class="text-slate-600">·</span>
               <span>{{ todayFormatted }}</span>
               <span class="text-slate-600">·</span>
               <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/25 shadow-sm">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                System Status: Healthy
+                {{ currentLang === 'km' ? 'ស្ថានភាពប្រព័ន្ធ: ប្រក្រតី' : 'System Status: Healthy' }}
               </span>
             </p>
           </div>
@@ -294,21 +304,21 @@ const actionTasks = computed(() => [
               <svg :class="{ 'animate-spin': isRefreshing }" class="w-3.5 h-3.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
-              <span>Refresh</span>
+              <span>{{ currentLang === 'km' ? 'ផ្ទុកឡើងវិញ' : 'Refresh' }}</span>
             </button>
 
             <button
               @click="exportReport"
               class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md shadow-indigo-600/25 transition-all active:scale-95 cursor-pointer"
             >
-              <span>📤</span> Export Report
+              <span>📤</span> {{ currentLang === 'km' ? 'នាំចេញរបាយការណ៍' : 'Export Report' }}
             </button>
 
             <button
               @click="showCustomizeModal = true"
               class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700/80 rounded-xl text-xs font-semibold text-slate-300 flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
             >
-              <span>⚙️</span> Customize
+              <span>⚙️</span> {{ currentLang === 'km' ? 'កំណត់ផ្ទាល់ខ្លួន' : 'Customize' }}
             </button>
           </div>
         </div>
@@ -317,14 +327,14 @@ const actionTasks = computed(() => [
         <div class="flex flex-wrap items-center justify-between gap-3 pt-3 text-xs">
           <!-- Period Selector Pills -->
           <div class="flex flex-wrap items-center gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800 shadow-inner">
-            <span class="text-slate-400 px-2 text-[11px] font-medium">{{ i18n.t('period_label', 'Period:') }}</span>
+            <span class="text-slate-400 px-2 text-[11px] font-medium">{{ currentLang === 'km' ? 'រយៈពេល:' : 'Period:' }}</span>
             <button
               v-for="p in [
-                { id: 'today', name: i18n.t('period_today', 'Today') },
-                { id: 'week', name: i18n.t('period_week', 'This Week') },
-                { id: 'month', name: i18n.t('period_month', 'This Month') },
-                { id: 'semester', name: i18n.t('period_semester', 'This Semester') },
-                { id: 'custom', name: i18n.t('period_custom', 'Custom') }
+                { id: 'today', name: currentLang === 'km' ? 'ថ្ងៃនេះ' : 'Today' },
+                { id: 'week', name: currentLang === 'km' ? 'សប្តាហ៍នេះ' : 'This Week' },
+                { id: 'month', name: currentLang === 'km' ? 'ខែនេះ' : 'This Month' },
+                { id: 'semester', name: currentLang === 'km' ? 'ឆមាសនេះ' : 'This Semester' },
+                { id: 'custom', name: currentLang === 'km' ? 'កំណត់ផ្ទាល់' : 'Custom' }
               ]"
               :key="p.id"
               @click="periodFilter = p.id; applyFilters()"
@@ -341,13 +351,13 @@ const actionTasks = computed(() => [
 
           <!-- Major Filter Dropdown -->
           <div class="flex items-center gap-2">
-            <span class="text-slate-400 font-medium text-[11px]">Filter Major:</span>
+            <span class="text-slate-400 font-medium text-[11px]">{{ currentLang === 'km' ? 'ចម្រាញ់តាមជំនាញ:' : 'Filter Major:' }}</span>
             <select
               v-model="majorFilter"
               @change="applyFilters"
               class="bg-slate-900 text-slate-200 border border-slate-700/80 rounded-xl px-3 py-1 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-indigo-500 shadow-inner cursor-pointer hover:border-slate-600"
             >
-              <option value="all">All Majors (5)</option>
+              <option value="all">{{ currentLang === 'km' ? 'ជំនាញទាំងអស់ (5)' : 'All Majors (5)' }}</option>
               <option v-for="m in allMajors" :key="m.id" :value="m.id">{{ m.name }}</option>
             </select>
           </div>
@@ -360,52 +370,60 @@ const actionTasks = computed(() => [
         <div class="bg-slate-800/80 border border-slate-700/70 rounded-2xl p-4 shadow-md hover:border-indigo-500/50 transition-all group">
           <div class="flex items-center justify-between">
             <span class="text-xl">👨‍🎓</span>
-            <span class="px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-slate-700/40 text-slate-300 border border-slate-700/60">Active</span>
+            <span class="px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-slate-700/40 text-slate-300 border border-slate-700/60">
+              {{ currentLang === 'km' ? 'សកម្ម' : 'Active' }}
+            </span>
           </div>
-          <p class="text-slate-400 text-xs font-medium mt-2">Total Students</p>
+          <p class="text-slate-400 text-xs font-medium mt-2">{{ currentLang === 'km' ? 'និស្សិតសរុប' : 'Total Students' }}</p>
           <h4 class="text-2xl font-extrabold text-white mt-0.5 group-hover:text-indigo-300 transition-colors">
             {{ (stats?.total_students || 2458).toLocaleString() }}
           </h4>
-          <p class="text-[10px] text-emerald-400 font-semibold mt-1">↑ +86 this month</p>
+          <p class="text-[10px] text-emerald-400 font-semibold mt-1">{{ currentLang === 'km' ? '↑ +86 ក្នុងខែនេះ' : '↑ +86 this month' }}</p>
         </div>
 
         <!-- Card 2: Teachers -->
         <div class="bg-slate-800/80 border border-slate-700/70 rounded-2xl p-4 shadow-md hover:border-emerald-500/50 transition-all group">
           <div class="flex items-center justify-between">
             <span class="text-xl">👨‍🏫</span>
-            <span class="px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-slate-700/40 text-slate-300 border border-slate-700/60">Faculty</span>
+            <span class="px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-slate-700/40 text-slate-300 border border-slate-700/60">
+              {{ currentLang === 'km' ? 'មហាវិទ្យាល័យ' : 'Faculty' }}
+            </span>
           </div>
-          <p class="text-slate-400 text-xs font-medium mt-2">Faculty Teachers</p>
+          <p class="text-slate-400 text-xs font-medium mt-2">{{ currentLang === 'km' ? 'សាស្ត្រាចារ្យ' : 'Faculty Teachers' }}</p>
           <h4 class="text-2xl font-extrabold text-white mt-0.5 group-hover:text-emerald-300 transition-colors">
             {{ (stats?.total_teachers || 145).toLocaleString() }}
           </h4>
-          <p class="text-[10px] text-emerald-400 font-semibold mt-1">↑ +4 this month</p>
+          <p class="text-[10px] text-emerald-400 font-semibold mt-1">{{ currentLang === 'km' ? '↑ +4 ក្នុងខែនេះ' : '↑ +4 this month' }}</p>
         </div>
 
         <!-- Card 3: Active Courses -->
         <div class="bg-slate-800/80 border border-slate-700/70 rounded-2xl p-4 shadow-md hover:border-purple-500/50 transition-all group">
           <div class="flex items-center justify-between">
             <span class="text-xl">📚</span>
-            <span class="px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-slate-700/40 text-slate-300 border border-slate-700/60">Published</span>
+            <span class="px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-slate-700/40 text-slate-300 border border-slate-700/60">
+              {{ currentLang === 'km' ? 'បានបោះពុម្ព' : 'Published' }}
+            </span>
           </div>
-          <p class="text-slate-400 text-xs font-medium mt-2">Active Courses</p>
+          <p class="text-slate-400 text-xs font-medium mt-2">{{ currentLang === 'km' ? 'វគ្គសិក្សាសកម្ម' : 'Active Courses' }}</p>
           <h4 class="text-2xl font-extrabold text-white mt-0.5 group-hover:text-purple-300 transition-colors">
             {{ (stats?.total_courses || 328).toLocaleString() }}
           </h4>
-          <p class="text-[10px] text-emerald-400 font-semibold mt-1">↑ +12 published</p>
+          <p class="text-[10px] text-emerald-400 font-semibold mt-1">{{ currentLang === 'km' ? '↑ +12 បានបោះពុម្ព' : '↑ +12 published' }}</p>
         </div>
 
         <!-- Card 4: Total Revenue -->
         <div class="bg-slate-800/80 border border-slate-700/70 rounded-2xl p-4 shadow-md hover:border-amber-500/50 transition-all group">
           <div class="flex items-center justify-between">
             <span class="text-xl">💳</span>
-            <span class="px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-slate-700/40 text-slate-300 border border-slate-700/60">Gross</span>
+            <span class="px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-slate-700/40 text-slate-300 border border-slate-700/60">
+              {{ currentLang === 'km' ? 'ចំណូលដុល' : 'Gross' }}
+            </span>
           </div>
-          <p class="text-slate-400 text-xs font-medium mt-2">Total Revenue</p>
+          <p class="text-slate-400 text-xs font-medium mt-2">{{ currentLang === 'km' ? 'ចំណូលសរុប' : 'Total Revenue' }}</p>
           <h4 class="text-2xl font-extrabold text-amber-300 mt-0.5">
             ${{ (stats?.total_revenue || 45820).toLocaleString() }}
           </h4>
-          <p class="text-[10px] text-emerald-400 font-semibold mt-1">↑ +12.4% vs last mo</p>
+          <p class="text-[10px] text-emerald-400 font-semibold mt-1">{{ currentLang === 'km' ? '↑ +12.4% ធៀបខែមុន' : '↑ +12.4% vs last mo' }}</p>
         </div>
 
         <!-- Card 5: At-Risk Alerts / Action Items (Unified Alert Placement) -->
@@ -413,15 +431,17 @@ const actionTasks = computed(() => [
           <div>
             <div class="flex items-center justify-between">
               <span class="text-xl">🔔</span>
-              <span class="px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-red-500/20 text-red-300 border border-red-500/30">Priority</span>
+              <span class="px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-red-500/20 text-red-300 border border-red-500/30">
+                {{ currentLang === 'km' ? 'អាទិភាព' : 'Priority' }}
+              </span>
             </div>
-            <p class="text-slate-400 text-xs font-medium mt-2">At-Risk & Open Alerts</p>
+            <p class="text-slate-400 text-xs font-medium mt-2">{{ currentLang === 'km' ? 'ការជូនដំណឹង & ហានិភ័យ' : 'At-Risk & Open Alerts' }}</p>
           </div>
           <div class="flex items-baseline gap-2 mt-1">
             <h4 class="text-2xl font-extrabold text-red-400">
               {{ (stats?.open_alerts || 12).toLocaleString() }}
             </h4>
-            <span class="text-[11px] text-red-300 font-bold">Action Required</span>
+            <span class="text-[11px] text-red-300 font-bold">{{ currentLang === 'km' ? 'ត្រូវចាត់វិធានការ' : 'Action Required' }}</span>
           </div>
         </div>
       </div>
@@ -434,24 +454,30 @@ const actionTasks = computed(() => [
           <div class="flex items-center justify-between mb-2">
             <div>
               <h3 class="font-bold text-sm text-white flex items-center gap-2">
-                <span>📈</span> ENROLLMENT & COMPLETION TREND
+                <span>📈</span> {{ currentLang === 'km' ? 'និន្នាការចុះឈ្មោះ & បញ្ចប់វគ្គសិក្សា' : 'ENROLLMENT & COMPLETION TREND' }}
               </h3>
-              <p class="text-[11px] text-slate-400">Student enrollment growth vs course completion trajectory</p>
+              <p class="text-[11px] text-slate-400">
+                {{ currentLang === 'km' ? 'កំណើននៃការចុះឈ្មោះនិស្សិតធៀបនឹងការបញ្ចប់វគ្គសិក្សា' : 'Student enrollment growth vs course completion trajectory' }}
+              </p>
             </div>
             <!-- Timeframe Tabs -->
             <div class="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs">
               <button
-                v-for="tf in ['daily', 'weekly', 'monthly'] as const"
-                :key="tf"
-                @click="chartTimeframe = tf"
+                v-for="tf in [
+                  { id: 'daily', label: currentLang === 'km' ? 'ប្រចាំថ្ងៃ' : 'Daily' },
+                  { id: 'weekly', label: currentLang === 'km' ? 'ប្រចាំសប្តាហ៍' : 'Weekly' },
+                  { id: 'monthly', label: currentLang === 'km' ? 'ប្រចាំខែ' : 'Monthly' },
+                ]"
+                :key="tf.id"
+                @click="chartTimeframe = (tf.id as any)"
                 :class="[
-                  chartTimeframe === tf 
+                  chartTimeframe === tf.id 
                     ? 'bg-indigo-600 text-white font-bold' 
                     : 'text-slate-400 hover:text-slate-200',
-                  'px-2.5 py-0.5 rounded-lg capitalize transition-all cursor-pointer text-[11px]'
+                  'px-2.5 py-0.5 rounded-lg transition-all cursor-pointer text-[11px]'
                 ]"
               >
-                {{ tf }}
+                {{ tf.label }}
               </button>
             </div>
           </div>
@@ -465,7 +491,7 @@ const actionTasks = computed(() => [
         <div class="lg:col-span-5 bg-slate-800/80 border border-slate-700/70 rounded-2xl p-4 shadow-lg flex flex-col justify-between">
           <div class="flex items-center justify-between border-b border-slate-700/60 pb-2 mb-2">
             <h3 class="font-bold text-sm text-white flex items-center gap-1.5">
-              <span>🍩</span> ACADEMIC RATIO
+              <span>🍩</span> {{ currentLang === 'km' ? 'សមាមាត្រសិក្សា' : 'ACADEMIC RATIO' }}
             </h3>
             <div class="flex items-center gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-[11px]">
               <button
@@ -473,21 +499,21 @@ const actionTasks = computed(() => [
                 :class="rightChartTab === 'completion' ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:text-slate-200'"
                 class="px-2 py-0.5 rounded-lg transition-colors cursor-pointer"
               >
-                Completion
+                {{ currentLang === 'km' ? 'ការបញ្ចប់' : 'Completion' }}
               </button>
               <button
                 @click="rightChartTab = 'payment'"
                 :class="rightChartTab === 'payment' ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:text-slate-200'"
                 class="px-2 py-0.5 rounded-lg transition-colors cursor-pointer"
               >
-                Payment
+                {{ currentLang === 'km' ? 'ការទូទាត់' : 'Payment' }}
               </button>
               <button
                 @click="rightChartTab = 'majors'"
                 :class="rightChartTab === 'majors' ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:text-slate-200'"
                 class="px-2 py-0.5 rounded-lg transition-colors cursor-pointer"
               >
-                Majors
+                {{ currentLang === 'km' ? 'ជំនាញ' : 'Majors' }}
               </button>
             </div>
           </div>
@@ -500,15 +526,15 @@ const actionTasks = computed(() => [
             <div class="grid grid-cols-3 gap-2 text-center text-xs border-t border-slate-700/60 pt-2">
               <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-800">
                 <span class="text-emerald-400 font-bold block text-sm">76%</span>
-                <span class="text-slate-400 text-[10px]">Completed</span>
+                <span class="text-slate-400 text-[10px]">{{ currentLang === 'km' ? 'បានបញ្ចប់' : 'Completed' }}</span>
               </div>
               <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-800">
                 <span class="text-amber-400 font-bold block text-sm">18%</span>
-                <span class="text-slate-400 text-[10px]">In Progress</span>
+                <span class="text-slate-400 text-[10px]">{{ currentLang === 'km' ? 'កំពុងរៀន' : 'In Progress' }}</span>
               </div>
               <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-800">
                 <span class="text-slate-400 font-bold block text-sm">6%</span>
-                <span class="text-slate-400 text-[10px]">Not Started</span>
+                <span class="text-slate-400 text-[10px]">{{ currentLang === 'km' ? 'មិនទាន់ចាប់ផ្តើម' : 'Not Started' }}</span>
               </div>
             </div>
           </div>
@@ -518,7 +544,7 @@ const actionTasks = computed(() => [
             <div class="space-y-2 text-xs">
               <div>
                 <div class="flex justify-between text-slate-300 mb-1">
-                  <span>✅ Paid (ABA Verified)</span>
+                  <span>{{ currentLang === 'km' ? '✅ បានទូទាត់ (ABA ផ្ទៀងផ្ទាត់)' : '✅ Paid (ABA Verified)' }}</span>
                   <span class="font-bold text-emerald-400">81%</span>
                 </div>
                 <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
@@ -527,7 +553,7 @@ const actionTasks = computed(() => [
               </div>
               <div>
                 <div class="flex justify-between text-slate-300 mb-1">
-                  <span>⏳ Pending Verification</span>
+                  <span>{{ currentLang === 'km' ? '⏳ រង់ចាំការផ្ទៀងផ្ទាត់' : '⏳ Pending Verification' }}</span>
                   <span class="font-bold text-amber-400">11%</span>
                 </div>
                 <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
@@ -536,7 +562,7 @@ const actionTasks = computed(() => [
               </div>
               <div>
                 <div class="flex justify-between text-slate-300 mb-1">
-                  <span>❌ Failed / Cancelled</span>
+                  <span>{{ currentLang === 'km' ? '❌ បរាជ័យ / បានបោះបង់' : '❌ Failed / Cancelled' }}</span>
                   <span class="font-bold text-red-400">5%</span>
                 </div>
                 <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
@@ -547,11 +573,11 @@ const actionTasks = computed(() => [
 
             <div class="grid grid-cols-2 gap-2 border-t border-slate-700/60 pt-2 text-xs">
               <div class="bg-slate-900/60 p-2 rounded-xl text-center border border-slate-800">
-                <span class="text-slate-400 block text-[10px]">Gross Revenue</span>
+                <span class="text-slate-400 block text-[10px]">{{ currentLang === 'km' ? 'ចំណូលដុល' : 'Gross Revenue' }}</span>
                 <span class="font-bold text-emerald-400 text-xs">${{ (stats?.total_revenue || 45820).toLocaleString() }}</span>
               </div>
               <div class="bg-slate-900/60 p-2 rounded-xl text-center border border-slate-800">
-                <span class="text-slate-400 block text-[10px]">Net Revenue</span>
+                <span class="text-slate-400 block text-[10px]">{{ currentLang === 'km' ? 'ចំណូលសុទ្ធ' : 'Net Revenue' }}</span>
                 <span class="font-bold text-indigo-300 text-xs">${{ (stats?.net_revenue || 42470).toLocaleString() }}</span>
               </div>
             </div>
@@ -562,7 +588,7 @@ const actionTasks = computed(() => [
             <div v-for="m in studentsByMajor.slice(0, 4)" :key="m.name" class="space-y-1 text-xs">
               <div class="flex justify-between text-slate-300">
                 <span class="font-medium truncate max-w-[170px]">{{ m.name }}</span>
-                <span class="font-bold text-indigo-300">{{ m.count }} stds</span>
+                <span class="font-bold text-indigo-300">{{ m.count }} {{ currentLang === 'km' ? 'នាក់' : 'stds' }}</span>
               </div>
               <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
                 <div class="bg-gradient-to-r from-indigo-500 to-cyan-400 h-full rounded-full" :style="{ width: `${m.pct * 4}%` }"></div>
@@ -591,21 +617,21 @@ const actionTasks = computed(() => [
                 :class="activeSnapshotTab === 'enrollments' ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:text-slate-200'"
                 class="px-3 py-1 rounded-lg transition-colors cursor-pointer"
               >
-                🎓 Latest Enrollments
+                🎓 {{ currentLang === 'km' ? 'ការចុះឈ្មោះចុងក្រោយ' : 'Latest Enrollments' }}
               </button>
               <button
                 @click="activeSnapshotTab = 'payments'"
                 :class="activeSnapshotTab === 'payments' ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:text-slate-200'"
                 class="px-3 py-1 rounded-lg transition-colors cursor-pointer"
               >
-                💳 ABA Payments
+                💳 {{ currentLang === 'km' ? 'ការទូទាត់ ABA' : 'ABA Payments' }}
               </button>
               <button
                 @click="activeSnapshotTab = 'activities'"
                 :class="activeSnapshotTab === 'activities' ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:text-slate-200'"
                 class="px-3 py-1 rounded-lg transition-colors cursor-pointer"
               >
-                🕒 Recent Logs
+                🕒 {{ currentLang === 'km' ? 'កំណត់ហេតុថ្មីៗ' : 'Recent Logs' }}
               </button>
             </div>
 
@@ -616,7 +642,7 @@ const actionTasks = computed(() => [
               "
               class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold text-right"
             >
-              View Full List →
+              {{ currentLang === 'km' ? 'មើលបញ្ជីពេញលេញ →' : 'View Full List →' }}
             </Link>
           </div>
 
@@ -625,10 +651,10 @@ const actionTasks = computed(() => [
             <table class="w-full text-left text-xs">
               <thead>
                 <tr class="bg-slate-900/80 text-slate-400 uppercase tracking-wider border-b border-slate-700/80">
-                  <th class="p-2.5">Student</th>
-                  <th class="p-2.5">Course</th>
-                  <th class="p-2.5">Major</th>
-                  <th class="p-2.5 text-right">Time</th>
+                  <th class="p-2.5">{{ currentLang === 'km' ? 'និស្សិត' : 'Student' }}</th>
+                  <th class="p-2.5">{{ currentLang === 'km' ? 'វគ្គសិក្សា' : 'Course' }}</th>
+                  <th class="p-2.5">{{ currentLang === 'km' ? 'ជំនាញ' : 'Major' }}</th>
+                  <th class="p-2.5 text-right">{{ currentLang === 'km' ? 'កាលបរិច្ឆេទ' : 'Time' }}</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-700/50">
@@ -655,10 +681,10 @@ const actionTasks = computed(() => [
             <table class="w-full text-left text-xs">
               <thead>
                 <tr class="bg-slate-900/80 text-slate-400 uppercase tracking-wider border-b border-slate-700/80">
-                  <th class="p-2.5">Order ID</th>
-                  <th class="p-2.5">Student</th>
-                  <th class="p-2.5">Amount</th>
-                  <th class="p-2.5">Status</th>
+                  <th class="p-2.5">{{ currentLang === 'km' ? 'លេខកូដបញ្ជាទិញ' : 'Order ID' }}</th>
+                  <th class="p-2.5">{{ currentLang === 'km' ? 'និស្សិត' : 'Student' }}</th>
+                  <th class="p-2.5">{{ currentLang === 'km' ? 'ចំនួនទឹកប្រាក់' : 'Amount' }}</th>
+                  <th class="p-2.5">{{ currentLang === 'km' ? 'ស្ថានភាព' : 'Status' }}</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-700/50">
@@ -709,10 +735,10 @@ const actionTasks = computed(() => [
           <div>
             <div class="flex items-center justify-between border-b border-slate-700/60 pb-2 mb-3">
               <h3 class="font-bold text-sm text-white flex items-center gap-2">
-                <span>⚡</span> ACTION NEEDED WIDGET
+                <span>⚡</span> {{ currentLang === 'km' ? 'ភារកិច្ចត្រូវចាត់វិធានការ' : 'ACTION NEEDED WIDGET' }}
               </h3>
               <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/25">
-                Tasks Pending
+                {{ currentLang === 'km' ? 'រង់ចាំដំណោះស្រាយ' : 'Tasks Pending' }}
               </span>
             </div>
 
@@ -743,7 +769,7 @@ const actionTasks = computed(() => [
 
           <div class="pt-3 border-t border-slate-700/60 text-right">
             <Link href="/admin/payments?status=pending" class="text-[11px] font-bold text-emerald-400 hover:text-emerald-300">
-              Verify All Pending Payments →
+              {{ currentLang === 'km' ? 'ផ្ទៀងផ្ទាត់ការទូទាត់រង់ចាំទាំងអស់ →' : 'Verify All Pending Payments →' }}
             </Link>
           </div>
         </div>
@@ -755,13 +781,13 @@ const actionTasks = computed(() => [
         <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl">
           <div class="flex items-center justify-between border-b border-slate-700 pb-3">
             <h3 class="font-bold text-base text-white flex items-center gap-2">
-              <span>⚙️</span> CUSTOMIZE DASHBOARD
+              <span>⚙️</span> {{ currentLang === 'km' ? 'កំណត់ផ្ទាំងគ្រប់គ្រងផ្ទាល់ខ្លួន' : 'CUSTOMIZE DASHBOARD' }}
             </h3>
             <button @click="showCustomizeModal = false" class="text-slate-400 hover:text-slate-200">✕</button>
           </div>
 
           <div class="space-y-3 max-h-[60vh] overflow-y-auto pr-1 text-xs">
-            <p class="text-slate-400 font-semibold">Show / Hide Rows:</p>
+            <p class="text-slate-400 font-semibold">{{ currentLang === 'km' ? 'បង្ហាញ / លាក់ ជួរ:' : 'Show / Hide Rows:' }}</p>
             <div class="space-y-2">
               <label v-for="(val, key) in widgetVisibility" :key="key" class="flex items-center gap-2.5 text-slate-200 cursor-pointer hover:text-white">
                 <input
@@ -769,17 +795,23 @@ const actionTasks = computed(() => [
                   v-model="widgetVisibility[key]"
                   class="rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-indigo-500"
                 />
-                <span class="capitalize">{{ key.replace(/([A-Z])/g, ' $1') }}</span>
+                <span class="capitalize">
+                  {{ 
+                    currentLang === 'km' 
+                      ? (key === 'kpiCards' ? 'កាតសង្ខេប KPI' : (key === 'analyticsRow' ? 'តារាងស្ថិតិ & វិភាគ' : 'ទិន្នន័យផ្ទាល់ & សកម្មភាព')) 
+                      : key.replace(/([A-Z])/g, ' $1') 
+                  }}
+                </span>
               </label>
             </div>
           </div>
 
           <div class="flex justify-end items-center gap-2 border-t border-slate-700 pt-4">
             <button @click="resetWidgetConfig" class="px-3.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-xl text-xs font-semibold">
-              Reset Layout
+              {{ currentLang === 'km' ? 'កំណត់ឡើងវិញ' : 'Reset Layout' }}
             </button>
             <button @click="saveWidgetConfig" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-indigo-600/30">
-              Save Preferences
+              {{ currentLang === 'km' ? 'រក្សាទុកការកំណត់' : 'Save Preferences' }}
             </button>
           </div>
         </div>
