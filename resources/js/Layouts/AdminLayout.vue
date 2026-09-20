@@ -413,6 +413,60 @@ const selectLanguage = (code: string) => {
   isLangOpen.value = false
 }
 
+// Web Audio API Sound Synthesizer for Language Switch (Sweet chime identical to Login form)
+let audioCtx: AudioContext | null = null
+
+const getAudioContext = (): AudioContext | null => {
+  if (typeof window === 'undefined') return null
+  try {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext
+    if (!AudioContextClass) return null
+    if (!audioCtx || audioCtx.state === 'closed') {
+      audioCtx = new AudioContextClass()
+    }
+    return audioCtx
+  } catch {
+    return null
+  }
+}
+
+const playTopBarSound = async () => {
+  try {
+    const ctx = getAudioContext()
+    if (!ctx) return
+
+    if (ctx.state === 'suspended') {
+      await ctx.resume()
+    }
+
+    const now = ctx.currentTime
+
+    // Sweet clear selection chime
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(750, now)
+    osc.frequency.exponentialRampToValueAtTime(1150, now + 0.09)
+
+    gain.gain.setValueAtTime(0.3, now)
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.11)
+
+    osc.start(now)
+    osc.stop(now + 0.11)
+  } catch (e) {
+    // Graceful fallback
+  }
+}
+
+const toggleLanguage = () => {
+  playTopBarSound()
+  const nextLang = currentLang.value === 'km' ? 'en' : 'km'
+  i18n.setLanguage(nextLang)
+}
+
 const currentBreadcrumb = computed(() => {
   const url = page.url
   if (url.startsWith('/admin/dashboard')) return ['Admin', 'Dashboard']
@@ -1194,71 +1248,19 @@ onUnmounted(() => {
             </Transition>
           </div>
 
-          <!-- Language Switcher Pill (Hover Flyout & Smooth Transition) -->
-          <div 
-            class="relative" 
-            @mouseenter="isLangOpen = true" 
-            @mouseleave="isLangOpen = false"
+          <!-- Language Switcher Pill (Direct 1-Click Toggle: Khmer / English - Form Login Style) -->
+          <button
+            type="button"
+            @click="toggleLanguage"
+            class="p-1.5 px-2.5 h-8 rounded-full bg-slate-800/60 hover:bg-slate-800 backdrop-blur-md text-slate-300 hover:text-white transition-all duration-150 border border-slate-700/60 hover:border-slate-600 shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
+            :title="currentLang === 'km' ? 'Switch to English' : 'ប្តូរទៅជាភាសាខ្មែរ'"
           >
-            <button
-              @click="isLangOpen = !isLangOpen"
-              type="button"
-              class="h-8 px-2.5 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 rounded-lg transition-all flex items-center gap-2 cursor-pointer group select-none focus:outline-none focus:ring-0 focus-visible:outline-none"
-              title="Switch Language"
-            >
-              <img 
-                :src="languages.find(l => l.code === currentLang)?.flagUrl" 
-                :alt="currentLang"
-                class="w-4 h-4 rounded-full object-cover shrink-0" 
-              />
-              <span class="uppercase text-xs font-semibold text-slate-300 group-hover:text-white font-sans tracking-wide">
-                {{ currentLang }}
-              </span>
-              <svg 
-                :class="[isLangOpen ? 'rotate-180 text-slate-200' : 'text-slate-400']" 
-                class="w-3.5 h-3.5 transition-transform duration-200" 
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-              </svg>
-            </button>
-
-            <!-- Language Dropdown Menu -->
-            <Transition
-              enter-active-class="transition duration-200 ease-out"
-              enter-from-class="transform opacity-0 scale-95 -translate-y-1"
-              enter-to-class="transform opacity-100 scale-100 translate-y-0"
-              leave-active-class="transition duration-150 ease-in"
-              leave-from-class="transform opacity-100 scale-100 translate-y-0"
-              leave-to-class="transform opacity-0 scale-95 -translate-y-1"
-            >
-              <div
-                v-if="isLangOpen"
-                class="absolute right-0 mt-1.5 w-40 rounded-xl bg-slate-800/95 backdrop-blur-xl border border-slate-700/80 shadow-2xl py-1.5 z-50 overflow-hidden"
-              >
-                <button
-                  v-for="lang in languages"
-                  :key="lang.code"
-                  @click="selectLanguage(lang.code)"
-                  :class="[
-                    currentLang === lang.code ? 'bg-indigo-600/20 text-indigo-300 font-semibold' : 'text-slate-300 hover:text-white hover:bg-slate-700/60'
-                  ]"
-                  class="w-full flex items-center justify-between px-3.5 py-2 text-xs transition-colors rounded-none cursor-pointer focus:outline-none"
-                >
-                  <span class="flex items-center gap-2.5">
-                    <img :src="lang.flagUrl" :alt="lang.name" class="w-4 h-4 rounded-full object-cover shrink-0" />
-                    <span>{{ lang.name }}</span>
-                  </span>
-                  <svg v-if="currentLang === lang.code" class="w-3.5 h-3.5 text-indigo-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                  </svg>
-                </button>
-              </div>
-            </Transition>
-          </div>
+            <img
+              :src="currentLang === 'km' ? '/images/flags/km.svg' : '/images/flags/en.svg'"
+              :alt="currentLang"
+              class="w-5 h-3.5 object-cover rounded-[3px] shadow-xs ring-1 ring-slate-600/60 transition-transform duration-200 group-hover:scale-110"
+            />
+          </button>
 
           <!-- Fullscreen Button -->
           <button
