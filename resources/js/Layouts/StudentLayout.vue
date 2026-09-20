@@ -1321,14 +1321,24 @@ const onIconError = (e: Event) => {
           <button
             type="button"
             @click="toggleLanguage"
-            class="p-1.5 px-2.5 h-8 rounded-full bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all duration-150 border border-slate-200 hover:border-slate-300 dark:border-slate-700/60 dark:hover:border-slate-600 shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
+            class="p-1.5 px-2.5 h-8 rounded-full bg-white/90 dark:bg-[#121214]/80 backdrop-blur-md hover:bg-zinc-100 dark:hover:bg-[#1c1c1f] text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white transition-all duration-150 border border-zinc-300/80 dark:border-zinc-800 shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
             :title="currentLang === 'km' ? 'Switch to English' : 'ប្តូរទៅជាភាសាខ្មែរ'"
           >
             <img
               :src="currentLang === 'km' ? '/images/flags/km.svg' : '/images/flags/en.svg'"
               :alt="currentLang"
-              class="w-5 h-3.5 object-cover rounded-[3px] shadow-xs ring-1 ring-slate-300 dark:ring-slate-600/60 transition-transform duration-200 group-hover:scale-110"
+              class="w-5 h-3.5 object-cover rounded-[3px] shadow-xs ring-1 ring-zinc-300/60 dark:ring-zinc-700/60 transition-transform duration-200 group-hover:scale-110"
             />
+          </button>
+
+          <!-- Theme Switcher Pill (Matching Login page style) -->
+          <button
+            type="button"
+            @click="toggleTheme($event)"
+            class="p-1.5 px-2.5 h-8 rounded-full bg-white/90 dark:bg-[#121214]/80 backdrop-blur-md hover:bg-zinc-100 dark:hover:bg-[#1c1c1f] text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white transition-all duration-150 border border-zinc-300/80 dark:border-zinc-800 shadow-xs flex items-center justify-center gap-1.5 text-xs font-semibold cursor-pointer select-none active:scale-95 group focus:outline-none"
+            :title="isDark ? (currentLang === 'km' ? 'ប្ដូរទៅ Light Mode' : 'Switch to Light Mode') : (currentLang === 'km' ? 'ប្ដូរទៅ Dark Mode' : 'Switch to Dark Mode')"
+          >
+            <i :class="['pi text-xs transition-transform duration-500 group-hover:rotate-45', isDark ? 'pi-sun text-amber-400' : 'pi-moon text-indigo-500']"></i>
           </button>
 
           <!-- Notifications Bell & Drawer Trigger -->

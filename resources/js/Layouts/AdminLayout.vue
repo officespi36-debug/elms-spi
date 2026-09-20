@@ -2,8 +2,11 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { Head, Link, router, usePage } from '@inertiajs/vue3'
 import { i18n } from '@/Services/i18n'
+import { useTheme } from '@/composables/useTheme'
 import GlobalToast from '@/Components/GlobalToast.vue'
 import OfficialVerifiedBadge from '@/Components/OfficialVerifiedBadge.vue'
+
+const { isDark, toggleTheme } = useTheme()
 
 const logoUrl = '/images/logo.png'
 const actionBtnIcon = '/images/actions/action-button.svg'
@@ -821,14 +824,14 @@ onUnmounted(() => {
 <template>
   <Head :title="pageTitle" />
   <GlobalToast />
-  <div class="min-h-screen bg-slate-900 text-slate-200 selection:bg-indigo-500/30">
+  <div class="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 selection:bg-indigo-500/30 transition-colors duration-200">
     <!-- Sidebar for Desktop -->
-    <div :class="[isSidebarCollapsed ? 'w-20 overflow-visible' : 'w-72', 'fixed inset-y-0 left-0 z-50 hidden flex-col bg-slate-900/90 backdrop-blur-xl border-r border-slate-800 lg:flex transition-all duration-300']">
+    <aside :class="[isSidebarCollapsed ? 'w-20 overflow-visible' : 'w-72', 'fixed inset-y-0 left-0 z-50 hidden flex-col bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl border-r border-slate-200/90 dark:border-slate-800 lg:flex transition-all duration-300 shadow-sm dark:shadow-none']">
       <!-- Header -->
       <div
         :class="[
           isSidebarCollapsed ? 'justify-center px-2' : 'justify-between px-4',
-          'relative flex h-16 shrink-0 items-center border-b border-slate-800 transition-all duration-300 group/sidebar-header'
+          'relative flex h-16 shrink-0 items-center border-b border-slate-200/90 dark:border-slate-800 transition-all duration-300 group/sidebar-header'
         ]"
       >
         <!-- Logo & Title Container -->
@@ -848,10 +851,10 @@ onUnmounted(() => {
             ]"
           />
           <div v-show="!isSidebarCollapsed" class="transition-opacity duration-200 min-w-0">
-            <h1 class="text-base font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-cyan-300 to-sky-400 tracking-tight whitespace-nowrap">
+            <h1 class="text-base font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-500 tracking-tight whitespace-nowrap">
               E-LMS Admin
             </h1>
-            <p class="text-[10px] text-slate-400 font-medium tracking-wide uppercase whitespace-nowrap">{{ currentLang === 'km' ? 'ផ្ទាំងគ្រប់គ្រង' : 'Admin Panel' }}</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium tracking-wide uppercase whitespace-nowrap">{{ currentLang === 'km' ? 'ផ្ទាំងគ្រប់គ្រង' : 'Admin Panel' }}</p>
           </div>
         </div>
 
@@ -862,8 +865,8 @@ onUnmounted(() => {
           :title="isSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'"
           :class="[
             isSidebarCollapsed
-              ? 'absolute -right-3 top-1/2 -translate-y-1/2 bg-slate-800 text-indigo-400 border border-slate-700 shadow-md rounded-full p-1 hover:scale-110 hover:bg-slate-700 z-10'
-              : 'p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 shrink-0',
+              ? 'absolute -right-3 top-1/2 -translate-y-1/2 bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 border border-slate-200 dark:border-slate-700 shadow-md rounded-full p-1 hover:scale-110 hover:bg-slate-50 dark:hover:bg-slate-700 z-10'
+              : 'p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0 cursor-pointer',
             'transition-all duration-200 focus:outline-none'
           ]"
         >
@@ -897,8 +900,8 @@ onUnmounted(() => {
               :title="isSidebarCollapsed ? item.name : undefined"
               :class="[
                 $page.url.startsWith(item.href!) 
-                  ? 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 font-semibold shadow-sm' 
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent font-medium',
+                  ? 'bg-indigo-50 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 border border-indigo-200/90 dark:border-indigo-500/30 font-semibold shadow-xs' 
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-transparent font-medium',
                 isSidebarCollapsed ? 'justify-center px-0 w-10 h-10 mx-auto' : 'px-3 w-full gap-x-3',
                 'group flex items-center rounded-xl py-2.5 text-xs transition-all duration-200'
               ]"
@@ -913,7 +916,7 @@ onUnmounted(() => {
                 />
                 <svg 
                   :class="[
-                    $page.url.startsWith(item.href!) ? 'text-indigo-400' : 'text-slate-500 group-hover:text-slate-300',
+                    $page.url.startsWith(item.href!) ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300',
                     item.iconUrl ? 'hidden' : '',
                     'h-5 w-5 shrink-0 transition-colors'
                   ]"
@@ -936,8 +939,8 @@ onUnmounted(() => {
                 :title="isSidebarCollapsed ? item.name : undefined"
                 :class="[
                   isChildActive(item.children) 
-                    ? 'bg-indigo-500/10 text-indigo-300 border border-indigo-500/20' 
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent',
+                    ? 'bg-indigo-50/80 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border border-indigo-200/90 dark:border-indigo-500/20' 
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-transparent',
                   isSidebarCollapsed ? 'justify-center px-0 w-10 h-10 mx-auto' : 'px-3 w-full justify-between',
                   'group flex items-center rounded-xl py-2.5 text-xs font-medium transition-all duration-200'
                 ]"
@@ -953,7 +956,7 @@ onUnmounted(() => {
                     />
                     <svg 
                       :class="[
-                        isChildActive(item.children) ? 'text-indigo-400' : 'text-slate-500 group-hover:text-slate-300',
+                        isChildActive(item.children) ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300',
                         item.iconUrl ? 'hidden' : '',
                         'h-5 w-5 shrink-0 transition-colors'
                       ]"
@@ -973,7 +976,7 @@ onUnmounted(() => {
                   <!-- Minimal, Sleek Chevron Arrow Indicator (No Bulky Box / Heavy Glow) -->
                   <svg
                     :class="[
-                      expandedModules[item.key!] ? 'rotate-180 text-indigo-400' : 'text-slate-500 group-hover:text-slate-300',
+                      expandedModules[item.key!] ? 'rotate-180 text-indigo-500 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300',
                       'w-4 h-4 transition-transform duration-200 shrink-0 ml-1'
                     ]"
                     fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
@@ -996,13 +999,13 @@ onUnmounted(() => {
                   <!-- Vertical Trunk Line (Connecting down through items) -->
                   <div
                     v-if="idx < item.children.length - 1"
-                    class="absolute -left-4 top-0 bottom-0 w-[2px] bg-slate-700/60"
+                    class="absolute -left-4 top-0 bottom-0 w-[2px] bg-slate-200 dark:bg-slate-700/60"
                   ></div>
 
                   <!-- Curved Branch Line curving into this item (rounded-bl-xl) -->
                   <div
                     :class="[
-                      isSubActive(sub.href) ? 'border-indigo-400/90 shadow-xs shadow-indigo-500/30' : 'border-slate-700/80 group-hover:border-slate-400',
+                      isSubActive(sub.href) ? 'border-indigo-500 dark:border-indigo-400/90 shadow-xs shadow-indigo-500/30' : 'border-slate-200 dark:border-slate-700/80 group-hover:border-slate-400',
                       'absolute -left-4 top-0 h-1/2 w-3.5 border-l-2 border-b-2 rounded-bl-xl transition-colors duration-200 pointer-events-none'
                     ]"
                   ></div>
@@ -1011,8 +1014,8 @@ onUnmounted(() => {
                     :href="sub.href"
                     :class="[
                       isSubActive(sub.href) 
-                        ? 'text-indigo-300 font-semibold bg-indigo-500/15 border border-indigo-500/30 shadow-xs' 
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border border-transparent',
+                        ? 'text-indigo-600 dark:text-indigo-300 font-semibold bg-indigo-50 dark:bg-indigo-500/15 border border-indigo-200/90 dark:border-indigo-500/30 shadow-xs' 
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50 border border-transparent',
                       'flex-1 flex items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs transition-all duration-200 ml-1'
                     ]"
                   >
@@ -1027,7 +1030,7 @@ onUnmounted(() => {
                       />
                       <svg
                         :class="[
-                          isSubActive(sub.href) ? 'text-indigo-400 scale-110' : 'text-slate-500 group-hover:text-slate-300',
+                          isSubActive(sub.href) ? 'text-indigo-600 dark:text-indigo-400 scale-110' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300',
                           sub.iconUrl ? 'hidden' : '',
                           'w-4 h-4 transition-all duration-200 shrink-0'
                         ]"
@@ -1052,14 +1055,14 @@ onUnmounted(() => {
               <!-- Invisible hover bridge between icon and flyout box -->
               <div class="absolute -left-4 top-0 bottom-0 w-4"></div>
 
-              <div class="relative bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-2xl p-3 shadow-2xl ring-1 ring-slate-800/80">
+              <div class="relative bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700/80 rounded-2xl p-3 shadow-2xl ring-1 ring-slate-200/80 dark:ring-slate-800/80">
                 <!-- Directional Caret / Arrow Pointer Pointing Left to the Source Icon -->
-                <div class="absolute -left-1.5 top-3.5 w-3 h-3 bg-slate-900 border-l border-b border-slate-700/80 rotate-45 z-10 pointer-events-none"></div>
+                <div class="absolute -left-1.5 top-3.5 w-3 h-3 bg-white dark:bg-slate-900 border-l border-b border-slate-200 dark:border-slate-700/80 rotate-45 z-10 pointer-events-none"></div>
 
                 <!-- Flyout Header -->
-                <div class="relative z-20 flex items-center justify-between px-2 py-1.5 mb-2 border-b border-slate-800 pb-2">
+                <div class="relative z-20 flex items-center justify-between px-2 py-1.5 mb-2 border-b border-slate-200 dark:border-slate-800 pb-2">
                   <div class="flex items-center gap-2 min-w-0">
-                    <div class="p-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 shrink-0 flex items-center justify-center">
+                    <div class="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 shrink-0 flex items-center justify-center">
                       <img 
                         v-if="item.iconUrl"
                         :src="item.iconUrl" 
@@ -1068,7 +1071,7 @@ onUnmounted(() => {
                         class="w-4 h-4 object-contain shrink-0"
                       />
                       <svg
-                        :class="[item.iconUrl ? 'hidden' : '', 'w-4 h-4 text-indigo-400']"
+                        :class="[item.iconUrl ? 'hidden' : '', 'w-4 h-4 text-indigo-500 dark:text-indigo-400']"
                         fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
                       >
                         <path stroke-linecap="round" stroke-linejoin="round" :d="item.icon || 'M4 6h16M4 12h16M4 18h16'" />
@@ -1139,7 +1142,7 @@ onUnmounted(() => {
       </nav>
 
       <!-- User Profile Bottom -->
-      <div :class="[isSidebarCollapsed ? 'px-0 py-3' : 'p-3', 'mt-auto border-t border-slate-800 bg-slate-900/60']">
+      <div :class="[isSidebarCollapsed ? 'px-0 py-3' : 'p-3', 'mt-auto border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60']">
         <div :class="[isSidebarCollapsed ? 'flex-col justify-center items-center gap-2.5 w-full' : 'gap-3', 'flex items-center']">
           <!-- Interactive Avatar with Hover Upload Icon -->
           <div
@@ -1150,9 +1153,9 @@ onUnmounted(() => {
             <img
               :src="user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=fff`"
               alt="Profile"
-              class="h-9 w-9 rounded-full border border-slate-700 object-cover group-hover:brightness-75 transition-all shadow-md"
+              class="h-9 w-9 rounded-full border border-slate-200 dark:border-slate-700 object-cover group-hover:brightness-75 transition-all shadow-md"
             />
-            <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-slate-900"></span>
+            <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-white dark:ring-slate-900"></span>
 
             <!-- Hover Camera Overlay -->
             <div class="absolute inset-0 rounded-full bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -1182,21 +1185,21 @@ onUnmounted(() => {
 
           <div v-show="!isSidebarCollapsed" class="flex-1 min-w-0">
             <div class="flex items-center gap-1.5 min-w-0">
-              <p class="text-xs font-semibold text-white truncate cursor-pointer hover:text-indigo-300 transition-colors" @click="triggerAvatarUpload" title="Click to upload profile photo">
+              <p class="text-xs font-semibold text-slate-800 dark:text-white truncate cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors" @click="triggerAvatarUpload" title="Click to upload profile photo">
                 {{ user.name }}
               </p>
               <OfficialVerifiedBadge :role="user.role" size="sm" />
             </div>
-            <p class="text-[11px] text-slate-400 truncate">{{ user.email }}</p>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">{{ user.email }}</p>
           </div>
-          <button @click="logout" title="Log Out" class="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-lg transition-colors">
+          <button @click="logout" title="Log Out" class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
           </button>
         </div>
       </div>
-    </div>
+    </aside>
 
     <!-- Mobile Drawer Sidebar (Sliding Drawer on Mobile) -->
     <div
@@ -1208,18 +1211,18 @@ onUnmounted(() => {
     <aside
       :class="[
         sidebarOpen ? 'translate-x-0' : '-translate-x-full',
-        'fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 border-r border-slate-800 flex flex-col lg:hidden transition-transform duration-300 ease-in-out shadow-2xl'
+        'fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col lg:hidden transition-transform duration-300 ease-in-out shadow-2xl'
       ]"
     >
-      <div class="h-14 px-4 flex items-center justify-between border-b border-slate-800">
+      <div class="h-14 px-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-800">
         <div class="flex items-center gap-3">
           <img :src="logoUrl" alt="E-LMS Logo" class="w-8 h-8 rounded-full object-cover ring-2 ring-indigo-500/30" />
           <div>
-            <span class="font-bold text-sm text-white block">E-LMS Admin</span>
-            <span class="text-[9px] text-slate-400 uppercase tracking-wide block">{{ currentLang === 'km' ? 'ផ្ទាំងគ្រប់គ្រង' : 'ADMIN PANEL' }}</span>
+            <span class="font-bold text-sm text-slate-900 dark:text-white block">E-LMS Admin</span>
+            <span class="text-[9px] text-slate-500 dark:text-slate-400 uppercase tracking-wide block">{{ currentLang === 'km' ? 'ផ្ទាំងគ្រប់គ្រង' : 'ADMIN PANEL' }}</span>
           </div>
         </div>
-        <button @click="sidebarOpen = false" class="p-1 text-slate-400 hover:text-white">
+        <button @click="sidebarOpen = false" class="p-1 text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer">
           <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
@@ -1231,7 +1234,7 @@ onUnmounted(() => {
             :href="item.href!"
             @click="sidebarOpen = false"
             :class="[
-              $page.url.startsWith(item.href!) ? 'bg-indigo-500/20 text-indigo-300 font-bold border border-indigo-500/30 shadow-xs' : 'text-slate-400 hover:text-white hover:bg-slate-800/60',
+              $page.url.startsWith(item.href!) ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 font-bold border border-indigo-200 dark:border-indigo-500/30 shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60',
               'flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-colors'
             ]"
           >
@@ -1243,22 +1246,22 @@ onUnmounted(() => {
           <div v-else class="space-y-1">
             <button
               @click="toggleModule(item.key!)"
-              class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 font-medium"
+              class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60 font-medium cursor-pointer"
             >
               <div class="flex items-center gap-3 truncate">
                 <img v-if="item.iconUrl" :src="item.iconUrl" class="w-5 h-5 object-contain shrink-0" />
                 <span class="truncate">{{ getNavTitle(item.name) }}</span>
               </div>
-              <svg :class="[expandedModules[item.key!] ? 'rotate-180 text-indigo-400' : '', 'w-4 h-4 transition-transform text-slate-500']" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+              <svg :class="[expandedModules[item.key!] ? 'rotate-180 text-indigo-500 dark:text-indigo-400' : '', 'w-4 h-4 transition-transform text-slate-400 dark:text-slate-500']" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
-            <div v-show="expandedModules[item.key!]" class="pl-4 ml-4 space-y-1 my-1 border-l border-slate-800">
+            <div v-show="expandedModules[item.key!]" class="pl-4 ml-4 space-y-1 my-1 border-l border-slate-200 dark:border-slate-800">
               <Link
                 v-for="sub in item.children"
                 :key="sub.href"
                 :href="sub.href"
                 @click="sidebarOpen = false"
                 :class="[
-                  $page.url.startsWith(sub.href) ? 'bg-indigo-500/15 text-indigo-300 font-bold border border-indigo-500/25' : 'text-slate-400 hover:text-white hover:bg-slate-800/60',
+                  $page.url.startsWith(sub.href) ? 'bg-indigo-50 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 font-bold border border-indigo-200 dark:border-indigo-500/25' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60',
                   'flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs transition-all'
                 ]"
               >
@@ -1271,24 +1274,24 @@ onUnmounted(() => {
       </nav>
 
       <!-- Mobile Footer -->
-      <div class="p-3.5 border-t border-slate-800 bg-slate-900/90 flex items-center justify-between">
+      <div class="p-3.5 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 flex items-center justify-between">
         <div class="flex items-center gap-3 min-w-0">
           <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 text-white font-bold flex items-center justify-center text-xs">
             {{ user.name ? user.name.charAt(0) : 'A' }}
           </div>
           <div class="min-w-0">
-            <p class="font-bold text-white text-xs truncate">{{ user.name }}</p>
-            <p class="text-[10px] text-slate-400 truncate">{{ user.email }}</p>
+            <p class="font-bold text-slate-900 dark:text-white text-xs truncate">{{ user.name }}</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate">{{ user.email }}</p>
           </div>
         </div>
-        <button @click="logout" class="p-2 text-slate-400 hover:text-red-400 rounded-lg">
+        <button @click="logout" class="p-2 text-slate-400 hover:text-red-500 rounded-lg cursor-pointer">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
         </button>
       </div>
     </aside>
 
     <!-- Sticky Top Navbar (Desktop & Mobile) -->
-    <header :class="[isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72', 'sticky top-0 z-40 bg-slate-900/90 backdrop-blur-xl border-b border-slate-800/80 transition-all duration-300']">
+    <header :class="[isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72', 'sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800/80 transition-all duration-300']">
       <div class="flex h-14 items-center justify-between px-4 sm:px-6 lg:px-8 gap-4">
         
         <!-- Left Side: Mobile Menu Toggle, Breadcrumbs & Sleek Search Input -->
@@ -1297,7 +1300,7 @@ onUnmounted(() => {
           <button
             @click="sidebarOpen = !sidebarOpen"
             type="button"
-            class="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg focus:outline-none transition-colors cursor-pointer lg:hidden"
+            class="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg focus:outline-none transition-colors cursor-pointer lg:hidden"
             title="Toggle Mobile Navigation"
           >
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -1307,9 +1310,9 @@ onUnmounted(() => {
 
           <!-- Harmonized Breadcrumb -->
           <div class="hidden sm:flex items-center gap-2 text-xs font-medium truncate">
-            <span class="text-slate-400 font-normal">Admin</span>
-            <svg class="w-3.5 h-3.5 text-slate-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-            <span class="px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 font-semibold truncate">
+            <span class="text-slate-500 dark:text-slate-400 font-normal">Admin</span>
+            <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            <span class="px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/20 font-semibold truncate">
               {{ currentBreadcrumb[1] }}
             </span>
           </div>
@@ -1319,13 +1322,13 @@ onUnmounted(() => {
             <button
               @click="toggleDropdown('search')"
               type="button"
-              class="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700/60 hover:border-indigo-500/40 text-xs transition-all w-56 lg:w-72 justify-between shadow-inner group"
+              class="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/60 hover:bg-slate-200/70 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-700/60 hover:border-indigo-500/40 text-xs transition-all w-56 lg:w-72 justify-between shadow-inner group cursor-pointer"
             >
               <div class="flex items-center gap-2 truncate min-w-0 flex-1">
-                <svg class="w-3.5 h-3.5 text-indigo-400 shrink-0 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                <span class="truncate text-slate-400 group-hover:text-slate-300">{{ currentLang === 'km' ? 'ស្វែងរកប្រព័ន្ធ... (Ctrl K)' : 'Global Search... (Ctrl K)' }}</span>
+                <svg class="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400 shrink-0 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <span class="truncate text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-300">{{ currentLang === 'km' ? 'ស្វែងរកប្រព័ន្ធ... (Ctrl K)' : 'Global Search... (Ctrl K)' }}</span>
               </div>
-              <kbd class="hidden lg:inline-flex items-center shrink-0 whitespace-nowrap px-1.5 py-0.5 text-[10px] font-mono font-semibold text-slate-400 bg-slate-900/80 border border-slate-700/60 rounded shadow-xs leading-none">Ctrl K</kbd>
+              <kbd class="hidden lg:inline-flex items-center shrink-0 whitespace-nowrap px-1.5 py-0.5 text-[10px] font-mono font-semibold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700/60 rounded shadow-xs leading-none">Ctrl K</kbd>
             </button>
           </div>
         </div>
@@ -1337,7 +1340,7 @@ onUnmounted(() => {
           <button
             @click="toggleDropdown('search')"
             type="button"
-            class="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg md:hidden focus:outline-none transition-colors"
+            class="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg md:hidden focus:outline-none transition-colors cursor-pointer"
             :title="currentLang === 'km' ? 'ស្វែងរក' : 'Search'"
           >
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -1352,12 +1355,12 @@ onUnmounted(() => {
             <button
               @click="isQuickActionOpen = !isQuickActionOpen"
               type="button"
-              class="h-8 px-2.5 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 rounded-lg transition-all flex items-center gap-2 cursor-pointer group select-none focus:outline-none focus:ring-0 focus-visible:outline-none"
+              class="h-8 px-2.5 bg-slate-100 dark:bg-slate-800/60 hover:bg-slate-200/80 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600 rounded-lg transition-all flex items-center gap-2 cursor-pointer group select-none focus:outline-none focus:ring-0 focus-visible:outline-none"
               :title="currentLang === 'km' ? 'បង្កើតរហ័ស' : 'Quick Actions'"
             >
               <img :src="actionBtnIcon" alt="Actions" class="w-4 h-4 shrink-0 group-hover:scale-105 transition-transform" />
-              <span class="hidden sm:inline text-xs font-semibold text-slate-300 group-hover:text-white font-sans tracking-wide">{{ currentLang === 'km' ? 'បង្កើតរហ័ស' : 'Quick Create' }}</span>
-              <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-200 transition-transform duration-200" :class="isQuickActionOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+              <span class="hidden sm:inline text-xs font-semibold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white font-sans tracking-wide">{{ currentLang === 'km' ? 'បង្កើតរហ័ស' : 'Quick Create' }}</span>
+              <svg class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-transform duration-200" :class="isQuickActionOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
 
             <Transition
@@ -1370,9 +1373,9 @@ onUnmounted(() => {
             >
               <div
                 v-if="isQuickActionOpen"
-                class="absolute right-0 mt-1.5 w-60 rounded-xl bg-slate-800/95 backdrop-blur-xl border border-slate-700/80 shadow-2xl py-1.5 z-50 overflow-hidden"
+                class="absolute right-0 mt-1.5 w-60 rounded-xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700/80 shadow-2xl py-1.5 z-50 overflow-hidden"
               >
-                <div class="px-3.5 py-1.5 border-b border-slate-700/60 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                <div class="px-3.5 py-1.5 border-b border-slate-200 dark:border-slate-700/60 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                   {{ currentLang === 'km' ? 'បង្កើត / បន្ថែមរហ័ស' : 'Quick Create' }}
                 </div>
                 <Link
@@ -1380,7 +1383,7 @@ onUnmounted(() => {
                   :key="act.name"
                   :href="act.href"
                   @click="isQuickActionOpen = false"
-                  class="flex items-center gap-2.5 px-3.5 py-2 text-xs text-slate-300 hover:text-white hover:bg-slate-700/60 transition-colors group/item"
+                  class="flex items-center gap-2.5 px-3.5 py-2 text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/60 transition-colors group/item"
                 >
                   <img :src="act.iconUrl" :alt="act.name" class="w-4 h-4 shrink-0 group-hover/item:scale-110 transition-transform" />
                   <span class="font-medium">{{ act.name }}</span>
@@ -1398,7 +1401,7 @@ onUnmounted(() => {
             <button
               @click="toggleDropdown('status')"
               type="button"
-              class="h-8 px-2.5 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 rounded-lg transition-all flex items-center gap-2 cursor-pointer group select-none focus:outline-none focus:ring-0 focus-visible:outline-none"
+              class="h-8 px-2.5 bg-slate-100 dark:bg-slate-800/60 hover:bg-slate-200/80 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600 rounded-lg transition-all flex items-center gap-2 cursor-pointer group select-none focus:outline-none focus:ring-0 focus-visible:outline-none"
               :title="isOnline ? (currentLang === 'km' ? 'ស្ថានភាព: អនឡាញ' : 'Status: Online') : (currentLang === 'km' ? 'ស្ថានភាព: អូហ្វឡាញ' : 'Status: Offline')"
             >
               <div class="relative flex items-center justify-center shrink-0">
@@ -1409,17 +1412,17 @@ onUnmounted(() => {
                 />
                 <span 
                   :class="[isOnline ? 'bg-emerald-500 shadow-emerald-500/50' : 'bg-rose-500 shadow-rose-500/50']"
-                  class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full ring-2 ring-slate-900 shadow-xs animate-pulse"
+                  class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full ring-2 ring-white dark:ring-slate-900 shadow-xs animate-pulse"
                 ></span>
               </div>
               <span 
-                :class="[isOnline ? 'text-emerald-400' : 'text-rose-400']"
+                :class="[isOnline ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400']"
                 class="hidden sm:inline text-xs font-semibold font-sans tracking-wide"
               >
                 {{ isOnline ? (currentLang === 'km' ? 'អនឡាញ' : 'Online') : (currentLang === 'km' ? 'អូហ្វឡាញ' : 'Offline') }}
               </span>
               <svg 
-                :class="[isStatusOpen ? 'rotate-180 text-slate-200' : 'text-slate-400']" 
+                :class="[isStatusOpen ? 'rotate-180 text-slate-700 dark:text-slate-200' : 'text-slate-500 dark:text-slate-400']" 
                 class="w-3.5 h-3.5 transition-transform duration-200" 
                 fill="none" 
                 viewBox="0 0 24 24" 
@@ -1441,12 +1444,12 @@ onUnmounted(() => {
             >
               <div
                 v-if="isStatusOpen"
-                class="absolute right-0 mt-1.5 w-56 rounded-xl bg-slate-800/95 backdrop-blur-xl border border-slate-700/80 shadow-2xl py-1.5 z-50 overflow-hidden"
+                class="absolute right-0 mt-1.5 w-56 rounded-xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700/80 shadow-2xl py-1.5 z-50 overflow-hidden"
               >
-                <div class="px-3.5 py-1.5 border-b border-slate-700/60 flex items-center justify-between">
-                  <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ currentLang === 'km' ? 'ស្ថានភាពប្រព័ន្ធ' : 'System Status' }}</span>
+                <div class="px-3.5 py-1.5 border-b border-slate-200 dark:border-slate-700/60 flex items-center justify-between">
+                  <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ currentLang === 'km' ? 'ស្ថានភាពប្រព័ន្ធ' : 'System Status' }}</span>
                   <span 
-                    :class="[isOnline ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' : 'bg-rose-500/20 text-rose-300 border-rose-500/30']"
+                    :class="[isOnline ? 'bg-emerald-50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/30' : 'bg-rose-50 dark:bg-rose-500/20 text-rose-600 dark:text-rose-300 border-rose-200 dark:border-rose-500/30']"
                     class="px-2 py-0.5 text-[9px] font-bold rounded-full border"
                   >
                     {{ isOnline ? (currentLang === 'km' ? 'បានភ្ជាប់' : 'Connected') : (currentLang === 'km' ? 'ដាច់ការតភ្ជាប់' : 'Disconnected') }}
@@ -1456,34 +1459,34 @@ onUnmounted(() => {
                 <div class="p-1 space-y-1">
                   <button
                     @click="setStatusMode(true)"
-                    :class="[isOnline ? 'bg-emerald-500/15 text-emerald-300 font-semibold border-emerald-500/30' : 'text-slate-300 hover:text-white hover:bg-slate-700/60 border-transparent']"
+                    :class="[isOnline ? 'bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 font-semibold border-emerald-200 dark:border-emerald-500/30' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/60 border-transparent']"
                     class="w-full flex items-center justify-between px-3 py-2 text-xs rounded-lg border transition-all cursor-pointer text-left"
                   >
                     <div class="flex items-center gap-2.5">
                       <img :src="onlineIconUrl" alt="Online" class="w-4 h-4 object-contain" />
                       <div>
-                        <p class="font-medium text-xs text-white">{{ currentLang === 'km' ? 'អនឡាញ' : 'Online' }}</p>
-                        <p class="text-[10px] text-slate-400">{{ currentLang === 'km' ? 'ភ្ជាប់អ៊ីនធឺណិតធម្មតា' : 'Connected to internet' }}</p>
+                        <p class="font-medium text-xs text-slate-900 dark:text-white">{{ currentLang === 'km' ? 'អនឡាញ' : 'Online' }}</p>
+                        <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ currentLang === 'km' ? 'ភ្ជាប់អ៊ីនធឺណិតធម្មតា' : 'Connected to internet' }}</p>
                       </div>
                     </div>
-                    <svg v-if="isOnline" class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <svg v-if="isOnline" class="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                     </svg>
                   </button>
 
                   <button
                     @click="setStatusMode(false)"
-                    :class="[!isOnline ? 'bg-rose-500/15 text-rose-300 font-semibold border-rose-500/30' : 'text-slate-300 hover:text-white hover:bg-slate-700/60 border-transparent']"
+                    :class="[!isOnline ? 'bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-300 font-semibold border-rose-200 dark:border-rose-500/30' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/60 border-transparent']"
                     class="w-full flex items-center justify-between px-3 py-2 text-xs rounded-lg border transition-all cursor-pointer text-left"
                   >
                     <div class="flex items-center gap-2.5">
                       <img :src="offlineIconUrl" alt="Offline" class="w-4 h-4 object-contain" />
                       <div>
-                        <p class="font-medium text-xs text-white">{{ currentLang === 'km' ? 'អូហ្វឡាញ' : 'Offline' }}</p>
-                        <p class="text-[10px] text-slate-400">{{ currentLang === 'km' ? 'ដាច់ការតភ្ជាប់អ៊ីនធឺណិត' : 'No internet connection' }}</p>
+                        <p class="font-medium text-xs text-slate-900 dark:text-white">{{ currentLang === 'km' ? 'អូហ្វឡាញ' : 'Offline' }}</p>
+                        <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ currentLang === 'km' ? 'ដាច់ការតភ្ជាប់អ៊ីនធឺណិត' : 'No internet connection' }}</p>
                       </div>
                     </div>
-                    <svg v-if="!isOnline" class="w-3.5 h-3.5 text-rose-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <svg v-if="!isOnline" class="w-3.5 h-3.5 text-rose-500 dark:text-rose-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                     </svg>
                   </button>
@@ -1496,21 +1499,31 @@ onUnmounted(() => {
           <button
             type="button"
             @click="toggleLanguage"
-            class="p-1.5 px-2.5 h-8 rounded-full bg-slate-800/60 hover:bg-slate-800 backdrop-blur-md text-slate-300 hover:text-white transition-all duration-150 border border-slate-700/60 hover:border-slate-600 shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
+            class="p-1.5 px-2.5 h-8 rounded-full bg-white/90 dark:bg-[#121214]/80 backdrop-blur-md hover:bg-zinc-100 dark:hover:bg-[#1c1c1f] text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white transition-all duration-150 border border-zinc-300/80 dark:border-zinc-800 shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
             :title="currentLang === 'km' ? 'Switch to English' : 'ប្តូរទៅជាភាសាខ្មែរ'"
           >
             <img
               :src="currentLang === 'km' ? '/images/flags/km.svg' : '/images/flags/en.svg'"
               :alt="currentLang"
-              class="w-5 h-3.5 object-cover rounded-[3px] shadow-xs ring-1 ring-slate-600/60 transition-transform duration-200 group-hover:scale-110"
+              class="w-5 h-3.5 object-cover rounded-[3px] shadow-xs ring-1 ring-zinc-300/60 dark:ring-zinc-700/60 transition-transform duration-200 group-hover:scale-110"
             />
+          </button>
+
+          <!-- Theme Switcher Pill (Matching Login page style) -->
+          <button
+            type="button"
+            @click="toggleTheme($event)"
+            class="p-1.5 px-2.5 h-8 rounded-full bg-white/90 dark:bg-[#121214]/80 backdrop-blur-md hover:bg-zinc-100 dark:hover:bg-[#1c1c1f] text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white transition-all duration-150 border border-zinc-300/80 dark:border-zinc-800 shadow-xs flex items-center justify-center gap-1.5 text-xs font-semibold cursor-pointer select-none active:scale-95 group focus:outline-none"
+            :title="isDark ? (currentLang === 'km' ? 'ប្ដូរទៅ Light Mode' : 'Switch to Light Mode') : (currentLang === 'km' ? 'ប្ដូរទៅ Dark Mode' : 'Switch to Dark Mode')"
+          >
+            <i :class="['pi text-xs transition-transform duration-500 group-hover:rotate-45', isDark ? 'pi-sun text-amber-400' : 'pi-moon text-indigo-500']"></i>
           </button>
 
           <!-- Fullscreen Button -->
           <button
             @click="toggleFullscreen"
             type="button"
-            class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 border border-transparent hover:border-slate-700/60 rounded-xl transition-all focus:outline-none"
+            class="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-slate-700/60 rounded-xl transition-all focus:outline-none cursor-pointer"
             :title="isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'"
           >
             <svg v-if="!isFullscreen" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -1526,42 +1539,42 @@ onUnmounted(() => {
             <button
               @click="toggleDropdown('notification')"
               type="button"
-              class="relative p-2 text-slate-400 hover:text-white hover:bg-slate-800 border border-transparent hover:border-slate-700/60 rounded-xl transition-all focus:outline-none"
+              class="relative p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-slate-700/60 rounded-xl transition-all focus:outline-none cursor-pointer"
               title="Notifications"
             >
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
-              <span v-if="unreadNotificationsCount > 0" class="absolute top-1.5 right-1.5 flex h-2.5 w-2.5 rounded-full bg-rose-500 ring-2 ring-slate-900 animate-pulse"></span>
+              <span v-if="unreadNotificationsCount > 0" class="absolute top-1.5 right-1.5 flex h-2.5 w-2.5 rounded-full bg-rose-500 ring-2 ring-white dark:ring-slate-900 animate-pulse"></span>
             </button>
 
             <!-- Notifications Dropdown -->
             <div
               v-if="isNotificationOpen"
-              class="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-slate-800 border border-slate-700/80 shadow-2xl z-50 overflow-hidden"
+              class="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 shadow-2xl z-50 overflow-hidden"
             >
-              <div class="px-4 py-3 border-b border-slate-700/80 flex items-center justify-between bg-slate-800/80">
+              <div class="px-4 py-3 border-b border-slate-200 dark:border-slate-700/80 flex items-center justify-between bg-slate-50 dark:bg-slate-800/80">
                 <div class="flex items-center gap-2">
-                  <h3 class="text-xs font-bold text-white">{{ currentLang === 'km' ? 'ការជូនដំណឹង' : 'Notifications' }}</h3>
-                  <span v-if="unreadNotificationsCount > 0" class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-indigo-500/20 text-indigo-300">
+                  <h3 class="text-xs font-bold text-slate-900 dark:text-white">{{ currentLang === 'km' ? 'ការជូនដំណឹង' : 'Notifications' }}</h3>
+                  <span v-if="unreadNotificationsCount > 0" class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300">
                     {{ unreadNotificationsCount }} {{ currentLang === 'km' ? 'ថ្មី' : 'New' }}
                   </span>
                 </div>
                 <button
                   v-if="unreadNotificationsCount > 0"
                   @click="markAllAsRead"
-                  class="text-[11px] text-indigo-400 hover:text-indigo-300 transition-colors font-medium cursor-pointer"
+                  class="text-[11px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 transition-colors font-medium cursor-pointer"
                 >
                   {{ currentLang === 'km' ? 'អានទាំងអស់' : 'Mark all read' }}
                 </button>
               </div>
 
-              <div class="max-h-80 overflow-y-auto custom-scrollbar divide-y divide-slate-700/40">
+              <div class="max-h-80 overflow-y-auto custom-scrollbar divide-y divide-slate-100 dark:divide-slate-700/40">
                 <div
                   v-for="notif in notifications"
                   :key="notif.id"
                   @click="markNotificationRead(notif.id)"
-                  :class="[notif.read ? 'bg-slate-800/30 opacity-70' : 'bg-slate-800 hover:bg-slate-700/50', 'p-3.5 transition-colors cursor-pointer block']"
+                  :class="[notif.read ? 'bg-slate-50/50 dark:bg-slate-800/30 opacity-70' : 'bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/50', 'p-3.5 transition-colors cursor-pointer block']"
                 >
                   <Link :href="notif.link" @click="isNotificationOpen = false">
                     <div class="flex items-start gap-3">
@@ -1578,10 +1591,10 @@ onUnmounted(() => {
                       </div>
                       <div class="flex-1 min-w-0">
                         <div class="flex items-center justify-between">
-                          <p class="text-xs font-semibold text-slate-200 truncate">{{ notif.title }}</p>
-                          <span class="text-[10px] text-slate-400 shrink-0 ml-1">{{ notif.time }}</span>
+                          <p class="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">{{ notif.title }}</p>
+                          <span class="text-[10px] text-slate-400 dark:text-slate-400 shrink-0 ml-1">{{ notif.time }}</span>
                         </div>
-                        <p class="text-[11px] text-slate-400 line-clamp-2 mt-0.5">{{ notif.desc }}</p>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5">{{ notif.desc }}</p>
                       </div>
                       <span v-if="!notif.read" class="w-2 h-2 rounded-full bg-indigo-500 shrink-0 mt-1"></span>
                     </div>
@@ -1589,11 +1602,11 @@ onUnmounted(() => {
                 </div>
               </div>
 
-              <div class="p-2 border-t border-slate-700/80 bg-slate-900/60 text-center">
+              <div class="p-2 border-t border-slate-200 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-900/60 text-center">
                 <Link
                   href="/admin/notifications/history"
                   @click="isNotificationOpen = false"
-                  class="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors"
+                  class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 transition-colors"
                 >
                   {{ currentLang === 'km' ? 'មើលការជូនដំណឹងទាំងអស់ →' : 'View All Notifications →' }}
                 </Link>
@@ -1606,43 +1619,43 @@ onUnmounted(() => {
             <button
               @click="toggleDropdown('profile')"
               type="button"
-              class="flex items-center gap-2 p-1 rounded-xl hover:bg-slate-800/80 border border-transparent hover:border-slate-700/60 transition-all focus:outline-none group"
+              class="flex items-center gap-2 p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 border border-transparent hover:border-slate-200 dark:hover:border-slate-700/60 transition-all focus:outline-none group cursor-pointer"
             >
               <div class="relative shrink-0">
                 <img
                   :src="user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=fff`"
                   alt="Admin Profile"
-                  class="w-7 h-7 rounded-full border border-slate-700 object-cover shadow-xs group-hover:border-indigo-500/50 transition-colors"
+                  class="w-7 h-7 rounded-full border border-slate-200 dark:border-slate-700 object-cover shadow-xs group-hover:border-indigo-500/50 transition-colors"
                 />
-                <span class="absolute bottom-0 right-0 w-2 h-2 bg-emerald-500 rounded-full ring-2 ring-slate-900"></span>
+                <span class="absolute bottom-0 right-0 w-2 h-2 bg-emerald-500 rounded-full ring-2 ring-white dark:ring-slate-900"></span>
               </div>
               <div class="hidden md:flex items-center gap-1 min-w-0">
-                <span class="text-xs font-semibold text-slate-200 group-hover:text-indigo-300 transition-colors truncate max-w-[130px]">{{ user.name }}</span>
+                <span class="text-xs font-semibold text-slate-700 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors truncate max-w-[130px]">{{ user.name }}</span>
                 <OfficialVerifiedBadge :role="user.role" size="sm" :show-label="false" />
               </div>
-              <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-200 transition-transform" :class="isProfileOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+              <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200 transition-transform" :class="isProfileOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
 
             <!-- Profile Dropdown Popup -->
             <div
               v-if="isProfileOpen"
-              class="absolute right-0 mt-2 w-64 rounded-2xl bg-slate-800 border border-slate-700/80 shadow-2xl py-2 z-50 animate-in fade-in duration-150"
+              class="absolute right-0 mt-2 w-64 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 shadow-2xl py-2 z-50 animate-in fade-in duration-150"
             >
               <!-- Profile Header Card -->
-              <div class="px-4 py-3 border-b border-slate-700/80 bg-gradient-to-r from-indigo-900/30 to-purple-900/30">
+              <div class="px-4 py-3 border-b border-slate-200 dark:border-slate-700/80 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30">
                 <div class="flex items-center gap-3">
                   <img
                     :src="user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=fff`"
                     alt="Admin Avatar"
-                    class="w-10 h-10 rounded-full border border-slate-700 object-cover shadow-md"
+                    class="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-700 object-cover shadow-md"
                   />
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-1 min-w-0">
-                      <h4 class="text-xs font-bold text-white truncate">{{ user.name }}</h4>
+                      <h4 class="text-xs font-bold text-slate-900 dark:text-white truncate">{{ user.name }}</h4>
                       <OfficialVerifiedBadge :role="user.role" size="xs" />
                     </div>
-                    <p class="text-[11px] text-slate-400 truncate">{{ user.email }}</p>
-                    <span class="inline-block mt-1 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">{{ user.email }}</p>
+                    <span class="inline-block mt-1 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-full bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30">
                       {{ currentLang === 'km' ? (user.role === 'admin' ? 'អ្នកគ្រប់គ្រងជាន់ខ្ពស់' : (user.role === 'teacher' ? 'សាស្ត្រាចារ្យ' : 'និស្សិត')) : (user.role === 'admin' ? 'Super Admin' : (user.role === 'teacher' ? 'Teacher' : 'Student')) }}
                     </span>
                   </div>
@@ -1650,11 +1663,11 @@ onUnmounted(() => {
               </div>
 
               <!-- Quick Links -->
-              <div class="py-1 border-b border-slate-700/60">
+              <div class="py-1 border-b border-slate-200 dark:border-slate-700/60">
                 <Link
                   href="/admin/settings"
                   @click="isProfileOpen = false"
-                  class="flex items-center gap-2.5 px-4 py-2 text-xs text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors"
+                  class="flex items-center gap-2.5 px-4 py-2 text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors"
                 >
                   <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                   <span>{{ currentLang === 'km' ? 'ការកំណត់ប្រព័ន្ធ' : 'System Settings' }}</span>
@@ -1662,7 +1675,7 @@ onUnmounted(() => {
                 <Link
                   href="/admin/auth/roles"
                   @click="isProfileOpen = false"
-                  class="flex items-center gap-2.5 px-4 py-2 text-xs text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors"
+                  class="flex items-center gap-2.5 px-4 py-2 text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors"
                 >
                   <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                   <span>{{ currentLang === 'km' ? 'សិទ្ធិ និង តួនាទី' : 'Roles & Permissions' }}</span>
@@ -1670,14 +1683,14 @@ onUnmounted(() => {
                 <Link
                   href="/admin/auth-logs"
                   @click="isProfileOpen = false"
-                  class="flex items-center gap-2.5 px-4 py-2 text-xs text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors"
+                  class="flex items-center gap-2.5 px-4 py-2 text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors"
                 >
                   <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                   <span>{{ currentLang === 'km' ? 'កំណត់ត្រាសកម្មភាព' : 'System Logs' }}</span>
                 </Link>
                 <button
                   @click="triggerAvatarUpload(); isProfileOpen = false;"
-                  class="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors text-left cursor-pointer"
+                  class="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors text-left cursor-pointer"
                 >
                   <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                   <span>{{ currentLang === 'km' ? 'ប្ដូររូបថត' : 'Change Avatar' }}</span>
@@ -1688,7 +1701,7 @@ onUnmounted(() => {
               <div class="pt-1">
                 <button
                   @click="logout"
-                  class="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-rose-400 hover:bg-rose-500/10 transition-colors font-medium text-left cursor-pointer"
+                  class="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors font-medium text-left cursor-pointer"
                 >
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                   <span>{{ currentLang === 'km' ? 'ចាកចេញពីប្រព័ន្ធ' : 'Log Out' }}</span>
@@ -1705,25 +1718,25 @@ onUnmounted(() => {
     <!-- Global Command Palette Modal (Search Dialog) -->
     <div v-if="isSearchOpen" class="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 px-4">
       <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity" @click="isSearchOpen = false"></div>
-      <div class="relative w-full max-w-2xl bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden z-50">
+      <div class="relative w-full max-w-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden z-50">
         <!-- Search Input Header -->
-        <div class="flex items-center px-4 border-b border-slate-800 bg-slate-900/90">
-          <svg class="w-5 h-5 text-indigo-400 shrink-0 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <div class="flex items-center px-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90">
+          <svg class="w-5 h-5 text-indigo-500 dark:text-indigo-400 shrink-0 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           <input
             v-model="searchQuery"
             type="text"
             :placeholder="currentLang === 'km' ? 'ស្វែងរកម៉ូឌុល ទំព័រ ឬមុខងារគ្រប់គ្រងទាំងអស់...' : 'Search modules, pages, or admin functions...'"
-            class="w-full bg-transparent py-4 text-sm text-white placeholder-slate-500 focus:outline-none"
+            class="w-full bg-transparent py-4 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none"
             autofocus
           />
-          <button @click="isSearchOpen = false" class="p-1 text-slate-400 hover:text-white rounded-lg cursor-pointer">
-            <kbd class="px-2 py-0.5 text-xs bg-slate-800 rounded border border-slate-700">ESC</kbd>
+          <button @click="isSearchOpen = false" class="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-lg cursor-pointer">
+            <kbd class="px-2 py-0.5 text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded border border-slate-200 dark:border-slate-700">ESC</kbd>
           </button>
         </div>
 
         <!-- Search Results List -->
         <div class="max-h-96 overflow-y-auto p-2 custom-scrollbar">
-          <div v-if="filteredSearchResults.length === 0" class="p-8 text-center text-slate-400 text-sm">
+          <div v-if="filteredSearchResults.length === 0" class="p-8 text-center text-slate-500 dark:text-slate-400 text-sm">
             {{ currentLang === 'km' ? 'មិនរកឃើញទិន្នន័យស្វែងរកឡើយ' : 'No results found' }}
           </div>
           <div v-else class="space-y-1">
@@ -1732,30 +1745,30 @@ onUnmounted(() => {
               :key="res.href"
               :href="res.href"
               @click="isSearchOpen = false"
-              class="group flex items-center justify-between p-3 rounded-xl hover:bg-indigo-600/15 border border-transparent hover:border-indigo-500/30 transition-all"
+              class="group flex items-center justify-between p-3 rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-600/15 border border-transparent hover:border-indigo-200 dark:hover:border-indigo-500/30 transition-all"
             >
               <div class="flex items-center gap-3">
-                <div class="p-1.5 rounded-lg bg-slate-800 group-hover:bg-indigo-500/20 text-slate-400 group-hover:text-indigo-300 transition-colors shrink-0 flex items-center justify-center">
+                <div class="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-500/20 text-slate-500 dark:text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors shrink-0 flex items-center justify-center">
                   <img v-if="res.iconUrl" :src="res.iconUrl" :alt="res.name" class="w-4 h-4 object-contain shrink-0" />
                   <svg v-else-if="res.icon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" :d="res.icon"/></svg>
                 </div>
                 <div>
-                  <h4 class="text-xs font-semibold text-white group-hover:text-indigo-200 transition-colors">{{ res.name }}</h4>
-                  <p class="text-[10px] text-slate-400 uppercase tracking-wide">{{ res.category }}</p>
+                  <h4 class="text-xs font-semibold text-slate-800 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-200 transition-colors">{{ res.name }}</h4>
+                  <p class="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wide">{{ res.category }}</p>
                 </div>
               </div>
-              <svg class="w-4 h-4 text-slate-600 group-hover:text-indigo-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              <svg class="w-4 h-4 text-slate-400 dark:text-slate-600 group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </Link>
           </div>
         </div>
 
         <!-- Command Palette Footer -->
-        <div class="px-4 py-2.5 bg-slate-900/90 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+        <div class="px-4 py-2.5 bg-slate-50 dark:bg-slate-900/90 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
           <div class="flex items-center gap-3">
-            <span><kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-[10px]">Ctrl K</kbd> ដើម្បីបើក/បិទ</span>
-            <span><kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-[10px]">ESC</kbd> ដើម្បីចាកចេញ</span>
+            <span><kbd class="px-1.5 py-0.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded text-[10px]">Ctrl K</kbd> ដើម្បីបើក/បិទ</span>
+            <span><kbd class="px-1.5 py-0.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded text-[10px]">ESC</kbd> ដើម្បីចាកចេញ</span>
           </div>
-          <span class="text-indigo-400 font-medium">E-LMS Command Palette</span>
+          <span class="text-indigo-600 dark:text-indigo-400 font-medium">E-LMS Command Palette</span>
         </div>
       </div>
     </div>
@@ -1766,7 +1779,7 @@ onUnmounted(() => {
         <!-- Page Header -->
         <header class="mb-6" v-if="title || $slots.header">
           <slot name="header">
-            <h2 class="text-2xl font-bold leading-7 text-white sm:truncate sm:text-3xl sm:tracking-tight">{{ title }}</h2>
+            <h2 class="text-2xl font-bold leading-7 text-slate-900 dark:text-white sm:truncate sm:text-3xl sm:tracking-tight">{{ title }}</h2>
           </slot>
         </header>
 
