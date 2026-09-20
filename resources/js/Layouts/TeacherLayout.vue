@@ -2,7 +2,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { Head, Link, usePage, router } from '@inertiajs/vue3'
 import { i18n } from '@/Services/i18n'
-import { useTheme, initTheme } from '@/composables/useTheme'
+import { useTheme, initTheme, playNotificationSound, playClickSound } from '@/composables/useTheme'
 import GlobalToast from '@/Components/GlobalToast.vue'
 import OfficialVerifiedBadge from '@/Components/OfficialVerifiedBadge.vue'
 
@@ -237,17 +237,40 @@ const notifications = ref([
   }
 ])
 
+const notifTab = ref<'all' | 'unread'>('all')
+
 const unreadNotificationsCount = computed(() => {
   return notifications.value.filter(n => !n.read).length
 })
 
+const filteredNotifications = computed(() => {
+  if (notifTab.value === 'unread') {
+    return notifications.value.filter(n => !n.read)
+  }
+  return notifications.value
+})
+
+const handleNotificationToggle = () => {
+  playNotificationSound()
+  toggleDropdown('notification')
+}
+
 const markAllAsRead = () => {
+  playClickSound()
   notifications.value.forEach(n => n.read = true)
 }
 
 const markNotificationRead = (id: number) => {
+  playClickSound()
   const item = notifications.value.find(n => n.id === id)
   if (item) item.read = true
+}
+
+const handleDocumentClick = (e: MouseEvent) => {
+  const target = e.target as HTMLElement
+  if (!target.closest('.nav-dropdown-scope')) {
+    closeAllDropdowns()
+  }
 }
 
 
@@ -526,12 +549,14 @@ onMounted(() => {
   window.addEventListener('keydown', handleKeydown)
   window.addEventListener('online', updateOnlineStatus)
   window.addEventListener('offline', updateOnlineStatus)
+  window.addEventListener('click', handleDocumentClick)
 })
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
   window.removeEventListener('online', updateOnlineStatus)
   window.removeEventListener('offline', updateOnlineStatus)
+  window.removeEventListener('click', handleDocumentClick)
 })
 
 const logout = () => {
@@ -1160,80 +1185,120 @@ const onIconError = (e: Event) => {
           </button>
 
           <!-- Notifications Bell Dropdown (🔔) -->
-          <div class="relative">
+          <div class="relative nav-dropdown-scope">
             <button
-              @click="toggleDropdown('notification')"
+              @click.stop="handleNotificationToggle"
               type="button"
-              class="relative p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100/80 hover:bg-slate-200 dark:bg-transparent dark:hover:bg-slate-800 border border-slate-200/80 dark:border-transparent dark:hover:border-slate-700/60 rounded-xl transition-all focus:outline-none cursor-pointer"
-              title="Notifications"
+              class="relative p-1.5 w-8 h-8 rounded-full sm:rounded-2xl bg-white/90 dark:bg-[#121214]/80 backdrop-blur-md hover:bg-zinc-100 dark:hover:bg-[#1c1c1f] text-zinc-700 dark:text-zinc-200 hover:text-zinc-950 dark:hover:text-white transition-all duration-150 border border-zinc-300/80 dark:border-zinc-800 shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
+              :title="currentLang === 'km' ? 'ការជូនដំណឹង' : 'Notifications'"
             >
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <svg class="w-4 h-4 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-105" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
-              <span v-if="unreadNotificationsCount > 0" class="absolute top-1.5 right-1.5 flex h-2.5 w-2.5 rounded-full bg-rose-500 ring-2 ring-white dark:ring-slate-900 animate-pulse"></span>
+              <!-- Glowing Red Badge Notification Dot Matching Reference -->
+              <span v-if="unreadNotificationsCount > 0" class="absolute -top-0.5 -right-0.5 flex h-3 w-3 pointer-events-none">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-[#f43f5e] ring-2 ring-white dark:ring-[#121214]"></span>
+              </span>
             </button>
 
             <!-- Notifications Dropdown -->
-            <div
-              v-if="isNotificationOpen"
-              class="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 shadow-2xl z-50 overflow-hidden"
+            <transition
+              enter-active-class="transition duration-200 ease-out"
+              enter-from-class="transform scale-95 opacity-0"
+              enter-to-class="transform scale-100 opacity-100"
+              leave-active-class="transition duration-150 ease-in"
+              leave-from-class="transform scale-100 opacity-100"
+              leave-to-class="transform scale-95 opacity-0"
             >
-              <div class="px-4 py-3 border-b border-slate-100 dark:border-slate-700/80 flex items-center justify-between bg-slate-50 dark:bg-slate-800/80">
-                <div class="flex items-center gap-2">
-                  <h3 class="text-xs font-bold text-slate-900 dark:text-white">ការជូនដំណឹង (Notifications)</h3>
-                  <span v-if="unreadNotificationsCount > 0" class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300">
-                    {{ unreadNotificationsCount }} ថ្មី
-                  </span>
+              <div
+                v-if="isNotificationOpen"
+                @click.stop
+                class="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xl z-50 overflow-hidden"
+              >
+                <div class="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-md">
+                  <div class="flex items-center gap-2">
+                    <h3 class="text-xs font-bold text-slate-900 dark:text-white">{{ currentLang === 'km' ? 'ការជូនដំណឹង' : 'Notifications' }}</h3>
+                    <span v-if="unreadNotificationsCount > 0" class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-rose-500/10 text-rose-500 border border-rose-500/20">
+                      {{ unreadNotificationsCount }} {{ currentLang === 'km' ? 'ថ្មី' : 'New' }}
+                    </span>
+                  </div>
+                  <button
+                    v-if="unreadNotificationsCount > 0"
+                    @click="markAllAsRead"
+                    class="text-[11px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 font-medium cursor-pointer transition-colors"
+                  >
+                    {{ currentLang === 'km' ? 'អានទាំងអស់' : 'Mark all read' }}
+                  </button>
                 </div>
-                <button
-                  v-if="unreadNotificationsCount > 0"
-                  @click="markAllAsRead"
-                  class="text-[11px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors font-medium cursor-pointer"
-                >
-                  អានទាំងអស់
-                </button>
-              </div>
 
-              <div class="max-h-80 overflow-y-auto custom-scrollbar divide-y divide-slate-100 dark:divide-slate-700/40">
-                <div
-                  v-for="notif in notifications"
-                  :key="notif.id"
-                  @click="markNotificationRead(notif.id)"
-                  :class="[notif.read ? 'bg-slate-50/50 dark:bg-slate-800/30 opacity-70' : 'bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/50', 'p-3.5 transition-colors cursor-pointer block']"
-                >
-                  <Link :href="notif.link" @click="isNotificationOpen = false">
-                    <div class="flex items-start gap-3">
-                      <div :class="[
-                        notif.type === 'payment' ? 'bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' :
-                        notif.type === 'assignment' ? 'bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400' : 'bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400',
-                        'p-2 rounded-xl shrink-0 mt-0.5'
-                      ]">
-                        <svg v-if="notif.type === 'payment'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V6m0 12v-2m0 0c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <svg v-else-if="notif.type === 'assignment'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                        <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                      </div>
-                      <div class="flex-1 min-w-0">
-                        <div class="flex items-center justify-between">
-                          <p class="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">{{ notif.title }}</p>
-                          <span class="text-[10px] text-slate-400 shrink-0 ml-1">{{ notif.time }}</span>
+                <!-- Tabs: All vs Unread -->
+                <div class="flex items-center gap-1 px-3 py-2 bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800 text-xs">
+                  <button
+                    type="button"
+                    @click="notifTab = 'all'; playClickSound()"
+                    :class="[notifTab === 'all' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800', 'px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer']"
+                  >
+                    {{ currentLang === 'km' ? 'ទាំងអស់' : 'All' }} ({{ notifications.length }})
+                  </button>
+                  <button
+                    type="button"
+                    @click="notifTab = 'unread'; playClickSound()"
+                    :class="[notifTab === 'unread' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800', 'px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer']"
+                  >
+                    {{ currentLang === 'km' ? 'មិនទាន់អាន' : 'Unread' }} ({{ unreadNotificationsCount }})
+                  </button>
+                </div>
+
+                <div class="max-h-80 overflow-y-auto custom-scrollbar divide-y divide-slate-100 dark:divide-slate-800">
+                  <div
+                    v-for="notif in filteredNotifications"
+                    :key="notif.id"
+                    @click="markNotificationRead(notif.id)"
+                    :class="[notif.read ? 'bg-slate-50/40 dark:bg-slate-900/40 opacity-75' : 'bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/60', 'p-3.5 transition-colors cursor-pointer block']"
+                  >
+                    <Link :href="notif.link" @click="isNotificationOpen = false">
+                      <div class="flex items-start gap-3">
+                        <div :class="[
+                          notif.type === 'payment' ? 'bg-emerald-500/20 text-emerald-500 dark:text-emerald-400' :
+                          notif.type === 'assignment' ? 'bg-amber-500/20 text-amber-500 dark:text-amber-400' : 'bg-indigo-500/20 text-indigo-500 dark:text-indigo-400',
+                          'p-2 rounded-xl shrink-0 mt-0.5'
+                        ]">
+                          <svg v-if="notif.type === 'payment'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V6m0 12v-2m0 0c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                          <svg v-else-if="notif.type === 'assignment'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                          <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                         </div>
-                        <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5">{{ notif.desc }}</p>
+                        <div class="flex-1 min-w-0">
+                          <div class="flex items-center justify-between">
+                            <p class="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">{{ notif.title }}</p>
+                            <span class="text-[10px] text-slate-400 dark:text-slate-500 shrink-0 ml-1">{{ notif.time }}</span>
+                          </div>
+                          <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5">{{ notif.desc }}</p>
+                        </div>
+                        <span v-if="!notif.read" class="w-2 h-2 rounded-full bg-indigo-500 shrink-0 mt-1.5"></span>
                       </div>
-                    </div>
+                    </Link>
+                  </div>
+
+                  <div v-if="filteredNotifications.length === 0" class="py-8 text-center">
+                    <svg class="w-8 h-8 mx-auto text-slate-300 dark:text-slate-600 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">{{ currentLang === 'km' ? 'មិនមានការជូនដំណឹងទេ' : 'No notifications' }}</p>
+                  </div>
+                </div>
+
+                <div class="p-2 border-t border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 text-center">
+                  <Link
+                    href="/teacher/notifications"
+                    @click="isNotificationOpen = false; playClickSound()"
+                    class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 transition-colors"
+                  >
+                    {{ currentLang === 'km' ? 'មើលការជូនដំណឹងទាំងអស់ →' : 'View All Notifications →' }}
                   </Link>
                 </div>
               </div>
-
-              <div class="p-2 border-t border-slate-100 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-900/60 text-center">
-                <Link
-                  href="/teacher/notifications"
-                  @click="isNotificationOpen = false"
-                  class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
-                >
-                  មើលការជូនដំណឹងទាំងអស់ →
-                </Link>
-              </div>
-            </div>
+            </transition>
           </div>
 
           <!-- User Profile Dropdown Avatar (👤 Teacher Sophea ˅) -->
