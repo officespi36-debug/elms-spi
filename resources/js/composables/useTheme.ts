@@ -6,16 +6,23 @@ export function initTheme() {
   if (typeof window === 'undefined') return
   try {
     const stored = localStorage.getItem('theme')
-    if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+    if (stored === 'dark' || (!stored && prefersDark)) {
       isDark.value = true
       document.documentElement.classList.add('dark')
+      document.documentElement.style.colorScheme = 'dark'
+      document.documentElement.style.backgroundColor = '#0b132b'
     } else {
       isDark.value = false
       document.documentElement.classList.remove('dark')
+      document.documentElement.style.colorScheme = 'light'
+      document.documentElement.style.backgroundColor = '#f8fafc'
     }
   } catch (e) {
     isDark.value = true
     document.documentElement.classList.add('dark')
+    document.documentElement.style.colorScheme = 'dark'
+    document.documentElement.style.backgroundColor = '#0b132b'
   }
 }
 
@@ -93,11 +100,16 @@ export function useTheme() {
       try {
         if (nextDark) {
           document.documentElement.classList.add('dark')
+          document.documentElement.style.colorScheme = 'dark'
+          document.documentElement.style.backgroundColor = '#0b132b'
           localStorage.setItem('theme', 'dark')
         } else {
           document.documentElement.classList.remove('dark')
+          document.documentElement.style.colorScheme = 'light'
+          document.documentElement.style.backgroundColor = '#f8fafc'
           localStorage.setItem('theme', 'light')
         }
+        window.dispatchEvent(new CustomEvent('theme-changed', { detail: { isDark: nextDark } }))
       } catch (e) {}
     }
 
@@ -138,11 +150,16 @@ export function useTheme() {
     try {
       if (isDark.value) {
         document.documentElement.classList.add('dark')
+        document.documentElement.style.colorScheme = 'dark'
+        document.documentElement.style.backgroundColor = '#0b132b'
         localStorage.setItem('theme', 'dark')
       } else {
         document.documentElement.classList.remove('dark')
+        document.documentElement.style.colorScheme = 'light'
+        document.documentElement.style.backgroundColor = '#f8fafc'
         localStorage.setItem('theme', 'light')
       }
+      window.dispatchEvent(new CustomEvent('theme-changed', { detail: { isDark: isDark.value } }))
     } catch (e) {}
   }
 

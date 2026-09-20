@@ -2,7 +2,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { Head, Link, router, usePage } from '@inertiajs/vue3'
 import { i18n } from '@/Services/i18n'
-import { useTheme } from '@/composables/useTheme'
+import { useTheme, initTheme } from '@/composables/useTheme'
 import GlobalToast from '@/Components/GlobalToast.vue'
 import OfficialVerifiedBadge from '@/Components/OfficialVerifiedBadge.vue'
 
@@ -809,6 +809,7 @@ watch(
 )
 
 onMounted(() => {
+  initTheme()
   window.addEventListener('keydown', handleKeydown)
   window.addEventListener('online', updateOnlineStatus)
   window.addEventListener('offline', updateOnlineStatus)
