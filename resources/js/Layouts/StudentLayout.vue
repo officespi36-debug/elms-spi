@@ -54,7 +54,61 @@ const isLangOpen = ref(false)
 const isStatusOpen = ref(false)
 const isFullscreen = ref(false)
 
-const currentLang = computed(() => i18n.locale.value || 'en')
+const currentLang = computed(() => i18n.locale.value)
+
+// Web Audio API Sound Synthesizer for Language Switch (Sweet chime identical to Login form)
+let audioCtx: AudioContext | null = null
+
+const getAudioContext = (): AudioContext | null => {
+  if (typeof window === 'undefined') return null
+  try {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext
+    if (!AudioContextClass) return null
+    if (!audioCtx || audioCtx.state === 'closed') {
+      audioCtx = new AudioContextClass()
+    }
+    return audioCtx
+  } catch {
+    return null
+  }
+}
+
+const playTopBarSound = async () => {
+  try {
+    const ctx = getAudioContext()
+    if (!ctx) return
+
+    if (ctx.state === 'suspended') {
+      await ctx.resume()
+    }
+
+    const now = ctx.currentTime
+
+    // Sweet clear selection chime
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(750, now)
+    osc.frequency.exponentialRampToValueAtTime(1150, now + 0.09)
+
+    gain.gain.setValueAtTime(0.3, now)
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.11)
+
+    osc.start(now)
+    osc.stop(now + 0.11)
+  } catch (e) {
+    // Graceful fallback
+  }
+}
+
+const toggleLanguage = () => {
+  playTopBarSound()
+  const nextLang = currentLang.value === 'km' ? 'en' : 'km'
+  i18n.setLanguage(nextLang)
+}
 
 const isOnline = ref(typeof window !== 'undefined' ? window.navigator.onLine : true)
 const manualStatusOverride = ref<boolean | null>(null)
@@ -74,14 +128,12 @@ const setStatusMode = (online: boolean) => {
 }
 
 const languages = [
-  { code: 'en', name: 'English', flagUrl: '/images/flags/en.svg' },
   { code: 'km', name: 'ភាសាខ្មែរ', flagUrl: '/images/flags/km.svg' },
+  { code: 'en', name: 'English', flagUrl: '/images/flags/en.svg' },
 ]
 
 const selectLanguage = (code: string) => {
-  if (i18n.setLanguage) {
-    i18n.setLanguage(code as 'km' | 'en')
-  }
+  i18n.setLanguage(code as 'km' | 'en')
   isLangOpen.value = false
 }
 
@@ -367,10 +419,61 @@ const dynamicBreadcrumbs = computed(() => {
   ]
 })
 
+const breadcrumbTranslations: Record<string, { km: string; en: string }> = {
+  'Dashboard': { km: 'ផ្ទាំងគ្រប់គ្រង', en: 'Dashboard' },
+  'My Courses': { km: 'វគ្គសិក្សារបស់ខ្ញុំ', en: 'My Courses' },
+  'Web Development': { km: 'ការអភិវឌ្ឍគេហទំព័រ', en: 'Web Development' },
+  'Chapter 3 - JavaScript Functions': { km: 'ជំពូកទី ៣ - JavaScript Functions', en: 'Chapter 3 - JavaScript Functions' },
+  'Enrolled Courses': { km: 'វគ្គសិក្សាដែលបានចុះឈ្មោះ', en: 'Enrolled Courses' },
+  'Completed Courses': { km: 'វគ្គសិក្សាដែលបានបញ្ចប់', en: 'Completed Courses' },
+  'Browse Catalog': { km: 'ស្វែងរកវគ្គសិក្សា', en: 'Browse Catalog' },
+  'AI Learning': { km: 'ការរៀនជាមួយ AI', en: 'AI Learning' },
+  'AI Study Assistant': { km: 'ជំនួយការសិក្សា AI', en: 'AI Study Assistant' },
+  'Personalized Learning Path': { km: 'គន្លងសិក្សាផ្ទាល់ខ្លួន', en: 'Personalized Learning Path' },
+  'Recommended Roadmap': { km: 'ផែនទីបង្ហាញផ្លូវណែនាំ', en: 'Recommended Roadmap' },
+  'Weak Topics Review': { km: 'ពិនិត្យឡើងវិញចំណុចខ្សោយ', en: 'Weak Topics Review' },
+  'Progress & Analytics': { km: 'វឌ្ឍនភាព & ការវិភាគ', en: 'Progress & Analytics' },
+  'Learning Activity': { km: 'សកម្មភាពនៃការរៀន', en: 'Learning Activity' },
+  'Skills Progress': { km: 'ការរីកចម្រើនជំនាញ', en: 'Skills Progress' },
+  'Quiz Performance': { km: 'លទ្ធផលកម្រងសំណួរ', en: 'Quiz Performance' },
+  'Learning Overview': { km: 'ទិដ្ឋភាពទូទៅនៃការរៀន', en: 'Learning Overview' },
+  'Quiz & Assessment': { km: 'កម្រងសំណួរ & ការវាយតម្លៃ', en: 'Quiz & Assessment' },
+  'My Quiz Attempts': { km: 'ប្រវត្តិនៃការឆ្លើយសំណួរ', en: 'My Quiz Attempts' },
+  'Quiz Results': { km: 'លទ្ធផលកម្រងសំណួរ', en: 'Quiz Results' },
+  'My Assessments': { km: 'ការវាយតម្លៃរបស់ខ្ញុំ', en: 'My Assessments' },
+  'Available Quizzes': { km: 'កម្រងសំណួរដែលមាន', en: 'Available Quizzes' },
+  'Certificates': { km: 'វិញ្ញាបនបត្រ', en: 'Certificates' },
+  'My Certificates': { km: 'វិញ្ញាបនបត្ររបស់ខ្ញុំ', en: 'My Certificates' },
+  'Available Certificates': { km: 'វិញ្ញាបនបត្រដែលអាចទាញយកបាន', en: 'Available Certificates' },
+  'Certificate Verification': { km: 'ផ្ទៀងផ្ទាត់វិញ្ញាបនបត្រ', en: 'Certificate Verification' },
+  'Payment & Billing': { km: 'ការទូទាត់ & វិក្កយបត្រ', en: 'Payment & Billing' },
+  'Pay via ABA (KHR)': { km: 'បង់ប្រាក់តាម ABA (KHR)', en: 'Pay via ABA (KHR)' },
+  'Payment Methods': { km: 'វិធីសាស្ត្រទូទាត់ប្រាក់', en: 'Payment Methods' },
+  'Transaction History': { km: 'ប្រវត្តិប្រតិបត្តិការ', en: 'Transaction History' },
+  'Payment Settings': { km: 'ការកំណត់ការទូទាត់', en: 'Payment Settings' },
+  'Course Fees & Invoices': { km: 'ថ្លៃវគ្គសិក្សា & វិក្កយបត្រ', en: 'Course Fees & Invoices' },
+  'Notifications': { km: 'ការជូនដំណឹង', en: 'Notifications' },
+  'System & Teacher Announcements': { km: 'សេចក្តីប្រកាសពីប្រព័ន្ធ & គ្រូ', en: 'System & Teacher Announcements' },
+  'Course Updates': { km: 'បច្ចុប្បន្នភាពវគ្គសិក្សា', en: 'Course Updates' },
+  'Assignment Alerts': { km: 'ការដាស់តឿនកិច្ចការផ្ទះ', en: 'Assignment Alerts' },
+  'Exam & Quiz Alerts': { km: 'ការដាស់តឿនការប្រឡង & Quiz', en: 'Exam & Quiz Alerts' },
+  'Payment Notifications': { km: 'ការជូនដំណឹងការទូទាត់', en: 'Payment Notifications' },
+  'All Notifications': { km: 'ការជូនដំណឹងទាំងអស់', en: 'All Notifications' },
+  'Calendar & Schedule': { km: 'កាលវិភាគ & ប្រតិទិន', en: 'Calendar & Schedule' },
+  'Profile & Settings': { km: 'គណនី & ការកំណត់', en: 'Profile & Settings' },
+}
+
+const getBreadcrumbLabel = (label: string): string => {
+  if (breadcrumbTranslations[label]) {
+    return currentLang.value === 'km' ? breadcrumbTranslations[label].km : breadcrumbTranslations[label].en
+  }
+  return label
+}
+
 const pageTitle = computed(() => {
   if (props.title) return props.title
   const crumbs = dynamicBreadcrumbs.value
-  return crumbs.length > 0 ? crumbs[crumbs.length - 1].label : 'Student Panel'
+  return crumbs.length > 0 ? getBreadcrumbLabel(crumbs[crumbs.length - 1].label) : (currentLang.value === 'km' ? 'ផ្ទាំងសិស្ស' : 'Student Panel')
 })
 
 // Quick Actions Dropdown items for Student
@@ -493,7 +596,7 @@ const studentNav: NavItem[] = [
   {
     key: 'dashboard',
     name: 'Dashboard',
-    khName: 'Dashboard',
+    khName: 'ផ្ទាំងគ្រប់គ្រង',
     href: '/student/dashboard',
     iconUrl: '/images/nav/dashboard.svg',
     icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'
@@ -501,104 +604,104 @@ const studentNav: NavItem[] = [
   {
     key: 'courses',
     name: 'My Courses',
-    khName: 'My Courses',
+    khName: 'វគ្គសិក្សារបស់ខ្ញុំ',
     iconUrl: '/images/nav/courses.svg',
     icon: 'M12 14l9-5-9-5-9 5 9 5z',
     children: [
-      { name: 'Continue Learning', khName: 'Continue Learning', href: '/student/my-courses/current', iconUrl: '/images/actions/add-course.svg' },
-      { name: 'Enrolled Courses', khName: 'Enrolled Courses', href: '/student/my-courses/enrolled', iconUrl: '/images/nav/sub/all-courses.svg' },
-      { name: 'Completed Courses', khName: 'Completed Courses', href: '/student/my-courses/completed', iconUrl: '/images/nav/sub/roles.svg' },
-      { name: 'Browse Catalog', khName: 'Browse Catalog', href: '/student/browse', iconUrl: '/images/nav/sub/overview.svg' },
+      { name: 'Continue Learning', khName: 'រៀនបន្ត', href: '/student/my-courses/current', iconUrl: '/images/actions/add-course.svg' },
+      { name: 'Enrolled Courses', khName: 'វគ្គសិក្សាដែលបានចុះឈ្មោះ', href: '/student/my-courses/enrolled', iconUrl: '/images/nav/sub/all-courses.svg' },
+      { name: 'Completed Courses', khName: 'វគ្គសិក្សាដែលបានបញ្ចប់', href: '/student/my-courses/completed', iconUrl: '/images/nav/sub/roles.svg' },
+      { name: 'Browse Catalog', khName: 'ស្វែងរកវគ្គសិក្សា', href: '/student/browse', iconUrl: '/images/nav/sub/overview.svg' },
     ]
   },
   {
     key: 'aiPath',
     name: 'AI Learning',
-    khName: 'AI Learning',
+    khName: 'ការរៀនជាមួយ AI',
     iconUrl: '/images/nav/ai.svg',
     icon: 'M13 10V3L4 14h7v7l9-11h-7z',
     badge: { text: 'AI', colorClass: 'bg-purple-500/20 text-purple-300 border-purple-500/30' },
     children: [
-      { name: 'AI Study Assistant', khName: 'AI Study Assistant', href: '/student/ai-tutor', iconUrl: '/images/nav/ai.svg' },
-      { name: 'Personalized Learning Path', khName: 'Personalized Learning Path', href: '/student/ai-path/recommended', iconUrl: '/images/nav/ai.svg' },
-      { name: 'Recommended Roadmap', khName: 'Recommended Roadmap', href: '/student/ai-path/next-course', iconUrl: '/images/nav/sub/all-courses.svg' },
-      { name: 'Weak Topics Review', khName: 'Weak Topics Review', href: '/student/ai-path/weak-topics', iconUrl: '/images/nav/sub/failed.svg' },
+      { name: 'AI Study Assistant', khName: 'ជំនួយការសិក្សា AI', href: '/student/ai-tutor', iconUrl: '/images/nav/ai.svg' },
+      { name: 'Personalized Learning Path', khName: 'គន្លងសិក្សាផ្ទាល់ខ្លួន', href: '/student/ai-path/recommended', iconUrl: '/images/nav/ai.svg' },
+      { name: 'Recommended Roadmap', khName: 'ផែនទីបង្ហាញផ្លូវណែនាំ', href: '/student/ai-path/next-course', iconUrl: '/images/nav/sub/all-courses.svg' },
+      { name: 'Weak Topics Review', khName: 'ពិនិត្យឡើងវិញចំណុចខ្សោយ', href: '/student/ai-path/weak-topics', iconUrl: '/images/nav/sub/failed.svg' },
     ]
   },
   {
     key: 'progress',
     name: 'Progress & Analytics',
-    khName: 'Progress & Analytics',
+    khName: 'វឌ្ឍនភាព & ការវិភាគ',
     iconUrl: '/images/nav/progress.svg',
     icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6',
     children: [
-      { name: 'Learning Overview', khName: 'Learning Overview', href: '/student/progress/overview', iconUrl: '/images/nav/progress.svg' },
-      { name: 'Course Progress', khName: 'Course Progress', href: '/student/my-courses/enrolled', iconUrl: '/images/nav/courses.svg' },
-      { name: 'Quiz Performance', khName: 'Quiz Performance', href: '/student/progress/weekly', iconUrl: '/images/nav/analytics.svg' },
-      { name: 'Skills Progress', khName: 'Skills Progress', href: '/student/progress/achievements', iconUrl: '/images/nav/sub/roles.svg' },
-      { name: 'Learning Activity', khName: 'Learning Activity', href: '/student/progress/learning-time', iconUrl: '/images/nav/sub/history.svg' },
+      { name: 'Learning Overview', khName: 'ទិដ្ឋភាពទូទៅនៃការរៀន', href: '/student/progress/overview', iconUrl: '/images/nav/progress.svg' },
+      { name: 'Course Progress', khName: 'វឌ្ឍនភាពតាមវគ្គសិក្សា', href: '/student/my-courses/enrolled', iconUrl: '/images/nav/courses.svg' },
+      { name: 'Quiz Performance', khName: 'លទ្ធផលកម្រងសំណួរ', href: '/student/progress/weekly', iconUrl: '/images/nav/analytics.svg' },
+      { name: 'Skills Progress', khName: 'ការរីកចម្រើនជំនាញ', href: '/student/progress/achievements', iconUrl: '/images/nav/sub/roles.svg' },
+      { name: 'Learning Activity', khName: 'សកម្មភាពនៃការរៀន', href: '/student/progress/learning-time', iconUrl: '/images/nav/sub/history.svg' },
     ]
   },
   {
     key: 'quizzes',
     name: 'Quiz & Assessment',
-    khName: 'Quiz & Assessment',
+    khName: 'កម្រងសំណួរ & ការវាយតម្លៃ',
     iconUrl: '/images/nav/quiz.svg',
     icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
     children: [
-      { name: 'Available Quizzes', khName: 'Available Quizzes', href: '/student/quizzes/practice', iconUrl: '/images/nav/quiz.svg' },
-      { name: 'My Quiz Attempts', khName: 'My Quiz Attempts', href: '/student/quizzes/history', iconUrl: '/images/nav/sub/history.svg' },
-      { name: 'Quiz Results', khName: 'Quiz Results', href: '/student/quizzes/scores', iconUrl: '/images/nav/sub/semesters.svg' },
-      { name: 'My Assessments', khName: 'My Assessments', href: '/student/quizzes/assignments', iconUrl: '/images/nav/analytics.svg' },
+      { name: 'Available Quizzes', khName: 'កម្រងសំណួរដែលមាន', href: '/student/quizzes/practice', iconUrl: '/images/nav/quiz.svg' },
+      { name: 'My Quiz Attempts', khName: 'ប្រវត្តិនៃការឆ្លើយសំណួរ', href: '/student/quizzes/history', iconUrl: '/images/nav/sub/history.svg' },
+      { name: 'Quiz Results', khName: 'លទ្ធផលកម្រងសំណួរ', href: '/student/quizzes/scores', iconUrl: '/images/nav/sub/semesters.svg' },
+      { name: 'My Assessments', khName: 'ការវាយតម្លៃរបស់ខ្ញុំ', href: '/student/quizzes/assignments', iconUrl: '/images/nav/analytics.svg' },
     ]
   },
   {
     key: 'certificates',
     name: 'Certificates',
-    khName: 'Certificates',
+    khName: 'វិញ្ញាបនបត្រ',
     iconUrl: '/images/nav/certificate.svg',
     icon: 'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z',
     children: [
-      { name: 'My Certificates', khName: 'My Certificates', href: '/student/certificates/my-certificates', iconUrl: '/images/nav/certificate.svg' },
-      { name: 'Available Certificates', khName: 'Available Certificates', href: '/student/certificates/download-share', iconUrl: '/images/nav/sub/import-export.svg' },
-      { name: 'Certificate Verification', khName: 'Certificate Verification', href: '/student/certificates/verify', iconUrl: '/images/actions/action-button.svg' },
+      { name: 'My Certificates', khName: 'វិញ្ញាបនបត្ររបស់ខ្ញុំ', href: '/student/certificates/my-certificates', iconUrl: '/images/nav/certificate.svg' },
+      { name: 'Available Certificates', khName: 'វិញ្ញាបនបត្រដែលអាចទាញយកបាន', href: '/student/certificates/download-share', iconUrl: '/images/nav/sub/import-export.svg' },
+      { name: 'Certificate Verification', khName: 'ផ្ទៀងផ្ទាត់វិញ្ញាបនបត្រ', href: '/student/certificates/verify', iconUrl: '/images/actions/action-button.svg' },
     ]
   },
   {
     key: 'payments',
     name: 'Payment & Billing',
-    khName: 'Payment & Billing',
+    khName: 'ការទូទាត់ & វិក្កយបត្រ',
     iconUrl: '/images/nav/payment.svg',
     icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
     badge: { text: 'ABA', colorClass: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' },
     children: [
-      { name: 'Course Fees & Invoices', khName: 'Course Fees & Invoices', href: '/student/payments/my-payments', iconUrl: '/images/nav/payment.svg' },
-      { name: 'Pay via ABA (KHR)', khName: 'Pay via ABA (KHR)', href: '/student/payments/pending', iconUrl: '/images/actions/payment.svg' },
-      { name: 'Payment Methods', khName: 'Payment Methods', href: '/student/payments/methods', iconUrl: '/images/actions/payment.svg' },
-      { name: 'Transaction History', khName: 'Transaction History', href: '/student/payments/transactions', iconUrl: '/images/nav/sub/history.svg' },
-      { name: 'Payment Settings', khName: 'Payment Settings', href: '/student/payments/settings', iconUrl: '/images/nav/sub/roles.svg' },
+      { name: 'Course Fees & Invoices', khName: 'ថ្លៃវគ្គសិក្សា & វិក្កយបត្រ', href: '/student/payments/my-payments', iconUrl: '/images/nav/payment.svg' },
+      { name: 'Pay via ABA (KHR)', khName: 'បង់ប្រាក់តាម ABA (KHR)', href: '/student/payments/pending', iconUrl: '/images/actions/payment.svg' },
+      { name: 'Payment Methods', khName: 'វិធីសាស្ត្រទូទាត់ប្រាក់', href: '/student/payments/methods', iconUrl: '/images/actions/payment.svg' },
+      { name: 'Transaction History', khName: 'ប្រវត្តិប្រតិបត្តិការ', href: '/student/payments/transactions', iconUrl: '/images/nav/sub/history.svg' },
+      { name: 'Payment Settings', khName: 'ការកំណត់ការទូទាត់', href: '/student/payments/settings', iconUrl: '/images/nav/sub/roles.svg' },
     ]
   },
   {
     key: 'notificationsModule',
     name: 'Notifications',
-    khName: 'Notifications',
+    khName: 'ការជូនដំណឹង',
     iconUrl: '/images/nav/notification.svg',
     icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9',
     badge: { text: '3', colorClass: 'bg-rose-500 text-white' },
     children: [
-      { name: 'All Notifications', khName: 'All Notifications', href: '/student/notifications', iconUrl: '/images/nav/notification.svg' },
-      { name: 'System & Teacher Announcements', khName: 'System & Teacher Announcements', href: '/student/notifications/announcements', iconUrl: '/images/actions/announcement.svg' },
-      { name: 'Course Updates', khName: 'Course Updates', href: '/student/notifications/course-updates', iconUrl: '/images/nav/sub/semesters.svg' },
-      { name: 'Assignment Alerts', khName: 'Assignment Alerts', href: '/student/notifications/assignments', iconUrl: '/images/nav/analytics.svg' },
-      { name: 'Exam & Quiz Alerts', khName: 'Exam & Quiz Alerts', href: '/student/notifications/exams', iconUrl: '/images/nav/quiz.svg' },
-      { name: 'Payment Notifications', khName: 'Payment Notifications', href: '/student/notifications/payments', iconUrl: '/images/nav/payment.svg' },
+      { name: 'All Notifications', khName: 'ការជូនដំណឹងទាំងអស់', href: '/student/notifications', iconUrl: '/images/nav/notification.svg' },
+      { name: 'System & Teacher Announcements', khName: 'សេចក្តីប្រកាសពីប្រព័ន្ធ & គ្រូ', href: '/student/notifications/announcements', iconUrl: '/images/actions/announcement.svg' },
+      { name: 'Course Updates', khName: 'បច្ចុប្បន្នភាពវគ្គសិក្សា', href: '/student/notifications/course-updates', iconUrl: '/images/nav/sub/semesters.svg' },
+      { name: 'Assignment Alerts', khName: 'ការដាស់តឿនកិច្ចការផ្ទះ', href: '/student/notifications/assignments', iconUrl: '/images/nav/analytics.svg' },
+      { name: 'Exam & Quiz Alerts', khName: 'ការដាស់តឿនការប្រឡង & Quiz', href: '/student/notifications/exams', iconUrl: '/images/nav/quiz.svg' },
+      { name: 'Payment Notifications', khName: 'ការជូនដំណឹងការទូទាត់', href: '/student/notifications/payments', iconUrl: '/images/nav/payment.svg' },
     ]
   },
   {
     key: 'calendar',
     name: 'Calendar & Schedule',
-    khName: 'Calendar & Schedule',
+    khName: 'កាលវិភាគ & ប្រតិទិន',
     href: '/student/calendar/live-class',
     iconUrl: '/images/actions/announcement.svg',
     icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'
@@ -606,7 +709,7 @@ const studentNav: NavItem[] = [
   {
     key: 'profile',
     name: 'Profile & Settings',
-    khName: 'Profile & Settings',
+    khName: 'គណនី & ការកំណត់',
     href: '/student/profile?tab=personal',
     iconUrl: '/images/nav/sub/students.svg',
     icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
@@ -1120,13 +1223,13 @@ const onIconError = (e: Event) => {
                 prefetch="hover"
                 class="text-slate-400 hover:text-purple-400 transition-colors truncate"
               >
-                {{ crumb.label }}
+                {{ getBreadcrumbLabel(crumb.label) }}
               </Link>
               <span
                 v-else
                 class="text-slate-800 dark:text-white font-semibold truncate"
               >
-                {{ crumb.label }}
+                {{ getBreadcrumbLabel(crumb.label) }}
               </span>
               <svg
                 v-if="idx < dynamicBreadcrumbs.length - 1"
@@ -1214,34 +1317,19 @@ const onIconError = (e: Event) => {
             </div>
           </div>
 
-          <!-- Language Switcher -->
-          <div class="relative">
-            <button
-              @click="toggleDropdown('lang')"
-              type="button"
-              class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/60 hover:bg-slate-200 dark:hover:bg-slate-800 text-xs font-semibold border border-slate-200 dark:border-slate-700/60 transition-all cursor-pointer"
-            >
-              <span class="text-xs uppercase font-mono font-bold text-slate-700 dark:text-slate-300">{{ currentLang }}</span>
-            </button>
-
-            <div
-              v-show="isLangOpen"
-              class="absolute right-0 mt-2 w-36 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-1.5 z-50 space-y-1"
-            >
-              <button
-                v-for="l in languages"
-                :key="l.code"
-                @click="selectLanguage(l.code)"
-                :class="[
-                  currentLang === l.code ? 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-300 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800',
-                  'w-full flex items-center justify-between px-3 py-1.5 rounded-xl text-xs'
-                ]"
-              >
-                <span>{{ l.name }}</span>
-                <span v-if="currentLang === l.code" class="text-indigo-500 font-bold">✓</span>
-              </button>
-            </div>
-          </div>
+          <!-- Language Switcher Pill (Direct 1-Click Toggle: Khmer / English - Form Login Style) -->
+          <button
+            type="button"
+            @click="toggleLanguage"
+            class="p-1.5 px-2.5 h-8 rounded-full bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all duration-150 border border-slate-200 hover:border-slate-300 dark:border-slate-700/60 dark:hover:border-slate-600 shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
+            :title="currentLang === 'km' ? 'Switch to English' : 'ប្តូរទៅជាភាសាខ្មែរ'"
+          >
+            <img
+              :src="currentLang === 'km' ? '/images/flags/km.svg' : '/images/flags/en.svg'"
+              :alt="currentLang"
+              class="w-5 h-3.5 object-cover rounded-[3px] shadow-xs ring-1 ring-slate-300 dark:ring-slate-600/60 transition-transform duration-200 group-hover:scale-110"
+            />
+          </button>
 
           <!-- Notifications Bell & Drawer Trigger -->
           <div class="relative">

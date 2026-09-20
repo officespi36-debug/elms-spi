@@ -17,6 +17,7 @@ import Aura from '@primevue/themes/aura'
 import ToastService from 'primevue/toastservice'
 import 'primeicons/primeicons.css'
 import { initTheme } from '@/composables/useTheme'
+import { i18n } from '@/Services/i18n'
 
 initTheme()
 
@@ -69,6 +70,10 @@ createInertiaApp({
       .use(ui)
       .use(PrimeVue, { theme: { preset: Aura } })
       .use(ToastService)
+
+    vueApp.config.globalProperties.$t = (key: string, defaultText?: string) => i18n.t(key, defaultText)
+    vueApp.config.globalProperties.$i18n = i18n
+    vueApp.provide('i18n', i18n)
 
     vueApp.config.errorHandler = (err, instance, info) => {
       console.error('Vue Runtime Error:', err, info)

@@ -1198,6 +1198,95 @@ onUnmounted(() => {
       </div>
     </div>
 
+    <!-- Mobile Drawer Sidebar (Sliding Drawer on Mobile) -->
+    <div
+      v-if="sidebarOpen"
+      @click="sidebarOpen = false"
+      class="fixed inset-0 bg-slate-950/80 z-50 lg:hidden backdrop-blur-sm transition-opacity"
+    ></div>
+
+    <aside
+      :class="[
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+        'fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 border-r border-slate-800 flex flex-col lg:hidden transition-transform duration-300 ease-in-out shadow-2xl'
+      ]"
+    >
+      <div class="h-14 px-4 flex items-center justify-between border-b border-slate-800">
+        <div class="flex items-center gap-3">
+          <img :src="logoUrl" alt="E-LMS Logo" class="w-8 h-8 rounded-full object-cover ring-2 ring-indigo-500/30" />
+          <div>
+            <span class="font-bold text-sm text-white block">E-LMS Admin</span>
+            <span class="text-[9px] text-slate-400 uppercase tracking-wide block">{{ currentLang === 'km' ? 'ផ្ទាំងគ្រប់គ្រង' : 'ADMIN PANEL' }}</span>
+          </div>
+        </div>
+        <button @click="sidebarOpen = false" class="p-1 text-slate-400 hover:text-white">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto custom-scrollbar">
+        <template v-for="item in navigation" :key="item.name">
+          <Link
+            v-if="!item.children || item.children.length === 0"
+            :href="item.href!"
+            @click="sidebarOpen = false"
+            :class="[
+              $page.url.startsWith(item.href!) ? 'bg-indigo-500/20 text-indigo-300 font-bold border border-indigo-500/30 shadow-xs' : 'text-slate-400 hover:text-white hover:bg-slate-800/60',
+              'flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-colors'
+            ]"
+          >
+            <div class="flex items-center gap-3 truncate">
+              <img v-if="item.iconUrl" :src="item.iconUrl" class="w-5 h-5 object-contain shrink-0" />
+              <span class="truncate">{{ getNavTitle(item.name) }}</span>
+            </div>
+          </Link>
+          <div v-else class="space-y-1">
+            <button
+              @click="toggleModule(item.key!)"
+              class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 font-medium"
+            >
+              <div class="flex items-center gap-3 truncate">
+                <img v-if="item.iconUrl" :src="item.iconUrl" class="w-5 h-5 object-contain shrink-0" />
+                <span class="truncate">{{ getNavTitle(item.name) }}</span>
+              </div>
+              <svg :class="[expandedModules[item.key!] ? 'rotate-180 text-indigo-400' : '', 'w-4 h-4 transition-transform text-slate-500']" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div v-show="expandedModules[item.key!]" class="pl-4 ml-4 space-y-1 my-1 border-l border-slate-800">
+              <Link
+                v-for="sub in item.children"
+                :key="sub.href"
+                :href="sub.href"
+                @click="sidebarOpen = false"
+                :class="[
+                  $page.url.startsWith(sub.href) ? 'bg-indigo-500/15 text-indigo-300 font-bold border border-indigo-500/25' : 'text-slate-400 hover:text-white hover:bg-slate-800/60',
+                  'flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs transition-all'
+                ]"
+              >
+                <img v-if="sub.iconUrl" :src="sub.iconUrl" class="w-4 h-4 object-contain shrink-0" />
+                <span class="truncate">{{ getNavTitle(sub.name) }}</span>
+              </Link>
+            </div>
+          </div>
+        </template>
+      </nav>
+
+      <!-- Mobile Footer -->
+      <div class="p-3.5 border-t border-slate-800 bg-slate-900/90 flex items-center justify-between">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 text-white font-bold flex items-center justify-center text-xs">
+            {{ user.name ? user.name.charAt(0) : 'A' }}
+          </div>
+          <div class="min-w-0">
+            <p class="font-bold text-white text-xs truncate">{{ user.name }}</p>
+            <p class="text-[10px] text-slate-400 truncate">{{ user.email }}</p>
+          </div>
+        </div>
+        <button @click="logout" class="p-2 text-slate-400 hover:text-red-400 rounded-lg">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        </button>
+      </div>
+    </aside>
+
     <!-- Sticky Top Navbar (Desktop & Mobile) -->
     <header :class="[isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72', 'sticky top-0 z-40 bg-slate-900/90 backdrop-blur-xl border-b border-slate-800/80 transition-all duration-300']">
       <div class="flex h-14 items-center justify-between px-4 sm:px-6 lg:px-8 gap-4">

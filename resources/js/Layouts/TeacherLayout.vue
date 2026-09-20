@@ -41,7 +41,61 @@ const isLangOpen = ref(false)
 const isStatusOpen = ref(false)
 const isFullscreen = ref(false)
 
-const currentLang = computed(() => i18n.locale.value || 'km')
+const currentLang = computed(() => i18n.locale.value)
+
+// Web Audio API Sound Synthesizer for Language Switch (Sweet chime identical to Login form)
+let audioCtx: AudioContext | null = null
+
+const getAudioContext = (): AudioContext | null => {
+  if (typeof window === 'undefined') return null
+  try {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext
+    if (!AudioContextClass) return null
+    if (!audioCtx || audioCtx.state === 'closed') {
+      audioCtx = new AudioContextClass()
+    }
+    return audioCtx
+  } catch {
+    return null
+  }
+}
+
+const playTopBarSound = async () => {
+  try {
+    const ctx = getAudioContext()
+    if (!ctx) return
+
+    if (ctx.state === 'suspended') {
+      await ctx.resume()
+    }
+
+    const now = ctx.currentTime
+
+    // Sweet clear selection chime
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(750, now)
+    osc.frequency.exponentialRampToValueAtTime(1150, now + 0.09)
+
+    gain.gain.setValueAtTime(0.3, now)
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.11)
+
+    osc.start(now)
+    osc.stop(now + 0.11)
+  } catch (e) {
+    // Graceful fallback
+  }
+}
+
+const toggleLanguage = () => {
+  playTopBarSound()
+  const nextLang = currentLang.value === 'km' ? 'en' : 'km'
+  i18n.setLanguage(nextLang)
+}
 
 const isOnline = ref(typeof window !== 'undefined' ? window.navigator.onLine : true)
 const manualStatusOverride = ref<boolean | null>(null)
@@ -66,9 +120,7 @@ const languages = [
 ]
 
 const selectLanguage = (code: string) => {
-  if (i18n.setLanguage) {
-    i18n.setLanguage(code as 'km' | 'en')
-  }
+  i18n.setLanguage(code as 'km' | 'en')
   isLangOpen.value = false
 }
 
@@ -123,19 +175,20 @@ const handleKeydown = (e: KeyboardEvent) => {
 // Dynamic Breadcrumb & Page Title
 const currentBreadcrumb = computed(() => {
   const url = page.url
-  if (url.startsWith('/teacher/dashboard')) return ['Teacher', 'Dashboard']
-  if (url.startsWith('/teacher/courses')) return ['Teacher', 'My Courses']
-  if (url.startsWith('/teacher/content')) return ['Teacher', 'Content Delivery Module']
-  if (url.startsWith('/teacher/quizzes') || url.startsWith('/teacher/assessment')) return ['Teacher', 'Quiz & Assessment Module']
-  if (url.startsWith('/teacher/students')) return ['Teacher', 'Students']
-  if (url.startsWith('/teacher/progress')) return ['Teacher', 'Progress Tracking Module']
-  if (url.startsWith('/teacher/reports')) return ['Teacher', 'Reports Module']
-  if (url.startsWith('/teacher/discussions') || url.startsWith('/teacher/discussion')) return ['Teacher', 'Discussion & Announcements']
-  if (url.startsWith('/teacher/calendar')) return ['Teacher', 'Calendar']
-  if (url.startsWith('/teacher/earnings')) return ['Teacher', 'Earnings & ABA']
-  if (url.startsWith('/teacher/notifications')) return ['Teacher', 'Notifications']
-  if (url.startsWith('/teacher/profile')) return ['Teacher', 'My Profile']
-  return ['Teacher', 'Teacher Panel']
+  const prefix = currentLang.value === 'km' ? 'គ្រូបង្រៀន' : 'Teacher'
+  if (url.startsWith('/teacher/dashboard')) return [prefix, currentLang.value === 'km' ? 'ផ្ទាំងគ្រប់គ្រង' : 'Dashboard']
+  if (url.startsWith('/teacher/courses')) return [prefix, currentLang.value === 'km' ? 'វគ្គសិក្សារបស់ខ្ញុំ' : 'My Courses']
+  if (url.startsWith('/teacher/content')) return [prefix, currentLang.value === 'km' ? 'ការចែកចាយមាតិកា' : 'Content Delivery Module']
+  if (url.startsWith('/teacher/quizzes') || url.startsWith('/teacher/assessment')) return [prefix, currentLang.value === 'km' ? 'កម្រងសំណួរ & ការវាយតម្លៃ' : 'Quiz & Assessment Module']
+  if (url.startsWith('/teacher/students')) return [prefix, currentLang.value === 'km' ? 'ការគ្រប់គ្រងសិស្ស' : 'Students']
+  if (url.startsWith('/teacher/progress')) return [prefix, currentLang.value === 'km' ? 'តាមដានវឌ្ឍនភាព' : 'Progress Tracking Module']
+  if (url.startsWith('/teacher/reports')) return [prefix, currentLang.value === 'km' ? 'របាយការណ៍ & ស្ថិតិ' : 'Reports Module']
+  if (url.startsWith('/teacher/discussions') || url.startsWith('/teacher/discussion')) return [prefix, currentLang.value === 'km' ? 'ការពិភាក្សា & សេចក្តីប្រកាស' : 'Discussion & Announcements']
+  if (url.startsWith('/teacher/calendar')) return [prefix, currentLang.value === 'km' ? 'កាលវិភាគ & ប្រតិទិន' : 'Calendar']
+  if (url.startsWith('/teacher/earnings')) return [prefix, currentLang.value === 'km' ? 'ប្រាក់ចំណូល & ABA' : 'Earnings & ABA']
+  if (url.startsWith('/teacher/notifications')) return [prefix, currentLang.value === 'km' ? 'ការជូនដំណឹង' : 'Notifications']
+  if (url.startsWith('/teacher/profile')) return [prefix, currentLang.value === 'km' ? 'គណនីរបស់ខ្ញុំ' : 'My Profile']
+  return [prefix, currentLang.value === 'km' ? 'ផ្ទាំងគ្រូបង្រៀន' : 'Teacher Panel']
 })
 
 const pageTitle = computed(() => {
@@ -238,7 +291,7 @@ const teacherNav: NavItem[] = [
   {
     key: 'dashboard',
     name: 'Dashboard',
-    khName: 'Dashboard',
+    khName: 'ផ្ទាំងគ្រប់គ្រង',
     href: '/teacher/dashboard',
     iconUrl: '/images/nav/dashboard.svg',
     icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'
@@ -246,86 +299,86 @@ const teacherNav: NavItem[] = [
   {
     key: 'courses',
     name: 'My Courses',
-    khName: 'My Courses',
+    khName: 'វគ្គសិក្សារបស់ខ្ញុំ',
     iconUrl: '/images/nav/courses.svg',
     icon: 'M12 14l9-5-9-5-9 5 9 5z',
     children: [
-      { name: 'All Courses', khName: 'All Courses', href: '/teacher/courses', iconUrl: '/images/nav/courses/all-courses.svg' },
-      { name: 'Create New Course', khName: 'Create New Course', href: '/teacher/courses/create', iconUrl: '/images/nav/courses/create-course.svg' },
-      { name: 'Draft Courses', khName: 'Draft Courses', href: '/teacher/courses?tab=drafts', iconUrl: '/images/nav/courses/draft-courses.svg' },
-      { name: 'Pending Approval', khName: 'Pending Approval', href: '/teacher/courses?tab=pending', iconUrl: '/images/nav/courses/pending-approval.svg' },
-      { name: 'Published Courses', khName: 'Published Courses', href: '/teacher/courses?tab=published', iconUrl: '/images/nav/courses/published-courses.svg' },
-      { name: 'Course Settings', khName: 'Course Settings', href: '/teacher/courses?tab=settings', iconUrl: '/images/nav/courses/course-settings.svg' },
+      { name: 'All Courses', khName: 'វគ្គសិក្សាទាំងអស់', href: '/teacher/courses', iconUrl: '/images/nav/courses/all-courses.svg' },
+      { name: 'Create New Course', khName: 'បង្កើតវគ្គសិក្សាថ្មី', href: '/teacher/courses/create', iconUrl: '/images/nav/courses/create-course.svg' },
+      { name: 'Draft Courses', khName: 'វគ្គសិក្សាព្រាង', href: '/teacher/courses?tab=drafts', iconUrl: '/images/nav/courses/draft-courses.svg' },
+      { name: 'Pending Approval', khName: 'រង់ចាំការអនុម័ត', href: '/teacher/courses?tab=pending', iconUrl: '/images/nav/courses/pending-approval.svg' },
+      { name: 'Published Courses', khName: 'វគ្គសិក្សាបានផ្សព្វផ្សាយ', href: '/teacher/courses?tab=published', iconUrl: '/images/nav/courses/published-courses.svg' },
+      { name: 'Course Settings', khName: 'ការកំណត់វគ្គសិក្សា', href: '/teacher/courses?tab=settings', iconUrl: '/images/nav/courses/course-settings.svg' },
     ]
   },
   {
     key: 'content',
     name: 'Content Delivery',
-    khName: 'Content Delivery',
+    khName: 'ការចែកចាយមាតិកា',
     iconUrl: '/images/nav/content.svg',
     icon: 'M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4',
     children: [
-      { name: 'Videos', khName: 'Videos', href: '/teacher/content?tab=videos', iconUrl: '/images/nav/sub/teacher-led.svg' },
-      { name: 'PDFs', khName: 'PDFs', href: '/teacher/content?tab=pdfs', iconUrl: '/images/nav/sub/policies.svg' },
-      { name: 'Slides', khName: 'Slides', href: '/teacher/content?tab=slides', iconUrl: '/images/nav/sub/self-study.svg' },
-      { name: 'Modules & Chapters', khName: 'Modules & Chapters', href: '/teacher/content?tab=modules', iconUrl: '/images/nav/sub/all-courses.svg' },
-      { name: 'Notes & Downloads', khName: 'Notes & Downloads', href: '/teacher/content?tab=notes', iconUrl: '/images/nav/sub/subjects.svg' },
-      { name: 'AI-Assisted Content', khName: 'AI-Assisted Content', href: '/teacher/content?tab=ai-content', iconUrl: '/images/nav/sub/overview.svg', tag: '🤖' },
-      { name: 'Practice Lab', khName: 'Practice Lab', href: '/teacher/content?tab=coding-lab', iconUrl: '/images/nav/sub/import-export.svg', tag: '💻' },
+      { name: 'Videos', khName: 'វីដេអូមេរៀន', href: '/teacher/content?tab=videos', iconUrl: '/images/nav/sub/teacher-led.svg' },
+      { name: 'PDFs', khName: 'ឯកសារ PDF', href: '/teacher/content?tab=pdfs', iconUrl: '/images/nav/sub/policies.svg' },
+      { name: 'Slides', khName: 'ស្លាយមេរៀន', href: '/teacher/content?tab=slides', iconUrl: '/images/nav/sub/self-study.svg' },
+      { name: 'Modules & Chapters', khName: 'ជំពូក & ម៉ូឌុល', href: '/teacher/content?tab=modules', iconUrl: '/images/nav/sub/all-courses.svg' },
+      { name: 'Notes & Downloads', khName: 'កំណត់ចំណាំ & ទាញយក', href: '/teacher/content?tab=notes', iconUrl: '/images/nav/sub/subjects.svg' },
+      { name: 'AI-Assisted Content', khName: 'មាតិកាជំនួយដោយ AI', href: '/teacher/content?tab=ai-content', iconUrl: '/images/nav/sub/overview.svg', tag: '🤖' },
+      { name: 'Practice Lab', khName: 'បន្ទប់អនុវត្តជាក់ស្តែង', href: '/teacher/content?tab=coding-lab', iconUrl: '/images/nav/sub/import-export.svg', tag: '💻' },
     ]
   },
   {
     key: 'assessment',
     name: 'Quiz & Assessment',
-    khName: 'Quiz & Assessment',
+    khName: 'កម្រងសំណួរ & ការវាយតម្លៃ',
     iconUrl: '/images/nav/quiz.svg',
     icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
     children: [
-      { name: 'Question Bank', khName: 'Question Bank', href: '/teacher/assessment?tab=questions', iconUrl: '/images/nav/sub/overview.svg' },
-      { name: 'Quiz', khName: 'Quiz', href: '/teacher/assessment?tab=quizzes', iconUrl: '/images/nav/quiz.svg' },
-      { name: 'Pre-Test', khName: 'Pre-Test', href: '/teacher/assessment?tab=pretest', iconUrl: '/images/nav/sub/semesters.svg' },
-      { name: 'Practice Quiz', khName: 'Practice Quiz', href: '/teacher/assessment?tab=practice', iconUrl: '/images/nav/sub/subjects.svg' },
-      { name: 'Post-Test', khName: 'Post-Test', href: '/teacher/assessment?tab=posttest', iconUrl: '/images/nav/sub/roles.svg' },
-      { name: 'Assignment', khName: 'Assignment', href: '/teacher/assessment?tab=assignments', iconUrl: '/images/nav/sub/teacher-assignments.svg' },
-      { name: 'Coding Assessment', khName: 'Coding Assessment', href: '/teacher/assessment?tab=coding', iconUrl: '/images/nav/sub/import-export.svg', tag: '💻' },
-      { name: 'Quiz Results', khName: 'Quiz Results', href: '/teacher/assessment?tab=results', iconUrl: '/images/nav/sub/history.svg' },
+      { name: 'Question Bank', khName: 'ធនាគារសំណួរ', href: '/teacher/assessment?tab=questions', iconUrl: '/images/nav/sub/overview.svg' },
+      { name: 'Quiz', khName: 'កម្រងសំណួរ (Quiz)', href: '/teacher/assessment?tab=quizzes', iconUrl: '/images/nav/quiz.svg' },
+      { name: 'Pre-Test', khName: 'តេស្តសមត្ថភាពមុនរៀន', href: '/teacher/assessment?tab=pretest', iconUrl: '/images/nav/sub/semesters.svg' },
+      { name: 'Practice Quiz', khName: 'សំណួរអនុវត្តបន្ថែម', href: '/teacher/assessment?tab=practice', iconUrl: '/images/nav/sub/subjects.svg' },
+      { name: 'Post-Test', khName: 'តេស្តវាយតម្លៃចុងក្រោយ', href: '/teacher/assessment?tab=posttest', iconUrl: '/images/nav/sub/roles.svg' },
+      { name: 'Assignment', khName: 'កិច្ចការផ្ទះ (Assignment)', href: '/teacher/assessment?tab=assignments', iconUrl: '/images/nav/sub/teacher-assignments.svg' },
+      { name: 'Coding Assessment', khName: 'ការវាយតម្លៃសរសេរកូដ', href: '/teacher/assessment?tab=coding', iconUrl: '/images/nav/sub/import-export.svg', tag: '💻' },
+      { name: 'Quiz Results', khName: 'លទ្ធផលកម្រងសំណួរ', href: '/teacher/assessment?tab=results', iconUrl: '/images/nav/sub/history.svg' },
     ]
   },
   {
     key: 'students',
     name: 'Students',
-    khName: 'Students',
+    khName: 'ការគ្រប់គ្រងសិស្ស',
     iconUrl: '/images/nav/users.svg',
     icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z',
     children: [
-      { name: 'Student List', khName: 'Student List', href: '/teacher/students?tab=list', iconUrl: '/images/nav/sub/students.svg' },
-      { name: 'Progress', khName: 'Progress', href: '/teacher/students?tab=progress', iconUrl: '/images/nav/progress.svg' },
-      { name: 'Completion', khName: 'Completion', href: '/teacher/students?tab=completion', iconUrl: '/images/nav/sub/roles.svg' },
-      { name: 'Quiz Scores', khName: 'Quiz Scores', href: '/teacher/students?tab=scores', iconUrl: '/images/nav/analytics.svg' },
-      { name: 'Assignment Scores', khName: 'Assignment Scores', href: '/teacher/students?tab=assignment-scores', iconUrl: '/images/nav/sub/teacher-assignments.svg' },
-      { name: 'Attendance', khName: 'Attendance', href: '/teacher/students?tab=attendance', iconUrl: '/images/nav/sub/history.svg' },
-      { name: 'Feedback', khName: 'Feedback', href: '/teacher/students?tab=feedback', iconUrl: '/images/nav/sub/overview.svg' },
+      { name: 'Student List', khName: 'បញ្ជីឈ្មោះសិស្ស', href: '/teacher/students?tab=list', iconUrl: '/images/nav/sub/students.svg' },
+      { name: 'Progress', khName: 'វឌ្ឍនភាពសិក្សា', href: '/teacher/students?tab=progress', iconUrl: '/images/nav/progress.svg' },
+      { name: 'Completion', khName: 'ការបញ្ចប់ការសិក្សា', href: '/teacher/students?tab=completion', iconUrl: '/images/nav/sub/roles.svg' },
+      { name: 'Quiz Scores', khName: 'ពិន្ទុកម្រងសំណួរ', href: '/teacher/students?tab=scores', iconUrl: '/images/nav/analytics.svg' },
+      { name: 'Assignment Scores', khName: 'ពិន្ទុកិច្ចការផ្ទះ', href: '/teacher/students?tab=assignment-scores', iconUrl: '/images/nav/sub/teacher-assignments.svg' },
+      { name: 'Attendance', khName: 'វត្តមានសិស្ស', href: '/teacher/students?tab=attendance', iconUrl: '/images/nav/sub/history.svg' },
+      { name: 'Feedback', khName: 'មតិកែលម្អ & វាយតម្លៃ', href: '/teacher/students?tab=feedback', iconUrl: '/images/nav/sub/overview.svg' },
     ]
   },
   {
     key: 'progress',
     name: 'Progress Tracking',
-    khName: 'Progress Tracking',
+    khName: 'តាមដានវឌ្ឍនភាព',
     iconUrl: '/images/nav/progress.svg',
     icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6',
     children: [
-      { name: 'Module Completion', khName: 'Module Completion', href: '/teacher/progress?tab=modules', iconUrl: '/images/nav/sub/all-courses.svg' },
-      { name: 'Learning Time', khName: 'Learning Time', href: '/teacher/progress?tab=time', iconUrl: '/images/nav/sub/history.svg' },
-      { name: 'Weekly Progress', khName: 'Weekly Progress', href: '/teacher/progress?tab=weekly', iconUrl: '/images/nav/analytics.svg' },
-      { name: 'Course Progress', khName: 'Course Progress', href: '/teacher/progress?tab=course-progress', iconUrl: '/images/nav/progress.svg' },
-      { name: 'Weak Topics', khName: 'Weak Topics', href: '/teacher/progress?tab=weak-topics', iconUrl: '/images/nav/sub/failed.svg', tag: '🤖' },
-      { name: 'At-Risk Students', khName: 'At-Risk Students', href: '/teacher/progress?tab=at-risk', iconUrl: '/images/nav/sub/failed.svg', tag: '🤖' },
+      { name: 'Module Completion', khName: 'ការបញ្ចប់តាមម៉ូឌុល', href: '/teacher/progress?tab=modules', iconUrl: '/images/nav/sub/all-courses.svg' },
+      { name: 'Learning Time', khName: 'រយៈពេលសិក្សា', href: '/teacher/progress?tab=time', iconUrl: '/images/nav/sub/history.svg' },
+      { name: 'Weekly Progress', khName: 'វឌ្ឍនភាពប្រចាំសប្តាហ៍', href: '/teacher/progress?tab=weekly', iconUrl: '/images/nav/analytics.svg' },
+      { name: 'Course Progress', khName: 'វឌ្ឍនភាពតាមវគ្គសិក្សា', href: '/teacher/progress?tab=course-progress', iconUrl: '/images/nav/progress.svg' },
+      { name: 'Weak Topics', khName: 'ប្រធានបទខ្សោយ', href: '/teacher/progress?tab=weak-topics', iconUrl: '/images/nav/sub/failed.svg', tag: '🤖' },
+      { name: 'At-Risk Students', khName: 'សិស្សប្រឈមហានិភ័យ', href: '/teacher/progress?tab=at-risk', iconUrl: '/images/nav/sub/failed.svg', tag: '🤖' },
     ]
   },
   {
     key: 'reports',
     name: 'Reports',
-    khName: 'Reports',
+    khName: 'របាយការណ៍ & ស្ថិតិ',
     iconUrl: '/images/nav/analytics.svg',
     icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
     href: '/teacher/reports'
@@ -333,7 +386,7 @@ const teacherNav: NavItem[] = [
   {
     key: 'discussion',
     name: 'Discussion & Announcements',
-    khName: 'Discussion & Announcements',
+    khName: 'ការពិភាក្សា & សេចក្តីប្រកាស',
     iconUrl: '/images/nav/discussions.svg',
     icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z',
     href: '/teacher/discussions'
@@ -341,7 +394,7 @@ const teacherNav: NavItem[] = [
   {
     key: 'calendar',
     name: 'Calendar',
-    khName: 'Calendar',
+    khName: 'កាលវិភាគ & ប្រតិទិន',
     iconUrl: '/images/actions/announcement.svg',
     icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
     href: '/teacher/calendar'
@@ -349,7 +402,7 @@ const teacherNav: NavItem[] = [
   {
     key: 'earnings',
     name: 'Earnings & ABA',
-    khName: 'Earnings & ABA',
+    khName: 'ប្រាក់ចំណូល & ABA',
     iconUrl: '/images/nav/payment.svg',
     icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
     href: '/teacher/earnings'
@@ -357,7 +410,7 @@ const teacherNav: NavItem[] = [
   {
     key: 'notifications',
     name: 'Notifications',
-    khName: 'Notifications',
+    khName: 'ការជូនដំណឹង',
     iconUrl: '/images/nav/notification.svg',
     icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9',
     href: '/teacher/notifications'
@@ -365,7 +418,7 @@ const teacherNav: NavItem[] = [
   {
     key: 'profile',
     name: 'My Profile',
-    khName: 'My Profile',
+    khName: 'គណនីរបស់ខ្ញុំ',
     iconUrl: '/images/nav/sub/students.svg',
     icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z',
     href: '/teacher/profile'
@@ -1066,67 +1119,19 @@ const onIconError = (e: Event) => {
             </Transition>
           </div>
 
-          <!-- Language Switcher Pill (🇰🇭 KM ˅) -->
-          <div 
-            class="relative" 
-            @mouseenter="isLangOpen = true" 
-            @mouseleave="isLangOpen = false"
+          <!-- Language Switcher Pill (Direct 1-Click Toggle: Khmer / English - Form Login Style) -->
+          <button
+            type="button"
+            @click="toggleLanguage"
+            class="p-1.5 px-2.5 h-8 rounded-full bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all duration-150 border border-slate-200 hover:border-slate-300 dark:border-slate-700/60 dark:hover:border-slate-600 shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
+            :title="currentLang === 'km' ? 'Switch to English' : 'ប្តូរទៅជាភាសាខ្មែរ'"
           >
-            <button
-              @click="isLangOpen = !isLangOpen"
-              type="button"
-              class="h-8 px-2.5 bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200 hover:border-slate-300 dark:border-slate-700/60 dark:hover:border-slate-600 rounded-lg transition-all flex items-center gap-2 cursor-pointer group select-none focus:outline-none"
-            >
-              <img 
-                :src="languages.find(l => l.code === currentLang)?.flagUrl || '/images/flags/km.svg'" 
-                :alt="currentLang"
-                class="w-4 h-4 rounded-full object-cover shrink-0 shadow-xs" 
-              />
-              <span class="uppercase text-xs font-semibold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white font-sans tracking-wide">
-                {{ currentLang === 'km' ? 'KM' : 'EN' }}
-              </span>
-              <svg 
-                :class="[isLangOpen ? 'rotate-180 text-slate-800 dark:text-slate-200' : 'text-slate-400']" 
-                class="w-3.5 h-3.5 transition-transform duration-200" 
-                fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
-              >
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-              </svg>
-            </button>
-
-            <!-- Language Dropdown Menu -->
-            <Transition
-              enter-active-class="transition duration-200 ease-out"
-              enter-from-class="transform opacity-0 scale-95 -translate-y-1"
-              enter-to-class="transform opacity-100 scale-100 translate-y-0"
-              leave-active-class="transition duration-150 ease-in"
-              leave-from-class="transform opacity-100 scale-100 translate-y-0"
-              leave-to-class="transform opacity-0 scale-95 -translate-y-1"
-            >
-              <div
-                v-if="isLangOpen"
-                class="absolute right-0 mt-1.5 w-40 rounded-xl bg-white dark:bg-slate-800/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700/80 shadow-2xl py-1.5 z-50 overflow-hidden"
-              >
-                <button
-                  v-for="lang in languages"
-                  :key="lang.code"
-                  @click="selectLanguage(lang.code)"
-                  :class="[
-                    currentLang === lang.code ? 'bg-indigo-50 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-300 font-semibold' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/60'
-                  ]"
-                  class="w-full flex items-center justify-between px-3.5 py-2 text-xs transition-colors rounded-none cursor-pointer focus:outline-none"
-                >
-                  <span class="flex items-center gap-2.5">
-                    <img :src="lang.flagUrl" :alt="lang.name" class="w-4 h-4 rounded-full object-cover shrink-0" />
-                    <span>{{ lang.name }}</span>
-                  </span>
-                  <svg v-if="currentLang === lang.code" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                  </svg>
-                </button>
-              </div>
-            </Transition>
-          </div>
+            <img
+              :src="currentLang === 'km' ? '/images/flags/km.svg' : '/images/flags/en.svg'"
+              :alt="currentLang"
+              class="w-5 h-3.5 object-cover rounded-[3px] shadow-xs ring-1 ring-slate-300 dark:ring-slate-600/60 transition-transform duration-200 group-hover:scale-110"
+            />
+          </button>
 
           <!-- Theme Switcher Pill (Matching Sign In page style) -->
           <button
