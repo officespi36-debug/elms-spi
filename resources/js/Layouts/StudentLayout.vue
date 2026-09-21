@@ -1542,7 +1542,7 @@ const onIconError = (e: Event) => {
               <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 text-white font-bold flex items-center justify-center text-xs shadow">
                 {{ studentDisplayName.charAt(0) }}
               </div>
-              <span class="hidden lg:inline text-xs font-bold text-slate-800 dark:text-slate-200 truncate max-w-[120px]">
+              <span class="hidden lg:inline text-xs font-bold text-slate-800 dark:text-slate-200 truncate max-w-[200px]">
                 {{ studentDisplayName }}
               </span>
               <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>

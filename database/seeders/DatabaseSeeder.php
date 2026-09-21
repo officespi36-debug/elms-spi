@@ -33,10 +33,21 @@ class DatabaseSeeder extends Seeder
             'login_attempts' => 0,
         ]);
 
-        $kosalAdmin = User::where('email', 'kosalsensok065@gmail.com')->first();
-        if ($kosalAdmin) {
-            $kosalAdmin->update(['name' => 'kosal sensok', 'status' => 'active']);
+        $kosalAdmin = User::firstOrNew(['email' => 'kosalsensok065@gmail.com']);
+        $kosalAdmin->name = 'kosal sensok';
+        $kosalAdmin->name_kh = 'កុសល សែនសុខ';
+        $kosalAdmin->role = 'admin';
+        $kosalAdmin->status = 'active';
+        if (!$kosalAdmin->exists) {
+            $kosalAdmin->password = bcrypt('Kosalsensokpk@12pk');
+            $kosalAdmin->phone = '012345678';
+            $kosalAdmin->email_verified_at = now();
         }
+        $kosalAdmin->save();
+
+        // Also ensure any secondary kosal accounts match the official name
+        User::where('email', 'kosalsensok@gmail.com')->update(['name' => 'kosal sensok', 'name_kh' => 'កុសល សែនសុខ']);
+        User::where('email', 'kosalsensok098@gmail.com')->update(['name' => 'kosal sensok', 'name_kh' => 'កុសល សែនសុខ']);
 
         $teacher = User::updateOrCreate(['email' => 'teacher@elms.com'], [
             'name'           => 'Sophea Teacher',
