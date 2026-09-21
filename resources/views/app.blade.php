@@ -71,16 +71,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
 
-    <!-- Optimized Font Loading with font-display: swap to eliminate render blocking -->
-    <link rel="preload" as="style"
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Kantumruy+Pro:wght@400;500;600;700&family=Noto+Sans+Khmer:wght@400;600;700&display=swap"
-        onload="this.onload=null;this.rel='stylesheet'">
-    <noscript>
-        <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Kantumruy+Pro:wght@400;500;600;700&family=Noto+Sans+Khmer:wght@400;600;700&display=swap"
-            rel="stylesheet">
-    </noscript>
-
     <!-- Favicon Links for Google Search, Mobile, and Desktop Browsers -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="shortcut icon" href="/favicon.ico">
@@ -95,20 +85,6 @@
     <link rel="manifest" href="/manifest.json">
     <link rel="manifest" href="/manifest.webmanifest">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
-    <!-- PWA Service Worker Registration & Offline Network Handler -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function () {
-                navigator.serviceWorker.register('/sw.js', { scope: '/' })
-                    .then(function (reg) {
-                        console.log('SPI AI-ELMS Service Worker Registered successfully with scope:', reg.scope);
-                    })
-                    .catch(function (err) {
-                        console.warn('Service Worker Registration notice:', err);
-                    });
-            });
-        }
 
         // Live Network Status Observer
         function updateOnlineStatus() {

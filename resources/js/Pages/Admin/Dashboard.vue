@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import AdminLayout from '@/Layouts/AdminLayout.vue'
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, defineAsyncComponent } from 'vue'
 import { router, Link, usePage } from '@inertiajs/vue3'
-import VueApexCharts from 'vue3-apexcharts'
+const VueApexCharts = defineAsyncComponent(() => import('vue3-apexcharts'))
 import { i18n } from '@/Services/i18n'
 import { isDark } from '@/composables/useTheme'
 

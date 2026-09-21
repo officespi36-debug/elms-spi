@@ -284,8 +284,7 @@ class DashboardController extends Controller
             'student:id,name,email,avatar',
             'course:id,title,price',
             'teacher:id,name',
-        ])->where('status', 'verifying')
-          ->orWhere('status', 'pending')
+        ])->whereIn('status', ['verifying', 'pending'])
           ->latest()->limit(10)->get();
 
         $pendingPaymentsData = [

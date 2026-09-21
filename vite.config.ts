@@ -32,7 +32,10 @@ export default defineConfig({
           { src: '/pwa-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
         ],
       },
-      injectManifest: { globPatterns: ['**/*.{js,css,html,svg,png,woff2}'] },
+      injectManifest: {
+        globPatterns: ['assets/app-*.{js,css}', 'assets/vendor-vue-*.js', 'assets/vendor-ui-*.js'],
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+      },
       devOptions: { enabled: true, type: 'module' },
     }),
   ],
