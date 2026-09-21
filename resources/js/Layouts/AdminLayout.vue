@@ -1616,20 +1616,7 @@ onUnmounted(() => {
             <i :class="['pi text-xs transition-transform duration-500 group-hover:rotate-45', isDark ? 'pi-sun text-amber-400' : 'pi-moon text-indigo-500']"></i>
           </button>
 
-          <!-- Fullscreen Button -->
-          <button
-            @click="toggleFullscreen"
-            type="button"
-            class="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-slate-700/60 rounded-xl transition-all focus:outline-none cursor-pointer"
-            :title="isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'"
-          >
-            <svg v-if="!isFullscreen" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-            </svg>
-            <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 9L4 4m0 0l5 0m-5 0l0 5m11 0l5-5m0 0l-5 0m5 0l0 5m-5 11l5 5m0 0l-5 0m5 0l0-5m-11 0l-5 5m0 0l5 0m-5 0l0-5" />
-            </svg>
-          </button>
+
 
           <!-- Notifications Bell Dropdown -->
           <div class="relative nav-dropdown-scope">
