@@ -68,6 +68,9 @@ export default defineConfig({
             if (id.includes('@tanstack') || id.includes('@vueuse')) {
               return 'vendor-utils'
             }
+            if (id.includes('@sentry')) {
+              return 'vendor-sentry'
+            }
             return 'vendor'
           }
         },
