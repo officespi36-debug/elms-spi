@@ -75,8 +75,28 @@ createInertiaApp({
     vueApp.config.globalProperties.$i18n = i18n
     vueApp.provide('i18n', i18n)
 
+    const sentryDsn = (import.meta as any).env?.VITE_SENTRY_DSN
+
+    if (sentryDsn) {
+      import('@sentry/vue').then((Sentry) => {
+        Sentry.init({
+          app: vueApp,
+          dsn: sentryDsn,
+          integrations: [
+            Sentry.browserTracingIntegration(),
+          ],
+          tracesSampleRate: 0.2,
+        })
+      }).catch(() => {})
+    }
+
     vueApp.config.errorHandler = (err, instance, info) => {
       console.error('Vue Runtime Error:', err, info)
+      if (sentryDsn) {
+        import('@sentry/vue').then((Sentry) => {
+          Sentry.captureException(err, { extra: { info } })
+        }).catch(() => {})
+      }
     }
 
     vueApp.mount(el)
