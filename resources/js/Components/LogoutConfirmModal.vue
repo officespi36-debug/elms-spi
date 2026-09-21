@@ -81,9 +81,9 @@ onUnmounted(() => {
           @click="!loading && emit('close')"
         ></div>
 
-        <!-- Centered Dialog Box (Matching Login Form Card Style) -->
+        <!-- Centered Dialog Box (Matching Login Form Card with Border Beam) -->
         <div
-          class="relative w-full max-w-[410px] p-6 sm:p-7 bg-white dark:bg-[#121214] border border-zinc-200 dark:border-zinc-800 rounded-2xl sm:rounded-3xl shadow-2xl text-zinc-900 dark:text-white overflow-hidden text-center z-10 transition-all transform"
+          class="border-beam-modal relative w-full max-w-[410px] p-6 sm:p-7 rounded-2xl sm:rounded-3xl shadow-2xl text-zinc-900 dark:text-white overflow-hidden text-center z-10 transition-all transform"
           @click.stop
         >
           <!-- Subtle Top Ambient Glow -->
@@ -104,11 +104,11 @@ onUnmounted(() => {
             </svg>
           </button>
 
-          <!-- Top Brand Logo (E-LMS Official Logo + Logout Action Badge) -->
+          <!-- Top Brand Logo (E-LMS Official Logo with Rotating Border Beam + Action Badge) -->
           <div class="mb-4 relative group mx-auto flex items-center justify-center">
             <div class="relative flex items-center justify-center">
-              <!-- E-LMS Official Circular Logo with Glow -->
-              <div class="relative w-16 h-16 rounded-full bg-white dark:bg-zinc-900 p-1 border border-zinc-200 dark:border-zinc-700/80 shadow-lg shadow-sky-500/10 flex items-center justify-center overflow-hidden">
+              <!-- E-LMS Official Circular Logo with Border Beam -->
+              <div class="border-beam-logo relative w-16 h-16 rounded-full p-1 flex items-center justify-center shadow-lg overflow-hidden">
                 <img
                   :src="logoUrl"
                   alt="E-LMS Logo"
@@ -167,22 +167,24 @@ onUnmounted(() => {
             </div>
           </div>
 
-          <!-- Action Buttons (Matching Login Form Button Style & Sizing) -->
+          <!-- Action Buttons with Login Border Beam Rotating Light Effect -->
           <div class="grid grid-cols-2 gap-2.5">
+            <!-- Cancel Button with Login Form Border Beam -->
             <button
               type="button"
               @click="emit('close')"
               :disabled="loading"
-              class="w-full h-11 px-4 rounded-xl border border-zinc-300 dark:border-zinc-700/80 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 font-semibold text-xs sm:text-sm transition-all active:scale-[0.99] cursor-pointer disabled:opacity-40 flex items-center justify-center shadow-2xs"
+              class="border-beam-btn w-full h-11 px-4 rounded-xl text-zinc-800 dark:text-zinc-200 font-semibold text-xs sm:text-sm transition-all active:scale-[0.99] cursor-pointer disabled:opacity-40 flex items-center justify-center shadow-2xs select-none"
             >
               <span>{{ isKhmer ? 'បោះបង់' : 'Cancel' }}</span>
             </button>
 
+            <!-- Confirm Logout Button with Crimson Glowing Border Beam -->
             <button
               type="button"
               @click="emit('confirm')"
               :disabled="loading"
-              class="w-full h-11 px-4 rounded-xl bg-gradient-to-r from-rose-600 via-red-600 to-rose-700 hover:from-rose-700 hover:to-red-800 text-white font-semibold text-xs sm:text-sm shadow-md shadow-rose-600/25 active:scale-[0.99] transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
+              class="border-beam-logout-btn w-full h-11 px-4 rounded-xl text-white font-bold text-xs sm:text-sm shadow-md shadow-rose-600/30 active:scale-[0.99] transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 select-none"
             >
               <svg v-if="loading" class="animate-spin -ml-1 mr-1 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -196,3 +198,217 @@ onUnmounted(() => {
     </transition>
   </teleport>
 </template>
+
+<style>
+@property --beam-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes beam-rotate {
+  0% {
+    --beam-angle: 0deg;
+  }
+  100% {
+    --beam-angle: 360deg;
+  }
+}
+
+/* Modal Card Border Beam */
+.border-beam-modal {
+  --beam-bg: #ffffff;
+  --beam-border-base: #e4e4e7;
+  --beam-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+
+  position: relative;
+  border: 1.5px solid transparent !important;
+  background-clip: padding-box, border-box !important;
+  background-origin: padding-box, border-box !important;
+  background-image:
+    linear-gradient(var(--beam-bg), var(--beam-bg)),
+    conic-gradient(
+      from var(--beam-angle),
+      var(--beam-border-base) 0deg,
+      var(--beam-border-base) 260deg,
+      rgba(37, 99, 235, 0.4) 285deg,
+      #3b82f6 320deg,
+      #60a5fa 355deg,
+      var(--beam-border-base) 360deg
+    ) !important;
+  animation: beam-rotate 6s linear infinite;
+  box-shadow: var(--beam-shadow);
+}
+
+html.dark .border-beam-modal,
+.dark .border-beam-modal {
+  --beam-bg: #121214 !important;
+  --beam-border-base: #27272a !important;
+  --beam-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.6) !important;
+  background-image:
+    linear-gradient(var(--beam-bg), var(--beam-bg)),
+    conic-gradient(
+      from var(--beam-angle),
+      var(--beam-border-base) 0deg,
+      var(--beam-border-base) 260deg,
+      rgba(244, 63, 94, 0.35) 285deg,
+      #f43f5e 320deg,
+      #fda4af 355deg,
+      var(--beam-border-base) 360deg
+    ) !important;
+}
+
+/* Cancel Button Border Beam (matching Login border-beam-btn) */
+.border-beam-btn {
+  --beam-bg: #ffffff;
+  --beam-border-base: #e4e4e7;
+  --beam-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.06);
+
+  position: relative;
+  border: 1px solid transparent !important;
+  background-clip: padding-box, border-box !important;
+  background-origin: padding-box, border-box !important;
+  background-image:
+    linear-gradient(var(--beam-bg), var(--beam-bg)),
+    conic-gradient(
+      from var(--beam-angle),
+      var(--beam-border-base) 0deg,
+      var(--beam-border-base) 250deg,
+      rgba(37, 99, 235, 0.35) 280deg,
+      #2563eb 320deg,
+      #38bdf8 355deg,
+      var(--beam-border-base) 360deg
+    ) !important;
+  animation: beam-rotate 4s linear infinite;
+  box-shadow: var(--beam-shadow);
+}
+
+.border-beam-btn:hover {
+  --beam-bg: #f4f4f5;
+  --beam-border-base: #d4d4d8;
+  --beam-shadow: 0 0 14px -2px rgba(37, 99, 235, 0.25);
+}
+
+html.dark .border-beam-btn,
+.dark .border-beam-btn {
+  --beam-bg: #18181b !important;
+  --beam-border-base: #27272a !important;
+  --beam-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4) !important;
+  background-image:
+    linear-gradient(var(--beam-bg), var(--beam-bg)),
+    conic-gradient(
+      from var(--beam-angle),
+      var(--beam-border-base) 0deg,
+      var(--beam-border-base) 260deg,
+      rgba(249, 115, 22, 0.25) 285deg,
+      #f97316 325deg,
+      #fed7aa 355deg,
+      var(--beam-border-base) 360deg
+    ) !important;
+}
+
+html.dark .border-beam-btn:hover,
+.dark .border-beam-btn:hover {
+  --beam-bg: #232327 !important;
+  --beam-border-base: #3f3f46 !important;
+  --beam-shadow: 0 0 16px -2px rgba(249, 115, 22, 0.35) !important;
+}
+
+/* Logout Button Running Beam (Spectacular Crimson Glowing Border Beam) */
+.border-beam-logout-btn {
+  --beam-bg: #e11d48;
+  --beam-border-base: #be123c;
+  --beam-shadow: 0 4px 16px -2px rgba(225, 29, 72, 0.4);
+
+  position: relative;
+  border: 1.5px solid transparent !important;
+  background-clip: padding-box, border-box !important;
+  background-origin: padding-box, border-box !important;
+  background-image:
+    linear-gradient(var(--beam-bg), var(--beam-bg)),
+    conic-gradient(
+      from var(--beam-angle),
+      var(--beam-border-base) 0deg,
+      var(--beam-border-base) 250deg,
+      rgba(255, 255, 255, 0.4) 280deg,
+      #ffffff 320deg,
+      #fda4af 355deg,
+      var(--beam-border-base) 360deg
+    ) !important;
+  animation: beam-rotate 3.5s linear infinite;
+  box-shadow: var(--beam-shadow);
+}
+
+.border-beam-logout-btn:hover {
+  --beam-bg: #be123c;
+  --beam-shadow: 0 0 22px 2px rgba(244, 63, 94, 0.6);
+}
+
+html.dark .border-beam-logout-btn,
+.dark .border-beam-logout-btn {
+  --beam-bg: #e11d48 !important;
+  --beam-border-base: #be123c !important;
+  --beam-shadow: 0 4px 20px -2px rgba(244, 63, 94, 0.5) !important;
+  background-image:
+    linear-gradient(var(--beam-bg), var(--beam-bg)),
+    conic-gradient(
+      from var(--beam-angle),
+      var(--beam-border-base) 0deg,
+      var(--beam-border-base) 250deg,
+      rgba(255, 255, 255, 0.45) 280deg,
+      #ffffff 320deg,
+      #fecdd3 355deg,
+      var(--beam-border-base) 360deg
+    ) !important;
+}
+
+html.dark .border-beam-logout-btn:hover,
+.dark .border-beam-logout-btn:hover {
+  --beam-bg: #be123c !important;
+  --beam-shadow: 0 0 24px 2px rgba(244, 63, 94, 0.75) !important;
+}
+
+/* Circular Border Beam for Logo */
+.border-beam-logo {
+  --beam-bg: #ffffff;
+  --beam-border-base: #e4e4e7;
+  --beam-shadow: 0 4px 16px -2px rgba(37, 99, 235, 0.25);
+
+  position: relative;
+  border-radius: 9999px !important;
+  border: 1.5px solid transparent !important;
+  background-clip: padding-box, border-box !important;
+  background-origin: padding-box, border-box !important;
+  background-image:
+    linear-gradient(var(--beam-bg), var(--beam-bg)),
+    conic-gradient(
+      from var(--beam-angle),
+      var(--beam-border-base) 0deg,
+      var(--beam-border-base) 250deg,
+      rgba(37, 99, 235, 0.35) 280deg,
+      #2563eb 320deg,
+      #38bdf8 355deg,
+      var(--beam-border-base) 360deg
+    ) !important;
+  animation: beam-rotate 4s linear infinite;
+  box-shadow: var(--beam-shadow);
+}
+
+html.dark .border-beam-logo,
+.dark .border-beam-logo {
+  --beam-bg: #18181b !important;
+  --beam-border-base: #27272a !important;
+  --beam-shadow: 0 0 16px -2px rgba(56, 189, 248, 0.4) !important;
+  background-image:
+    linear-gradient(var(--beam-bg), var(--beam-bg)),
+    conic-gradient(
+      from var(--beam-angle),
+      var(--beam-border-base) 0deg,
+      var(--beam-border-base) 260deg,
+      rgba(56, 189, 248, 0.3) 285deg,
+      #38bdf8 325deg,
+      #bae6fd 355deg,
+      var(--beam-border-base) 360deg
+    ) !important;
+}
+</style>
