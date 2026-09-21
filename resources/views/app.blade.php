@@ -86,25 +86,6 @@
     <link rel="manifest" href="/manifest.webmanifest">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        // Live Network Status Observer
-        function updateOnlineStatus() {
-            var statusEl = document.getElementById('network-status');
-            if (statusEl) {
-                if (navigator.onLine) {
-                    statusEl.innerHTML = '● Online';
-                    statusEl.className = 'px-3 py-1 text-xs font-semibold rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
-                } else {
-                    statusEl.innerHTML = '● Offline';
-                    statusEl.className = 'px-3 py-1 text-xs font-semibold rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20';
-                }
-            }
-        }
-
-        window.addEventListener('online', updateOnlineStatus);
-        window.addEventListener('offline', updateOnlineStatus);
-        document.addEventListener('DOMContentLoaded', updateOnlineStatus);
-    </script>
-
     <!-- Primary Meta Tags & SEO Snippet -->
     <title inertia>SPI AI-ELMS | Smart Learning Management System — Saint Paul Institute</title>
     <meta name="title" content="SPI AI-ELMS | Smart Learning Management System — Saint Paul Institute">
