@@ -5,6 +5,7 @@ import { i18n } from '@/Services/i18n'
 import { useTheme, initTheme, playNotificationSound, playClickSound } from '@/composables/useTheme'
 import GlobalToast from '@/Components/GlobalToast.vue'
 import OfficialVerifiedBadge from '@/Components/OfficialVerifiedBadge.vue'
+import LogoutConfirmModal from '@/Components/LogoutConfirmModal.vue'
 
 const { isDark, toggleTheme } = useTheme()
 
@@ -357,8 +358,25 @@ const handleAvatarChange = (e: Event) => {
   })
 }
 
+const isLogoutModalOpen = ref(false)
+const isLoggingOut = ref(false)
+
+const triggerLogout = () => {
+  isProfileOpen.value = false
+  isLogoutModalOpen.value = true
+}
+
+const confirmLogout = () => {
+  isLoggingOut.value = true
+  router.post('/logout', {}, {
+    onFinish: () => {
+      isLoggingOut.value = false
+    }
+  })
+}
+
 const logout = () => {
-  router.post('/logout')
+  triggerLogout()
 }
 
 const onIconError = (e: Event) => {
@@ -1916,6 +1934,15 @@ onUnmounted(() => {
         <slot />
       </div>
     </main>
+
+    <!-- Logout Confirmation Modal (Centered, Glassmorphic, Modern) -->
+    <LogoutConfirmModal
+      :show="isLogoutModalOpen"
+      :user="user"
+      :loading="isLoggingOut"
+      @close="isLogoutModalOpen = false"
+      @confirm="confirmLogout"
+    />
   </div>
 </template>
 
