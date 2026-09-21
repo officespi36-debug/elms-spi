@@ -193,7 +193,7 @@ const exportStudentsCSV = () => {
       <UserModuleHeader activeTab="students" :summaryStats="props.summaryStats" />
 
       <!-- SINGLE ROW FILTER & ACTION TOOLBAR (Filters Left — Actions Far Right) -->
-      <div class="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 backdrop-blur-xl flex flex-wrap items-center justify-between gap-3">
+      <div class="bg-white dark:bg-slate-900/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-none backdrop-blur-xl flex flex-wrap items-center justify-between gap-3">
         <!-- Left Aligned Filters -->
         <div class="flex flex-wrap items-center gap-3 flex-1 min-w-[300px]">
           <div class="relative flex-1 min-w-[200px]">
@@ -201,28 +201,28 @@ const exportStudentsCSV = () => {
               v-model="search"
               type="text"
               placeholder="Search student name, email, phone..."
-              class="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-9 pr-3.5 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 transition-all"
+              class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-xl pl-9 pr-3.5 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-all"
             />
-            <span class="absolute left-3 top-2.5 text-slate-400">
+            <span class="absolute left-3 top-2.5 text-slate-400 dark:text-slate-500">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
             </span>
           </div>
 
-          <select v-model="selectedMajor" class="bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-emerald-300 font-semibold focus:outline-none focus:border-emerald-500 cursor-pointer">
+          <select v-model="selectedMajor" class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3 py-2 text-xs text-emerald-700 dark:text-emerald-300 font-semibold focus:outline-none focus:border-emerald-500 cursor-pointer">
             <option value="">Filter by Major (All)</option>
             <option v-for="m in props.majors" :key="m.id" :value="m.id">
               {{ m.name }}
             </option>
           </select>
 
-          <select v-model="selectedPaymentStatus" class="bg-slate-950 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 cursor-pointer">
+          <select v-model="selectedPaymentStatus" class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-700 dark:text-slate-200 focus:outline-none focus:border-emerald-500 cursor-pointer">
             <option value="">Payment: All Status</option>
             <option value="paid">Paid Status</option>
             <option value="pending">Pending Payment</option>
             <option value="free">Scholarship</option>
           </select>
 
-          <button v-if="search || selectedMajor || selectedPaymentStatus" @click="search = ''; selectedMajor = ''; selectedPaymentStatus = ''" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer">
+          <button v-if="search || selectedMajor || selectedPaymentStatus" @click="search = ''; selectedMajor = ''; selectedPaymentStatus = ''" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer">
             <span>✕ Reset</span>
           </button>
         </div>
@@ -231,7 +231,7 @@ const exportStudentsCSV = () => {
         <div class="flex items-center gap-2">
           <button
             @click="openAddStudentModal"
-            class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-600/30 transition-all flex items-center gap-1.5 cursor-pointer"
+            class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-600/20 transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             <span>Add New Student</span>
@@ -239,34 +239,34 @@ const exportStudentsCSV = () => {
 
           <a
             href="/admin/user-management/import-export"
-            class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+            class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-semibold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
           >
-            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            <svg class="w-4 h-4 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
             <span>Import</span>
           </a>
 
           <button
             @click="exportStudentsCSV"
-            class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+            class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-semibold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
           >
-            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+            <svg class="w-4 h-4 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
             <span>Export</span>
           </button>
         </div>
       </div>
 
       <!-- FLOATING BULK ACTIONS TOOLBAR -->
-      <div v-if="selectedStudentIds.length > 0" class="p-3.5 bg-indigo-950/80 border border-indigo-500/30 rounded-2xl flex items-center justify-between text-xs backdrop-blur-xl shadow-xl animate-fade-in">
-        <div class="flex items-center gap-2 text-indigo-300 font-bold font-mono">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+      <div v-if="selectedStudentIds.length > 0" class="p-3.5 bg-emerald-50 dark:bg-indigo-950/80 border border-emerald-200 dark:border-indigo-500/30 rounded-2xl flex items-center justify-between text-xs backdrop-blur-xl shadow-lg animate-fade-in">
+        <div class="flex items-center gap-2 text-emerald-800 dark:text-indigo-300 font-bold font-mono">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span>
           <span>Selected ({{ selectedStudentIds.length }}) Students</span>
         </div>
         <div class="flex items-center gap-2">
-          <button @click="bulkExport" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold border border-slate-700 transition-all cursor-pointer flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+          <button @click="bulkExport" class="px-3.5 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-700 transition-all cursor-pointer flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
             <span>Export Selected</span>
           </button>
-          <button @click="bulkSuspend" class="px-3.5 py-1.5 bg-red-600/80 hover:bg-red-500 text-white rounded-xl text-xs font-bold shadow-md shadow-red-600/20 transition-all cursor-pointer flex items-center gap-1.5">
+          <button @click="bulkSuspend" class="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold shadow-md shadow-rose-600/20 transition-all cursor-pointer flex items-center gap-1.5">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
             <span>Suspend Selected</span>
           </button>
@@ -274,12 +274,12 @@ const exportStudentsCSV = () => {
       </div>
 
       <!-- STUDENTS DATA TABLE -->
-      <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-xl min-h-[380px]">
+      <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-sm dark:shadow-none backdrop-blur-xl min-h-[380px]">
         <table class="w-full text-left border-collapse">
           <thead>
-            <tr class="border-b border-slate-800 bg-slate-800/40 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+            <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               <th class="py-3.5 px-4 w-10 text-center">
-                <input type="checkbox" @change="toggleSelectAll" class="rounded bg-slate-950 border-slate-700 text-emerald-500 focus:ring-emerald-500 cursor-pointer" />
+                <input type="checkbox" @change="toggleSelectAll" class="rounded bg-white dark:bg-slate-950 border-slate-300 dark:border-slate-700 text-emerald-600 focus:ring-emerald-500 cursor-pointer" />
               </th>
               <th class="py-3.5 px-4 w-12 text-center">#</th>
               <th class="py-3.5 px-4">Student Name</th>
@@ -290,15 +290,15 @@ const exportStudentsCSV = () => {
               <th class="py-3.5 px-4 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-800/80 text-xs">
-            <tr v-for="(student, idx) in filteredStudents" :key="student.id" class="hover:bg-slate-800/40 transition-all group">
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 text-xs">
+            <tr v-for="(student, idx) in filteredStudents" :key="student.id" class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-all group">
               <!-- Checkbox -->
               <td class="py-3.5 px-4 text-center">
-                <input type="checkbox" :value="student.id" v-model="selectedStudentIds" class="rounded bg-slate-950 border-slate-700 text-emerald-500 focus:ring-emerald-500 cursor-pointer" />
+                <input type="checkbox" :value="student.id" v-model="selectedStudentIds" class="rounded bg-white dark:bg-slate-950 border-slate-300 dark:border-slate-700 text-emerald-600 focus:ring-emerald-500 cursor-pointer" />
               </td>
 
               <!-- Number Index -->
-              <td class="py-3.5 px-4 text-center font-mono text-slate-400 font-medium">{{ String(idx + 1).padStart(2, '0') }}</td>
+              <td class="py-3.5 px-4 text-center font-mono text-slate-500 dark:text-slate-400 font-medium">{{ String(idx + 1).padStart(2, '0') }}</td>
 
               <!-- Clickable Student Name & Avatar -->
               <td class="py-3.5 px-4">
@@ -309,14 +309,14 @@ const exportStudentsCSV = () => {
                 >
                   <img
                     :src="student.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(student.name)}&background=10b981&color=fff`"
-                    class="w-9 h-9 rounded-full border-2 border-emerald-500/40 shadow-sm object-cover group-hover/item:border-emerald-400 group-hover/item:scale-105 transition-all"
+                    class="w-9 h-9 rounded-full border-2 border-emerald-500/40 shadow-xs object-cover group-hover/item:border-emerald-500 group-hover/item:scale-105 transition-all"
                   />
                   <div>
-                    <div class="font-bold text-white group-hover/item:text-emerald-300 transition-colors flex items-center gap-1.5">
+                    <div class="font-bold text-slate-900 dark:text-white group-hover/item:text-emerald-600 dark:group-hover/item:text-emerald-300 transition-colors flex items-center gap-1.5">
                       <span>{{ student.name }}</span>
                     </div>
-                    <div class="text-[10px] text-emerald-400/90 font-mono font-semibold flex items-center gap-1 mt-0.5">
-                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                    <div class="text-[10px] text-emerald-600 dark:text-emerald-400/90 font-mono font-semibold flex items-center gap-1 mt-0.5">
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                       <span>STU-2025-{{ student.id + 100 }}</span>
                     </div>
                   </div>
@@ -325,12 +325,12 @@ const exportStudentsCSV = () => {
 
               <!-- Email & Phone -->
               <td class="py-3.5 px-4">
-                <div class="font-mono text-slate-200 font-medium group-hover:text-white transition-colors flex items-center gap-1.5">
-                  <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                <div class="font-mono text-slate-800 dark:text-slate-200 font-medium group-hover:text-slate-900 dark:group-hover:text-white transition-colors flex items-center gap-1.5">
+                  <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                   <span>{{ student.email }}</span>
                 </div>
-                <div class="text-xs text-slate-300 font-mono flex items-center gap-1.5 mt-0.5">
-                  <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                <div class="text-xs text-slate-500 dark:text-slate-400 font-mono flex items-center gap-1.5 mt-0.5">
+                  <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                   <span>{{ student.phone || '+855 12 345 678' }}</span>
                 </div>
               </td>
@@ -338,16 +338,16 @@ const exportStudentsCSV = () => {
               <!-- Major & Department (Clean Single-Line & High-Contrast Typography) -->
               <td class="py-3.5 px-4 whitespace-nowrap">
                 <template v-if="student.major">
-                  <div class="font-bold text-slate-100 text-xs">{{ student.major.name }}</div>
-                  <div class="text-[11px] text-emerald-400 font-medium mt-0.5 flex items-center gap-1.5 whitespace-nowrap">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400/80"></span>
+                  <div class="font-bold text-slate-900 dark:text-slate-100 text-xs">{{ student.major.name }}</div>
+                  <div class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5 flex items-center gap-1.5 whitespace-nowrap">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                     <span>{{ student.major.department?.name || 'Faculty of Science & Tech' }}</span>
                   </div>
                 </template>
                 <template v-else>
-                  <div class="font-bold text-slate-100 text-xs">IT & Computer Science</div>
-                  <div class="text-[11px] text-emerald-400 font-medium mt-0.5 flex items-center gap-1.5 whitespace-nowrap">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400/80"></span>
+                  <div class="font-bold text-slate-900 dark:text-slate-100 text-xs">IT & Computer Science</div>
+                  <div class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5 flex items-center gap-1.5 whitespace-nowrap">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                     <span>Faculty of Science & Tech</span>
                   </div>
                 </template>
@@ -355,24 +355,24 @@ const exportStudentsCSV = () => {
 
               <!-- Enrolled Subjects -->
               <td class="py-3.5 px-4 whitespace-nowrap">
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 rounded-xl font-mono font-bold text-[11px] whitespace-nowrap shadow-sm">
-                  <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300 rounded-xl font-mono font-bold text-[11px] whitespace-nowrap shadow-xs">
+                  <svg class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                   <span>4 Subjects Enrolled</span>
                 </span>
               </td>
 
               <!-- Payment Status -->
               <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                <span v-if="idx % 3 === 0" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 whitespace-nowrap">
-                  <svg class="w-3 h-3 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                <span v-if="idx % 3 === 0" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30 whitespace-nowrap">
+                  <svg class="w-3 h-3 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                   <span>Paid ($70)</span>
                 </span>
-                <span v-else-if="idx % 3 === 1" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 whitespace-nowrap">
-                  <svg class="w-3 h-3 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span v-else-if="idx % 3 === 1" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/30 whitespace-nowrap">
+                  <svg class="w-3 h-3 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                   <span>Unpaid ($25)</span>
                 </span>
-                <span v-else class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30 whitespace-nowrap">
-                  <svg class="w-3 h-3 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V6a2 2 0 10-2 2h2zm0 13C10.832 19.477 9.246 19 7.5 19S4.168 19.477 3 20.253v-13C4.168 6.477 5.754 6 7.5 6s3.332.477 4.5 1.253m0 13C13.168 19.477 14.754 19 16.5 19c1.747 0 3.332.477 4.5 1.253v-13C19.832 6.477 18.247 6 16.5 6c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                <span v-else class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-50 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-500/30 whitespace-nowrap">
+                  <svg class="w-3 h-3 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V6a2 2 0 10-2 2h2zm0 13C10.832 19.477 9.246 19 7.5 19S4.168 19.477 3 20.253v-13C4.168 6.477 5.754 6 7.5 6s3.332.477 4.5 1.253m0 13C13.168 19.477 14.754 19 16.5 19c1.747 0 3.332.477 4.5 1.253v-13C19.832 6.477 18.247 6 16.5 6c-1.746 0-3.332.477-4.5 1.253"/></svg>
                   <span>Scholarship</span>
                 </span>
               </td>
@@ -382,19 +382,19 @@ const exportStudentsCSV = () => {
                 <div class="flex items-center justify-end gap-2">
                   <button
                     @click="openEnrollModal(student)"
-                    class="w-[105px] h-8 inline-flex items-center justify-center gap-1 bg-slate-800 hover:bg-emerald-500/20 text-emerald-300 hover:text-white border border-slate-700/80 rounded-xl text-xs font-semibold transition-all cursor-pointer shadow-sm"
+                    class="w-[105px] h-8 inline-flex items-center justify-center gap-1 bg-slate-100 hover:bg-emerald-50 dark:bg-slate-800 dark:hover:bg-emerald-500/20 text-slate-700 dark:text-slate-200 hover:text-emerald-700 dark:hover:text-white border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs font-semibold transition-all cursor-pointer shadow-xs"
                     title="Quick Enroll & Edit Profile"
                   >
-                    <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    <svg class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                     <span>Enroll / Edit</span>
                   </button>
 
                   <button
                     @click="suspendStudent(student)"
-                    class="w-[88px] h-8 inline-flex items-center justify-center gap-1 bg-slate-800 hover:bg-red-500/20 text-red-400 border border-slate-700/80 rounded-xl text-xs font-semibold transition-all cursor-pointer shadow-sm"
+                    class="w-[88px] h-8 inline-flex items-center justify-center gap-1 bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-red-500/20 text-rose-600 dark:text-red-400 border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs font-semibold transition-all cursor-pointer shadow-xs"
                     title="Suspend Student"
                   >
-                    <svg class="w-3.5 h-3.5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                    <svg class="w-3.5 h-3.5 text-rose-500 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
                     <span>Suspend</span>
                   </button>
                 </div>
@@ -410,37 +410,37 @@ const exportStudentsCSV = () => {
         </table>
 
         <!-- Table Pagination Footer -->
-        <div class="p-4 bg-slate-950/80 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div class="text-slate-400 font-mono">
-            Showing <span class="text-white font-bold">1</span> to <span class="text-white font-bold">{{ filteredStudents.length }}</span> of <span class="text-white font-bold">{{ props.summaryStats?.total_students || 2458 }}</span> entries
+        <div class="p-4 bg-slate-50 dark:bg-slate-950/80 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div class="text-slate-500 dark:text-slate-400 font-mono">
+            Showing <span class="text-slate-900 dark:text-white font-bold">1</span> to <span class="text-slate-900 dark:text-white font-bold">{{ filteredStudents.length }}</span> of <span class="text-slate-900 dark:text-white font-bold">{{ props.summaryStats?.total_students || 2458 }}</span> entries
           </div>
 
           <div class="flex items-center gap-1.5 font-mono">
-            <button class="px-3 py-1.5 bg-slate-800 text-slate-500 rounded-xl font-semibold cursor-not-allowed" disabled>Previous</button>
-            <button class="px-3 py-1.5 bg-emerald-600 text-white font-bold rounded-xl shadow-sm shadow-emerald-600/20">1</button>
-            <button class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-semibold cursor-pointer">2</button>
-            <button class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-semibold cursor-pointer">Next</button>
+            <button class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 rounded-xl font-semibold cursor-not-allowed border border-slate-200 dark:border-transparent" disabled>Previous</button>
+            <button class="px-3 py-1.5 bg-emerald-600 text-white font-bold rounded-xl shadow-xs shadow-emerald-600/20">1</button>
+            <button class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-semibold cursor-pointer border border-slate-200 dark:border-transparent">2</button>
+            <button class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-semibold cursor-pointer border border-slate-200 dark:border-transparent">Next</button>
           </div>
         </div>
       </div>
 
       <!-- STUDENT PROFILE & ENROLLMENT FORM MODAL -->
-      <div v-if="selectedStudentForEnroll" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900/95 border border-emerald-900/50 rounded-3xl max-w-3xl w-full p-7 space-y-5 shadow-2xl overflow-y-auto max-h-[90vh] backdrop-blur-2xl">
+      <div v-if="selectedStudentForEnroll" class="fixed inset-0 bg-slate-950/60 dark:bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900/95 border border-slate-200 dark:border-emerald-900/50 rounded-3xl max-w-3xl w-full p-7 space-y-5 shadow-2xl overflow-y-auto max-h-[90vh] backdrop-blur-2xl">
           <!-- Modal Header -->
-          <div class="flex items-center justify-between border-b border-slate-800/80 pb-4">
+          <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-4">
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+              <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
               </div>
               <div>
-                <h3 class="text-base font-bold text-white tracking-wide uppercase">
+                <h3 class="text-base font-bold text-slate-900 dark:text-white tracking-wide uppercase">
                   STUDENT ENROLLMENT & SUBJECT PAYMENT FORM
                 </h3>
-                <p class="text-xs text-slate-400">គ្រប់គ្រងការចុះឈ្មោះមុខវិជ្ជា, ប័ណ្ណទូទាត់ប្រាក់ និង ABA Pay Direct QR</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400">គ្រប់គ្រងការចុះឈ្មោះមុខវិជ្ជា, ប័ណ្ណទូទាត់ប្រាក់ និង ABA Pay Direct QR</p>
               </div>
             </div>
-            <button @click="selectedStudentForEnroll = null" class="w-8 h-8 rounded-xl bg-slate-800/60 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-all cursor-pointer">✕</button>
+            <button @click="selectedStudentForEnroll = null" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/60 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-all cursor-pointer">✕</button>
           </div>
 
           <form @submit.prevent="saveStudentEnrollment" class="space-y-4 text-xs">
@@ -448,8 +448,8 @@ const exportStudentsCSV = () => {
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <!-- Student Name -->
               <div>
-                <label class="block font-medium text-slate-300 mb-1.5 flex items-center gap-1.5">
-                  <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                <label class="block font-medium text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
+                  <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                   <span>Student Full Name *</span>
                 </label>
                 <div class="relative">
@@ -457,9 +457,9 @@ const exportStudentsCSV = () => {
                     v-model="studentForm.name"
                     type="text"
                     placeholder="e.g. SOK SOPHEA"
-                    class="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-white placeholder-slate-500 font-bold focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                    class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 font-bold focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
                   />
-                  <span class="absolute left-3 top-3 text-slate-500">
+                  <span class="absolute left-3 top-3 text-slate-400 dark:text-slate-500">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                   </span>
                 </div>
@@ -467,8 +467,8 @@ const exportStudentsCSV = () => {
 
               <!-- Email Address -->
               <div>
-                <label class="block font-medium text-slate-300 mb-1.5 flex items-center gap-1.5">
-                  <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                <label class="block font-medium text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
+                  <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                   <span>Email Address *</span>
                 </label>
                 <div class="relative">
@@ -476,9 +476,9 @@ const exportStudentsCSV = () => {
                     v-model="studentForm.email"
                     type="email"
                     placeholder="e.g. student@elms.edu.kh"
-                    class="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-white placeholder-slate-500 font-mono focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                    class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 font-mono focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
                   />
-                  <span class="absolute left-3 top-3 text-slate-500">
+                  <span class="absolute left-3 top-3 text-slate-400 dark:text-slate-500">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                   </span>
                 </div>
@@ -486,11 +486,11 @@ const exportStudentsCSV = () => {
 
               <!-- Assigned Major -->
               <div>
-                <label class="block font-medium text-slate-300 mb-1.5 flex items-center gap-1.5">
-                  <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
+                <label class="block font-medium text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
+                  <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
                   <span>Assigned Major</span>
                 </label>
-                <select v-model="studentForm.major_id" class="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-emerald-300 font-bold focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all cursor-pointer">
+                <select v-model="studentForm.major_id" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-emerald-700 dark:text-emerald-300 font-bold focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all cursor-pointer">
                   <option value="">Select Major...</option>
                   <option v-for="m in props.majors" :key="m.id" :value="m.id">
                     {{ m.name }}
@@ -500,13 +500,13 @@ const exportStudentsCSV = () => {
             </div>
 
             <!-- ENROLLED SUBJECTS TABLE -->
-            <div class="p-4 bg-slate-950/80 border border-slate-800 rounded-2xl space-y-3 shadow-inner">
+            <div class="p-4 bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3 shadow-xs">
               <div class="flex items-center justify-between">
-                <label class="font-bold text-emerald-300 uppercase tracking-wider text-[11px] flex items-center gap-2">
-                  <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                <label class="font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider text-[11px] flex items-center gap-2">
+                  <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                   <span>ENROLLED SUBJECTS & PAYMENT TRACKING</span>
                 </label>
-                <span class="text-[10px] font-mono text-emerald-300 font-bold px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+                <span class="text-[10px] font-mono text-emerald-700 dark:text-emerald-300 font-bold px-2 py-0.5 bg-emerald-100 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-lg">
                   3 Enrolled
                 </span>
               </div>
@@ -514,7 +514,7 @@ const exportStudentsCSV = () => {
               <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                   <thead>
-                    <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800/80 pb-2">
+                    <tr class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800/80 pb-2">
                       <th class="pb-2.5 px-2">Subject Name</th>
                       <th class="pb-2.5 px-2">Teacher</th>
                       <th class="pb-2.5 px-2">Subject Fee</th>
@@ -522,21 +522,21 @@ const exportStudentsCSV = () => {
                       <th class="pb-2.5 px-2 text-right">Action</th>
                     </tr>
                   </thead>
-                  <tbody class="divide-y divide-slate-800/80 text-xs">
-                    <tr v-for="sub in studentForm.enrolled_subjects" :key="sub.name" class="hover:bg-slate-900/40 transition-colors">
-                      <td class="py-3 px-2 font-bold text-white flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                  <tbody class="divide-y divide-slate-200 dark:divide-slate-800/80 text-xs">
+                    <tr v-for="sub in studentForm.enrolled_subjects" :key="sub.name" class="hover:bg-slate-100/60 dark:hover:bg-slate-900/40 transition-colors">
+                      <td class="py-3 px-2 font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                         <span>{{ sub.name }}</span>
                       </td>
-                      <td class="py-3 px-2 text-slate-300 font-medium">{{ sub.teacher }}</td>
-                      <td class="py-3 px-2 font-mono text-emerald-400 font-bold">${{ sub.price }}</td>
+                      <td class="py-3 px-2 text-slate-600 dark:text-slate-300 font-medium">{{ sub.teacher }}</td>
+                      <td class="py-3 px-2 font-mono text-emerald-600 dark:text-emerald-400 font-bold">${{ sub.price }}</td>
                       <td class="py-3 px-2 text-center">
-                        <span v-if="sub.status === 'Paid'" class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-lg text-[10px] font-bold">
-                          <svg class="w-3 h-3 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        <span v-if="sub.status === 'Paid'" class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30 rounded-lg text-[10px] font-bold">
+                          <svg class="w-3 h-3 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                           <span>Paid</span>
                         </span>
-                        <span v-else class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-lg text-[10px] font-bold">
-                          <svg class="w-3 h-3 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span v-else class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-amber-50 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/30 rounded-lg text-[10px] font-bold">
+                          <svg class="w-3 h-3 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                           <span>Unpaid</span>
                         </span>
                       </td>
@@ -545,13 +545,13 @@ const exportStudentsCSV = () => {
                           v-if="sub.status !== 'Paid'"
                           type="button"
                           @click="processAbaPayment(sub)"
-                          class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-[10px] transition-all flex items-center gap-1 justify-end ml-auto shadow-sm shadow-emerald-600/30 cursor-pointer"
+                          class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-[10px] transition-all flex items-center gap-1 justify-end ml-auto shadow-xs shadow-emerald-600/30 cursor-pointer"
                         >
                           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                           <span>Pay ABA Direct</span>
                         </button>
-                        <span v-else class="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-800/80 text-slate-400 border border-slate-700/60 rounded-xl text-[10px] font-semibold cursor-default">
-                          <svg class="w-3 h-3 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span v-else class="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700/60 rounded-xl text-[10px] font-semibold cursor-default">
+                          <svg class="w-3 h-3 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                           <span>Settled</span>
                         </span>
                       </td>
@@ -562,9 +562,9 @@ const exportStudentsCSV = () => {
             </div>
 
             <!-- Modal Footer -->
-            <div class="pt-4 border-t border-slate-800 flex justify-end items-center gap-3">
-              <button type="button" @click="selectedStudentForEnroll = null" :disabled="studentForm.processing" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition-all cursor-pointer disabled:opacity-50">Cancel</button>
-              <button type="submit" :disabled="studentForm.processing" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs shadow-lg shadow-emerald-600/30 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50">
+            <div class="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-end items-center gap-3">
+              <button type="button" @click="selectedStudentForEnroll = null" :disabled="studentForm.processing" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-semibold transition-all cursor-pointer disabled:opacity-50 border border-slate-200 dark:border-transparent">Cancel</button>
+              <button type="submit" :disabled="studentForm.processing" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50">
                 <svg v-if="studentForm.processing" class="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -578,36 +578,36 @@ const exportStudentsCSV = () => {
       </div>
 
       <!-- ABA PAY DIRECT KHQR MODAL -->
-      <div v-if="selectedSubjectForAbaPay" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-[60] flex items-center justify-center p-4">
-        <div class="bg-slate-900/95 border border-emerald-500/30 rounded-3xl max-w-md w-full p-7 space-y-5 shadow-2xl backdrop-blur-2xl text-center relative overflow-hidden">
+      <div v-if="selectedSubjectForAbaPay" class="fixed inset-0 bg-slate-950/60 dark:bg-slate-950/85 backdrop-blur-md z-[60] flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900/95 border border-slate-200 dark:border-emerald-500/30 rounded-3xl max-w-md w-full p-7 space-y-5 shadow-2xl backdrop-blur-2xl text-center relative overflow-hidden">
           <!-- Header Badge -->
-          <div class="flex items-center justify-between border-b border-slate-800 pb-3.5">
+          <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3.5">
             <div class="flex items-center gap-2.5">
-              <div class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+              <div class="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
               </div>
               <div class="text-left">
                 <div class="flex items-center gap-1.5">
-                  <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                  <h3 class="font-bold text-white text-xs uppercase tracking-wider">ABA PAY DIRECT — KHQR</h3>
+                  <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span>
+                  <h3 class="font-bold text-slate-900 dark:text-white text-xs uppercase tracking-wider">ABA PAY DIRECT — KHQR</h3>
                 </div>
-                <p class="text-[11px] text-slate-400">សូមប្រើប្រាស់ ABA Mobile ស្កែន QR Code ដើម្បីបង់ប្រាក់</p>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">សូមប្រើប្រាស់ ABA Mobile ស្កែន QR Code ដើម្បីបង់ប្រាក់</p>
               </div>
             </div>
-            <button @click="selectedSubjectForAbaPay = null" class="w-8 h-8 rounded-xl bg-slate-800/60 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-xs transition-all cursor-pointer">✕</button>
+            <button @click="selectedSubjectForAbaPay = null" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/60 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center justify-center text-xs transition-all cursor-pointer">✕</button>
           </div>
 
           <!-- Merchant & Subject Details -->
-          <div class="space-y-1.5 bg-slate-950/60 p-3.5 rounded-2xl border border-slate-800/80">
-            <div class="text-[10px] font-bold uppercase tracking-widest text-slate-400">MERCHANT: <span class="text-white">ELMS ACADEMY CAMBODIA</span></div>
-            <h4 class="text-base font-black text-emerald-400 uppercase tracking-wide">{{ selectedSubjectForAbaPay.name }}</h4>
-            <div class="text-xs text-slate-300 font-medium">Instructor: {{ selectedSubjectForAbaPay.teacher }}</div>
+          <div class="space-y-1.5 bg-slate-50 dark:bg-slate-950/60 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800/80">
+            <div class="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">MERCHANT: <span class="text-slate-900 dark:text-white font-bold">ELMS ACADEMY CAMBODIA</span></div>
+            <h4 class="text-base font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">{{ selectedSubjectForAbaPay.name }}</h4>
+            <div class="text-xs text-slate-600 dark:text-slate-300 font-medium">Instructor: {{ selectedSubjectForAbaPay.teacher }}</div>
           </div>
 
           <!-- Total Amount Badge -->
-          <div class="py-3 px-6 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl inline-block shadow-inner">
-            <div class="text-[10px] uppercase tracking-wider text-emerald-300 font-bold">TOTAL PAYABLE AMOUNT</div>
-            <div class="text-3xl font-black text-emerald-400 font-mono mt-0.5">${{ selectedSubjectForAbaPay.price }}.00 <span class="text-xs font-mono text-emerald-300">USD</span></div>
+          <div class="py-3 px-6 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-2xl inline-block shadow-xs">
+            <div class="text-[10px] uppercase tracking-wider text-emerald-800 dark:text-emerald-300 font-bold">TOTAL PAYABLE AMOUNT</div>
+            <div class="text-3xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">${{ selectedSubjectForAbaPay.price }}.00 <span class="text-xs font-mono text-emerald-700 dark:text-emerald-300">USD</span></div>
           </div>
 
           <!-- ABA KHQR Card Stand Frame with Laser Scan Animation -->
@@ -667,7 +667,7 @@ const exportStudentsCSV = () => {
           <div class="space-y-2 pt-1">
             <button
               @click="confirmAbaPaymentSimulation"
-              class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
               <span>Simulate Successful ABA Payment</span>
@@ -675,7 +675,7 @@ const exportStudentsCSV = () => {
 
             <button
               @click="selectedSubjectForAbaPay = null"
-              class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-xl transition-all cursor-pointer font-semibold"
+              class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-transparent text-xs rounded-xl transition-all cursor-pointer font-semibold"
             >
               Cancel
             </button>
