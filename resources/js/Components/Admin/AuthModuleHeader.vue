@@ -24,13 +24,13 @@ const stats = props.summaryStats || {
 const getThreatBadgeClass = (level: string) => {
   switch (level?.toLowerCase()) {
     case 'critical':
-      return 'bg-red-500/20 text-red-400 border-red-500/30 shadow-red-500/10'
+      return 'bg-rose-50 dark:bg-red-500/20 text-rose-700 dark:text-red-400 border-rose-200 dark:border-red-500/30 shadow-xs'
     case 'high':
-      return 'bg-orange-500/20 text-orange-400 border-orange-500/30 shadow-orange-500/10'
+      return 'bg-orange-50 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-500/30 shadow-xs'
     case 'medium':
-      return 'bg-amber-500/20 text-amber-300 border-amber-500/30 shadow-amber-500/10'
+      return 'bg-amber-50 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-500/30 shadow-xs'
     default:
-      return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30 shadow-emerald-500/10'
+      return 'bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/30 shadow-xs'
   }
 }
 
@@ -53,25 +53,25 @@ const getThreatExplanation = (level: string) => {
 
 <template>
   <div class="space-y-4 font-sans">
-    <!-- Compact Header Banner -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 p-4 sm:p-5 rounded-2xl border border-slate-800 shadow-xl relative">
+    <!-- Compact Header Banner (Dual Theme: clean crisp in Light Mode, sleek glassmorphism in Dark Mode) -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-gradient-to-r from-indigo-50/90 via-white to-blue-50/70 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 p-4 sm:p-5 rounded-2xl border border-indigo-100/90 dark:border-slate-800 shadow-sm dark:shadow-xl relative">
       <!-- Glow Effect (Clipped to background layer only) -->
       <div class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
         <div class="absolute -top-12 -right-12 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl"></div>
       </div>
 
       <div class="flex items-center gap-3.5 z-10">
-        <div class="w-11 h-11 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-inner shrink-0">
+        <div class="w-11 h-11 rounded-xl bg-indigo-100/80 dark:bg-indigo-600/20 border border-indigo-200 dark:border-indigo-500/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shadow-inner shrink-0">
           <img :src="'/images/nav/auth.svg'" alt="Authentication" class="w-6 h-6 object-contain" />
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <h1 class="text-xl font-extrabold text-white tracking-tight">{{ i18n.t('auth_module_title', 'Authentication Module') }}</h1>
-            <span class="px-2 py-0.5 text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded-full uppercase tracking-wider">
+            <h1 class="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">{{ i18n.t('auth_module_title', 'Authentication Module') }}</h1>
+            <span class="px-2 py-0.5 text-[10px] font-bold bg-indigo-100/80 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-500/30 rounded-full uppercase tracking-wider">
               {{ i18n.t('auth_security_control_only', 'Security Control Only') }}
             </span>
           </div>
-          <p class="text-xs text-slate-400 mt-0.5 max-w-xl truncate">
+          <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5 max-w-xl truncate">
             {{ i18n.t('auth_header_desc', 'គ្រប់គ្រងសុវត្ថិភាព សិទ្ធិប្រើប្រាស់កម្រិត Role (RBAC), Active Sessions, Login History, និង Security Policies') }}
           </p>
         </div>
@@ -80,8 +80,8 @@ const getThreatExplanation = (level: string) => {
       <!-- Threat Status with Tooltip -->
       <div class="flex items-center gap-2 z-10">
         <div class="relative group/threat cursor-help">
-          <span class="px-3 py-1 rounded-xl text-xs font-semibold border flex items-center gap-2 transition-all shadow-sm hover:border-slate-500" :class="getThreatBadgeClass(stats.threat_level)">
-            <span class="w-2 h-2 rounded-full animate-ping" :class="stats.threat_level === 'Low' ? 'bg-emerald-400' : 'bg-red-400'"></span>
+          <span class="px-3 py-1 rounded-xl text-xs font-semibold border flex items-center gap-2 transition-all shadow-xs hover:border-slate-400 dark:hover:border-slate-500" :class="getThreatBadgeClass(stats.threat_level)">
+            <span class="w-2 h-2 rounded-full animate-ping" :class="stats.threat_level === 'Low' ? 'bg-emerald-500' : 'bg-red-500'"></span>
             <span>{{ i18n.t('auth_threat_status', 'Threat Status') }}: {{ stats.threat_level }}</span>
             <span class="text-[10px] opacity-70">ℹ️</span>
           </span>
