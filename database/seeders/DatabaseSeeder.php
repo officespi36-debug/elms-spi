@@ -33,6 +33,11 @@ class DatabaseSeeder extends Seeder
             'login_attempts' => 0,
         ]);
 
+        $kosalAdmin = User::where('email', 'kosalsensok065@gmail.com')->first();
+        if ($kosalAdmin) {
+            $kosalAdmin->update(['name' => 'kosal sensok', 'status' => 'active']);
+        }
+
         $teacher = User::updateOrCreate(['email' => 'teacher@elms.com'], [
             'name'           => 'Sophea Teacher',
             'password'       => 'password',
