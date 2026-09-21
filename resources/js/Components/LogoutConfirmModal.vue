@@ -20,7 +20,7 @@ const emit = defineEmits<{
   (e: 'confirm'): void
 }>()
 
-const isKhmer = computed(() => (i18n.currentLocale?.value || 'km') === 'km')
+const isKhmer = computed(() => (i18n.locale?.value || 'km') === 'km')
 
 const userName = computed(() => props.user?.name || 'User')
 const userEmail = computed(() => props.user?.email || '')

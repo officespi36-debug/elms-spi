@@ -20,6 +20,7 @@ const currentLocale = ref<LanguageCode>(savedLocale === 'en' ? 'en' : 'km')
 
 export const i18n = {
   locale: currentLocale,
+  currentLocale,
 
   t(key: string, defaultText?: string): string {
     const lang = currentLocale.value
