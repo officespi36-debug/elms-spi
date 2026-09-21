@@ -695,44 +695,98 @@ const filteredSearchResults = computed(() => {
   )
 })
 
-const notifications = ref([
+interface NotificationItem {
+  id: number
+  title_km: string
+  title_en: string
+  desc_km: string
+  desc_en: string
+  time_km: string
+  time_en: string
+  type: 'payment' | 'user' | 'support' | 'system'
+  defaultRead: boolean
+  read: boolean
+  link: string
+}
+
+const rawAdminNotifications: Omit<NotificationItem, 'read'>[] = [
   {
     id: 1,
-    title: 'ការទូទាត់ ABA #1094 ថ្មី',
-    desc: 'សិស្ស សុខ ចាន់ បានផ្ញើប្រាក់ 45.00$ សម្រាប់វគ្គ Web Dev',
-    time: '5 នាទីមុន',
+    title_km: 'ការទូទាត់ ABA #1094 ថ្មី',
+    title_en: 'New ABA Payment #1094',
+    desc_km: 'សិស្ស សុខ ចាន់ បានផ្ញើប្រាក់ 45.00$ សម្រាប់វគ្គ Web Dev',
+    desc_en: 'Student Sok Chan transferred $45.00 for Web Dev course',
+    time_km: '5 នាទីមុន',
+    time_en: '5 mins ago',
     type: 'payment',
-    read: false,
+    defaultRead: false,
     link: '/admin/payments?status=pending'
   },
   {
     id: 2,
-    title: 'ការចុះឈ្មោះសិស្សថ្មី',
-    desc: 'គឹម ហុង បានចុះឈ្មោះចូលរៀនថ្នាក់វិទ្យាសាស្ត្រកុំព្យូទ័រ',
-    time: '20 នាទីមុន',
+    title_km: 'ការចុះឈ្មោះសិស្សថ្មី',
+    title_en: 'New Student Enrollment',
+    desc_km: 'គឹម ហុង បានចុះឈ្មោះចូលរៀនថ្នាក់វិទ្យាសាស្ត្រកុំព្យូទ័រ',
+    desc_en: 'Kim Hong enrolled in Computer Science course',
+    time_km: '20 នាទីមុន',
+    time_en: '20 mins ago',
     type: 'user',
-    read: false,
+    defaultRead: false,
     link: '/admin/user-management/students'
   },
   {
     id: 3,
-    title: 'សំណើជំនួយ Ticket #402',
-    desc: 'មានបញ្ហាមើលវីដេអូបទបង្ហាញក្នុងមេរៀនទី ២',
-    time: '1 ម៉ោងមុន',
+    title_km: 'សំណើជំនួយ Ticket #402',
+    title_en: 'Support Ticket #402',
+    desc_km: 'មានបញ្ហាមើលវីដេអូបទបង្ហាញក្នុងមេរៀនទី ២',
+    desc_en: 'Video presentation playback issue in Lesson 2',
+    time_km: '1 ម៉ោងមុន',
+    time_en: '1 hour ago',
     type: 'support',
-    read: false,
+    defaultRead: false,
     link: '/admin/discussions/tickets'
   },
   {
     id: 4,
-    title: 'ការបម្រុងទុកទិន្នន័យបានជោគជ័យ',
-    desc: 'Automated Database Backup completed successfully',
-    time: '3 ម៉ោងមុន',
+    title_km: 'ការបម្រុងទុកទិន្នន័យបានជោគជ័យ',
+    title_en: 'Database Backup Successful',
+    desc_km: 'ការបម្រុងទុកទិន្នន័យប្រព័ន្ធស្វ័យប្រវត្តិបានបញ្ចប់ដោយជោគជ័យ',
+    desc_en: 'Automated Database Backup completed successfully',
+    time_km: '3 ម៉ោងមុន',
+    time_en: '3 hours ago',
     type: 'system',
-    read: true,
+    defaultRead: true,
     link: '/admin/settings?tab=backup'
   }
-])
+]
+
+const NOTIF_STORAGE_KEY = 'elms_admin_read_notif_ids_v2'
+
+const notifications = ref<NotificationItem[]>(
+  rawAdminNotifications.map(n => ({ ...n, read: n.defaultRead }))
+)
+
+const loadPersistedNotifications = () => {
+  if (typeof window === 'undefined') return
+  try {
+    const raw = localStorage.getItem(NOTIF_STORAGE_KEY)
+    const readIds: number[] = raw ? JSON.parse(raw) : []
+    notifications.value = rawAdminNotifications.map(n => ({
+      ...n,
+      read: n.defaultRead || readIds.includes(n.id)
+    }))
+  } catch {
+    notifications.value = rawAdminNotifications.map(n => ({ ...n, read: n.defaultRead }))
+  }
+}
+
+const savePersistedReadIds = () => {
+  if (typeof window === 'undefined') return
+  try {
+    const readIds = notifications.value.filter(n => n.read).map(n => n.id)
+    localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify(readIds))
+  } catch {}
+}
 
 const notifTab = ref<'all' | 'unread'>('all')
 
@@ -754,14 +808,30 @@ const handleNotificationToggle = () => {
 
 const markAllAsRead = () => {
   playClickSound()
-  notifications.value.forEach(n => n.read = true)
+  notifications.value.forEach(n => { n.read = true })
+  savePersistedReadIds()
 }
 
 const markNotificationRead = (id: number) => {
-  playClickSound()
   const item = notifications.value.find(n => n.id === id)
-  if (item) item.read = true
+  if (item && !item.read) {
+    item.read = true
+    savePersistedReadIds()
+  }
 }
+
+const handleNotificationItemClick = (notif: NotificationItem) => {
+  playClickSound()
+  markNotificationRead(notif.id)
+  isNotificationOpen.value = false
+  if (notif.link) {
+    router.visit(notif.link)
+  }
+}
+
+const getNotifTitle = (n: NotificationItem) => currentLang.value === 'km' ? n.title_km : n.title_en
+const getNotifDesc = (n: NotificationItem) => currentLang.value === 'km' ? n.desc_km : n.desc_en
+const getNotifTime = (n: NotificationItem) => currentLang.value === 'km' ? n.time_km : n.time_en
 
 const toggleFullscreen = () => {
   if (!document.fullscreenElement) {
@@ -832,6 +902,7 @@ watch(
 )
 
 onMounted(() => {
+  loadPersistedNotifications()
   initTheme()
   window.addEventListener('keydown', handleKeydown)
   window.addEventListener('online', updateOnlineStatus)
@@ -1630,32 +1701,33 @@ onUnmounted(() => {
                   <div
                     v-for="notif in filteredNotifications"
                     :key="notif.id"
-                    @click="markNotificationRead(notif.id)"
-                    :class="[notif.read ? 'bg-slate-50/40 dark:bg-slate-900/40 opacity-75' : 'bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/60', 'p-3.5 transition-colors cursor-pointer block']"
+                    @click="handleNotificationItemClick(notif)"
+                    :class="[
+                      notif.read ? 'bg-slate-50/40 dark:bg-slate-900/40 opacity-75' : 'bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/60',
+                      'p-3.5 transition-colors cursor-pointer block select-none'
+                    ]"
                   >
-                    <Link :href="notif.link" @click="isNotificationOpen = false">
-                      <div class="flex items-start gap-3">
-                        <div :class="[
-                          notif.type === 'payment' ? 'bg-emerald-500/20 text-emerald-500 dark:text-emerald-400' :
-                          notif.type === 'user' ? 'bg-indigo-500/20 text-indigo-500 dark:text-indigo-400' :
-                          notif.type === 'support' ? 'bg-amber-500/20 text-amber-500 dark:text-amber-400' : 'bg-cyan-500/20 text-cyan-500 dark:text-cyan-400',
-                          'p-2 rounded-xl shrink-0 mt-0.5'
-                        ]">
-                          <svg v-if="notif.type === 'payment'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V6m0 12v-2m0 0c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                          <svg v-else-if="notif.type === 'user'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-                          <svg v-else-if="notif.type === 'support'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                          <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                          <div class="flex items-center justify-between">
-                            <p class="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">{{ notif.title }}</p>
-                            <span class="text-[10px] text-slate-400 dark:text-slate-500 shrink-0 ml-1">{{ notif.time }}</span>
-                          </div>
-                          <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5">{{ notif.desc }}</p>
-                        </div>
-                        <span v-if="!notif.read" class="w-2 h-2 rounded-full bg-indigo-500 shrink-0 mt-1.5"></span>
+                    <div class="flex items-start gap-3">
+                      <div :class="[
+                        notif.type === 'payment' ? 'bg-emerald-500/20 text-emerald-500 dark:text-emerald-400' :
+                        notif.type === 'user' ? 'bg-indigo-500/20 text-indigo-500 dark:text-indigo-400' :
+                        notif.type === 'support' ? 'bg-amber-500/20 text-amber-500 dark:text-amber-400' : 'bg-cyan-500/20 text-cyan-500 dark:text-cyan-400',
+                        'p-2 rounded-xl shrink-0 mt-0.5'
+                      ]">
+                        <svg v-if="notif.type === 'payment'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V6m0 12v-2m0 0c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <svg v-else-if="notif.type === 'user'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                        <svg v-else-if="notif.type === 'support'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                        <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                       </div>
-                    </Link>
+                      <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between">
+                          <p :class="[notif.read ? 'text-slate-600 dark:text-slate-400 font-medium' : 'text-slate-900 dark:text-slate-100 font-bold', 'text-xs truncate']">{{ getNotifTitle(notif) }}</p>
+                          <span class="text-[10px] text-slate-400 dark:text-slate-500 shrink-0 ml-1">{{ getNotifTime(notif) }}</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5">{{ getNotifDesc(notif) }}</p>
+                      </div>
+                      <span v-if="!notif.read" class="w-2 h-2 rounded-full bg-indigo-500 shrink-0 mt-1.5"></span>
+                    </div>
                   </div>
 
                   <div v-if="filteredNotifications.length === 0" class="py-8 text-center">

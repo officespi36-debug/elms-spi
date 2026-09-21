@@ -487,36 +487,86 @@ const quickActions = [
   { name: 'បង់ប្រាក់តាម ABA KHQR', href: '/student/payments/pending', iconUrl: '/images/nav/payment.svg' },
 ]
 
-// Notifications Drawer Data for Student
-const notifications = ref([
+interface NotificationItem {
+  id: number
+  title_km: string
+  title_en: string
+  desc_km: string
+  desc_en: string
+  time_km: string
+  time_en: string
+  type: 'payment' | 'quiz' | 'ai'
+  defaultRead: boolean
+  read: boolean
+  link: string
+}
+
+const rawStudentNotifications: Omit<NotificationItem, 'read'>[] = [
   {
     id: 1,
-    title: 'ការរំលឹកបង់ប្រាក់ Payment Pending',
-    desc: 'សូមទូទាត់ប្រាក់សម្រាប់ Database Systems ដើម្បីបើកមើលមេរៀន',
-    time: '1 ម៉ោងមុន',
+    title_km: 'ការរំលឹកបង់ប្រាក់ Payment Pending',
+    title_en: 'Payment Reminder: Pending Payment',
+    desc_km: 'សូមទូទាត់ប្រាក់សម្រាប់ Database Systems ដើម្បីបើកមើលមេរៀន',
+    desc_en: 'Please complete payment for Database Systems to unlock lessons',
+    time_km: '1 ម៉ោងមុន',
+    time_en: '1 hour ago',
     type: 'payment',
-    read: false,
+    defaultRead: false,
     link: '/student/payments/pending'
   },
   {
     id: 2,
-    title: 'Quiz ថ្មីអាចធ្វើបានហើយ: Module 2 Practice',
-    desc: 'គ្រូ Sophea បានបើក Practice Quiz សម្រាប់ C Programming',
-    time: '2 ម៉ោងមុន',
+    title_km: 'Quiz ថ្មីអាចធ្វើបានហើយ: Module 2 Practice',
+    title_en: 'New Quiz Available: Module 2 Practice',
+    desc_km: 'គ្រូ Sophea បានបើក Practice Quiz សម្រាប់ C Programming',
+    desc_en: 'Teacher Sophea unlocked Practice Quiz for C Programming',
+    time_km: '2 ម៉ោងមុន',
+    time_en: '2 hours ago',
     type: 'quiz',
-    read: false,
+    defaultRead: false,
     link: '/student/quizzes/practice'
   },
   {
     id: 3,
-    title: '🤖 AI Recommendation: មេរៀនថ្មីសម្រាប់អ្នក',
-    desc: 'ផ្អែកលើពិន្ទុរបស់អ្នក សូមរៀនមេរៀន Operators & Pointers ឥឡូវនេះ',
-    time: '5 ម៉ោងមុន',
+    title_km: '🤖 AI Recommendation: មេរៀនថ្មីសម្រាប់អ្នក',
+    title_en: '🤖 AI Recommendation: New Lesson For You',
+    desc_km: 'ផ្អែកលើពិន្ទុរបស់អ្នក សូមរៀនមេរៀន Operators & Pointers ឥឡូវនេះ',
+    desc_en: 'Based on your recent scores, explore Operators & Pointers next',
+    time_km: '5 ម៉ោងមុន',
+    time_en: '5 hours ago',
     type: 'ai',
-    read: true,
+    defaultRead: true,
     link: '/student/ai-path/recommended'
   }
-])
+]
+
+const NOTIF_STORAGE_KEY = 'elms_student_read_notif_ids_v2'
+
+const notifications = ref<NotificationItem[]>(
+  rawStudentNotifications.map(n => ({ ...n, read: n.defaultRead }))
+)
+
+const loadPersistedNotifications = () => {
+  if (typeof window === 'undefined') return
+  try {
+    const raw = localStorage.getItem(NOTIF_STORAGE_KEY)
+    const readIds: number[] = raw ? JSON.parse(raw) : []
+    notifications.value = rawStudentNotifications.map(n => ({
+      ...n,
+      read: n.defaultRead || readIds.includes(n.id)
+    }))
+  } catch {
+    notifications.value = rawStudentNotifications.map(n => ({ ...n, read: n.defaultRead }))
+  }
+}
+
+const savePersistedReadIds = () => {
+  if (typeof window === 'undefined') return
+  try {
+    const readIds = notifications.value.filter(n => n.read).map(n => n.id)
+    localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify(readIds))
+  } catch {}
+}
 
 const notifTab = ref<'all' | 'unread'>('all')
 
@@ -538,14 +588,30 @@ const handleNotificationToggle = () => {
 
 const markAllAsRead = () => {
   playClickSound()
-  notifications.value.forEach(n => n.read = true)
+  notifications.value.forEach(n => { n.read = true })
+  savePersistedReadIds()
 }
 
 const markNotificationRead = (id: number) => {
-  playClickSound()
   const item = notifications.value.find(n => n.id === id)
-  if (item) item.read = true
+  if (item && !item.read) {
+    item.read = true
+    savePersistedReadIds()
+  }
 }
+
+const handleNotificationItemClick = (notif: NotificationItem) => {
+  playClickSound()
+  markNotificationRead(notif.id)
+  isNotificationOpen.value = false
+  if (notif.link) {
+    router.visit(notif.link)
+  }
+}
+
+const getNotifTitle = (n: NotificationItem) => currentLang.value === 'km' ? n.title_km : n.title_en
+const getNotifDesc = (n: NotificationItem) => currentLang.value === 'km' ? n.desc_km : n.desc_en
+const getNotifTime = (n: NotificationItem) => currentLang.value === 'km' ? n.time_km : n.time_en
 
 const handleDocumentClick = (e: MouseEvent) => {
   const target = e.target as HTMLElement
@@ -776,6 +842,7 @@ watch(
 )
 
 onMounted(() => {
+  loadPersistedNotifications()
   initTheme()
   window.addEventListener('keydown', handleKeydown)
   window.addEventListener('online', updateOnlineStatus)
@@ -1421,26 +1488,27 @@ const onIconError = (e: Event) => {
                   <div
                     v-for="item in filteredNotifications"
                     :key="item.id"
-                    @click="markNotificationRead(item.id)"
-                    :class="[item.read ? 'bg-slate-50/40 dark:bg-slate-900/40 opacity-75' : 'bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/60', 'p-3.5 transition-colors cursor-pointer block']"
+                    @click="handleNotificationItemClick(item)"
+                    :class="[
+                      item.read ? 'bg-slate-50/40 dark:bg-slate-900/40 opacity-75' : 'bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/60',
+                      'p-3.5 transition-colors cursor-pointer block select-none'
+                    ]"
                   >
-                    <Link :href="item.link" @click="isNotificationOpen = false">
-                      <div class="flex items-start gap-3">
-                        <div class="p-2 rounded-xl shrink-0 mt-0.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
-                          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                          </svg>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                          <div class="flex items-center justify-between">
-                            <p class="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">{{ item.title }}</p>
-                            <span class="text-[10px] text-slate-400 dark:text-slate-500 shrink-0 ml-1">{{ item.time }}</span>
-                          </div>
-                          <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5">{{ item.desc }}</p>
-                        </div>
-                        <span v-if="!item.read" class="w-2 h-2 rounded-full bg-indigo-500 shrink-0 mt-1.5"></span>
+                    <div class="flex items-start gap-3">
+                      <div class="p-2 rounded-xl shrink-0 mt-0.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
                       </div>
-                    </Link>
+                      <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between">
+                          <p :class="[item.read ? 'text-slate-600 dark:text-slate-400 font-medium' : 'text-slate-900 dark:text-slate-100 font-bold', 'text-xs truncate']">{{ getNotifTitle(item) }}</p>
+                          <span class="text-[10px] text-slate-400 dark:text-slate-500 shrink-0 ml-1">{{ getNotifTime(item) }}</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5">{{ getNotifDesc(item) }}</p>
+                      </div>
+                      <span v-if="!item.read" class="w-2 h-2 rounded-full bg-indigo-500 shrink-0 mt-1.5"></span>
+                    </div>
                   </div>
 
                   <div v-if="filteredNotifications.length === 0" class="py-8 text-center">
