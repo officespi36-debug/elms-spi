@@ -145,19 +145,19 @@ const resetToDefault = () => {
       <AuthModuleHeader activeTab="policies" :summaryStats="props.summaryStats" />
 
       <!-- Top Header Row: Security Score Widget & Action Buttons Bar -->
-      <div class="bg-slate-800/40 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 backdrop-blur-xl">
+      <div class="bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 backdrop-blur-xl shadow-sm dark:shadow-none">
         <div class="flex items-center gap-3 w-full sm:w-auto">
           <div class="w-11 h-11 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center shrink-0 shadow-inner">
             <img :src="'/images/nav/sub/policies.svg'" alt="Security Policies" class="w-6 h-6 object-contain" />
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">{{ i18n.t('policies_score_label', 'Security Health') }}:</span>
-              <span class="px-2.5 py-0.5 text-xs font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full">
+              <span class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">{{ i18n.t('policies_score_label', 'Security Health') }}:</span>
+              <span class="px-2.5 py-0.5 text-xs font-mono font-bold bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 border border-emerald-500/20 dark:border-emerald-500/30 rounded-full">
                 {{ props.summaryStats?.security_score || 88 }}/100 GOOD
               </span>
             </div>
-            <div class="w-48 bg-slate-950 h-2 rounded-full overflow-hidden mt-1.5 border border-slate-800">
+            <div class="w-48 bg-slate-100 dark:bg-slate-950 h-2 rounded-full overflow-hidden mt-1.5 border border-slate-200 dark:border-slate-800">
               <div
                 class="bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-400 h-full rounded-full transition-all duration-500"
                 :style="{ width: (props.summaryStats?.security_score || 88) + '%' }"
@@ -170,7 +170,7 @@ const resetToDefault = () => {
           <button
             type="button"
             @click="resetToDefault"
-            class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/80 font-semibold text-xs rounded-xl transition-all flex items-center gap-1.5"
+            class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/80 font-semibold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <span>🔄</span>
             <span>{{ i18n.t('policies_btn_reset', 'Reset Defaults') }}</span>
@@ -180,7 +180,7 @@ const resetToDefault = () => {
             type="button"
             @click="saveAllPolicies"
             :disabled="form.processing"
-            class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-md shadow-indigo-600/30 transition-all flex items-center gap-1.5 disabled:opacity-50"
+            class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-md shadow-indigo-600/30 transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
           >
             <span>💾</span>
             <span>{{ i18n.t('policies_btn_save', 'Save All Policies') }}</span>
@@ -196,98 +196,98 @@ const resetToDefault = () => {
             @click="activeSubTab = 'password'"
             :class="[
               activeSubTab === 'password'
-                ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-200 font-extrabold shadow-md'
-                : 'bg-slate-900/60 border-slate-800/80 text-slate-400 hover:bg-slate-800/40 hover:text-white',
-              'w-full p-3.5 rounded-2xl border text-xs text-left transition-all flex items-center justify-between'
+                ? 'bg-indigo-50 border-indigo-300 text-indigo-700 font-extrabold shadow-sm dark:bg-indigo-600/20 dark:border-indigo-500/50 dark:text-indigo-200'
+                : 'bg-white dark:bg-slate-900/60 border-slate-200 dark:border-slate-800/80 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/40 hover:text-slate-900 dark:hover:text-white shadow-sm dark:shadow-none',
+              'w-full p-3.5 rounded-2xl border text-xs text-left transition-all flex items-center justify-between cursor-pointer'
             ]"
           >
             <div class="flex items-center gap-3">
               <span class="text-base">🔒</span>
               <span>{{ i18n.t('policies_tab_password', 'Password Policy') }}</span>
             </div>
-            <span class="text-xs text-slate-500">▶</span>
+            <span class="text-xs text-slate-400 dark:text-slate-500">▶</span>
           </button>
 
           <button
             @click="activeSubTab = 'jwt'"
             :class="[
               activeSubTab === 'jwt'
-                ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-200 font-extrabold shadow-md'
-                : 'bg-slate-900/60 border-slate-800/80 text-slate-400 hover:bg-slate-800/40 hover:text-white',
-              'w-full p-3.5 rounded-2xl border text-xs text-left transition-all flex items-center justify-between'
+                ? 'bg-indigo-50 border-indigo-300 text-indigo-700 font-extrabold shadow-sm dark:bg-indigo-600/20 dark:border-indigo-500/50 dark:text-indigo-200'
+                : 'bg-white dark:bg-slate-900/60 border-slate-200 dark:border-slate-800/80 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/40 hover:text-slate-900 dark:hover:text-white shadow-sm dark:shadow-none',
+              'w-full p-3.5 rounded-2xl border text-xs text-left transition-all flex items-center justify-between cursor-pointer'
             ]"
           >
             <div class="flex items-center gap-3">
               <span class="text-base">🔑</span>
               <span>{{ i18n.t('policies_tab_jwt', 'JWT & Token Policy') }}</span>
             </div>
-            <span class="text-xs text-slate-500">▶</span>
+            <span class="text-xs text-slate-400 dark:text-slate-500">▶</span>
           </button>
 
           <button
             @click="activeSubTab = 'session'"
             :class="[
               activeSubTab === 'session'
-                ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-200 font-extrabold shadow-md'
-                : 'bg-slate-900/60 border-slate-800/80 text-slate-400 hover:bg-slate-800/40 hover:text-white',
-              'w-full p-3.5 rounded-2xl border text-xs text-left transition-all flex items-center justify-between'
+                ? 'bg-indigo-50 border-indigo-300 text-indigo-700 font-extrabold shadow-sm dark:bg-indigo-600/20 dark:border-indigo-500/50 dark:text-indigo-200'
+                : 'bg-white dark:bg-slate-900/60 border-slate-200 dark:border-slate-800/80 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/40 hover:text-slate-900 dark:hover:text-white shadow-sm dark:shadow-none',
+              'w-full p-3.5 rounded-2xl border text-xs text-left transition-all flex items-center justify-between cursor-pointer'
             ]"
           >
             <div class="flex items-center gap-3">
               <span class="text-base">⏱️</span>
               <span>{{ i18n.t('policies_tab_session', 'Session Policy') }}</span>
             </div>
-            <span class="text-xs text-slate-500">▶</span>
+            <span class="text-xs text-slate-400 dark:text-slate-500">▶</span>
           </button>
 
           <button
             @click="activeSubTab = 'lockout'"
             :class="[
               activeSubTab === 'lockout'
-                ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-200 font-extrabold shadow-md'
-                : 'bg-slate-900/60 border-slate-800/80 text-slate-400 hover:bg-slate-800/40 hover:text-white',
-              'w-full p-3.5 rounded-2xl border text-xs text-left transition-all flex items-center justify-between'
+                ? 'bg-indigo-50 border-indigo-300 text-indigo-700 font-extrabold shadow-sm dark:bg-indigo-600/20 dark:border-indigo-500/50 dark:text-indigo-200'
+                : 'bg-white dark:bg-slate-900/60 border-slate-200 dark:border-slate-800/80 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/40 hover:text-slate-900 dark:hover:text-white shadow-sm dark:shadow-none',
+              'w-full p-3.5 rounded-2xl border text-xs text-left transition-all flex items-center justify-between cursor-pointer'
             ]"
           >
             <div class="flex items-center gap-3">
               <span class="text-base">🛡️</span>
               <span>{{ i18n.t('policies_tab_lockout', 'Login Protection & Lockout') }}</span>
             </div>
-            <span class="text-xs text-slate-500">▶</span>
+            <span class="text-xs text-slate-400 dark:text-slate-500">▶</span>
           </button>
 
           <button
             @click="activeSubTab = 'security'"
             :class="[
               activeSubTab === 'security'
-                ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-200 font-extrabold shadow-md'
-                : 'bg-slate-900/60 border-slate-800/80 text-slate-400 hover:bg-slate-800/40 hover:text-white',
-              'w-full p-3.5 rounded-2xl border text-xs text-left transition-all flex items-center justify-between'
+                ? 'bg-indigo-50 border-indigo-300 text-indigo-700 font-extrabold shadow-sm dark:bg-indigo-600/20 dark:border-indigo-500/50 dark:text-indigo-200'
+                : 'bg-white dark:bg-slate-900/60 border-slate-200 dark:border-slate-800/80 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/40 hover:text-slate-900 dark:hover:text-white shadow-sm dark:shadow-none',
+              'w-full p-3.5 rounded-2xl border text-xs text-left transition-all flex items-center justify-between cursor-pointer'
             ]"
           >
             <div class="flex items-center gap-3">
               <span class="text-base">🔐</span>
               <span>{{ i18n.t('policies_tab_security', 'Data Security & IP Whitelist') }}</span>
             </div>
-            <span class="text-xs text-slate-500">▶</span>
+            <span class="text-xs text-slate-400 dark:text-slate-500">▶</span>
           </button>
         </div>
 
         <!-- Right Side: Active Section Form Details Card (8 cols) -->
-        <div class="lg:col-span-8 bg-slate-900/60 border border-slate-800 rounded-3xl p-6 backdrop-blur-xl shadow-2xl space-y-5">
+        <div class="lg:col-span-8 bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 backdrop-blur-xl shadow-sm dark:shadow-2xl space-y-5">
           <form @submit.prevent="saveAllPolicies" class="space-y-5 text-xs">
             <!-- TAB 1: PASSWORD POLICY -->
             <div v-if="activeSubTab === 'password'" class="space-y-4">
-              <div class="border-b border-slate-800 pb-3 flex items-center justify-between">
-                <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+              <div class="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
+                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
                   <span>🔒 {{ i18n.t('policies_tab_password', 'Password Policy Configuration') }}</span>
                 </h3>
               </div>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label class="block font-bold text-slate-300 mb-1.5">Minimum Password Length</label>
-                  <select v-model.number="form.min_password_length" class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-white font-mono text-xs focus:outline-none focus:border-indigo-500">
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">Minimum Password Length</label>
+                  <select v-model.number="form.min_password_length" class="w-full bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white font-mono text-xs focus:outline-none focus:border-indigo-500">
                     <option :value="6">6 characters</option>
                     <option :value="8">8 characters (Recommended)</option>
                     <option :value="12">12 characters (Strong)</option>
@@ -296,8 +296,8 @@ const resetToDefault = () => {
                 </div>
 
                 <div>
-                  <label class="block font-bold text-slate-300 mb-1.5">Password Expiration Days</label>
-                  <select v-model.number="form.password_expiry_days" class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-white font-mono text-xs focus:outline-none focus:border-indigo-500">
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">Password Expiration Days</label>
+                  <select v-model.number="form.password_expiry_days" class="w-full bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white font-mono text-xs focus:outline-none focus:border-indigo-500">
                     <option :value="30">30 days</option>
                     <option :value="60">60 days</option>
                     <option :value="90">90 days (Recommended)</option>
@@ -307,23 +307,23 @@ const resetToDefault = () => {
               </div>
 
               <div class="pt-2">
-                <label class="block font-bold text-slate-300 mb-2">Complexity Requirements:</label>
+                <label class="block font-bold text-slate-700 dark:text-slate-300 mb-2">Complexity Requirements:</label>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <label class="flex items-center gap-2.5 cursor-pointer bg-slate-950/50 p-2.5 rounded-xl border border-slate-800/80">
-                    <input v-model="form.require_uppercase" type="checkbox" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-0" />
-                    <span class="text-slate-200 font-medium">Require Uppercase (A-Z)</span>
+                  <label class="flex items-center gap-2.5 cursor-pointer bg-slate-50 dark:bg-slate-950/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800/80">
+                    <input v-model="form.require_uppercase" type="checkbox" class="w-4 h-4 rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-0" />
+                    <span class="text-slate-700 dark:text-slate-200 font-medium">Require Uppercase (A-Z)</span>
                   </label>
-                  <label class="flex items-center gap-2.5 cursor-pointer bg-slate-950/50 p-2.5 rounded-xl border border-slate-800/80">
-                    <input v-model="form.require_lowercase" type="checkbox" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-0" />
-                    <span class="text-slate-200 font-medium">Require Lowercase (a-z)</span>
+                  <label class="flex items-center gap-2.5 cursor-pointer bg-slate-50 dark:bg-slate-950/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800/80">
+                    <input v-model="form.require_lowercase" type="checkbox" class="w-4 h-4 rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-0" />
+                    <span class="text-slate-700 dark:text-slate-200 font-medium">Require Lowercase (a-z)</span>
                   </label>
-                  <label class="flex items-center gap-2.5 cursor-pointer bg-slate-950/50 p-2.5 rounded-xl border border-slate-800/80">
-                    <input v-model="form.require_number" type="checkbox" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-0" />
-                    <span class="text-slate-200 font-medium">Require Numbers (0-9)</span>
+                  <label class="flex items-center gap-2.5 cursor-pointer bg-slate-50 dark:bg-slate-950/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800/80">
+                    <input v-model="form.require_number" type="checkbox" class="w-4 h-4 rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-0" />
+                    <span class="text-slate-700 dark:text-slate-200 font-medium">Require Numbers (0-9)</span>
                   </label>
-                  <label class="flex items-center gap-2.5 cursor-pointer bg-slate-950/50 p-2.5 rounded-xl border border-slate-800/80">
-                    <input v-model="form.require_special_char" type="checkbox" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-0" />
-                    <span class="text-slate-200 font-medium">Require Special Symbols (!@#$)</span>
+                  <label class="flex items-center gap-2.5 cursor-pointer bg-slate-50 dark:bg-slate-950/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800/80">
+                    <input v-model="form.require_special_char" type="checkbox" class="w-4 h-4 rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-0" />
+                    <span class="text-slate-700 dark:text-slate-200 font-medium">Require Special Symbols (!@#$)</span>
                   </label>
                 </div>
               </div>
@@ -331,16 +331,16 @@ const resetToDefault = () => {
 
             <!-- TAB 2: JWT & TOKEN POLICY -->
             <div v-if="activeSubTab === 'jwt'" class="space-y-4">
-              <div class="border-b border-slate-800 pb-3 flex items-center justify-between">
-                <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+              <div class="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
+                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
                   <span>🔑 {{ i18n.t('policies_tab_jwt', 'JWT & Token Policy Configuration') }}</span>
                 </h3>
               </div>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label class="block font-bold text-slate-300 mb-1.5">Access Token Lifetime</label>
-                  <select v-model.number="form.access_token_expiry_mins" class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-white font-mono text-xs focus:outline-none focus:border-indigo-500">
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">Access Token Lifetime</label>
+                  <select v-model.number="form.access_token_expiry_mins" class="w-full bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white font-mono text-xs focus:outline-none focus:border-indigo-500">
                     <option :value="15">15 minutes (High Security)</option>
                     <option :value="30">30 minutes</option>
                     <option :value="60">60 minutes (1 Hour)</option>
@@ -348,8 +348,8 @@ const resetToDefault = () => {
                 </div>
 
                 <div>
-                  <label class="block font-bold text-slate-300 mb-1.5">Refresh Token Lifetime</label>
-                  <select v-model.number="form.refresh_token_expiry_days" class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-white font-mono text-xs focus:outline-none focus:border-indigo-500">
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">Refresh Token Lifetime</label>
+                  <select v-model.number="form.refresh_token_expiry_days" class="w-full bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white font-mono text-xs focus:outline-none focus:border-indigo-500">
                     <option :value="1">1 day</option>
                     <option :value="7">7 days (Recommended)</option>
                     <option :value="30">30 days</option>
@@ -358,19 +358,19 @@ const resetToDefault = () => {
               </div>
 
               <div class="pt-2 space-y-3">
-                <label class="flex items-center gap-2.5 cursor-pointer bg-slate-950/50 p-3 rounded-xl border border-slate-800/80">
-                  <input v-model="form.auto_refresh_token" type="checkbox" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-0" />
+                <label class="flex items-center gap-2.5 cursor-pointer bg-slate-50 dark:bg-slate-950/50 p-3 rounded-xl border border-slate-200 dark:border-slate-800/80">
+                  <input v-model="form.auto_refresh_token" type="checkbox" class="w-4 h-4 rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-0" />
                   <div>
-                    <div class="text-slate-200 font-medium">Automatic Silent Token Refresh</div>
-                    <div class="text-[11px] text-slate-400">Seamlessly refresh access tokens without interrupting user workflow</div>
+                    <div class="text-slate-800 dark:text-slate-200 font-medium">Automatic Silent Token Refresh</div>
+                    <div class="text-[11px] text-slate-500 dark:text-slate-400">Seamlessly refresh access tokens without interrupting user workflow</div>
                   </div>
                 </label>
 
-                <label class="flex items-center gap-2.5 cursor-pointer bg-slate-950/50 p-3 rounded-xl border border-slate-800/80">
-                  <input v-model="form.revoke_on_logout" type="checkbox" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-0" />
+                <label class="flex items-center gap-2.5 cursor-pointer bg-slate-50 dark:bg-slate-950/50 p-3 rounded-xl border border-slate-200 dark:border-slate-800/80">
+                  <input v-model="form.revoke_on_logout" type="checkbox" class="w-4 h-4 rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-0" />
                   <div>
-                    <div class="text-slate-200 font-medium">Revoke All Tokens on Logout</div>
-                    <div class="text-[11px] text-slate-400">Blacklist tokens immediately when user signs out</div>
+                    <div class="text-slate-800 dark:text-slate-200 font-medium">Revoke All Tokens on Logout</div>
+                    <div class="text-[11px] text-slate-500 dark:text-slate-400">Blacklist tokens immediately when user signs out</div>
                   </div>
                 </label>
               </div>
@@ -378,16 +378,16 @@ const resetToDefault = () => {
 
             <!-- TAB 3: SESSION POLICY -->
             <div v-if="activeSubTab === 'session'" class="space-y-4">
-              <div class="border-b border-slate-800 pb-3 flex items-center justify-between">
-                <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+              <div class="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
+                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
                   <span>⏱️ {{ i18n.t('policies_tab_session', 'Session & Expiration Policy') }}</span>
                 </h3>
               </div>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label class="block font-bold text-slate-300 mb-1.5">Max Concurrent Sessions per User</label>
-                  <select v-model.number="form.max_concurrent_sessions" class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-white font-mono text-xs focus:outline-none focus:border-indigo-500">
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">Max Concurrent Sessions per User</label>
+                  <select v-model.number="form.max_concurrent_sessions" class="w-full bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white font-mono text-xs focus:outline-none focus:border-indigo-500">
                     <option :value="1">1 Session (Strict Single-Device)</option>
                     <option :value="3">3 Sessions (Recommended)</option>
                     <option :value="5">5 Sessions</option>
@@ -395,8 +395,8 @@ const resetToDefault = () => {
                 </div>
 
                 <div>
-                  <label class="block font-bold text-slate-300 mb-1.5">Remember Me Extended Days</label>
-                  <select v-model.number="form.remember_me_days" class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-white font-mono text-xs focus:outline-none focus:border-indigo-500">
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">Remember Me Extended Days</label>
+                  <select v-model.number="form.remember_me_days" class="w-full bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white font-mono text-xs focus:outline-none focus:border-indigo-500">
                     <option :value="7">7 days</option>
                     <option :value="14">14 days</option>
                     <option :value="30">30 days</option>
@@ -405,11 +405,11 @@ const resetToDefault = () => {
               </div>
 
               <div class="pt-2">
-                <label class="flex items-center gap-2.5 cursor-pointer bg-slate-950/50 p-3 rounded-xl border border-slate-800/80">
-                  <input v-model="form.auto_logout_inactivity" type="checkbox" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-0" />
+                <label class="flex items-center gap-2.5 cursor-pointer bg-slate-50 dark:bg-slate-950/50 p-3 rounded-xl border border-slate-200 dark:border-slate-800/80">
+                  <input v-model="form.auto_logout_inactivity" type="checkbox" class="w-4 h-4 rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-0" />
                   <div>
-                    <div class="text-slate-200 font-medium">Auto Logout on 15m Idle Inactivity</div>
-                    <div class="text-[11px] text-slate-400">Lock session automatically if user leaves workstation unattended</div>
+                    <div class="text-slate-800 dark:text-slate-200 font-medium">Auto Logout on 15m Idle Inactivity</div>
+                    <div class="text-[11px] text-slate-500 dark:text-slate-400">Lock session automatically if user leaves workstation unattended</div>
                   </div>
                 </label>
               </div>
@@ -417,16 +417,16 @@ const resetToDefault = () => {
 
             <!-- TAB 4: LOGIN PROTECTION & LOCKOUT -->
             <div v-if="activeSubTab === 'lockout'" class="space-y-4">
-              <div class="border-b border-slate-800 pb-3 flex items-center justify-between">
-                <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+              <div class="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
+                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
                   <span>🛡️ {{ i18n.t('policies_tab_lockout', 'Login Protection & Lockout Rules') }}</span>
                 </h3>
               </div>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label class="block font-bold text-slate-300 mb-1.5">Max Failed Login Attempts</label>
-                  <select v-model.number="form.max_failed_attempts" class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-white font-mono text-xs focus:outline-none focus:border-indigo-500">
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">Max Failed Login Attempts</label>
+                  <select v-model.number="form.max_failed_attempts" class="w-full bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white font-mono text-xs focus:outline-none focus:border-indigo-500">
                     <option :value="3">3 Attempts</option>
                     <option :value="5">5 Attempts (Recommended)</option>
                     <option :value="10">10 Attempts</option>
@@ -434,8 +434,8 @@ const resetToDefault = () => {
                 </div>
 
                 <div>
-                  <label class="block font-bold text-slate-300 mb-1.5">Lockout Duration Minutes</label>
-                  <select v-model.number="form.lockout_duration_mins" class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-white font-mono text-xs focus:outline-none focus:border-indigo-500">
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">Lockout Duration Minutes</label>
+                  <select v-model.number="form.lockout_duration_mins" class="w-full bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white font-mono text-xs focus:outline-none focus:border-indigo-500">
                     <option :value="15">15 minutes</option>
                     <option :value="30">30 minutes</option>
                     <option :value="60">60 minutes (1 Hour)</option>
@@ -444,19 +444,19 @@ const resetToDefault = () => {
               </div>
 
               <div class="pt-2">
-                <label class="block font-bold text-slate-300 mb-2">Mandatory 2FA Enforcement by Role:</label>
+                <label class="block font-bold text-slate-700 dark:text-slate-300 mb-2">Mandatory 2FA Enforcement by Role:</label>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <label class="flex items-center gap-2 cursor-pointer bg-slate-950/50 p-2.5 rounded-xl border border-slate-800/80">
-                    <input v-model="form.require_2fa_admin" type="checkbox" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-0" />
-                    <span class="text-slate-200 font-medium">Admin 2FA</span>
+                  <label class="flex items-center gap-2 cursor-pointer bg-slate-50 dark:bg-slate-950/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800/80">
+                    <input v-model="form.require_2fa_admin" type="checkbox" class="w-4 h-4 rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-0" />
+                    <span class="text-slate-700 dark:text-slate-200 font-medium">Admin 2FA</span>
                   </label>
-                  <label class="flex items-center gap-2 cursor-pointer bg-slate-950/50 p-2.5 rounded-xl border border-slate-800/80">
-                    <input v-model="form.require_2fa_teacher" type="checkbox" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-0" />
-                    <span class="text-slate-200 font-medium">Teacher 2FA</span>
+                  <label class="flex items-center gap-2 cursor-pointer bg-slate-50 dark:bg-slate-950/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800/80">
+                    <input v-model="form.require_2fa_teacher" type="checkbox" class="w-4 h-4 rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-0" />
+                    <span class="text-slate-700 dark:text-slate-200 font-medium">Teacher 2FA</span>
                   </label>
-                  <label class="flex items-center gap-2 cursor-pointer bg-slate-950/50 p-2.5 rounded-xl border border-slate-800/80">
-                    <input v-model="form.require_2fa_student" type="checkbox" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-0" />
-                    <span class="text-slate-200 font-medium">Student 2FA</span>
+                  <label class="flex items-center gap-2 cursor-pointer bg-slate-50 dark:bg-slate-950/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800/80">
+                    <input v-model="form.require_2fa_student" type="checkbox" class="w-4 h-4 rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-0" />
+                    <span class="text-slate-700 dark:text-slate-200 font-medium">Student 2FA</span>
                   </label>
                 </div>
               </div>
@@ -464,44 +464,44 @@ const resetToDefault = () => {
 
             <!-- TAB 5: DATA SECURITY & IP WHITELIST -->
             <div v-if="activeSubTab === 'security'" class="space-y-4">
-              <div class="border-b border-slate-800 pb-3 flex items-center justify-between">
-                <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+              <div class="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
+                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
                   <span>🔐 {{ i18n.t('policies_tab_security', 'Data Security & IP Whitelist') }}</span>
                 </h3>
               </div>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <label class="flex items-center gap-2.5 cursor-pointer bg-slate-950/50 p-3 rounded-xl border border-slate-800/80">
-                  <input v-model="form.https_ssl_enforced" type="checkbox" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-0" />
-                  <span class="text-slate-200 font-medium">Enforce HTTPS / TLS 1.3</span>
+                <label class="flex items-center gap-2.5 cursor-pointer bg-slate-50 dark:bg-slate-950/50 p-3 rounded-xl border border-slate-200 dark:border-slate-800/80">
+                  <input v-model="form.https_ssl_enforced" type="checkbox" class="w-4 h-4 rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-0" />
+                  <span class="text-slate-700 dark:text-slate-200 font-medium">Enforce HTTPS / TLS 1.3</span>
                 </label>
-                <label class="flex items-center gap-2.5 cursor-pointer bg-slate-950/50 p-3 rounded-xl border border-slate-800/80">
-                  <input v-model="form.csrf_protection" type="checkbox" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-0" />
-                  <span class="text-slate-200 font-medium">CSRF Token Guard</span>
+                <label class="flex items-center gap-2.5 cursor-pointer bg-slate-50 dark:bg-slate-950/50 p-3 rounded-xl border border-slate-200 dark:border-slate-800/80">
+                  <input v-model="form.csrf_protection" type="checkbox" class="w-4 h-4 rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-0" />
+                  <span class="text-slate-700 dark:text-slate-200 font-medium">CSRF Token Guard</span>
                 </label>
-                <label class="flex items-center gap-2.5 cursor-pointer bg-slate-950/50 p-3 rounded-xl border border-slate-800/80">
-                  <input v-model="form.xss_protection" type="checkbox" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-0" />
-                  <span class="text-slate-200 font-medium">XSS Input Sanitizer</span>
+                <label class="flex items-center gap-2.5 cursor-pointer bg-slate-50 dark:bg-slate-950/50 p-3 rounded-xl border border-slate-200 dark:border-slate-800/80">
+                  <input v-model="form.xss_protection" type="checkbox" class="w-4 h-4 rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-0" />
+                  <span class="text-slate-700 dark:text-slate-200 font-medium">XSS Input Sanitizer</span>
                 </label>
-                <label class="flex items-center gap-2.5 cursor-pointer bg-slate-950/50 p-3 rounded-xl border border-slate-800/80">
-                  <input v-model="form.sql_injection_guard" type="checkbox" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-0" />
-                  <span class="text-slate-200 font-medium">SQL Injection Guard</span>
+                <label class="flex items-center gap-2.5 cursor-pointer bg-slate-50 dark:bg-slate-950/50 p-3 rounded-xl border border-slate-200 dark:border-slate-800/80">
+                  <input v-model="form.sql_injection_guard" type="checkbox" class="w-4 h-4 rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-0" />
+                  <span class="text-slate-700 dark:text-slate-200 font-medium">SQL Injection Guard</span>
                 </label>
               </div>
 
               <div class="pt-2">
-                <label class="block font-bold text-slate-300 mb-1.5">Trusted IP Whitelist Subnets</label>
+                <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">Trusted IP Whitelist Subnets</label>
                 <div class="flex gap-2 mb-2">
                   <input
                     v-model="newWhitelistIp"
                     type="text"
                     placeholder="e.g. 192.168.1.0/24"
-                    class="flex-1 bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2 text-white font-mono text-xs focus:outline-none"
+                    class="flex-1 bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3.5 py-2 text-slate-900 dark:text-white font-mono text-xs focus:outline-none focus:border-indigo-500 placeholder-slate-400 dark:placeholder-slate-500"
                   />
                   <button
                     type="button"
                     @click="addWhitelistIp"
-                    class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs"
+                    class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs cursor-pointer"
                   >
                     + Add IP
                   </button>
@@ -510,10 +510,10 @@ const resetToDefault = () => {
                   <span
                     v-for="ip in ipWhitelist"
                     :key="ip"
-                    class="px-2.5 py-1 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 font-mono text-xs flex items-center gap-1.5"
+                    class="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 font-mono text-xs flex items-center gap-1.5"
                   >
                     <span>{{ ip }}</span>
-                    <button type="button" @click="removeWhitelistIp(ip)" class="text-rose-400 hover:text-white">✕</button>
+                    <button type="button" @click="removeWhitelistIp(ip)" class="text-rose-500 dark:text-rose-400 hover:text-rose-700 dark:hover:text-white cursor-pointer">✕</button>
                   </span>
                 </div>
               </div>

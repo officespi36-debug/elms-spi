@@ -216,23 +216,23 @@ const getSeverityClass = (sev?: string) => {
       <AuthModuleHeader activeTab="cyber-security" :summaryStats="props.summaryStats" />
 
       <!-- Top System Security Live Banner -->
-      <div class="bg-gradient-to-r from-slate-900 via-rose-950/40 to-slate-900 border border-rose-500/30 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
+      <div class="bg-gradient-to-r from-rose-50 via-slate-50 to-rose-50/50 dark:from-slate-900 dark:via-rose-950/40 dark:to-slate-900 border border-rose-200 dark:border-rose-500/30 rounded-2xl p-6 shadow-sm dark:shadow-2xl relative overflow-hidden">
         <div class="absolute -top-16 -right-16 w-60 h-60 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
           <div class="space-y-2">
             <div class="flex items-center gap-3">
-              <div class="w-12 h-12 rounded-2xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-2xl shadow-inner">
+              <div class="w-12 h-12 rounded-2xl bg-rose-500/10 dark:bg-rose-500/20 border border-rose-500/20 dark:border-rose-500/40 flex items-center justify-center text-2xl shadow-inner">
                 🛡️
               </div>
               <div>
-                <h2 class="text-xl font-black text-white tracking-tight flex items-center gap-2.5">
+                <h2 class="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
                   មជ្ឈមណ្ឌលសន្តិសុខឌីជីថល & ប្រព័ន្ធទូរស័ព្ទរោទ៍ប្រកាសអាសន្នបន្ទាន់
-                  <span class="px-2.5 py-0.5 text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full animate-pulse">
+                  <span class="px-2.5 py-0.5 text-[10px] font-bold bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 border border-emerald-500/20 dark:border-emerald-500/30 rounded-full animate-pulse">
                     🟢 ONLINE & ARMED
                   </span>
                 </h2>
-                <p class="text-xs text-slate-300">
+                <p class="text-xs text-slate-600 dark:text-slate-300">
                   ដាស់តឿនល្បឿនលឿនបំផុត (Voice Call, SMS, Emergency Push, & Auto-Defense Session Isolation) មិនបាច់បើក Telegram ក៏ដឹងភ្លាមៗ!
                 </p>
               </div>
@@ -240,17 +240,17 @@ const getSeverityClass = (sev?: string) => {
 
             <!-- Bot & Group Details Badges -->
             <div class="flex flex-wrap items-center gap-2 pt-2 text-xs">
-              <span class="px-3 py-1 bg-slate-800/80 border border-slate-700 rounded-lg text-slate-200 flex items-center gap-1.5">
-                🤖 <b>Bot:</b> <code class="text-sky-300">@{{ securityStatus.bot_username }}</code>
+              <span class="px-3 py-1 bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 flex items-center gap-1.5 shadow-sm dark:shadow-none">
+                🤖 <b>Bot:</b> <code class="text-sky-600 dark:text-sky-300">@{{ securityStatus.bot_username }}</code>
               </span>
-              <span class="px-3 py-1 bg-slate-800/80 border border-slate-700 rounded-lg text-slate-200 flex items-center gap-1.5">
-                👥 <b>Admin Group ID:</b> <code class="text-emerald-300">{{ securityStatus.admin_chat_id }}</code>
+              <span class="px-3 py-1 bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 flex items-center gap-1.5 shadow-sm dark:shadow-none">
+                👥 <b>Admin Group ID:</b> <code class="text-emerald-600 dark:text-emerald-300">{{ securityStatus.admin_chat_id }}</code>
               </span>
-              <span class="px-3 py-1 bg-slate-800/80 border border-slate-700 rounded-lg text-slate-200 flex items-center gap-1.5">
-                📞 <b>Emergency Phone:</b> <span class="text-rose-400 font-mono font-bold">{{ emergencyForm.phone }}</span>
+              <span class="px-3 py-1 bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 flex items-center gap-1.5 shadow-sm dark:shadow-none">
+                📞 <b>Emergency Phone:</b> <span class="text-rose-600 dark:text-rose-400 font-mono font-bold">{{ emergencyForm.phone }}</span>
               </span>
-              <span class="px-3 py-1 bg-slate-800/80 border border-slate-700 rounded-lg text-slate-200 flex items-center gap-1.5">
-                🛡️ <b>Auto-Defense:</b> <span class="text-emerald-400 font-bold">Enabled ✅</span>
+              <span class="px-3 py-1 bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 flex items-center gap-1.5 shadow-sm dark:shadow-none">
+                🛡️ <b>Auto-Defense:</b> <span class="text-emerald-600 dark:text-emerald-400 font-bold">Enabled ✅</span>
               </span>
             </div>
           </div>
@@ -260,7 +260,7 @@ const getSeverityClass = (sev?: string) => {
             <button
               @click="handleTestEmergencyCall"
               :disabled="isCalling"
-              class="px-3.5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center gap-1.5 disabled:opacity-50"
+              class="px-3.5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
             >
               <span>{{ isCalling ? '⏳ កំពុង Call...' : '📞 តេស្ត Voice Call' }}</span>
             </button>
@@ -268,7 +268,7 @@ const getSeverityClass = (sev?: string) => {
             <button
               @click="handleTestEmergencySms"
               :disabled="isSendingSms"
-              class="px-3.5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center gap-1.5 disabled:opacity-50"
+              class="px-3.5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
             >
               <span>{{ isSendingSms ? '⏳ កំពុងផ្ញើ...' : '📱 តេស្ត SMS' }}</span>
             </button>
@@ -276,14 +276,14 @@ const getSeverityClass = (sev?: string) => {
             <button
               @click="handleSimulateAlert"
               :disabled="isSimulating"
-              class="px-3.5 py-2.5 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center gap-1.5 disabled:opacity-50"
+              class="px-3.5 py-2.5 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
             >
               <span>{{ isSimulating ? '⏳ កំពុងផ្ញើ...' : '🧪 តេស្ត Telegram Alert' }}</span>
             </button>
 
             <button
               @click="handleClearForensics"
-              class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 font-semibold text-xs rounded-xl transition-all flex items-center gap-1.5"
+              class="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 font-semibold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
             >
               <span>🧹 សម្អាត Log</span>
             </button>
@@ -292,20 +292,20 @@ const getSeverityClass = (sev?: string) => {
       </div>
 
       <!-- Emergency Trigger Channels & Auto-Defense Control Panel -->
-      <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950/40 border border-slate-700/80 rounded-2xl p-6 shadow-2xl space-y-5">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-700/60 pb-4">
+      <div class="bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950/40 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-6 shadow-sm dark:shadow-2xl space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-700/60 pb-4">
           <div>
-            <h3 class="text-base font-black text-white flex items-center gap-2">
+            <h3 class="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
               <span>🚨 ការកំណត់បណ្តាញដាស់តឿនបន្ទាន់ (Emergency Alert Channels) & Active Defense</span>
             </h3>
-            <p class="text-xs text-slate-300 mt-0.5">
+            <p class="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
               កំណត់លេខទូរស័ព្ទ និងបើកបិទមុខងាររោទ៍ទូរស័ព្ទ ផ្ញើសារ SMS ឬបញ្ជាឱ្យកាត់ផ្តាច់ Session Hacker ដោយស្វ័យប្រវត្តិ។
             </p>
           </div>
           <button
             @click="handleSaveEmergencySettings"
             :disabled="isSavingEmergency"
-            class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 shrink-0"
+            class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
           >
             <span>{{ isSavingEmergency ? '⏳ កំពុងរក្សាទុក...' : '💾 រក្សាទុកការកំណត់' }}</span>
           </button>
@@ -314,7 +314,7 @@ const getSeverityClass = (sev?: string) => {
         <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 items-center">
           <!-- Emergency Phone Input -->
           <div class="lg:col-span-2 space-y-1.5">
-            <label class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+            <label class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
               <span>📱 លេខទូរស័ព្ទទទួលការ Call & SMS បន្ទាន់៖</span>
             </label>
             <div class="relative">
@@ -322,11 +322,11 @@ const getSeverityClass = (sev?: string) => {
                 v-model="emergencyForm.phone"
                 type="text"
                 placeholder="0964618507"
-                class="w-full bg-slate-950/80 border border-slate-700 text-sm font-mono text-emerald-400 font-bold rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-indigo-500"
+                class="w-full bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-700 text-sm font-mono text-emerald-600 dark:text-emerald-400 font-bold rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-indigo-500"
               />
-              <span class="absolute right-3 top-2.5 text-xs text-slate-500">Cambodia (+855)</span>
+              <span class="absolute right-3 top-2.5 text-xs text-slate-400 dark:text-slate-500">Cambodia (+855)</span>
             </div>
-            <p class="text-[11px] text-slate-400">
+            <p class="text-[11px] text-slate-500 dark:text-slate-400">
               លេខនេះនឹងរោទ៍ពេលប្រព័ន្ធជួប Threat កម្រិត Critical/High (គាំទ្រ Smart, Cellcard, Metfone)
             </p>
           </div>
@@ -334,62 +334,62 @@ const getSeverityClass = (sev?: string) => {
           <!-- Toggle Channels -->
           <div class="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
             <!-- Channel 1: Voice Call -->
-            <label class="flex items-center justify-between p-3 bg-slate-900/60 border border-slate-700 rounded-xl cursor-pointer hover:border-purple-500/50 transition-all">
+            <label class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-purple-500/50 transition-all">
               <div class="space-y-0.5">
-                <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                <span class="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
                   <span>📞 Automated Voice Call</span>
                 </span>
-                <p class="text-[10px] text-slate-400">ទូរស័ព្ទរោទ៍ដូចគេ Call មកផ្ទាល់</p>
+                <p class="text-[10px] text-slate-500 dark:text-slate-400">ទូរស័ព្ទរោទ៍ដូចគេ Call មកផ្ទាល់</p>
               </div>
               <input
                 v-model="emergencyForm.call_enabled"
                 type="checkbox"
-                class="w-4 h-4 rounded bg-slate-800 border-slate-700 text-purple-600 focus:ring-purple-500"
+                class="w-4 h-4 rounded bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-purple-600 focus:ring-purple-500"
               />
             </label>
 
             <!-- Channel 2: Emergency SMS -->
-            <label class="flex items-center justify-between p-3 bg-slate-900/60 border border-slate-700 rounded-xl cursor-pointer hover:border-emerald-500/50 transition-all">
+            <label class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-emerald-500/50 transition-all">
               <div class="space-y-0.5">
-                <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                <span class="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
                   <span>💬 Emergency SMS Alert</span>
                 </span>
-                <p class="text-[10px] text-slate-400">ផ្ញើ SMS បន្ទាន់ (មិនបាច់មាន Internet)</p>
+                <p class="text-[10px] text-slate-500 dark:text-slate-400">ផ្ញើ SMS បន្ទាន់ (មិនបាច់មាន Internet)</p>
               </div>
               <input
                 v-model="emergencyForm.sms_enabled"
                 type="checkbox"
-                class="w-4 h-4 rounded bg-slate-800 border-slate-700 text-emerald-600 focus:ring-emerald-500"
+                class="w-4 h-4 rounded bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-emerald-600 focus:ring-emerald-500"
               />
             </label>
 
             <!-- Channel 3: Pushover Alarm -->
-            <label class="flex items-center justify-between p-3 bg-slate-900/60 border border-slate-700 rounded-xl cursor-pointer hover:border-amber-500/50 transition-all">
+            <label class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-amber-500/50 transition-all">
               <div class="space-y-0.5">
-                <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                <span class="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
                   <span>🚨 Pushover Siren Push</span>
                 </span>
-                <p class="text-[10px] text-slate-400">បន្លឺសំឡេងទម្លុះ Silent/DND Mode</p>
+                <p class="text-[10px] text-slate-500 dark:text-slate-400">បន្លឺសំឡេងទម្លុះ Silent/DND Mode</p>
               </div>
               <input
                 v-model="emergencyForm.pushover_enabled"
                 type="checkbox"
-                class="w-4 h-4 rounded bg-slate-800 border-slate-700 text-amber-600 focus:ring-amber-500"
+                class="w-4 h-4 rounded bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-amber-600 focus:ring-amber-500"
               />
             </label>
 
             <!-- Channel 4: Auto-Defense Isolation -->
-            <label class="flex items-center justify-between p-3 bg-rose-950/20 border border-rose-500/30 rounded-xl cursor-pointer hover:border-rose-500 transition-all">
+            <label class="flex items-center justify-between p-3 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-500/30 rounded-xl cursor-pointer hover:border-rose-500 transition-all">
               <div class="space-y-0.5">
-                <span class="text-xs font-bold text-rose-300 flex items-center gap-1.5">
+                <span class="text-xs font-bold text-rose-700 dark:text-rose-300 flex items-center gap-1.5">
                   <span>🛡️ Auto-Defense Isolation</span>
                 </span>
-                <p class="text-[10px] text-slate-300">កាត់ផ្តាច់ Session & Block IP ស្វ័យប្រវត្តិ</p>
+                <p class="text-[10px] text-rose-600/80 dark:text-slate-300">កាត់ផ្តាច់ Session & Block IP ស្វ័យប្រវត្តិ</p>
               </div>
               <input
                 v-model="emergencyForm.auto_defense"
                 type="checkbox"
-                class="w-4 h-4 rounded bg-slate-800 border-slate-700 text-rose-600 focus:ring-rose-500"
+                class="w-4 h-4 rounded bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-rose-600 focus:ring-rose-500"
               />
             </label>
           </div>
@@ -399,11 +399,11 @@ const getSeverityClass = (sev?: string) => {
       <!-- 4 Cyber Metrics Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Metric 1: Total Threats -->
-        <div class="bg-slate-800/40 border border-slate-800 rounded-2xl p-4 backdrop-blur-xl shadow-lg flex items-center justify-between">
+        <div class="bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 backdrop-blur-xl shadow-sm dark:shadow-lg flex items-center justify-between">
           <div>
-            <p class="text-xs font-semibold text-slate-400">ការប៉ុនប៉ងដែលបានស្ទាក់ចាប់</p>
-            <h3 class="text-2xl font-black text-white font-mono mt-1">{{ securityStatus.total_threats }}</h3>
-            <p class="text-[11px] text-rose-400 font-medium mt-0.5">Threat Footprints Logged</p>
+            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">ការប៉ុនប៉ងដែលបានស្ទាក់ចាប់</p>
+            <h3 class="text-2xl font-black text-slate-900 dark:text-white font-mono mt-1">{{ securityStatus.total_threats }}</h3>
+            <p class="text-[11px] text-rose-600 dark:text-rose-400 font-medium mt-0.5">Threat Footprints Logged</p>
           </div>
           <div class="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/25 flex items-center justify-center text-xl">
             🚨
@@ -411,10 +411,10 @@ const getSeverityClass = (sev?: string) => {
         </div>
 
         <!-- Metric 2: Critical Threats -->
-        <div class="bg-slate-800/40 border border-slate-800 rounded-2xl p-4 backdrop-blur-xl shadow-lg flex items-center justify-between">
+        <div class="bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 backdrop-blur-xl shadow-sm dark:shadow-lg flex items-center justify-between">
           <div>
-            <p class="text-xs font-semibold text-slate-400">ការវាយប្រហារកម្រិតខ្ពស់</p>
-            <h3 class="text-2xl font-black text-rose-400 font-mono mt-1">{{ securityStatus.critical_threats }}</h3>
+            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">ការវាយប្រហារកម្រិតខ្ពស់</p>
+            <h3 class="text-2xl font-black text-rose-600 dark:text-rose-400 font-mono mt-1">{{ securityStatus.critical_threats }}</h3>
             <p class="text-[11px] text-slate-400 font-medium mt-0.5">Critical SQLi / RCE / Trap</p>
           </div>
           <div class="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/25 flex items-center justify-center text-xl">
@@ -423,11 +423,11 @@ const getSeverityClass = (sev?: string) => {
         </div>
 
         <!-- Metric 3: Honeypot Traps Triggered -->
-        <div class="bg-slate-800/40 border border-slate-800 rounded-2xl p-4 backdrop-blur-xl shadow-lg flex items-center justify-between">
+        <div class="bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 backdrop-blur-xl shadow-sm dark:shadow-lg flex items-center justify-between">
           <div>
-            <p class="text-xs font-semibold text-slate-400">Honeypot Bait Traps Hit</p>
-            <h3 class="text-2xl font-black text-amber-300 font-mono mt-1">{{ honeypotTraps.reduce((acc, cur) => acc + cur.hits, 0) }}</h3>
-            <p class="text-[11px] text-amber-400 font-medium mt-0.5">Decoy Exploits Intercepted</p>
+            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">Honeypot Bait Traps Hit</p>
+            <h3 class="text-2xl font-black text-amber-600 dark:text-amber-300 font-mono mt-1">{{ honeypotTraps.reduce((acc, cur) => acc + cur.hits, 0) }}</h3>
+            <p class="text-[11px] text-amber-600 dark:text-amber-400 font-medium mt-0.5">Decoy Exploits Intercepted</p>
           </div>
           <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-xl">
             🪤
@@ -435,11 +435,11 @@ const getSeverityClass = (sev?: string) => {
         </div>
 
         <!-- Metric 4: Firewall Blacklisted IPs -->
-        <div class="bg-slate-800/40 border border-slate-800 rounded-2xl p-4 backdrop-blur-xl shadow-lg flex items-center justify-between">
+        <div class="bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 backdrop-blur-xl shadow-sm dark:shadow-lg flex items-center justify-between">
           <div>
-            <p class="text-xs font-semibold text-slate-400">IP ក្នុង Firewall Blacklist</p>
-            <h3 class="text-2xl font-black text-emerald-400 font-mono mt-1">{{ blockedIps.length }}</h3>
-            <p class="text-[11px] text-emerald-400 font-medium mt-0.5">Blocked Threat Sources</p>
+            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">IP ក្នុង Firewall Blacklist</p>
+            <h3 class="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-1">{{ blockedIps.length }}</h3>
+            <p class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">Blocked Threat Sources</p>
           </div>
           <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-xl">
             🛡️
@@ -448,55 +448,55 @@ const getSeverityClass = (sev?: string) => {
       </div>
 
       <!-- Honeypot Bait Portals Section -->
-      <div class="bg-slate-800/40 border border-slate-800 rounded-2xl p-5 backdrop-blur-xl shadow-xl space-y-4">
+      <div class="bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 backdrop-blur-xl shadow-sm dark:shadow-xl space-y-4">
         <div class="flex items-center justify-between">
           <div>
-            <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <span>🪤 គេហទំព័រអន្ទាក់ Honeypot Decoys (Bait Traps)</span>
-              <span class="text-xs font-normal text-slate-400">(ប្រើសម្រាប់ទាក់ទាញ Hacker ឱ្យចុចដើម្បីទាញយក IP & ទីតាំង)</span>
+              <span class="text-xs font-normal text-slate-500 dark:text-slate-400">(ប្រើសម្រាប់ទាក់ទាញ Hacker ឱ្យចុចដើម្បីទាញយក IP & ទីតាំង)</span>
             </h3>
           </div>
-          <span class="text-xs text-rose-300 bg-rose-500/10 border border-rose-500/20 px-3 py-1 rounded-full font-semibold">
+          <span class="text-xs text-rose-600 dark:text-rose-300 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 px-3 py-1 rounded-full font-semibold">
             Armed & Trigger-Ready
           </span>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div v-for="trap in honeypotTraps" :key="trap.name" class="bg-slate-900/60 border border-slate-700/60 rounded-xl p-4 space-y-3 relative group hover:border-rose-500/40 transition-all">
+          <div v-for="trap in honeypotTraps" :key="trap.name" class="bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700/60 rounded-xl p-4 space-y-3 relative group hover:border-rose-500/40 transition-all">
             <div class="flex items-start justify-between">
               <div>
-                <h4 class="font-bold text-white text-sm">{{ trap.name }}</h4>
-                <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">{{ trap.description }}</p>
+                <h4 class="font-bold text-slate-900 dark:text-white text-sm">{{ trap.name }}</h4>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{{ trap.description }}</p>
               </div>
               <span class="px-2 py-0.5 text-[10px] font-mono font-bold rounded" :class="getSeverityClass(trap.risk_level)">
                 {{ trap.risk_level }}
               </span>
             </div>
 
-            <div class="bg-slate-950/80 p-2 rounded-lg border border-slate-800/80 flex items-center justify-between text-xs">
-              <code class="text-rose-300 font-mono truncate max-w-[200px]">{{ trap.url }}</code>
-              <a :href="trap.url" target="_blank" class="text-sky-400 hover:text-sky-300 font-semibold shrink-0 ml-2">
+            <div class="bg-white dark:bg-slate-950/80 p-2 rounded-lg border border-slate-200 dark:border-slate-800/80 flex items-center justify-between text-xs">
+              <code class="text-rose-600 dark:text-rose-300 font-mono truncate max-w-[200px]">{{ trap.url }}</code>
+              <a :href="trap.url" target="_blank" class="text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-semibold shrink-0 ml-2">
                 បើកមើល ↗
               </a>
             </div>
 
-            <div class="flex items-center justify-between text-xs text-slate-400 pt-1 border-t border-slate-800">
+            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-200 dark:border-slate-800">
               <span>ចំនួនអ្នកធ្លាក់អន្ទាក់ (Hits):</span>
-              <span class="font-bold font-mono text-white bg-slate-800 px-2 py-0.5 rounded border border-slate-700">{{ trap.hits }} នាក់</span>
+              <span class="font-bold font-mono text-slate-900 dark:text-white bg-slate-200 dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-300 dark:border-slate-700">{{ trap.hits }} នាក់</span>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Main Threat Incidents Forensics Log Table -->
-      <div class="bg-slate-800/40 border border-slate-800 rounded-2xl backdrop-blur-xl shadow-xl overflow-hidden">
+      <div class="bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl backdrop-blur-xl shadow-sm dark:shadow-xl overflow-hidden">
         <!-- Controls Bar -->
-        <div class="p-5 border-b border-slate-800/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="p-5 border-b border-slate-100 dark:border-slate-800/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <span>📡 បញ្ជីរាយនាម Footprints & ការវាយប្រហារដែលបានស្ទាក់ចាប់ (Live Forensics)</span>
             </h3>
-            <p class="text-xs text-slate-400 mt-0.5">
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               បង្ហាញទិន្នន័យ IP Address, ទីតាំង Geo-IP, ISP, គណនី Telegram, Payload និងប៊ូតុងចុចមើលផែនទី Google Maps
             </p>
           </div>
@@ -508,14 +508,14 @@ const getSeverityClass = (sev?: string) => {
                 v-model="searchQuery"
                 type="text"
                 placeholder="ស្វែងរក IP, User ID, ទីតាំង..."
-                class="w-56 bg-slate-900/80 border border-slate-700 text-xs text-white rounded-xl px-3.5 py-2 pl-9 focus:outline-none focus:border-rose-500 transition-all placeholder:text-slate-500"
+                class="w-56 bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white rounded-xl px-3.5 py-2 pl-9 focus:outline-none focus:border-rose-500 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
               />
               <span class="absolute left-3 top-2.5 text-xs text-slate-400">🔍</span>
             </div>
 
             <select
               v-model="severityFilter"
-              class="bg-slate-900/80 border border-slate-700 text-xs text-white rounded-xl px-3 py-2 focus:outline-none focus:border-rose-500"
+              class="bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white rounded-xl px-3 py-2 focus:outline-none focus:border-rose-500 cursor-pointer"
             >
               <option value="all">គ្រប់ Severity</option>
               <option value="CRITICAL">Critical</option>
@@ -527,8 +527,8 @@ const getSeverityClass = (sev?: string) => {
 
         <!-- Incidents Table -->
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-slate-300">
-            <thead class="bg-slate-900/70 border-b border-slate-800 text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
+          <table class="w-full text-left text-xs text-slate-700 dark:text-slate-300">
+            <thead class="bg-slate-50 dark:bg-slate-900/70 border-b border-slate-200 dark:border-slate-800 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">
               <tr>
                 <th class="py-3.5 px-4">កាលបរិច្ឆេទ & ម៉ោង</th>
                 <th class="py-3.5 px-4">ប្រភេទ Threat</th>
@@ -539,21 +539,21 @@ const getSeverityClass = (sev?: string) => {
                 <th class="py-3.5 px-4 text-right">សកម្មភាព (Actions)</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-800/60">
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
               <tr
                 v-for="(inc, idx) in filteredIncidents"
                 :key="idx"
-                class="hover:bg-slate-800/30 transition-colors"
+                class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors"
               >
                 <!-- Timestamp -->
-                <td class="py-3 px-4 font-mono text-[11px] whitespace-nowrap text-slate-400">
+                <td class="py-3 px-4 font-mono text-[11px] whitespace-nowrap text-slate-500 dark:text-slate-400">
                   {{ inc.timestamp ? inc.timestamp.replace('T', ' ').replace('+00:00', '') : 'N/A' }}
                 </td>
 
                 <!-- Threat & Severity -->
                 <td class="py-3 px-4 whitespace-nowrap">
                   <div class="space-y-1">
-                    <span class="font-bold text-white block">{{ inc.threat_type }}</span>
+                    <span class="font-bold text-slate-900 dark:text-white block">{{ inc.threat_type }}</span>
                     <span class="inline-block px-2 py-0.5 text-[9px] font-bold rounded border uppercase" :class="getSeverityClass(inc.severity)">
                       {{ inc.severity || 'UNKNOWN' }}
                     </span>
@@ -563,15 +563,15 @@ const getSeverityClass = (sev?: string) => {
                 <!-- Attacker Identity -->
                 <td class="py-3 px-4">
                   <div class="space-y-0.5">
-                    <div class="font-bold text-rose-300 font-mono">
+                    <div class="font-bold text-rose-600 dark:text-rose-300 font-mono">
                       ID: {{ inc.user_id }}
                     </div>
-                    <div class="text-[11px] text-slate-300 flex items-center gap-1">
+                    <div class="text-[11px] text-slate-700 dark:text-slate-300 flex items-center gap-1">
                       <span>{{ inc.name || 'Anonymous' }}</span>
-                      <span v-if="inc.username" class="text-sky-400 font-mono">{{ inc.username }}</span>
+                      <span v-if="inc.username" class="text-sky-600 dark:text-sky-400 font-mono">{{ inc.username }}</span>
                     </div>
-                    <div v-if="inc.client_lang" class="text-[10px] text-slate-400">
-                      Lang: <code class="text-slate-300">{{ inc.client_lang }}</code>
+                    <div v-if="inc.client_lang" class="text-[10px] text-slate-500 dark:text-slate-400">
+                      Lang: <code class="text-slate-600 dark:text-slate-300">{{ inc.client_lang }}</code>
                     </div>
                   </div>
                 </td>
@@ -579,11 +579,11 @@ const getSeverityClass = (sev?: string) => {
                 <!-- IP & Geo-Location -->
                 <td class="py-3 px-4">
                   <div class="space-y-1">
-                    <div class="font-bold text-white font-mono flex items-center gap-1.5">
+                    <div class="font-bold text-slate-900 dark:text-white font-mono flex items-center gap-1.5">
                       <span class="text-slate-400">🌐</span>
                       <span>{{ inc.ip }}</span>
                     </div>
-                    <div class="text-[11px] text-slate-300 flex items-center gap-1">
+                    <div class="text-[11px] text-slate-600 dark:text-slate-300 flex items-center gap-1">
                       <span>📍</span>
                       <span>{{ inc.city || 'Unknown' }}, {{ inc.country || 'Unknown' }}</span>
                     </div>
@@ -591,7 +591,7 @@ const getSeverityClass = (sev?: string) => {
                       <a
                         :href="'https://maps.google.com/?q=' + inc.coordinates"
                         target="_blank"
-                        class="inline-flex items-center gap-1 text-[10px] text-sky-400 hover:text-sky-300 font-semibold bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20"
+                        class="inline-flex items-center gap-1 text-[10px] text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-semibold bg-sky-50 dark:bg-sky-500/10 px-2 py-0.5 rounded border border-sky-200 dark:border-sky-500/20"
                       >
                         <span>📍 មើលលើ Google Maps</span> ↗
                       </a>
@@ -600,7 +600,7 @@ const getSeverityClass = (sev?: string) => {
                 </td>
 
                 <!-- ISP -->
-                <td class="py-3 px-4 text-slate-300 text-[11px]">
+                <td class="py-3 px-4 text-slate-600 dark:text-slate-300 text-[11px]">
                   <span class="font-medium">{{ inc.isp || 'Internal/Unknown ISP' }}</span>
                   <div v-if="inc.user_agent" class="text-[10px] text-slate-400 truncate max-w-[160px]" :title="inc.user_agent">
                     UA: {{ inc.user_agent }}
@@ -609,7 +609,7 @@ const getSeverityClass = (sev?: string) => {
 
                 <!-- Payload -->
                 <td class="py-3 px-4">
-                  <div class="bg-slate-950/80 p-2 rounded-lg border border-slate-800 text-[11px] font-mono text-rose-300 max-w-xs break-all">
+                  <div class="bg-slate-50 dark:bg-slate-950/80 p-2 rounded-lg border border-slate-200 dark:border-slate-800 text-[11px] font-mono text-rose-600 dark:text-rose-300 max-w-xs break-all">
                     {{ inc.payload || 'N/A' }}
                   </div>
                 </td>
@@ -619,14 +619,14 @@ const getSeverityClass = (sev?: string) => {
                   <div class="flex items-center justify-end gap-2">
                     <button
                       @click="handleBanUser(inc.user_id)"
-                      class="px-2.5 py-1 bg-red-500/15 hover:bg-red-500/30 text-red-300 border border-red-500/30 rounded-lg text-[11px] font-bold transition-all"
+                      class="px-2.5 py-1 bg-red-50 hover:bg-red-100 dark:bg-red-500/15 dark:hover:bg-red-500/30 text-red-600 dark:text-red-300 border border-red-200 dark:border-red-500/30 rounded-lg text-[11px] font-bold transition-all cursor-pointer"
                       title="Block & Ban User ID"
                     >
                       ⛔ Ban User
                     </button>
                     <button
                       @click="handleBlockIp(inc.ip)"
-                      class="px-2.5 py-1 bg-amber-500/15 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 rounded-lg text-[11px] font-bold transition-all"
+                      class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 dark:bg-amber-500/15 dark:hover:bg-amber-500/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/30 rounded-lg text-[11px] font-bold transition-all cursor-pointer"
                       title="Blacklist IP on Firewall"
                     >
                       🛡️ Blacklist IP
@@ -636,7 +636,7 @@ const getSeverityClass = (sev?: string) => {
               </tr>
 
               <tr v-if="filteredIncidents.length === 0">
-                <td colspan="7" class="py-8 text-center text-slate-400">
+                <td colspan="7" class="py-8 text-center text-slate-400 dark:text-slate-500">
                   <p class="text-sm">✨ ពុំមានការវាយប្រហារ ឬទិន្នន័យសង្ស័យដែលត្រូវបង្ហាញឡើយ។</p>
                 </td>
               </tr>
@@ -685,8 +685,8 @@ const getSeverityClass = (sev?: string) => {
       </div>
 
       <!-- Blacklisted IP Management Drawer -->
-      <div class="bg-slate-800/40 border border-slate-800 rounded-2xl p-5 backdrop-blur-xl shadow-xl space-y-4">
-        <h3 class="text-base font-bold text-white flex items-center gap-2">
+      <div class="bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 backdrop-blur-xl shadow-sm dark:shadow-xl space-y-4">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
           <span>🛡️ បញ្ជីរាយនាម IP ដែលត្រូវបាន Blacklist លើ Firewall ({{ blockedIps.length }})</span>
         </h3>
 
@@ -694,12 +694,12 @@ const getSeverityClass = (sev?: string) => {
           <div
             v-for="ip in blockedIps"
             :key="ip"
-            class="px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-xl text-xs font-mono text-slate-200 flex items-center gap-2 shadow-sm"
+            class="px-3 py-1.5 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono text-slate-800 dark:text-slate-200 flex items-center gap-2 shadow-sm"
           >
             <span>🌐 {{ ip }}</span>
             <button
               @click="handleUnblockIp(ip)"
-              class="text-red-400 hover:text-red-300 font-bold ml-1"
+              class="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-bold ml-1 cursor-pointer"
               title="ដក IP នេះចេញពី Blacklist"
             >
               ✕
