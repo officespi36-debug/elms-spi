@@ -6,6 +6,7 @@ import { useTheme, initTheme, playNotificationSound, playClickSound } from '@/co
 import GlobalToast from '@/Components/GlobalToast.vue'
 import AiTutorFloatingWidget from '@/Components/AiTutorFloatingWidget.vue'
 import LogoutConfirmModal from '@/Components/LogoutConfirmModal.vue'
+import ProfileAccountDropdown from '@/Components/ProfileAccountDropdown.vue'
 
 const { isDark, toggleTheme } = useTheme()
 
@@ -1582,69 +1583,57 @@ const onIconError = (e: Event) => {
               <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
 
-            <!-- Profile Dropdown Menu -->
-            <div
-              v-show="isProfileOpen"
-              class="absolute right-0 mt-2 w-56 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-2 z-50 space-y-1"
+            <!-- Profile Account Dropdown with Multi-Account Switcher -->
+            <ProfileAccountDropdown
+              :user="user"
+              :is-open="isProfileOpen"
+              role="student"
+              @close="isProfileOpen = false"
+              @logout="logout"
             >
-              <div class="px-3 py-2 border-b border-slate-100 dark:border-slate-800">
-                <p class="text-xs font-bold text-slate-900 dark:text-white truncate">{{ studentDisplayName }}</p>
-                <p class="text-[10px] text-slate-400 truncate">ID: {{ studentId }} • {{ studentMajor }}</p>
-              </div>
-
-              <Link
-                href="/student/profile?tab=personal"
-                @click="isProfileOpen = false"
-                class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium"
-              >
-                <svg class="w-4 h-4 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                </svg>
-                <span>Profile Settings (ការកំណត់គណនី)</span>
-              </Link>
-              <Link
-                href="/student/my-courses/current"
-                @click="isProfileOpen = false"
-                class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium"
-              >
-                <svg class="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-                <span>My Courses (វគ្គសិក្សារបស់ខ្ញុំ)</span>
-              </Link>
-              <Link
-                href="/student/certificates/my-certificates"
-                @click="isProfileOpen = false"
-                class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium"
-              >
-                <svg class="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.003 0H9.497m5.003 0a3 3 0 002.828-2.002l1.636-4.908A1.125 1.125 0 0017.896 6H6.104a1.125 1.125 0 00-1.068 1.465l1.636 4.908a3 3 0 002.828 2.002z" />
-                </svg>
-                <span>My Certificates (វិញ្ញាបនបត្រ)</span>
-              </Link>
-              <Link
-                href="/student/payments/my-payments"
-                @click="isProfileOpen = false"
-                class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium"
-              >
-                <svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
-                </svg>
-                <span>Payment & ABA (ការបង់ប្រាក់)</span>
-              </Link>
-
-              <div class="border-t border-slate-100 dark:border-slate-800 pt-1">
-                <button
-                  @click="logout"
-                  class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 font-bold text-left cursor-pointer"
+              <template #links>
+                <Link
+                  href="/student/profile?tab=personal"
+                  @click="isProfileOpen = false"
+                  class="flex items-center gap-2.5 px-4 py-2 text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors"
                 >
-                  <svg class="w-4 h-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                  <svg class="w-4 h-4 text-purple-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                   </svg>
-                  <span>Log Out (ចាកចេញ)</span>
-                </button>
-              </div>
-            </div>
+                  <span>Profile Settings (ការកំណត់គណនី)</span>
+                </Link>
+                <Link
+                  href="/student/my-courses/current"
+                  @click="isProfileOpen = false"
+                  class="flex items-center gap-2.5 px-4 py-2 text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors"
+                >
+                  <svg class="w-4 h-4 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                  <span>My Courses (វគ្គសិក្សារបស់ខ្ញុំ)</span>
+                </Link>
+                <Link
+                  href="/student/certificates/my-certificates"
+                  @click="isProfileOpen = false"
+                  class="flex items-center gap-2.5 px-4 py-2 text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors"
+                >
+                  <svg class="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.003 0H9.497m5.003 0a3 3 0 002.828-2.002l1.636-4.908A1.125 1.125 0 0017.896 6H6.104a1.125 1.125 0 00-1.068 1.465l1.636 4.908a3 3 0 002.828 2.002z" />
+                  </svg>
+                  <span>My Certificates (វិញ្ញាបនបត្រ)</span>
+                </Link>
+                <Link
+                  href="/student/payments/my-payments"
+                  @click="isProfileOpen = false"
+                  class="flex items-center gap-2.5 px-4 py-2 text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors"
+                >
+                  <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
+                  </svg>
+                  <span>Payment & ABA (ការបង់ប្រាក់)</span>
+                </Link>
+              </template>
+            </ProfileAccountDropdown>
           </div>
         </div>
       </div>
