@@ -1,25 +1,23 @@
 <!DOCTYPE html>
-<html lang="km" translate="no" class="notranslate" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<html lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="google" content="notranslate">
   <meta name="x-apple-disable-message-reformatting">
   <meta name="format-detection" content="telephone=no,address=no,email=no,date=no,url=no">
-  <title>Security Login Alert</title>
+  <title>Security Alert: New Login</title>
   
   <style>
-    /* Global Reset & Client Specific Styles (Exact match to OTP template) */
     html, body {
       margin: 0 !important;
       padding: 0 !important;
       width: 100% !important;
-      background-color: #f1f5f9;
+      background-color: #ffffff;
       -webkit-text-size-adjust: 100%;
       -ms-text-size-adjust: 100%;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      color: #0f172a;
+      color: #1c1e21;
     }
     table, td {
       mso-table-lspace: 0pt !important;
@@ -38,66 +36,45 @@
       text-decoration: none;
     }
 
-    /* Beautiful Smooth Traditional Khmer Typography */
-    .km-font {
-      font-family: 'Siemreap', 'Khmer OS Siemreap', 'Kantumruy Pro', 'Battambang', 'Noto Sans Khmer', 'Khmer Sangam MN', 'Khmer OS', Arial, sans-serif !important;
-    }
-
-    .notranslate {
-      translate: no !important;
-    }
-
-    /* Responsive Rules */
     @media only screen and (max-width: 580px) {
-      .email-outer-td {
-        padding: 16px 8px !important;
+      .email-wrapper {
+        padding: 24px 16px !important;
       }
-      .email-card {
-        max-width: 100% !important;
-        padding: 28px 18px 24px 18px !important;
-        border-radius: 12px !important;
+      .details-card {
+        padding: 16px 16px !important;
       }
-      .footer-cell-left, .footer-cell-right {
-        display: block !important;
-        width: 100% !important;
-        text-align: center !important;
-      }
-      .footer-social-wrap {
-        margin-top: 14px !important;
-        text-align: center !important;
-      }
-      .footer-social-table {
-        margin: 0 auto !important;
+      .details-label, .details-value {
+        font-size: 13px !important;
       }
     }
   </style>
 </head>
 
-<body class="notranslate" translate="no" style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: #0f172a;">
+<body style="margin: 0; padding: 0; background-color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: #1c1e21;">
 
   <!-- Preheader text for email clients -->
-  <div class="notranslate" translate="no" style="display: none; font-size: 1px; color: #f1f5f9; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all;">
-    Security Alert: A new login was detected on your SPI E-LMS account ({{ $email }}).
+  <div style="display: none; font-size: 1px; color: #ffffff; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all;">
+    Security Alert: A new login to your SPI E-LMS account ({{ $email }}) was detected.
   </div>
 
   <!-- Outer Centering Table -->
-  <table border="0" cellpadding="0" cellspacing="0" width="100%" class="notranslate" translate="no" style="background-color: #f1f5f9; width: 100%; margin: 0; padding: 36px 12px;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; width: 100%; margin: 0; padding: 40px 16px;">
     <tr>
-      <td align="center" valign="top" class="email-outer-td">
+      <td align="center" valign="top">
         
-        <!-- Main Card (Exact Manus Clean Minimalist Card from OTP) -->
-        <table border="0" cellpadding="0" cellspacing="0" width="100%" class="email-card notranslate" translate="no" style="max-width: 520px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; border-collapse: separate; border-spacing: 0; padding: 42px 34px 30px 34px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); text-align: center;">
+        <!-- Main Content Wrapper (Meta-style Clean Card) -->
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" class="email-wrapper" style="max-width: 540px; margin: 0 auto; text-align: left;">
           
-          <!-- Top Centered Logo Lockup -->
+          <!-- Centered Brand Logo (Meta style) -->
           <tr>
-            <td align="center" style="padding-bottom: 24px; text-align: center;">
+            <td align="center" style="padding-bottom: 36px; text-align: center;">
               <table border="0" cellpadding="0" cellspacing="0" align="center" style="margin: 0 auto;">
                 <tr>
-                  <td align="center" valign="middle" style="padding-right: 8px;">
-                    <img src="https://raw.githubusercontent.com/Kosalsensok/AI-Based-E-Learning-Platform-for-Saint-Paul-Institute-/main/public/images/logo_transparent.png" alt="SPI Logo" width="30" height="30" style="display: block; width: 30px; height: 30px; border-radius: 50%; object-fit: cover;">
+                  <td align="center" valign="middle" style="padding-right: 10px;">
+                    <img src="https://raw.githubusercontent.com/Kosalsensok/AI-Based-E-Learning-Platform-for-Saint-Paul-Institute-/main/public/images/logo_transparent.png" alt="SPI Logo" width="38" height="38" style="display: block; width: 38px; height: 38px; border-radius: 50%; object-fit: cover;">
                   </td>
                   <td align="center" valign="middle">
-                    <span class="notranslate" translate="no" style="font-size: 20px; font-weight: 800; color: #0f172a; letter-spacing: -0.4px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                    <span style="font-size: 22px; font-weight: 800; color: #1c1e21; letter-spacing: -0.4px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
                       SPI E-LMS
                     </span>
                   </td>
@@ -106,85 +83,65 @@
             </td>
           </tr>
 
-          <!-- Main Centered Heading -->
+          <!-- Salutation (Meta style: "Hi kosalsensok,") -->
           <tr>
-            <td align="center" style="padding-bottom: 4px; text-align: center;">
-              <h1 class="notranslate" translate="no" style="margin: 0; font-size: 24px; font-weight: 800; color: #0f172a; letter-spacing: -0.4px; line-height: 1.3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                Security login alert
-              </h1>
-            </td>
-          </tr>
-
-          <!-- Khmer Sub-Heading with Traditional Smooth Khmer Font -->
-          <tr>
-            <td align="center" style="padding-bottom: 22px; text-align: center;">
-              <span class="km-font notranslate" translate="no" style="font-family: 'Siemreap', 'Khmer OS Siemreap', 'Kantumruy Pro', 'Battambang', 'Noto Sans Khmer', Arial, sans-serif; font-size: 15.5px; font-weight: 500; color: #2563eb; line-height: 1.8; display: inline-block;">
-                ការជូនដំណឹងសុវត្ថិភាព៖ ការចូលប្រើប្រាស់គណនី
-              </span>
-            </td>
-          </tr>
-
-          <!-- Greeting & Intro Text -->
-          <tr>
-            <td align="center" style="padding-bottom: 24px; text-align: center;">
-              <p class="km-font notranslate" translate="no" style="margin: 0 0 6px 0; font-size: 15px; font-weight: 600; color: #1e293b; line-height: 1.6; font-family: 'Siemreap', 'Khmer OS Siemreap', 'Kantumruy Pro', Arial, sans-serif;">
-                សួស្តី <span class="notranslate" translate="no" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-weight: 700; color: #0f172a;">{{ $userName }}</span> 👋
-              </p>
-              <p class="km-font notranslate" translate="no" style="margin: 0 0 4px 0; font-size: 14.5px; color: #475569; line-height: 1.8; font-family: 'Siemreap', 'Khmer OS Siemreap', 'Kantumruy Pro', 'Battambang', 'Noto Sans Khmer', Arial, sans-serif;">
-                យើងខ្ញុំបានកត់ត្រាការចូលប្រើប្រាស់គណនី <span class="notranslate" translate="no" style="font-weight: 700; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">SPI E-LMS</span> របស់អ្នកដោយជោគជ័យ។
-              </p>
-              <p class="notranslate" translate="no" style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-                (A successful login to your SPI E-LMS account was detected.)
+            <td style="padding-bottom: 16px;">
+              <p style="margin: 0; font-size: 16px; font-weight: 600; color: #1c1e21; line-height: 1.4;">
+                Hi {{ $userName }},
               </p>
             </td>
           </tr>
 
-          <!-- Login Details Card (Clean Minimalist Box matching OTP layout) -->
+          <!-- Notification Lead Text -->
           <tr>
-            <td align="center" style="padding-bottom: 22px; text-align: center;">
-              <table border="0" cellpadding="0" cellspacing="0" width="100%" class="notranslate" translate="no" style="background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; margin: 0 auto; text-align: left;">
+            <td style="padding-bottom: 24px;">
+              <p style="margin: 0; font-size: 15px; color: #1c1e21; line-height: 1.5;">
+                We detected a recent login to your SPI E-LMS account. Please review the login details below:
+              </p>
+            </td>
+          </tr>
+
+          <!-- Details Box (Modeled after Meta's gray code/info container: #f0f2f5) -->
+          <tr>
+            <td style="padding-bottom: 24px;">
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" class="details-card" style="background-color: #f0f2f5; border: 1px solid #e4e6eb; border-radius: 10px; padding: 18px 22px; margin: 0 auto;">
                 <tr>
-                  <td align="left" style="padding: 10px 0; border-bottom: 1px solid #e2e8f0;">
-                    <span class="km-font notranslate" translate="no" style="font-family: 'Siemreap', 'Khmer OS Siemreap', 'Kantumruy Pro', 'Battambang', Arial, sans-serif; font-size: 14px; font-weight: 500; color: #1e293b;">👤 គណនី</span>
-                    <span class="notranslate" translate="no" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; color: #64748b; padding-left: 2px;">/ Account:</span>
+                  <td align="left" class="details-label" style="padding: 9px 0; border-bottom: 1px solid #e4e6eb; font-size: 13.5px; font-weight: 500; color: #65676b; width: 35%;">
+                    Account
                   </td>
-                  <td align="right" class="notranslate" translate="no" style="padding: 10px 0; border-bottom: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13.5px; font-weight: 600; color: #0f172a;">
+                  <td align="right" class="details-value" style="padding: 9px 0; border-bottom: 1px solid #e4e6eb; font-size: 14px; font-weight: 600; color: #1c1e21; word-break: break-all;">
                     {{ $email }}
                   </td>
                 </tr>
                 <tr>
-                  <td align="left" style="padding: 10px 0; border-bottom: 1px solid #e2e8f0;">
-                    <span class="km-font notranslate" translate="no" style="font-family: 'Siemreap', 'Khmer OS Siemreap', 'Kantumruy Pro', 'Battambang', Arial, sans-serif; font-size: 14px; font-weight: 500; color: #1e293b;">⏰ ពេលវេលា</span>
-                    <span class="notranslate" translate="no" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; color: #64748b; padding-left: 2px;">/ Time:</span>
+                  <td align="left" class="details-label" style="padding: 9px 0; border-bottom: 1px solid #e4e6eb; font-size: 13.5px; font-weight: 500; color: #65676b;">
+                    Time
                   </td>
-                  <td align="right" class="notranslate" translate="no" style="padding: 10px 0; border-bottom: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13.5px; font-weight: 600; color: #0f172a;">
+                  <td align="right" class="details-value" style="padding: 9px 0; border-bottom: 1px solid #e4e6eb; font-size: 14px; font-weight: 600; color: #1c1e21;">
                     {{ $time }} (Cambodia)
                   </td>
                 </tr>
                 <tr>
-                  <td align="left" style="padding: 10px 0; border-bottom: 1px solid #e2e8f0;">
-                    <span class="km-font notranslate" translate="no" style="font-family: 'Siemreap', 'Khmer OS Siemreap', 'Kantumruy Pro', 'Battambang', Arial, sans-serif; font-size: 14px; font-weight: 500; color: #1e293b;">📱 ឧបករណ៍</span>
-                    <span class="notranslate" translate="no" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; color: #64748b; padding-left: 2px;">/ Device:</span>
+                  <td align="left" class="details-label" style="padding: 9px 0; border-bottom: 1px solid #e4e6eb; font-size: 13.5px; font-weight: 500; color: #65676b;">
+                    Device
                   </td>
-                  <td align="right" class="notranslate" translate="no" style="padding: 10px 0; border-bottom: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13.5px; font-weight: 600; color: #0f172a;">
+                  <td align="right" class="details-value" style="padding: 9px 0; border-bottom: 1px solid #e4e6eb; font-size: 14px; font-weight: 600; color: #1c1e21;">
                     {{ $device }} ({{ $browser }})
                   </td>
                 </tr>
                 <tr>
-                  <td align="left" style="padding: 10px 0; border-bottom: 1px solid #e2e8f0;">
-                    <span class="km-font notranslate" translate="no" style="font-family: 'Siemreap', 'Khmer OS Siemreap', 'Kantumruy Pro', 'Battambang', Arial, sans-serif; font-size: 14px; font-weight: 500; color: #1e293b;">🌐 អាសយដ្ឋាន IP</span>
-                    <span class="notranslate" translate="no" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; color: #64748b; padding-left: 2px;">/ IP:</span>
+                  <td align="left" class="details-label" style="padding: 9px 0; border-bottom: 1px solid #e4e6eb; font-size: 13.5px; font-weight: 500; color: #65676b;">
+                    IP Address
                   </td>
-                  <td align="right" class="notranslate" translate="no" style="padding: 10px 0; border-bottom: 1px solid #e2e8f0; font-family: 'Courier New', monospace; font-size: 13.5px; font-weight: 700; color: #0284c7;">
+                  <td align="right" class="details-value" style="padding: 9px 0; border-bottom: 1px solid #e4e6eb; font-size: 14px; font-weight: 700; color: #0866ff; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;">
                     {{ $ip }}
                   </td>
                 </tr>
                 <tr>
-                  <td align="left" style="padding: 10px 0;">
-                    <span class="km-font notranslate" translate="no" style="font-family: 'Siemreap', 'Khmer OS Siemreap', 'Kantumruy Pro', 'Battambang', Arial, sans-serif; font-size: 14px; font-weight: 500; color: #1e293b;">🎓 តួនាទី</span>
-                    <span class="notranslate" translate="no" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; color: #64748b; padding-left: 2px;">/ Role:</span>
+                  <td align="left" class="details-label" style="padding: 9px 0; font-size: 13.5px; font-weight: 500; color: #65676b;">
+                    Role
                   </td>
-                  <td align="right" class="notranslate" translate="no" style="padding: 10px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13.5px; font-weight: 700; color: #16a34a;">
+                  <td align="right" class="details-value" style="padding: 9px 0; font-size: 14px; font-weight: 700; color: #16a34a;">
                     {{ $role }}
                   </td>
                 </tr>
@@ -192,33 +149,23 @@
             </td>
           </tr>
 
-          <!-- Security Alert Box (Soft Red Pill) -->
+          <!-- Security Verification / Disregard Text (Meta style) -->
           <tr>
-            <td align="center" style="padding-bottom: 22px; text-align: center;">
-              <table border="0" cellpadding="0" cellspacing="0" width="100%" class="notranslate" translate="no" style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 16px 20px; margin: 0 auto; text-align: center;">
-                <tr>
-                  <td align="center">
-                    <p class="km-font notranslate" translate="no" style="margin: 0 0 4px 0; font-size: 14.5px; font-weight: 700; color: #991b1b; font-family: 'Siemreap', 'Khmer OS Siemreap', 'Kantumruy Pro', Arial, sans-serif;">
-                      ⚠️ មិនមែនជាអ្នកមែនទេ? <span style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; font-weight: 600; color: #991b1b;">(Wasn't you?)</span>
-                    </p>
-                    <p class="km-font notranslate" translate="no" style="margin: 0; font-family: 'Siemreap', 'Khmer OS Siemreap', 'Kantumruy Pro', 'Battambang', 'Noto Sans Khmer', Arial, sans-serif; font-size: 13.5px; color: #b91c1c; line-height: 1.8;">
-                      ប្រសិនបើអ្នកមិនបានចូលប្រើប្រាស់គណនីនៅពេលនេះទេ សូមចុចប៊ូតុងខាងក្រោមជាបន្ទាន់ ដើម្បីប្តូរពាក្យសម្ងាត់ និងការពារគណនីរបស់អ្នក។
-                    </p>
-                  </td>
-                </tr>
-              </table>
+            <td style="padding-bottom: 20px;">
+              <p style="margin: 0 0 14px 0; font-size: 14.5px; color: #1c1e21; line-height: 1.5;">
+                If you did not try to log in, someone else may be attempting to access your account. Please secure your account immediately:
+              </p>
             </td>
           </tr>
 
-          <!-- Red CTA Button (Clean Rounded Button) -->
+          <!-- Action Button (Meta-style Primary Blue Button) -->
           <tr>
-            <td align="center" style="padding-bottom: 24px; text-align: center;">
-              <table border="0" cellpadding="0" cellspacing="0" align="center" class="notranslate" translate="no" style="margin: 0 auto;">
+            <td style="padding-bottom: 28px;">
+              <table border="0" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td align="center" style="background-color: #dc2626; border-radius: 10px; padding: 13px 28px;">
-                    <a href="{{ $secureAccountUrl }}" target="_blank" class="notranslate" translate="no" style="text-decoration: none; display: inline-block;">
-                      <span class="km-font notranslate" translate="no" style="font-family: 'Siemreap', 'Khmer OS Siemreap', 'Kantumruy Pro', 'Battambang', Arial, sans-serif; font-size: 14px; font-weight: 600; color: #ffffff;">🔒 ការពារគណនី</span>
-                      <span class="notranslate" translate="no" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; font-weight: 600; color: #ffffff; padding-left: 4px;">(Secure Account)</span>
+                  <td align="center" style="background-color: #0866ff; border-radius: 8px; padding: 12px 28px;">
+                    <a href="{{ $secureAccountUrl }}" target="_blank" style="color: #ffffff; font-size: 14px; font-weight: 700; text-decoration: none; display: inline-block; letter-spacing: 0.2px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+                      Secure Account
                     </a>
                   </td>
                 </tr>
@@ -226,53 +173,33 @@
             </td>
           </tr>
 
-          <!-- Website Link -->
+          <!-- Safe Confirmation Note -->
           <tr>
-            <td align="center" style="padding-bottom: 12px; text-align: center;">
-              <p style="margin: 0; text-align: center;">
-                <a href="https://spilms.tech" class="notranslate" translate="no" style="color: #0f172a; text-decoration: none; font-size: 15px; font-weight: 800; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; letter-spacing: -0.2px; border-bottom: 2px solid #2563eb; padding-bottom: 1px;">
-                  spilms.tech
-                </a>
+            <td style="padding-bottom: 32px;">
+              <p style="margin: 0; font-size: 14px; color: #65676b; line-height: 1.5;">
+                If this was you, you can safely disregard this message.
               </p>
             </td>
           </tr>
 
-          <!-- Footer Divider & Social Media Icons (Identical to OTP template) -->
+          <!-- Divider Line (Meta style) -->
           <tr>
-            <td style="border-top: 1px solid #e2e8f0; padding-top: 22px; margin-top: 16px;">
-              <table border="0" cellpadding="0" cellspacing="0" width="100%" class="notranslate" translate="no">
-                <tr>
-                  <!-- Left: Copyright -->
-                  <td align="left" valign="middle" class="notranslate" translate="no" style="font-size: 12.5px; color: #64748b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-                    © {{ date('Y') }} SPI E-LMS
-                  </td>
-
-                  <!-- Right: YouTube & Telegram Icons -->
-                  <td align="right" valign="middle">
-                    <table border="0" cellpadding="0" cellspacing="0" align="right">
-                      <tr>
-                        <!-- YouTube (@SokCodeing) -->
-                        <td style="padding: 0 8px;">
-                          <a href="https://www.youtube.com/@SokCodeing" target="_blank" title="YouTube" class="notranslate" translate="no" style="text-decoration: none; display: inline-block;">
-                            <img src="https://img.icons8.com/ios-glyphs/30/111827/youtube-play.png" width="18" height="18" alt="YouTube" style="display: block; width: 18px; height: 18px; border: 0;">
-                          </a>
-                        </td>
-                        <!-- Telegram (@spi_elms_auth_bot) -->
-                        <td style="padding: 0 8px;">
-                          <a href="https://t.me/spi_elms_auth_bot" target="_blank" title="Telegram" class="notranslate" translate="no" style="text-decoration: none; display: inline-block;">
-                            <img src="https://img.icons8.com/ios-glyphs/30/111827/telegram-app.png" width="18" height="18" alt="Telegram" style="display: block; width: 18px; height: 18px; border: 0;">
-                          </a>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-              </table>
+            <td style="border-top: 1px solid #e4e6eb; padding-top: 24px;">
+              <!-- Meta-style Compact Subtle Footer -->
+              <p style="margin: 0 0 6px 0; font-size: 12px; color: #8a8d91; line-height: 1.5;">
+                This message was sent to <a href="mailto:{{ $email }}" style="color: #65676b; text-decoration: underline;">{{ $email }}</a> at your request.
+              </p>
+              <p style="margin: 0 0 6px 0; font-size: 12px; color: #8a8d91; line-height: 1.5;">
+                Saint Paul Institute • E-Learning Management System
+              </p>
+              <p style="margin: 0; font-size: 12px; color: #8a8d91; line-height: 1.5;">
+                <a href="https://spilms.tech" target="_blank" style="color: #0866ff; text-decoration: none; font-weight: 600;">spilms.tech</a> &nbsp;•&nbsp; &copy; {{ date('Y') }} SPI E-LMS. All rights reserved.
+              </p>
             </td>
           </tr>
 
         </table>
-        <!-- End Main Card -->
+        <!-- End Main Content Wrapper -->
 
       </td>
     </tr>

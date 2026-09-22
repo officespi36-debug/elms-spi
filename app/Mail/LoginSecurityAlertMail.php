@@ -37,7 +37,7 @@ class LoginSecurityAlertMail extends Mailable
                 config('mail.from.address', 'security@spilms.tech'),
                 config('mail.from.name', 'SPI E-LMS Security')
             ),
-            subject: '🛡️ ការជូនដំណឹងសុវត្ថិភាព៖ ការចូលប្រើប្រាស់គណនីថ្មី | Security Alert: New Login to SPI LMS',
+            subject: 'Security Alert: New Login to SPI E-LMS',
         );
     }
 
@@ -50,7 +50,7 @@ class LoginSecurityAlertMail extends Mailable
             view: 'emails.login_security_alert',
             with: [
                 'user' => $this->user,
-                'userName' => $this->user->name_kh ? "{$this->user->name_kh} ({$this->user->name})" : $this->user->name,
+                'userName' => $this->user->name ?? 'User',
                 'email' => $this->user->email,
                 'role' => ucfirst($this->user->role ?? 'Student'),
                 'ip' => $this->loginDetails['ip'] ?? 'Unknown IP',

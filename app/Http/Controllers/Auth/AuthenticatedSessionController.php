@@ -332,7 +332,7 @@ class AuthenticatedSessionController extends Controller
         $fromAddress = config('mail.from.address') ?? env('MAIL_FROM_ADDRESS', 'info@spilms.tech');
         $fromName = config('mail.from.name') ?? env('MAIL_FROM_NAME', 'Saint Paul Institute (E-LMS)');
         $fromHeader = "{$fromName} <{$fromAddress}>";
-        $subject = '🛡️ ការជូនដំណឹងសុវត្ថិភាព៖ ការចូលប្រើប្រាស់គណនីថ្មី | Security Alert: New Login';
+        $subject = 'Security Alert: New Login to SPI E-LMS';
 
         try {
             $mailable = new LoginSecurityAlertMail($user, $loginDetails);
@@ -342,7 +342,7 @@ class AuthenticatedSessionController extends Controller
             $htmlContent = "<h2>SPI E-LMS Security Alert</h2><p>A new login to your account was detected.</p>";
         }
 
-        $plainText = "SPI E-LMS - Security Alert: A new login to your account ({$email}) was detected.\nIP: {$loginDetails['ip']}\nDevice: {$loginDetails['device']} ({$loginDetails['browser']})\nTime: {$loginDetails['time']}\nIf this wasn't you, please visit https://spilms.tech/forgot-password immediately.";
+        $plainText = "SPI E-LMS - Security Alert: A new login to your account ({$email}) was detected.\nIP: {$loginDetails['ip']}\nDevice: {$loginDetails['device']} ({$loginDetails['browser']})\nTime: {$loginDetails['time']}\nIf this wasn't you, please secure your account immediately: https://spilms.tech/forgot-password?email=" . urlencode($email);
 
         $sent = false;
 
