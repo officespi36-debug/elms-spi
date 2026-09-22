@@ -41,8 +41,6 @@ const roleBadgeLabel = computed(() => {
   return 'Student'
 })
 
-const logoUrl = '/images/logo.png'
-
 const handleKeydown = (e: KeyboardEvent) => {
   if (e.key === 'Escape' && props.show && !props.loading) {
     emit('close')
@@ -104,29 +102,8 @@ onUnmounted(() => {
             </svg>
           </button>
 
-          <!-- Top Brand Logo (E-LMS Official Logo with Rotating Border Beam + Action Badge) -->
-          <div class="mb-4 relative group mx-auto flex items-center justify-center">
-            <div class="relative flex items-center justify-center">
-              <!-- E-LMS Official Circular Logo with Border Beam -->
-              <div class="border-beam-logo relative w-16 h-16 rounded-full p-1 flex items-center justify-center shadow-lg overflow-hidden">
-                <img
-                  :src="logoUrl"
-                  alt="E-LMS Logo"
-                  class="w-full h-full object-contain rounded-full"
-                  onerror="this.src='/logo.png'"
-                />
-              </div>
-              <!-- Red Logout Action Badge -->
-              <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-rose-500 via-rose-600 to-red-600 border-2 border-white dark:border-[#121214] flex items-center justify-center -ml-3 shadow-md shrink-0">
-                <svg class="w-3.5 h-3.5 text-white translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-              </div>
-            </div>
-          </div>
-
           <!-- Dialog Title (Matching Login Gradient Heading) -->
-          <h2 class="text-xl sm:text-[22px] font-black tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 dark:from-white dark:via-zinc-100 dark:to-zinc-300 bg-clip-text text-transparent text-center leading-snug">
+          <h2 class="text-xl sm:text-[22px] font-black tracking-tight bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 dark:from-white dark:via-zinc-100 dark:to-zinc-300 bg-clip-text text-transparent text-center leading-snug pt-2">
             {{ isKhmer ? 'តើអ្នកពិតជាចង់ចាកចេញពីប្រព័ន្ធមែនទេ?' : 'Are you sure you want to log out?' }}
           </h2>
 
@@ -252,50 +229,6 @@ html.dark .border-beam-modal,
       rgba(244, 63, 94, 0.35) 285deg,
       #f43f5e 320deg,
       #fda4af 355deg,
-      var(--beam-border-base) 360deg
-    ) !important;
-}
-
-/* Circular Border Beam for Logo */
-.border-beam-logo {
-  --beam-bg: #ffffff;
-  --beam-border-base: #e4e4e7;
-  --beam-shadow: 0 4px 16px -2px rgba(37, 99, 235, 0.25);
-
-  position: relative;
-  border-radius: 9999px !important;
-  border: 1.5px solid transparent !important;
-  background-clip: padding-box, border-box !important;
-  background-origin: padding-box, border-box !important;
-  background-image:
-    linear-gradient(var(--beam-bg), var(--beam-bg)),
-    conic-gradient(
-      from var(--beam-angle),
-      var(--beam-border-base) 0deg,
-      var(--beam-border-base) 250deg,
-      rgba(37, 99, 235, 0.35) 280deg,
-      #2563eb 320deg,
-      #38bdf8 355deg,
-      var(--beam-border-base) 360deg
-    ) !important;
-  animation: beam-rotate 4s linear infinite;
-  box-shadow: var(--beam-shadow);
-}
-
-html.dark .border-beam-logo,
-.dark .border-beam-logo {
-  --beam-bg: #18181b !important;
-  --beam-border-base: #27272a !important;
-  --beam-shadow: 0 0 16px -2px rgba(56, 189, 248, 0.4) !important;
-  background-image:
-    linear-gradient(var(--beam-bg), var(--beam-bg)),
-    conic-gradient(
-      from var(--beam-angle),
-      var(--beam-border-base) 0deg,
-      var(--beam-border-base) 260deg,
-      rgba(56, 189, 248, 0.3) 285deg,
-      #38bdf8 325deg,
-      #bae6fd 355deg,
       var(--beam-border-base) 360deg
     ) !important;
 }
