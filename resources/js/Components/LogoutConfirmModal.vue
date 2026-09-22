@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted } from 'vue'
+import { computed, watch, onMounted, onUnmounted } from 'vue'
 import { i18n } from '@/Services/i18n'
 import OfficialVerifiedBadge from '@/Components/OfficialVerifiedBadge.vue'
 
@@ -46,6 +46,22 @@ const handleKeydown = (e: KeyboardEvent) => {
     emit('close')
   }
 }
+
+// Preload the Login page chunk ahead of time while user views the modal
+// This ensures redirect after logout is instant (0ms wait)
+watch(
+  () => props.show,
+  (isOpen) => {
+    if (isOpen) {
+      try {
+        import('@/Pages/Auth/Login.vue')
+      } catch (e) {
+        // silent
+      }
+    }
+  },
+  { immediate: true }
+)
 
 onMounted(() => {
   window.addEventListener('keydown', handleKeydown)

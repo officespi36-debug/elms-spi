@@ -19,9 +19,13 @@ let removeErrorListener: (() => void) | null = null
 onMounted(() => {
   removeStartListener = router.on('start', (event: any) => {
     const method = event?.detail?.visit?.method?.toLowerCase() || ''
+    const rawUrl = (event?.detail?.visit?.url?.pathname || event?.detail?.visit?.url?.href || event?.detail?.visit?.url || '').toString().toLowerCase()
     lastMethod = method
+    
     // Show global processing indicator only for mutating requests (POST, PUT, PATCH, DELETE)
-    if (method && method !== 'get') {
+    // NEVER show "កំពុងដំណើរការរក្សាទុក..." for logout
+    const isLogout = rawUrl.includes('logout')
+    if (method && method !== 'get' && !isLogout) {
       isGlobalProcessing.value = true
     }
   })
@@ -30,8 +34,10 @@ onMounted(() => {
     isGlobalProcessing.value = false
   })
 
-  removeSuccessListener = router.on('success', () => {
-    if (lastMethod && lastMethod !== 'get') {
+  removeSuccessListener = router.on('success', (event: any) => {
+    const rawUrl = (event?.detail?.page?.url || '').toString().toLowerCase()
+    const isAuthPage = rawUrl.includes('login') || rawUrl === '/'
+    if (lastMethod && lastMethod !== 'get' && lastMethod !== 'logout' && !isAuthPage) {
       setTimeout(() => {
         if (!page.props.flash?.success && !page.props.flash?.status && !page.props.flash?.info) {
           appToast.success(

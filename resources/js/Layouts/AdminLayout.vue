@@ -369,6 +369,17 @@ const triggerLogout = () => {
 const confirmLogout = () => {
   isLoggingOut.value = true
   router.post('/logout', {}, {
+    replace: true,
+    preserveState: false,
+    preserveScroll: false,
+    onSuccess: () => {
+      isLogoutModalOpen.value = false
+      window.location.href = '/'
+    },
+    onError: () => {
+      isLogoutModalOpen.value = false
+      window.location.href = '/'
+    },
     onFinish: () => {
       isLoggingOut.value = false
     }
