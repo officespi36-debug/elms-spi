@@ -42,6 +42,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth/phone-otp',
             'api/auth/phone-otp/*',
             'api/auth/phone-otp',
+            'api/auth/multi-account/*',
+            'api/auth/multi-account',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

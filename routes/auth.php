@@ -62,9 +62,12 @@ Route::match(['get', 'post'], 'auth/github', [\App\Http\Controllers\Auth\GitHubC
 Route::middleware('auth')->group(function () {
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
-    // ─── Multi-Account Switcher Routes ───
+    // ─── Multi-Account Switcher Current Token ───
     Route::get('api/auth/multi-account/current-token', [\App\Http\Controllers\Auth\MultiAccountController::class, 'currentToken'])->name('api.auth.multi-account.current-token');
-    Route::post('api/auth/multi-account/add', [\App\Http\Controllers\Auth\MultiAccountController::class, 'addAccount'])->name('api.auth.multi-account.add');
-    Route::post('api/auth/multi-account/switch', [\App\Http\Controllers\Auth\MultiAccountController::class, 'switchAccount'])->name('api.auth.multi-account.switch');
 });
+
+// ─── Multi-Account Add & Switch (Credentials & HMAC Token Verified Internally) ───
+Route::post('api/auth/multi-account/add', [\App\Http\Controllers\Auth\MultiAccountController::class, 'addAccount'])->name('api.auth.multi-account.add');
+Route::post('api/auth/multi-account/switch', [\App\Http\Controllers\Auth\MultiAccountController::class, 'switchAccount'])->name('api.auth.multi-account.switch');
+
 

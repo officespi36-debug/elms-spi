@@ -121,6 +121,7 @@ export function useMultiAccount() {
     try {
       const response = await fetch('/api/auth/multi-account/add', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -193,6 +194,7 @@ export function useMultiAccount() {
     try {
       const response = await fetch('/api/auth/multi-account/switch', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',

@@ -36,7 +36,8 @@ const {
   removeAccount,
 } = useMultiAccount()
 
-// Inline "Add Account" input state (directly visible like Image 2)
+// Inline "Add Account" input state
+const isFormOpen = ref(false)
 const formIdentifier = ref('')
 const formPassword = ref('')
 const showPassword = ref(false)
@@ -79,6 +80,7 @@ const handleAddAccountSubmit = async () => {
   if (success) {
     formIdentifier.value = ''
     formPassword.value = ''
+    isFormOpen.value = false
     emit('close')
   }
 }
@@ -99,7 +101,7 @@ const handleRemoveAccount = (e: Event, id: number) => {
     class="absolute right-0 mt-2 w-72 sm:w-80 rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200/90 dark:border-slate-800 shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150 select-none text-slate-800 dark:text-slate-100"
     @click.stop
   >
-    <!-- Top Bar: Manage Profile Link & Role Badge (Image 2 style) -->
+    <!-- Top Bar: Manage Profile Link & Role Badge -->
     <div class="px-3.5 py-2.5 flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/70 dark:bg-slate-900/50">
       <Link
         :href="manageProfileUrl"
@@ -135,9 +137,9 @@ const handleRemoveAccount = (e: Event, id: number) => {
       </div>
     </div>
 
-    <!-- Accounts Area: Active Card + Other Accounts + Inline Add Form (Image 2 style) -->
+    <!-- Accounts Area: Active Card + Other Accounts + Toggleable Add Form -->
     <div class="px-3.5 py-2 space-y-2">
-      <!-- Active Account Card (Left Blue Bar Accent, No Duplicate Header) -->
+      <!-- Active Account Card (Blue Left Accent) -->
       <div class="relative p-2.5 rounded-xl bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200/80 dark:border-blue-800/50 border-l-4 border-l-blue-600 flex items-center justify-between gap-2 shadow-2xs">
         <div class="flex items-center gap-2.5 min-w-0">
           <div class="relative shrink-0">
@@ -216,8 +218,21 @@ const handleRemoveAccount = (e: Event, id: number) => {
         </div>
       </div>
 
-      <!-- Add Account Inline Form (Image 2 style: always cleanly placed) -->
-      <form @submit.prevent="handleAddAccountSubmit" class="space-y-1.5 pt-1">
+      <!-- Add Account Button (Clean, Not permanently stuck open) -->
+      <button
+        v-if="!isFormOpen"
+        type="button"
+        @click="isFormOpen = true"
+        class="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl border border-dashed border-blue-400/50 dark:border-blue-500/40 hover:border-blue-500 bg-blue-50/50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 font-bold text-xs transition-all hover:bg-blue-50 dark:hover:bg-blue-950/50 cursor-pointer active:scale-[0.99]"
+      >
+        <svg class="w-3.5 h-3.5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+        </svg>
+        <span>{{ isKhmer ? 'បន្ថែមគណនីផ្សេងទៀត (Add Account)' : '+ Add Account' }}</span>
+      </button>
+
+      <!-- Add Account Expandable Form -->
+      <form v-else @submit.prevent="handleAddAccountSubmit" class="space-y-1.5 pt-1 animate-in fade-in slide-in-from-top-2 duration-150">
         <div>
           <input
             v-model="formIdentifier"
@@ -251,21 +266,31 @@ const handleRemoveAccount = (e: Event, id: number) => {
           {{ addError }}
         </p>
 
-        <button
-          type="submit"
-          :disabled="isAdding"
-          class="w-full h-8 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs hover:shadow transition-all active:scale-[0.99] cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50"
-        >
-          <svg v-if="isAdding" class="animate-spin w-3 h-3 text-white" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          <span>{{ isAdding ? (isKhmer ? 'កំពុងភ្ជាប់...' : 'Adding...') : (isKhmer ? '+ បន្ថែមគណនី (Add Account)' : '+ Add Account') }}</span>
-        </button>
+        <div class="flex items-center gap-1.5">
+          <button
+            type="submit"
+            :disabled="isAdding"
+            class="flex-1 h-8 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs hover:shadow transition-all active:scale-[0.99] cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50"
+          >
+            <svg v-if="isAdding" class="animate-spin w-3 h-3 text-white" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>{{ isAdding ? (isKhmer ? 'កំពុងភ្ជាប់...' : 'Adding...') : (isKhmer ? 'ភ្ជាប់គណនី' : 'Add & Switch') }}</span>
+          </button>
+          
+          <button
+            type="button"
+            @click="isFormOpen = false"
+            class="h-8 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-semibold transition cursor-pointer"
+          >
+            {{ isKhmer ? 'បោះបង់' : 'Cancel' }}
+          </button>
+        </div>
       </form>
     </div>
 
-    <!-- Quick Navigation Links (Image 1 style) -->
+    <!-- Quick Navigation Links -->
     <div class="py-1 border-t border-slate-100 dark:border-slate-800/80">
       <slot name="links">
         <Link
