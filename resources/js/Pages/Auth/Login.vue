@@ -1106,7 +1106,11 @@ const toggleTheme = (event?: MouseEvent) => {
     return
   }
 
-  // Triangular Spotlight Cone Reveal (Apex at top-center, flaring down to both sides)
+  // Symmetrical Center Point Reveal (Starts in center and smoothly expands outwards in a circle)
+  const x = window.innerWidth / 2
+  const y = window.innerHeight / 2
+  const endRadius = Math.hypot(x, y)
+
   const transition = (document as any).startViewTransition(async () => {
     isDark.value = nextDark
     try {
@@ -1119,16 +1123,17 @@ const toggleTheme = (event?: MouseEvent) => {
   })
 
   transition.ready.then(() => {
+    const clipPath = [
+      `circle(0px at 50% 50%)`,
+      `circle(${endRadius}px at 50% 50%)`
+    ]
     document.documentElement.animate(
-      [
-        { clipPath: 'polygon(50% 0%, 50% 0%, 50% 0%, 50% 0%)', offset: 0 },
-        { clipPath: 'polygon(50% 0%, 50% 0%, 82% 100%, 18% 100%)', offset: 0.42 },
-        { clipPath: 'polygon(18% 0%, 82% 0%, 115% 100%, -15% 100%)', offset: 0.72 },
-        { clipPath: 'polygon(-25% 0%, 125% 0%, 145% 100%, -45% 100%)', offset: 1 }
-      ],
       {
-        duration: 850,
-        easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+        clipPath: clipPath
+      },
+      {
+        duration: 500,
+        easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
         pseudoElement: '::view-transition-new(root)'
       }
     )
