@@ -7,7 +7,7 @@
   --font-heading: 'Kantumruy Pro', 'Plus Jakarta Sans', sans-serif;
 }
 
-@variant dark (&:where(.dark, .dark *));
+@custom-variant dark (&:where(.dark, .dark *));
 
 html,
 body {
