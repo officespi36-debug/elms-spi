@@ -14,17 +14,11 @@ interface Stats {
   draft_courses: number
   total_majors: number
   active_enrollments: number
-  pending_payments: number
-  receipts_need_review: number
   at_risk_students: number
   open_alerts: number
   total_certificates: number
   pending_certificates: number
   failed_login_alerts: number
-  total_revenue: number
-  monthly_revenue: number
-  net_revenue: number
-  refunded_amount: number
   completion_rate: number
   system_health: string
 }
@@ -35,15 +29,14 @@ interface MajorOption {
   code?: string
 }
 
-interface PaymentItem {
-  id: number
-  student: { name: string; email: string; avatar: string | null }
-  course: { title: string; price: number }
-  teacher: { name: string }
-  amount: number
-  status: string
-  payment_slip: string | null
-  created_at: string
+interface AtRiskAlertItem {
+  id: string
+  student: string
+  major: string
+  risk_factor: string
+  risk_level: string
+  level_color: string
+  time: string
 }
 
 const props = defineProps<{
@@ -56,8 +49,7 @@ const props = defineProps<{
     monthly: { categories: string[]; enrollments: number[]; completions: number[] }
   }
   completionBreakdown: { completed: number; in_progress: number; not_started: number }
-  paymentOverview: { paid_pct: number; pending_pct: number; failed_pct: number; refunded_pct: number; gross: number; net: number; refund: number }
-  studentsByMajor: Array<{ name: string; count: number; pct: number }>
+  studentsByMajor: Array<{ name: string; name_kh?: string; count: number; pct: number }>
   quickActions: Array<{ title: string; icon: string; url: string; desc: string }>
   needsAttention: Array<{ id: number; level: string; title: string; detail: string; action_label: string; url: string }>
   recentActivities: Array<{ status: string; color: string; time: string; student: string; course: string; detail: string }>
@@ -65,7 +57,6 @@ const props = defineProps<{
     api_server: string
     database: string
     cloudinary_cdn: string
-    aba_payway: string
     email_smtp: string
     ai_engine: string
     storage_used_gb: number
@@ -76,13 +67,11 @@ const props = defineProps<{
     jwt_auth: string
     active_sessions: number
   }
-  pendingPayments: { data: PaymentItem[]; total: number }
-  learningModeBreakdown: { teacher_led: number; teacher_led_pct: number; self_study: number; self_study_pct: number; free_courses: number; paid_courses: number }
   academicSnapshot: { faculties: number; departments: number; majors: number; academic_year: string; current_semester: string; status: string; days_remaining: number }
   snapshotTables: {
-    latestEnrollments: Array<{ id: string; student: string; course: string; major: string; payment: string; status_color: string; time: string }>
-    latestPayments: Array<{ id: string; order_id: string; student: string; amount: string; status: string; status_color: string; time: string }>
-    topCourses: Array<{ id: string; title: string; teacher: string; enrollments: number; revenue: string; completion: number }>
+    latestEnrollments: Array<{ id: string; student: string; course: string; major: string; status: string; status_color: string; time: string }>
+    atRiskAlerts: AtRiskAlertItem[]
+    topCourses: Array<{ id: string; title: string; teacher: string; enrollments: number; completion: number }>
   }
 }>()
 
@@ -94,8 +83,8 @@ const periodFilter = ref(props.filters?.period || 'month')
 const majorFilter = ref(props.filters?.major_id || 'all')
 const chartTimeframe = ref<'daily' | 'weekly' | 'monthly'>('monthly')
 const isRefreshing = ref(false)
-const rightChartTab = ref<'completion' | 'payment' | 'majors'>('completion')
-const activeSnapshotTab = ref<'enrollments' | 'payments' | 'activities'>('enrollments')
+const rightChartTab = ref<'completion' | 'majors'>('completion')
+const activeSnapshotTab = ref<'enrollments' | 'at_risk' | 'activities'>('enrollments')
 
 // ── Widget Visibility Customization ──────────────────────────
 const showCustomizeModal = ref(false)
@@ -242,43 +231,43 @@ const completionDonutOptions = computed<any>(() => ({
   tooltip: { theme: isDark.value ? 'dark' : 'light' },
 }))
 
-// Action Needed items (Descriptive button names!)
+// Action Needed items (Academic & AI Risk Interventions)
 const actionTasks = computed(() => [
   {
     id: 1,
-    title: currentLang.value === 'km' ? 'ផ្ទៀងផ្ទាត់ការទូទាត់ ABA' : 'Pending ABA Payment Reviews',
-    badge: currentLang.value === 'km' ? `${props.stats?.receipts_need_review || 18} វិក្កយបត្រ` : `${props.stats?.receipts_need_review || 18} Receipts`,
-    color: 'amber',
-    url: '/admin/payments?status=pending',
-    desc: currentLang.value === 'km' ? 'បង្កាន់ដៃទូទាត់របស់និស្សិតរង់ចាំការបញ្ជាក់' : 'Student slips awaiting verification before course unlocking',
-    btn: currentLang.value === 'km' ? 'ពិនិត្យវិក្កយបត្រ →' : 'Review Slips →'
+    title: currentLang.value === 'km' ? 'ការជូនដំណឹងនិស្សិតប្រឈមហានិភ័យ' : 'At-Risk Students Alert',
+    badge: currentLang.value === 'km' ? `${props.stats?.at_risk_students || 12} និស្សិត` : `${props.stats?.at_risk_students || 12} Students`,
+    color: 'red',
+    url: '/admin/progress?tab=at_risk',
+    desc: currentLang.value === 'km' ? 'និស្សិតដែលមានអត្រាបញ្ចប់ការសិក្សាទាប (< 30%) ឬពិន្ទុខ្សោយ' : 'Students falling behind completion rate (< 30%) or low scores',
+    btn: currentLang.value === 'km' ? 'ពិនិត្យនិស្សិត →' : 'Review At-Risk →'
   },
   {
     id: 2,
-    title: currentLang.value === 'km' ? 'ការជូនដំណឹងនិស្សិតប្រឈមហានិភ័យ' : 'At-Risk Students Alert',
-    badge: currentLang.value === 'km' ? `${props.stats?.at_risk_students || 213} និស្សិត` : `${props.stats?.at_risk_students || 213} Students`,
-    color: 'red',
-    url: '/admin/progress?tab=at_risk',
-    desc: currentLang.value === 'km' ? 'និស្សិតដែលមានអត្រាបញ្ចប់ការសិក្សាទាប (< 30%)' : 'Students falling behind completion rate (< 30%)',
-    btn: currentLang.value === 'km' ? 'មើលបញ្ជីនិស្សិត →' : 'View Students →'
+    title: currentLang.value === 'km' ? 'ការវិភាគប្រធានបទលំបាក AI' : 'Difficult Topics Identified',
+    badge: currentLang.value === 'km' ? '8 ប្រធានបទ' : '8 Topics Flagged',
+    color: 'amber',
+    url: '/admin/ai-rules?tab=weak_topics',
+    desc: currentLang.value === 'km' ? 'ប្រធានបទដែលមានអត្រាឆ្លើយខុសខ្ពស់លើការប្រឡងកម្រងសំណួរ' : 'High failure topics detected by AI engine across courses',
+    btn: currentLang.value === 'km' ? 'ពិនិត្យប្រធានបទ →' : 'Inspect Topics →'
   },
   {
     id: 3,
-    title: currentLang.value === 'km' ? 'ការប៉ុនប៉ងចូលប្រព័ន្ធមិនជោគជ័យ' : 'Failed Security Login Attempts',
-    badge: currentLang.value === 'km' ? `${props.stats?.failed_login_alerts || 12} ការជូនដំណឹង` : `${props.stats?.failed_login_alerts || 12} Alerts`,
-    color: 'rose',
-    url: '/admin/auth/failed',
-    desc: currentLang.value === 'km' ? 'កំណត់ហេតុការផ្ទៀងផ្ទាត់មិនប្រក្រតីក្នុងថ្ងៃនេះ' : 'Suspicious repetitive authentication failures today',
-    btn: currentLang.value === 'km' ? 'ពិនិត្យកំណត់ហេតុ →' : 'Inspect Logs →'
-  },
-  {
-    id: 4,
     title: currentLang.value === 'km' ? 'វគ្គសិក្សាព្រាងរង់ចាំការបោះពុម្ព' : 'Draft Courses Pending Publish',
     badge: currentLang.value === 'km' ? `${props.stats?.draft_courses || 12} វគ្គសិក្សា` : `${props.stats?.draft_courses || 12} Courses`,
     color: 'purple',
     url: '/admin/course-module/all?status=draft',
-    desc: currentLang.value === 'km' ? 'វគ្គសិក្សាបង្កើតដោយគ្រូរង់ចាំការអនុម័ត' : 'Courses created by teachers waiting for admin approval',
+    desc: currentLang.value === 'km' ? 'វគ្គសិក្សាបង្កើតដោយគ្រូរង់ចាំការអនុម័តពីរដ្ឋបាល' : 'Courses created by teachers waiting for admin approval',
     btn: currentLang.value === 'km' ? 'ពិនិត្យវគ្គសិក្សា →' : 'Review Courses →'
+  },
+  {
+    id: 4,
+    title: currentLang.value === 'km' ? 'ការប៉ុនប៉ងចូលប្រព័ន្ធមិនជោគជ័យ' : 'Failed Security Login Attempts',
+    badge: currentLang.value === 'km' ? `${props.stats?.failed_login_alerts || 3} ការជូនដំណឹង` : `${props.stats?.failed_login_alerts || 3} Alerts`,
+    color: 'rose',
+    url: '/admin/auth-logs',
+    desc: currentLang.value === 'km' ? 'កំណត់ហេតុការផ្ទៀងផ្ទាត់មិនប្រក្រតីក្នុងថ្ងៃនេះ' : 'Suspicious repetitive authentication failures today',
+    btn: currentLang.value === 'km' ? 'ពិនិត្យកំណត់ហេតុ →' : 'Inspect Logs →'
   }
 ])
 </script>
@@ -429,35 +418,35 @@ const actionTasks = computed(() => [
           <p class="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold mt-1">{{ currentLang === 'km' ? '↑ +12 បានបោះពុម្ព' : '↑ +12 published' }}</p>
         </div>
 
-        <!-- Card 4: Total Revenue -->
-        <div class="bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/70 rounded-2xl p-4 shadow-sm dark:shadow-md hover:border-amber-400 dark:hover:border-amber-500/50 transition-all group">
+        <!-- Card 4: Completion Rate (Thesis Scope Replacement for Revenue) -->
+        <div class="bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/70 rounded-2xl p-4 shadow-sm dark:shadow-md hover:border-cyan-400 dark:hover:border-cyan-500/50 transition-all group">
           <div class="flex items-center justify-between">
-            <span class="text-xl">💳</span>
+            <span class="text-xl">📈</span>
             <span class="px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-slate-100 dark:bg-slate-700/40 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700/60">
-              {{ currentLang === 'km' ? 'ចំណូលដុល' : 'Gross' }}
+              {{ currentLang === 'km' ? 'អប់រំ' : 'Academic' }}
             </span>
           </div>
-          <p class="text-slate-500 dark:text-slate-400 text-xs font-medium mt-2">{{ currentLang === 'km' ? 'ចំណូលសរុប' : 'Total Revenue' }}</p>
-          <h4 class="text-2xl font-extrabold text-amber-600 dark:text-amber-300 mt-0.5">
-            ${{ (stats?.total_revenue || 45820).toLocaleString() }}
+          <p class="text-slate-500 dark:text-slate-400 text-xs font-medium mt-2">{{ currentLang === 'km' ? 'អត្រាបញ្ចប់ការសិក្សា' : 'Completion Rate' }}</p>
+          <h4 class="text-2xl font-extrabold text-cyan-600 dark:text-cyan-300 mt-0.5 group-hover:text-cyan-500 transition-colors">
+            {{ stats?.completion_rate || 76 }}%
           </h4>
-          <p class="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold mt-1">{{ currentLang === 'km' ? '↑ +12.4% ធៀបខែមុន' : '↑ +12.4% vs last mo' }}</p>
+          <p class="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold mt-1">{{ currentLang === 'km' ? '↑ +3.8% ធៀបខែមុន' : '↑ +3.8% vs last mo' }}</p>
         </div>
 
-        <!-- Card 5: At-Risk Alerts / Action Items (Unified Alert Placement) -->
+        <!-- Card 5: At-Risk Students (AI Thesis Priority) -->
         <div class="bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/70 rounded-2xl p-4 shadow-sm dark:shadow-md hover:border-red-400 dark:hover:border-red-500/50 transition-all group col-span-2 lg:col-span-1 flex flex-col justify-between">
           <div>
             <div class="flex items-center justify-between">
-              <span class="text-xl">🔔</span>
+              <span class="text-xl">⚠️</span>
               <span class="px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-red-50 dark:bg-red-500/20 text-red-600 dark:text-red-300 border border-red-200 dark:border-red-500/30">
                 {{ currentLang === 'km' ? 'អាទិភាព' : 'Priority' }}
               </span>
             </div>
-            <p class="text-slate-500 dark:text-slate-400 text-xs font-medium mt-2">{{ currentLang === 'km' ? 'ការជូនដំណឹង & ហានិភ័យ' : 'At-Risk & Open Alerts' }}</p>
+            <p class="text-slate-500 dark:text-slate-400 text-xs font-medium mt-2">{{ currentLang === 'km' ? 'និស្សិតប្រឈមហានិភ័យ' : 'At-Risk Students' }}</p>
           </div>
           <div class="flex items-baseline gap-2 mt-1">
             <h4 class="text-2xl font-extrabold text-red-600 dark:text-red-400">
-              {{ (stats?.open_alerts || 12).toLocaleString() }}
+              {{ (stats?.at_risk_students || 12).toLocaleString() }}
             </h4>
             <span class="text-[11px] text-red-600 dark:text-red-300 font-bold">{{ currentLang === 'km' ? 'ត្រូវចាត់វិធានការ' : 'Action Required' }}</span>
           </div>
@@ -509,29 +498,22 @@ const actionTasks = computed(() => [
         <div class="lg:col-span-5 bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/70 rounded-2xl p-4 shadow-sm dark:shadow-lg flex flex-col justify-between">
           <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/60 pb-2 mb-2">
             <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-1.5">
-              <span>🍩</span> {{ currentLang === 'km' ? 'សមាមាត្រសិក្សា' : 'ACADEMIC RATIO' }}
+              <span>🎯</span> {{ currentLang === 'km' ? 'សមត្ថភាពសិក្សា & ការបញ្ចប់' : 'ACADEMIC / LEARNING PERFORMANCE' }}
             </h3>
             <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-900/90 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-[11px]">
               <button
                 @click="rightChartTab = 'completion'"
                 :class="rightChartTab === 'completion' ? 'bg-indigo-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
-                class="px-2 py-0.5 rounded-lg transition-colors cursor-pointer"
+                class="px-2.5 py-0.5 rounded-lg transition-colors cursor-pointer"
               >
-                {{ currentLang === 'km' ? 'ការបញ្ចប់' : 'Completion' }}
-              </button>
-              <button
-                @click="rightChartTab = 'payment'"
-                :class="rightChartTab === 'payment' ? 'bg-indigo-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
-                class="px-2 py-0.5 rounded-lg transition-colors cursor-pointer"
-              >
-                {{ currentLang === 'km' ? 'ការទូទាត់' : 'Payment' }}
+                {{ currentLang === 'km' ? 'ការបញ្ចប់ (76%)' : 'Completion' }}
               </button>
               <button
                 @click="rightChartTab = 'majors'"
                 :class="rightChartTab === 'majors' ? 'bg-indigo-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
-                class="px-2 py-0.5 rounded-lg transition-colors cursor-pointer"
+                class="px-2.5 py-0.5 rounded-lg transition-colors cursor-pointer"
               >
-                {{ currentLang === 'km' ? 'ជំនាញ' : 'Majors' }}
+                {{ currentLang === 'km' ? 'ជំនាញទាំង ៥' : '5 Majors' }}
               </button>
             </div>
           </div>
@@ -557,64 +539,23 @@ const actionTasks = computed(() => [
             </div>
           </div>
 
-          <!-- Tab 2: Payment Overview Progress Bars -->
-          <div v-else-if="rightChartTab === 'payment'" class="space-y-3 py-1">
-            <div class="space-y-2 text-xs">
-              <div>
-                <div class="flex justify-between text-slate-700 dark:text-slate-300 mb-1">
-                  <span>{{ currentLang === 'km' ? '✅ បានទូទាត់ (ABA ផ្ទៀងផ្ទាត់)' : '✅ Paid (ABA Verified)' }}</span>
-                  <span class="font-bold text-emerald-600 dark:text-emerald-400">81%</span>
-                </div>
-                <div class="w-full bg-slate-100 dark:bg-slate-900 h-2 rounded-full overflow-hidden">
-                  <div class="bg-emerald-500 h-full rounded-full" style="width: 81%"></div>
-                </div>
-              </div>
-              <div>
-                <div class="flex justify-between text-slate-700 dark:text-slate-300 mb-1">
-                  <span>{{ currentLang === 'km' ? '⏳ រង់ចាំការផ្ទៀងផ្ទាត់' : '⏳ Pending Verification' }}</span>
-                  <span class="font-bold text-amber-600 dark:text-amber-400">11%</span>
-                </div>
-                <div class="w-full bg-slate-100 dark:bg-slate-900 h-2 rounded-full overflow-hidden">
-                  <div class="bg-amber-500 h-full rounded-full" style="width: 11%"></div>
-                </div>
-              </div>
-              <div>
-                <div class="flex justify-between text-slate-700 dark:text-slate-300 mb-1">
-                  <span>{{ currentLang === 'km' ? '❌ បរាជ័យ / បានបោះបង់' : '❌ Failed / Cancelled' }}</span>
-                  <span class="font-bold text-red-600 dark:text-red-400">5%</span>
-                </div>
-                <div class="w-full bg-slate-100 dark:bg-slate-900 h-2 rounded-full overflow-hidden">
-                  <div class="bg-red-500 h-full rounded-full" style="width: 5%"></div>
-                </div>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2 border-t border-slate-100 dark:border-slate-700/60 pt-2 text-xs">
-              <div class="bg-slate-50 dark:bg-slate-900/60 p-2 rounded-xl text-center border border-slate-200/80 dark:border-slate-800">
-                <span class="text-slate-500 dark:text-slate-400 block text-[10px]">{{ currentLang === 'km' ? 'ចំណូលដុល' : 'Gross Revenue' }}</span>
-                <span class="font-bold text-emerald-600 dark:text-emerald-400 text-xs">${{ (stats?.total_revenue || 45820).toLocaleString() }}</span>
-              </div>
-              <div class="bg-slate-50 dark:bg-slate-900/60 p-2 rounded-xl text-center border border-slate-200/80 dark:border-slate-800">
-                <span class="text-slate-500 dark:text-slate-400 block text-[10px]">{{ currentLang === 'km' ? 'ចំណូលសុទ្ធ' : 'Net Revenue' }}</span>
-                <span class="font-bold text-indigo-600 dark:text-indigo-300 text-xs">${{ (stats?.net_revenue || 42470).toLocaleString() }}</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Tab 3: Students by Major -->
+          <!-- Tab 2: Students by 5 Majors -->
           <div v-else class="space-y-2.5 py-1">
-            <div v-for="m in studentsByMajor.slice(0, 4)" :key="m.name" class="space-y-1 text-xs">
+            <div v-for="m in studentsByMajor" :key="m.name" class="space-y-1 text-xs">
               <div class="flex justify-between text-slate-700 dark:text-slate-300">
-                <span class="font-medium truncate max-w-44">{{ m.name }}</span>
-                <span class="font-bold text-indigo-600 dark:text-indigo-300">{{ m.count }} {{ currentLang === 'km' ? 'នាក់' : 'stds' }}</span>
+                <span class="font-medium truncate max-w-48">{{ currentLang === 'km' && m.name_kh ? m.name_kh : m.name }}</span>
+                <div class="flex items-center gap-1.5">
+                  <span class="text-[10px] text-slate-400 font-normal">({{ m.pct }}%)</span>
+                  <span class="font-bold text-indigo-600 dark:text-indigo-300">{{ m.count }} {{ currentLang === 'km' ? 'នាក់' : 'stds' }}</span>
+                </div>
               </div>
               <div class="w-full bg-slate-100 dark:bg-slate-900 h-1.5 rounded-full overflow-hidden">
-                <div class="bg-linear-to-r from-indigo-500 to-cyan-400 h-full rounded-full" :style="{ width: `${m.pct * 4}%` }"></div>
+                <div class="bg-linear-to-r from-indigo-500 via-sky-500 to-cyan-400 h-full rounded-full" :style="{ width: `${m.pct * 3.8}%` }"></div>
               </div>
             </div>
             <div class="text-right border-t border-slate-100 dark:border-slate-700/60 pt-2">
               <Link href="/admin/academic-structure/majors" class="text-[11px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 font-semibold">
-                {{ currentLang === 'km' ? 'គ្រប់គ្រងជំនាញទាំងអស់ →' : 'Manage All Majors →' }}
+                {{ currentLang === 'km' ? 'គ្រប់គ្រងរចនាសម្ព័ន្ធជំនាញទាំង ៥ →' : 'Manage All 5 Core Majors →' }}
               </Link>
             </div>
           </div>
@@ -638,11 +579,11 @@ const actionTasks = computed(() => [
                 🎓 {{ currentLang === 'km' ? 'ការចុះឈ្មោះចុងក្រោយ' : 'Latest Enrollments' }}
               </button>
               <button
-                @click="activeSnapshotTab = 'payments'"
-                :class="activeSnapshotTab === 'payments' ? 'bg-indigo-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
+                @click="activeSnapshotTab = 'at_risk'"
+                :class="activeSnapshotTab === 'at_risk' ? 'bg-indigo-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
                 class="px-3 py-1 rounded-lg transition-colors cursor-pointer"
               >
-                💳 {{ currentLang === 'km' ? 'ការទូទាត់ ABA' : 'ABA Payments' }}
+                ⚠️ {{ currentLang === 'km' ? 'និស្សិតប្រឈម (At-Risk)' : 'At-Risk Alerts' }}
               </button>
               <button
                 @click="activeSnapshotTab = 'activities'"
@@ -656,7 +597,7 @@ const actionTasks = computed(() => [
             <Link
               :href="
                 activeSnapshotTab === 'enrollments' ? '/admin/enrollment/courses' :
-                activeSnapshotTab === 'payments' ? '/admin/payments' : '/admin/auth-logs'
+                activeSnapshotTab === 'at_risk' ? '/admin/progress?tab=at_risk' : '/admin/auth-logs'
               "
               class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 font-semibold text-right"
             >
@@ -694,35 +635,36 @@ const actionTasks = computed(() => [
             </table>
           </div>
 
-          <!-- Table 2: Latest ABA Payments (Interactive Clickable Links) -->
-          <div v-if="activeSnapshotTab === 'payments'" class="overflow-x-auto">
+          <!-- Table 2: Latest At-Risk Alerts (AI Thesis Core) -->
+          <div v-if="activeSnapshotTab === 'at_risk'" class="overflow-x-auto">
             <table class="w-full text-left text-xs">
               <thead>
                 <tr class="bg-slate-50 dark:bg-slate-900/80 text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700/80">
-                  <th class="p-2.5">{{ currentLang === 'km' ? 'លេខកូដបញ្ជាទិញ' : 'Order ID' }}</th>
                   <th class="p-2.5">{{ currentLang === 'km' ? 'និស្សិត' : 'Student' }}</th>
-                  <th class="p-2.5">{{ currentLang === 'km' ? 'ចំនួនទឹកប្រាក់' : 'Amount' }}</th>
-                  <th class="p-2.5">{{ currentLang === 'km' ? 'ស្ថានភាព' : 'Status' }}</th>
+                  <th class="p-2.5">{{ currentLang === 'km' ? 'ជំនាញ' : 'Major' }}</th>
+                  <th class="p-2.5">{{ currentLang === 'km' ? 'កត្តាហានិភ័យ AI' : 'Risk Factor' }}</th>
+                  <th class="p-2.5">{{ currentLang === 'km' ? 'កម្រិត' : 'Level' }}</th>
+                  <th class="p-2.5 text-right">{{ currentLang === 'km' ? 'កាលបរិច្ឆេទ' : 'Time' }}</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100 dark:divide-slate-700/50">
-                <tr v-for="row in snapshotTables.latestPayments.slice(0, 5)" :key="row.id" class="hover:bg-slate-50/80 dark:hover:bg-slate-700/30 transition-colors">
-                  <td class="p-2.5 font-mono font-semibold text-indigo-600 dark:text-indigo-300">
-                    <Link href="/admin/payments" class="hover:underline">
-                      {{ row.order_id }}
-                    </Link>
-                  </td>
+                <tr v-for="row in snapshotTables.atRiskAlerts" :key="row.id" class="hover:bg-slate-50/80 dark:hover:bg-slate-700/30 transition-colors">
                   <td class="p-2.5 font-semibold text-slate-900 dark:text-white truncate max-w-[140px]">
-                    <Link href="/admin/user-management/students" class="hover:text-indigo-600 dark:hover:text-indigo-300 hover:underline">
+                    <Link href="/admin/progress?tab=at_risk" class="hover:text-indigo-600 dark:hover:text-indigo-300 hover:underline">
                       {{ row.student }}
                     </Link>
                   </td>
-                  <td class="p-2.5 font-bold text-emerald-600 dark:text-emerald-400">{{ row.amount }}</td>
+                  <td class="p-2.5 text-slate-700 dark:text-slate-300 truncate max-w-[130px]">{{ row.major }}</td>
+                  <td class="p-2.5 text-slate-600 dark:text-slate-400 truncate max-w-[180px]">{{ row.risk_factor }}</td>
                   <td class="p-2.5">
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20">
-                      {{ row.status }}
+                    <span
+                      :class="row.level_color === 'red' ? 'bg-red-50 dark:bg-red-500/15 text-red-700 dark:text-red-400 border-red-200 dark:border-red-500/25' : 'bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/25'"
+                      class="px-2 py-0.5 rounded-full text-[10px] font-bold border"
+                    >
+                      {{ row.risk_level }}
                     </span>
                   </td>
+                  <td class="p-2.5 text-right text-slate-500 dark:text-slate-400 whitespace-nowrap">{{ row.time }}</td>
                 </tr>
               </tbody>
             </table>
@@ -786,8 +728,8 @@ const actionTasks = computed(() => [
           </div>
 
           <div class="pt-3 border-t border-slate-100 dark:border-slate-700/60 text-right">
-            <Link href="/admin/payments?status=pending" class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 dark:hover:text-emerald-300">
-              {{ currentLang === 'km' ? 'ផ្ទៀងផ្ទាត់ការទូទាត់រង់ចាំទាំងអស់ →' : 'Verify All Pending Payments →' }}
+            <Link href="/admin/progress?tab=at_risk" class="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300">
+              {{ currentLang === 'km' ? 'ពិនិត្យដំណោះស្រាយនិស្សិតប្រឈមទាំងអស់ →' : 'Review All At-Risk Interventions →' }}
             </Link>
           </div>
         </div>

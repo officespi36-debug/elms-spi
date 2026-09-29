@@ -59,12 +59,12 @@ class AcademicSeeder extends Seeder
         $deptAgri      = Department::where('code', 'DEPT-AGR-008')->first();
         $deptSocial    = Department::where('code', 'DEPT-SOC-010')->first();
 
-        // 3. Seed Majors
+        // 3. Seed Majors (The 5 Thesis Core Majors)
         $majorsData = [
-            ['department_id' => $deptComputing?->id, 'code' => 'MJR-IT-001', 'name' => 'IT & Networking', 'name_kh' => 'បច្ចេកវិទ្យាព័ត៌មាន និងបណ្តាញ', 'price_per_subject' => 25, 'duration' => '4 Years', 'degree_level' => 'Bachelor', 'credits' => 120, 'language' => 'English / Khmer', 'is_active' => true],
-            ['department_id' => $deptTourism?->id, 'code' => 'MJR-TRM-002', 'name' => 'Tourism Management', 'name_kh' => 'គ្រប់គ្រងទេសចរណ៍', 'price_per_subject' => 20, 'duration' => '4 Years', 'degree_level' => 'Bachelor', 'credits' => 120, 'language' => 'English / Khmer', 'is_active' => true],
+            ['department_id' => $deptComputing?->id, 'code' => 'MJR-IT-001', 'name' => 'Information Technology', 'name_kh' => 'បច្ចេកវិទ្យាព័ត៌មាន', 'price_per_subject' => 25, 'duration' => '4 Years', 'degree_level' => 'Bachelor', 'credits' => 120, 'language' => 'English / Khmer', 'is_active' => true],
+            ['department_id' => $deptTourism?->id, 'code' => 'MJR-TRM-002', 'name' => 'Tourism', 'name_kh' => 'ទេសចរណ៍', 'price_per_subject' => 20, 'duration' => '4 Years', 'degree_level' => 'Bachelor', 'credits' => 120, 'language' => 'English / Khmer', 'is_active' => true],
             ['department_id' => $deptEdu?->id, 'code' => 'MJR-ENG-003', 'name' => 'English Literature', 'name_kh' => 'អក្សរសាស្ត្រអង់គ្លេស', 'price_per_subject' => 20, 'duration' => '4 Years', 'degree_level' => 'Bachelor', 'credits' => 120, 'language' => 'English', 'is_active' => true],
-            ['department_id' => $deptAgri?->id, 'code' => 'MJR-AGR-004', 'name' => 'Agronomy', 'name_kh' => 'កសិកម្មសាស្ត្រ', 'price_per_subject' => 25, 'duration' => '4 Years', 'degree_level' => 'Bachelor', 'credits' => 120, 'language' => 'Khmer', 'is_active' => true],
+            ['department_id' => $deptAgri?->id, 'code' => 'MJR-AGR-004', 'name' => 'Agriculture', 'name_kh' => 'កសិកម្ម', 'price_per_subject' => 25, 'duration' => '4 Years', 'degree_level' => 'Bachelor', 'credits' => 120, 'language' => 'Khmer', 'is_active' => true],
             ['department_id' => $deptSocial?->id, 'code' => 'MJR-SW-005', 'name' => 'Social Work', 'name_kh' => 'ការងារសង្គម', 'price_per_subject' => 25, 'duration' => '4 Years', 'degree_level' => 'Bachelor', 'credits' => 120, 'language' => 'Khmer', 'is_active' => true],
         ];
 

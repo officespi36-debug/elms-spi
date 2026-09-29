@@ -24,15 +24,11 @@ const expandedModules = ref<Record<string, boolean>>({
   users: false,
   academics: false,
   courses: false,
-  enrollment: false,
-  payment: false,
-  content: false,
-  quiz: false,
+  assessment: false,
   progress: false,
   analytics: false,
   ai: false,
-  certificate: false,
-  notification: false,
+  communication: false,
   settings: false,
 })
 
@@ -67,16 +63,12 @@ const navigation: NavItem[] = [
   },
   {
     key: 'auth',
-    name: 'Authentication Module',
+    name: 'Authentication',
     iconUrl: '/images/nav/auth.svg',
     icon: 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z',
     children: [
-      { name: 'Overview Hub', href: '/admin/auth-logs', iconUrl: '/images/nav/sub/overview.svg', icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z' },
+      { name: 'Login & Security', href: '/admin/auth-logs', iconUrl: '/images/nav/sub/overview.svg', icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z' },
       { name: 'Roles & Permissions', href: '/admin/auth/roles', iconUrl: '/images/nav/sub/roles.svg', icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' },
-      { name: 'Active Sessions', href: '/admin/auth/sessions', iconUrl: '/images/nav/sub/sessions.svg', icon: 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
-      { name: 'Login History', href: '/admin/auth/history', iconUrl: '/images/nav/sub/history.svg', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
-      { name: 'Failed Login Attempts', href: '/admin/auth/failed', iconUrl: '/images/nav/sub/failed.svg', icon: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z' },
-      { name: 'Security Policies', href: '/admin/auth/policies', iconUrl: '/images/nav/sub/policies.svg', icon: 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z' },
     ]
   },
   {
@@ -85,12 +77,9 @@ const navigation: NavItem[] = [
     iconUrl: '/images/nav/users.svg',
     icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z',
     children: [
-      { name: 'All Users', href: '/admin/user-management/all', iconUrl: '/images/nav/sub/all-users.svg', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z' },
-      { name: 'Administrators', href: '/admin/user-management/administrators', iconUrl: '/images/nav/sub/admins.svg', icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' },
-      { name: 'Teachers', href: '/admin/user-management/teachers', iconUrl: '/images/nav/sub/teachers.svg', icon: 'M12 14l9-5-9-5-9 5 9 5z' },
       { name: 'Students', href: '/admin/user-management/students', iconUrl: '/images/nav/sub/students.svg', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
-      { name: 'Suspended Users', href: '/admin/user-management/suspended', iconUrl: '/images/nav/sub/suspended.svg', icon: 'M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636' },
-      { name: 'Import / Export Users', href: '/admin/user-management/import-export', iconUrl: '/images/nav/sub/import-export.svg', icon: 'M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12' },
+      { name: 'Teachers', href: '/admin/user-management/teachers', iconUrl: '/images/nav/sub/teachers.svg', icon: 'M12 14l9-5-9-5-9 5 9 5z' },
+      { name: 'Admins', href: '/admin/user-management/administrators', iconUrl: '/images/nav/sub/admins.svg', icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' },
     ]
   },
   {
@@ -99,11 +88,10 @@ const navigation: NavItem[] = [
     iconUrl: '/images/nav/academics.svg',
     icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11m0 10V11m0 0h4m-4 0H7',
     children: [
-      { name: 'Faculties', href: '/admin/academic-structure/faculties', iconUrl: '/images/nav/sub/faculties.svg', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11' },
       { name: 'Departments', href: '/admin/academic-structure/departments', iconUrl: '/images/nav/sub/departments.svg', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11' },
       { name: 'Majors', href: '/admin/academic-structure/majors', iconUrl: '/images/nav/sub/majors.svg', icon: 'M12 14l9-5-9-5-9 5 9 5z' },
+      { name: 'Subjects', href: '/admin/course-module/subjects', iconUrl: '/images/nav/sub/subjects.svg', icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253' },
       { name: 'Academic Years', href: '/admin/academic-structure/academic-years', iconUrl: '/images/nav/sub/academic-years.svg', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
-      { name: 'Semesters', href: '/admin/academic-structure/semesters', iconUrl: '/images/nav/sub/semesters.svg', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
     ]
   },
   {
@@ -112,171 +100,76 @@ const navigation: NavItem[] = [
     iconUrl: '/images/nav/courses.svg',
     icon: 'M12 14l9-5-9-5-9 5 9 5z',
     children: [
-      { name: 'All Courses', href: '/admin/course-module/all', iconUrl: '/images/nav/sub/all-courses.svg', icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' },
-      { name: 'Subjects', href: '/admin/course-module/subjects', iconUrl: '/images/nav/sub/subjects.svg', icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253' },
-      { name: 'Teacher Assignment', href: '/admin/course-module/teacher-assignments', iconUrl: '/images/nav/sub/teacher-assignments.svg', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z' },
-      { name: 'Teacher-Led Courses', href: '/admin/course-module/teacher-led', iconUrl: '/images/nav/sub/teacher-led.svg', icon: 'M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z' },
-      { name: 'Self-Study Courses', href: '/admin/course-module/self-study', iconUrl: '/images/nav/sub/self-study.svg', icon: 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
-      { name: 'Free Courses', href: '/admin/course-module/free', iconUrl: '/images/nav/sub/free-courses.svg', icon: 'M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5a2 2 0 10-2 2h2zm0 13C10.832 19.477 9.246 19 7.5 19S4.168 19.477 3 20.253V6.253C4.168 5.477 5.754 5 7.5 5s3.332.477 4.5 1.253m0 13C13.168 19.477 14.754 19 16.5 19c1.747 0 3.332.477 4.5 1.253V6.253C19.832 5.477 18.247 5 16.5 5c-1.746 0-3.332.477-4.5 1.253' },
-      { name: 'Paid Courses', href: '/admin/course-module/paid', iconUrl: '/images/nav/sub/paid-courses.svg', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
+      { name: 'Courses', href: '/admin/course-module/all', iconUrl: '/images/nav/sub/all-courses.svg', icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' },
+      { name: 'Course Approval', href: '/admin/course-module/all?status=draft', iconUrl: '/images/nav/sub/roles.svg', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
+      { name: 'Enrollment', href: '/admin/enrollment/courses', iconUrl: '/images/nav/enrollment.svg', icon: 'M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122' },
     ]
   },
   {
-    key: 'enrollment',
-    name: 'Enrollment Management',
-    iconUrl: '/images/nav/enrollment.svg',
-    icon: 'M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122',
-    children: [
-      { name: 'Major Enrollments', href: '/admin/enrollment/majors', iconUrl: '/images/nav/sub/majors.svg', icon: 'M12 14l9-5-9-5-9 5 9 5z' },
-      { name: 'Course Enrollments', href: '/admin/enrollment/courses', iconUrl: '/images/nav/sub/all-courses.svg', icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253' },
-      { name: 'Single Enrollment', href: '/admin/enrollment/single', iconUrl: '/images/nav/sub/students.svg', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
-      { name: 'Bulk Enrollment', href: '/admin/enrollment/bulk', iconUrl: '/images/nav/sub/import-export.svg', icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4' },
-      { name: 'Enrollment History', href: '/admin/enrollment/history', iconUrl: '/images/nav/sub/history.svg', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
-    ]
-  },
-  {
-    key: 'payment',
-    name: 'Payment & ABA Management',
-    iconUrl: '/images/nav/payment.svg',
-    icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
-    children: [
-      { name: 'Payment Dashboard', href: '/admin/payments', iconUrl: '/images/nav/payment.svg', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
-      { name: 'Course Pricing', href: '/admin/courses?tab=pricing', iconUrl: '/images/nav/sub/paid-courses.svg', icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
-      { name: 'ABA Transactions', href: '/admin/payments?method=aba', iconUrl: '/images/actions/payment.svg', icon: 'M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z' },
-      { name: 'Receipt Verification', href: '/admin/payments?status=pending', iconUrl: '/images/nav/sub/roles.svg', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
-      { name: 'Payment History', href: '/admin/payments?status=verified', iconUrl: '/images/nav/sub/history.svg', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
-      { name: 'Refunds', href: '/admin/payments?status=refunded', iconUrl: '/images/nav/sub/suspended.svg', icon: 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' },
-      { name: 'Revenue Reports', href: '/admin/payments?tab=revenue', iconUrl: '/images/nav/analytics.svg', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
-    ]
-  },
-  {
-    key: 'content',
-    name: 'Content Delivery Module',
-    iconUrl: '/images/nav/content.svg',
-    icon: 'M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4',
-    children: [
-      { name: 'Content Library', href: '/admin/content', iconUrl: '/images/nav/content.svg', icon: 'M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4' },
-      { name: 'Videos', href: '/admin/content?type=video', iconUrl: '/images/nav/sub/teacher-led.svg', icon: 'M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z' },
-      { name: 'PDFs', href: '/admin/content?type=pdf', iconUrl: '/images/nav/sub/policies.svg', icon: 'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z' },
-      { name: 'Slides', href: '/admin/content?type=slides', iconUrl: '/images/nav/sub/self-study.svg', icon: 'M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12H4z' },
-      { name: 'Notes/Documents', href: '/admin/content?type=notes', iconUrl: '/images/nav/sub/subjects.svg', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
-      { name: 'Modules & Chapters', href: '/admin/content?tab=modules', iconUrl: '/images/nav/sub/all-courses.svg', icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' },
-      { name: 'Offline Content', href: '/admin/content?tab=offline', iconUrl: '/images/nav/sub/import-export.svg', icon: 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4' },
-    ]
-  },
-  {
-    key: 'quiz',
-    name: 'Quiz & Assessment Module',
+    key: 'assessment',
+    name: 'Assessment',
     iconUrl: '/images/nav/quiz.svg',
     icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
     children: [
-      { name: 'Question Bank', href: '/admin/quizzes?tab=bank', iconUrl: '/images/nav/sub/overview.svg', icon: 'M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
-      { name: 'All Quizzes', href: '/admin/quizzes', iconUrl: '/images/nav/quiz.svg', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4' },
-      { name: 'Pre-Tests', href: '/admin/quizzes?type=pre_test', iconUrl: '/images/nav/sub/semesters.svg', icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
-      { name: 'Practice Quizzes', href: '/admin/quizzes?type=practice', iconUrl: '/images/nav/sub/subjects.svg', icon: 'M11 4a2 2 0 114 0v1a2 2 0 01-2 2 2 2 0 01-2-2V4zm-6 8a2 2 0 114 0v1a2 2 0 01-2 2 2 2 0 01-2-2v-1zm12 0a2 2 0 114 0v1a2 2 0 01-2 2 2 2 0 01-2-2v-1z' },
-      { name: 'Post-Tests', href: '/admin/quizzes?type=post_test', iconUrl: '/images/nav/sub/roles.svg', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
+      { name: 'Quizzes', href: '/admin/quizzes', iconUrl: '/images/nav/quiz.svg', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4' },
       { name: 'Assignments', href: '/admin/quizzes?tab=assignments', iconUrl: '/images/nav/sub/teacher-assignments.svg', icon: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' },
-      { name: 'Quiz Results', href: '/admin/quizzes?tab=results', iconUrl: '/images/nav/analytics.svg', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
+      { name: 'Question Bank', href: '/admin/quizzes?tab=bank', iconUrl: '/images/nav/sub/overview.svg', icon: 'M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
     ]
   },
   {
     key: 'progress',
-    name: 'Progress Tracking Module',
+    name: 'Learning & Progress',
     iconUrl: '/images/nav/progress.svg',
     icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6',
     children: [
       { name: 'Student Progress', href: '/admin/progress?tab=student', iconUrl: '/images/nav/sub/students.svg', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
       { name: 'Course Completion', href: '/admin/progress?tab=course', iconUrl: '/images/nav/sub/roles.svg', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
-      { name: 'Module Completion', href: '/admin/progress?tab=module', iconUrl: '/images/nav/sub/all-courses.svg', icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' },
-      { name: 'Learning Time', href: '/admin/progress?tab=time', iconUrl: '/images/nav/sub/history.svg', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
-      { name: 'At-Risk Students', href: '/admin/progress?tab=at_risk', iconUrl: '/images/nav/sub/failed.svg', icon: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z' },
-      { name: 'Weekly Progress', href: '/admin/progress?tab=weekly', iconUrl: '/images/nav/progress.svg', icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6' },
+      { name: 'Certificates', href: '/admin/certificates/issued', iconUrl: '/images/nav/certificate.svg', icon: 'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138z' },
     ]
   },
   {
     key: 'analytics',
-    name: 'Analytics & Reporting Module',
+    name: 'Analytics & Reports',
     iconUrl: '/images/nav/analytics.svg',
     icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
     children: [
-      { name: 'Overview', href: '/admin/reports?tab=overview', iconUrl: '/images/nav/sub/overview.svg', icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z' },
       { name: 'Student Analytics', href: '/admin/reports?tab=students', iconUrl: '/images/nav/sub/students.svg', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
-      { name: 'Teacher Analytics', href: '/admin/reports?tab=teachers', iconUrl: '/images/nav/sub/teachers.svg', icon: 'M12 14l9-5-9-5-9 5 9 5z' },
       { name: 'Course Analytics', href: '/admin/reports?tab=courses', iconUrl: '/images/nav/sub/all-courses.svg', icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253' },
-      { name: 'Quiz Analytics', href: '/admin/reports?tab=quizzes', iconUrl: '/images/nav/quiz.svg', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2' },
-      { name: 'Payment Analytics', href: '/admin/reports?tab=payments', iconUrl: '/images/nav/payment.svg', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
-      { name: 'Export Reports', href: '/admin/reports?tab=export', iconUrl: '/images/nav/sub/import-export.svg', icon: 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4' },
+      { name: 'Teacher Analytics', href: '/admin/reports?tab=teachers', iconUrl: '/images/nav/sub/teachers.svg', icon: 'M12 14l9-5-9-5-9 5 9 5z' },
+      { name: 'System Reports', href: '/admin/reports?tab=overview', iconUrl: '/images/nav/sub/overview.svg', icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z' },
     ]
   },
   {
     key: 'ai',
-    name: 'AI Recommendation Module',
+    name: 'AI Management',
     iconUrl: '/images/nav/ai.svg',
     icon: 'M13 10V3L4 14h7v7l9-11h-7z',
     children: [
-      { name: 'AI Rules', href: '/admin/ai-rules?tab=rules', iconUrl: '/images/nav/ai.svg', icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
-      { name: 'Weak Topic Rules', href: '/admin/ai-rules?tab=weak_topics', iconUrl: '/images/nav/sub/failed.svg', icon: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z' },
-      { name: 'Learning Path Rules', href: '/admin/ai-rules?tab=learning_paths', iconUrl: '/images/nav/sub/majors.svg', icon: 'M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 18.82V8.056a1 1 0 00-1.447-.894L15 7m0 10V7m0 0L9 4' },
-      { name: 'Recommendation Logs', href: '/admin/ai-rules?tab=logs', iconUrl: '/images/nav/sub/policies.svg', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2' },
+      { name: 'AI Recommendations', href: '/admin/ai-rules?tab=rules', iconUrl: '/images/nav/ai.svg', icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
+      { name: 'At-Risk Students', href: '/admin/progress?tab=at_risk', iconUrl: '/images/nav/sub/failed.svg', icon: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z' },
+      { name: 'Difficult Topics', href: '/admin/ai-rules?tab=weak_topics', iconUrl: '/images/nav/sub/failed.svg', icon: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z' },
       { name: 'AI Configuration', href: '/admin/ai-rules?tab=config', iconUrl: '/images/nav/settings.svg', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
-      { name: 'Student View Preview', href: '/admin/ai-rules?tab=student_view', iconUrl: '/images/nav/sub/students.svg', icon: 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' },
     ]
   },
   {
-    key: 'certificate',
-    name: 'Certificate Module',
-    iconUrl: '/images/nav/certificate.svg',
-    icon: 'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138z',
-    children: [
-      { name: 'Templates', href: '/admin/certificates/templates', iconUrl: '/images/actions/certificate.svg', icon: 'M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z' },
-      { name: 'Issue Certificate', href: '/admin/certificates/issue', iconUrl: '/images/nav/certificate.svg', icon: 'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138z' },
-      { name: 'Issued Certificates', href: '/admin/certificates/issued', iconUrl: '/images/nav/sub/roles.svg', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
-      { name: 'Certificate Verification', href: '/admin/certificates/verify', iconUrl: '/images/nav/sub/roles.svg', icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' },
-      { name: 'Revoked Certificates', href: '/admin/certificates/revoked', iconUrl: '/images/nav/sub/suspended.svg', icon: 'M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636' },
-    ]
-  },
-  {
-    key: 'notification',
-    name: 'Notification Module',
+    key: 'communication',
+    name: 'Communication',
     iconUrl: '/images/nav/notification.svg',
     icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9',
     children: [
       { name: 'Announcements', href: '/admin/notifications/announcements', iconUrl: '/images/actions/announcement.svg', icon: 'M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z' },
-      { name: 'Email Notifications', href: '/admin/notifications/emails', iconUrl: '/images/nav/sub/policies.svg', icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
-      { name: 'Push Notifications', href: '/admin/notifications/push', iconUrl: '/images/nav/notification.svg', icon: 'M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z' },
-      { name: 'Scheduled Notifications', href: '/admin/notifications/scheduled', iconUrl: '/images/nav/sub/history.svg', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
-      { name: 'Notification History', href: '/admin/notifications/history', iconUrl: '/images/nav/sub/policies.svg', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2' },
-    ]
-  },
-  {
-    key: 'discussions',
-    name: 'Discussions & Support',
-    iconUrl: '/images/nav/discussions.svg',
-    icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z',
-    children: [
-      { name: 'Discussions', href: '/admin/discussions/board', iconUrl: '/images/nav/discussions.svg', icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' },
-      { name: 'Student Questions', href: '/admin/discussions/questions', iconUrl: '/images/nav/sub/overview.svg', icon: 'M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
-      { name: 'Support Tickets', href: '/admin/discussions/tickets', iconUrl: '/images/actions/action-button.svg', icon: 'M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 001 1.732V11a2 2 0 00-1 1.732V17a2 2 0 002 2h14a2 2 0 002-2v-2.268A2 2 0 0021 13v-1.268A2 2 0 0020 10V7a2 2 0 00-2-2H5z' },
-      { name: 'Reported Content', href: '/admin/discussions/reports', iconUrl: '/images/nav/sub/failed.svg', icon: 'M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9' },
+      { name: 'Notifications', href: '/admin/notifications/history', iconUrl: '/images/nav/notification.svg', icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9' },
     ]
   },
   {
     key: 'settings',
-    name: 'Settings',
+    name: 'System Settings',
     iconUrl: '/images/nav/settings.svg',
     icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z',
     children: [
       { name: 'General Settings', href: '/admin/settings', iconUrl: '/images/nav/settings.svg' },
-      { name: 'Language & Localization', href: '/admin/settings?tab=language', iconUrl: '/images/flags/km.svg' },
-      { name: 'Email / SMTP', href: '/admin/settings?tab=smtp', iconUrl: '/images/nav/sub/policies.svg' },
-      { name: 'S3 Storage', href: '/admin/settings?tab=s3', iconUrl: '/images/nav/sub/import-export.svg' },
-      { name: 'Video CDN', href: '/admin/settings?tab=cdn', iconUrl: '/images/nav/sub/teacher-led.svg' },
-      { name: 'Redis / Queue', href: '/admin/settings?tab=redis', iconUrl: '/images/nav/sub/overview.svg' },
-      { name: 'Reverb / Real-time', href: '/admin/settings?tab=reverb', iconUrl: '/images/nav/sub/sessions.svg' },
-      { name: 'PWA & Offline Settings', href: '/admin/settings?tab=pwa', iconUrl: '/images/nav/sub/self-study.svg' },
-      { name: 'ABA Payment Settings', href: '/admin/settings?tab=aba', iconUrl: '/images/actions/payment.svg' },
-      { name: 'Backup & Restore', href: '/admin/settings?tab=backup', iconUrl: '/images/nav/sub/import-export.svg' },
-      { name: 'System / Audit Logs', href: '/admin/auth-logs', iconUrl: '/images/nav/sub/policies.svg' },
+      { name: 'Academic Settings', href: '/admin/academic-structure/semesters', iconUrl: '/images/nav/sub/academic-years.svg' },
+      { name: 'System Logs', href: '/admin/auth-logs', iconUrl: '/images/nav/sub/policies.svg' },
     ]
   },
 ]
@@ -284,38 +177,20 @@ const navigation: NavItem[] = [
 const isSubActive = (subHref: string) => {
   const currentUrl = page.url
 
-  // If subHref has query param (e.g. /admin/payments?method=aba)
+  // If subHref has query param (e.g. ?status=draft or ?tab=assignments)
   if (subHref.includes('?')) {
     const [path, query] = subHref.split('?')
     if (!currentUrl.startsWith(path)) return false
-
-    if (query.includes('tab=pricing')) return currentUrl.includes('tab=pricing')
-    if (query.includes('method=aba')) return currentUrl.includes('method=aba') || currentUrl.includes('tab=transactions')
-    if (query.includes('status=pending')) return currentUrl.includes('status=pending') || currentUrl.includes('tab=verification')
-    if (query.includes('status=verified')) return currentUrl.includes('status=verified') || currentUrl.includes('tab=history')
-    if (query.includes('status=refunded')) return currentUrl.includes('status=refunded') || currentUrl.includes('status=Refunds') || currentUrl.includes('tab=refunds')
-    if (query.includes('tab=revenue')) return currentUrl.includes('tab=revenue')
-
-    // Content Delivery Module matching
-    if (query.includes('type=video')) return currentUrl.includes('type=video') || currentUrl.includes('tab=videos')
-    if (query.includes('type=pdf')) return currentUrl.includes('type=pdf') || currentUrl.includes('tab=pdfs')
-    if (query.includes('type=slides')) return currentUrl.includes('type=slides') || currentUrl.includes('tab=slides')
-    if (query.includes('type=notes')) return currentUrl.includes('type=notes') || currentUrl.includes('tab=notes')
-    if (query.includes('tab=modules')) return currentUrl.includes('tab=modules')
-    if (query.includes('tab=offline')) return currentUrl.includes('tab=offline')
-
     return currentUrl.includes(query)
   }
 
-  // Exact base route match (e.g. /admin/payments with no query or tab=dashboard)
-  if (subHref === '/admin/payments') {
-    return currentUrl === '/admin/payments' || currentUrl.includes('tab=dashboard') || (!currentUrl.includes('?') && currentUrl.startsWith('/admin/payments'))
-  }
-  if (subHref === '/admin/content') {
-    return currentUrl === '/admin/content' || currentUrl.includes('tab=library') || (!currentUrl.includes('?') && currentUrl.startsWith('/admin/content'))
+  // Exact base route match (prevent /admin/quizzes matching /admin/quizzes?tab=assignments)
+  if (currentUrl.includes('?') && !subHref.includes('?')) {
+    const currentPath = currentUrl.split('?')[0]
+    return currentPath === subHref
   }
 
-  return currentUrl === subHref || (currentUrl.startsWith(subHref.split('?')[0]) && !subHref.includes('?'))
+  return currentUrl === subHref || (currentUrl.startsWith(subHref + '/') && !subHref.includes('?'))
 }
 
 const isChildActive = (children?: NavSubItem[]) => {
@@ -418,149 +293,75 @@ const isFullscreen = ref(false)
 const currentLang = computed(() => i18n.locale.value)
 
 const navTranslations: Record<string, { km: string; en: string }> = {
-  // Main Navigation Modules
+  // Main Navigation Modules (11 Thesis-Aligned Modules)
   'Dashboard': { km: 'ផ្ទាំងគ្រប់គ្រង', en: 'Dashboard' },
-  'Authentication Module': { km: 'ម៉ូឌុលផ្ទៀងផ្ទាត់សុវត្ថិភាព', en: 'Authentication Module' },
+  'Authentication': { km: 'ផ្ទៀងផ្ទាត់សុវត្ថិភាព', en: 'Authentication' },
+  'Authentication Module': { km: 'ផ្ទៀងផ្ទាត់សុវត្ថិភាព', en: 'Authentication' },
   'User Management': { km: 'ការគ្រប់គ្រងអ្នកប្រើប្រាស់', en: 'User Management' },
   'Academic Structure': { km: 'រចនាសម្ព័ន្ធអប់រំ', en: 'Academic Structure' },
   'Course Management': { km: 'ការគ្រប់គ្រងវគ្គសិក្សា', en: 'Course Management' },
-  'Enrollment Management': { km: 'ការគ្រប់គ្រងការចុះឈ្មោះ', en: 'Enrollment Management' },
-  'Payment & ABA Management': { km: 'ការគ្រប់គ្រងការទូទាត់ & ABA', en: 'Payment & ABA Management' },
-  'Content Delivery Module': { km: 'ម៉ូឌុលចែកចាយមាតិកា', en: 'Content Delivery Module' },
-  'Quiz & Assessment Module': { km: 'ម៉ូឌុលកម្រងសំណួរ & ការវាយតម្លៃ', en: 'Quiz & Assessment Module' },
-  'Progress Tracking Module': { km: 'ម៉ូឌុលតាមដានវឌ្ឍនភាព', en: 'Progress Tracking Module' },
-  'Analytics & Reporting Module': { km: 'ម៉ូឌុលវិភាគ & របាយការណ៍', en: 'Analytics & Reporting Module' },
-  'AI Recommendation Module': { km: 'ម៉ូឌុលអនុសាសន៍ AI', en: 'AI Recommendation Module' },
-  'Certificate Module': { km: 'ម៉ូឌុលវិញ្ញាបនបត្រ', en: 'Certificate Module' },
-  'Notification Module': { km: 'ម៉ូឌុលការជូនដំណឹង', en: 'Notification Module' },
-  'Notifications': { km: 'ការជូនដំណឹង', en: 'Notifications' },
-  'Discussions & Support': { km: 'ការពិភាក្សា & ការគាំទ្រ', en: 'Discussions & Support' },
-  'Settings': { km: 'ការកំណត់ប្រព័ន្ធ', en: 'Settings' },
+  'Assessment': { km: 'ការវាយតម្លៃ', en: 'Assessment' },
+  'Learning & Progress': { km: 'ការរៀនសូត្រ & វឌ្ឍនភាព', en: 'Learning & Progress' },
+  'Analytics & Reports': { km: 'ស្ថិតិវិភាគ & របាយការណ៍', en: 'Analytics & Reports' },
+  'AI Management': { km: 'ការគ្រប់គ្រង AI', en: 'AI Management' },
+  'Communication': { km: 'ការទំនាក់ទំនង', en: 'Communication' },
   'System Settings': { km: 'ការកំណត់ប្រព័ន្ធ', en: 'System Settings' },
+  'My Profile': { km: 'គណនីផ្ទាល់ខ្លួន', en: 'My Profile' },
 
-  // Authentication Submenu
-  'Overview Hub': { km: 'ទិដ្ឋភាពទូទៅ', en: 'Overview Hub' },
+  // Submenu Items
+  // 1. Authentication
+  'Login & Security': { km: 'ការចូល & សុវត្ថិភាព', en: 'Login & Security' },
   'Roles & Permissions': { km: 'សិទ្ធិ & តួនាទី', en: 'Roles & Permissions' },
-  'Active Sessions': { km: 'កម្រងប្រតិបត្តិការសកម្ម', en: 'Active Sessions' },
-  'Login History': { km: 'ប្រវត្តិ Login', en: 'Login History' },
-  'Failed Login Attempts': { km: 'ការ Login បរាជ័យ', en: 'Failed Login Attempts' },
-  'Security Policies': { km: 'គោលការណ៍សុវត្ថិភាព', en: 'Security Policies' },
 
-  // Users Submenu
-  'All Users': { km: 'អ្នកប្រើប្រាស់ទាំងអស់', en: 'All Users' },
-  'Administrators': { km: 'អ្នកគ្រប់គ្រង (Admins)', en: 'Administrators' },
-  'Teachers': { km: 'សាស្ត្រាចារ្យ/គ្រូ', en: 'Teachers' },
+  // 2. User Management
   'Students': { km: 'និស្សិត/សិស្ស', en: 'Students' },
-  'Suspended Users': { km: 'គណនីត្រូវផ្អាក', en: 'Suspended Users' },
-  'Import / Export Users': { km: 'នាំចូល / នាំចេញទិន្នន័យ', en: 'Import / Export Users' },
+  'Teachers': { km: 'សាស្ត្រាចារ្យ/គ្រូ', en: 'Teachers' },
+  'Admins': { km: 'អ្នកគ្រប់គ្រង (Admins)', en: 'Admins' },
+  'All Users': { km: 'អ្នកប្រើប្រាស់ទាំងអស់', en: 'All Users' },
 
-  // Academic Structure Submenu
-  'Faculties': { km: 'មហាវិទ្យាល័យ', en: 'Faculties' },
+  // 3. Academic Structure
   'Departments': { km: 'ដេប៉ាតឺម៉ង់', en: 'Departments' },
-  'Majors': { km: 'ជំនាញឯកទេស', en: 'Majors' },
+  'Majors': { km: 'ជំនាញឯកទេស (5 Majors)', en: 'Majors' },
+  'Subjects': { km: 'មុខវិជ្ជា', en: 'Subjects' },
   'Academic Years': { km: 'ឆ្នាំសិក្សា', en: 'Academic Years' },
   'Semesters': { km: 'ឆមាស', en: 'Semesters' },
 
-  // Courses Submenu
+  // 4. Course Management
+  'Courses': { km: 'វគ្គសិក្សាទាំងអស់', en: 'Courses' },
   'All Courses': { km: 'វគ្គសិក្សាទាំងអស់', en: 'All Courses' },
-  'Subjects': { km: 'មុខវិជ្ជា', en: 'Subjects' },
-  'Teacher Assignment': { km: 'ការចាត់តាំងគ្រូ', en: 'Teacher Assignment' },
-  'Teacher-Led Courses': { km: 'វគ្គសិក្សាមានគ្រូបង្រៀន', en: 'Teacher-Led Courses' },
-  'Self-Study Courses': { km: 'វគ្គសិក្សាស្វ័យសិក្សា', en: 'Self-Study Courses' },
-  'Free Courses': { km: 'វគ្គសិក្សាឥតគិតថ្លៃ', en: 'Free Courses' },
-  'Paid Courses': { km: 'វគ្គសិក្សាគិតថ្លៃ', en: 'Paid Courses' },
+  'Course Approval': { km: 'អនុម័តវគ្គសិក្សា', en: 'Course Approval' },
+  'Enrollment': { km: 'ការចុះឈ្មោះ', en: 'Enrollment' },
 
-  // Enrollment Submenu
-  'Major Enrollments': { km: 'ការចុះឈ្មោះតាមជំនាញ', en: 'Major Enrollments' },
-  'Course Enrollments': { km: 'ការចុះឈ្មោះតាមវគ្គ', en: 'Course Enrollments' },
-  'Single Enrollment': { km: 'ចុះឈ្មោះម្នាក់ៗ', en: 'Single Enrollment' },
-  'Bulk Enrollment': { km: 'ចុះឈ្មោះច្រើននាក់', en: 'Bulk Enrollment' },
-  'Enrollment History': { km: 'ប្រវត្តិចុះឈ្មោះ', en: 'Enrollment History' },
-
-  // Payment Submenu
-  'Payment Dashboard': { km: 'ផ្ទាំងគ្រប់គ្រងការទូទាត់', en: 'Payment Dashboard' },
-  'Course Pricing': { km: 'តម្លៃវគ្គសិក្សា', en: 'Course Pricing' },
-  'ABA Transactions': { km: 'ប្រតិបត្តិការ ABA', en: 'ABA Transactions' },
-  'Receipt Verification': { km: 'ផ្ទៀងផ្ទាត់វិក្កយបត្រ', en: 'Receipt Verification' },
-  'Payment History': { km: 'ប្រវត្តិការទូទាត់', en: 'Payment History' },
-  'Refunds': { km: 'ការសងប្រាក់វិញ', en: 'Refunds' },
-  'Revenue Reports': { km: 'របាយការណ៍ចំណូល', en: 'Revenue Reports' },
-
-  // Content Delivery Submenu
-  'Content Library': { km: 'បណ្ណាល័យមាតិកា', en: 'Content Library' },
-  'Videos': { km: 'វីដេអូ', en: 'Videos' },
-  'PDFs': { km: 'ឯកសារ PDF', en: 'PDFs' },
-  'Slides': { km: 'ស្លាយបង្រៀន', en: 'Slides' },
-  'Notes/Documents': { km: 'កំណត់ចំណាំ/ឯកសារ', en: 'Notes/Documents' },
-  'Modules & Chapters': { km: 'ម៉ូឌុល & ជំពូក', en: 'Modules & Chapters' },
-  'Offline Content': { km: 'មាតិកាក្រៅបណ្តាញ', en: 'Offline Content' },
-
-  // Quiz Submenu
+  // 5. Assessment
+  'Quizzes': { km: 'កម្រងសំណួរ (Quizzes)', en: 'Quizzes' },
+  'Assignments': { km: 'កិច្ចការផ្ទះ (Assignments)', en: 'Assignments' },
   'Question Bank': { km: 'ធនាគារសំណួរ', en: 'Question Bank' },
-  'All Quizzes': { km: 'កម្រងសំណួរទាំងអស់', en: 'All Quizzes' },
-  'Pre-Tests': { km: 'តេស្តមុនរៀន (Pre-Test)', en: 'Pre-Tests' },
-  'Practice Quizzes': { km: 'កម្រងសំណួរអនុវត្ត', en: 'Practice Quizzes' },
-  'Post-Tests': { km: 'តេស្តបញ្ចប់ (Post-Test)', en: 'Post-Tests' },
-  'Assignments': { km: 'កិច្ចការផ្ទះ', en: 'Assignments' },
-  'Quiz Results': { km: 'លទ្ធផលកម្រងសំណួរ', en: 'Quiz Results' },
 
-  // Progress Submenu
+  // 6. Learning & Progress
   'Student Progress': { km: 'វឌ្ឍនភាពនិស្សិត', en: 'Student Progress' },
   'Course Completion': { km: 'ការបញ្ចប់វគ្គសិក្សា', en: 'Course Completion' },
-  'Module Completion': { km: 'ការបញ្ចប់ម៉ូឌុល', en: 'Module Completion' },
-  'Learning Time': { km: 'រយៈពេលសិក្សា', en: 'Learning Time' },
-  'At-Risk Students': { km: 'និស្សិតប្រឈមហានិភ័យ', en: 'At-Risk Students' },
-  'Weekly Progress': { km: 'វឌ្ឍនភាពប្រចាំសប្តាហ៍', en: 'Weekly Progress' },
+  'Certificates': { km: 'វិញ្ញាបនបត្រ', en: 'Certificates' },
 
-  // Analytics Submenu
-  'Overview': { km: 'ទិដ្ឋភាពទូទៅ', en: 'Overview' },
+  // 7. Analytics & Reports
   'Student Analytics': { km: 'ស្ថិតិវិភាគនិស្សិត', en: 'Student Analytics' },
-  'Teacher Analytics': { km: 'ស្ថិតិវិភាគគ្រូ', en: 'Teacher Analytics' },
   'Course Analytics': { km: 'ស្ថិតិវិភាគវគ្គសិក្សា', en: 'Course Analytics' },
-  'Quiz Analytics': { km: 'ស្ថិតិវិភាគកម្រងសំណួរ', en: 'Quiz Analytics' },
-  'Payment Analytics': { km: 'ស្ថិតិវិភាគការទូទាត់', en: 'Payment Analytics' },
-  'Export Reports': { km: 'នាំចេញរបាយការណ៍', en: 'Export Reports' },
+  'Teacher Analytics': { km: 'ស្ថិតិវិភាគគ្រូ', en: 'Teacher Analytics' },
+  'System Reports': { km: 'របាយការណ៍ប្រព័ន្ធ', en: 'System Reports' },
 
-  // AI Submenu
-  'AI Rules': { km: 'វិធាន AI', en: 'AI Rules' },
-  'Weak Topic Rules': { km: 'វិធានប្រធានបទខ្សោយ', en: 'Weak Topic Rules' },
-  'Learning Path Rules': { km: 'វិធានគន្លងសិក្សា', en: 'Learning Path Rules' },
-  'Recommendation Logs': { km: 'កំណត់ហេតុអនុសាសន៍', en: 'Recommendation Logs' },
+  // 8. AI Management
+  'AI Recommendations': { km: 'អនុសាសន៍ AI', en: 'AI Recommendations' },
+  'At-Risk Students': { km: 'និស្សិតប្រឈមហានិភ័យ (At-Risk)', en: 'At-Risk Students' },
+  'Difficult Topics': { km: 'ប្រធានបទលំបាក (Difficult Topics)', en: 'Difficult Topics' },
   'AI Configuration': { km: 'ការកំណត់រចនាសម្ព័ន្ធ AI', en: 'AI Configuration' },
-  'Student View Preview': { km: 'ទិដ្ឋភាពសម្រាប់និស្សិត', en: 'Student View Preview' },
 
-  // Certificate Submenu
-  'Templates': { km: 'គំរូវិញ្ញាបនបត្រ', en: 'Templates' },
-  'Issue Certificate': { km: 'ចេញវិញ្ញាបនបត្រ', en: 'Issue Certificate' },
-  'Issued Certificates': { km: 'វិញ្ញាបនបត្របានចេញ', en: 'Issued Certificates' },
-  'Certificate Verification': { km: 'ផ្ទៀងផ្ទាត់វិញ្ញាបនបត្រ', en: 'Certificate Verification' },
-  'Revoked Certificates': { km: 'វិញ្ញាបនបត្រដកហូត', en: 'Revoked Certificates' },
-
-  // Notifications Submenu
+  // 9. Communication
   'Announcements': { km: 'សេចក្តីប្រកាស', en: 'Announcements' },
-  'Email Notifications': { km: 'អ៊ីមែលជូនដំណឹង', en: 'Email Notifications' },
-  'Push Notifications': { km: 'Push Notifications', en: 'Push Notifications' },
-  'Scheduled Notifications': { km: 'ការជូនដំណឹងតាមកាលវិភាគ', en: 'Scheduled Notifications' },
-  'Notification History': { km: 'ប្រវត្តិការជូនដំណឹង', en: 'Notification History' },
+  'Notifications': { km: 'ការជូនដំណឹង', en: 'Notifications' },
 
-  // Discussions Submenu
-  'Discussions': { km: 'ការពិភាក្សា', en: 'Discussions' },
-  'Student Questions': { km: 'សំណួរនិស្សិត', en: 'Student Questions' },
-  'Support Tickets': { km: 'សំបុត្រជំនួយ (Tickets)', en: 'Support Tickets' },
-  'Reported Content': { km: 'មាតិកាដែលបានរាយការណ៍', en: 'Reported Content' },
-
-  // Settings Submenu
+  // 10. System Settings
   'General Settings': { km: 'ការកំណត់ទូទៅ', en: 'General Settings' },
-  'Language & Localization': { km: 'ភាសា & តំបន់', en: 'Language & Localization' },
-  'Email / SMTP': { km: 'អ៊ីមែល / SMTP', en: 'Email / SMTP' },
-  'S3 Storage': { km: 'ទំហំផ្ទុក Cloud S3', en: 'S3 Storage' },
-  'Video CDN': { km: 'បណ្តាញចែកចាយវីដេអូ CDN', en: 'Video CDN' },
-  'Redis / Queue': { km: 'Redis / ជួរការងារ (Queue)', en: 'Redis / Queue' },
-  'Reverb / Real-time': { km: 'Reverb / Real-time', en: 'Reverb / Real-time' },
-  'PWA & Offline Settings': { km: 'ការកំណត់ PWA & Offline', en: 'PWA & Offline Settings' },
-  'ABA Payment Settings': { km: 'ការកំណត់ការទូទាត់ ABA', en: 'ABA Payment Settings' },
-  'Backup & Restore': { km: 'ការបម្រុងទុក & ស្តារឡើងវិញ', en: 'Backup & Restore' },
-  'System / Audit Logs': { km: 'កំណត់ហេតុប្រព័ន្ធ / Audit', en: 'System / Audit Logs' },
+  'Academic Settings': { km: 'ការកំណត់ការសិក្សា', en: 'Academic Settings' },
+  'System Logs': { km: 'កំណត់ហេតុប្រព័ន្ធ', en: 'System Logs' },
 }
 
 const getNavTitle = (name: string): string => {
@@ -657,21 +458,18 @@ const currentBreadcrumb = computed(() => {
   const url = page.url
   const prefix = currentLang.value === 'km' ? 'អ្នកគ្រប់គ្រង' : 'Admin'
   if (url.startsWith('/admin/dashboard')) return [prefix, getNavTitle('Dashboard')]
+  if (url.startsWith('/admin/auth') || url.startsWith('/admin/auth-logs')) return [prefix, getNavTitle('Authentication')]
   if (url.startsWith('/admin/user-management')) return [prefix, getNavTitle('User Management')]
   if (url.startsWith('/admin/academic-structure')) return [prefix, getNavTitle('Academic Structure')]
   if (url.startsWith('/admin/course-module') || url.startsWith('/admin/courses')) return [prefix, getNavTitle('Course Management')]
-  if (url.startsWith('/admin/enrollment')) return [prefix, getNavTitle('Enrollment Management')]
-  if (url.startsWith('/admin/payments')) return [prefix, getNavTitle('Payment & ABA Management')]
-  if (url.startsWith('/admin/content')) return [prefix, getNavTitle('Content Delivery Module')]
-  if (url.startsWith('/admin/quizzes')) return [prefix, getNavTitle('Quiz & Assessment Module')]
-  if (url.startsWith('/admin/progress')) return [prefix, getNavTitle('Progress Tracking Module')]
-  if (url.startsWith('/admin/reports')) return [prefix, getNavTitle('Analytics & Reporting Module')]
-  if (url.startsWith('/admin/ai-rules')) return [prefix, getNavTitle('AI Recommendation Module')]
-  if (url.startsWith('/admin/certificates')) return [prefix, getNavTitle('Certificate Module')]
-  if (url.startsWith('/admin/notifications')) return [prefix, getNavTitle('Notification Module')]
-  if (url.startsWith('/admin/discussions')) return [prefix, getNavTitle('Discussions & Support')]
-  if (url.startsWith('/admin/settings')) return [prefix, getNavTitle('Settings')]
-  if (url.startsWith('/admin/auth')) return [prefix, getNavTitle('Authentication Module')]
+  if (url.startsWith('/admin/enrollment')) return [prefix, getNavTitle('Course Management'), getNavTitle('Enrollment')]
+  if (url.startsWith('/admin/quizzes')) return [prefix, getNavTitle('Assessment')]
+  if (url.startsWith('/admin/progress')) return [prefix, getNavTitle('Learning & Progress')]
+  if (url.startsWith('/admin/reports')) return [prefix, getNavTitle('Analytics & Reports')]
+  if (url.startsWith('/admin/ai-rules')) return [prefix, getNavTitle('AI Management')]
+  if (url.startsWith('/admin/certificates')) return [prefix, getNavTitle('Learning & Progress'), getNavTitle('Certificates')]
+  if (url.startsWith('/admin/notifications')) return [prefix, getNavTitle('Communication')]
+  if (url.startsWith('/admin/settings')) return [prefix, getNavTitle('System Settings')]
   return [prefix, currentLang.value === 'km' ? 'ទិដ្ឋភាពទូទៅ' : 'Overview']
 })
 
@@ -682,11 +480,12 @@ const pageTitle = computed(() => {
 })
 
 const quickActions = computed(() => [
-  { name: currentLang.value === 'km' ? 'បង្កើតអ្នកប្រើប្រាស់' : 'Add User', href: '/admin/user-management/all', iconUrl: '/images/actions/add-user.svg' },
+  { name: currentLang.value === 'km' ? 'បង្កើតអ្នកប្រើប្រាស់' : 'Add User', href: '/admin/user-management/students', iconUrl: '/images/actions/add-user.svg' },
   { name: currentLang.value === 'km' ? 'បង្កើតវគ្គសិក្សា' : 'Add Course', href: '/admin/course-module/all', iconUrl: '/images/actions/add-course.svg' },
-  { name: currentLang.value === 'km' ? 'ផ្ទៀងផ្ទាត់ការបង់ប្រាក់ ABA' : 'Verify ABA Payment', href: '/admin/payments?status=pending', iconUrl: '/images/actions/payment.svg' },
+  { name: currentLang.value === 'km' ? 'ចុះឈ្មោះនិស្សិត' : 'Enroll Student', href: '/admin/enrollment/courses', iconUrl: '/images/nav/enrollment.svg' },
+  { name: currentLang.value === 'km' ? 'និស្សិតប្រឈមហានិភ័យ' : 'At-Risk Students', href: '/admin/progress?tab=at_risk', iconUrl: '/images/nav/sub/failed.svg' },
   { name: currentLang.value === 'km' ? 'ផ្ញើសារប្រកាស' : 'Announcement', href: '/admin/notifications/announcements', iconUrl: '/images/actions/announcement.svg' },
-  { name: currentLang.value === 'km' ? 'ចេញវិញ្ញាបនបត្រ' : 'Issue Certificate', href: '/admin/certificates/issue', iconUrl: '/images/actions/certificate.svg' }
+  { name: currentLang.value === 'km' ? 'ចេញវិញ្ញាបនបត្រ' : 'Issue Certificate', href: '/admin/certificates/issued', iconUrl: '/images/actions/certificate.svg' }
 ])
 
 const searchableLinks = computed(() => {

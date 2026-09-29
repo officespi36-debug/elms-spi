@@ -154,19 +154,19 @@ class DatabaseSeeder extends Seeder
             'is_active'   => true,
         ]);
 
-        // Majors
+        // Majors (The 5 Thesis Core Majors)
         Major::updateOrCreate(['code' => 'MJR-IT-001'], [
             'department_id' => $d1->id,
-            'name'          => 'IT & Networking',
-            'name_kh'       => 'បច្ចេកវិទ្យាព័ត៌មាន និងបណ្តាញ',
-            'description'   => 'Information Technology, Cloud & Networking',
+            'name'          => 'Information Technology',
+            'name_kh'       => 'បច្ចេកវិទ្យាព័ត៌មាន',
+            'description'   => 'Information Technology, Software & Networking',
             'is_active'     => true,
         ]);
 
         Major::updateOrCreate(['code' => 'MJR-TRM-002'], [
             'department_id' => $d2->id,
-            'name'          => 'Tourism Management',
-            'name_kh'       => 'គ្រប់គ្រងទេសចរណ៍',
+            'name'          => 'Tourism',
+            'name_kh'       => 'ទេសចរណ៍',
             'description'   => 'Tourism Services & Hospitality Management',
             'is_active'     => true,
         ]);
@@ -181,9 +181,9 @@ class DatabaseSeeder extends Seeder
 
         Major::updateOrCreate(['code' => 'MJR-AGR-004'], [
             'department_id' => $d4->id,
-            'name'          => 'Agronomy',
-            'name_kh'       => 'កសិកម្មសាស្ត្រ',
-            'description'   => 'Modern Agronomy and Soil Science',
+            'name'          => 'Agriculture',
+            'name_kh'       => 'កសិកម្ម',
+            'description'   => 'Modern Agriculture and Crop Science',
             'is_active'     => true,
         ]);
 
