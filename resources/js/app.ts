@@ -49,7 +49,7 @@ if (typeof window !== 'undefined') {
 }
 
 createInertiaApp({
-  title: (t) => t ? `🎓 E-LMS | ${t}` : '🎓 E-LMS',
+  title: (t) => t ? `${t} | E-LMS` : 'E-LMS',
   resolve: async (name) => {
     try {
       return await resolvePageComponent(
