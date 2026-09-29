@@ -165,12 +165,29 @@ function exportReport() {
 }
 
 // ── ApexCharts Configuration ────────────────────────────────
+const defaultCategories = computed(() => {
+  if (chartTimeframe.value === 'daily') {
+    return currentLang.value === 'km' 
+      ? ['ច័ន្ទ', 'អង្គារ', 'ពុធ', 'ព្រហស្បតិ៍', 'សុក្រ', 'សៅរ៍', 'អាទិត្យ']
+      : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+  }
+  if (chartTimeframe.value === 'weekly') {
+    return currentLang.value === 'km'
+      ? ['សប្តាហ៍ទី ១', 'សប្តាហ៍ទី ២', 'សប្តាហ៍ទី ៣', 'សប្តាហ៍ទី ៤']
+      : ['W1', 'W2', 'W3', 'W4']
+  }
+  return currentLang.value === 'km'
+    ? ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ']
+    : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+})
+
 const activeChartData = computed(() => {
   const tf = chartTimeframe.value
-  return props.enrollmentChartData?.[tf] || props.enrollmentChartData?.monthly || {
-    categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    enrollments: [140, 220, 310, 450, 520, 680, 720, 610, 590, 810, 940, 1120],
-    completions: [90, 150, 210, 310, 390, 510, 540, 480, 460, 640, 720, 890],
+  const data = props.enrollmentChartData?.[tf] || props.enrollmentChartData?.monthly
+  return {
+    categories: defaultCategories.value,
+    enrollments: data?.enrollments || [140, 220, 310, 450, 520, 680, 720, 610, 590, 810, 940, 1120],
+    completions: data?.completions || [90, 150, 210, 310, 390, 510, 540, 480, 460, 640, 720, 890],
   }
 })
 
@@ -484,7 +501,7 @@ const actionTasks = computed(() => [
           </div>
 
           <div class="h-[250px]">
-            <VueApexCharts :key="isDark ? 'dark' : 'light'" type="area" height="100%" :options="(enrollmentChartOptions as any)" :series="enrollmentSeries" />
+            <VueApexCharts :key="`${isDark ? 'dark' : 'light'}_${currentLang}_${chartTimeframe}`" type="area" height="100%" :options="(enrollmentChartOptions as any)" :series="enrollmentSeries" />
           </div>
         </div>
 
@@ -522,7 +539,7 @@ const actionTasks = computed(() => [
           <!-- Tab 1: Completion Ratio Donut -->
           <div v-if="rightChartTab === 'completion'" class="space-y-3">
             <div class="h-[170px] flex items-center justify-center">
-              <VueApexCharts :key="isDark ? 'dark-donut' : 'light-donut'" type="donut" height="100%" width="100%" :options="(completionDonutOptions as any)" :series="completionDonutSeries" />
+              <VueApexCharts :key="`${isDark ? 'dark-donut' : 'light-donut'}_${currentLang}_${rightChartTab}`" type="donut" height="100%" width="100%" :options="(completionDonutOptions as any)" :series="completionDonutSeries" />
             </div>
             <div class="grid grid-cols-3 gap-2 text-center text-xs border-t border-slate-100 dark:border-slate-700/60 pt-2">
               <div class="bg-slate-50 dark:bg-slate-900/60 p-2 rounded-xl border border-slate-200/80 dark:border-slate-800">
@@ -597,7 +614,7 @@ const actionTasks = computed(() => [
             </div>
             <div class="text-right border-t border-slate-100 dark:border-slate-700/60 pt-2">
               <Link href="/admin/academic-structure/majors" class="text-[11px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 font-semibold">
-                Manage All Majors →
+                {{ currentLang === 'km' ? 'គ្រប់គ្រងជំនាញទាំងអស់ →' : 'Manage All Majors →' }}
               </Link>
             </div>
           </div>
