@@ -71,7 +71,7 @@
     <link rel="dns-prefetch" href="https://ui-avatars.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:ital,wght@0,100..700;1,100..700&family=Koh+Santepheap:wght@400;700;900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
 
     <!-- Favicon Links for Google Search, Mobile, and Desktop Browsers -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico">

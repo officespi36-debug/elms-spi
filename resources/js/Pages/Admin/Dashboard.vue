@@ -267,7 +267,7 @@ const actionTasks = computed(() => [
 </script>
 
 <template>
-  <AdminLayout>
+  <AdminLayout :title="currentLang === 'km' ? 'ផ្ទាំងគ្រប់គ្រង' : 'Dashboard'">
     <div class="space-y-5 text-slate-800 dark:text-slate-100 font-sans pb-10">
       
       <!-- ── EXECUTIVE DASHBOARD HEADER ── -->
@@ -279,7 +279,7 @@ const actionTasks = computed(() => [
           <div>
             <div class="flex items-center gap-2.5">
               <span class="text-xl">📊</span>
-              <h2 class="text-xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-sky-600 to-indigo-700 dark:from-indigo-400 dark:via-cyan-300 dark:to-sky-400 tracking-tight">
+              <h2 class="text-xl sm:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-sky-600 to-indigo-700 dark:from-indigo-400 dark:via-cyan-300 dark:to-sky-400 tracking-normal font-sans leading-relaxed">
                 {{ currentLang === 'km' ? 'ផ្ទាំងគ្រប់គ្រងប្រតិបត្តិការទូទៅ' : 'Admin Executive Dashboard' }}
               </h2>
             </div>

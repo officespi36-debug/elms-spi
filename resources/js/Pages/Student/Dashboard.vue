@@ -444,7 +444,7 @@ const recentActivities = computed(() => [
       <!-- TOP GREETING & QUICK SHORTCUTS ROW -->
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 p-5 rounded-3xl shadow-xs dark:shadow-xl">
         <div class="space-y-1">
-          <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+          <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-normal leading-relaxed font-sans flex items-center gap-2">
             <span>{{ currentLang === 'km' ? `សូមស្វាគមន៍ការត្រឡប់មកវិញ, ${user.name || 'Sok Pisey'}!` : `Welcome back, ${user.name || 'Sok Pisey'}!` }}</span>
             <span class="inline-block animate-pulse text-indigo-500">✨</span>
           </h1>

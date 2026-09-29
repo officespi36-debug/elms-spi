@@ -678,7 +678,7 @@ const currentBreadcrumb = computed(() => {
 const pageTitle = computed(() => {
   if (props.title) return props.title
   const crumb = currentBreadcrumb.value
-  return crumb.length > 1 ? crumb[crumb.length - 1] : 'Admin Dashboard'
+  return crumb.length > 1 ? crumb[crumb.length - 1] : (currentLang.value === 'km' ? 'ផ្ទាំងគ្រប់គ្រង' : 'Admin Dashboard')
 })
 
 const quickActions = computed(() => [
