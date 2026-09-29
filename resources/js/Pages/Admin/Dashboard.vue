@@ -288,7 +288,7 @@ const actionTasks = computed(() => [
     <div class="space-y-5 text-slate-800 dark:text-slate-100 font-sans pb-10">
       
       <!-- ── EXECUTIVE DASHBOARD HEADER ── -->
-      <div class="relative overflow-hidden bg-white dark:bg-gradient-to-r dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-xl backdrop-blur-xl">
+      <div class="relative overflow-hidden bg-white dark:bg-linear-to-r dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-xl backdrop-blur-xl">
         <!-- Ambient background glow -->
         <div class="absolute -top-12 -right-12 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -296,7 +296,7 @@ const actionTasks = computed(() => [
           <div>
             <div class="flex items-center gap-2.5">
               <span class="text-xl">📊</span>
-              <h2 class="text-xl sm:text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-sky-600 to-indigo-700 dark:from-indigo-400 dark:via-cyan-300 dark:to-sky-400 tracking-normal font-sans leading-relaxed">
+              <h2 class="text-xl sm:text-2xl font-black bg-clip-text text-transparent bg-linear-to-r from-indigo-600 via-sky-600 to-indigo-700 dark:from-indigo-400 dark:via-cyan-300 dark:to-sky-400 tracking-normal font-sans leading-relaxed">
                 {{ currentLang === 'km' ? 'ផ្ទាំងគ្រប់គ្រងប្រតិបត្តិការទូទៅ' : 'Admin Executive Dashboard' }}
               </h2>
             </div>
@@ -605,11 +605,11 @@ const actionTasks = computed(() => [
           <div v-else class="space-y-2.5 py-1">
             <div v-for="m in studentsByMajor.slice(0, 4)" :key="m.name" class="space-y-1 text-xs">
               <div class="flex justify-between text-slate-700 dark:text-slate-300">
-                <span class="font-medium truncate max-w-[170px]">{{ m.name }}</span>
+                <span class="font-medium truncate max-w-44">{{ m.name }}</span>
                 <span class="font-bold text-indigo-600 dark:text-indigo-300">{{ m.count }} {{ currentLang === 'km' ? 'នាក់' : 'stds' }}</span>
               </div>
               <div class="w-full bg-slate-100 dark:bg-slate-900 h-1.5 rounded-full overflow-hidden">
-                <div class="bg-gradient-to-r from-indigo-500 to-cyan-400 h-full rounded-full" :style="{ width: `${m.pct * 4}%` }"></div>
+                <div class="bg-linear-to-r from-indigo-500 to-cyan-400 h-full rounded-full" :style="{ width: `${m.pct * 4}%` }"></div>
               </div>
             </div>
             <div class="text-right border-t border-slate-100 dark:border-slate-700/60 pt-2">
