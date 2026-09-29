@@ -33,6 +33,7 @@ export const i18n = {
       if (typeof window !== 'undefined') {
         document.documentElement.lang = lang
         localStorage.setItem('elms_lang', lang)
+        window.dispatchEvent(new CustomEvent('elms-lang-change', { detail: lang }))
       }
     } catch (e) {}
   },
@@ -41,3 +42,17 @@ export const i18n = {
     this.setLanguage(currentLocale.value === 'km' ? 'en' : 'km')
   }
 }
+
+if (typeof window !== 'undefined') {
+  try {
+    document.documentElement.lang = currentLocale.value
+
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'elms_lang' && (e.newValue === 'km' || e.newValue === 'en')) {
+        currentLocale.value = e.newValue
+        document.documentElement.lang = e.newValue
+      }
+    })
+  } catch (e) {}
+}
+

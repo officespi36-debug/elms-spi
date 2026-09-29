@@ -937,7 +937,7 @@ const onIconError = (e: Event) => {
             <h1 class="text-sm font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-500 tracking-tight whitespace-nowrap">
               E-LMS Student
             </h1>
-            <p class="text-[10px] text-slate-400 font-medium tracking-wide uppercase whitespace-nowrap">Student Panel</p>
+            <p class="text-[10px] text-slate-400 font-medium tracking-wide uppercase whitespace-nowrap">{{ currentLang === 'km' ? 'ផ្ទាំងសិស្ស' : 'Student Panel' }}</p>
           </div>
         </Link>
 
@@ -945,7 +945,7 @@ const onIconError = (e: Event) => {
         <button
           @click="toggleSidebarCollapse"
           type="button"
-          :title="isSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'"
+          :title="isSidebarCollapsed ? (currentLang === 'km' ? 'ពង្រីកម៉ឺនុយ' : 'Expand Sidebar') : (currentLang === 'km' ? 'បង្រួមម៉ឺនុយ' : 'Collapse Sidebar')"
           :class="[
             isSidebarCollapsed
               ? 'absolute -right-3 top-1/2 -translate-y-1/2 bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 border border-slate-200 dark:border-slate-700 shadow-md rounded-full p-1 hover:scale-110 hover:bg-slate-50 dark:hover:bg-slate-700 z-10'
@@ -1211,13 +1211,13 @@ const onIconError = (e: Event) => {
                 {{ user.name || 'Sok Pisey' }}
               </p>
               <p class="text-[10px] text-slate-400 truncate">
-                Student ID: {{ user.student_id || 'STU2024001' }}
+                {{ currentLang === 'km' ? 'អត្តលេខសិស្ស:' : 'Student ID:' }} {{ user.student_id || 'STU2024001' }}
               </p>
             </div>
           </div>
 
           <div v-show="!isSidebarCollapsed" class="flex items-center gap-1 text-purple-400 group-hover:translate-x-0.5 transition-transform shrink-0">
-            <span class="text-[10px] font-semibold">View Profile</span>
+            <span class="text-[10px] font-semibold">{{ currentLang === 'km' ? 'មើលគណនី' : 'View Profile' }}</span>
             <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
           </div>
         </Link>
@@ -1226,7 +1226,7 @@ const onIconError = (e: Event) => {
         <button
           @click="logout"
           type="button"
-          :title="isSidebarCollapsed ? 'Log Out' : undefined"
+          :title="isSidebarCollapsed ? (currentLang === 'km' ? 'ចាកចេញ' : 'Log Out') : undefined"
           :class="[
             isSidebarCollapsed ? 'justify-center w-10 h-10 mx-auto' : 'px-3 w-full justify-start gap-2.5',
             'flex items-center py-2 rounded-xl text-xs font-semibold text-rose-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer'
@@ -1235,7 +1235,7 @@ const onIconError = (e: Event) => {
           <svg class="w-4 h-4 shrink-0 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>
-          <span v-show="!isSidebarCollapsed">Log Out</span>
+          <span v-show="!isSidebarCollapsed">{{ currentLang === 'km' ? 'ចាកចេញ' : 'Log Out' }}</span>
         </button>
       </div>
     </aside>
@@ -1373,7 +1373,9 @@ const onIconError = (e: Event) => {
             >
               <div class="flex items-center gap-2 truncate min-w-0 flex-1">
                 <svg class="w-3.5 h-3.5 text-indigo-500 shrink-0 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                <span class="truncate text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-300">ស្វែងរក... (Search 13 Modules)</span>
+                <span class="truncate text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-300">
+                  {{ currentLang === 'km' ? 'ស្វែងរកម៉ូឌុលទាំង ១៣...' : 'Search 13 Modules...' }}
+                </span>
               </div>
               <kbd class="hidden lg:inline-flex items-center shrink-0 whitespace-nowrap px-1.5 py-0.5 text-[10px] font-mono font-semibold text-slate-400 bg-white dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700/60 rounded shadow-xs leading-none">ctrl k</kbd>
             </button>
@@ -1400,7 +1402,7 @@ const onIconError = (e: Event) => {
               class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/60 hover:bg-slate-200 dark:hover:bg-slate-800 text-xs font-semibold border border-slate-200 dark:border-slate-700/60 transition-all cursor-pointer"
             >
               <span :class="[isOnline ? 'bg-emerald-500' : 'bg-slate-500', 'w-2 h-2 rounded-full shadow-xs']"></span>
-              <span class="hidden md:inline text-slate-700 dark:text-slate-300 text-[11px]">{{ isOnline ? 'Online' : 'Offline' }}</span>
+              <span class="hidden md:inline text-slate-700 dark:text-slate-300 text-[11px]">{{ currentLang === 'km' ? (isOnline ? 'អនឡាញ' : 'ក្រៅបណ្ដាញ') : (isOnline ? 'Online' : 'Offline') }}</span>
             </button>
 
             <div
@@ -1412,14 +1414,14 @@ const onIconError = (e: Event) => {
                 class="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-left font-medium"
               >
                 <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                <span>Online (មានវត្តមាន)</span>
+                <span>{{ currentLang === 'km' ? 'អនឡាញ (មានវត្តមាន)' : 'Online (Active)' }}</span>
               </button>
               <button
                 @click="setStatusMode(false)"
                 class="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-left font-medium"
               >
                 <span class="w-2 h-2 rounded-full bg-slate-500"></span>
-                <span>Offline (ក្រៅបណ្តាញ)</span>
+                <span>{{ currentLang === 'km' ? 'ក្រៅបណ្តាញ (Offline)' : 'Offline (Inactive)' }}</span>
               </button>
             </div>
           </div>
@@ -1600,7 +1602,7 @@ const onIconError = (e: Event) => {
                   <svg class="w-4 h-4 text-purple-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                   </svg>
-                  <span>Profile Settings (ការកំណត់គណនី)</span>
+                  <span>{{ currentLang === 'km' ? 'ការកំណត់គណនី' : 'Profile Settings' }}</span>
                 </Link>
                 <Link
                   href="/student/my-courses/current"
@@ -1610,7 +1612,7 @@ const onIconError = (e: Event) => {
                   <svg class="w-4 h-4 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                   </svg>
-                  <span>My Courses (វគ្គសិក្សារបស់ខ្ញុំ)</span>
+                  <span>{{ currentLang === 'km' ? 'វគ្គសិក្សារបស់ខ្ញុំ' : 'My Courses' }}</span>
                 </Link>
                 <Link
                   href="/student/certificates/my-certificates"
@@ -1620,7 +1622,7 @@ const onIconError = (e: Event) => {
                   <svg class="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.003 0H9.497m5.003 0a3 3 0 002.828-2.002l1.636-4.908A1.125 1.125 0 0017.896 6H6.104a1.125 1.125 0 00-1.068 1.465l1.636 4.908a3 3 0 002.828 2.002z" />
                   </svg>
-                  <span>My Certificates (វិញ្ញាបនបត្រ)</span>
+                  <span>{{ currentLang === 'km' ? 'វិញ្ញាបនបត្ររបស់ខ្ញុំ' : 'My Certificates' }}</span>
                 </Link>
                 <Link
                   href="/student/payments/my-payments"
@@ -1630,7 +1632,7 @@ const onIconError = (e: Event) => {
                   <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
                   </svg>
-                  <span>Payment & ABA (ការបង់ប្រាក់)</span>
+                  <span>{{ currentLang === 'km' ? 'ការទូទាត់ & ABA' : 'Payment & ABA' }}</span>
                 </Link>
               </template>
             </ProfileAccountDropdown>
@@ -1651,7 +1653,7 @@ const onIconError = (e: Event) => {
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Search all 13 modules, quizzes, courses, labs, certificates..."
+            :placeholder="currentLang === 'km' ? 'ស្វែងរកម៉ូឌុលទាំង ១៣, កម្រងសំណួរ, វគ្គសិក្សា, ការអនុវត្ត...' : 'Search all 13 modules, quizzes, courses, labs, certificates...'"
             class="w-full bg-transparent text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none"
             autofocus
           />
@@ -1678,7 +1680,7 @@ const onIconError = (e: Event) => {
           </Link>
 
           <div v-if="filteredSearchLinks.length === 0" class="py-8 text-center text-xs text-slate-400">
-            No matching student modules found for "{{ searchQuery }}"
+            {{ currentLang === 'km' ? `មិនមានម៉ូឌុលត្រូវគ្នានឹង "${searchQuery}" ទេ` : `No matching student modules found for "${searchQuery}"` }}
           </div>
         </div>
       </div>

@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { Link, usePage } from '@inertiajs/vue3'
 import StudentLayout from '@/Layouts/StudentLayout.vue'
+import { i18n } from '@/Services/i18n'
 
 const props = defineProps<{
   stats?: {
@@ -38,54 +39,55 @@ const props = defineProps<{
 
 const page = usePage<any>()
 const user = computed(() => page.props.auth?.user || {})
+const currentLang = computed(() => i18n.locale.value)
 
 // 6 Top Stats Metrics with real Lucide SVG icons
 const statsCards = computed(() => [
   {
     type: 'enrolled',
-    title: 'Enrolled Courses',
+    title: currentLang.value === 'km' ? 'វគ្គសិក្សាបានចុះឈ្មោះ' : 'Enrolled Courses',
     value: props.stats?.enrolledCount?.toString() || '4',
-    subtitle: 'Total Courses',
+    subtitle: currentLang.value === 'km' ? 'វគ្គសិក្សាសរុប' : 'Total Courses',
     iconBg: 'bg-purple-600/20 text-purple-600 dark:text-purple-400 border border-purple-500/30',
     href: '/student/my-courses/enrolled'
   },
   {
     type: 'in_progress',
-    title: 'In Progress',
+    title: currentLang.value === 'km' ? 'កំពុងសិក្សា' : 'In Progress',
     value: props.stats?.inProgressCount?.toString() || '2',
-    subtitle: 'Active Courses',
+    subtitle: currentLang.value === 'km' ? 'វគ្គសិក្សាសកម្ម' : 'Active Courses',
     iconBg: 'bg-blue-600/20 text-blue-600 dark:text-blue-400 border border-blue-500/30',
     href: '/student/my-courses/enrolled'
   },
   {
     type: 'completed',
-    title: 'Completed',
+    title: currentLang.value === 'km' ? 'បានបញ្ចប់' : 'Completed',
     value: props.stats?.completedCount?.toString() || '1',
-    subtitle: 'Finished Courses',
+    subtitle: currentLang.value === 'km' ? 'វគ្គសិក្សាបញ្ចប់' : 'Finished Courses',
     iconBg: 'bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30',
     href: '/student/my-courses/completed'
   },
   {
     type: 'certificates',
-    title: 'Certificates',
+    title: currentLang.value === 'km' ? 'វិញ្ញាបនបត្រ' : 'Certificates',
     value: props.stats?.certificatesCount?.toString() || '1',
-    subtitle: 'Earned',
+    subtitle: currentLang.value === 'km' ? 'ទទួលបាន' : 'Earned',
     iconBg: 'bg-amber-600/20 text-amber-600 dark:text-amber-400 border border-amber-500/30',
     href: '/student/certificates/my-certificates'
   },
   {
     type: 'study_time',
-    title: 'Study Time',
-    value: props.stats?.learningTime || '28h 45m',
-    subtitle: 'Total Hours',
+    title: currentLang.value === 'km' ? 'ម៉ោងសិក្សា' : 'Study Time',
+    value: props.stats?.learningTime || (currentLang.value === 'km' ? '២៨h ៤៥m' : '28h 45m'),
+    subtitle: currentLang.value === 'km' ? 'ម៉ោងសរុប' : 'Total Hours',
     iconBg: 'bg-cyan-600/20 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30',
     href: '/student/progress/learning-time'
   },
   {
     type: 'quiz_avg',
-    title: 'Quiz Average',
+    title: currentLang.value === 'km' ? 'មធ្យមភាគ Quiz' : 'Quiz Average',
     value: props.stats?.averageScore || '78%',
-    subtitle: 'Your Average',
+    subtitle: currentLang.value === 'km' ? 'ពិន្ទុមធ្យមរបស់អ្នក' : 'Your Average',
     iconBg: 'bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30',
     href: '/student/quizzes/scores'
   }
@@ -97,12 +99,12 @@ const continueCourseData = computed(() => {
     return props.continueCourse
   }
   return {
-    title: 'Web Development Fundamentals',
-    chapter: 'Chapter 3 - JavaScript Functions',
+    title: currentLang.value === 'km' ? 'មូលដ្ឋានគ្រឹះ Web Development' : 'Web Development Fundamentals',
+    chapter: currentLang.value === 'km' ? 'ជំពូកទី ៣ - JavaScript Functions' : 'Chapter 3 - JavaScript Functions',
     teacher: 'Mr. Sophea Chem',
     progress: 53,
-    lastLesson: '3.2 JavaScript Functions',
-    timeLeft: '18:20 left',
+    lastLesson: currentLang.value === 'km' ? '៣.២ JavaScript Functions' : '3.2 JavaScript Functions',
+    timeLeft: currentLang.value === 'km' ? 'នៅសល់ 18:20' : '18:20 left',
     href: '/student/my-courses/current'
   }
 })
@@ -113,8 +115,20 @@ const todayGoal = ref({
   totalCount: 2,
   percentage: 50,
   items: [
-    { id: 1, title: 'Chapter 3 - JavaScript Functions', completed: true, href: '/student/my-courses/current' },
-    { id: 2, title: 'Practice 10 quiz questions', completed: false, href: '/student/quizzes/practice' }
+    {
+      id: 1,
+      titleEn: 'Chapter 3 - JavaScript Functions',
+      titleKm: 'ជំពូកទី ៣ - JavaScript Functions',
+      completed: true,
+      href: '/student/my-courses/current'
+    },
+    {
+      id: 2,
+      titleEn: 'Practice 10 quiz questions',
+      titleKm: 'អនុវត្តសំណួរ Quiz ចំនួន ១០',
+      completed: false,
+      href: '/student/quizzes/practice'
+    }
   ]
 })
 
@@ -135,9 +149,11 @@ const recalculateGoals = () => {
 
 const addNewGoal = () => {
   if (!newGoalTitle.value.trim()) return
+  const text = newGoalTitle.value.trim()
   todayGoal.value.items.push({
     id: Date.now(),
-    title: newGoalTitle.value.trim(),
+    titleEn: text,
+    titleKm: text,
     completed: false,
     href: '/student/my-courses/current'
   })
@@ -147,24 +163,28 @@ const addNewGoal = () => {
 }
 
 // AI Recommended For You Widget Data
-const aiRecommendations = ref([
+const aiRecommendations = computed(() => [
   {
     id: 1,
     type: 'weak_topic',
-    title: 'Review JavaScript Functions',
-    badge: 'Score: 62%',
-    desc: 'Based on your recent quiz errors in Chapter 3.2. Reinforce parameter scope before DOM topics.',
-    actionLabel: 'Review Lesson',
+    title: currentLang.value === 'km' ? 'រំលឹកឡើងវិញ JavaScript Functions' : 'Review JavaScript Functions',
+    badge: currentLang.value === 'km' ? 'ពិន្ទុ: 62%' : 'Score: 62%',
+    desc: currentLang.value === 'km'
+      ? 'ផ្អែកលើកំហុស Quiz ថ្មីៗរបស់អ្នកក្នុងជំពូក 3.2។ ពង្រឹង parameter scope មុននឹងចូលរៀនប្រធានបទ DOM។'
+      : 'Based on your recent quiz errors in Chapter 3.2. Reinforce parameter scope before DOM topics.',
+    actionLabel: currentLang.value === 'km' ? 'រំលឹកមេរៀន' : 'Review Lesson',
     actionHref: '/student/my-courses/current',
     btnClass: 'bg-purple-600 hover:bg-purple-500 text-white'
   },
   {
     id: 2,
     type: 'practice_drill',
-    title: 'Practice 5 AI Questions',
-    badge: 'Focus: Parameters',
-    desc: 'Customized drill to improve your function return statement speed and accuracy.',
-    actionLabel: 'Practice with AI',
+    title: currentLang.value === 'km' ? 'អនុវត្តសំណួរ AI ចំនួន ៥' : 'Practice 5 AI Questions',
+    badge: currentLang.value === 'km' ? 'ផ្ដោតលើ: Parameters' : 'Focus: Parameters',
+    desc: currentLang.value === 'km'
+      ? 'ការហ្វឹកហាត់ពិសេសដើម្បីបង្កើនល្បឿន និងភាពត្រឹមត្រូវនៃ function return statement។'
+      : 'Customized drill to improve your function return statement speed and accuracy.',
+    actionLabel: currentLang.value === 'km' ? 'អនុវត្តជាមួយ AI' : 'Practice with AI',
     actionHref: '/student/quizzes/practice',
     btnClass: 'bg-emerald-600 hover:bg-emerald-500 text-white'
   }
@@ -173,14 +193,14 @@ const aiRecommendations = ref([
 // My Courses Filter and List
 const selectedCourseFilter = ref<'all' | 'in_progress' | 'completed' | 'not_started'>('all')
 
-const fallbackCoursesList = [
+const fallbackCoursesList = computed(() => [
   {
     id: 1,
-    title: 'Web Development Fundamentals',
+    title: currentLang.value === 'km' ? 'មូលដ្ឋានគ្រឹះ Web Development' : 'Web Development Fundamentals',
     teacher: 'Mr. Sophea Chem',
     progress: 53,
-    status: 'in_progress',
-    statusLabel: 'In Progress',
+    status: 'in_progress' as const,
+    statusLabel: currentLang.value === 'km' ? 'កំពុងសិក្សា' : 'In Progress',
     badgeClass: 'bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/30',
     iconType: 'code',
     iconColor: 'from-blue-600 to-purple-600',
@@ -188,11 +208,11 @@ const fallbackCoursesList = [
   },
   {
     id: 2,
-    title: 'Database Systems',
+    title: currentLang.value === 'km' ? 'ប្រព័ន្ធមូលដ្ឋានទិន្នន័យ (Database)' : 'Database Systems',
     teacher: 'Mr. Long Dararith',
     progress: 35,
-    status: 'in_progress',
-    statusLabel: 'In Progress',
+    status: 'in_progress' as const,
+    statusLabel: currentLang.value === 'km' ? 'កំពុងសិក្សា' : 'In Progress',
     badgeClass: 'bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/30',
     iconType: 'db',
     iconColor: 'from-purple-600 to-indigo-600',
@@ -200,11 +220,11 @@ const fallbackCoursesList = [
   },
   {
     id: 3,
-    title: 'Python Programming',
+    title: currentLang.value === 'km' ? 'ការសរសេរកម្មវិធី Python' : 'Python Programming',
     teacher: 'Mr. Eng Thida',
     progress: 0,
-    status: 'not_started',
-    statusLabel: 'Not Started',
+    status: 'not_started' as const,
+    statusLabel: currentLang.value === 'km' ? 'មិនទាន់ចាប់ផ្ដើម' : 'Not Started',
     badgeClass: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700',
     iconType: 'python',
     iconColor: 'from-amber-600 to-yellow-600',
@@ -212,23 +232,23 @@ const fallbackCoursesList = [
   },
   {
     id: 4,
-    title: 'UI/UX Design Basics',
+    title: currentLang.value === 'km' ? 'មូលដ្ឋានគ្រឹះ UI/UX Design' : 'UI/UX Design Basics',
     teacher: 'Ms. Nhean Sreymom',
     progress: 100,
-    status: 'completed',
-    statusLabel: 'Completed',
+    status: 'completed' as const,
+    statusLabel: currentLang.value === 'km' ? 'បានបញ្ចប់' : 'Completed',
     badgeClass: 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/30',
     iconType: 'design',
     iconColor: 'from-pink-600 to-purple-600',
     href: '/student/courses/4/overview'
   }
-]
+])
 
 const coursesToDisplay = computed(() => {
   if (props.dbCourses && props.dbCourses.length > 0) {
     return props.dbCourses
   }
-  return fallbackCoursesList
+  return fallbackCoursesList.value
 })
 
 const filteredCourses = computed(() => {
@@ -238,63 +258,63 @@ const filteredCourses = computed(() => {
 
 // Learning Overview Chart Range Switcher
 const selectedRange = ref<'week' | 'last_week' | 'month'>('week')
-const chartDataByRange = {
+const chartDataByRange = computed(() => ({
   week: {
-    total: '2h 30m',
-    sub: 'Today vs average',
+    total: currentLang.value === 'km' ? '២ ម៉ោង ៣០ នាទី' : '2h 30m',
+    sub: currentLang.value === 'km' ? 'ថ្ងៃនេះធៀបនឹងមធ្យមភាគ' : 'Today vs average',
     pathArea: 'M 10 60 Q 40 40 70 55 T 130 25 T 190 40 L 190 75 L 10 75 Z',
     pathLine: 'M 10 60 Q 40 40 70 55 T 130 25 T 190 40',
     dotX: 130,
     dotY: 25,
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    labels: currentLang.value === 'km' ? ['ច័ន្ទ', 'អង្គារ', 'ពុធ', 'ព្រហ', 'សុក្រ', 'សៅរ៍', 'អាទិត្យ'] : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
   },
   last_week: {
-    total: '14h 10m',
-    sub: 'Last week total',
+    total: currentLang.value === 'km' ? '១៤ ម៉ោង ១០ នាទី' : '14h 10m',
+    sub: currentLang.value === 'km' ? 'សរុបសប្តាហ៍មុន' : 'Last week total',
     pathArea: 'M 10 50 Q 40 30 70 45 T 130 35 T 190 20 L 190 75 L 10 75 Z',
     pathLine: 'M 10 50 Q 40 30 70 45 T 130 35 T 190 20',
     dotX: 190,
     dotY: 20,
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    labels: currentLang.value === 'km' ? ['ច័ន្ទ', 'អង្គារ', 'ពុធ', 'ព្រហ', 'សុក្រ', 'សៅរ៍', 'អាទិត្យ'] : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
   },
   month: {
-    total: '48h 20m',
-    sub: 'May 2025 cumulative',
+    total: currentLang.value === 'km' ? '៤៨ ម៉ោង ២០ នាទី' : '48h 20m',
+    sub: currentLang.value === 'km' ? 'សរុបប្រចាំខែ ឧសភា' : 'May cumulative',
     pathArea: 'M 10 65 Q 50 50 90 35 T 150 20 T 190 15 L 190 75 L 10 75 Z',
     pathLine: 'M 10 65 Q 50 50 90 35 T 150 20 T 190 15',
     dotX: 150,
     dotY: 20,
-    labels: ['W1', 'W2', 'W3', 'W4', '', '', '']
+    labels: currentLang.value === 'km' ? ['ស១', 'ស២', 'ស៣', 'ស៤', '', '', ''] : ['W1', 'W2', 'W3', 'W4', '', '', '']
   }
-}
+}))
 
 // Upcoming Schedule with real SVG icon type
-const upcomingEvents = ref([
+const upcomingEvents = computed(() => [
   {
     id: 1,
     type: 'quiz',
-    title: 'Quiz: Chapter 3 Quiz',
-    course: 'Web Development Fundamentals',
-    date: 'May 28, 2025',
-    time: '10:00 AM',
+    title: currentLang.value === 'km' ? 'Quiz: Quiz ជំពូកទី ៣' : 'Quiz: Chapter 3 Quiz',
+    course: currentLang.value === 'km' ? 'មូលដ្ឋានគ្រឹះ Web Development' : 'Web Development Fundamentals',
+    date: currentLang.value === 'km' ? '២៨ ឧសភា ២០២៥' : 'May 28, 2025',
+    time: currentLang.value === 'km' ? 'ម៉ោង ១០:០០ ព្រឹក' : '10:00 AM',
     href: '/student/quizzes/practice'
   },
   {
     id: 2,
     type: 'live',
-    title: 'Live Class: JavaScript DOM',
-    course: 'Web Development Fundamentals',
-    date: 'May 30, 2025',
-    time: '02:00 PM',
+    title: currentLang.value === 'km' ? 'ថ្នាក់រៀនផ្ទាល់: JavaScript DOM' : 'Live Class: JavaScript DOM',
+    course: currentLang.value === 'km' ? 'មូលដ្ឋានគ្រឹះ Web Development' : 'Web Development Fundamentals',
+    date: currentLang.value === 'km' ? '៣០ ឧសភា ២០២៥' : 'May 30, 2025',
+    time: currentLang.value === 'km' ? 'ម៉ោង ០២:០០ រសៀល' : '02:00 PM',
     href: '/student/calendar/live-class'
   },
   {
     id: 3,
     type: 'assignment',
-    title: 'Assignment: Relational ER Model',
-    course: 'Database Systems',
-    date: 'Jun 01, 2025',
-    time: '11:59 PM',
+    title: currentLang.value === 'km' ? 'កិច្ចការ: គំរូ Relational ER' : 'Assignment: Relational ER Model',
+    course: currentLang.value === 'km' ? 'ប្រព័ន្ធមូលដ្ឋានទិន្នន័យ (Database)' : 'Database Systems',
+    date: currentLang.value === 'km' ? '០១ មិថុនា ២០២៥' : 'Jun 01, 2025',
+    time: currentLang.value === 'km' ? 'ម៉ោង ១១:៥៩ យប់' : '11:59 PM',
     href: '/student/assignments'
   }
 ])
@@ -305,47 +325,60 @@ const isAiTyping = ref(false)
 const aiMessages = ref<Array<{ role: 'ai' | 'user'; text: string; time?: string }>>([
   {
     role: 'ai',
-    text: 'Hi ' + (user.value?.name || 'Sok Pisey') + '! How can I assist with your coding & course questions today?',
-    time: 'Just now'
+    text: currentLang.value === 'km'
+      ? 'សួស្តី ' + (user.value?.name || 'Sok Pisey') + '! តើខ្ញុំអាចជួយអ្វីខ្លះទាក់ទងនឹងការសរសេរកូដ និងមេរៀនរបស់អ្នកថ្ងៃនេះ?'
+      : 'Hi ' + (user.value?.name || 'Sok Pisey') + '! How can I assist with your coding & course questions today?',
+    time: currentLang.value === 'km' ? 'ឥឡូវនេះ' : 'Just now'
   }
 ])
 
 const handleSendAiPrompt = (promptText: string) => {
-  aiMessages.value.push({ role: 'user', text: promptText, time: 'Now' })
+  const isKm = currentLang.value === 'km'
+  aiMessages.value.push({ role: 'user', text: promptText, time: isKm ? 'ឥឡូវនេះ' : 'Now' })
   isAiTyping.value = true
 
   setTimeout(() => {
     isAiTyping.value = false
     const qLower = promptText.toLowerCase()
-    if (qLower.includes('example') || qLower.includes('function')) {
+    if (qLower.includes('example') || qLower.includes('ឧទាហរណ៍') || qLower.includes('function')) {
       aiMessages.value.push({
         role: 'ai',
-        text: 'Here is a clean JavaScript function example:\n```javascript\nfunction calculateTotal(price, taxRate = 0.1) {\n  return price + (price * taxRate);\n}\nconsole.log(calculateTotal(100)); // 110\n```',
-        time: 'Now'
+        text: isKm
+          ? 'នេះជាឧទាហរណ៍ JavaScript function យ៉ាងច្បាស់លាស់:\n```javascript\nfunction calculateTotal(price, taxRate = 0.1) {\n  return price + (price * taxRate);\n}\nconsole.log(calculateTotal(100)); // 110\n```'
+          : 'Here is a clean JavaScript function example:\n```javascript\nfunction calculateTotal(price, taxRate = 0.1) {\n  return price + (price * taxRate);\n}\nconsole.log(calculateTotal(100)); // 110\n```',
+        time: isKm ? 'ឥឡូវនេះ' : 'Now'
       })
-    } else if (qLower.includes('what should i study') || qLower.includes('recommend') || qLower.includes('plan')) {
+    } else if (qLower.includes('study') || qLower.includes('រៀន') || qLower.includes('recommend') || qLower.includes('plan')) {
       aiMessages.value.push({
         role: 'ai',
-        text: 'Based on your recent learning analytics:\n1. **Finish Lesson 3.2** in Web Development (18m left).\n2. **Review Function Parameters** to raise your 62% quiz score.\n3. **Practice 5 drill questions** before the May 28 Chapter Quiz!',
-        time: 'Now'
+        text: isKm
+          ? 'ផ្អែកលើការវិភាគការសិក្សាថ្មីៗរបស់អ្នក:\n1. **រៀនបញ្ចប់មេរៀន 3.2** ក្នុងវគ្គ Web Development (នៅសល់ 18m)។\n2. **រំលឹក Function Parameters** ដើម្បីបង្កើនពិន្ទុ Quiz 62%។\n3. **អនុវត្ត 5 សំណួរហ្វឹកហាត់** មុនការប្រឡង Quiz ជំពូកទី ៣!'
+          : 'Based on your recent learning analytics:\n1. **Finish Lesson 3.2** in Web Development (18m left).\n2. **Review Function Parameters** to raise your 62% quiz score.\n3. **Practice 5 drill questions** before the May 28 Chapter Quiz!',
+        time: isKm ? 'ឥឡូវនេះ' : 'Now'
       })
-    } else if (qLower.includes('explain')) {
+    } else if (qLower.includes('explain') || qLower.includes('ពន្យល់')) {
       aiMessages.value.push({
         role: 'ai',
-        text: 'A JavaScript function is a reusable block of code designed to perform a specific task. It executes when invoked and returns computed output with the return keyword.',
-        time: 'Now'
+        text: isKm
+          ? 'JavaScript Function គឺជាប្លុកកូដដែលអាចយកមកប្រើឡើងវិញបាន ដើម្បីបំពេញកិច្ចការជាក់លាក់ណាមួយ។ វានឹងដំណើរការនៅពេលហៅប្រើ (invoke) និងបញ្ជូនលទ្ធផលត្រឡប់មកវិញដោយប្រើ return keyword។'
+          : 'A JavaScript function is a reusable block of code designed to perform a specific task. It executes when invoked and returns computed output with the return keyword.',
+        time: isKm ? 'ឥឡូវនេះ' : 'Now'
       })
-    } else if (qLower.includes('summarize')) {
+    } else if (qLower.includes('summarize') || qLower.includes('សង្ខេប')) {
       aiMessages.value.push({
         role: 'ai',
-        text: 'Summary: Functions accept parameters, execute logic in their local block scope, and return computed results using the return keyword.',
-        time: 'Now'
+        text: isKm
+          ? 'សង្ខេប: Functions ទទួល parameters, អនុវត្ត logic ក្នុង block scope ផ្ទាល់ខ្លួន, និងបញ្ជូនលទ្ធផលត្រឡប់មកវិញដោយប្រើពាក្យ return។'
+          : 'Summary: Functions accept parameters, execute logic in their local block scope, and return computed results using the return keyword.',
+        time: isKm ? 'ឥឡូវនេះ' : 'Now'
       })
     } else {
       aiMessages.value.push({
         role: 'ai',
-        text: `Great question about "${promptText}"! To master this: break down the problem, practice coding in the editor, and test your understanding with mini-quizzes. Let me know if you want a detailed code snippet!`,
-        time: 'Now'
+        text: isKm
+          ? `សំណួរល្អណាស់អំពី "${promptText}"! ដើម្បីយល់ច្បាស់: បំបែកបញ្ហាជាដំណាក់កាលតូចៗ, អនុវត្តសរសេរកូដផ្ទាល់, និងសាកល្បងសមត្ថភាពជាមួយ mini-quizzes។ ប្រាប់ខ្ញុំប្រសិនបើអ្នកចង់បានកូដគំរូលម្អិត!`
+          : `Great question about "${promptText}"! To master this: break down the problem, practice coding in the editor, and test your understanding with mini-quizzes. Let me know if you want a detailed code snippet!`,
+        time: isKm ? 'ឥឡូវនេះ' : 'Now'
       })
     }
   }, 350)
@@ -359,41 +392,41 @@ const sendUserCustomAi = () => {
 }
 
 // Achievements Badges with SVG type
-const achievements = ref([
-  { title: '7 Days Streak', type: 'flame', color: 'from-orange-500 to-amber-500', href: '/student/certificates/achievements' },
-  { title: 'Quick Learner', type: 'book', color: 'from-emerald-500 to-teal-500', href: '/student/certificates/achievements' },
-  { title: 'Quiz Master', type: 'star', color: 'from-blue-500 to-indigo-500', href: '/student/certificates/achievements' },
-  { title: 'Early Bird', type: 'bolt', color: 'from-amber-500 to-yellow-500', href: '/student/certificates/achievements' },
-  { title: 'Top Performer', type: 'trophy', color: 'from-yellow-500 to-amber-600', href: '/student/certificates/achievements' }
+const achievements = computed(() => [
+  { title: currentLang.value === 'km' ? 'រៀន ៧ ថ្ងៃជាប់' : '7 Days Streak', type: 'flame', color: 'from-orange-500 to-amber-500', href: '/student/certificates/achievements' },
+  { title: currentLang.value === 'km' ? 'រៀនរហ័ស' : 'Quick Learner', type: 'book', color: 'from-emerald-500 to-teal-500', href: '/student/certificates/achievements' },
+  { title: currentLang.value === 'km' ? 'ជើងខ្លាំង Quiz' : 'Quiz Master', type: 'star', color: 'from-blue-500 to-indigo-500', href: '/student/certificates/achievements' },
+  { title: currentLang.value === 'km' ? 'រៀនព្រលឹម' : 'Early Bird', type: 'bolt', color: 'from-amber-500 to-yellow-500', href: '/student/certificates/achievements' },
+  { title: currentLang.value === 'km' ? 'លទ្ធផលឆ្នើម' : 'Top Performer', type: 'trophy', color: 'from-yellow-500 to-amber-600', href: '/student/certificates/achievements' }
 ])
 
 // Recent Activity with SVG type
-const recentActivities = ref([
+const recentActivities = computed(() => [
   {
     id: 1,
     type: 'play',
     iconBg: 'bg-purple-600/20 text-purple-600 dark:text-purple-400 border border-purple-500/30',
-    title: 'Watched: 3.2 JavaScript Functions',
-    course: 'Web Development Fundamentals',
-    time: 'Today, 09:30 AM',
+    title: currentLang.value === 'km' ? 'បានទស្សនា: 3.2 JavaScript Functions' : 'Watched: 3.2 JavaScript Functions',
+    course: currentLang.value === 'km' ? 'មូលដ្ឋានគ្រឹះ Web Development' : 'Web Development Fundamentals',
+    time: currentLang.value === 'km' ? 'ថ្ងៃនេះ, ម៉ោង ០៩:៣០ ព្រឹក' : 'Today, 09:30 AM',
     href: '/student/my-courses/current'
   },
   {
     id: 2,
     type: 'check',
     iconBg: 'bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30',
-    title: 'Completed Quiz: Chapter 2 Quiz',
-    course: 'Web Development Fundamentals',
-    time: 'Yesterday, 04:15 PM',
+    title: currentLang.value === 'km' ? 'បានបញ្ចប់ Quiz: Quiz ជំពូកទី ២' : 'Completed Quiz: Chapter 2 Quiz',
+    course: currentLang.value === 'km' ? 'មូលដ្ឋានគ្រឹះ Web Development' : 'Web Development Fundamentals',
+    time: currentLang.value === 'km' ? 'ម្សិលមិញ, ម៉ោង ០៤:១៥ រសៀល' : 'Yesterday, 04:15 PM',
     href: '/student/quizzes/scores'
   },
   {
     id: 3,
     type: 'doc',
     iconBg: 'bg-amber-600/20 text-amber-600 dark:text-amber-400 border border-amber-500/30',
-    title: 'Downloaded: JavaScript Cheat Sheet',
-    course: 'Web Development Fundamentals',
-    time: 'May 26, 03:20 PM',
+    title: currentLang.value === 'km' ? 'បានទាញយក: JavaScript Cheat Sheet' : 'Downloaded: JavaScript Cheat Sheet',
+    course: currentLang.value === 'km' ? 'មូលដ្ឋានគ្រឹះ Web Development' : 'Web Development Fundamentals',
+    time: currentLang.value === 'km' ? '២៦ ឧសភា, ម៉ោង ០៣:២០ រសៀល' : 'May 26, 03:20 PM',
     href: '/student/learning-content/resources'
   }
 ])
@@ -401,9 +434,9 @@ const recentActivities = ref([
 
 <template>
   <StudentLayout
-    title="Dashboard"
+    :title="currentLang === 'km' ? 'ផ្ទាំងគ្រប់គ្រង' : 'Dashboard'"
     :breadcrumbs="[
-      { label: 'Dashboard' }
+      { label: currentLang === 'km' ? 'ផ្ទាំងគ្រប់គ្រង' : 'Dashboard' }
     ]"
   >
     <div class="space-y-6 pb-12">
@@ -412,11 +445,11 @@ const recentActivities = ref([
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 p-5 rounded-3xl shadow-xs dark:shadow-xl">
         <div class="space-y-1">
           <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            <span>Welcome back, {{ user.name || 'Sok Pisey' }}!</span>
+            <span>{{ currentLang === 'km' ? `សូមស្វាគមន៍ការត្រឡប់មកវិញ, ${user.name || 'Sok Pisey'}!` : `Welcome back, ${user.name || 'Sok Pisey'}!` }}</span>
             <span class="inline-block animate-pulse text-indigo-500">✨</span>
           </h1>
           <p class="text-xs text-slate-600 dark:text-slate-400 font-medium">
-            Continue where you left off or explore new courses today. Keep moving forward!
+            {{ currentLang === 'km' ? 'បន្តការសិក្សាពីកន្លែងដែលអ្នកបានឈប់ ឬស្វែងរកវគ្គសិក្សាថ្មីៗនៅថ្ងៃនេះ។ បន្តដំណើរទៅមុខជានិច្ច!' : 'Continue where you left off or explore new courses today. Keep moving forward!' }}
           </p>
         </div>
 
@@ -429,7 +462,7 @@ const recentActivities = ref([
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
             </svg>
-            <span>Browse Courses</span>
+            <span>{{ currentLang === 'km' ? 'ស្វែងរកវគ្គសិក្សា' : 'Browse Courses' }}</span>
           </Link>
 
           <Link
@@ -439,7 +472,7 @@ const recentActivities = ref([
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
             </svg>
-            <span>Pay via ABA</span>
+            <span>{{ currentLang === 'km' ? 'បង់ប្រាក់តាម ABA' : 'Pay via ABA' }}</span>
           </Link>
 
           <Link
@@ -449,7 +482,7 @@ const recentActivities = ref([
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
             </svg>
-            <span>Announcements</span>
+            <span>{{ currentLang === 'km' ? 'សេចក្តីប្រកាស' : 'Announcements' }}</span>
           </Link>
         </div>
       </div>
@@ -505,9 +538,11 @@ const recentActivities = ref([
           <!-- FEATURED CONTINUE LEARNING CARD -->
           <div class="space-y-3">
             <div class="flex items-center justify-between">
-              <h2 class="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">Continue Learning</h2>
+              <h2 class="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">
+                {{ currentLang === 'km' ? 'បន្តការសិក្សា' : 'Continue Learning' }}
+              </h2>
               <Link href="/student/my-courses/enrolled" class="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 font-semibold">
-                View All
+                {{ currentLang === 'km' ? 'មើលទាំងអស់' : 'View All' }}
               </Link>
             </div>
 
@@ -527,7 +562,7 @@ const recentActivities = ref([
               <div class="flex-1 w-full space-y-3">
                 <div class="space-y-1">
                   <span class="px-2.5 py-0.5 rounded-md bg-purple-500/10 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 text-[10px] font-bold border border-purple-500/20 dark:border-purple-500/30">
-                    Teacher: {{ continueCourseData.teacher }}
+                    {{ currentLang === 'km' ? 'គ្រូបង្រៀន: ' : 'Teacher: ' }}{{ continueCourseData.teacher }}
                   </span>
                   <h3 class="text-base font-bold text-slate-900 dark:text-white leading-tight">
                     {{ continueCourseData.title }}
@@ -543,7 +578,7 @@ const recentActivities = ref([
                     <div class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full" :style="{ width: continueCourseData.progress + '%' }"></div>
                   </div>
                   <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-                    <span>Last lesson: {{ continueCourseData.lastLesson }}</span>
+                    <span>{{ currentLang === 'km' ? 'មេរៀនចុងក្រោយ: ' : 'Last lesson: ' }}{{ continueCourseData.lastLesson }}</span>
                     <span class="font-mono flex items-center gap-1">
                       <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       {{ continueCourseData.timeLeft }}
@@ -558,7 +593,7 @@ const recentActivities = ref([
                   :href="continueCourseData.href"
                   class="w-full md:w-auto px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all text-center cursor-pointer"
                 >
-                  <span>Continue Learning</span>
+                  <span>{{ currentLang === 'km' ? 'បន្តការសិក្សា' : 'Continue Learning' }}</span>
                   <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                 </Link>
               </div>
@@ -570,7 +605,9 @@ const recentActivities = ref([
           <div class="space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div class="flex items-center gap-3">
-                <h2 class="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">My Courses</h2>
+                <h2 class="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">
+                  {{ currentLang === 'km' ? 'វគ្គសិក្សារបស់ខ្ញុំ' : 'My Courses' }}
+                </h2>
                 
                 <!-- Filter Pills -->
                 <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-950/80 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
@@ -578,31 +615,31 @@ const recentActivities = ref([
                     @click="selectedCourseFilter = 'all'"
                     :class="[selectedCourseFilter === 'all' ? 'bg-purple-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200', 'px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer']"
                   >
-                    All Courses
+                    {{ currentLang === 'km' ? 'វគ្គសិក្សាទាំងអស់' : 'All Courses' }}
                   </button>
                   <button
                     @click="selectedCourseFilter = 'in_progress'"
                     :class="[selectedCourseFilter === 'in_progress' ? 'bg-purple-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200', 'px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer']"
                   >
-                    In Progress
+                    {{ currentLang === 'km' ? 'កំពុងសិក្សា' : 'In Progress' }}
                   </button>
                   <button
                     @click="selectedCourseFilter = 'completed'"
                     :class="[selectedCourseFilter === 'completed' ? 'bg-purple-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200', 'px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer']"
                   >
-                    Completed
+                    {{ currentLang === 'km' ? 'បានបញ្ចប់' : 'Completed' }}
                   </button>
                   <button
                     @click="selectedCourseFilter = 'not_started'"
                     :class="[selectedCourseFilter === 'not_started' ? 'bg-purple-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200', 'px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer']"
                   >
-                    Not Started
+                    {{ currentLang === 'km' ? 'មិនទាន់ចាប់ផ្ដើម' : 'Not Started' }}
                   </button>
                 </div>
               </div>
 
               <Link href="/student/my-courses/enrolled" class="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 font-semibold self-start sm:self-auto">
-                View All ({{ coursesToDisplay.length }})
+                {{ currentLang === 'km' ? `មើលទាំងអស់ (${coursesToDisplay.length})` : `View All (${coursesToDisplay.length})` }}
               </Link>
             </div>
 
@@ -636,7 +673,7 @@ const recentActivities = ref([
                   </div>
 
                   <span :class="[c.badgeClass, 'absolute top-2 right-2 px-2 py-0.5 rounded-md text-[9px] font-bold border']">
-                    {{ c.statusLabel }}
+                    {{ c.status === 'in_progress' ? (currentLang === 'km' ? 'កំពុងសិក្សា' : 'In Progress') : c.status === 'completed' ? (currentLang === 'km' ? 'បានបញ្ចប់' : 'Completed') : (currentLang === 'km' ? 'មិនទាន់ចាប់ផ្ដើម' : 'Not Started') }}
                   </span>
                 </div>
 
@@ -660,7 +697,7 @@ const recentActivities = ref([
                   <div class="flex items-center justify-between text-[10px]">
                     <span :class="c.progress === 100 ? 'text-emerald-600 dark:text-emerald-400' : 'text-purple-600 dark:text-purple-400'" class="font-bold font-mono">{{ c.progress }}%</span>
                     <span class="text-slate-400 dark:text-slate-500 text-[9px] flex items-center gap-0.5">
-                      <span>Overview</span>
+                      <span>{{ currentLang === 'km' ? 'ទិដ្ឋភាពទូទៅ' : 'Overview' }}</span>
                       <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </span>
                   </div>
@@ -678,7 +715,7 @@ const recentActivities = ref([
             >
               <div class="flex items-center justify-between">
                 <Link href="/student/progress/learning-time" class="text-xs font-bold text-slate-900 dark:text-white hover:text-purple-600 dark:hover:text-purple-300 uppercase tracking-wider flex items-center gap-1">
-                  <span>Learning Overview</span>
+                  <span>{{ currentLang === 'km' ? 'ទិដ្ឋភាពទូទៅនៃការរៀន' : 'Learning Overview' }}</span>
                   <svg class="w-3 h-3 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                 </Link>
 
@@ -689,21 +726,21 @@ const recentActivities = ref([
                     :class="selectedRange === 'week' ? 'bg-purple-600 text-white font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
                     class="px-2 py-0.5 rounded-md cursor-pointer transition-colors"
                   >
-                    Week
+                    {{ currentLang === 'km' ? 'សប្តាហ៍' : 'Week' }}
                   </button>
                   <button
                     @click="selectedRange = 'last_week'"
                     :class="selectedRange === 'last_week' ? 'bg-purple-600 text-white font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
                     class="px-2 py-0.5 rounded-md cursor-pointer transition-colors"
                   >
-                    Last
+                    {{ currentLang === 'km' ? 'សប្តាហ៍មុន' : 'Last' }}
                   </button>
                   <button
                     @click="selectedRange = 'month'"
                     :class="selectedRange === 'month' ? 'bg-purple-600 text-white font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
                     class="px-2 py-0.5 rounded-md cursor-pointer transition-colors"
                   >
-                    Month
+                    {{ currentLang === 'km' ? 'ខែ' : 'Month' }}
                   </button>
                 </div>
               </div>
@@ -748,10 +785,10 @@ const recentActivities = ref([
             >
               <div class="flex items-center justify-between">
                 <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1">
-                  <span>Study Time</span>
+                  <span>{{ currentLang === 'km' ? 'ម៉ោងសិក្សា' : 'Study Time' }}</span>
                   <svg class="w-3 h-3 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                 </h3>
-                <span class="text-[10px] text-purple-600 dark:text-purple-400 font-semibold">Breakdown</span>
+                <span class="text-[10px] text-purple-600 dark:text-purple-400 font-semibold">{{ currentLang === 'km' ? 'លម្អិត' : 'Breakdown' }}</span>
               </div>
 
               <div class="flex items-center justify-center gap-4">
@@ -786,8 +823,8 @@ const recentActivities = ref([
                     />
                   </svg>
                   <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-                    <span class="text-[11px] font-black text-slate-900 dark:text-white leading-none">{{ props.stats?.learningTime || '28h 45m' }}</span>
-                    <span class="text-[8px] text-slate-500 dark:text-slate-400">Total</span>
+                    <span class="text-[11px] font-black text-slate-900 dark:text-white leading-none">{{ props.stats?.learningTime || (currentLang === 'km' ? '២៨h ៤៥m' : '28h 45m') }}</span>
+                    <span class="text-[8px] text-slate-500 dark:text-slate-400">{{ currentLang === 'km' ? 'សរុប' : 'Total' }}</span>
                   </div>
                 </div>
 
@@ -795,15 +832,15 @@ const recentActivities = ref([
                 <div class="space-y-1.5 text-[10px] text-slate-600 dark:text-slate-300">
                   <div class="flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                    <span>Lessons: 16h 30m</span>
+                    <span>{{ currentLang === 'km' ? 'មេរៀន: 16h 30m' : 'Lessons: 16h 30m' }}</span>
                   </div>
                   <div class="flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-purple-500"></span>
-                    <span>Practice: 8h 15m</span>
+                    <span>{{ currentLang === 'km' ? 'ការអនុវត្ត: 8h 15m' : 'Practice: 8h 15m' }}</span>
                   </div>
                   <div class="flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-cyan-500 dark:bg-cyan-400"></span>
-                    <span>Quiz: 4h 00m</span>
+                    <span>{{ currentLang === 'km' ? 'កម្រងសំណួរ: 4h 00m' : 'Quiz: 4h 00m' }}</span>
                   </div>
                 </div>
               </div>
@@ -816,10 +853,10 @@ const recentActivities = ref([
             >
               <div class="flex items-center justify-between">
                 <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1">
-                  <span>Quiz Performance</span>
+                  <span>{{ currentLang === 'km' ? 'លទ្ធផលកម្រងសំណួរ' : 'Quiz Performance' }}</span>
                   <svg class="w-3 h-3 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                 </h3>
-                <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">Passing</span>
+                <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">{{ currentLang === 'km' ? 'ជាប់' : 'Passing' }}</span>
               </div>
 
               <div class="flex items-center justify-center gap-4">
@@ -845,7 +882,7 @@ const recentActivities = ref([
                   </svg>
                   <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
                     <span class="text-sm font-black text-slate-900 dark:text-white leading-none">{{ props.stats?.averageScore || '78%' }}</span>
-                    <span class="text-[8px] text-slate-500 dark:text-slate-400">Average</span>
+                    <span class="text-[8px] text-slate-500 dark:text-slate-400">{{ currentLang === 'km' ? 'មធ្យមភាគ' : 'Average' }}</span>
                   </div>
                 </div>
 
@@ -853,11 +890,11 @@ const recentActivities = ref([
                 <div class="space-y-1.5 text-[10px] text-slate-600 dark:text-slate-300">
                   <div class="flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400"></span>
-                    <span>Correct: 78%</span>
+                    <span>{{ currentLang === 'km' ? 'ត្រឹមត្រូវ: 78%' : 'Correct: 78%' }}</span>
                   </div>
                   <div class="flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-rose-500"></span>
-                    <span>Incorrect: 22%</span>
+                    <span>{{ currentLang === 'km' ? 'មិនត្រឹមត្រូវ: 22%' : 'Incorrect: 22%' }}</span>
                   </div>
                 </div>
               </div>
@@ -868,9 +905,11 @@ const recentActivities = ref([
           <!-- RECENT ACTIVITY LIST -->
           <div class="space-y-3">
             <div class="flex items-center justify-between">
-              <h2 class="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">Recent Activity</h2>
+              <h2 class="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">
+                {{ currentLang === 'km' ? 'សកម្មភាពថ្មីៗ' : 'Recent Activity' }}
+              </h2>
               <Link href="/student/progress/overview" class="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 font-semibold">
-                View All
+                {{ currentLang === 'km' ? 'មើលទាំងអស់' : 'View All' }}
               </Link>
             </div>
 
@@ -909,15 +948,17 @@ const recentActivities = ref([
           <!-- TODAY'S GOAL CARD -->
           <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3">
             <div class="flex items-center justify-between">
-              <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Today's Goal</h3>
+              <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                {{ currentLang === 'km' ? 'គោលដៅថ្ងៃនេះ' : "Today's Goal" }}
+              </h3>
               <div class="flex items-center gap-2">
                 <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold border border-emerald-500/20 dark:border-emerald-500/30">
-                  {{ todayGoal.completedCount }} / {{ todayGoal.totalCount }} Done
+                  {{ currentLang === 'km' ? `រួចរាល់ ${todayGoal.completedCount} / ${todayGoal.totalCount}` : `${todayGoal.completedCount} / ${todayGoal.totalCount} Done` }}
                 </span>
                 <button
                   @click="isAddGoalOpen = !isAddGoalOpen"
                   class="w-6 h-6 rounded-lg bg-purple-600/10 hover:bg-purple-600/20 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs font-bold cursor-pointer"
-                  title="Add custom task"
+                  :title="currentLang === 'km' ? 'បន្ថែមគោលដៅ' : 'Add custom task'"
                 >
                   <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
                 </button>
@@ -929,7 +970,7 @@ const recentActivities = ref([
               <input
                 v-model="newGoalTitle"
                 type="text"
-                placeholder="Enter new study goal..."
+                :placeholder="currentLang === 'km' ? 'បញ្ចូលគោលដៅសិក្សាថ្មី...' : 'Enter new study goal...'"
                 class="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-purple-200 dark:border-purple-700 text-xs text-slate-900 dark:text-white"
                 @keyup.enter="addNewGoal"
               />
@@ -938,24 +979,28 @@ const recentActivities = ref([
                   @click="isAddGoalOpen = false"
                   class="px-2.5 py-1 rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 text-[11px]"
                 >
-                  Cancel
+                  {{ currentLang === 'km' ? 'បោះបង់' : 'Cancel' }}
                 </button>
                 <button
                   @click="addNewGoal"
                   class="px-3 py-1 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-[11px]"
                 >
-                  Add Goal
+                  {{ currentLang === 'km' ? 'បន្ថែមគោលដៅ' : 'Add Goal' }}
                 </button>
               </div>
             </div>
 
-            <p class="text-xs text-slate-600 dark:text-slate-300 font-medium">Keep your study momentum going!</p>
+            <p class="text-xs text-slate-600 dark:text-slate-300 font-medium">
+              {{ currentLang === 'km' ? 'រក្សាសន្ទុះនៃការសិក្សារបស់អ្នកឱ្យបន្តទៅមុខ!' : 'Keep your study momentum going!' }}
+            </p>
 
             <div class="space-y-1.5">
               <div class="w-full h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
                 <div class="h-full bg-emerald-500 rounded-full transition-all duration-300" :style="{ width: todayGoal.percentage + '%' }"></div>
               </div>
-              <p class="text-[10px] text-right text-slate-500 dark:text-slate-400">{{ todayGoal.percentage }}% completed</p>
+              <p class="text-[10px] text-right text-slate-500 dark:text-slate-400">
+                {{ currentLang === 'km' ? `សម្រេចបាន ${todayGoal.percentage}%` : `${todayGoal.percentage}% completed` }}
+              </p>
             </div>
 
             <!-- Task Checklist -->
@@ -974,12 +1019,14 @@ const recentActivities = ref([
                     <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
                   </span>
                   <span v-else class="w-4 h-4 rounded-full border border-slate-300 dark:border-slate-600 flex items-center justify-center text-[9px]"></span>
-                  <span :class="[item.completed ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-200 font-medium']">{{ item.title }}</span>
+                  <span :class="[item.completed ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-200 font-medium']">
+                    {{ currentLang === 'km' ? (item.titleKm || item.titleEn) : (item.titleEn || item.titleKm) }}
+                  </span>
                 </button>
                 
                 <Link :href="item.href" class="text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 text-[11px] font-bold ml-2 flex items-center gap-0.5">
-                  <span>Open</span>
-                  <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                  <span>{{ currentLang === 'km' ? 'បើក' : 'Open' }}</span>
+                  <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                 </Link>
               </div>
             </div>
@@ -992,14 +1039,18 @@ const recentActivities = ref([
                 <div class="w-6 h-6 rounded-lg bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-sm">
                   <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"/></svg>
                 </div>
-                <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">AI Recommended For You</h3>
+                <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                  {{ currentLang === 'km' ? 'AI ណែនាំសម្រាប់អ្នក' : 'AI Recommended For You' }}
+                </h3>
               </div>
               <Link href="/student/ai-path/recommended" class="text-[10px] text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 font-semibold">
-                Roadmap
+                {{ currentLang === 'km' ? 'ផែនទីសិក្សា' : 'Roadmap' }}
               </Link>
             </div>
 
-            <p class="text-[11px] text-purple-700 dark:text-purple-300 font-medium">Based on your recent quiz scores & learning pace:</p>
+            <p class="text-[11px] text-purple-700 dark:text-purple-300 font-medium">
+              {{ currentLang === 'km' ? 'ផ្អែកលើពិន្ទុ Quiz ថ្មីៗ និងល្បឿននៃការរៀនរបស់អ្នក:' : 'Based on your recent quiz scores & learning pace:' }}
+            </p>
 
             <div class="space-y-2.5">
               <div
@@ -1031,9 +1082,11 @@ const recentActivities = ref([
           <!-- UPCOMING SCHEDULE CARD -->
           <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
-              <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Upcoming</h3>
+              <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                {{ currentLang === 'km' ? 'កាលវិភាគខាងមុខ' : 'Upcoming' }}
+              </h3>
               <Link href="/student/calendar" class="text-[11px] text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 font-semibold">
-                View Calendar
+                {{ currentLang === 'km' ? 'មើលប្រតិទិន' : 'View Calendar' }}
               </Link>
             </div>
 
@@ -1074,13 +1127,15 @@ const recentActivities = ref([
                 <div class="w-6 h-6 rounded-lg bg-purple-600 text-white flex items-center justify-center text-xs shadow-sm">
                   <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 002.25-2.25V6.75a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 6.75v10.5a2.25 2.25 0 002.25 2.25zm.75-12h9v9h-9v-9z"/></svg>
                 </div>
-                <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">AI Study Assistant</h3>
+                <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                  {{ currentLang === 'km' ? 'ជំនួយការសិក្សា AI' : 'AI Study Assistant' }}
+                </h3>
               </div>
               <Link
                 href="/student/ai-tutor/chat"
                 class="px-2 py-0.5 rounded-full bg-purple-500/10 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 text-[10px] font-bold border border-purple-500/20 dark:border-purple-500/30 hover:bg-purple-600 hover:text-white transition-colors"
               >
-                Full Chat ↗
+                {{ currentLang === 'km' ? 'ជជែកពេញលេញ ↗' : 'Full Chat ↗' }}
               </Link>
             </div>
 
@@ -1099,39 +1154,39 @@ const recentActivities = ref([
 
               <div v-if="isAiTyping" class="p-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 text-slate-500 text-[10px] italic flex items-center gap-1.5">
                 <span class="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span>
-                <span>AI Tutor is thinking...</span>
+                <span>{{ currentLang === 'km' ? 'AI Tutor កំពុងគិត...' : 'AI Tutor is thinking...' }}</span>
               </div>
             </div>
 
             <!-- Quick Action Prompt Chips -->
             <div class="grid grid-cols-2 gap-1.5 pt-1">
               <button
-                @click="handleSendAiPrompt('Explain this lesson')"
+                @click="handleSendAiPrompt(currentLang === 'km' ? 'ពន្យល់មេរៀននេះ' : 'Explain this lesson')"
                 type="button"
                 class="p-1.5 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] font-medium border border-slate-200 dark:border-slate-700 text-center transition-colors cursor-pointer truncate shadow-xs"
               >
-                Explain this lesson
+                {{ currentLang === 'km' ? 'ពន្យល់មេរៀននេះ' : 'Explain this lesson' }}
               </button>
               <button
-                @click="handleSendAiPrompt('Give me an example')"
+                @click="handleSendAiPrompt(currentLang === 'km' ? 'ផ្តល់ឧទាហរណ៍' : 'Give me an example')"
                 type="button"
                 class="p-1.5 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] font-medium border border-slate-200 dark:border-slate-700 text-center transition-colors cursor-pointer truncate shadow-xs"
               >
-                Give me an example
+                {{ currentLang === 'km' ? 'ផ្តល់ឧទាហរណ៍' : 'Give me an example' }}
               </button>
               <button
-                @click="handleSendAiPrompt('Summarize this topic')"
+                @click="handleSendAiPrompt(currentLang === 'km' ? 'សង្ខេបប្រធានបទនេះ' : 'Summarize this topic')"
                 type="button"
                 class="p-1.5 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] font-medium border border-slate-200 dark:border-slate-700 text-center transition-colors cursor-pointer truncate shadow-xs"
               >
-                Summarize this topic
+                {{ currentLang === 'km' ? 'សង្ខេបប្រធានបទនេះ' : 'Summarize this topic' }}
               </button>
               <button
-                @click="handleSendAiPrompt('What should I study today?')"
+                @click="handleSendAiPrompt(currentLang === 'km' ? 'តើខ្ញុំគួររៀនអ្វីថ្ងៃនេះ?' : 'What should I study today?')"
                 type="button"
                 class="p-1.5 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] font-medium border border-slate-200 dark:border-slate-700 text-center transition-colors cursor-pointer truncate shadow-xs"
               >
-                What should I study?
+                {{ currentLang === 'km' ? 'តើខ្ញុំគួររៀនអ្វី?' : 'What should I study?' }}
               </button>
             </div>
 
@@ -1140,7 +1195,7 @@ const recentActivities = ref([
               <input
                 v-model="aiPromptInput"
                 type="text"
-                placeholder="Ask your AI academic tutor..."
+                :placeholder="currentLang === 'km' ? 'សួរសំណួរទៅកាន់ AI Tutor របស់អ្នក...' : 'Ask your AI academic tutor...'"
                 class="w-full pl-3 pr-8 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-purple-500 shadow-inner"
               />
               <button
@@ -1157,9 +1212,11 @@ const recentActivities = ref([
           <!-- ACHIEVEMENTS BADGES CARD with Real SVGs -->
           <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3">
             <div class="flex items-center justify-between">
-              <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Achievements</h3>
+              <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                {{ currentLang === 'km' ? 'សមិទ្ធផល' : 'Achievements' }}
+              </h3>
               <Link href="/student/certificates/achievements" class="text-[11px] text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 font-semibold">
-                View All
+                {{ currentLang === 'km' ? 'មើលទាំងអស់' : 'View All' }}
               </Link>
             </div>
 

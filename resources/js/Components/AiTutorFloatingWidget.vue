@@ -1,25 +1,35 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed } from 'vue'
+import { i18n } from '@/Services/i18n'
+
+const currentLang = computed(() => i18n.locale.value)
 
 const isOpen = ref(false)
 const messageInput = ref('')
 const isSending = ref(false)
 
-const chatMessages = ref<{ role: 'user' | 'assistant'; text: string; time: string }[]>([
+const chatMessages = ref<{ role: 'user' | 'assistant'; text: string; textEn?: string; time: string }[]>([
   {
     role: 'assistant',
     text: 'សួស្តី! ខ្ញុំជា **SPI AI Tutor 24/7** ជំនួយការឆ្លើយសំណួរមេរៀន និងពន្យល់លំហាត់គ្រប់ជំនាញ (IT, English, Agriculture, Social Work, Tourism)។ តើអ្នកមានចម្ងល់អ្វីខ្លះនៅថ្ងៃនេះ?',
+    textEn: 'Hello! I am **SPI AI Tutor 24/7**, your AI study assistant for questions and assignments across all majors (IT, English, Agriculture, Social Work, Tourism). How can I assist you today?',
     time: 'ឥឡូវនេះ'
   }
 ])
 
-const quickChips = [
+const quickChips = computed(() => currentLang.value === 'km' ? [
   'ពន្យល់ពី Pointer ក្នុងភាសា C',
   'របៀបប្រើ Passive Voice',
   'វិធីព្យាបាលជំងឺប្លាស់ស្រូវ',
   'ក្រមសីលធម៌សង្គមកិច្ច',
   'វិធីដោះស្រាយបញ្ហាភ្ញៀវ Hotel'
-]
+] : [
+  'Explain Pointers in C language',
+  'How to use Passive Voice',
+  'Rice Blast disease prevention',
+  'Social Work Code of Ethics',
+  'Resolving hotel guest complaints'
+])
 
 const toggleWidget = () => {
   isOpen.value = !isOpen.value
@@ -56,13 +66,15 @@ const sendMessage = async () => {
     const data = await res.json()
     chatMessages.value.push({
       role: 'assistant',
-      text: data.reply || 'ខ្ញុំបានកត់ត្រាសំណួររបស់អ្នក! សូមពិនិត្យមើលខ្លឹមសារមេរៀនបន្ថែម។',
+      text: data.reply || (currentLang.value === 'km' ? 'ខ្ញុំបានកត់ត្រាសំណួររបស់អ្នក! សូមពិនិត្យមើលខ្លឹមសារមេរៀនបន្ថែម។' : 'I have received your question! Please review the lesson content.'),
       time: data.time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     })
   } catch (e) {
     chatMessages.value.push({
       role: 'assistant',
-      text: '🤖 ខ្ញុំជា AI Tutor នៅ Saint Paul Institute។ សំណួររបស់អ្នកបានកត់ត្រាជោគជ័យ! សូមសាកល្បងសាកសួរម្ដងទៀត។',
+      text: currentLang.value === 'km'
+        ? '🤖 ខ្ញុំជា AI Tutor នៅ Saint Paul Institute។ សំណួររបស់អ្នកបានកត់ត្រាជោគជ័យ! សូមសាកល្បងសាកសួរម្ដងទៀត។'
+        : '🤖 I am SPI AI Tutor at Saint Paul Institute. Your request was received! Please try asking again.',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     })
   } finally {
@@ -79,7 +91,7 @@ const sendMessage = async () => {
       @click="toggleWidget"
       type="button"
       class="group relative flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 text-white font-bold text-xs shadow-2xl shadow-purple-600/40 hover:scale-105 hover:shadow-purple-600/60 transition-all cursor-pointer border border-purple-400/40"
-      title="Open 24/7 AI Tutor"
+      :title="currentLang === 'km' ? 'បើក SPI AI Tutor 24/7' : 'Open 24/7 AI Tutor'"
     >
       <span class="text-lg animate-bounce">🤖</span>
       <span class="hidden sm:inline font-extrabold tracking-wide">SPI AI Tutor 24/7</span>
@@ -105,7 +117,9 @@ const sendMessage = async () => {
               <p class="text-xs font-bold text-white">SPI AI Tutor 24/7</p>
               <span class="px-1.5 py-0.2 rounded text-[8px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">Workers AI</span>
             </div>
-            <p class="text-[10px] text-emerald-400 font-medium">Cloudflare AI Gateway Connected</p>
+            <p class="text-[10px] text-emerald-400 font-medium">
+              {{ currentLang === 'km' ? 'ភ្ជាប់ Cloudflare AI Gateway រួចរាល់' : 'Cloudflare AI Gateway Connected' }}
+            </p>
           </div>
         </div>
 
@@ -142,16 +156,16 @@ const sendMessage = async () => {
               'max-w-[85%] p-3 text-xs leading-relaxed space-y-1 shadow-md'
             ]"
           >
-            <p class="whitespace-pre-line">{{ msg.text }}</p>
+            <p class="whitespace-pre-line">{{ (currentLang === 'en' && msg.textEn) ? msg.textEn : msg.text }}</p>
             <p :class="[msg.role === 'user' ? 'text-indigo-200' : 'text-slate-500', 'text-[9px] text-right']">
-              {{ msg.time }}
+              {{ msg.time === 'ឥឡូវនេះ' ? (currentLang === 'km' ? 'ឥឡូវនេះ' : 'Just now') : msg.time }}
             </p>
           </div>
         </div>
 
         <div v-if="isSending" class="flex items-center gap-2 text-xs text-purple-400 italic">
           <span class="animate-spin">⏳</span>
-          <span>AI កំពុងវិភាគចម្លើយ...</span>
+          <span>{{ currentLang === 'km' ? 'AI កំពុងវិភាគចម្លើយ...' : 'AI is analyzing your question...' }}</span>
         </div>
       </div>
 
@@ -173,7 +187,7 @@ const sendMessage = async () => {
           v-model="messageInput"
           @keyup.enter="sendMessage"
           type="text"
-          placeholder="សួរសំណួរមេរៀនគ្រប់មុខវិជ្ជា..."
+          :placeholder="currentLang === 'km' ? 'សួរសំណួរមេរៀនគ្រប់មុខវិជ្ជា...' : 'Ask any study question across all majors...'"
           class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
         />
         <button
