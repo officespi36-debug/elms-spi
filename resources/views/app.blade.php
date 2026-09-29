@@ -89,7 +89,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- Primary Meta Tags & SEO Snippet -->
-    <title inertia>SPI AI-ELMS | Smart Learning Management System — Saint Paul Institute</title>
+    <title inertia>🎓 E-LMS | Smart Learning Management System — Saint Paul Institute</title>
     <meta name="title" content="SPI AI-ELMS | Smart Learning Management System — Saint Paul Institute">
     <meta name="description"
         content="SPI AI-ELMS — Intelligent Next-Generation Learning Management System for Students & Faculty at Saint Paul Institute. Access smart courses, live schedules, and academic excellence.">
