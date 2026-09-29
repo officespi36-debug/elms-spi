@@ -1875,7 +1875,7 @@ onUnmounted(() => {
         <!-- Page Header -->
         <header class="mb-6" v-if="title || $slots.header">
           <slot name="header">
-            <h2 class="text-2xl font-bold leading-7 text-slate-900 dark:text-white sm:truncate sm:text-3xl sm:tracking-tight">{{ title }}</h2>
+            <h2 class="text-2xl font-black leading-relaxed text-slate-900 dark:text-white sm:truncate sm:text-3xl tracking-normal font-sans">{{ title }}</h2>
           </slot>
         </header>
 

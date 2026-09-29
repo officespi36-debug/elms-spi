@@ -267,7 +267,7 @@ const actionTasks = computed(() => [
 </script>
 
 <template>
-  <AdminLayout :title="currentLang === 'km' ? 'ផ្ទាំងគ្រប់គ្រង' : 'Dashboard'">
+  <AdminLayout>
     <div class="space-y-5 text-slate-800 dark:text-slate-100 font-sans pb-10">
       
       <!-- ── EXECUTIVE DASHBOARD HEADER ── -->
