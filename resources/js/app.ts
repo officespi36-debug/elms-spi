@@ -25,6 +25,15 @@ initTheme()
 
 if (typeof window !== 'undefined') {
   try {
+    document.documentElement.setAttribute('translate', 'no')
+    document.documentElement.classList.add('notranslate')
+    if (document.body) {
+      document.body.setAttribute('translate', 'no')
+      document.body.classList.add('notranslate')
+    }
+  } catch (e) {}
+
+  try {
     registerSW({ immediate: true })
   } catch (e) {}
 

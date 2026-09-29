@@ -906,7 +906,7 @@ const onIconError = (e: Event) => {
 <template>
   <Head :title="pageTitle" />
   <GlobalToast />
-  <div class="min-h-screen bg-slate-50 dark:bg-[#0B0F19] text-slate-800 dark:text-slate-200 selection:bg-indigo-500/30 transition-colors duration-200">
+  <div class="min-h-screen bg-slate-50 dark:bg-[#0B0F19] text-slate-800 dark:text-slate-200 selection:bg-indigo-500/30 transition-colors duration-200 notranslate" translate="no">
     <!-- Desktop Sidebar (Fixed Positioning exactly like Admin & Teacher layouts) -->
     <aside :class="[isSidebarCollapsed ? 'w-20 overflow-visible' : 'w-72', 'fixed inset-y-0 left-0 z-50 hidden flex-col bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl border-r border-slate-200/90 dark:border-slate-800 lg:flex transition-all duration-300 shadow-sm dark:shadow-none']">
       

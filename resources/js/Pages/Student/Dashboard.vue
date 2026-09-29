@@ -439,7 +439,7 @@ const recentActivities = computed(() => [
       { label: currentLang === 'km' ? 'ផ្ទាំងគ្រប់គ្រង' : 'Dashboard' }
     ]"
   >
-    <div class="space-y-6 pb-12">
+    <div class="space-y-6 pb-12 notranslate" translate="no">
       
       <!-- TOP GREETING & QUICK SHORTCUTS ROW -->
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 p-5 rounded-3xl shadow-xs dark:shadow-xl">

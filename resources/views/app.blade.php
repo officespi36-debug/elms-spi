@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html lang="km" class="dark" style="color-scheme: dark; background-color: #0b132b;">
+<html lang="km" translate="no" class="dark notranslate" style="color-scheme: dark; background-color: #0b132b;">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+    <meta name="google" content="notranslate">
+    <meta name="googlebot" content="notranslate">
     <meta name="theme-color" content="#0b132b">
 
     <!-- Anti-FOUC & Instant Theme Injection (Runs Synchronously Before First Paint) -->
@@ -179,7 +181,7 @@
     @inertiaHead
 </head>
 
-<body class="font-sans antialiased bg-[#0b132b] text-slate-100 min-h-screen"
+<body class="font-sans antialiased bg-[#0b132b] text-slate-100 min-h-screen notranslate" translate="no"
     style="background-color: #0b132b; color: #f8fafc;">
     @inertia
 </body>
