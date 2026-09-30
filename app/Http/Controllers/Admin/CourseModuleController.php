@@ -4,6 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Course;
+use App\Models\Department;
+use App\Models\Faculty;
+use App\Models\Major;
+use App\Models\Subject;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
@@ -14,16 +18,17 @@ class CourseModuleController extends Controller
     private function getSummaryStats(): array
     {
         $hasCourses = Schema::hasTable('courses');
+        $hasSubjects = Schema::hasTable('subjects');
 
         return [
-            'total_courses'    => $hasCourses ? (Course::count() ?: 328) : 328,
+            'total_courses'     => $hasCourses ? (Course::count() ?: 328) : 328,
             'teacher_led_count' => $hasCourses ? (Course::where('learning_mode', 'instructor_led')->count() ?: 185) : 185,
             'self_study_count'  => $hasCourses ? (Course::where('learning_mode', 'self_paced')->count() ?: 143) : 143,
             'paid_count'        => $hasCourses ? (Course::where('is_paid', true)->count() ?: 220) : 220,
             'free_count'        => $hasCourses ? (Course::where('is_paid', false)->count() ?: 108) : 108,
             'published_count'   => $hasCourses ? (Course::where('status', 'published')->count() ?: 290) : 290,
             'draft_count'       => $hasCourses ? (Course::where('status', 'draft')->count() ?: 30) : 30,
-            'total_subjects'    => 328,
+            'total_subjects'    => $hasSubjects ? Subject::count() : 17,
         ];
     }
 
@@ -34,15 +39,15 @@ class CourseModuleController extends Controller
         }
 
         $courses = Schema::hasTable('courses')
-            ? Course::with(['teacher', 'major'])->latest()->get()
+            ? Course::with(['teacher', 'major', 'subject'])->latest()->get()
             : collect();
 
         $defaultCourses = [
-            ['id' => 1, 'code' => 'CRS-IT-CP101', 'title' => 'C Programming Basics', 'subject' => 'C Programming', 'faculty' => 'Faculty of Computing', 'department' => 'Computing', 'major' => 'IT & Networking', 'teacher' => 'Mr. Sophea', 'learning_mode' => 'instructor_led', 'mode_label' => '🎥 Teacher-Led', 'is_paid' => true, 'price' => 25, 'status' => 'published', 'students_count' => 52],
-            ['id' => 2, 'code' => 'CRS-IT-DB102', 'title' => 'Database Systems', 'subject' => 'Database Systems', 'faculty' => 'Faculty of Computing', 'department' => 'Computing', 'major' => 'IT & Networking', 'teacher' => 'Mr. Sophea', 'learning_mode' => 'self_paced', 'mode_label' => '💻 Self-Study', 'is_paid' => true, 'price' => 20, 'status' => 'published', 'students_count' => 120],
+            ['id' => 1, 'code' => 'CRS-IT-CP101', 'title' => 'C Programming Basics', 'subject' => 'C Programming', 'faculty' => 'Faculty of Computing', 'department' => 'Computing', 'major' => 'Information Technology', 'teacher' => 'Mr. Sophea', 'learning_mode' => 'instructor_led', 'mode_label' => '🎥 Teacher-Led', 'is_paid' => true, 'price' => 25, 'status' => 'published', 'students_count' => 52],
+            ['id' => 2, 'code' => 'CRS-IT-DB102', 'title' => 'Database Systems', 'subject' => 'Database Systems & SQL', 'faculty' => 'Faculty of Computing', 'department' => 'Computing', 'major' => 'Information Technology', 'teacher' => 'Mr. Sophea', 'learning_mode' => 'self_paced', 'mode_label' => '💻 Self-Study', 'is_paid' => true, 'price' => 20, 'status' => 'published', 'students_count' => 120],
             ['id' => 3, 'code' => 'CRS-ENG-EG101', 'title' => 'English Grammar Basics', 'subject' => 'English Grammar', 'faculty' => 'Faculty of Education', 'department' => 'Education', 'major' => 'English Literature', 'teacher' => 'Ms. Srey', 'learning_mode' => 'self_paced', 'mode_label' => '💻 Self-Study', 'is_paid' => false, 'price' => 0, 'status' => 'published', 'students_count' => 1200],
-            ['id' => 4, 'code' => 'CRS-TM-TB101', 'title' => 'Tourism Basics', 'subject' => 'Tourism Basics', 'faculty' => 'Faculty of Tourism', 'department' => 'Tourism', 'major' => 'Tourism Management', 'teacher' => 'Mr. Long', 'learning_mode' => 'instructor_led', 'mode_label' => '🎥 Teacher-Led', 'is_paid' => true, 'price' => 25, 'status' => 'draft', 'students_count' => 25],
-            ['id' => 5, 'code' => 'CRS-AG-PS101', 'title' => 'Plant Science', 'subject' => 'Plant Science', 'faculty' => 'Faculty of Agriculture', 'department' => 'Agriculture', 'major' => 'Agronomy', 'teacher' => 'Mr. Vuthy', 'learning_mode' => 'instructor_led', 'mode_label' => '🎥 Teacher-Led', 'is_paid' => true, 'price' => 30, 'status' => 'published', 'students_count' => 60],
+            ['id' => 4, 'code' => 'CRS-TM-TB101', 'title' => 'Tourism Basics', 'subject' => 'Tourism Basics', 'faculty' => 'Faculty of Tourism', 'department' => 'Tourism', 'major' => 'Tourism', 'teacher' => 'Mr. Long', 'learning_mode' => 'instructor_led', 'mode_label' => '🎥 Teacher-Led', 'is_paid' => true, 'price' => 25, 'status' => 'draft', 'students_count' => 25],
+            ['id' => 5, 'code' => 'CRS-AG-PS101', 'title' => 'Plant Science', 'subject' => 'Plant Science', 'faculty' => 'Faculty of Agriculture', 'department' => 'Agriculture', 'major' => 'Agriculture', 'teacher' => 'Mr. Vuthy', 'learning_mode' => 'instructor_led', 'mode_label' => '🎥 Teacher-Led', 'is_paid' => true, 'price' => 30, 'status' => 'published', 'students_count' => 60],
             ['id' => 6, 'code' => 'CRS-SW-SW101', 'title' => 'Social Work 101', 'subject' => 'Social Work 101', 'faculty' => 'Faculty of Social Science', 'department' => 'Social Science', 'major' => 'Social Work', 'teacher' => 'Mr. Rithy', 'learning_mode' => 'self_paced', 'mode_label' => '💻 Self-Study', 'is_paid' => true, 'price' => 15, 'status' => 'published', 'students_count' => 548],
         ];
 
@@ -54,18 +59,71 @@ class CourseModuleController extends Controller
 
     public function subjects(): Response
     {
-        $defaultSubjects = [
-            ['id' => 1, 'code' => 'SUB-IT-101', 'name' => 'C Programming', 'name_kh' => 'ភាសា C Programming', 'faculty' => 'Faculty of Computing', 'department' => 'Computing', 'major' => 'Information Technology', 'credits' => 3, 'prerequisite' => 'Computer Basics', 'difficulty' => 'Beginner', 'status' => 'active'],
-            ['id' => 2, 'code' => 'SUB-IT-102', 'name' => 'Networking I', 'name_kh' => 'បណ្តាញកុំព្យូទ័រ I', 'faculty' => 'Faculty of Computing', 'department' => 'Computing', 'major' => 'Information Technology', 'credits' => 3, 'prerequisite' => 'C Programming', 'difficulty' => 'Intermediate', 'status' => 'active'],
-            ['id' => 3, 'code' => 'SUB-TM-101', 'name' => 'Tourism Basics', 'name_kh' => 'មូលដ្ឋានគ្រឹះទេសចរណ៍', 'faculty' => 'Faculty of Tourism', 'department' => 'Tourism', 'major' => 'Tourism', 'credits' => 3, 'prerequisite' => 'None', 'difficulty' => 'Beginner', 'status' => 'active'],
-            ['id' => 4, 'code' => 'SUB-EL-101', 'name' => 'English Grammar', 'name_kh' => 'វេយ្យាករណ៍អង់គ្លេស', 'faculty' => 'Faculty of Education', 'department' => 'Education', 'major' => 'English Literature', 'credits' => 2, 'prerequisite' => 'None', 'difficulty' => 'Beginner', 'status' => 'active'],
-            ['id' => 5, 'code' => 'SUB-AG-101', 'name' => 'Plant Science', 'name_kh' => 'វិទ្យាសាស្ត្ររុក្ខជាតិ', 'faculty' => 'Faculty of Agriculture', 'department' => 'Agriculture', 'major' => 'Agriculture', 'credits' => 3, 'prerequisite' => 'Biology', 'difficulty' => 'Intermediate', 'status' => 'active'],
-            ['id' => 6, 'code' => 'SUB-SW-101', 'name' => 'Social Work 101', 'name_kh' => 'ការងារសង្គម ១០១', 'faculty' => 'Faculty of Social Science', 'department' => 'Social Science', 'major' => 'Social Work', 'credits' => 3, 'prerequisite' => 'None', 'difficulty' => 'Beginner', 'status' => 'active'],
+        $subjects = Schema::hasTable('subjects')
+            ? Subject::with(['major.department.faculty', 'department.faculty', 'courses'])->latest()->get()->map(function ($sub) {
+                return [
+                    'id'            => $sub->id,
+                    'code'          => $sub->code,
+                    'name'          => $sub->name,
+                    'name_kh'       => $sub->name_kh,
+                    'major_id'      => $sub->major_id,
+                    'major'         => $sub->major?->name ?? 'Information Technology',
+                    'department_id' => $sub->department_id ?? $sub->major?->department_id,
+                    'department'    => $sub->department?->name ?? $sub->major?->department?->name ?? 'Computing',
+                    'faculty'       => $sub->department?->faculty?->name ?? $sub->major?->department?->faculty?->name ?? 'Faculty of Computing',
+                    'credits'       => $sub->credits,
+                    'prerequisite'  => $sub->prerequisite ?? 'None',
+                    'difficulty'    => $sub->difficulty ?? 'Beginner',
+                    'description'   => $sub->description,
+                    'status'        => $sub->status ?? ($sub->is_active ? 'active' : 'inactive'),
+                    'is_active'     => (bool) $sub->is_active,
+                    'courses_count' => $sub->courses->count(),
+                    'courses_list'  => $sub->courses->map(fn($c) => [
+                        'id'    => $c->id,
+                        'code'  => $c->code,
+                        'title' => $c->title,
+                    ])->toArray(),
+                ];
+            })
+            : collect();
+
+        $majors = Schema::hasTable('majors')
+            ? Major::with('department.faculty')->get()->map(function ($m) {
+                return [
+                    'id'         => $m->id,
+                    'name'       => $m->name,
+                    'name_kh'    => $m->name_kh,
+                    'code'       => $m->code,
+                    'department' => $m->department?->name ?? 'General',
+                    'faculty'    => $m->department?->faculty?->name ?? 'Faculty of Computing',
+                ];
+            })
+            : collect();
+
+        $departments = Schema::hasTable('departments')
+            ? Department::select('id', 'name', 'name_kh', 'code')->get()
+            : collect();
+
+        $faculties = Schema::hasTable('faculties')
+            ? Faculty::select('id', 'name', 'name_kh', 'code')->get()
+            : collect();
+
+        $stats = [
+            'total_subjects'    => $subjects->count(),
+            'total_majors'      => $majors->count(),
+            'total_credits'     => $subjects->sum('credits'),
+            'active_subjects'   => $subjects->where('status', 'active')->count(),
+            'total_courses'     => Course::count(),
+            'total_faculties'   => $faculties->count(),
+            'total_departments' => $departments->count(),
         ];
 
         return Inertia::render('Admin/CourseSubjectModule/Subjects', [
-            'subjects'     => $defaultSubjects,
-            'summaryStats' => $this->getSummaryStats(),
+            'subjects'     => $subjects->toArray(),
+            'majors'       => $majors->toArray(),
+            'departments'  => $departments->toArray(),
+            'faculties'    => $faculties->toArray(),
+            'summaryStats' => $stats,
         ]);
     }
 
@@ -225,16 +283,114 @@ class CourseModuleController extends Controller
 
     public function storeSubject(Request $request)
     {
-        return redirect()->back()->with('success', 'Subject saved successfully.');
+        $validated = $request->validate([
+            'name'          => 'required|string|max:255',
+            'name_kh'       => 'nullable|string|max:255',
+            'code'          => 'nullable|string|max:50',
+            'major_id'      => 'nullable|integer',
+            'major'         => 'nullable|string',
+            'department_id' => 'nullable|integer',
+            'department'    => 'nullable|string',
+            'credits'       => 'nullable|integer|min:1|max:10',
+            'prerequisite'  => 'nullable|string|max:255',
+            'difficulty'    => 'nullable|string|max:50',
+            'description'   => 'nullable|string',
+            'status'        => 'nullable|string',
+            'is_active'     => 'nullable|boolean',
+        ]);
+
+        if (empty($validated['major_id']) && !empty($validated['major'])) {
+            $validated['major_id'] = Major::where('name', $validated['major'])->value('id');
+        }
+        if (empty($validated['major_id'])) {
+            $validated['major_id'] = Major::value('id') ?? 1;
+        }
+
+        if (empty($validated['department_id'])) {
+            if (!empty($validated['department'])) {
+                $validated['department_id'] = Department::where('name', $validated['department'])->value('id');
+            }
+            if (empty($validated['department_id'])) {
+                $major = Major::find($validated['major_id']);
+                $validated['department_id'] = $major?->department_id;
+            }
+        }
+
+        if (empty($validated['code'])) {
+            $major = Major::find($validated['major_id']);
+            $prefix = $major ? strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $major->name), 0, 2)) : 'IT';
+            $validated['code'] = 'SUB-' . $prefix . '-' . rand(200, 999);
+        }
+
+        $status = $validated['status'] ?? 'active';
+        $isActive = $request->has('is_active') ? $request->boolean('is_active') : ($status !== 'inactive');
+
+        Subject::create([
+            'major_id'      => $validated['major_id'],
+            'department_id' => $validated['department_id'],
+            'code'          => $validated['code'],
+            'name'          => $validated['name'],
+            'name_kh'       => $validated['name_kh'] ?? null,
+            'credits'       => $validated['credits'] ?? 3,
+            'prerequisite'  => $validated['prerequisite'] ?? 'None',
+            'difficulty'    => $validated['difficulty'] ?? 'Beginner',
+            'description'   => $validated['description'] ?? null,
+            'status'        => $status,
+            'is_active'     => $isActive,
+        ]);
+
+        \Illuminate\Support\Facades\Cache::forget('academic.summary_stats');
+
+        return redirect()->back()->with('success', 'Subject created successfully.');
     }
 
     public function updateSubject(Request $request, $id)
     {
+        $subject = Subject::findOrFail($id);
+
+        $validated = $request->validate([
+            'name'          => 'sometimes|required|string|max:255',
+            'name_kh'       => 'nullable|string|max:255',
+            'code'          => 'sometimes|required|string|max:50|unique:subjects,code,' . $subject->id,
+            'major_id'      => 'nullable|integer',
+            'major'         => 'nullable|string',
+            'department_id' => 'nullable|integer',
+            'department'    => 'nullable|string',
+            'credits'       => 'nullable|integer|min:1|max:10',
+            'prerequisite'  => 'nullable|string|max:255',
+            'difficulty'    => 'nullable|string|max:50',
+            'description'   => 'nullable|string',
+            'status'        => 'nullable|string',
+            'is_active'     => 'nullable|boolean',
+        ]);
+
+        if (empty($validated['major_id']) && !empty($validated['major'])) {
+            $validated['major_id'] = Major::where('name', $validated['major'])->value('id');
+        }
+        if (empty($validated['department_id']) && !empty($validated['department'])) {
+            $validated['department_id'] = Department::where('name', $validated['department'])->value('id');
+        }
+
+        if (isset($validated['status']) && !isset($validated['is_active'])) {
+            $validated['is_active'] = $validated['status'] !== 'inactive';
+        }
+
+        $subject->update(array_filter($validated, fn($k) => in_array($k, [
+            'name', 'name_kh', 'code', 'major_id', 'department_id', 'credits', 'prerequisite', 'difficulty', 'description', 'status', 'is_active'
+        ]), ARRAY_FILTER_USE_KEY));
+
+        \Illuminate\Support\Facades\Cache::forget('academic.summary_stats');
+
         return redirect()->back()->with('success', 'Subject updated successfully.');
     }
 
     public function destroySubject($id)
     {
+        $subject = Subject::findOrFail($id);
+        $subject->delete();
+
+        \Illuminate\Support\Facades\Cache::forget('academic.summary_stats');
+
         return redirect()->back()->with('success', 'Subject deleted successfully.');
     }
 

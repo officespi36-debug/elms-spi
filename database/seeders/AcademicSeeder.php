@@ -3,10 +3,12 @@
 namespace Database\Seeders;
 
 use App\Models\AcademicYear;
+use App\Models\Course;
 use App\Models\Department;
 use App\Models\Faculty;
 use App\Models\Major;
 use App\Models\Semester;
+use App\Models\Subject;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -70,6 +72,72 @@ class AcademicSeeder extends Seeder
 
         foreach ($majorsData as $mjr) {
             Major::updateOrCreate(['code' => $mjr['code']], $mjr);
+        }
+
+        $mjrIT = Major::where('code', 'MJR-IT-001')->first();
+        $mjrTourism = Major::where('code', 'MJR-TRM-002')->first();
+        $mjrEnglish = Major::where('code', 'MJR-ENG-003')->first();
+        $mjrAgri = Major::where('code', 'MJR-AGR-004')->first();
+        $mjrSocial = Major::where('code', 'MJR-SW-005')->first();
+
+        // 3.1 Seed Subjects (Relationship: Major -> Subject)
+        $subjectsData = [
+            // 1. Information Technology
+            ['major_id' => $mjrIT?->id, 'department_id' => $deptComputing?->id, 'code' => 'SUB-IT-101', 'name' => 'Web Development', 'name_kh' => 'ការអភិវឌ្ឍគេហទំព័រ', 'credits' => 3, 'prerequisite' => 'Computer Basics', 'difficulty' => 'Beginner', 'status' => 'active'],
+            ['major_id' => $mjrIT?->id, 'department_id' => $deptComputing?->id, 'code' => 'SUB-IT-102', 'name' => 'C Programming', 'name_kh' => 'ភាសា C Programming', 'credits' => 3, 'prerequisite' => 'None', 'difficulty' => 'Beginner', 'status' => 'active'],
+            ['major_id' => $mjrIT?->id, 'department_id' => $deptComputing?->id, 'code' => 'SUB-IT-103', 'name' => 'Database Systems & SQL', 'name_kh' => 'ប្រព័ន្ធទិន្នន័យ និង SQL', 'credits' => 3, 'prerequisite' => 'C Programming', 'difficulty' => 'Intermediate', 'status' => 'active'],
+            ['major_id' => $mjrIT?->id, 'department_id' => $deptComputing?->id, 'code' => 'SUB-IT-104', 'name' => 'Networking Fundamentals', 'name_kh' => 'មូលដ្ឋានបណ្តាញកុំព្យូទ័រ', 'credits' => 3, 'prerequisite' => 'None', 'difficulty' => 'Beginner', 'status' => 'active'],
+            ['major_id' => $mjrIT?->id, 'department_id' => $deptComputing?->id, 'code' => 'SUB-IT-105', 'name' => 'Data Structures & Algorithms', 'name_kh' => 'រចនាសម្ព័ន្ធទិន្នន័យ និងក្បួនដោះស្រាយ', 'credits' => 4, 'prerequisite' => 'C Programming', 'difficulty' => 'Advanced', 'status' => 'active'],
+
+            // 2. Tourism
+            ['major_id' => $mjrTourism?->id, 'department_id' => $deptTourism?->id, 'code' => 'SUB-TM-101', 'name' => 'Tourism Basics', 'name_kh' => 'មូលដ្ឋានគ្រឹះទេសចរណ៍', 'credits' => 3, 'prerequisite' => 'None', 'difficulty' => 'Beginner', 'status' => 'active'],
+            ['major_id' => $mjrTourism?->id, 'department_id' => $deptTourism?->id, 'code' => 'SUB-TM-102', 'name' => 'Hospitality Management', 'name_kh' => 'គ្រប់គ្រងបដិសណ្ឋារកិច្ច', 'credits' => 3, 'prerequisite' => 'Tourism Basics', 'difficulty' => 'Intermediate', 'status' => 'active'],
+            ['major_id' => $mjrTourism?->id, 'department_id' => $deptTourism?->id, 'code' => 'SUB-TM-103', 'name' => 'Sustainable Ecotourism', 'name_kh' => 'ទេសចរណ៍ធម្មជាតិប្រកបដោយនិរន្តរភាព', 'credits' => 3, 'prerequisite' => 'None', 'difficulty' => 'Intermediate', 'status' => 'active'],
+
+            // 3. English Literature
+            ['major_id' => $mjrEnglish?->id, 'department_id' => $deptEdu?->id, 'code' => 'SUB-EL-101', 'name' => 'English Grammar', 'name_kh' => 'វេយ្យាករណ៍អង់គ្លេស', 'credits' => 2, 'prerequisite' => 'None', 'difficulty' => 'Beginner', 'status' => 'active'],
+            ['major_id' => $mjrEnglish?->id, 'department_id' => $deptEdu?->id, 'code' => 'SUB-EL-102', 'name' => 'Academic Writing', 'name_kh' => 'ការសរសេរបែបសិក្សាស្រាវជ្រាវ', 'credits' => 3, 'prerequisite' => 'English Grammar', 'difficulty' => 'Intermediate', 'status' => 'active'],
+            ['major_id' => $mjrEnglish?->id, 'department_id' => $deptEdu?->id, 'code' => 'SUB-EL-103', 'name' => 'World Literature Analysis', 'name_kh' => 'វិភាគអក្សរសាស្ត្រពិភពលោក', 'credits' => 3, 'prerequisite' => 'None', 'difficulty' => 'Advanced', 'status' => 'active'],
+
+            // 4. Agriculture
+            ['major_id' => $mjrAgri?->id, 'department_id' => $deptAgri?->id, 'code' => 'SUB-AG-101', 'name' => 'Plant Science', 'name_kh' => 'វិទ្យាសាស្ត្ររុក្ខជាតិ', 'credits' => 3, 'prerequisite' => 'Biology', 'difficulty' => 'Intermediate', 'status' => 'active'],
+            ['major_id' => $mjrAgri?->id, 'department_id' => $deptAgri?->id, 'code' => 'SUB-AG-102', 'name' => 'Soil Studies & Nutrition', 'name_kh' => 'ការសិក្សាអំពីដី និងជីវជាតិដី', 'credits' => 3, 'prerequisite' => 'None', 'difficulty' => 'Beginner', 'status' => 'active'],
+            ['major_id' => $mjrAgri?->id, 'department_id' => $deptAgri?->id, 'code' => 'SUB-AG-103', 'name' => 'Crop Protection & Entomology', 'name_kh' => 'ការការពារដំណាំ និងបាណកវិទ្យា', 'credits' => 3, 'prerequisite' => 'Plant Science', 'difficulty' => 'Advanced', 'status' => 'active'],
+
+            // 5. Social Work
+            ['major_id' => $mjrSocial?->id, 'department_id' => $deptSocial?->id, 'code' => 'SUB-SW-101', 'name' => 'Social Work 101', 'name_kh' => 'ការងារសង្គម ១០១', 'credits' => 3, 'prerequisite' => 'None', 'difficulty' => 'Beginner', 'status' => 'active'],
+            ['major_id' => $mjrSocial?->id, 'department_id' => $deptSocial?->id, 'code' => 'SUB-SW-102', 'name' => 'Community Development', 'name_kh' => 'ការអភិវឌ្ឍសហគមន៍', 'credits' => 3, 'prerequisite' => 'Social Work 101', 'difficulty' => 'Intermediate', 'status' => 'active'],
+            ['major_id' => $mjrSocial?->id, 'department_id' => $deptSocial?->id, 'code' => 'SUB-SW-103', 'name' => 'Social Counseling & Ethics', 'name_kh' => 'ការប្រឹក្សាសង្គម និងក្រមសីលធម៌', 'credits' => 3, 'prerequisite' => 'None', 'difficulty' => 'Intermediate', 'status' => 'active'],
+        ];
+
+        foreach ($subjectsData as $sub) {
+            Subject::updateOrCreate(['code' => $sub['code']], $sub);
+        }
+
+        // 3.2 Seed Exemplar Courses linked to Subject & Major (Relationship: Subject -> Course)
+        $subWebDev = Subject::where('code', 'SUB-IT-101')->first();
+        $subProg   = Subject::where('code', 'SUB-IT-102')->first();
+        $subTour   = Subject::where('code', 'SUB-TM-101')->first();
+        $subGram   = Subject::where('code', 'SUB-EL-101')->first();
+        $subPlant  = Subject::where('code', 'SUB-AG-101')->first();
+        $subSW     = Subject::where('code', 'SUB-SW-101')->first();
+
+        $teacher = User::where('role', 'teacher')->first() ?? User::firstOrCreate(
+            ['email' => 'teacher@elms.com'],
+            ['name' => 'Mr. Sophea', 'password' => 'password', 'role' => 'teacher']
+        );
+
+        $sampleCourses = [
+            ['code' => 'CRS-IT-WD101', 'title' => 'Web Development with Vue & Laravel', 'teacher_id' => $teacher->id, 'major_id' => $mjrIT?->id, 'subject_id' => $subWebDev?->id, 'description' => 'Comprehensive fullstack development from JavaScript to production API integration.', 'learning_mode' => 'instructor_led', 'status' => 'published'],
+            ['code' => 'CRS-IT-CP101', 'title' => 'C Programming Basics', 'teacher_id' => $teacher->id, 'major_id' => $mjrIT?->id, 'subject_id' => $subProg?->id, 'description' => 'Fundamental programming concepts, memory pointers, and modular structure.', 'learning_mode' => 'instructor_led', 'status' => 'published'],
+            ['code' => 'CRS-TM-TB101', 'title' => 'Tourism Basics & Hospitality', 'teacher_id' => $teacher->id, 'major_id' => $mjrTourism?->id, 'subject_id' => $subTour?->id, 'description' => 'Principles of hospitality services, eco-tourism ethics, and customer management.', 'learning_mode' => 'self_paced', 'status' => 'published'],
+            ['code' => 'CRS-EL-EG101', 'title' => 'English Grammar Mastery', 'teacher_id' => $teacher->id, 'major_id' => $mjrEnglish?->id, 'subject_id' => $subGram?->id, 'description' => 'Advanced sentence construction, academic punctuation, and linguistic syntax.', 'learning_mode' => 'self_paced', 'status' => 'published'],
+            ['code' => 'CRS-AG-PS101', 'title' => 'Plant Science Fundamentals', 'teacher_id' => $teacher->id, 'major_id' => $mjrAgri?->id, 'subject_id' => $subPlant?->id, 'description' => 'Modern agronomy techniques, plant pathology, and soil nutrient preservation.', 'learning_mode' => 'instructor_led', 'status' => 'published'],
+            ['code' => 'CRS-SW-SW101', 'title' => 'Introduction to Social Work', 'teacher_id' => $teacher->id, 'major_id' => $mjrSocial?->id, 'subject_id' => $subSW?->id, 'description' => 'Community empowerment, welfare case handling, and field counseling practices.', 'learning_mode' => 'self_paced', 'status' => 'published'],
+        ];
+
+        foreach ($sampleCourses as $crs) {
+            Course::updateOrCreate(['code' => $crs['code']], $crs);
         }
 
         // 4. Seed Academic Years

@@ -27,7 +27,7 @@ use Illuminate\Database\Eloquent\Model;
 class Course extends Model
 {
     protected $fillable = [
-        'major_id', 'teacher_id', 'title', 'code', 'description',
+        'major_id', 'subject_id', 'teacher_id', 'title', 'code', 'description',
         'learning_mode', 'is_paid', 'price', 'status', 'thumbnail',
         'submitted_at', 'reviewed_at', 'rejection_note'
     ];
@@ -42,6 +42,11 @@ class Course extends Model
     public function major()
     {
         return $this->belongsTo(Major::class);
+    }
+
+    public function subject()
+    {
+        return $this->belongsTo(Subject::class);
     }
 
     public function teacher()

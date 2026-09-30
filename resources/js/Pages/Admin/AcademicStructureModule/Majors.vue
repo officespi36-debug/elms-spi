@@ -406,22 +406,22 @@ const deleteMajor = (mjr: any) => {
           </div>
         </div>
 
-        <!-- Card 4: Avg Fee / Subject -->
-        <div class="relative group p-4.5 bg-gradient-to-b from-slate-900/90 via-slate-900/70 to-amber-950/20 border border-amber-500/20 hover:border-amber-500/35 rounded-2xl backdrop-blur-xl transition-all duration-300 shadow-lg hover:shadow-amber-500/10 space-y-1 overflow-hidden">
-          <div class="absolute -right-6 -top-6 w-20 h-20 bg-amber-500/10 rounded-full blur-xl group-hover:bg-amber-500/20 transition-all pointer-events-none"></div>
+        <!-- Card 4: Core Subjects in Curriculum -->
+        <div class="relative group p-4.5 bg-gradient-to-b from-slate-900/90 via-slate-900/70 to-sky-950/20 border border-sky-500/20 hover:border-sky-500/35 rounded-2xl backdrop-blur-xl transition-all duration-300 shadow-lg hover:shadow-sky-500/10 space-y-1 overflow-hidden">
+          <div class="absolute -right-6 -top-6 w-20 h-20 bg-sky-500/10 rounded-full blur-xl group-hover:bg-sky-500/20 transition-all pointer-events-none"></div>
           <div class="flex items-center justify-between">
             <div class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-              <span>💵</span>
-              <span>Avg Fee / Subject</span>
+              <span>📖</span>
+              <span>Core Subjects</span>
             </div>
-            <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20">Tuition</span>
+            <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-sky-500/10 text-sky-300 border border-sky-500/20">Curriculum</span>
           </div>
-          <div class="text-3xl font-black text-amber-300 tracking-tight pt-1">
-            $24 USD
+          <div class="text-3xl font-black text-sky-300 tracking-tight pt-1">
+            17 Subjects
           </div>
-          <div class="text-xs text-amber-200/90 font-medium flex items-center gap-1.5 pt-0.5">
-            <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-            <span>Standard Rate</span>
+          <div class="text-xs text-sky-200/90 font-medium flex items-center gap-1.5 pt-0.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
+            <span>Major ➔ Subject Flow</span>
           </div>
         </div>
       </div>
@@ -500,12 +500,12 @@ const deleteMajor = (mjr: any) => {
                 </div>
               </th>
 
-              <!-- Fee / Subject -->
-              <th @click="toggleSort('price_per_subject')" class="py-4 px-4 text-center cursor-pointer hover:text-white transition-colors group">
+              <!-- Core Subjects -->
+              <th @click="toggleSort('subjects_count')" class="py-4 px-4 text-center cursor-pointer hover:text-white transition-colors group">
                 <div class="flex items-center justify-center gap-1.5">
-                  <span>Fee / Subject</span>
-                  <span :class="[sortKey === 'price_per_subject' ? 'bg-amber-500/20 text-amber-300 font-extrabold border border-amber-500/40 px-1.5 py-0.5 rounded' : 'text-slate-500 group-hover:text-slate-300', 'text-[11px] transition-all']">
-                    {{ sortKey === 'price_per_subject' ? (sortOrder === 'asc' ? '▲' : '▼') : '↕' }}
+                  <span>Core Subjects</span>
+                  <span :class="[sortKey === 'subjects_count' ? 'bg-sky-500/20 text-sky-300 font-extrabold border border-sky-500/40 px-1.5 py-0.5 rounded' : 'text-slate-500 group-hover:text-slate-300', 'text-[11px] transition-all']">
+                    {{ sortKey === 'subjects_count' ? (sortOrder === 'asc' ? '▲' : '▼') : '↕' }}
                   </span>
                 </div>
               </th>
@@ -557,8 +557,11 @@ const deleteMajor = (mjr: any) => {
                 {{ (mjr.students_count ?? 430).toLocaleString() }}
               </td>
 
-              <td class="py-4 px-4 text-center font-extrabold text-amber-300 whitespace-nowrap text-sm">
-                ${{ mjr.price_per_subject ?? 25 }} USD
+              <td class="py-4 px-4 text-center whitespace-nowrap">
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-sky-500/15 text-sky-300 border border-sky-500/30 inline-flex items-center gap-1.5 shadow-xs">
+                  <span>📖</span>
+                  <span>{{ mjr.subjects_count || mjr.subjects_list?.length || (mjr.id === 1 ? 5 : 3) }} Subjects</span>
+                </span>
               </td>
 
               <td class="py-4 px-4 text-center font-bold text-slate-200 whitespace-nowrap">
@@ -698,8 +701,8 @@ const deleteMajor = (mjr: any) => {
 
             <div class="grid grid-cols-2 gap-3.5">
               <div>
-                <label class="block font-bold text-slate-300 mb-1.5">Tuition Fee / Subject ($)</label>
-                <input v-model="form.price_per_subject" type="number" class="w-full bg-slate-950/70 border border-slate-700/80 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20 rounded-xl px-3.5 py-2.5 text-white font-bold" />
+                <label class="block font-bold text-slate-300 mb-1.5">Required Degree Credits</label>
+                <input v-model.number="form.credits" type="number" placeholder="120" class="w-full bg-slate-950/70 border border-slate-700/80 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20 rounded-xl px-3.5 py-2.5 text-white font-bold" />
               </div>
 
               <div>
