@@ -35,7 +35,7 @@ class CourseModuleController extends Controller
     public function allCourses(Request $request)
     {
         if ($request->query('tab') === 'pricing') {
-            return redirect()->route('payments.index', ['tab' => 'pricing']);
+            return redirect('/admin/course-module/paid');
         }
 
         $courses = Schema::hasTable('courses')
@@ -245,7 +245,7 @@ class CourseModuleController extends Controller
         return redirect()->back()->with('success', 'Course created successfully.');
     }
 
-    public function updateCourse(Request $request, $id)
+    public function updateCourse(Request $request, int|string $id)
     {
         $validated = $request->validate([
             'title'         => 'sometimes|required|string|max:255',
@@ -269,7 +269,7 @@ class CourseModuleController extends Controller
         return redirect()->back()->with('success', 'Course updated successfully.');
     }
 
-    public function destroyCourse($id)
+    public function destroyCourse(int|string $id)
     {
         if (Schema::hasTable('courses')) {
             $course = Course::find($id);
@@ -344,7 +344,7 @@ class CourseModuleController extends Controller
         return redirect()->back()->with('success', 'Subject created successfully.');
     }
 
-    public function updateSubject(Request $request, $id)
+    public function updateSubject(Request $request, int|string $id)
     {
         $subject = Subject::findOrFail($id);
 
@@ -384,7 +384,7 @@ class CourseModuleController extends Controller
         return redirect()->back()->with('success', 'Subject updated successfully.');
     }
 
-    public function destroySubject($id)
+    public function destroySubject(int|string $id)
     {
         $subject = Subject::findOrFail($id);
         $subject->delete();
@@ -399,12 +399,12 @@ class CourseModuleController extends Controller
         return redirect()->back()->with('success', 'Teacher assignment saved successfully.');
     }
 
-    public function updateAssignment(Request $request, $id)
+    public function updateAssignment(Request $request, int|string $id)
     {
         return redirect()->back()->with('success', 'Teacher assignment updated successfully.');
     }
 
-    public function destroyAssignment($id)
+    public function destroyAssignment(int|string $id)
     {
         return redirect()->back()->with('success', 'Teacher assignment removed successfully.');
     }

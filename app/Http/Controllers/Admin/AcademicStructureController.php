@@ -132,34 +132,37 @@ class AcademicStructureController extends Controller
     public function departments(): Response
     {
         $departments = Cache::remember('academic_structure.departments', 86400, function () {
-            return Schema::hasTable('departments')
-                ? Department::with(['faculty'])->withCount(['majors'])->latest()->get()
-                : collect();
+            if (!Schema::hasTable('departments')) {
+                return collect();
+            }
+
+            return Department::with(['faculty', 'majors'])->withCount(['majors'])->latest()->get()->map(function (Department $dept) {
+                return [
+                    'id'             => $dept->id,
+                    'code'           => $dept->code,
+                    'name'           => $dept->name,
+                    'name_kh'        => $dept->name_kh,
+                    'faculty_id'     => $dept->faculty_id,
+                    'faculty'        => $dept->faculty?->name ?? 'Faculty of Computing',
+                    'head'           => $dept->head ?? 'Head of Department',
+                    'email'          => $dept->email ?? 'dept@elms.edu',
+                    'majors_count'   => $dept->majors->count(),
+                    'teachers_count' => 15,
+                    'status'         => $dept->is_active ? 'active' : 'inactive',
+                    'is_active'      => (bool) $dept->is_active,
+                    'linked_majors'  => $dept->majors->pluck('name')->toArray(),
+                ];
+            });
         });
 
         $faculties = Cache::remember('academic_structure.faculties_names', 86400, function () {
             return Schema::hasTable('faculties') ? Faculty::pluck('name')->toArray() : [];
         });
 
-        $defaultDepts = [
-            ['id' => 1, 'code' => 'DEPT-CMP-001', 'name' => 'Computing', 'name_kh' => 'ដេប៉ាតឺម៉ង់ វិទ្យាសាស្ត្រកុំព្យូទ័រ', 'faculty' => 'Faculty of Computing', 'head' => 'Mr. Sophea', 'email' => 'computing.dept@elms.edu', 'majors_count' => 1, 'teachers_count' => 25, 'status' => 'active', 'linked_majors' => ['IT & Networking']],
-            ['id' => 2, 'code' => 'DEPT-SE-002', 'name' => 'Software Engineering', 'name_kh' => 'ដេប៉ាតឺម៉ង់ វិស្វកម្មសូហ្វវែរ', 'faculty' => 'Faculty of Computing', 'head' => 'Dr. Keo Vichea', 'email' => 'se.dept@elms.edu', 'majors_count' => 0, 'teachers_count' => 12, 'status' => 'active', 'linked_majors' => []],
-            ['id' => 3, 'code' => 'DEPT-TRM-003', 'name' => 'Tourism', 'name_kh' => 'ដេប៉ាតឺម៉ង់ ទេសចរណ៍', 'faculty' => 'Faculty of Tourism', 'head' => 'Mr. Long', 'email' => 'tourism.dept@elms.edu', 'majors_count' => 1, 'teachers_count' => 18, 'status' => 'active', 'linked_majors' => ['Tourism Management']],
-            ['id' => 4, 'code' => 'DEPT-HSP-004', 'name' => 'Hospitality Management', 'name_kh' => 'ដេប៉ាតឺម៉ង់ គ្រប់គ្រងសណ្ឋាគារ', 'faculty' => 'Faculty of Tourism', 'head' => 'Ms. Dara', 'email' => 'hospitality.dept@elms.edu', 'majors_count' => 0, 'teachers_count' => 15, 'status' => 'active', 'linked_majors' => []],
-            ['id' => 5, 'code' => 'DEPT-EDU-005', 'name' => 'Education', 'name_kh' => 'ដេប៉ាតឺម៉ង់ អប់រំ', 'faculty' => 'Faculty of Education', 'head' => 'Ms. Srey', 'email' => 'education.dept@elms.edu', 'majors_count' => 1, 'teachers_count' => 20, 'status' => 'active', 'linked_majors' => ['English Literature']],
-            ['id' => 6, 'code' => 'DEPT-HUM-006', 'name' => 'Humanities', 'name_kh' => 'ដេប៉ាតឺម៉ង់ មនុស្សសាស្ត្រ', 'faculty' => 'Faculty of Education', 'head' => 'Mr. Chan', 'email' => 'humanities.dept@elms.edu', 'majors_count' => 0, 'teachers_count' => 8, 'status' => 'active', 'linked_majors' => []],
-            ['id' => 7, 'code' => 'DEPT-LNG-007', 'name' => 'Languages', 'name_kh' => 'ដេប៉ាតឺម៉ង់ ភាសាបរទេស', 'faculty' => 'Faculty of Education', 'head' => 'Ms. Sophea', 'email' => 'languages.dept@elms.edu', 'majors_count' => 0, 'teachers_count' => 10, 'status' => 'active', 'linked_majors' => []],
-            ['id' => 8, 'code' => 'DEPT-AGR-008', 'name' => 'Agriculture', 'name_kh' => 'ដេប៉ាតឺម៉ង់ កសិកម្ម', 'faculty' => 'Faculty of Agriculture', 'head' => 'Mr. Vuthy', 'email' => 'agri.dept@elms.edu', 'majors_count' => 1, 'teachers_count' => 22, 'status' => 'active', 'linked_majors' => ['Agronomy']],
-            ['id' => 9, 'code' => 'DEPT-PLN-009', 'name' => 'Plant Science', 'name_kh' => 'ដេប៉ាតឺម៉ង់ វិទ្យាសាស្ត្ររុក្ខជាតិ', 'faculty' => 'Faculty of Agriculture', 'head' => 'Dr. Heng', 'email' => 'plant.dept@elms.edu', 'majors_count' => 0, 'teachers_count' => 8, 'status' => 'active', 'linked_majors' => []],
-            ['id' => 10, 'code' => 'DEPT-SOC-010', 'name' => 'Social Science', 'name_kh' => 'ដេប៉ាតឺម៉ង់ វិទ្យាសាស្ត្រសង្គម', 'faculty' => 'Faculty of Social Science', 'head' => 'Mr. Rithy', 'email' => 'social.dept@elms.edu', 'majors_count' => 1, 'teachers_count' => 15, 'status' => 'active', 'linked_majors' => ['Social Work']],
-            ['id' => 11, 'code' => 'DEPT-DEV-011', 'name' => 'Social Development', 'name_kh' => 'ដេប៉ាតឺម៉ង់ អភិវឌ្ឍន៍សង្គម', 'faculty' => 'Faculty of Social Science', 'head' => 'Ms. Bopha', 'email' => 'dev.dept@elms.edu', 'majors_count' => 0, 'teachers_count' => 7, 'status' => 'active', 'linked_majors' => []],
-            ['id' => 12, 'code' => 'DEPT-COM-012', 'name' => 'Community Studies', 'name_kh' => 'ដេប៉ាតឺម៉ង់ សិក្សាសហគមន៍', 'faculty' => 'Faculty of Social Science', 'head' => 'Mr. Sarath', 'email' => 'community.dept@elms.edu', 'majors_count' => 0, 'teachers_count' => 5, 'status' => 'active', 'linked_majors' => []],
-        ];
-
         $defaultFaculties = ['Faculty of Computing', 'Faculty of Tourism', 'Faculty of Education', 'Faculty of Agriculture', 'Faculty of Social Science'];
 
         return Inertia::render('Admin/AcademicStructureModule/Departments', [
-            'departments'  => $departments->isNotEmpty() ? $departments->toArray() : $defaultDepts,
+            'departments'  => $departments->isNotEmpty() ? $departments->toArray() : [],
             'faculties'    => count($faculties) > 0 ? $faculties : $defaultFaculties,
             'summaryStats' => $this->getSummaryStats(),
         ]);
@@ -239,7 +242,7 @@ class AcademicStructureController extends Controller
                 return collect();
             }
 
-            return Major::with(['department.faculty', 'subjects', 'courses.teacher'])->latest()->get()->map(function ($mjr) {
+            return Major::with(['department.faculty', 'subjects', 'courses.teacher'])->latest()->get()->map(function (Major $mjr) {
                 return [
                     'id'                => $mjr->id,
                     'code'              => $mjr->code,
