@@ -2,7 +2,7 @@
 import { ref, computed, watch } from 'vue'
 import { router } from '@inertiajs/vue3'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
-import CourseModuleHeader from '@/Components/Admin/CourseModuleHeader.vue'
+import AcademicModuleHeader from '@/Components/Admin/AcademicModuleHeader.vue'
 
 const props = withDefaults(defineProps<{
   subjects?: any[]
@@ -39,7 +39,7 @@ const form = ref({
   name_kh: '',
   faculty: 'Faculty of Computing',
   department: 'Computing',
-  major: 'IT & Networking',
+  major: 'Information Technology',
   credits: 3,
   prerequisite: 'None',
   difficulty: 'Beginner',
@@ -49,11 +49,11 @@ const form = ref({
 
 const subjectsList = computed(() => {
   return Array.isArray(props.subjects) && props.subjects.length > 0 ? props.subjects : [
-    { id: 1, code: 'SUB-IT-101', name: 'C Programming', name_kh: 'ភាសា C Programming', faculty: 'Faculty of Computing', department: 'Computing', major: 'IT & Networking', credits: 3, prerequisite: 'Computer Basics', difficulty: 'Beginner', status: 'active' },
-    { id: 2, code: 'SUB-IT-102', name: 'Networking I', name_kh: 'បណ្តាញកុំព្យូទ័រ I', faculty: 'Faculty of Computing', department: 'Computing', major: 'IT & Networking', credits: 3, prerequisite: 'C Programming', difficulty: 'Intermediate', status: 'active' },
-    { id: 3, code: 'SUB-TM-101', name: 'Tourism Basics', name_kh: 'មូលដ្ឋានគ្រឹះទេសចរណ៍', faculty: 'Faculty of Tourism', department: 'Tourism', major: 'Tourism Management', credits: 3, prerequisite: 'None', difficulty: 'Beginner', status: 'active' },
+    { id: 1, code: 'SUB-IT-101', name: 'C Programming', name_kh: 'ភាសា C Programming', faculty: 'Faculty of Computing', department: 'Computing', major: 'Information Technology', credits: 3, prerequisite: 'Computer Basics', difficulty: 'Beginner', status: 'active' },
+    { id: 2, code: 'SUB-IT-102', name: 'Networking I', name_kh: 'បណ្តាញកុំព្យូទ័រ I', faculty: 'Faculty of Computing', department: 'Computing', major: 'Information Technology', credits: 3, prerequisite: 'C Programming', difficulty: 'Intermediate', status: 'active' },
+    { id: 3, code: 'SUB-TM-101', name: 'Tourism Basics', name_kh: 'មូលដ្ឋានគ្រឹះទេសចរណ៍', faculty: 'Faculty of Tourism', department: 'Tourism', major: 'Tourism', credits: 3, prerequisite: 'None', difficulty: 'Beginner', status: 'active' },
     { id: 4, code: 'SUB-EL-101', name: 'English Grammar', name_kh: 'វេយ្យាករណ៍អង់គ្លេស', faculty: 'Faculty of Education', department: 'Education', major: 'English Literature', credits: 2, prerequisite: 'None', difficulty: 'Beginner', status: 'active' },
-    { id: 5, code: 'SUB-AG-101', name: 'Plant Science', name_kh: 'វិទ្យាសាស្ត្ររុក្ខជាតិ', faculty: 'Faculty of Agriculture', department: 'Agriculture', major: 'Agronomy', credits: 3, prerequisite: 'Biology', difficulty: 'Intermediate', status: 'active' },
+    { id: 5, code: 'SUB-AG-101', name: 'Plant Science', name_kh: 'វិទ្យាសាស្ត្ររុក្ខជាតិ', faculty: 'Faculty of Agriculture', department: 'Agriculture', major: 'Agriculture', credits: 3, prerequisite: 'Biology', difficulty: 'Intermediate', status: 'active' },
     { id: 6, code: 'SUB-SW-101', name: 'Social Work 101', name_kh: 'ការងារសង្គម ១០១', faculty: 'Faculty of Social Science', department: 'Social Science', major: 'Social Work', credits: 3, prerequisite: 'None', difficulty: 'Beginner', status: 'active' },
   ]
 })
@@ -207,10 +207,10 @@ const viewDetails = (sub: any) => {
 </script>
 
 <template>
-  <AdminLayout title="Subjects — Course & Subject Management">
+  <AdminLayout title="Subjects — Academic Structure">
     <div class="space-y-4 font-sans" @click="closeDropdown">
-      <!-- Shared Header (1-Layer Clean Header) -->
-      <CourseModuleHeader activeTab="subjects" :summaryStats="props.summaryStats" />
+      <!-- Shared Header (Academic Structure Tabs) -->
+      <AcademicModuleHeader activeTab="subjects" :summaryStats="props.summaryStats" />
 
       <!-- CONTROLS & SEARCH BAR -->
       <div class="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 bg-slate-900/60 border border-slate-800 rounded-2xl backdrop-blur-xl">

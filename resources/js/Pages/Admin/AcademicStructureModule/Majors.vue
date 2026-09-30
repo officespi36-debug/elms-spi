@@ -11,7 +11,7 @@ const props = withDefaults(defineProps<{
 }>(), {
   majors: () => [
     {
-      id: 1, code: 'MJR-IT-001', name: 'IT & Networking', name_kh: 'បច្ចេកវិទ្យាព័ត៌មាន និងបណ្តាញ', department: 'Computing', faculty: 'Faculty of Computing', students_count: 520, teachers_count: 25, courses_count: 32, price_per_subject: 25, duration: '4 Years', degree_level: 'Bachelor', credits: 120, language: 'English / Khmer', status: 'active',
+      id: 1, code: 'MJR-IT-001', name: 'Information Technology', name_kh: 'បច្ចេកវិទ្យាព័ត៌មាន', department: 'Computing', faculty: 'Faculty of Computing', students_count: 520, teachers_count: 25, courses_count: 32, price_per_subject: 25, duration: '4 Years', degree_level: 'Bachelor', credits: 120, language: 'English / Khmer', status: 'active',
       linked_courses: [
         { name: 'C Programming', price: 25, teacher: 'Mr. Sophea' },
         { name: 'Web Development', price: 30, teacher: 'Ms. Dara' },
@@ -20,7 +20,7 @@ const props = withDefaults(defineProps<{
       ]
     },
     {
-      id: 2, code: 'MJR-TRM-002', name: 'Tourism Management', name_kh: 'គ្រប់គ្រងទេសចរណ៍', department: 'Tourism', faculty: 'Faculty of Tourism', students_count: 410, teachers_count: 18, courses_count: 28, price_per_subject: 20, duration: '4 Years', degree_level: 'Bachelor', credits: 120, language: 'English / Khmer', status: 'active',
+      id: 2, code: 'MJR-TRM-002', name: 'Tourism', name_kh: 'ទេសចរណ៍', department: 'Tourism', faculty: 'Faculty of Tourism', students_count: 410, teachers_count: 18, courses_count: 28, price_per_subject: 20, duration: '4 Years', degree_level: 'Bachelor', credits: 120, language: 'English / Khmer', status: 'active',
       linked_courses: [
         { name: 'Tourism Basics', price: 20, teacher: 'Mr. Long' },
         { name: 'Hospitality Management', price: 25, teacher: 'Ms. Dara' },
@@ -34,7 +34,7 @@ const props = withDefaults(defineProps<{
       ]
     },
     {
-      id: 4, code: 'MJR-AGR-004', name: 'Agronomy', name_kh: 'កសិកម្មសាស្ត្រ', department: 'Agriculture', faculty: 'Faculty of Agriculture', students_count: 600, teachers_count: 22, courses_count: 30, price_per_subject: 25, duration: '4 Years', degree_level: 'Bachelor', credits: 120, language: 'Khmer', status: 'active',
+      id: 4, code: 'MJR-AGR-004', name: 'Agriculture', name_kh: 'កសិកម្ម', department: 'Agriculture', faculty: 'Faculty of Agriculture', students_count: 600, teachers_count: 22, courses_count: 30, price_per_subject: 25, duration: '4 Years', degree_level: 'Bachelor', credits: 120, language: 'Khmer', status: 'active',
       linked_courses: [
         { name: 'Plant Science', price: 25, teacher: 'Mr. Vuthy' },
         { name: 'Soil Studies', price: 20, teacher: 'Mr. Vuthy' },
@@ -53,10 +53,10 @@ const props = withDefaults(defineProps<{
 })
 
 const defaultMajors = [
-  { id: 1, code: 'MJR-IT-001', name: 'IT & Networking', name_kh: 'បច្ចេកវិទ្យាព័ត៌មាន និងបណ្តាញ', department: 'Computing', faculty: 'Faculty of Computing', students_count: 520, teachers_count: 25, courses_count: 32, price_per_subject: 25, duration: '4 Years', degree_level: 'Bachelor', credits: 120, language: 'English / Khmer', status: 'active' },
-  { id: 2, code: 'MJR-TRM-002', name: 'Tourism Management', name_kh: 'គ្រប់គ្រងទេសចរណ៍', department: 'Tourism', faculty: 'Faculty of Tourism', students_count: 410, teachers_count: 18, courses_count: 28, price_per_subject: 20, duration: '4 Years', degree_level: 'Bachelor', credits: 120, language: 'English / Khmer', status: 'active' },
+  { id: 1, code: 'MJR-IT-001', name: 'Information Technology', name_kh: 'បច្ចេកវិទ្យាព័ត៌មាន', department: 'Computing', faculty: 'Faculty of Computing', students_count: 520, teachers_count: 25, courses_count: 32, price_per_subject: 25, duration: '4 Years', degree_level: 'Bachelor', credits: 120, language: 'English / Khmer', status: 'active' },
+  { id: 2, code: 'MJR-TRM-002', name: 'Tourism', name_kh: 'ទេសចរណ៍', department: 'Tourism', faculty: 'Faculty of Tourism', students_count: 410, teachers_count: 18, courses_count: 28, price_per_subject: 20, duration: '4 Years', degree_level: 'Bachelor', credits: 120, language: 'English / Khmer', status: 'active' },
   { id: 3, code: 'MJR-ENG-003', name: 'English Literature', name_kh: 'អក្សរសាស្ត្រអង់គ្លេស', department: 'Education', faculty: 'Faculty of Education', students_count: 380, teachers_count: 20, courses_count: 24, price_per_subject: 20, duration: '4 Years', degree_level: 'Bachelor', credits: 120, language: 'English', status: 'active' },
-  { id: 4, code: 'MJR-AGR-004', name: 'Agronomy', name_kh: 'កសិកម្មសាស្ត្រ', department: 'Agriculture', faculty: 'Faculty of Agriculture', students_count: 600, teachers_count: 22, courses_count: 30, price_per_subject: 25, duration: '4 Years', degree_level: 'Bachelor', credits: 120, language: 'Khmer', status: 'active' },
+  { id: 4, code: 'MJR-AGR-004', name: 'Agriculture', name_kh: 'កសិកម្ម', department: 'Agriculture', faculty: 'Faculty of Agriculture', students_count: 600, teachers_count: 22, courses_count: 30, price_per_subject: 25, duration: '4 Years', degree_level: 'Bachelor', credits: 120, language: 'Khmer', status: 'active' },
   { id: 5, code: 'MJR-SW-005', name: 'Social Work', name_kh: 'ការងារសង្គម', department: 'Social Science', faculty: 'Faculty of Social Science', students_count: 548, teachers_count: 15, courses_count: 26, price_per_subject: 25, duration: '4 Years', degree_level: 'Bachelor', credits: 120, language: 'Khmer', status: 'active' },
 ]
 

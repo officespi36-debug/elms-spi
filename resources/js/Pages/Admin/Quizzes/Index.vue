@@ -41,37 +41,37 @@ const localResults = ref<ResultItem[]>([...(props.results || [])])
 const localCategories = ref<any[]>([...(props.categories || [])])
 
 // Active Tab state handling query params ?type=pre_test or ?tab=all
-const initialTab = props.activeTab && props.activeTab !== 'all' 
+const initialTab = props.activeTab 
   ? props.activeTab 
-  : (props.typeFilter && props.typeFilter !== 'all' ? props.typeFilter : 'bank')
+  : (props.typeFilter && props.typeFilter !== 'all' ? props.typeFilter : 'all')
 
 const currentTab = ref<string>(initialTab)
 const quizFilterType = ref<string>(props.typeFilter || 'all')
 
 const activeTabLabel = computed(() => {
   const map: Record<string, string> = {
+    all: 'Quizzes',
+    assignments: 'Assignments',
     bank: 'Question Bank',
-    all: 'All Quizzes',
     pre_test: 'Pre-Tests',
     practice: 'Practice Quizzes',
     post_test: 'Post-Tests',
-    assignments: 'Assignments',
     results: 'Quiz Results'
   }
-  return map[currentTab.value] || 'Question Bank'
+  return map[currentTab.value] || 'Quizzes'
 })
 
 const activeTabEmoji = computed(() => {
   const map: Record<string, string> = {
-    bank: '📚',
     all: '📝',
+    assignments: '📄',
+    bank: '📚',
     pre_test: '🚀',
     practice: '✍️',
     post_test: '🏁',
-    assignments: '📄',
     results: '📊'
   }
-  return map[currentTab.value] || '📚'
+  return map[currentTab.value] || '📝'
 })
 
 const showCreateDropdown = ref(false)
@@ -459,9 +459,9 @@ function closeAllModals() {
           <div class="flex items-center gap-2">
             <button
               v-for="t in [
-                { id: 'bank', label: 'Question Bank', emoji: '📚', count: localQuestionBank.length },
-                { id: 'all', label: 'All Quizzes', emoji: '📝', count: localQuizzes.length },
+                { id: 'all', label: 'Quizzes', emoji: '📝', count: localQuizzes.length },
                 { id: 'assignments', label: 'Assignments', emoji: '📄', count: localAssignments.length },
+                { id: 'bank', label: 'Question Bank', emoji: '📚', count: localQuestionBank.length },
                 { id: 'results', label: 'Quiz Results', emoji: '📊', count: localResults.length },
               ]"
               :key="t.id"

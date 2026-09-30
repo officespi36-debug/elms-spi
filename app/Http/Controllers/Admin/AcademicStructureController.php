@@ -230,7 +230,7 @@ class AcademicStructureController extends Controller
 
         $defaultMajors = [
             [
-                'id' => 1, 'code' => 'MJR-IT-001', 'name' => 'IT & Networking', 'name_kh' => 'បច្ចេកវិទ្យាព័ត៌មាន និងបណ្តាញ', 'department' => 'Computing', 'faculty' => 'Faculty of Computing', 'students_count' => 520, 'teachers_count' => 25, 'courses_count' => 32, 'price_per_subject' => 25, 'duration' => '4 Years', 'degree_level' => 'Bachelor', 'credits' => 120, 'language' => 'English / Khmer', 'status' => 'active',
+                'id' => 1, 'code' => 'MJR-IT-001', 'name' => 'Information Technology', 'name_kh' => 'បច្ចេកវិទ្យាព័ត៌មាន', 'department' => 'Computing', 'faculty' => 'Faculty of Computing', 'students_count' => 520, 'teachers_count' => 25, 'courses_count' => 32, 'price_per_subject' => 25, 'duration' => '4 Years', 'degree_level' => 'Bachelor', 'credits' => 120, 'language' => 'English / Khmer', 'status' => 'active',
                 'linked_courses' => [
                     ['name' => 'C Programming', 'price' => 25, 'teacher' => 'Mr. Sophea'],
                     ['name' => 'Web Development', 'price' => 30, 'teacher' => 'Ms. Dara'],
@@ -239,7 +239,7 @@ class AcademicStructureController extends Controller
                 ]
             ],
             [
-                'id' => 2, 'code' => 'MJR-TRM-002', 'name' => 'Tourism Management', 'name_kh' => 'គ្រប់គ្រងទេសចរណ៍', 'department' => 'Tourism', 'faculty' => 'Faculty of Tourism', 'students_count' => 410, 'teachers_count' => 18, 'courses_count' => 28, 'price_per_subject' => 20, 'duration' => '4 Years', 'degree_level' => 'Bachelor', 'credits' => 120, 'language' => 'English / Khmer', 'status' => 'active',
+                'id' => 2, 'code' => 'MJR-TRM-002', 'name' => 'Tourism', 'name_kh' => 'ទេសចរណ៍', 'department' => 'Tourism', 'faculty' => 'Faculty of Tourism', 'students_count' => 410, 'teachers_count' => 18, 'courses_count' => 28, 'price_per_subject' => 20, 'duration' => '4 Years', 'degree_level' => 'Bachelor', 'credits' => 120, 'language' => 'English / Khmer', 'status' => 'active',
                 'linked_courses' => [
                     ['name' => 'Tourism Basics', 'price' => 20, 'teacher' => 'Mr. Long'],
                     ['name' => 'Hospitality Management', 'price' => 25, 'teacher' => 'Ms. Dara'],
@@ -253,7 +253,7 @@ class AcademicStructureController extends Controller
                 ]
             ],
             [
-                'id' => 4, 'code' => 'MJR-AGR-004', 'name' => 'Agronomy', 'name_kh' => 'កសិកម្មសាស្ត្រ', 'department' => 'Agriculture', 'faculty' => 'Faculty of Agriculture', 'students_count' => 600, 'teachers_count' => 22, 'courses_count' => 30, 'price_per_subject' => 25, 'duration' => '4 Years', 'degree_level' => 'Bachelor', 'credits' => 120, 'language' => 'Khmer', 'status' => 'active',
+                'id' => 4, 'code' => 'MJR-AGR-004', 'name' => 'Agriculture', 'name_kh' => 'កសិកម្ម', 'department' => 'Agriculture', 'faculty' => 'Faculty of Agriculture', 'students_count' => 600, 'teachers_count' => 22, 'courses_count' => 30, 'price_per_subject' => 25, 'duration' => '4 Years', 'degree_level' => 'Bachelor', 'credits' => 120, 'language' => 'Khmer', 'status' => 'active',
                 'linked_courses' => [
                     ['name' => 'Plant Science', 'price' => 25, 'teacher' => 'Mr. Vuthy'],
                     ['name' => 'Soil Studies', 'price' => 20, 'teacher' => 'Mr. Vuthy'],

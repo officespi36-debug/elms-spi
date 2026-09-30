@@ -162,6 +162,11 @@ Route::middleware(['auth'])->group(function () {
         Route::put('academic-structure/majors/{major}', [Admin\AcademicStructureController::class, 'updateMajor'])->name('academic-structure.majors.update');
         Route::delete('academic-structure/majors/{major}', [Admin\AcademicStructureController::class, 'destroyMajor'])->name('academic-structure.majors.destroy');
 
+        Route::get('academic-structure/subjects', [Admin\CourseModuleController::class, 'subjects'])->name('academic-structure.subjects');
+        Route::post('academic-structure/subjects/store', [Admin\CourseModuleController::class, 'storeSubject'])->name('academic-structure.subjects.store');
+        Route::put('academic-structure/subjects/update/{id}', [Admin\CourseModuleController::class, 'updateSubject'])->name('academic-structure.subjects.update');
+        Route::delete('academic-structure/subjects/destroy/{id}', [Admin\CourseModuleController::class, 'destroySubject'])->name('academic-structure.subjects.destroy');
+
         Route::get('academic-structure/academic-years', [Admin\AcademicStructureController::class, 'academicYears'])->name('academic-structure.academic-years');
         Route::post('academic-structure/academic-years', [Admin\AcademicStructureController::class, 'storeAcademicYear'])->name('academic-structure.academic-years.store');
         Route::put('academic-structure/academic-years/{academicYear}', [Admin\AcademicStructureController::class, 'updateAcademicYear'])->name('academic-structure.academic-years.update');
