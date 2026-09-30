@@ -1,10 +1,163 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import type { StudentProgressProfile } from './types'
+import { ref, computed } from 'vue'
 
-const props = defineProps<{
-  profile: StudentProgressProfile
-}>()
+export interface StudentProgressRecord {
+  id: string
+  name: string
+  avatar?: string
+  major: string
+  course: string
+  progress: number
+  quiz_avg: number
+  last_activity: string
+  status: 'In Progress' | 'Completed' | 'At-Risk' | 'Not Started'
+  email: string
+  learning_time: string
+  modules_completed: number
+  modules_total: number
+}
+
+const props = withDefaults(defineProps<{
+  students?: StudentProgressRecord[]
+}>(), {
+  students: () => [
+    {
+      id: 'STU-2024-001',
+      name: 'Dara',
+      avatar: '👨‍💻',
+      major: 'Information Technology',
+      course: 'Web Development',
+      progress: 68,
+      quiz_avg: 72,
+      last_activity: '2 hours ago',
+      status: 'In Progress',
+      email: 'dara.chan@student.elms.edu',
+      learning_time: '28h 30m',
+      modules_completed: 4,
+      modules_total: 6,
+    },
+    {
+      id: 'STU-2024-002',
+      name: 'Sok Chanra',
+      avatar: '👩‍🎓',
+      major: 'Tourism',
+      course: 'Tourism Basics',
+      progress: 85,
+      quiz_avg: 88,
+      last_activity: '30 mins ago',
+      status: 'In Progress',
+      email: 'chanra.sok@student.elms.edu',
+      learning_time: '34h 15m',
+      modules_completed: 5,
+      modules_total: 6,
+    },
+    {
+      id: 'STU-2024-003',
+      name: 'Long Vichida',
+      avatar: '👩‍🏫',
+      major: 'English Literature',
+      course: 'English Grammar',
+      progress: 100,
+      quiz_avg: 94,
+      last_activity: 'Yesterday',
+      status: 'Completed',
+      email: 'vichida.long@student.elms.edu',
+      learning_time: '42h 00m',
+      modules_completed: 6,
+      modules_total: 6,
+    },
+    {
+      id: 'STU-2024-004',
+      name: 'Pov Sreynich',
+      avatar: '🌱',
+      major: 'Agriculture',
+      course: 'Plant Science',
+      progress: 45,
+      quiz_avg: 60,
+      last_activity: '3 days ago',
+      status: 'In Progress',
+      email: 'sreynich.pov@student.elms.edu',
+      learning_time: '18h 45m',
+      modules_completed: 2,
+      modules_total: 5,
+    },
+    {
+      id: 'STU-2024-005',
+      name: 'Kosal Rithy',
+      avatar: '🤝',
+      major: 'Social Work',
+      course: 'Social Work 101',
+      progress: 22,
+      quiz_avg: 48,
+      last_activity: '5 days ago',
+      status: 'At-Risk',
+      email: 'rithy.kosal@student.elms.edu',
+      learning_time: '7h 20m',
+      modules_completed: 1,
+      modules_total: 5,
+    },
+    {
+      id: 'STU-2024-006',
+      name: 'Chea Vannak',
+      avatar: '💻',
+      major: 'Information Technology',
+      course: 'C Programming Basics',
+      progress: 92,
+      quiz_avg: 90,
+      last_activity: 'Today at 10:15 AM',
+      status: 'In Progress',
+      email: 'vannak.chea@student.elms.edu',
+      learning_time: '39h 10m',
+      modules_completed: 5,
+      modules_total: 6,
+    },
+    {
+      id: 'STU-2024-007',
+      name: 'Meas Bopha',
+      avatar: '🌟',
+      major: 'Social Work',
+      course: 'Community Development',
+      progress: 100,
+      quiz_avg: 96,
+      last_activity: '1 day ago',
+      status: 'Completed',
+      email: 'bopha.meas@student.elms.edu',
+      learning_time: '45h 30m',
+      modules_completed: 5,
+      modules_total: 5,
+    },
+    {
+      id: 'STU-2024-008',
+      name: 'Samnang Piseth',
+      avatar: '🏖️',
+      major: 'Tourism',
+      course: 'Hospitality Management',
+      progress: 15,
+      quiz_avg: 42,
+      last_activity: '6 days ago',
+      status: 'At-Risk',
+      email: 'piseth.samnang@student.elms.edu',
+      learning_time: '5h 10m',
+      modules_completed: 1,
+      modules_total: 6,
+    },
+    {
+      id: 'STU-2024-009',
+      name: 'Heng Sovann',
+      avatar: '🌾',
+      major: 'Agriculture',
+      course: 'Soil Studies',
+      progress: 0,
+      quiz_avg: 0,
+      last_activity: 'Never',
+      status: 'Not Started',
+      email: 'sovann.heng@student.elms.edu',
+      learning_time: '0h 00m',
+      modules_completed: 0,
+      modules_total: 5,
+    },
+  ]
+})
 
 const emit = defineEmits<{
   (e: 'sendMessage', studentId: string): void
@@ -12,369 +165,337 @@ const emit = defineEmits<{
   (e: 'resetProgress', studentId: string): void
 }>()
 
-const selectedStudentId = ref(props.profile.id)
-const selectedCourse = ref(props.profile.course)
+const searchQuery = ref('')
+const selectedMajor = ref('all')
+const selectedStatus = ref('all')
+const selectedStudentDetail = ref<StudentProgressRecord | null>(null)
 
-const studentsList = [
-  { id: 'STU24001', name: 'Chan Dara', major: 'IT & Networking' },
-  { id: 'STU24002', name: 'Sok Chanra', major: 'Tourism Management' },
-  { id: 'STU24003', name: 'Long Vichida', major: 'English Literature' },
-  { id: 'STU24004', name: 'Pov Sreynich', major: 'Agronomy' },
-]
+const filteredStudents = computed(() => {
+  return props.students.filter(s => {
+    const q = searchQuery.value.toLowerCase().trim()
+    const matchesSearch = !q || 
+      s.name.toLowerCase().includes(q) || 
+      s.id.toLowerCase().includes(q) || 
+      s.course.toLowerCase().includes(q) ||
+      s.email.toLowerCase().includes(q)
 
-const courseOptions = [
-  'C Programming Basics',
-  'Tourism Management 101',
-  'English Literature',
-  'Agronomy Basics',
-]
+    const matchesMajor = selectedMajor.value === 'all' || s.major === selectedMajor.value
+    const matchesStatus = selectedStatus.value === 'all' || s.status === selectedStatus.value
+
+    return matchesSearch && matchesMajor && matchesStatus
+  })
+})
+
+const stats = computed(() => {
+  const all = props.students
+  const total = all.length
+  const completed = all.filter(s => s.status === 'Completed').length
+  const inProgress = all.filter(s => s.status === 'In Progress').length
+  const atRisk = all.filter(s => s.status === 'At-Risk').length
+  const avgProgress = total > 0 ? Math.round(all.reduce((acc, s) => acc + s.progress, 0) / total) : 0
+
+  return { total, completed, inProgress, atRisk, avgProgress }
+})
+
+const getMajorBadgeClass = (major: string) => {
+  switch (major) {
+    case 'Information Technology':
+      return 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30'
+    case 'Tourism':
+      return 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+    case 'English Literature':
+      return 'bg-purple-500/15 text-purple-300 border-purple-500/30'
+    case 'Agriculture':
+      return 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+    case 'Social Work':
+      return 'bg-rose-500/15 text-rose-300 border-rose-500/30'
+    default:
+      return 'bg-slate-500/15 text-slate-300 border-slate-500/30'
+  }
+}
+
+const getStatusBadgeClass = (status: string) => {
+  switch (status) {
+    case 'Completed':
+      return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 ring-1 ring-emerald-500/30'
+    case 'In Progress':
+      return 'bg-sky-500/20 text-sky-300 border-sky-500/40'
+    case 'At-Risk':
+      return 'bg-rose-500/20 text-rose-300 border-rose-500/40 ring-1 ring-rose-500/40 animate-pulse'
+    case 'Not Started':
+      return 'bg-slate-800 text-slate-400 border-slate-700'
+    default:
+      return 'bg-slate-800 text-slate-300 border-slate-700'
+  }
+}
+
+const getScoreColorClass = (score: number) => {
+  if (score >= 80) return 'text-emerald-400 font-extrabold'
+  if (score >= 60) return 'text-sky-300 font-bold'
+  if (score > 0) return 'text-amber-400 font-bold'
+  return 'text-slate-500'
+}
 </script>
 
 <template>
-  <div class="space-y-5 text-xs font-sans">
-    <!-- Top Filter & Student Switcher Toolbar -->
-    <div class="bg-[#0d1222]/90 border border-slate-700/60 p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-3 shadow-lg">
-      <div class="flex items-center gap-3 w-full md:w-auto">
-        <div class="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-300 shadow-inner">
-          <svg class="w-5 h-5 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" fill="currentColor" fill-opacity="0.2" />
-            <circle cx="12" cy="7" r="4" fill="currentColor" fill-opacity="0.3" />
-          </svg>
+  <div class="space-y-4 font-sans text-xs">
+    <!-- Top KPI Cards for Student Progress -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-3.5 backdrop-blur-xl">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-semibold text-slate-400">Total Tracked</span>
+          <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
         </div>
-        <div>
-          <h3 class="text-sm font-black text-white">Student Progress Profile</h3>
-          <p class="text-xs text-slate-300 font-medium">Individual course tracking & chapter completion metrics</p>
-        </div>
+        <div class="text-xl font-black text-white mt-1">{{ stats.total }} <span class="text-xs font-normal text-slate-400">Students</span></div>
+        <div class="text-[10px] text-slate-400 mt-0.5">Across 5 thesis majors</div>
       </div>
 
-      <div class="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
-        <div>
-          <label class="text-[10px] text-slate-400 block mb-0.5 font-medium">Select Student:</label>
-          <select v-model="selectedStudentId" class="bg-[#121827] text-slate-200 border border-slate-700/80 rounded-xl px-3 py-1.5 text-xs focus:border-purple-500 focus:outline-none">
-            <option v-for="s in studentsList" :key="s.id" :value="s.id">{{ s.name }} ({{ s.id }})</option>
-          </select>
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-3.5 backdrop-blur-xl">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-semibold text-sky-400">In Progress</span>
+          <span class="w-2 h-2 rounded-full bg-sky-500"></span>
         </div>
-        <div>
-          <label class="text-[10px] text-slate-400 block mb-0.5 font-medium">Course Scope:</label>
-          <select v-model="selectedCourse" class="bg-[#121827] text-slate-200 border border-slate-700/80 rounded-xl px-3 py-1.5 text-xs focus:border-purple-500 focus:outline-none">
-            <option v-for="c in courseOptions" :key="c" :value="c">{{ c }}</option>
-          </select>
+        <div class="text-xl font-black text-sky-300 mt-1">{{ stats.inProgress }}</div>
+        <div class="text-[10px] text-slate-400 mt-0.5">Actively learning</div>
+      </div>
+
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-3.5 backdrop-blur-xl">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-semibold text-emerald-400">Completed</span>
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
         </div>
+        <div class="text-xl font-black text-emerald-300 mt-1">{{ stats.completed }}</div>
+        <div class="text-[10px] text-slate-400 mt-0.5">100% course finished</div>
+      </div>
+
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-3.5 backdrop-blur-xl">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-semibold text-rose-400">At-Risk Students</span>
+          <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+        </div>
+        <div class="text-xl font-black text-rose-300 mt-1">{{ stats.atRisk }}</div>
+        <div class="text-[10px] text-rose-400/80 mt-0.5 font-medium">Require intervention</div>
       </div>
     </div>
 
-    <!-- Student Header Banner Card -->
-    <div class="bg-[#0d1222]/95 border border-purple-500/30 rounded-2xl p-5 shadow-2xl space-y-4">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-700/60 pb-3.5">
-        <div>
-          <div class="flex items-center gap-2">
-            <svg class="w-5 h-5 text-purple-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" fill="currentColor" fill-opacity="0.2" />
-            </svg>
-            <span class="text-base font-black text-white">{{ profile.name }}</span>
-            <span class="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-mono text-[10px] font-bold border border-purple-500/30">ID: {{ profile.id }}</span>
-          </div>
-          <p class="text-slate-300 text-xs mt-0.5 font-medium">Major: <strong class="text-white">{{ profile.major }}</strong> · Target: <strong class="text-teal-300">{{ profile.course }}</strong></p>
-        </div>
+    <!-- Filter & Search Toolbar -->
+    <div class="bg-slate-900/80 border border-slate-800/90 rounded-2xl p-3 flex flex-col sm:flex-row items-center justify-between gap-3 backdrop-blur-xl">
+      <!-- Search Input -->
+      <div class="relative w-full sm:w-80">
+        <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Search student (e.g. Dara), ID, or course..."
+          class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3.5 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500"
+        />
+      </div>
 
-        <div class="flex flex-wrap items-center gap-2">
-          <div class="flex items-center gap-2">
-            <button @click="emit('sendMessage', profile.id)" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-slate-200 font-semibold flex items-center gap-1.5 transition-all active:scale-95">
-              <svg class="w-4 h-4 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" fill="currentColor" fill-opacity="0.2" />
-              </svg>
-              <span>Send Message</span>
-            </button>
-            <button @click="emit('addFeedback', profile.id)" class="px-3.5 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-bold shadow-md shadow-purple-600/30 flex items-center gap-1.5 transition-all active:scale-95">
-              <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" fill="currentColor" fill-opacity="0.2" />
-              </svg>
-              <span>Feedback</span>
-            </button>
+      <!-- Filters (Major & Status) -->
+      <div class="flex items-center gap-2 w-full sm:w-auto">
+        <select
+          v-model="selectedMajor"
+          class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+        >
+          <option value="all">Major: All 5 Majors</option>
+          <option value="Information Technology">Information Technology</option>
+          <option value="Tourism">Tourism</option>
+          <option value="English Literature">English Literature</option>
+          <option value="Agriculture">Agriculture</option>
+          <option value="Social Work">Social Work</option>
+        </select>
+
+        <select
+          v-model="selectedStatus"
+          class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+        >
+          <option value="all">Status: All</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Completed">Completed</option>
+          <option value="At-Risk">At-Risk</option>
+          <option value="Not Started">Not Started</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Student Progress Canonical Table -->
+    <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-xl shadow-xl">
+      <table class="w-full text-left border-collapse text-xs">
+        <thead>
+          <tr class="border-b border-slate-800 bg-slate-800/50 text-[11px] font-bold text-slate-300 uppercase tracking-wider whitespace-nowrap">
+            <th class="py-3 px-4">Student</th>
+            <th class="py-3 px-4">Major</th>
+            <th class="py-3 px-4">Course</th>
+            <th class="py-3 px-4">Progress %</th>
+            <th class="py-3 px-4">Quiz Average</th>
+            <th class="py-3 px-4">Last Activity</th>
+            <th class="py-3 px-4">Status</th>
+            <th class="py-3 px-4 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-800/60 font-medium">
+          <tr
+            v-for="s in filteredStudents"
+            :key="s.id"
+            class="hover:bg-slate-800/40 transition-colors group cursor-pointer"
+            @click="selectedStudentDetail = s"
+          >
+            <!-- 1. Student -->
+            <td class="py-3 px-4">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-sm shrink-0">
+                  {{ s.avatar || '👤' }}
+                </div>
+                <div>
+                  <div class="font-bold text-white group-hover:text-indigo-300 transition-colors">{{ s.name }}</div>
+                  <div class="text-[10px] text-slate-400 font-mono">{{ s.id }}</div>
+                </div>
+              </div>
+            </td>
+
+            <!-- 2. Major -->
+            <td class="py-3 px-4 whitespace-nowrap">
+              <span :class="['px-2 py-0.5 rounded-full text-[10px] font-bold border', getMajorBadgeClass(s.major)]">
+                {{ s.major }}
+              </span>
+            </td>
+
+            <!-- 3. Course -->
+            <td class="py-3 px-4">
+              <div class="font-semibold text-slate-200">{{ s.course }}</div>
+              <div class="text-[10px] text-slate-400">{{ s.modules_completed }}/{{ s.modules_total }} modules done</div>
+            </td>
+
+            <!-- 4. Progress % -->
+            <td class="py-3 px-4 whitespace-nowrap">
+              <div class="flex items-center gap-2">
+                <div class="w-20 h-2 bg-slate-950 rounded-full overflow-hidden border border-slate-800 p-0.5">
+                  <div
+                    class="h-full rounded-full transition-all duration-500"
+                    :class="s.progress === 100 ? 'bg-emerald-400' : (s.progress < 30 ? 'bg-rose-500' : 'bg-indigo-400')"
+                    :style="{ width: `${s.progress}%` }"
+                  ></div>
+                </div>
+                <span class="font-extrabold text-white text-[11px]">{{ s.progress }}%</span>
+              </div>
+            </td>
+
+            <!-- 5. Quiz Average -->
+            <td class="py-3 px-4 whitespace-nowrap">
+              <div class="flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                <span :class="getScoreColorClass(s.quiz_avg)">{{ s.quiz_avg }}%</span>
+              </div>
+            </td>
+
+            <!-- 6. Last Activity -->
+            <td class="py-3 px-4 whitespace-nowrap text-slate-300">
+              {{ s.last_activity }}
+            </td>
+
+            <!-- 7. Status -->
+            <td class="py-3 px-4 whitespace-nowrap">
+              <span :class="['px-2.5 py-0.5 rounded-full text-[10px] font-bold border', getStatusBadgeClass(s.status)]">
+                {{ s.status }}
+              </span>
+            </td>
+
+            <!-- 8. Actions -->
+            <td class="py-3 px-4 text-right whitespace-nowrap" @click.stop>
+              <button
+                @click="selectedStudentDetail = s"
+                class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-indigo-300 hover:text-white border border-slate-700 rounded-lg text-[11px] font-bold transition-all mr-1.5"
+              >
+                Inspect
+              </button>
+              <button
+                @click="emit('sendMessage', s.id)"
+                class="px-2 py-1 bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 rounded-lg text-[11px] font-bold transition-all"
+                title="Send direct notification"
+              >
+                Message
+              </button>
+            </td>
+          </tr>
+
+          <tr v-if="filteredStudents.length === 0">
+            <td colspan="8" class="text-center py-8 text-slate-400">
+              No students found matching your filters.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Student Detail Inspection Drawer / Modal -->
+    <div
+      v-if="selectedStudentDetail"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in"
+      @click.self="selectedStudentDetail = null"
+    >
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xl">
+              {{ selectedStudentDetail.avatar || '👤' }}
+            </div>
+            <div>
+              <h3 class="text-sm font-black text-white">{{ selectedStudentDetail.name }}</h3>
+              <p class="text-xs text-slate-400 font-mono">{{ selectedStudentDetail.id }} · {{ selectedStudentDetail.email }}</p>
+            </div>
           </div>
-          <div class="hidden sm:block h-6 w-px bg-slate-700/80 mx-1"></div>
-          <button @click="emit('resetProgress', profile.id)" class="px-3.5 py-1.5 bg-slate-800/80 hover:bg-rose-950/60 border border-rose-500/30 hover:border-rose-500/60 text-rose-300 rounded-xl font-semibold flex items-center gap-1.5 transition-all active:scale-95" title="Reset student's progress filters and state">
-            <svg class="w-4 h-4 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            <span>Reset Progress</span>
+          <button
+            @click="selectedStudentDetail = null"
+            class="text-slate-400 hover:text-white text-base px-2 py-1 rounded-lg hover:bg-slate-800"
+          >
+            ✕
           </button>
         </div>
-      </div>
 
-      <!-- Overall Course Progress Bar -->
-      <div class="space-y-1.5 bg-[#121827] p-4 rounded-xl border border-slate-700/80">
-        <div class="flex items-center justify-between text-xs font-bold">
-          <span class="text-slate-200">OVERALL COURSE PROGRESS: {{ profile.course }}</span>
-          <span class="text-purple-300 font-black text-sm">{{ profile.overall_progress }}% Complete</span>
-        </div>
-        <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden p-0.5 border border-slate-700">
-          <div
-            class="h-full bg-gradient-to-r from-purple-500 via-teal-400 to-emerald-400 rounded-full transition-all duration-500 shadow-sm"
-            :style="{ width: profile.overall_progress + '%' }"
-          ></div>
-        </div>
-      </div>
-
-      <!-- 4 KPI Cards -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div class="bg-[#121827] p-3.5 rounded-xl border border-slate-700/80 space-y-1">
-          <div class="flex items-center text-slate-400 text-[10px] font-semibold">
-            <svg class="w-3.5 h-3.5 text-cyan-400 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="9" fill="currentColor" fill-opacity="0.2" />
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3 3" />
-            </svg>
-            <span>LEARNING TIME</span>
+        <div class="grid grid-cols-2 gap-3 text-xs">
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/80">
+            <span class="text-[10px] text-slate-400 block font-semibold">Degree Major</span>
+            <span class="text-xs font-bold text-cyan-300">{{ selectedStudentDetail.major }}</span>
           </div>
-          <p class="text-base font-black text-white">{{ profile.learning_time }}</p>
-          <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Active Studier
-          </span>
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/80">
+            <span class="text-[10px] text-slate-400 block font-semibold">Current Course</span>
+            <span class="text-xs font-bold text-white">{{ selectedStudentDetail.course }}</span>
+          </div>
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/80">
+            <span class="text-[10px] text-slate-400 block font-semibold">Progress</span>
+            <span class="text-xs font-black text-emerald-400">{{ selectedStudentDetail.progress }}%</span>
+          </div>
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/80">
+            <span class="text-[10px] text-slate-400 block font-semibold">Quiz Average</span>
+            <span class="text-xs font-black text-amber-300">{{ selectedStudentDetail.quiz_avg }}%</span>
+          </div>
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/80">
+            <span class="text-[10px] text-slate-400 block font-semibold">Total Study Time</span>
+            <span class="text-xs font-bold text-purple-300">{{ selectedStudentDetail.learning_time }}</span>
+          </div>
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/80">
+            <span class="text-[10px] text-slate-400 block font-semibold">Last Active</span>
+            <span class="text-xs font-bold text-slate-200">{{ selectedStudentDetail.last_activity }}</span>
+          </div>
         </div>
 
-        <div class="bg-[#121827] p-3.5 rounded-xl border border-slate-700/80 space-y-1">
-          <div class="flex items-center text-slate-400 text-[10px] font-semibold">
-            <svg class="w-3.5 h-3.5 text-purple-400 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" fill="currentColor" fill-opacity="0.2" />
-            </svg>
-            <span>QUIZ AVERAGE</span>
-          </div>
-          <p class="text-base font-black text-purple-300">{{ profile.quiz_avg }}%</p>
-          <span class="text-[10px] text-slate-300 font-medium">Passing Threshold: 70%</span>
-        </div>
-
-        <div class="bg-[#121827] p-3.5 rounded-xl border border-slate-700/80 space-y-1">
-          <div class="flex items-center text-slate-400 text-[10px] font-semibold">
-            <svg class="w-3.5 h-3.5 text-amber-400 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" fill="currentColor" fill-opacity="0.2" />
-            </svg>
-            <span>ASSIGNMENTS</span>
-          </div>
-          <p class="text-base font-black text-amber-300">{{ profile.assignments_submitted }} / {{ profile.assignments_total }} Submitted</p>
-          <span class="text-[10px] text-amber-400 font-semibold">1 Pending Evaluation</span>
-        </div>
-
-        <div class="bg-[#121827] p-3.5 rounded-xl border border-slate-700/80 space-y-1">
-          <div class="flex items-center text-slate-400 text-[10px] font-semibold">
-            <svg class="w-3.5 h-3.5 text-yellow-400 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" fill="currentColor" fill-opacity="0.2" />
-            </svg>
-            <span>CERTIFICATE</span>
-          </div>
-          <p class="text-base font-black text-cyan-300">{{ profile.cert_status }}</p>
-          <span class="text-[10px] text-cyan-400 font-semibold">⏳ Requires 100% Module 3</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Chapter Level Tracking Breakdown -->
-    <div class="bg-[#0d1222]/95 border border-slate-700/60 rounded-2xl p-5 shadow-2xl space-y-4">
-      <h4 class="font-black text-sm text-white uppercase tracking-wide border-b border-slate-700/60 pb-2.5 flex items-center gap-2.5">
-        <div class="p-1.5 rounded-lg bg-purple-500/20 border border-purple-500/40 flex items-center justify-center shrink-0 shadow-inner">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
-            <path d="M4 4C4 2.89543 4.89543 2 6 2H14L20 8V20C20 21.1046 19.1046 22 18 22H6C4.89543 22 4 21.1046 4 20V4Z" fill="url(#detailHeaderGrad)" />
-            <path d="M14 2V8H20L14 2Z" fill="#C084FC" />
-            <rect x="7" y="11" width="10" height="2" rx="1" fill="white" />
-            <rect x="7" y="15" width="7" height="2" rx="1" fill="white" fill-opacity="0.8" />
-            <defs>
-              <linearGradient id="detailHeaderGrad" x1="4" y1="2" x2="20" y2="22" gradientUnits="userSpaceOnUse">
-                <stop stop-color="#9333EA" />
-                <stop offset="1" stop-color="#6B21A8" />
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-        <span>DETAIL TRACKING BY CHAPTER</span>
-      </h4>
-
-      <div class="space-y-3">
-        <div v-for="m in profile.modules" :key="m.id" class="border border-slate-700/80 rounded-xl overflow-hidden bg-[#121827]">
-          <!-- Module Header -->
-          <div class="p-3 bg-slate-900/90 flex items-center justify-between border-b border-slate-700/80">
-            <div class="flex items-center gap-2.5">
-              <!-- Vibrant Flaticon 3D Folder Icon -->
-              <svg class="w-5 h-5 shrink-0" viewBox="0 0 32 32" fill="none">
-                <path d="M4 8C4 6.34315 5.34315 5 7 5H12.5858C13.3814 5 14.1444 5.31607 14.7071 5.87868L16.4142 7.58579C16.9768 8.1484 17.7398 8.46447 18.5355 8.46447H25C26.6569 8.46447 28 9.80761 28 11.4645V23C28 24.6569 26.6569 26 25 26H7C5.34315 26 4 24.6569 4 23V8Z" fill="url(#folderGrad)" />
-                <path d="M4 12C4 10.3431 5.34315 9 7 9H25C26.6569 9 28 10.3431 28 12V23C28 24.6569 26.6569 26 25 26H7C5.34315 26 4 24.6569 4 23V12Z" fill="url(#folderFrontGrad)" />
-                <defs>
-                  <linearGradient id="folderGrad" x1="4" y1="5" x2="28" y2="26" gradientUnits="userSpaceOnUse">
-                    <stop stop-color="#D97706" />
-                    <stop offset="1" stop-color="#B45309" />
-                  </linearGradient>
-                  <linearGradient id="folderFrontGrad" x1="4" y1="9" x2="28" y2="26" gradientUnits="userSpaceOnUse">
-                    <stop stop-color="#FBBF24" />
-                    <stop offset="1" stop-color="#F59E0B" />
-                  </linearGradient>
-                </defs>
-              </svg>
-              <span class="text-sm font-bold text-white">{{ m.title }}</span>
-            </div>
-            <span
-              class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border shadow-sm"
-              :class="
-                m.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 
-                (m.status === 'In Progress' ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' : 'bg-slate-800 text-slate-400 border-slate-700')
-              "
-            >
-              {{ m.status === 'Completed' ? '✓ 100% Done' : (m.status === 'In Progress' ? `${m.progress}% In-Progress` : 'Locked') }}
-            </span>
-          </div>
-
-          <!-- Chapters List -->
-          <div class="divide-y divide-slate-800/80">
-            <div
-              v-for="c in m.chapters"
-              :key="c.id"
-              class="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-slate-800/40 transition-colors"
-              :class="c.status === 'locked' ? 'opacity-50' : ''"
-            >
-              <div class="flex items-center gap-2.5">
-                <!-- Completed Check Icon -->
-                <svg v-if="c.status === 'completed'" class="w-4 h-4 shrink-0 shadow-sm" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" fill="url(#chkGrad)" />
-                  <path d="M8 12L11 15L16 9" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
-                  <defs>
-                    <linearGradient id="chkGrad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
-                      <stop stop-color="#10B981" />
-                      <stop offset="1" stop-color="#059669" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-
-                <!-- In-Progress Clock Icon -->
-                <svg v-else-if="c.status === 'in_progress'" class="w-4 h-4 shrink-0 shadow-sm" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" fill="url(#progClockGrad)" />
-                  <path d="M12 7V12L15 14" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                  <defs>
-                    <linearGradient id="progClockGrad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
-                      <stop stop-color="#F59E0B" />
-                      <stop offset="1" stop-color="#D97706" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-
-                <!-- Locked Padlock Icon -->
-                <svg v-else class="w-4 h-4 shrink-0 shadow-sm" viewBox="0 0 24 24" fill="none">
-                  <rect x="5" y="10" width="14" height="11" rx="2" fill="url(#lockBodyGrad)" />
-                  <path d="M8 10V7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7V10" stroke="url(#lockShackleGrad)" stroke-width="2" stroke-linecap="round" />
-                  <circle cx="12" cy="15.5" r="1.5" fill="#38BDF8" />
-                  <defs>
-                    <linearGradient id="lockBodyGrad" x1="5" y1="10" x2="19" y2="21" gradientUnits="userSpaceOnUse">
-                      <stop stop-color="#475569" />
-                      <stop offset="1" stop-color="#1E293B" />
-                    </linearGradient>
-                    <linearGradient id="lockShackleGrad" x1="8" y1="3" x2="16" y2="10" gradientUnits="userSpaceOnUse">
-                      <stop stop-color="#94A3B8" />
-                      <stop offset="1" stop-color="#64748B" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-
-                <span class="font-semibold text-slate-200">{{ c.title }}</span>
-              </div>
-
-              <!-- Streamlined Status Badges with Flaticon Vector Icons & Tooltips -->
-              <div v-if="c.status !== 'locked'" class="flex flex-wrap items-center gap-1.5 text-[11px]">
-                <!-- Video Status Badge (Flaticon Style Colorful Camera Icon) -->
-                <span
-                  class="px-2.5 py-1 rounded-md border font-semibold flex items-center gap-1.5 transition-all shadow-sm"
-                  :class="c.video_watched_percent === 100 ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' : (c.video_watched_percent > 0 ? 'bg-amber-500/10 text-amber-300 border-amber-500/30' : 'bg-slate-800/80 text-slate-400 border-slate-700/60')"
-                  :title="`Video: Watched ${c.video_watched_percent}%`"
-                >
-                  <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none">
-                    <rect x="2" y="5" width="14" height="14" rx="3" fill="url(#videoBodyGrad)" />
-                    <path d="M18 9.5L22 7V17L18 14.5V9.5Z" fill="url(#videoLensGrad)" />
-                    <circle cx="9" cy="12" r="2.5" fill="white" fill-opacity="0.9" />
-                    <polygon points="8.5,10.8 10.5,12 8.5,13.2" fill="#7C3AED" />
-                    <defs>
-                      <linearGradient id="videoBodyGrad" x1="2" y1="5" x2="16" y2="19" gradientUnits="userSpaceOnUse">
-                        <stop stop-color="#8B5CF6" />
-                        <stop offset="1" stop-color="#6D28D9" />
-                      </linearGradient>
-                      <linearGradient id="videoLensGrad" x1="18" y1="7" x2="22" y2="17" gradientUnits="userSpaceOnUse">
-                        <stop stop-color="#A78BFA" />
-                        <stop offset="1" stop-color="#7C3AED" />
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                  <span>Video: {{ c.video_watched_percent }}%</span>
-                </span>
-
-                <!-- PDF Status Badge (Flaticon Style Colorful PDF Document Icon) -->
-                <span
-                  class="px-2.5 py-1 rounded-md border font-semibold flex items-center gap-1.5 transition-all shadow-sm"
-                  :class="c.pdf_opened ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' : 'bg-slate-800/80 text-slate-400 border-slate-700/60'"
-                  :title="`PDF Document: ${c.pdf_opened ? 'Opened' : 'Not Opened'}`"
-                >
-                  <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none">
-                    <path d="M4 4C4 2.89543 4.89543 2 6 2H14L20 8V20C20 21.1046 19.1046 22 18 22H6C4.89543 22 4 21.1046 4 20V4Z" fill="url(#pdfDocGrad)" />
-                    <path d="M14 2V8H20L14 2Z" fill="#FCA5A5" />
-                    <rect x="7" y="11" width="10" height="2" rx="1" fill="white" />
-                    <rect x="7" y="15" width="7" height="2" rx="1" fill="white" fill-opacity="0.8" />
-                    <defs>
-                      <linearGradient id="pdfDocGrad" x1="4" y1="2" x2="20" y2="22" gradientUnits="userSpaceOnUse">
-                        <stop stop-color="#EF4444" />
-                        <stop offset="1" stop-color="#B91C1C" />
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                  <span>PDF: {{ c.pdf_opened ? 'Opened' : 'Unopened' }}</span>
-                </span>
-
-                <!-- Slide Status Badge (Flaticon Style Colorful Slide Deck Icon) -->
-                <span
-                  class="px-2.5 py-1 rounded-md border font-semibold flex items-center gap-1.5 transition-all shadow-sm"
-                  :class="c.slide_read ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' : 'bg-amber-500/10 text-amber-300 border-amber-500/30'"
-                  :title="`Slide Deck: ${c.slide_read ? 'Read' : 'Unread'}`"
-                >
-                  <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none">
-                    <rect x="2" y="3" width="20" height="14" rx="2" fill="url(#slideDeckGrad)" />
-                    <path d="M12 17V21M8 21H16" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" />
-                    <rect x="5" y="10" width="3" height="4" rx="1" fill="#34D399" />
-                    <rect x="10" y="7" width="3" height="7" rx="1" fill="#FBBF24" />
-                    <rect x="15" y="5" width="3" height="9" rx="1" fill="#F472B6" />
-                    <defs>
-                      <linearGradient id="slideDeckGrad" x1="2" y1="3" x2="22" y2="17" gradientUnits="userSpaceOnUse">
-                        <stop stop-color="#1E293B" />
-                        <stop offset="1" stop-color="#0F172A" />
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                  <span>Slide: {{ c.slide_read ? 'Read' : 'Unread' }}</span>
-                </span>
-
-                <!-- Quiz Status Badge (Flaticon Style Colorful Check Quiz Icon) -->
-                <span
-                  v-if="c.quiz_score !== undefined"
-                  class="px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 font-bold flex items-center gap-1.5 transition-all shadow-sm"
-                  :title="`Quiz Score: ${c.quiz_score}%`"
-                >
-                  <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none">
-                    <rect x="3" y="3" width="18" height="18" rx="4" fill="url(#quizCheckGrad)" />
-                    <path d="M7 12L10 15L17 8" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
-                    <defs>
-                      <linearGradient id="quizCheckGrad" x1="3" y1="3" x2="21" y2="21" gradientUnits="userSpaceOnUse">
-                        <stop stop-color="#10B981" />
-                        <stop offset="1" stop-color="#047857" />
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                  <span>Quiz: {{ c.quiz_score }}%</span>
-                </span>
-              </div>
-
-              <!-- Locked State Indicator (Uncluttered) -->
-              <div v-else class="text-[11px] text-slate-400 font-medium flex items-center gap-1">
-                <span class="px-2.5 py-1 rounded bg-slate-800 text-slate-400 border border-slate-700/70 text-[10px] flex items-center gap-1.5 shadow-sm">
-                  <svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none">
-                    <rect x="5" y="10" width="14" height="11" rx="2" fill="#475569" />
-                    <path d="M8 10V7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7V10" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" />
-                  </svg>
-                  <span>Locked Chapter</span>
-                </span>
-              </div>
-            </div>
-          </div>
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+          <button
+            @click="emit('sendMessage', selectedStudentDetail.id); selectedStudentDetail = null"
+            class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all"
+          >
+            Send Notification
+          </button>
+          <button
+            @click="selectedStudentDetail = null"
+            class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition-all"
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>

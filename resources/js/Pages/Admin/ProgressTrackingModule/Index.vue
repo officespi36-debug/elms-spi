@@ -251,31 +251,21 @@ function handleSaveRules(rules: any) {
                 </svg>
               </div>
               <h2 class="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-teal-300 to-emerald-400 tracking-tight">
-                Progress Tracking Module
+                Learning & Progress Module
               </h2>
             </div>
             <p class="text-xs text-slate-300 mt-1.5 font-medium">
-              Real-time learning analytics, AI At-Risk student detection & cohort completion metrics
+              Student progress monitoring and cohort course completion analytics
             </p>
           </div>
 
           <!-- Quick Action Buttons Header Right -->
           <div class="flex flex-wrap items-center gap-2.5">
             <button
-              @click="currentTab = 'at_risk'"
-              class="px-4 py-2 bg-red-950/80 hover:bg-red-900/80 border border-red-500/50 text-red-300 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow-md active:scale-95 animate-pulse"
+              @click="currentTab = 'student'"
+              class="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow-md active:scale-95"
             >
-              <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2L2 22H22L12 2Z" fill="url(#alertShieldGrad)" />
-                <path d="M12 8V14M12 17H12.01" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                <defs>
-                  <linearGradient id="alertShieldGrad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
-                    <stop stop-color="#EF4444" />
-                    <stop offset="1" stop-color="#991B1B" />
-                  </linearGradient>
-                </defs>
-              </svg>
-              <span>12 At-Risk Fired</span>
+              <span>👤 2,458 Students</span>
             </button>
 
             <button
@@ -298,7 +288,7 @@ function handleSaveRules(rules: any) {
           </div>
         </div>
 
-        <!-- ── SUB-NAVIGATION TABS (Responsive Dropdown + Segmented Pills) ── -->
+        <!-- ── SUB-NAVIGATION TABS (Student Progress & Course Completion) ── -->
         <!-- Mobile Dropdown Selector -->
         <div class="md:hidden pt-4">
           <select
@@ -307,10 +297,6 @@ function handleSaveRules(rules: any) {
           >
             <option value="student">👤 Student Progress</option>
             <option value="course">🎓 Course Completion</option>
-            <option value="module">📁 Module Completion</option>
-            <option value="time">⏱️ Learning Time</option>
-            <option value="at_risk">🚨 At-Risk Students</option>
-            <option value="weekly">📊 Weekly Progress</option>
           </select>
         </div>
 
@@ -320,10 +306,6 @@ function handleSaveRules(rules: any) {
             v-for="t in [
               { id: 'student', label: 'Student Progress', iconPath: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
               { id: 'course', label: 'Course Completion', iconPath: 'M12 14l9-5-9-5-9 5 9 5z M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z' },
-              { id: 'module', label: 'Module Completion', iconPath: 'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z' },
-              { id: 'time', label: 'Learning Time', iconPath: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
-              { id: 'at_risk', label: 'At-Risk Students', iconPath: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z' },
-              { id: 'weekly', label: 'Weekly Progress', iconPath: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
             ]"
             :key="t.id"
             @click="currentTab = t.id"
@@ -331,7 +313,7 @@ function handleSaveRules(rules: any) {
               currentTab === t.id 
                 ? 'bg-purple-600 text-white font-bold shadow-md shadow-purple-600/30 ring-1 ring-purple-400/60' 
                 : 'bg-slate-900/80 text-slate-300 hover:text-white hover:bg-slate-800/80 border border-slate-700/50',
-              'px-3.5 py-2 rounded-xl transition-all flex items-center gap-2 whitespace-nowrap'
+              'px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 whitespace-nowrap text-xs'
             ]"
           >
             <svg class="w-4 h-4 shrink-0" :class="currentTab === t.id ? 'text-white' : 'text-purple-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">

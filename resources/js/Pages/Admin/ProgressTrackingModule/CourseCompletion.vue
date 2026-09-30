@@ -1,10 +1,97 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import type { CourseCompletionItem } from './types'
 
-const props = defineProps<{
-  courses: CourseCompletionItem[]
-}>()
+export interface CourseCompletionRecord {
+  id: number
+  course: string
+  code: string
+  major: string
+  instructor: string
+  total_students: number
+  completed: number
+  in_progress: number
+  not_started: number
+  completion_rate: number
+}
+
+const props = withDefaults(defineProps<{
+  courses?: CourseCompletionRecord[]
+}>(), {
+  courses: () => [
+    {
+      id: 1,
+      course: 'Web Development',
+      code: 'CRS-IT-WD101',
+      major: 'Information Technology',
+      instructor: 'Ms. Dara',
+      total_students: 410,
+      completed: 120,
+      in_progress: 250,
+      not_started: 40,
+      completion_rate: 29,
+    },
+    {
+      id: 2,
+      course: 'C Programming Basics',
+      code: 'CRS-IT-CP101',
+      major: 'Information Technology',
+      instructor: 'Mr. Sophea',
+      total_students: 520,
+      completed: 380,
+      in_progress: 110,
+      not_started: 30,
+      completion_rate: 73,
+    },
+    {
+      id: 3,
+      course: 'Tourism Basics',
+      code: 'CRS-TRM-TB101',
+      major: 'Tourism',
+      instructor: 'Mr. Long',
+      total_students: 350,
+      completed: 265,
+      in_progress: 65,
+      not_started: 20,
+      completion_rate: 76,
+    },
+    {
+      id: 4,
+      course: 'English Grammar',
+      code: 'CRS-ENG-EG101',
+      major: 'English Literature',
+      instructor: 'Ms. Srey',
+      total_students: 600,
+      completed: 490,
+      in_progress: 80,
+      not_started: 30,
+      completion_rate: 82,
+    },
+    {
+      id: 5,
+      course: 'Plant Science',
+      code: 'CRS-AG-PS101',
+      major: 'Agriculture',
+      instructor: 'Mr. Vuthy',
+      total_students: 480,
+      completed: 340,
+      in_progress: 105,
+      not_started: 35,
+      completion_rate: 71,
+    },
+    {
+      id: 6,
+      course: 'Social Work 101',
+      code: 'CRS-SW-SW101',
+      major: 'Social Work',
+      instructor: 'Mr. Rithy',
+      total_students: 450,
+      completed: 320,
+      in_progress: 95,
+      not_started: 35,
+      completion_rate: 71,
+    },
+  ]
+})
 
 const emit = defineEmits<{
   (e: 'downloadReport', courseId: number): void
@@ -13,177 +100,234 @@ const emit = defineEmits<{
 
 const searchQuery = ref('')
 const selectedMajor = ref('all')
-const selectedSemester = ref('current')
 
 const filteredCourses = computed(() => {
   return props.courses.filter(c => {
-    const matchSearch = searchQuery.value === '' || 
-      c.title.toLowerCase().includes(searchQuery.value.toLowerCase()) || 
-      c.teacher.toLowerCase().includes(searchQuery.value.toLowerCase())
-    const matchMajor = selectedMajor.value === 'all' || c.major === selectedMajor.value
-    return matchSearch && matchMajor
+    const q = searchQuery.value.toLowerCase().trim()
+    const matchesSearch = !q ||
+      c.course.toLowerCase().includes(q) ||
+      c.code.toLowerCase().includes(q) ||
+      c.instructor.toLowerCase().includes(q)
+
+    const matchesMajor = selectedMajor.value === 'all' || c.major === selectedMajor.value
+
+    return matchesSearch && matchesMajor
   })
 })
 
-// Math-consistent breakdown (Sum = 520 Students total for C Programming Basics; In-Progress sum = 380 Students / 73%)
-const distributionData = [
-  { label: 'Completed (100% Progress)', count: 120, percent: 23, color: 'bg-emerald-500', badgeColor: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' },
-  { label: '75% - 99% Progress (Near Done)', count: 200, percent: 38, color: 'bg-cyan-500', badgeColor: 'bg-cyan-500/10 text-cyan-300 border-cyan-500/30' },
-  { label: '50% - 74% Progress (On Track)', count: 120, percent: 23, color: 'bg-amber-500', badgeColor: 'bg-amber-500/10 text-amber-300 border-amber-500/30' },
-  { label: '25% - 49% Progress (Lagging)', count: 40, percent: 8, color: 'bg-orange-500', badgeColor: 'bg-orange-500/10 text-orange-300 border-orange-500/30' },
-  { label: 'Under 25% Progress (At-Risk)', count: 20, percent: 4, color: 'bg-rose-500', badgeColor: 'bg-rose-500/10 text-rose-300 border-rose-500/30' },
-]
+const stats = computed(() => {
+  const all = props.courses
+  const totalCourses = all.length
+  const totalStudents = all.reduce((acc, c) => acc + c.total_students, 0)
+  const totalCompleted = all.reduce((acc, c) => acc + c.completed, 0)
+  const totalInProgress = all.reduce((acc, c) => acc + c.in_progress, 0)
+  const totalNotStarted = all.reduce((acc, c) => acc + c.not_started, 0)
+  const avgCompletionRate = totalStudents > 0 ? Math.round((totalCompleted / totalStudents) * 100) : 0
+
+  return { totalCourses, totalStudents, totalCompleted, totalInProgress, totalNotStarted, avgCompletionRate }
+})
+
+const getMajorBadgeClass = (major: string) => {
+  switch (major) {
+    case 'Information Technology':
+      return 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30'
+    case 'Tourism':
+      return 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+    case 'English Literature':
+      return 'bg-purple-500/15 text-purple-300 border-purple-500/30'
+    case 'Agriculture':
+      return 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+    case 'Social Work':
+      return 'bg-rose-500/15 text-rose-300 border-rose-500/30'
+    default:
+      return 'bg-slate-500/15 text-slate-300 border-slate-500/30'
+  }
+}
 </script>
 
 <template>
-  <div class="space-y-5 text-xs font-sans">
-    <!-- Header Banner -->
-    <div class="bg-[#0d1222]/95 border border-purple-500/30 rounded-2xl p-5 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-4">
-      <div class="space-y-1">
-        <h3 class="text-base font-black text-white flex items-center gap-2.5">
-          <div class="p-1.5 rounded-lg bg-purple-500/20 border border-purple-500/40 flex items-center justify-center shrink-0 shadow-inner">
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" stroke="#C084FC" stroke-width="2" fill="#9333EA" fill-opacity="0.3" />
-            </svg>
-          </div>
-          <span>COURSE COMPLETION RATE</span>
-        </h3>
-        <p class="text-slate-200 text-xs font-semibold">Track overall completion rates and cohort distribution across all courses and majors.</p>
+  <div class="space-y-4 font-sans text-xs">
+    <!-- Top Summary Stat Cards -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-3.5 backdrop-blur-xl">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-semibold text-slate-400">Total Enrolled</span>
+          <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+        </div>
+        <div class="text-xl font-black text-white mt-1">{{ stats.totalStudents.toLocaleString() }}</div>
+        <div class="text-[10px] text-slate-400 mt-0.5">Across {{ stats.totalCourses }} courses</div>
       </div>
 
-      <!-- Bulk Actions Header Buttons (Distinguishes Bulk vs Single Row Actions) -->
-      <div class="flex flex-wrap items-center gap-2.5">
-        <button @click="emit('downloadReport', 0)" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl font-bold flex items-center gap-2 transition-all active:scale-95 shadow-md" title="Export completion report for all active courses">
-          <svg class="w-4 h-4 text-purple-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
-          <span>Export All Reports</span>
-        </button>
-        <button @click="emit('notifyIncomplete', 0)" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-bold shadow-lg shadow-purple-600/30 flex items-center gap-2 transition-all active:scale-95 ring-1 ring-purple-400/50" title="Send reminder emails to all incomplete students across cohorts">
-          <svg class="w-4 h-4 text-white shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-          </svg>
-          <span>Bulk Notify Incomplete</span>
-        </button>
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-3.5 backdrop-blur-xl">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-semibold text-emerald-400">Completed (Total)</span>
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+        </div>
+        <div class="text-xl font-black text-emerald-300 mt-1">{{ stats.totalCompleted.toLocaleString() }}</div>
+        <div class="text-[10px] text-slate-400 mt-0.5">Graduated cohort</div>
+      </div>
+
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-3.5 backdrop-blur-xl">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-semibold text-sky-400">In Progress</span>
+          <span class="w-2 h-2 rounded-full bg-sky-500"></span>
+        </div>
+        <div class="text-xl font-black text-sky-300 mt-1">{{ stats.totalInProgress.toLocaleString() }}</div>
+        <div class="text-[10px] text-slate-400 mt-0.5">Actively studying</div>
+      </div>
+
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-3.5 backdrop-blur-xl">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-semibold text-purple-400">Avg Completion Rate</span>
+          <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+        </div>
+        <div class="text-xl font-black text-purple-300 mt-1">{{ stats.avgCompletionRate }}%</div>
+        <div class="text-[10px] text-slate-400 mt-0.5">Thesis cohort benchmark</div>
       </div>
     </div>
 
-    <!-- Filters Toolbar -->
-    <div class="bg-[#0d1222]/90 border border-slate-700/60 p-3.5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
-      <input
-        v-model="searchQuery"
-        type="text"
-        placeholder="🔍 Search course or instructor name..."
-        class="w-full sm:w-72 bg-[#121827] text-slate-200 border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs focus:border-purple-500 focus:outline-none placeholder:text-slate-400 font-medium"
-      />
+    <!-- Filter & Search Toolbar -->
+    <div class="bg-slate-900/80 border border-slate-800/90 rounded-2xl p-3 flex flex-col sm:flex-row items-center justify-between gap-3 backdrop-blur-xl">
+      <div class="relative w-full sm:w-80">
+        <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Search course title, code, instructor..."
+          class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3.5 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500"
+        />
+      </div>
 
-      <div class="flex items-center gap-2.5 w-full sm:w-auto">
-        <select v-model="selectedMajor" class="bg-[#121827] text-slate-200 border border-slate-700/80 rounded-xl px-3 py-2 text-xs font-semibold focus:border-purple-500 focus:outline-none">
-          <option value="all">Major: All Majors</option>
-          <option value="IT & Networking">IT & Networking</option>
-          <option value="Tourism Management">Tourism Management</option>
+      <div class="flex items-center gap-2 w-full sm:w-auto">
+        <select
+          v-model="selectedMajor"
+          class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+        >
+          <option value="all">Major: All 5 Majors</option>
+          <option value="Information Technology">Information Technology</option>
+          <option value="Tourism">Tourism</option>
           <option value="English Literature">English Literature</option>
-          <option value="Agronomy">Agronomy</option>
+          <option value="Agriculture">Agriculture</option>
           <option value="Social Work">Social Work</option>
         </select>
 
-        <select v-model="selectedSemester" class="bg-[#121827] text-slate-200 border border-slate-700/80 rounded-xl px-3 py-2 text-xs font-semibold focus:border-purple-500 focus:outline-none">
-          <option value="current">Semester: Current (2025-S1)</option>
-          <option value="previous">Semester: Previous (2024-S2)</option>
-        </select>
+        <button
+          @click="emit('downloadReport', 0)"
+          class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl font-bold flex items-center gap-1.5 transition-all shrink-0"
+        >
+          <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          <span>Export All</span>
+        </button>
       </div>
     </div>
 
-    <!-- Course Completion Table -->
-    <div class="overflow-x-auto rounded-2xl border border-slate-700/60 bg-[#0d1222]/95 shadow-xl">
-      <table class="w-full text-left text-xs text-slate-200">
-        <thead class="bg-[#121827] text-slate-200 uppercase font-black tracking-wider border-b border-slate-700/80">
-          <tr>
-            <th class="p-3.5">COURSE NAME</th>
-            <th class="p-3.5">INSTRUCTOR</th>
-            <th class="p-3.5">ENROLLED</th>
-            <th class="p-3.5">COMPLETED (100%)</th>
-            <th class="p-3.5">IN PROGRESS</th>
-            <th class="p-3.5">AVG SCORE</th>
-            <th class="p-3.5 text-right">ROW ACTIONS</th>
+    <!-- Course Completion Canonical Table -->
+    <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-xl shadow-xl">
+      <table class="w-full text-left border-collapse text-xs">
+        <thead>
+          <tr class="border-b border-slate-800 bg-slate-800/50 text-[11px] font-bold text-slate-300 uppercase tracking-wider whitespace-nowrap">
+            <th class="py-3 px-4">Course</th>
+            <th class="py-3 px-4">Major</th>
+            <th class="py-3 px-4">Total Students</th>
+            <th class="py-3 px-4">Completed</th>
+            <th class="py-3 px-4">In Progress</th>
+            <th class="py-3 px-4">Not Started</th>
+            <th class="py-3 px-4">Completion Rate</th>
+            <th class="py-3 px-4 text-right">Actions</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-slate-800/80 font-medium">
-          <tr v-for="c in filteredCourses" :key="c.id" class="hover:bg-slate-800/50 transition-colors">
-            <td class="p-3.5">
-              <div class="font-bold text-white text-sm">{{ c.title }}</div>
-              <div class="text-xs text-slate-300 font-semibold mt-0.5">{{ c.major }}</div>
-            </td>
-            <td class="p-3.5 font-bold text-slate-200">
-              {{ c.teacher }}
-            </td>
-            <td class="p-3.5 font-bold text-white">
-              {{ c.enrolled }} Students
-            </td>
-            <td class="p-3.5">
-              <div class="font-bold text-emerald-400">{{ c.completed }} ({{ c.completed_percent }}%)</div>
-              <div class="w-24 h-2 bg-slate-800 rounded-full mt-1 overflow-hidden border border-slate-700/80">
-                <div class="h-full bg-emerald-400 rounded-full transition-all duration-500 shadow-sm" :style="{ width: c.completed_percent + '%' }"></div>
+        <tbody class="divide-y divide-slate-800/60 font-medium">
+          <tr
+            v-for="c in filteredCourses"
+            :key="c.id"
+            class="hover:bg-slate-800/40 transition-colors group"
+          >
+            <!-- 1. Course -->
+            <td class="py-3.5 px-4">
+              <div class="font-bold text-white text-sm group-hover:text-indigo-300 transition-colors">{{ c.course }}</div>
+              <div class="text-[10px] text-slate-400 flex items-center gap-2 mt-0.5">
+                <span class="font-mono text-indigo-400">{{ c.code }}</span>
+                <span>·</span>
+                <span>{{ c.instructor }}</span>
               </div>
             </td>
-            <td class="p-3.5">
-              <div class="font-bold text-amber-300">{{ c.in_progress }} ({{ c.in_progress_percent }}%)</div>
-              <div class="w-24 h-2 bg-slate-800 rounded-full mt-1 overflow-hidden border border-slate-700/80">
-                <div class="h-full bg-amber-400 rounded-full transition-all duration-500 shadow-sm" :style="{ width: c.in_progress_percent + '%' }"></div>
+
+            <!-- 2. Major -->
+            <td class="py-3.5 px-4 whitespace-nowrap">
+              <span :class="['px-2 py-0.5 rounded-full text-[10px] font-bold border', getMajorBadgeClass(c.major)]">
+                {{ c.major }}
+              </span>
+            </td>
+
+            <!-- 3. Total Students -->
+            <td class="py-3.5 px-4 whitespace-nowrap">
+              <span class="font-extrabold text-white text-sm">{{ c.total_students.toLocaleString() }}</span>
+              <span class="text-[10px] text-slate-400 ml-1">enrolled</span>
+            </td>
+
+            <!-- 4. Completed -->
+            <td class="py-3.5 px-4 whitespace-nowrap">
+              <span class="px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300 font-bold border border-emerald-500/30">
+                {{ c.completed.toLocaleString() }}
+              </span>
+            </td>
+
+            <!-- 5. In Progress -->
+            <td class="py-3.5 px-4 whitespace-nowrap">
+              <span class="px-2 py-0.5 rounded-md bg-sky-500/15 text-sky-300 font-bold border border-sky-500/30">
+                {{ c.in_progress.toLocaleString() }}
+              </span>
+            </td>
+
+            <!-- 6. Not Started -->
+            <td class="py-3.5 px-4 whitespace-nowrap">
+              <span class="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 font-bold border border-slate-700">
+                {{ c.not_started.toLocaleString() }}
+              </span>
+            </td>
+
+            <!-- 7. Completion Rate -->
+            <td class="py-3.5 px-4 whitespace-nowrap">
+              <div class="flex items-center gap-2">
+                <div class="w-24 h-2 bg-slate-950 rounded-full overflow-hidden border border-slate-800 p-0.5">
+                  <div
+                    class="h-full rounded-full transition-all duration-500"
+                    :class="c.completion_rate >= 75 ? 'bg-emerald-400' : (c.completion_rate >= 50 ? 'bg-cyan-400' : 'bg-amber-400')"
+                    :style="{ width: `${c.completion_rate}%` }"
+                  ></div>
+                </div>
+                <span class="font-black text-white text-xs">{{ c.completion_rate }}%</span>
               </div>
             </td>
-            <td class="p-3.5 font-black text-purple-300 text-sm">
-              {{ c.avg_score }}%
+
+            <!-- 8. Actions -->
+            <td class="py-3.5 px-4 text-right whitespace-nowrap">
+              <button
+                @click="emit('downloadReport', c.id)"
+                class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-indigo-300 hover:text-white border border-slate-700 rounded-lg text-[11px] font-bold transition-all mr-1.5"
+              >
+                Report
+              </button>
+              <button
+                @click="emit('notifyIncomplete', c.id)"
+                class="px-2.5 py-1 bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 border border-purple-500/30 rounded-lg text-[11px] font-bold transition-all"
+              >
+                Remind
+              </button>
             </td>
-            <td class="p-3.5 text-right space-x-2">
-              <button @click="emit('downloadReport', c.id)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 transition-all active:scale-95" title="Download report for this course">
-                <svg class="w-3.5 h-3.5 text-purple-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                <span>Report</span>
-              </button>
-              <button @click="emit('notifyIncomplete', c.id)" class="px-3 py-1.5 bg-purple-600/30 hover:bg-purple-600/50 border border-purple-500/40 text-purple-300 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 transition-all active:scale-95" title="Send email notification to incomplete students in this course">
-                <svg class="w-3.5 h-3.5 text-purple-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                <span>Remind</span>
-              </button>
+          </tr>
+
+          <tr v-if="filteredCourses.length === 0">
+            <td colspan="8" class="text-center py-8 text-slate-400">
+              No courses found matching your search.
             </td>
           </tr>
         </tbody>
       </table>
-    </div>
-
-    <!-- Cohort Progress Distribution Section -->
-    <div class="bg-[#0d1222]/95 border border-slate-700/60 rounded-2xl p-5 shadow-2xl space-y-4">
-      <h4 class="font-black text-sm text-white uppercase tracking-wide border-b border-slate-700/60 pb-2.5 flex items-center gap-2.5">
-        <div class="p-1.5 rounded-lg bg-purple-500/20 border border-purple-500/40 flex items-center justify-center shrink-0 shadow-inner">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
-            <rect x="3" y="3" width="18" height="18" rx="4" fill="#9333EA" fill-opacity="0.3" stroke="#C084FC" stroke-width="2" />
-            <path d="M7 16V12M12 16V8M17 16V10" stroke="white" stroke-width="2.5" stroke-linecap="round" />
-          </svg>
-        </div>
-        <span>COHORT PROGRESS DISTRIBUTION (C PROGRAMMING BASICS)</span>
-      </h4>
-
-      <div class="space-y-3 pt-1">
-        <div v-for="(item, idx) in distributionData" :key="idx" class="space-y-1.5">
-          <div class="flex items-center justify-between text-xs">
-            <span class="font-bold text-slate-200 w-56 flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full shrink-0" :class="item.color"></span>
-              <span>{{ item.label }}</span>
-            </span>
-            <div class="flex-1 mx-4 h-3 bg-slate-900 rounded-full overflow-hidden border border-slate-700/80 p-0.5">
-              <div :class="[item.color, 'h-full rounded-full transition-all duration-500 shadow-sm']" :style="{ width: item.percent + '%' }"></div>
-            </div>
-            <span class="font-black text-white w-32 text-right flex items-center justify-end gap-1.5">
-              <span class="px-2 py-0.5 rounded border text-[11px]" :class="item.badgeColor">
-                {{ item.count }} Students ({{ item.percent }}%)
-              </span>
-            </span>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </template>
