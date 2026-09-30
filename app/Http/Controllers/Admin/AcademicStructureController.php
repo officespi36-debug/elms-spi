@@ -51,7 +51,7 @@ class AcademicStructureController extends Controller
         });
     }
 
-    // ─── FACULTIES ───
+    // --- FACULTIES ---
     public function faculties(): Response
     {
         $faculties = Cache::remember('academic_structure.faculties', 86400, function () {
@@ -128,7 +128,7 @@ class AcademicStructureController extends Controller
         return redirect()->back()->with('success', 'Faculty deleted successfully.');
     }
 
-    // ─── DEPARTMENTS ───
+    // --- DEPARTMENTS ---
     public function departments(): Response
     {
         $departments = Cache::remember('academic_structure.departments', 86400, function () {
@@ -234,7 +234,7 @@ class AcademicStructureController extends Controller
         return redirect()->back()->with('success', 'Department deleted successfully.');
     }
 
-    // ─── MAJORS ───
+    // --- MAJORS ---
     public function majors(): Response
     {
         $majors = Cache::remember('academic_structure.majors', 86400, function () {
@@ -360,7 +360,7 @@ class AcademicStructureController extends Controller
         return redirect()->back()->with('success', 'Major deleted successfully.');
     }
 
-    // ─── ACADEMIC YEARS ───
+    // --- ACADEMIC YEARS ---
     public function academicYears(): Response
     {
         $academicYears = Cache::remember('academic_structure.years', 86400, function () {
@@ -449,7 +449,7 @@ class AcademicStructureController extends Controller
         return redirect()->back()->with('success', 'Active Academic Year set to ' . $academicYear->name);
     }
 
-    // ─── SEMESTERS ───
+    // --- SEMESTERS ---
     public function semesters(): Response
     {
         $semesters = Cache::remember('academic_structure.semesters', 86400, function () {
