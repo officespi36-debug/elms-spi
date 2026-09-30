@@ -46,7 +46,7 @@ const props = withDefaults(defineProps<{
               </span>
             </div>
             <p class="text-xs text-slate-600 dark:text-slate-400">
-              គ្រប់គ្រងព័ត៌មានគណនីមនុស្ស (Profiles, Roles, Departments, Majors, Course Enrollments & Payments)
+              គ្រប់គ្រងព័ត៌មានគណនីមនុស្ស (Profiles, Roles, Departments, Majors, Academic Years & Course Enrollments)
             </p>
           </div>
         </div>

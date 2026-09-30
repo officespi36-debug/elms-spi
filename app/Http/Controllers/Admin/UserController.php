@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AcademicYear;
 use App\Models\Department;
 use App\Models\Faculty;
 use App\Models\Major;
@@ -91,15 +92,16 @@ class UserController extends Controller
     public function students()
     {
         $students = User::where('role', 'student')
-            ->with(['major.department.faculty', 'enrollments.course'])
+            ->with(['major.department.faculty', 'enrollments.course', 'academicYear'])
             ->latest()
             ->get();
 
         return Inertia::render('Admin/UserManagementModule/Students', [
-            'students'     => $students,
-            'departments'  => Department::where('is_active', true)->get(),
-            'majors'       => Major::with(['department.faculty'])->where('is_active', true)->get(),
-            'summaryStats' => $this->getSummaryStats(),
+            'students'      => $students,
+            'departments'   => Department::where('is_active', true)->get(),
+            'majors'        => Major::with(['department.faculty'])->where('is_active', true)->get(),
+            'academicYears' => AcademicYear::orderBy('name', 'desc')->get(),
+            'summaryStats'  => $this->getSummaryStats(),
         ]);
     }
 
@@ -137,6 +139,8 @@ class UserController extends Controller
             'role'          => 'required|in:admin,teacher,student',
             'password'      => 'nullable|string|min:8',
             'major_id'      => 'nullable|exists:majors,id',
+            'academic_year' => 'nullable|string|max:255',
+            'academic_year_id' => 'nullable|exists:academic_years,id',
             'phone'         => 'nullable|string|max:30',
             'status'        => 'nullable|in:active,inactive,suspended,pending',
             'qualification' => 'nullable|string|max:255',
@@ -174,6 +178,8 @@ class UserController extends Controller
             'role'          => 'required|in:admin,teacher,student',
             'password'      => 'nullable|string|min:8',
             'major_id'      => 'nullable|exists:majors,id',
+            'academic_year' => 'nullable|string|max:255',
+            'academic_year_id' => 'nullable|exists:academic_years,id',
             'phone'         => 'nullable|string|max:30',
             'status'        => 'nullable|in:active,inactive,suspended,pending',
             'qualification' => 'nullable|string|max:255',

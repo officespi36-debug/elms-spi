@@ -53,6 +53,8 @@ class User extends Authenticatable implements JWTSubject
         'student_code',
         'study_type',
         'phone',
+        'academic_year',
+        'academic_year_id',
         'telegram_id',
         'telegram_chat_id',
         'telegram_username',
@@ -103,6 +105,11 @@ class User extends Authenticatable implements JWTSubject
     public function major()
     {
         return $this->belongsTo(Major::class);
+    }
+
+    public function academicYear()
+    {
+        return $this->belongsTo(AcademicYear::class);
     }
 
     public function authLogs()
