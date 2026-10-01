@@ -231,9 +231,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('payments/{payment}/verify', [Admin\PaymentController::class, 'verify'])->name('payments.verify');
         Route::post('payments/{payment}/reject', [Admin\PaymentController::class, 'reject'])->name('payments.reject');
         Route::get('reports', [Admin\ReportController::class, 'index'])->name('reports');
+        Route::get('reports/export-csv', [Admin\ReportController::class, 'exportCsv'])->name('reports.export-csv');
+        Route::get('reports/export-pdf', [Admin\ReportController::class, 'exportPdf'])->name('reports.export-pdf');
         Route::get('reports/financials', [Admin\ReportController::class, 'exportFinancials'])->name('reports.financials');
         Route::get('reports/enrollments', function () {
-            return redirect()->route('admin.enrollment.majors');
+            return redirect()->route('admin.enrollment.courses');
         })->name('reports.enrollments');
         Route::get('settings', [Admin\SettingController::class, 'index'])->name('settings');
         Route::post('settings', [Admin\SettingController::class, 'update'])->name('settings.update');

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import type { 
   OverviewMetrics, 
@@ -7,7 +7,6 @@ import type {
   TeacherAnalyticsData, 
   CourseAnalyticsData, 
   QuizAnalyticsData, 
-  PaymentAnalyticsData 
 } from './types'
 
 // Sub-Components
@@ -16,14 +15,36 @@ import StudentAnalytics from './StudentAnalytics.vue'
 import TeacherAnalytics from './TeacherAnalytics.vue'
 import CourseAnalytics from './CourseAnalytics.vue'
 import QuizAnalytics from './QuizAnalytics.vue'
-import PaymentAnalytics from './PaymentAnalytics.vue'
+import SystemReports from './SystemReports.vue'
 import ExportReports from './ExportReports.vue'
 
 const props = defineProps<{
   activeTab?: string
+  coursesAnalytics?: {
+    summary?: any
+    list?: any[]
+  }
+  teachersAnalytics?: {
+    summary?: any
+    list?: any[]
+  }
+  studentAnalytics?: {
+    summary?: any
+    list?: any[]
+  }
+  systemReports?: {
+    summary?: any
+  }
+  majors?: any[]
+  subjects?: any[]
+  teachers?: any[]
+  academicYears?: any[]
 }>()
 
-const currentTab = ref<string>(props.activeTab || 'overview')
+// Default to user's requested tab or 'courses' or 'students'
+const currentTab = ref<string>(
+  props.activeTab === 'overview' ? 'system_reports' : (props.activeTab || 'courses')
+)
 
 // Toast Notification
 const toastMessage = ref('')
@@ -37,37 +58,25 @@ function showNotification(msg: string, type: 'success' | 'info' | 'warning' = 's
   }, 3500)
 }
 
-// Mock Data Fallbacks
-const defaultOverviewMetrics: OverviewMetrics = {
-  student_engagement: { value: 87.3, change: 4.2, status: 'Excellent' },
-  teacher_performance: { value: 92.1, change: 2.8, status: 'High' },
-  course_completion: { value: 76.5, change: 5.1, status: 'Good' },
-  quiz_pass_rate: { value: 78.4, change: 3.5, status: 'Above Target' },
-  revenue_growth: { value: '$45,820', change: 12.4, status: 'Positive' },
-  cert_issued: { value: 245, change: 7.9, status: 'Growing', count: 18 },
-  trends: {
-    enrollment: 24,
-    revenue: 32,
-    completion: 8,
-    pass_rate: 5,
-  },
-  insights: [
-    { text: 'Enrollment increased by 24% due to English Grammar course popularity.', actionText: 'View Course', targetTab: 'courses' },
-    { text: 'IT & Networking students have 15% higher module completion rate than average.', actionText: 'View Major', targetTab: 'students' },
-    { text: 'Post-Test Module 3 across programming courses has low pass rate (45%). Consider revision.', actionText: 'Review Module', targetTab: 'quizzes' },
-    { text: 'Peak learning time across all students is 7:00 PM – 10:00 PM (Cambodia Time).', actionText: 'View Schedule', targetTab: 'overview' },
-    { text: '3 teachers show declining student engagement metrics over past 30 days.', actionText: 'View Teachers', targetTab: 'teachers' },
-  ]
+function handleExportCsv(type: string = 'course') {
+  showNotification(`Exporting ${type.toUpperCase()} Analytics (CSV)...`, 'info')
+  window.open(`/admin/reports/export-csv?type=${type}`, '_blank')
 }
 
+function handleExportPdf(type: string = 'course') {
+  showNotification(`Exporting ${type.toUpperCase()} Report (PDF)...`, 'info')
+  window.open(`/admin/reports/export-pdf?type=${type}`, '_blank')
+}
+
+// Fallback student mock data for deep dive charts
 const defaultStudentData: StudentAnalyticsData = {
   kpis: {
-    total: 2458,
-    active: 2390,
+    total: props.studentAnalytics?.summary?.total_students || 2458,
+    active: props.studentAnalytics?.summary?.active_learners || 2390,
     active_percent: 97,
     retention: 94.5,
-    at_risk: 213,
-    at_risk_percent: 8.6,
+    at_risk: props.studentAnalytics?.summary?.at_risk_students || 42,
+    at_risk_percent: 8.4,
   },
   enrollment_trend: [
     { month: 'Jan', count: 500 },
@@ -78,7 +87,7 @@ const defaultStudentData: StudentAnalyticsData = {
     { month: 'Jun', count: 2458 },
   ],
   by_major: [
-    { major: 'IT & Networking', count: 520, percent: 21 },
+    { major: 'Information Technology', count: 520, percent: 21 },
     { major: 'Tourism Management', count: 410, percent: 17 },
     { major: 'English Literature', count: 380, percent: 15 },
     { major: 'Agronomy', count: 600, percent: 24 },
@@ -92,8 +101,8 @@ const defaultStudentData: StudentAnalyticsData = {
     { label: 'Inactive', range: '<2h/week', count: 213, percent: 8, color: 'bg-red-500' },
   ],
   top_students: [
-    { rank: 1, name: 'Chan Dara', major: 'IT & Networking', progress: 95, avg_score: 92, hours: '52h 30m' },
-    { rank: 2, name: 'Bun Rithy', major: 'IT & Networking', progress: 92, avg_score: 90, hours: '48h 15m' },
+    { rank: 1, name: 'Chan Dara', major: 'Information Technology', progress: 95, avg_score: 92, hours: '52h 30m' },
+    { rank: 2, name: 'Bun Rithy', major: 'Information Technology', progress: 92, avg_score: 90, hours: '48h 15m' },
     { rank: 3, name: 'Pov Sreynich', major: 'Agronomy', progress: 90, avg_score: 88, hours: '45h 50m' },
     { rank: 4, name: 'Long Vichida', major: 'English Literature', progress: 88, avg_score: 87, hours: '42h 10m' },
   ],
@@ -104,83 +113,6 @@ const defaultStudentData: StudentAnalyticsData = {
     { stage: 'Completed Module 2', percent: 72, count: 1770 },
     { stage: 'Completed Full Course', percent: 58, count: 1426 },
     { stage: 'Earned Certificate', percent: 55, count: 1352 },
-  ]
-}
-
-const defaultTeacherData: TeacherAnalyticsData = {
-  kpis: {
-    total: 145,
-    avg_rating: 4.6,
-    avg_courses: 2.3,
-    avg_monthly_earn: '$8,240',
-  },
-  top_teachers: [
-    { rank: 1, name: 'Mr. Sophea', courses: 4, students: 620, rating: 4.9, completion: 82, revenue: '$10,540' },
-    { rank: 2, name: 'Ms. Dara', courses: 3, students: 410, rating: 4.8, completion: 76, revenue: '$7,035' },
-    { rank: 3, name: 'Mr. Vuthy', courses: 2, students: 305, rating: 4.7, completion: 71, revenue: '$4,810' },
-    { rank: 4, name: 'Mr. Long', courses: 2, students: 280, rating: 4.6, completion: 69, revenue: '$3,990' },
-    { rank: 5, name: 'Ms. Srey', courses: 3, students: 520, rating: 4.7, completion: 88, revenue: '$0 (Free)' },
-  ],
-  rating_distribution: [
-    { stars: '5.0 Stars', count: 45, percent: 31 },
-    { stars: '4.5 - 4.9 Stars', count: 68, percent: 47 },
-    { stars: '4.0 - 4.4 Stars', count: 22, percent: 15 },
-    { stars: '3.5 - 3.9 Stars', count: 8, percent: 6 },
-    { stars: 'Below 3.5 Stars', count: 2, percent: 1 },
-  ],
-  matrix: [
-    { name: 'Mr. Sophea', rating: 4.9, completion: 82, zone: 'star' },
-    { name: 'Ms. Dara', rating: 4.8, completion: 76, zone: 'star' },
-    { name: 'Teacher X', rating: 3.2, completion: 45, zone: 'review' },
-  ],
-  needing_attention: [
-    { name: 'Mr. Bunsan', course: 'Advanced C Architecture', rating: 3.2, completion: 45, reason: 'Low content quality & old slides' },
-    { name: 'Ms. Neary', course: 'Microeconomics Principles', rating: 3.5, completion: 52, reason: 'Slow Q&A response time (>48h)' },
-  ],
-  ai_insights: [
-    'Teachers with video content > 20 hours have 25% higher average ratings.',
-    'Teachers responding to student Q&A within 24h achieve 15% higher course retention.',
-    'IT & Networking instructors generate 40% more revenue than other faculties.',
-  ]
-}
-
-const defaultCourseData: CourseAnalyticsData = {
-  kpis: {
-    total: 328,
-    active: 290,
-    avg_completion: 76,
-    total_revenue: '$45,820',
-  },
-  top_popular: [
-    { rank: 1, title: 'English Grammar', teacher: 'Ms. Srey', enrolled: 600, completed_percent: 88, rating: 4.9, revenue: '$0 (Free)' },
-    { rank: 2, title: 'C Programming Basics', teacher: 'Mr. Sophea', enrolled: 520, completed_percent: 82, rating: 4.9, revenue: '$13,000' },
-    { rank: 3, title: 'Web Development', teacher: 'Ms. Dara', enrolled: 410, completed_percent: 76, rating: 4.8, revenue: '$12,300' },
-    { rank: 4, title: 'Plant Science', teacher: 'Mr. Vuthy', enrolled: 380, completed_percent: 71, rating: 4.7, revenue: '$11,400' },
-    { rank: 5, title: 'Tourism Basics', teacher: 'Mr. Long', enrolled: 350, completed_percent: 69, rating: 4.6, revenue: '$8,750' },
-  ],
-  completion_heatmap: [
-    { course: 'C Programming', modules: [{ mod: 'Mod 1', score: 92 }, { mod: 'Mod 2', score: 85 }, { mod: 'Mod 3', score: 45, flag: '⚠️ Mod 3 Drop' }, { mod: 'Mod 4', score: 60 }, { mod: 'Mod 5', score: 55 }] },
-    { course: 'Web Development', modules: [{ mod: 'Mod 1', score: 90 }, { mod: 'Mod 2', score: 82 }, { mod: 'Mod 3', score: 70 }, { mod: 'Mod 4', score: 80 }, { mod: 'Mod 5', score: 65 }] },
-    { course: 'Database Systems', modules: [{ mod: 'Mod 1', score: 88 }, { mod: 'Mod 2', score: 80 }, { mod: 'Mod 3', score: 78 }, { mod: 'Mod 4', score: 65 }, { mod: 'Mod 5', score: 60 }] },
-    { course: 'English Grammar', modules: [{ mod: 'Mod 1', score: 95 }, { mod: 'Mod 2', score: 92 }, { mod: 'Mod 3', score: 88 }, { mod: 'Mod 4', score: 85 }, { mod: 'Mod 5', score: 82, flag: '🏆 Best' }] },
-    { course: 'Tourism Basics', modules: [{ mod: 'Mod 1', score: 85 }, { mod: 'Mod 2', score: 70 }, { mod: 'Mod 3', score: 68 }, { mod: 'Mod 4', score: 55 }, { mod: 'Mod 5', score: 42, flag: '⚠️ Mod 5 Drop' }] },
-  ],
-  revenue_by_course: [
-    { course: 'C Programming', revenue: '$13,000', amount: 13000 },
-    { course: 'Web Development', revenue: '$12,300', amount: 12300 },
-    { course: 'Plant Science', revenue: '$11,400', amount: 11400 },
-    { course: 'Tourism Basics', revenue: '$8,750', amount: 8750 },
-    { course: 'Database Systems', revenue: '$7,600', amount: 7600 },
-  ],
-  needing_attention: [
-    { course: 'Course Y (Legacy Architecture)', enrolled: 45, completed_percent: 25, rating: 3.2, reason: 'Outdated content and old recordings' },
-    { course: 'Course Z (Intro to Microeconomics)', enrolled: 20, completed_percent: 15, rating: 3.4, reason: 'High quiz failure & low engagement' },
-  ],
-  ai_insights: [
-    'Teacher-Led courses achieve 15% higher completion rates compared to Self-Study mode.',
-    'Courses containing over 20 video lessons show 25% higher active student retention.',
-    'Free introductory courses generate 3x higher enrollment lead volume for paid courses.',
-    'Module 3 across all programming courses shows an average completion drop-off of 20%.',
   ]
 }
 
@@ -204,85 +136,25 @@ const defaultQuizData: QuizAnalyticsData = {
     { type: '📎 Assignments', pass_rate: 72, note: 'Graded by teachers' },
   ],
   difficult_quizzes: [
-    { name: 'Post-Test Module 3', course: 'C Programming', attempts: 380, pass_rate: 45, avg_score: 52, status: 'danger' },
-    { name: 'Tourism Final Test', course: 'Tourism Basics', attempts: 280, pass_rate: 52, avg_score: 58, status: 'warning' },
-    { name: 'Data Types Post-Test', course: 'C Programming', attempts: 420, pass_rate: 60, avg_score: 65, status: 'warning' },
+    { name: 'Post-Test Module 3', course: 'Web Development', attempts: 380, pass_rate: 45, avg_score: 52, status: 'danger' },
+    { name: 'Tourism Final Test', course: 'Tourism Operations', attempts: 280, pass_rate: 52, avg_score: 58, status: 'warning' },
+    { name: 'Data Types Post-Test', course: 'Programming Fundamentals', attempts: 420, pass_rate: 60, avg_score: 65, status: 'warning' },
   ],
   difficult_questions: [
-    { id: 'Q-045', preview: 'Explain the C compiler stages and memory allocation', type: 'Essay', correct_rate: 42, difficulty: '🔴 Very Hard' },
-    { id: 'Q-089', preview: 'Write a nested for-loop algorithm in C', type: 'Coding', correct_rate: 48, difficulty: '🔴 Very Hard' },
+    { id: 'Q-045', preview: 'Explain relational database normalization forms (1NF to 3NF)', type: 'Essay', correct_rate: 42, difficulty: '🔴 Very Hard' },
+    { id: 'Q-089', preview: 'Write an asynchronous JavaScript promise handler', type: 'Coding', correct_rate: 48, difficulty: '🔴 Very Hard' },
     { id: 'Q-124', preview: 'Match SQL commands (JOIN, GROUP BY) with usage', type: 'Matching', correct_rate: 51, difficulty: '🟠 Hard' },
-    { id: 'Q-156', preview: 'What is pointer arithmetic in 64-bit systems?', type: 'MCQ', correct_rate: 55, difficulty: '🟠 Hard' },
+    { id: 'Q-156', preview: 'What is soil pH effect on crop nutrient absorption?', type: 'MCQ', correct_rate: 55, difficulty: '🟠 Hard' },
   ],
   improvement: [
-    { course: 'C Programming Basics', pre_test: 45, post_test: 78, growth: 33 },
     { course: 'Web Development', pre_test: 50, post_test: 76, growth: 26 },
     { course: 'Database Systems', pre_test: 42, post_test: 72, growth: 30 },
-    { course: 'Tourism Basics', pre_test: 55, post_test: 68, growth: 13 },
+    { course: 'Tourism Operations', pre_test: 55, post_test: 68, growth: 13 },
   ],
   ai_insights: [
     'Students who complete practice quizzes score 20% higher on final post-tests.',
     'Taking pre-tests correlates with a 15% increase in final overall course grades.',
     'Essay questions have 2x lower completion rate compared to Multiple Choice questions.',
-  ]
-}
-
-const defaultPaymentData: PaymentAnalyticsData = {
-  kpis: {
-    gross_revenue: '$45,820',
-    net_revenue: '$42,470',
-    refund_amount: '$1,250',
-    refund_percent: 2.7,
-    growth: 12.4,
-    paid_txn: 1780,
-    pending_txn: 245,
-    failed_txn: 37,
-    failed_percent: 1.8,
-    free_enrolls: 650,
-  },
-  revenue_trend_12m: [
-    { month: 'Jul', amount: 18000 },
-    { month: 'Aug', amount: 22000 },
-    { month: 'Sep', amount: 25000 },
-    { month: 'Oct', amount: 31000 },
-    { month: 'Nov', amount: 36000 },
-    { month: 'Dec', amount: 40000 },
-    { month: 'Jan', amount: 42000 },
-    { month: 'Feb', amount: 43000 },
-    { month: 'Mar', amount: 44000 },
-    { month: 'Apr', amount: 45000 },
-    { month: 'May', amount: 45200 },
-    { month: 'Jun', amount: 45820 },
-  ],
-  revenue_by_major: [
-    { major: 'IT & Networking', amount: '$15,200', percent: 33 },
-    { major: 'Tourism Management', amount: '$8,450', percent: 18 },
-    { major: 'English Literature', amount: '$5,820', percent: 13 },
-    { major: 'Agronomy', amount: '$7,600', percent: 17 },
-    { major: 'Social Work', amount: '$5,400', percent: 12 },
-    { major: 'Others', amount: '$3,350', percent: 7 },
-  ],
-  revenue_by_mode: [
-    { mode: '🎥 Teacher-Led Courses', amount: '$34,500', percent: 75 },
-    { mode: '💻 Self-Study Courses', amount: '$11,320', percent: 25 },
-    { mode: '🎁 Free Public Courses', amount: '$0', percent: 0 },
-  ],
-  conversion_funnel: [
-    { stage: 'Course Page Viewed', percent: 100, count: 12450 },
-    { stage: 'Clicked Enroll', percent: 55, count: 6847 },
-    { stage: 'Payment Form Started', percent: 42, count: 5229 },
-    { stage: 'Payment Completed', percent: 35, count: 4357 },
-  ],
-  payment_methods: [
-    { name: 'ABA Pay (KHQR)', percent: 68, count: 1210 },
-    { name: 'Wing Pay', percent: 18, count: 320 },
-    { name: 'ACLEDA Mobile', percent: 10, count: 178 },
-    { name: 'Credit / Debit Card', percent: 4, count: 72 },
-  ],
-  refund_reasons: [
-    { reason: 'Accidental Purchase', percent: 45 },
-    { reason: 'Course not matching expectations', percent: 35 },
-    { reason: 'Technical / Video playback issue', percent: 20 },
   ]
 }
 </script>
@@ -303,7 +175,7 @@ const defaultPaymentData: PaymentAnalyticsData = {
     </div>
 
     <div class="space-y-6 text-slate-100 font-sans pb-12">
-      <!-- ── MODULE HEADER CARD (Clean, Standard, Vibrant Design) ── -->
+      <!-- ── MODULE HEADER CARD ── -->
       <div class="relative overflow-hidden bg-slate-800/90 border border-slate-700/70 rounded-2xl p-5 shadow-xl backdrop-blur-xl">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -315,26 +187,47 @@ const defaultPaymentData: PaymentAnalyticsData = {
               </div>
               <div>
                 <h2 class="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-teal-300 to-emerald-400 tracking-tight">
-                  Analytics & Reporting Module
+                  Analytics & Reports Module
                 </h2>
                 <p class="text-xs text-slate-400 mt-0.5 font-medium">
-                  Real-time performance analytics, predictive trends & intelligent reporting
+                  Academic learning progress, course metrics, faculty workload monitoring & institutional reports
                 </p>
               </div>
             </div>
           </div>
+
+          <!-- Quick Global Export Actions -->
+          <div class="flex items-center gap-2">
+            <button
+              @click="handleExportCsv(currentTab === 'teachers' ? 'teacher' : (currentTab === 'students' ? 'student' : 'course'))"
+              class="px-3.5 py-2 bg-slate-900/80 hover:bg-slate-800 text-teal-300 border border-teal-500/40 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              <span>Export CSV</span>
+            </button>
+            <button
+              @click="handleExportPdf(currentTab === 'teachers' ? 'teacher' : (currentTab === 'students' ? 'student' : 'course'))"
+              class="px-3.5 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:brightness-110 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md shadow-purple-600/30 active:scale-95"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span>Export PDF</span>
+            </button>
+          </div>
         </div>
 
-        <!-- ── 7 SUB-NAVIGATION PILL TABS ── -->
+        <!-- ── 4 CANONICAL ROADMAP TABS ── -->
         <div class="flex flex-wrap items-center gap-2 pt-4 border-t border-slate-700/50 mt-4 text-xs">
           <button
             v-for="t in [
-              { id: 'overview', label: 'Overview', iconPath: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
               { id: 'students', label: 'Student Analytics', iconPath: 'M12 14l9-5-9-5-9 5 9 5z M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z' },
-              { id: 'teachers', label: 'Teacher Analytics', iconPath: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
               { id: 'courses', label: 'Course Analytics', iconPath: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253' },
+              { id: 'teachers', label: 'Teacher Analytics', iconPath: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
+              { id: 'system_reports', label: 'System Reports', iconPath: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z' },
               { id: 'quizzes', label: 'Quiz Analytics', iconPath: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4' },
-              { id: 'payments', label: 'Payment Analytics', iconPath: 'M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
             ]"
             :key="t.id"
             @click="currentTab = t.id"
@@ -353,62 +246,57 @@ const defaultPaymentData: PaymentAnalyticsData = {
         </div>
       </div>
 
-      <!-- ── TAB CONTENT RENDERING ── -->
-      <Overview
-        v-if="currentTab === 'overview'"
-        :metrics="defaultOverviewMetrics"
-        @exportReport="() => showNotification('Exporting Analytics Overview Report (PDF)...')"
-        @refresh="() => showNotification('Overview analytics refreshed!')"
-        @viewFullAiReport="() => showNotification('Opening full monthly AI analytical report...')"
-        @navigateTab="(tab) => currentTab = tab"
-      />
-
+      <!-- ── TAB 1: STUDENT ANALYTICS ── -->
       <StudentAnalytics
-        v-else-if="currentTab === 'students'"
+        v-if="currentTab === 'students'"
         :data="defaultStudentData"
-        @exportReport="() => showNotification('Exporting Student Analytics Report (CSV)...')"
+        @exportReport="() => handleExportCsv('student')"
         @deepDiveRetention="() => showNotification('Opening cohort retention deep dive analyzer...')"
       />
 
-      <TeacherAnalytics
-        v-else-if="currentTab === 'teachers'"
-        :data="defaultTeacherData"
-        @sendFeedback="(name) => showNotification(`Sent performance feedback to ${name}!`)"
-        @scheduleReview="(name) => showNotification(`Scheduled review session with ${name}.`)"
-        @exportReport="() => showNotification('Exporting Teacher Analytics Report (Excel)...')"
-      />
-
+      <!-- ── TAB 2: COURSE ANALYTICS ── -->
       <CourseAnalytics
         v-else-if="currentTab === 'courses'"
-        :data="defaultCourseData"
-        @notifyTeacher="(course) => showNotification(`Notified teacher for course ${course}!`)"
-        @scheduleReview="(course) => showNotification(`Scheduled review meeting for course ${course}.`)"
-        @archiveCourse="(course) => showNotification(`Course ${course} flagged for archiving.`, 'warning')"
-        @exportReport="() => showNotification('Exporting Course Analytics Report (CSV)...')"
+        :coursesAnalytics="coursesAnalytics"
+        :majors="majors"
+        :subjects="subjects"
+        :teachers="teachers"
+        :academicYears="academicYears"
+        @exportReport="(type) => handleExportCsv(type || 'course')"
       />
 
+      <!-- ── TAB 3: TEACHER ANALYTICS ── -->
+      <TeacherAnalytics
+        v-else-if="currentTab === 'teachers'"
+        :teachersAnalytics="teachersAnalytics"
+        :majors="majors"
+        :subjects="subjects"
+        :academicYears="academicYears"
+        @exportReport="() => handleExportCsv('teacher')"
+      />
+
+      <!-- ── TAB 4: SYSTEM REPORTS ── -->
+      <SystemReports
+        v-else-if="currentTab === 'system_reports' || currentTab === 'overview'"
+        :systemReports="systemReports"
+        :majors="majors"
+        :courses="coursesAnalytics?.list"
+        :teachers="teachers"
+        :academicYears="academicYears"
+        @exportCsv="(type) => handleExportCsv(type)"
+        @exportPdf="(type) => handleExportPdf(type)"
+      />
+
+      <!-- ── QUIZ ANALYTICS ── -->
       <QuizAnalytics
         v-else-if="currentTab === 'quizzes'"
         :data="defaultQuizData"
         @reviewQuestions="(q) => showNotification(`Opening question diagnostic review for ${q}...`)"
         @sendToTeacher="(q) => showNotification(`Sent quiz diagnostic feedback for ${q} to teacher!`)"
         @modifyQuiz="(q) => showNotification(`Redirecting to quiz editor for ${q}...`)"
-        @exportReport="() => showNotification('Exporting Quiz Analytics Report (CSV)...')"
-      />
-
-      <PaymentAnalytics
-        v-else-if="currentTab === 'payments'"
-        :data="defaultPaymentData"
-        @optimizeFunnel="() => showNotification('Opening Checkout Funnel Optimizer...')"
-        @exportReport="() => showNotification('Exporting Financial & Revenue Report (CSV)...')"
-      />
-
-      <ExportReports
-        v-else-if="currentTab === 'export'"
-        @generateReport="(config) => showNotification(`Generated ${config.format.toUpperCase()} report for ${config.modules.length} modules!`)"
-        @saveSchedule="(sch) => showNotification(`Saved automated report schedule: ${sch.frequency}!`)"
-        @downloadExisting="(id) => showNotification(`Downloading report file #${id}...`)"
+        @exportReport="() => handleExportCsv('quiz')"
       />
     </div>
   </AdminLayout>
 </template>
+
