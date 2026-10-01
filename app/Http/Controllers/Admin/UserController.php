@@ -63,7 +63,9 @@ class UserController extends Controller
     public function administrators()
     {
         $admins = User::where('role', 'admin')
-            ->with(['major.department.faculty'])
+            ->with(['major.department.faculty', 'authLogs' => function ($q) {
+                $q->latest()->limit(5);
+            }])
             ->latest()
             ->get();
 
@@ -77,7 +79,7 @@ class UserController extends Controller
     public function teachers()
     {
         $teachers = User::where('role', 'teacher')
-            ->with(['major.department.faculty', 'courses'])
+            ->with(['major.department.faculty', 'courses.enrollments', 'courses.lessons', 'courses.quizzes'])
             ->latest()
             ->get();
 
@@ -165,6 +167,12 @@ class UserController extends Controller
         if ($data['role'] === 'student' && empty($data['student_code'])) {
             $nextNum = User::where('role', 'student')->count() + 1;
             $data['student_code'] = sprintf('SPI-%s-%03d', date('Y'), $nextNum);
+        } elseif ($data['role'] === 'teacher' && empty($data['student_code'])) {
+            $nextNum = User::where('role', 'teacher')->count() + 1;
+            $data['student_code'] = sprintf('TEA-%s-%03d', date('Y'), $nextNum);
+        } elseif ($data['role'] === 'admin' && empty($data['student_code'])) {
+            $nextNum = User::where('role', 'admin')->count() + 1;
+            $data['student_code'] = sprintf('ADM-%s-%03d', date('Y'), $nextNum);
         }
 
         $user = User::create($data);
@@ -227,7 +235,7 @@ class UserController extends Controller
             'is_active' => ($newStatus === 'active')
         ]);
 
-        return back()->with('success', "Student '{$user->name}' status set to " . ucfirst($newStatus) . ".");
+        return back()->with('success', "Account '{$user->name}' status set to " . ucfirst($newStatus) . ".");
     }
 
     public function suspend(User $user, Request $request)
