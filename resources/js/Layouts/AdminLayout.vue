@@ -157,7 +157,7 @@ const navigation: NavItem[] = [
     icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9',
     children: [
       { name: 'Announcements', href: '/admin/notifications/announcements', iconUrl: '/images/actions/announcement.svg', icon: 'M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z' },
-      { name: 'Notifications', href: '/admin/notifications/history', iconUrl: '/images/nav/notification.svg', icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9' },
+      { name: 'Notifications', href: '/admin/notifications', iconUrl: '/images/nav/notification.svg', icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9' },
     ]
   },
   {
@@ -531,7 +531,7 @@ interface NotificationItem {
   desc_en: string
   time_km: string
   time_en: string
-  type: 'payment' | 'user' | 'support' | 'system'
+  type: 'payment' | 'user' | 'support' | 'system' | 'assignment' | 'ai' | 'risk' | 'announcement'
   defaultRead: boolean
   read: boolean
   link: string
@@ -540,51 +540,75 @@ interface NotificationItem {
 const rawAdminNotifications: Omit<NotificationItem, 'read'>[] = [
   {
     id: 1,
-    title_km: 'ការទូទាត់ ABA #1094 ថ្មី',
-    title_en: 'New ABA Payment #1094',
-    desc_km: 'សិស្ស សុខ ចាន់ បានផ្ញើប្រាក់ 45.00$ សម្រាប់វគ្គ Web Dev',
-    desc_en: 'Student Sok Chan transferred $45.00 for Web Dev course',
-    time_km: '5 នាទីមុន',
-    time_en: '5 mins ago',
-    type: 'payment',
+    title_km: 'កាលបរិច្ឆេទផុតកំណត់៖ JavaScript Functions',
+    title_en: 'Assignment Due: JavaScript Functions',
+    desc_km: 'សិស្ស Sok Dara ជិតដល់ថ្ងៃផុតកំណត់កិច្ចការ (ស្អែក ម៉ោង ១១:៥៩ យប់)',
+    desc_en: 'Assignment: JavaScript Functions is due tomorrow at 11:59 PM',
+    time_km: '10 នាទីមុន',
+    time_en: '10 mins ago',
+    type: 'assignment',
     defaultRead: false,
-    link: '/admin/payments?status=pending'
+    link: '/admin/quizzes?tab=assignments'
   },
   {
     id: 2,
-    title_km: 'ការចុះឈ្មោះសិស្សថ្មី',
-    title_en: 'New Student Enrollment',
-    desc_km: 'គឹម ហុង បានចុះឈ្មោះចូលរៀនថ្នាក់វិទ្យាសាស្ត្រកុំព្យូទ័រ',
-    desc_en: 'Kim Hong enrolled in Computer Science course',
-    time_km: '20 នាទីមុន',
-    time_en: '20 mins ago',
-    type: 'user',
+    title_km: 'អនុសាសន៍ AI៖ បានរកឃើញប្រធានបទខ្សោយ',
+    title_en: 'AI Recommendation: Weak Topic Detected',
+    desc_km: 'AI បានរកឃើញប្រធានបទខ្សោយ Soil Management & pH Balance',
+    desc_en: 'AI detected a weak topic: JavaScript Functions / Soil Management',
+    time_km: '25 នាទីមុន',
+    time_en: '25 mins ago',
+    type: 'ai',
     defaultRead: false,
-    link: '/admin/user-management/students'
+    link: '/admin/ai-rules?tab=rules'
   },
   {
     id: 3,
-    title_km: 'សំណើជំនួយ Ticket #402',
-    title_en: 'Support Ticket #402',
-    desc_km: 'មានបញ្ហាមើលវីដេអូបទបង្ហាញក្នុងមេរៀនទី ២',
-    desc_en: 'Video presentation playback issue in Lesson 2',
+    title_km: 'ការជូនដំណឹង At-Risk៖ សិស្សត្រូវការជំនួយ',
+    title_en: 'At-Risk Alert: Student A Requires Attention',
+    desc_km: 'សិស្ស Sok Piseth (IT/Agri) វឌ្ឍនភាព 32% + អសកម្ម 12 ថ្ងៃ',
+    desc_en: 'Student Sok Piseth flagged High Risk: Progress 32%, Inactive 12d',
     time_km: '1 ម៉ោងមុន',
     time_en: '1 hour ago',
-    type: 'support',
+    type: 'risk',
     defaultRead: false,
-    link: '/admin/discussions/tickets'
+    link: '/admin/ai-rules?tab=at_risk'
   },
   {
     id: 4,
+    title_km: 'សេចក្តីប្រកាស៖ ការចុះឈ្មោះមុខវិជ្ជាឆមាសទី១',
+    title_en: 'Announcement: Semester 1 Course Registration',
+    desc_km: 'បានផ្សព្វផ្សាយទៅកាន់និស្សិតដេប៉ាតឺម៉ង់ព័ត៌មានវិទ្យា',
+    desc_en: 'Broadcasted to Information Technology Year 2 students',
+    time_km: 'ម្សិលមិញ',
+    time_en: 'Yesterday',
+    type: 'announcement',
+    defaultRead: true,
+    link: '/admin/notifications/announcements'
+  },
+  {
+    id: 5,
+    title_km: 'ការអនុម័ត Course៖ វគ្គសិក្សាត្រូវបានអនុម័ត',
+    title_en: 'Course Approved: Soil Science & Crop Nutrition',
+    desc_km: 'មាតិកាវគ្គសិក្សាត្រូវបានអនុម័ត និងបោះពុម្ពផ្សាយផ្លូវការ',
+    desc_en: 'Course syllabus approved and published for enrollment',
+    time_km: '2 ថ្ងៃមុន',
+    time_en: '2 days ago',
+    type: 'support',
+    defaultRead: true,
+    link: '/admin/course-module/approval'
+  },
+  {
+    id: 6,
     title_km: 'ការបម្រុងទុកទិន្នន័យបានជោគជ័យ',
     title_en: 'Database Backup Successful',
-    desc_km: 'ការបម្រុងទុកទិន្នន័យប្រព័ន្ធស្វ័យប្រវត្តិបានបញ្ចប់ដោយជោគជ័យ',
-    desc_en: 'Automated Database Backup completed successfully',
-    time_km: '3 ម៉ោងមុន',
-    time_en: '3 hours ago',
+    desc_km: 'ការបម្រុងទុកមូលដ្ឋានទិន្នន័យប្រព័ន្ធស្វ័យប្រវត្តិនារាត្រីបានជោគជ័យ',
+    desc_en: 'Automated nightly database backup completed successfully',
+    time_km: '3 ថ្ងៃមុន',
+    time_en: '3 days ago',
     type: 'system',
     defaultRead: true,
-    link: '/admin/settings?tab=backup'
+    link: '/admin/auth-logs'
   }
 ]
 
@@ -1560,7 +1584,7 @@ onUnmounted(() => {
 
                 <div class="p-2 border-t border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 text-center">
                   <Link
-                    href="/admin/notifications/history"
+                    href="/admin/notifications"
                     @click="isNotificationOpen = false; playClickSound()"
                     class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 transition-colors"
                   >

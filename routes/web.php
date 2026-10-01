@@ -310,12 +310,12 @@ Route::middleware(['auth'])->group(function () {
         Route::post('certificates/quick-verify', [Admin\CertificateController::class, 'quickVerify'])->name('certificates.quick-verify');
         Route::post('certificates/revoke/{id}', [Admin\CertificateController::class, 'requestRevocation'])->name('certificates.revoke');
         Route::post('certificates/restore/{id}', [Admin\CertificateController::class, 'restoreCertificate'])->name('certificates.restore');
-        Route::get('notifications', [Admin\NotificationController::class, 'announcements'])->name('notifications');
+        Route::get('notifications', [Admin\NotificationController::class, 'notifications'])->name('notifications');
         Route::get('notifications/announcements', [Admin\NotificationController::class, 'announcements'])->name('notifications.announcements');
         Route::get('notifications/emails', [Admin\NotificationController::class, 'emails'])->name('notifications.emails');
         Route::get('notifications/push', [Admin\NotificationController::class, 'push'])->name('notifications.push');
         Route::get('notifications/scheduled', [Admin\NotificationController::class, 'scheduled'])->name('notifications.scheduled');
-        Route::get('notifications/history', [Admin\NotificationController::class, 'history'])->name('notifications.history');
+        Route::get('notifications/history', [Admin\NotificationController::class, 'notifications'])->name('notifications.history');
         Route::post('notifications/announcement', [Admin\NotificationController::class, 'storeAnnouncement'])->name('notifications.announcement.store');
         Route::post('notifications/push', [Admin\NotificationController::class, 'storePush'])->name('notifications.push.store');
         Route::get('discussions', [Admin\DiscussionController::class, 'discussions'])->name('discussions');
