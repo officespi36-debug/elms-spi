@@ -13,6 +13,8 @@ import type {
 
 // Sub-Components
 import AiRules from './AiRules.vue'
+import AtRiskStudents from './AtRiskStudents.vue'
+import DifficultTopics from './DifficultTopics.vue'
 import WeakTopicRules from './WeakTopicRules.vue'
 import LearningPathRules from './LearningPathRules.vue'
 import RecommendationLogs from './RecommendationLogs.vue'
@@ -41,7 +43,11 @@ const props = defineProps<{
   }
 }>()
 
-const currentTab = ref<string>(props.activeTab || 'rules')
+const currentTab = ref<string>(
+  props.activeTab === 'recommendations' ? 'rules' :
+  (props.activeTab === 'weak_topics' ? 'difficult_topics' :
+  (props.activeTab || 'rules'))
+)
 const showSimulatorModal = ref(false)
 const showCreateRuleModal = ref(false)
 const selectedRuleToEdit = ref<AiRuleItem | null>(null)
@@ -81,16 +87,17 @@ const defaultRules: AiRuleItem[] = [
   { id: 6, code: 'R-06', name: 'Suggest Re-watch Video', category: 'Behavior', condition_text: 'Watched video < 50%', action_text: 'Suggest re-watching video lesson', priority: 'P4', status: 'active', fired_count: 62, cooldown_hours: 24, max_fires: 3, notify_student: true, notify_teacher: false },
   { id: 7, code: 'R-07', name: 'Suggest Harder Challenge', category: 'Performance', condition_text: '3 quizzes passed in row (≥90%)', action_text: 'Suggest advanced honors project', priority: 'P5', status: 'disabled', fired_count: 0, cooldown_hours: 48, max_fires: 1, notify_student: true, notify_teacher: false },
   { id: 8, code: 'R-08', name: 'Overdue Assignment Alert', category: 'Completion', condition_text: 'Assignment overdue 2 days', action_text: 'Notify teacher + send reminder to student', priority: 'P2', status: 'active', fired_count: 18, cooldown_hours: 24, max_fires: 2, notify_student: true, notify_teacher: true },
+  { id: 9, code: 'R-09', name: 'Agriculture: Soil Management Remedial', category: 'Performance', condition_text: 'Weak Topic: Soil Management (Score < 50%)', action_text: 'Review Soil Preparation → Read learning material → Practice Quiz', priority: 'P1', status: 'active', fired_count: 110, cooldown_hours: 12, max_fires: 3, notify_student: true, notify_teacher: true, message_template: 'Soil Management mastery is critical. Please review soil preparation material and complete practice quiz.' },
 ]
 
 const rulesList = ref<AiRuleItem[]>([...defaultRules])
 
 const defaultWeakTopics: WeakTopicItem[] = [
-  { id: 1, topic: 'Loops in C (For & While)', course: 'C Programming Basics', affected_students: 85, avg_score: 45, trend: 'down', auto_action: 'Remedial sent ✅', remedial_content: ['🎥 Re-watch "Loops in C"', '✍ Practice Quiz: Loops Drill'], status: 'active' },
-  { id: 2, topic: 'Functions & Pointers', course: 'C Programming Basics', affected_students: 62, avg_score: 48, trend: 'flat', auto_action: 'Remedial sent ✅', remedial_content: ['🎥 "Functions Explained"', '📄 PDF: Function Cheat Sheet'], status: 'active' },
-  { id: 3, topic: 'Data Types & Memory', course: 'C Programming Basics', affected_students: 55, avg_score: 49, trend: 'flat', auto_action: 'Remedial sent ✅', remedial_content: ['📊 Slide: Memory Allocation', '✍ Practice Quiz'], status: 'active' },
-  { id: 4, topic: 'SQL Joins & Grouping', course: 'Database Systems', affected_students: 40, avg_score: 50, trend: 'flat', auto_action: 'Pending review', remedial_content: ['🎥 "Joins Visual Guide"'], status: 'active' },
-  { id: 5, topic: 'English Verb Tenses', course: 'English Grammar', affected_students: 35, avg_score: 52, trend: 'up', auto_action: 'Monitoring', remedial_content: ['✍ Grammar Drill', '📝 Note: Tenses Summary'], status: 'active' },
+  { id: 1, topic: 'Soil Management & pH Balance', course: 'Soil Science & Plant Nutrition', affected_students: 38, avg_score: 38, trend: 'down', auto_action: 'Remedial sent ✅', remedial_content: ['🎥 Review Soil Preparation', '📄 Read Soil Amendments Material', '✍ Practice Quiz'], status: 'active' },
+  { id: 2, topic: 'JavaScript Functions & Scope', course: 'Web Development Basics', affected_students: 45, avg_score: 45, trend: 'down', auto_action: 'Remedial sent ✅', remedial_content: ['🎥 Re-watch "Functions Explained"', '✍ Practice Quiz: Scope Drill'], status: 'active' },
+  { id: 3, topic: 'Complex Sentence Structures & Clauses', course: 'Academic English Grammar', affected_students: 42, avg_score: 46, trend: 'flat', auto_action: 'Remedial sent ✅', remedial_content: ['📄 PDF: Clause Synthesis Cheat Sheet', '✍ Practice Quiz'], status: 'active' },
+  { id: 4, topic: 'Hotel Yield Management & Dynamic Pricing', course: 'Tourism Operations & Booking', affected_students: 35, avg_score: 48, trend: 'flat', auto_action: 'Pending review', remedial_content: ['🎥 Yield Calculation Video', '📊 Pricing Case Study'], status: 'active' },
+  { id: 5, topic: 'Legal Frameworks in Cambodian Child Welfare', course: 'Child Protection Protocols', affected_students: 30, avg_score: 52, trend: 'up', auto_action: 'Monitoring', remedial_content: ['📝 Note: Child Law Summary', '✍ Ethics Quiz'], status: 'active' },
 ]
 
 const weakTopicsList = ref<WeakTopicItem[]>([...defaultWeakTopics])
@@ -466,7 +473,7 @@ function handleSaveConfig(cfg: any) {
 
         <!-- ── SUB-NAVIGATION TAB STRIP WITH FLATICON VECTOR ICONS ── -->
         <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pt-2 border-t border-slate-700/50 text-xs">
-          <!-- Tab 1: AI Rules -->
+          <!-- Tab 1: AI Recommendations -->
           <button
             @click="currentTab = 'rules'"
             :class="[
@@ -480,45 +487,82 @@ function handleSaveConfig(cfg: any) {
               <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" fill="#C084FC" />
               <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" stroke="currentColor" stroke-width="1.5" />
             </svg>
-            <span>AI Rules</span>
+            <span>🤖 AI Recommendations</span>
           </button>
 
-          <!-- Tab 2: Weak Topic Rules -->
+          <!-- Tab 2: At-Risk Students -->
           <button
-            @click="currentTab = 'weak_topics'"
+            @click="currentTab = 'at_risk'"
             :class="[
-              currentTab === 'weak_topics' 
-                ? 'bg-purple-600 text-white font-bold shadow-md shadow-purple-600/30 ring-1 ring-purple-400/60' 
+              currentTab === 'at_risk' 
+                ? 'bg-red-600 text-white font-bold shadow-md shadow-red-600/30 ring-1 ring-red-400/60' 
+                : 'bg-slate-900/80 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 border border-slate-700/50',
+              'px-3.5 py-2 rounded-xl transition-all flex items-center gap-2 whitespace-nowrap shrink-0'
+            ]"
+          >
+            <svg class="w-4 h-4 shrink-0 text-red-400" viewBox="0 0 24 24" fill="none">
+              <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span>⚠️ At-Risk Students</span>
+            <span class="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-red-500/20 text-red-300 border border-red-500/40">5</span>
+          </button>
+
+          <!-- Tab 3: Difficult Topics -->
+          <button
+            @click="currentTab = 'difficult_topics'"
+            :class="[
+              currentTab === 'difficult_topics' || currentTab === 'weak_topics'
+                ? 'bg-amber-600 text-white font-bold shadow-md shadow-amber-600/30 ring-1 ring-amber-400/60' 
                 : 'bg-slate-900/80 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 border border-slate-700/50',
               'px-3.5 py-2 rounded-xl transition-all flex items-center gap-2 whitespace-nowrap shrink-0'
             ]"
           >
             <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="9" stroke="#F87171" stroke-width="1.5" />
-              <circle cx="12" cy="12" r="5" fill="#EF4444" fill-opacity="0.3" stroke="#FCA5A5" stroke-width="1.5" />
-              <circle cx="12" cy="12" r="2" fill="#EF4444" />
+              <circle cx="12" cy="12" r="9" stroke="#FBBF24" stroke-width="1.5" />
+              <circle cx="12" cy="12" r="5" fill="#F59E0B" fill-opacity="0.3" stroke="#FDE68A" stroke-width="1.5" />
+              <circle cx="12" cy="12" r="2" fill="#F59E0B" />
             </svg>
-            <span>Weak Topic Rules</span>
+            <span>🧠 Difficult Topics</span>
+            <span class="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/40">5</span>
           </button>
 
-          <!-- Tab 3: Learning Path Rules -->
+          <!-- Tab 4: AI Configuration -->
           <button
-            @click="currentTab = 'learning_paths'"
+            @click="currentTab = 'config'"
             :class="[
-              currentTab === 'learning_paths' 
-                ? 'bg-purple-600 text-white font-bold shadow-md shadow-purple-600/30 ring-1 ring-purple-400/60' 
+              currentTab === 'config' 
+                ? 'bg-teal-600 text-white font-bold shadow-md shadow-teal-600/30 ring-1 ring-teal-400/60' 
                 : 'bg-slate-900/80 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 border border-slate-700/50',
               'px-3.5 py-2 rounded-xl transition-all flex items-center gap-2 whitespace-nowrap shrink-0'
             ]"
           >
             <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none">
-              <path d="M3 17L9 11L13 15L21 7" stroke="#38BDF8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-              <path d="M17 7H21V11" stroke="#38BDF8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M4 6H20M4 12H20M4 18H20" stroke="#2DD4BF" stroke-width="1.5" stroke-linecap="round" />
+              <circle cx="8" cy="6" r="2" fill="#14B8A6" stroke="#2DD4BF" stroke-width="1.5" />
+              <circle cx="16" cy="12" r="2" fill="#14B8A6" stroke="#2DD4BF" stroke-width="1.5" />
+              <circle cx="12" cy="18" r="2" fill="#14B8A6" stroke="#2DD4BF" stroke-width="1.5" />
             </svg>
-            <span>Learning Path Rules</span>
+            <span>⚙️ AI Configuration</span>
           </button>
 
-          <!-- Tab 4: Recommendation Logs -->
+          <!-- Tab 5: Student View Preview -->
+          <button
+            @click="currentTab = 'student_view'"
+            :class="[
+              currentTab === 'student_view' 
+                ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30 ring-1 ring-indigo-400/60' 
+                : 'bg-slate-900/80 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 border border-slate-700/50',
+              'px-3.5 py-2 rounded-xl transition-all flex items-center gap-2 whitespace-nowrap shrink-0'
+            ]"
+          >
+            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none">
+              <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="#818CF8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+              <circle cx="12" cy="12" r="3" fill="#6366F1" />
+            </svg>
+            <span>👨‍🎓 Student Experience Preview</span>
+          </button>
+
+          <!-- Tab 6: Activity & Logs -->
           <button
             @click="currentTab = 'logs'"
             :class="[
@@ -532,51 +576,17 @@ function handleSaveConfig(cfg: any) {
               <path d="M8 2V5M16 2V5M3 9H21M5 4H19C20.1046 4 21 4.89543 21 6V20C21 21.1046 20.1046 22 19 22H5C3.89543 22 3 21.1046 3 20V6C3 4.89543 3.89543 4 5 4Z" stroke="#818CF8" stroke-width="1.5" stroke-linecap="round" />
               <path d="M8 13H16M8 17H13" stroke="#A5B4FC" stroke-width="1.5" stroke-linecap="round" />
             </svg>
-            <span>Recommendation Logs</span>
-          </button>
-
-          <!-- Tab 5: AI Configuration -->
-          <button
-            @click="currentTab = 'config'"
-            :class="[
-              currentTab === 'config' 
-                ? 'bg-purple-600 text-white font-bold shadow-md shadow-purple-600/30 ring-1 ring-purple-400/60' 
-                : 'bg-slate-900/80 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 border border-slate-700/50',
-              'px-3.5 py-2 rounded-xl transition-all flex items-center gap-2 whitespace-nowrap shrink-0'
-            ]"
-          >
-            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none">
-              <path d="M4 6H20M4 12H20M4 18H20" stroke="#2DD4BF" stroke-width="1.5" stroke-linecap="round" />
-              <circle cx="8" cy="6" r="2" fill="#14B8A6" stroke="#2DD4BF" stroke-width="1.5" />
-              <circle cx="16" cy="12" r="2" fill="#14B8A6" stroke="#2DD4BF" stroke-width="1.5" />
-              <circle cx="12" cy="18" r="2" fill="#14B8A6" stroke="#2DD4BF" stroke-width="1.5" />
-            </svg>
-            <span>AI Configuration</span>
-          </button>
-
-          <!-- Tab 6: Student View Preview -->
-          <button
-            @click="currentTab = 'student_view'"
-            :class="[
-              currentTab === 'student_view' 
-                ? 'bg-purple-600 text-white font-bold shadow-md shadow-purple-600/30 ring-1 ring-purple-400/60' 
-                : 'bg-slate-900/80 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 border border-slate-700/50',
-              'px-3.5 py-2 rounded-xl transition-all flex items-center gap-2 whitespace-nowrap shrink-0'
-            ]"
-          >
-            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none">
-              <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="#FBBF24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-              <circle cx="12" cy="12" r="3" fill="#F59E0B" />
-            </svg>
-            <span>Student View Preview</span>
+            <span>📜 Activity & Logs</span>
           </button>
         </div>
       </div>
 
       <!-- ── TAB CONTENT RENDERING ── -->
+      <!-- 1. AI Recommendations -->
       <AiRules
-        v-if="currentTab === 'rules'"
+        v-if="currentTab === 'rules' || currentTab === 'recommendations'"
         :rules="rulesList"
+        :majors="majors"
         @createRule="handleCreateRule"
         @openSimulator="showSimulatorModal = true"
         @editRule="handleEditRule"
@@ -587,20 +597,45 @@ function handleSaveConfig(cfg: any) {
         @exportRules="() => showNotification('AI Rules exported to JSON!')"
       />
 
-      <WeakTopicRules
-        v-else-if="currentTab === 'weak_topics'"
-        :weakTopics="weakTopicsList"
-        :config="defaultWeakConfig"
-        @saveDetectionConfig="handleSaveDetectionConfig"
-        @addMapping="() => { selectedMappingToEdit = null; showCreateMappingModal = true; }"
-        @editMapping="(w) => { selectedMappingToEdit = w; showCreateMappingModal = true; }"
-        @deleteMapping="handleDeleteMapping"
-        @toggleMappingStatus="handleToggleMappingStatus"
-        @createReviewClass="() => showReviewClassModal = true"
-        @addPracticeQuiz="() => showPracticeQuizModal = true"
-        @exportWeakTopics="() => showNotification('Weak topics report exported to CSV!')"
+      <!-- 2. At-Risk Students -->
+      <AtRiskStudents
+        v-else-if="currentTab === 'at_risk'"
+        :majors="majors"
       />
 
+      <!-- 3. Difficult Topics -->
+      <DifficultTopics
+        v-else-if="currentTab === 'difficult_topics' || currentTab === 'weak_topics'"
+        :majors="majors"
+      />
+
+      <!-- 4. AI Configuration -->
+      <AiConfiguration
+        v-else-if="currentTab === 'config'"
+        :config="defaultAiConfig"
+        @saveConfig="handleSaveConfig"
+        @testConnection="() => showNotification('AI Engine API Connection Test SUCCESS (Ping 45ms)!')"
+        @runFullSystemTest="() => showNotification('Full AI Recommendation System Test PASSED!')"
+        @resetDefaults="() => showNotification('Reset AI configuration to factory defaults.', 'warning')"
+      />
+
+      <!-- 5. Student Experience Preview -->
+      <StudentAiView
+        v-else-if="currentTab === 'student_view'"
+        @notify="showNotification"
+      />
+
+      <!-- 6. Activity & Recommendation Logs -->
+      <RecommendationLogs
+        v-else-if="currentTab === 'logs'"
+        :logs="computedLogs"
+        :effectiveness="defaultEffectiveness"
+        @exportLogs="() => showNotification('Recommendation logs exported to CSV!')"
+        @applySuggestion="() => showNotification('Applied evening 7 PM alert schedule suggestion!')"
+        @viewDetail="(l) => { selectedLogToView = l; showLogDetailModal = true; }"
+      />
+
+      <!-- 7. Fallback / Additional: Learning Path Rules -->
       <LearningPathRules
         v-else-if="currentTab === 'learning_paths'"
         :nodes="defaultPathNodes"
@@ -611,29 +646,6 @@ function handleSaveConfig(cfg: any) {
         @previewPath="() => currentTab = 'student_view'"
         @savePath="handleSavePath"
         @editDecisionNode="() => showDecisionNodeModal = true"
-      />
-
-      <RecommendationLogs
-        v-else-if="currentTab === 'logs'"
-        :logs="computedLogs"
-        :effectiveness="defaultEffectiveness"
-        @exportLogs="() => showNotification('Recommendation logs exported to CSV!')"
-        @applySuggestion="() => showNotification('Applied evening 7 PM alert schedule suggestion!')"
-        @viewDetail="(l) => { selectedLogToView = l; showLogDetailModal = true; }"
-      />
-
-      <AiConfiguration
-        v-else-if="currentTab === 'config'"
-        :config="defaultAiConfig"
-        @saveConfig="handleSaveConfig"
-        @testConnection="() => showNotification('AI Engine API Connection Test SUCCESS (Ping 45ms)!')"
-        @runFullSystemTest="() => showNotification('Full AI Recommendation System Test PASSED!')"
-        @resetDefaults="() => showNotification('Reset AI configuration to factory defaults.', 'warning')"
-      />
-
-      <StudentAiView
-        v-else-if="currentTab === 'student_view'"
-        @notify="showNotification"
       />
     </div>
 

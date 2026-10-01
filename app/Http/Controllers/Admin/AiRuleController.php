@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Jobs\ProcessAiRecommendation;
 use App\Models\AiRecommendation;
+use App\Models\User;
 use App\Services\AiRecommendationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;

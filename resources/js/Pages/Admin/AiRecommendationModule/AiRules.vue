@@ -167,7 +167,7 @@ onUnmounted(() => {
         <!-- KPI 4: Fired Today -->
         <div class="bg-[#121827] p-4 rounded-xl border border-slate-700/80 space-y-1.5">
           <div class="flex items-center justify-between">
-            <span class="text-slate-400 text-[10px] block font-semibold uppercase tracking-wider">FIRED TODAY</span>
+            <span class="text-slate-400 text-[10px] block font-semibold uppercase tracking-wider">TOTAL RECOMMENDATIONS</span>
             <div class="p-1 rounded-md bg-cyan-500/15 text-cyan-300">
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
                 <path d="M12 2C12 2 6 8.5 6 14C6 17.3137 8.68629 20 12 20C15.3137 20 18 17.3137 18 14C18 8.5 12 2 12 2Z" fill="#06B6D4" fill-opacity="0.3" stroke="#22D3EE" stroke-width="1.5" />
@@ -175,8 +175,53 @@ onUnmounted(() => {
               </svg>
             </div>
           </div>
-          <p class="text-2xl font-black text-cyan-300">{{ totalFired.toLocaleString() }}</p>
-          <span class="text-[10px] text-cyan-400 font-semibold block">Student Recommendations</span>
+          <p class="text-2xl font-black text-cyan-300">520</p>
+          <span class="text-[10px] text-cyan-400 font-semibold block">395 Completed (76%) · 125 Active</span>
+        </div>
+      </div>
+
+      <!-- ── ADMIN MONITORING: RECOMMENDATIONS BY 5 MAJORS & WEAK TOPICS (Spec 5) ── -->
+      <div class="p-4 rounded-xl bg-[#090d16] border border-slate-800 space-y-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
+          <span class="text-[11px] font-bold text-purple-300 uppercase tracking-wider flex items-center gap-2">
+            <span>📊</span>
+            <span>ADMIN MONITORING — RECOMMENDATIONS ACCORDING TO 5 SPI MAJORS</span>
+          </span>
+          <span class="text-[10px] text-slate-400 italic">
+            Admin មិនកែ Recommendation ដោយដៃទេ Admin មានតួនាទី Monitor & Configure
+          </span>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 text-center">
+          <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+            <span class="text-[10px] text-slate-400 block font-semibold">Information Tech</span>
+            <span class="text-base font-black text-white">140 Recs</span>
+            <span class="text-[9px] text-purple-400 block truncate">Frequent: Loops in C</span>
+          </div>
+
+          <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+            <span class="text-[10px] text-slate-400 block font-semibold">Agriculture</span>
+            <span class="text-base font-black text-teal-300">110 Recs</span>
+            <span class="text-[9px] text-teal-400 block truncate">Frequent: Soil Management</span>
+          </div>
+
+          <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+            <span class="text-[10px] text-slate-400 block font-semibold">English Literature</span>
+            <span class="text-base font-black text-sky-300">105 Recs</span>
+            <span class="text-[9px] text-sky-400 block truncate">Frequent: Complex Clauses</span>
+          </div>
+
+          <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+            <span class="text-[10px] text-slate-400 block font-semibold">Tourism Management</span>
+            <span class="text-base font-black text-amber-300">95 Recs</span>
+            <span class="text-[9px] text-amber-400 block truncate">Frequent: Yield Pricing</span>
+          </div>
+
+          <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 col-span-2 sm:col-span-1">
+            <span class="text-[10px] text-slate-400 block font-semibold">Social Work</span>
+            <span class="text-base font-black text-emerald-300">70 Recs</span>
+            <span class="text-[9px] text-emerald-400 block truncate">Frequent: Child Welfare Ethics</span>
+          </div>
         </div>
       </div>
     </div>
