@@ -133,22 +133,29 @@ class UserController extends Controller
     public function store(Request $request, TelegramService $telegramService)
     {
         $data = $request->validate([
-            'name'          => 'required|string|max:255',
-            'name_kh'       => 'nullable|string|max:255',
-            'email'         => 'required|email|unique:users,email',
-            'role'          => 'required|in:admin,teacher,student',
-            'password'      => 'nullable|string|min:8',
-            'major_id'      => 'nullable|exists:majors,id',
-            'academic_year' => 'nullable|string|max:255',
+            'name'             => 'required|string|max:255',
+            'name_kh'          => 'nullable|string|max:255',
+            'email'            => 'required|email|unique:users,email',
+            'role'             => 'required|in:admin,teacher,student',
+            'password'         => 'nullable|string|min:6',
+            'student_code'     => 'nullable|string|max:50',
+            'major_id'         => 'nullable|exists:majors,id',
+            'academic_year'    => 'nullable|string|max:255',
             'academic_year_id' => 'nullable|exists:academic_years,id',
-            'phone'         => 'nullable|string|max:30',
-            'status'        => 'nullable|in:active,inactive,suspended,pending',
-            'qualification' => 'nullable|string|max:255',
-            'expertise'     => 'nullable|string|max:255',
-            'bio'           => 'nullable|string',
-            'aba_name'      => 'nullable|string',
-            'aba_number'    => 'nullable|string',
+            'phone'            => 'nullable|string|max:30',
+            'status'           => 'nullable|in:active,inactive,suspended,pending',
+            'qualification'    => 'nullable|string|max:255',
+            'expertise'        => 'nullable|string|max:255',
+            'bio'              => 'nullable|string',
+            'aba_name'         => 'nullable|string',
+            'aba_number'       => 'nullable|string',
         ]);
+
+        if (!empty($data['academic_year_id']) && empty($data['academic_year'])) {
+            $data['academic_year'] = AcademicYear::where('id', $data['academic_year_id'])->value('name');
+        } elseif (!empty($data['academic_year']) && empty($data['academic_year_id'])) {
+            $data['academic_year_id'] = AcademicYear::where('name', $data['academic_year'])->value('id');
+        }
 
         $rawPassword = $data['password'] ?? ('Pass@' . rand(10000, 99999));
         $data['password'] = bcrypt($rawPassword);
@@ -156,7 +163,8 @@ class UserController extends Controller
         $data['is_active'] = ($data['status'] === 'active');
 
         if ($data['role'] === 'student' && empty($data['student_code'])) {
-            $data['student_code'] = 'STU-' . date('Y') . '-' . rand(10000, 99999);
+            $nextNum = User::where('role', 'student')->count() + 1;
+            $data['student_code'] = sprintf('SPI-%s-%03d', date('Y'), $nextNum);
         }
 
         $user = User::create($data);
@@ -172,22 +180,29 @@ class UserController extends Controller
     public function update(Request $request, User $user)
     {
         $data = $request->validate([
-            'name'          => 'required|string|max:255',
-            'name_kh'       => 'nullable|string|max:255',
-            'email'         => 'required|email|unique:users,email,' . $user->id,
-            'role'          => 'required|in:admin,teacher,student',
-            'password'      => 'nullable|string|min:8',
-            'major_id'      => 'nullable|exists:majors,id',
-            'academic_year' => 'nullable|string|max:255',
+            'name'             => 'required|string|max:255',
+            'name_kh'          => 'nullable|string|max:255',
+            'email'            => 'required|email|unique:users,email,' . $user->id,
+            'role'             => 'required|in:admin,teacher,student',
+            'password'         => 'nullable|string|min:6',
+            'student_code'     => 'nullable|string|max:50',
+            'major_id'         => 'nullable|exists:majors,id',
+            'academic_year'    => 'nullable|string|max:255',
             'academic_year_id' => 'nullable|exists:academic_years,id',
-            'phone'         => 'nullable|string|max:30',
-            'status'        => 'nullable|in:active,inactive,suspended,pending',
-            'qualification' => 'nullable|string|max:255',
-            'expertise'     => 'nullable|string|max:255',
-            'bio'           => 'nullable|string',
-            'aba_name'      => 'nullable|string',
-            'aba_number'    => 'nullable|string',
+            'phone'            => 'nullable|string|max:30',
+            'status'           => 'nullable|in:active,inactive,suspended,pending',
+            'qualification'    => 'nullable|string|max:255',
+            'expertise'        => 'nullable|string|max:255',
+            'bio'              => 'nullable|string',
+            'aba_name'         => 'nullable|string',
+            'aba_number'       => 'nullable|string',
         ]);
+
+        if (!empty($data['academic_year_id']) && empty($data['academic_year'])) {
+            $data['academic_year'] = AcademicYear::where('id', $data['academic_year_id'])->value('name');
+        } elseif (!empty($data['academic_year']) && empty($data['academic_year_id'])) {
+            $data['academic_year_id'] = AcademicYear::where('name', $data['academic_year'])->value('id');
+        }
 
         if (!empty($data['password'])) {
             $data['password'] = bcrypt($data['password']);
@@ -202,6 +217,17 @@ class UserController extends Controller
         $user->update($data);
 
         return back()->with('success', 'User profile updated successfully.');
+    }
+
+    public function toggleStatus(User $user)
+    {
+        $newStatus = ($user->status === 'active') ? 'inactive' : 'active';
+        $user->update([
+            'status'    => $newStatus,
+            'is_active' => ($newStatus === 'active')
+        ]);
+
+        return back()->with('success', "Student '{$user->name}' status set to " . ucfirst($newStatus) . ".");
     }
 
     public function suspend(User $user, Request $request)
