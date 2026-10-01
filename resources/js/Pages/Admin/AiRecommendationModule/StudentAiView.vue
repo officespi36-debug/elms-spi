@@ -11,58 +11,110 @@ interface StudentProfile {
   id: string
   name: string
   code: string
+  major: string
+  majorCode: string
   type: string
   badgeColor: string
   progressText: string
-  weakTopics: Array<{ title: string; score: number; severity: 'high' | 'medium' }>
+  progressPercent: number
+  weakTopics: Array<{ title: string; score: number; severity: 'high' | 'medium'; remedialAction: string }>
   recommendation: string
+  recommendationKh: string
   reason: string
   nextModule: string
 }
 
-const selectedStudentId = ref('STU24001')
+const selectedStudentId = ref('STU-SPI-001')
 const studentsList = ref<StudentProfile[]>([
   {
-    id: 'STU24001',
-    name: 'Chan Dara',
-    code: 'STU24001',
+    id: 'STU-SPI-001',
+    name: 'Sok Dara',
+    code: 'SPI-2026-001',
+    major: 'Information Technology',
+    majorCode: 'MJR-IT-001',
     type: 'Average Student',
     badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
     progressText: 'In Progress (72%)',
+    progressPercent: 72,
     weakTopics: [
-      { title: 'Loops in C (For & While)', score: 45, severity: 'high' },
-      { title: 'Functions in C', score: 50, severity: 'medium' },
+      { title: 'Loops in C (For & While)', score: 45, severity: 'high', remedialAction: '🎥 Re-watch Loops Drill' },
+      { title: 'SQL Joins & Grouping', score: 50, severity: 'medium', remedialAction: '✍ Practice Quiz' },
     ],
-    recommendation: 'After completing this module, you should learn "Conditional Statements" to strengthen your logic foundation.',
-    reason: 'Because your Operators & Expressions quiz score was 72% (within target advancement range).',
-    nextModule: '3. Conditional Statements'
+    recommendation: 'After completing Unit 2, you should learn "Conditional Logic & Flow" to solidify your algorithmic foundation before advancing to Loops.',
+    recommendationKh: 'បន្ទាប់ពីបញ្ចប់ Unit 2 និស្សិតគួរសិក្សា "Conditional Logic & Control Flow" ដើម្បីពង្រឹងមូលដ្ឋានកូដ មុននឹងបន្តទៅ Loops។',
+    reason: 'Because your Operators & Expressions quiz score was 72% (target threshold) with a detected conceptual drop-off on nested loops (45%).',
+    nextModule: '3. Conditional Statements & Control Flow'
   },
   {
-    id: 'STU24005',
-    name: 'Sok Piseth',
-    code: 'STU24005',
+    id: 'STU-SPI-002',
+    name: 'Keo Monika',
+    code: 'SPI-2026-002',
+    major: 'Tourism Management',
+    majorCode: 'MJR-TRM-002',
+    type: 'High Performer',
+    badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+    progressText: 'Advanced (94%)',
+    progressPercent: 94,
+    weakTopics: [],
+    recommendation: 'Fast-Track: You have unlocked "Sustainable Heritage Tourism Leadership & Field Case Study".',
+    recommendationKh: 'Fast-Track: និស្សិតមានសិទ្ធិចូលរៀនវគ្គកម្រិតខ្ពស់ "Sustainable Heritage Tourism Leadership" ដោយផ្ទាល់។',
+    reason: 'Because your average score across all tourism assessments is 94% (≥90% criteria), allowing honors bypass.',
+    nextModule: '🚀 Fast-Track: Heritage Tourism Leadership'
+  },
+  {
+    id: 'STU-SPI-003',
+    name: 'Long Vichida',
+    code: 'SPI-2026-003',
+    major: 'English Literature',
+    majorCode: 'MJR-ENG-003',
+    type: 'Moderate Pace',
+    badgeColor: 'bg-sky-500/20 text-sky-300 border-sky-500/40',
+    progressText: 'In Progress (68%)',
+    progressPercent: 68,
+    weakTopics: [
+      { title: 'Complex Clauses & Sentence Synthesis', score: 48, severity: 'high', remedialAction: '📄 Grammar Synthesis Cheat Sheet' },
+    ],
+    recommendation: 'Review the grammar sentence synthesis drill before submitting your Week 4 research essay draft.',
+    recommendationKh: 'ពិនិត្យលំហាត់អនុវត្ត Sentence Synthesis ឡើងវិញ មុនពេលដាក់ស្នើ Essay សិក្សាស្រាវជ្រាវ Week 4។',
+    reason: 'Because quiz score in Complex Clauses dropped to 48% (below 50% target threshold).',
+    nextModule: 'Unit 4: Advanced Sentence Synthesis & Clauses'
+  },
+  {
+    id: 'STU-SPI-004',
+    name: 'Pov Sreynich',
+    code: 'SPI-2026-004',
+    major: 'Agriculture',
+    majorCode: 'MJR-AGR-004',
     type: 'Struggling Student',
     badgeColor: 'bg-rose-500/20 text-rose-300 border-rose-500/40',
     progressText: 'In Progress (42%)',
+    progressPercent: 42,
     weakTopics: [
-      { title: 'Pointers & Memory Allocation', score: 35, severity: 'high' },
-      { title: 'Array Manipulation', score: 48, severity: 'high' },
+      { title: 'Soil pH & Nutrient Absorption', score: 35, severity: 'high', remedialAction: '🎥 Soil Chemistry Video' },
+      { title: 'Crop Pest Identification', score: 48, severity: 'high', remedialAction: '✍ Pest Identification Drill' },
     ],
-    recommendation: 'We strongly suggest taking the Remedial Drill on "Basics of C" before proceeding to Loops.',
-    reason: 'Because your quiz score was below 50% threshold in Array Manipulation.',
-    nextModule: '🆘 Remedial: Logic Basics'
+    recommendation: 'We strongly suggest taking the Remedial Drill on "Soil Chemistry Fundamentals" before proceeding to Fertilizers.',
+    recommendationKh: 'ប្រព័ន្ធណែនាំឱ្យចូលមើលមេរៀនជំនួយ "Soil Chemistry Fundamentals" ជាបន្ទាន់ មុននឹងបន្តទៅមេរៀនជីកសិកម្ម។',
+    reason: 'Because your quiz score was below 50% threshold in Soil pH & Nutrient Absorption (35%).',
+    nextModule: '🆘 Remedial: Soil Chemistry Fundamentals'
   },
   {
-    id: 'STU24009',
-    name: 'Keo Monika',
-    code: 'STU24009',
-    type: 'High Performer',
-    badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
-    progressText: 'In Progress (94%)',
-    weakTopics: [],
-    recommendation: 'Fast-Track: You have unlocked "Advanced Data Structures & Algorithms".',
-    reason: 'Because your average score is ≥90%, allowing introductory module bypass.',
-    nextModule: '🚀 Fast-Track: Data Structures'
+    id: 'STU-SPI-005',
+    name: 'Bun Rithy',
+    code: 'SPI-2026-005',
+    major: 'Social Work',
+    majorCode: 'MJR-SW-005',
+    type: 'Active Learner',
+    badgeColor: 'bg-teal-500/20 text-teal-300 border-teal-500/40',
+    progressText: 'In Progress (85%)',
+    progressPercent: 85,
+    weakTopics: [
+      { title: 'Field Counseling Legal Ethics', score: 58, severity: 'medium', remedialAction: '📝 Case Study Drill' },
+    ],
+    recommendation: 'Recommended Case Study: Review Cambodian Child Welfare Legal Framework before the field simulation.',
+    recommendationKh: 'រំលឹកករណីសិក្សា "Cambodian Child Welfare Legal Framework" មុនពេលចូលរួមការប្រជុំត្រាប់ជាក់ស្តែង។',
+    reason: 'High progress (85%) with specific reinforcement recommended on ethical counseling protocols (58%).',
+    nextModule: 'Unit 5: Child Protection Protocols & Case Studies'
   }
 ])
 
@@ -91,9 +143,11 @@ function handleReviewTopic(topicTitle: string) {
               <circle cx="12" cy="12" r="3" fill="#A855F7" />
             </svg>
           </div>
-          <span>STUDENT VIEW PREVIEW — HOW STUDENTS EXPERIENCE AI RECOMMENDATIONS</span>
+          <span>STUDENT VIEW PREVIEW — អ្វីដែល STUDENT ឃើញពី AI</span>
         </h3>
-        <p class="text-slate-400 text-xs mt-0.5">Preview the personalized AI Learning Path panel rendered on student dashboards with full transparency and controls.</p>
+        <p class="text-slate-400 text-xs mt-0.5">
+          Demonstrates how the AI Engine transforms Student Learning Data → AI Analysis → Weak Topics → "អ្វីដែល Student គួររៀនបន្ទាប់" across the 5 SPI majors.
+        </p>
       </div>
 
       <!-- Highlighted Main Preview Control Switcher -->
@@ -103,14 +157,14 @@ function handleReviewTopic(topicTitle: string) {
             <path d="M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke="currentColor" stroke-width="1.8" />
             <path d="M12 14C7.58172 14 4 17.5817 4 22H20C20 17.5817 16.4183 14 12 14Z" stroke="currentColor" stroke-width="1.8" />
           </svg>
-          <span class="whitespace-nowrap">Preview Profile:</span>
+          <span class="whitespace-nowrap">Major & Student Profile:</span>
         </div>
         <select
           v-model="selectedStudentId"
           class="bg-purple-950 text-white font-black border border-purple-400/60 rounded-xl px-3.5 py-1.5 text-xs focus:border-purple-300 focus:outline-none cursor-pointer shadow-inner hover:bg-purple-900 transition-colors"
         >
           <option v-for="s in studentsList" :key="s.id" :value="s.id" class="bg-slate-900 text-white font-semibold">
-            👤 {{ s.name }} ({{ s.type }})
+            🎓 {{ s.major }} — {{ s.name }} ({{ s.type }})
           </option>
         </select>
       </div>
@@ -120,20 +174,27 @@ function handleReviewTopic(topicTitle: string) {
     <div class="bg-[#090d16] border-2 border-purple-500/40 rounded-2xl p-6 shadow-2xl space-y-6 max-w-3xl mx-auto">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3.5">
         <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-full bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-300 font-bold text-xs">
-            👤
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-black text-sm shadow-md">
+            {{ currentStudent.name.charAt(0) }}
           </div>
           <div>
             <h4 class="font-black text-sm text-white flex items-center gap-2">
               <span>AI LEARNING PATH</span>
               <span class="text-slate-400 font-normal text-xs">— {{ currentStudent.name }} ({{ currentStudent.code }})</span>
             </h4>
-            <span class="text-[10px] text-purple-400 font-semibold">{{ currentStudent.type }} Profile</span>
+            <div class="flex items-center gap-2 mt-0.5">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-500/20 text-teal-300 border border-teal-500/40">
+                Major: {{ currentStudent.major }}
+              </span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold" :class="currentStudent.badgeColor">
+                {{ currentStudent.type }}
+              </span>
+            </div>
           </div>
         </div>
 
         <span class="px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40 font-mono text-[10px] font-bold self-start sm:self-auto">
-          LIVE PREVIEW MODE
+          LIVE AI PREVIEW
         </span>
       </div>
 
@@ -249,17 +310,25 @@ function handleReviewTopic(topicTitle: string) {
           </button>
         </div>
 
-        <p class="text-slate-100 font-medium text-xs leading-relaxed">
-          "{{ currentStudent.recommendation }}"
-        </p>
+        <div class="space-y-2">
+          <div class="text-[11px] font-bold text-teal-300 flex items-center gap-1.5">
+            <span>🇰🇭 អ្វីដែល Student គួររៀនបន្ទាប់ (AI Recommended Next Step)៖</span>
+          </div>
+          <p class="text-white font-black text-xs leading-relaxed bg-purple-950/70 p-3 rounded-xl border border-purple-500/50 shadow-inner">
+            «{{ currentStudent.recommendationKh }}»
+          </p>
+          <p class="text-slate-300 font-medium text-[11px] leading-relaxed italic pl-1">
+            "{{ currentStudent.recommendation }}"
+          </p>
+        </div>
 
         <!-- Transparency Box (Clean & Single Instance) -->
         <div class="p-3 bg-[#121827] rounded-xl border border-purple-500/30 text-[11px] text-slate-300 space-y-1">
           <div class="font-bold text-purple-300 flex items-center gap-1.5">
             <span>💡</span>
-            <span>Why am I seeing this recommendation?</span>
+            <span>មូលហេតុដែល AI ណែនាំមេរៀននេះ (Reasoning Trace)៖</span>
           </div>
-          <p class="text-slate-300 font-medium pl-5">
+          <p class="text-slate-200 font-medium pl-5">
             {{ currentStudent.reason }}
           </p>
         </div>

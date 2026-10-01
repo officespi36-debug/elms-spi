@@ -31,6 +31,14 @@ const LogDetailModal = defineAsyncComponent(() => import('./Modals/LogDetailModa
 
 const props = defineProps<{
   activeTab?: string
+  recommendations?: any[]
+  majors?: any[]
+  stats?: {
+    total_recommendations: number
+    active_rules: number
+    weak_topics_flagged: number
+    acceptance_rate: number
+  }
 }>()
 
 const currentTab = ref<string>(props.activeTab || 'rules')
@@ -170,6 +178,26 @@ const defaultLogs: RecommendationLogItem[] = [
   { id: 4, timestamp: '16 Jun 08:40', student_name: 'Pov Sreynich', student_id: 'STU24004', rule_code: 'R-03', rule_name: 'Assign Remedial Content', recommendation_text: 'Conditions Review Drill assigned', status: 'Done' },
   { id: 5, timestamp: '16 Jun 08:22', student_name: 'Mao Sreynich', student_id: 'STU24005', rule_code: 'L-02', rule_name: 'Path Branch Drill', recommendation_text: 'Extra practice assigned', status: 'Ignored' },
 ]
+
+const computedLogs = computed<RecommendationLogItem[]>(() => {
+  if (props.recommendations && props.recommendations.length > 0) {
+    const dbLogs: RecommendationLogItem[] = props.recommendations.map((rec: any, idx: number) => {
+      const padId = String(rec.user_id || 1).padStart(3, '0')
+      return {
+        id: rec.id,
+        timestamp: new Date(rec.created_at || Date.now()).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }),
+        student_name: rec.user?.name || `Student #${rec.user_id}`,
+        student_id: rec.user?.student_code || `SPI-2026-${padId}`,
+        rule_code: rec.type === 'next_module' ? 'R-01' : (rec.type === 'weak_topic' ? 'W-01' : (rec.type === 'remedial' ? 'R-03' : 'R-05')),
+        rule_name: rec.type === 'next_module' ? 'Advance High Performer' : (rec.type === 'weak_topic' ? 'Weak Topic Remedial' : (rec.type === 'remedial' ? 'Assign Remedial Content' : 'Re-engagement Alert')),
+        recommendation_text: rec.reason || 'AI recommendation generated',
+        status: rec.is_dismissed ? 'Dismissed' : (idx % 2 === 0 ? 'Done' : 'Accepted'),
+      }
+    })
+    return [...dbLogs, ...defaultLogs]
+  }
+  return defaultLogs
+})
 
 const defaultEffectiveness: EffectivenessMetric[] = [
   { rule_type: 'Advance / Next Lesson', acceptance_rate: 82, status_tag: 'Excellent' },
@@ -587,7 +615,7 @@ function handleSaveConfig(cfg: any) {
 
       <RecommendationLogs
         v-else-if="currentTab === 'logs'"
-        :logs="defaultLogs"
+        :logs="computedLogs"
         :effectiveness="defaultEffectiveness"
         @exportLogs="() => showNotification('Recommendation logs exported to CSV!')"
         @applySuggestion="() => showNotification('Applied evening 7 PM alert schedule suggestion!')"
