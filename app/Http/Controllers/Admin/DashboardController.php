@@ -275,10 +275,20 @@ class DashboardController extends Controller
                 ],
             ];
 
+            // Quick Actions configuration (Academic & AI focused)
+            $quickActions = [
+                ['title' => 'Add User', 'icon' => '➕', 'url' => '/admin/user-management/all', 'desc' => 'Create Admin / Teacher / Student'],
+                ['title' => 'Enroll Student', 'icon' => '🎓', 'url' => '/admin/enrollment/single', 'desc' => 'Enroll student to course/major'],
+                ['title' => 'Create Course', 'icon' => '📚', 'url' => '/admin/course-module/all', 'desc' => 'Create or edit academic courses'],
+                ['title' => 'AI Recommendations', 'icon' => '🤖', 'url' => '/admin/ai-rules?tab=rules', 'desc' => 'Evaluate learning path rules'],
+                ['title' => 'At-Risk Intervention', 'icon' => '⚠️', 'url' => '/admin/progress?tab=at_risk', 'desc' => 'Inspect detected at-risk students'],
+                ['title' => 'Send Announce', 'icon' => '📢', 'url' => '/admin/notifications/announcements', 'desc' => 'Send system-wide broadcast'],
+            ];
+
             $needsAttention = $adminAlerts;
 
-        // Recent Activities List (Learning, AI & Course Delivery)
-        $recentActivities = [
+            // Recent Activities List (Learning, AI & Course Delivery)
+            $recentActivities = [
             [
                 'status' => 'ai_alert',
                 'color' => 'yellow',

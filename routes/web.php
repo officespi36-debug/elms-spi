@@ -229,7 +229,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('reports', [Admin\ReportController::class, 'index'])->name('reports');
         Route::get('reports/financials', [Admin\ReportController::class, 'exportFinancials'])->name('reports.financials');
         Route::get('reports/enrollments', function () {
-            return redirect()->route('enrollment.majors');
+            return redirect()->route('admin.enrollment.majors');
         })->name('reports.enrollments');
         Route::get('settings', [Admin\SettingController::class, 'index'])->name('settings');
         Route::post('settings', [Admin\SettingController::class, 'update'])->name('settings.update');
