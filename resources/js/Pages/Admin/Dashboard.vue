@@ -1,142 +1,149 @@
 <script setup lang="ts">
 import AdminLayout from '@/Layouts/AdminLayout.vue'
-import { ref, computed, onMounted, defineAsyncComponent } from 'vue'
+import { ref, computed, defineAsyncComponent } from 'vue'
 import { router, Link, usePage } from '@inertiajs/vue3'
 const VueApexCharts = defineAsyncComponent(() => import('vue3-apexcharts'))
 import { i18n } from '@/Services/i18n'
 import { isDark } from '@/composables/useTheme'
 
-interface Stats {
-  total_students: number
-  total_teachers: number
-  total_courses: number
-  published_courses: number
-  draft_courses: number
-  total_majors: number
-  active_enrollments: number
-  at_risk_students: number
-  open_alerts: number
-  total_certificates: number
-  pending_certificates: number
-  failed_login_alerts: number
-  completion_rate: number
-  system_health: string
-}
-
-interface MajorOption {
-  id: number
+interface MajorPerformanceItem {
   name: string
-  code?: string
+  completed: number
+  in_progress: number
+  not_started: number
+  total_count: number
 }
 
-interface AtRiskAlertItem {
-  id: string
-  student: string
-  major: string
-  risk_factor: string
-  risk_level: string
-  level_color: string
-  time: string
-}
-
-const props = defineProps<{
-  stats: Stats
-  filters: { period: string; major_id: string }
-  allMajors: MajorOption[]
-  enrollmentChartData: {
-    daily: { categories: string[]; enrollments: number[]; completions: number[] }
-    weekly: { categories: string[]; enrollments: number[]; completions: number[] }
-    monthly: { categories: string[]; enrollments: number[]; completions: number[] }
+const props = withDefaults(defineProps<{
+  stats?: any
+  filters?: { period?: string; major_id?: string }
+  allMajors?: Array<any>
+  enrollmentChartData?: {
+    daily?: { categories: string[]; enrollments: number[]; completions: number[] }
+    weekly?: { categories: string[]; enrollments: number[]; completions: number[] }
+    monthly?: { categories: string[]; enrollments: number[]; completions: number[] }
   }
-  completionBreakdown: { completed: number; in_progress: number; not_started: number }
-  studentsByMajor: Array<{ name: string; name_kh?: string; count: number; pct: number }>
-  quickActions: Array<{ title: string; icon: string; url: string; desc: string }>
-  needsAttention: Array<{ id: number; level: string; title: string; detail: string; action_label: string; url: string }>
-  recentActivities: Array<{ status: string; color: string; time: string; student: string; course: string; detail: string }>
-  systemStatus: {
-    api_server: string
-    database: string
-    cloudinary_cdn: string
-    email_smtp: string
-    ai_engine: string
-    storage_used_gb: number
-    storage_total_gb: number
-    storage_pct: number
-    last_backup: string
-    backup_status: string
-    jwt_auth: string
-    active_sessions: number
-  }
-  academicSnapshot: { faculties: number; departments: number; majors: number; academic_year: string; current_semester: string; status: string; days_remaining: number }
-  snapshotTables: {
-    latestEnrollments: Array<{ id: string; student: string; course: string; major: string; status: string; status_color: string; time: string }>
-    atRiskAlerts: AtRiskAlertItem[]
-    topCourses: Array<{ id: string; title: string; teacher: string; enrollments: number; completion: number }>
-  }
-}>()
+  completionBreakdown?: { completed: number; in_progress: number; not_started: number }
+  majorPerformance?: Record<string, MajorPerformanceItem>
+  studentsByMajor?: Array<{ name: string; name_kh?: string; count: number; pct: number }>
+  adminAlerts?: Array<{ id: number; icon: string; level: string; title: string; detail: string; action_label: string; url: string }>
+}>(), {
+  stats: () => ({
+    total_students: 2458,
+    active_students: 2390,
+    total_teachers: 145,
+    active_teachers: 140,
+    total_courses: 328,
+    published_courses: 290,
+    draft_courses: 5,
+    completion_rate: 76,
+    at_risk_students: 12,
+  }),
+  filters: () => ({ period: 'month', major_id: 'all' }),
+  allMajors: () => [
+    { id: 1, name: 'Information Technology' },
+    { id: 2, name: 'Social Work' },
+    { id: 3, name: 'Agriculture' },
+    { id: 4, name: 'Tourism' },
+    { id: 5, name: 'English Literature' },
+  ],
+  enrollmentChartData: () => ({
+    daily: {
+      categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      enrollments: [120, 210, 180, 290, 420, 310, 520],
+      completions: [40, 85, 90, 140, 210, 190, 280]
+    },
+    weekly: {
+      categories: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+      enrollments: [450, 620, 580, 808],
+      completions: [210, 340, 310, 490]
+    },
+    monthly: {
+      categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      enrollments: [140, 220, 310, 450, 520, 680, 720, 610, 590, 810, 940, 1120],
+      completions: [90, 150, 210, 310, 390, 510, 540, 480, 460, 640, 720, 890]
+    }
+  }),
+  completionBreakdown: () => ({ completed: 76, in_progress: 18, not_started: 6 }),
+  majorPerformance: () => ({
+    all: { name: 'All Majors', completed: 76, in_progress: 18, not_started: 6, total_count: 2458 },
+    1: { name: 'Information Technology', completed: 82, in_progress: 14, not_started: 4, total_count: 520 },
+    2: { name: 'Social Work', completed: 74, in_progress: 20, not_started: 6, total_count: 548 },
+    3: { name: 'Agriculture', completed: 70, in_progress: 22, not_started: 8, total_count: 600 },
+    4: { name: 'Tourism', completed: 68, in_progress: 24, not_started: 8, total_count: 410 },
+    5: { name: 'English Literature', completed: 85, in_progress: 11, not_started: 4, total_count: 380 }
+  }),
+  studentsByMajor: () => [
+    { name: 'Information Technology', name_kh: 'បច្ចេកវិទ្យាព័ត៌មាន', count: 520, pct: 21 },
+    { name: 'Social Work', name_kh: 'ការងារសង្គម', count: 548, pct: 23 },
+    { name: 'Agriculture', name_kh: 'កសិកម្ម', count: 600, pct: 24 },
+    { name: 'Tourism', name_kh: 'ទេសចរណ៍', count: 410, pct: 17 },
+    { name: 'English Literature', name_kh: 'អក្សរសាស្ត្រអង់គ្លេស', count: 380, pct: 15 },
+  ],
+  adminAlerts: () => [
+    {
+      id: 1,
+      icon: '⚠',
+      level: 'red',
+      title: '12 At-Risk Students',
+      detail: 'AI-detected low course completion (< 30%) and missed quiz deadlines',
+      action_label: 'View Students →',
+      url: '/admin/progress?tab=at_risk'
+    },
+    {
+      id: 2,
+      icon: '📚',
+      level: 'purple',
+      title: '5 Courses Waiting for Approval',
+      detail: 'Teacher-created courses submitted for syllabus & publication review',
+      action_label: 'Review Courses →',
+      url: '/admin/course-module/all?status=draft'
+    },
+    {
+      id: 3,
+      icon: '👨‍🏫',
+      level: 'amber',
+      title: '3 Teacher Accounts Pending',
+      detail: 'Faculty teaching accounts awaiting department role assignment',
+      action_label: 'Review Teachers →',
+      url: '/admin/user-management/teachers'
+    },
+    {
+      id: 4,
+      icon: '📢',
+      level: 'blue',
+      title: '2 New System Notifications',
+      detail: 'Important academic announcements scheduled for semester launch',
+      action_label: 'View Notifications →',
+      url: '/admin/notifications/announcements'
+    }
+  ]
+})
 
 const page = usePage<any>()
-const userName = computed(() => page.props.auth?.user?.name || 'System Admin')
+const userName = computed(() => page.props.auth?.user?.name || 'Admin')
 
-// ── Filters & Timeframes ────────────────────────────────────
+// Period & Filters state
 const periodFilter = ref(props.filters?.period || 'month')
 const majorFilter = ref(props.filters?.major_id || 'all')
 const chartTimeframe = ref<'daily' | 'weekly' | 'monthly'>('monthly')
 const isRefreshing = ref(false)
-const rightChartTab = ref<'completion' | 'majors'>('completion')
-const activeSnapshotTab = ref<'enrollments' | 'at_risk' | 'activities'>('enrollments')
 
-// ── Widget Visibility Customization ──────────────────────────
-const showCustomizeModal = ref(false)
-const widgetVisibility = ref({
-  kpiCards: true,
-  analyticsRow: true,
-  liveDataRow: true,
-})
+// Academic Performance Major Filter (for right card)
+const selectedPerfMajor = ref<string>('all')
 
-onMounted(() => {
-  const savedConfig = localStorage.getItem('elms_dashboard_widgets_v2')
-  if (savedConfig) {
-    try {
-      widgetVisibility.value = JSON.parse(savedConfig)
-    } catch (e) {
-      console.error(e)
-    }
+const currentPerformance = computed(() => {
+  const perf = props.majorPerformance?.[selectedPerfMajor.value] || props.majorPerformance?.['all']
+  return perf || {
+    name: 'All Majors',
+    completed: 76,
+    in_progress: 18,
+    not_started: 6,
+    total_count: 2458
   }
 })
 
-function saveWidgetConfig() {
-  localStorage.setItem('elms_dashboard_widgets_v2', JSON.stringify(widgetVisibility.value))
-  showCustomizeModal.value = false
-}
-
-function resetWidgetConfig() {
-  widgetVisibility.value = {
-    kpiCards: true,
-    analyticsRow: true,
-    liveDataRow: true,
-  }
-  localStorage.removeItem('elms_dashboard_widgets_v2')
-}
-
-// ── Language & Localization ─────────────────────────────────
-const currentLang = computed(() => i18n.locale.value)
-
-// ── Date Formatting ─────────────────────────────────────────
-const todayFormatted = computed(() => {
-  const now = new Date()
-  const options: Intl.DateTimeFormatOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }
-  if (currentLang.value === 'km') {
-    try {
-      return now.toLocaleDateString('km-KH', options)
-    } catch {
-      return now.toLocaleDateString('en-US', options)
-    }
-  }
-  return now.toLocaleDateString('en-US', options)
-})
-
-// ── Refresh & Filter Navigation ─────────────────────────────
+// Refresh action
 function applyFilters() {
   isRefreshing.value = true
   router.get('/admin/dashboard', {
@@ -153,60 +160,50 @@ function exportReport() {
   window.print()
 }
 
-// ── ApexCharts Configuration ────────────────────────────────
-const defaultCategories = computed(() => {
-  if (chartTimeframe.value === 'daily') {
-    return currentLang.value === 'km' 
-      ? ['ច័ន្ទ', 'អង្គារ', 'ពុធ', 'ព្រហស្បតិ៍', 'សុក្រ', 'សៅរ៍', 'អាទិត្យ']
-      : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-  }
-  if (chartTimeframe.value === 'weekly') {
-    return currentLang.value === 'km'
-      ? ['សប្តាហ៍ទី ១', 'សប្តាហ៍ទី ២', 'សប្តាហ៍ទី ៣', 'សប្តាហ៍ទី ៤']
-      : ['W1', 'W2', 'W3', 'W4']
-  }
-  return currentLang.value === 'km'
-    ? ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ']
-    : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-})
-
+// Enrollment Chart Series
 const activeChartData = computed(() => {
   const tf = chartTimeframe.value
   const data = props.enrollmentChartData?.[tf] || props.enrollmentChartData?.monthly
   return {
-    categories: defaultCategories.value,
+    categories: data?.categories || ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
     enrollments: data?.enrollments || [140, 220, 310, 450, 520, 680, 720, 610, 590, 810, 940, 1120],
     completions: data?.completions || [90, 150, 210, 310, 390, 510, 540, 480, 460, 640, 720, 890],
   }
 })
 
 const enrollmentSeries = computed(() => [
-  { name: currentLang.value === 'km' ? 'ការចុះឈ្មោះថ្មី' : 'New Enrollments', data: activeChartData.value.enrollments },
-  { name: currentLang.value === 'km' ? 'ការបញ្ចប់វគ្គសិក្សា' : 'Course Completions', data: activeChartData.value.completions },
+  { name: 'New Enrollments', data: activeChartData.value.enrollments },
+  { name: 'Course Completions', data: activeChartData.value.completions },
 ])
 
 const enrollmentChartOptions = computed<any>(() => ({
   chart: { type: 'area', toolbar: { show: false }, background: 'transparent' },
   colors: ['#6366f1', '#10b981'],
   stroke: { curve: 'smooth', width: 3 },
-  dataLabels: { enabled: false }, // Explicitly disable inline line labels to prevent text overlap!
-  fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.05 } },
-  xaxis: { categories: activeChartData.value.categories, labels: { style: { colors: isDark.value ? '#94a3b8' : '#64748b', fontSize: '11px' } } },
-  yaxis: { labels: { style: { colors: isDark.value ? '#94a3b8' : '#64748b', fontSize: '11px' } } },
+  dataLabels: { enabled: false },
+  fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.35, opacityTo: 0.05 } },
+  xaxis: {
+    categories: activeChartData.value.categories,
+    labels: { style: { colors: isDark.value ? '#94a3b8' : '#64748b', fontSize: '11px' } }
+  },
+  yaxis: {
+    labels: { style: { colors: isDark.value ? '#94a3b8' : '#64748b', fontSize: '11px' } }
+  },
   grid: { borderColor: isDark.value ? '#334155' : '#e2e8f0', strokeDashArray: 4 },
-  legend: { labels: { colors: isDark.value ? '#cbd5e1' : '#475569' }, position: 'top', horizontalAlign: 'left' },
+  legend: { labels: { colors: isDark.value ? '#cbd5e1' : '#475569' }, position: 'top', horizontalAlign: 'right' },
   tooltip: { theme: isDark.value ? 'dark' : 'light', shared: true, intersect: false },
 }))
 
+// Donut Chart Series & Options for Academic Performance
 const completionDonutSeries = computed(() => [
-  props.completionBreakdown?.completed || 76,
-  props.completionBreakdown?.in_progress || 18,
-  props.completionBreakdown?.not_started || 6,
+  currentPerformance.value.completed,
+  currentPerformance.value.in_progress,
+  currentPerformance.value.not_started,
 ])
 
 const completionDonutOptions = computed<any>(() => ({
   chart: { type: 'donut', background: 'transparent' },
-  labels: currentLang.value === 'km' ? ['បានបញ្ចប់', 'កំពុងរៀន', 'មិនទាន់ចាប់ផ្តើម'] : ['Completed', 'In Progress', 'Not Started'],
+  labels: ['Completed', 'In Progress', 'Not Started'],
   colors: ['#10b981', '#f59e0b', '#64748b'],
   legend: { show: false },
   stroke: { colors: [isDark.value ? '#1e293b' : '#ffffff'] },
@@ -214,15 +211,15 @@ const completionDonutOptions = computed<any>(() => ({
   plotOptions: {
     pie: {
       donut: {
-        size: '75%',
+        size: '72%',
         labels: {
           show: true,
           total: {
             show: true,
-            label: currentLang.value === 'km' ? 'ការបញ្ចប់' : 'Completion',
+            label: 'Completion',
             color: isDark.value ? '#94a3b8' : '#64748b',
-            fontSize: '12px',
-            formatter: () => `${props.stats?.completion_rate || 76}%`,
+            fontSize: '11px',
+            formatter: () => `${currentPerformance.value.completed}%`,
           },
         },
       },
@@ -230,258 +227,223 @@ const completionDonutOptions = computed<any>(() => ({
   },
   tooltip: { theme: isDark.value ? 'dark' : 'light' },
 }))
-
-// Action Needed items (Academic & AI Risk Interventions)
-const actionTasks = computed(() => [
-  {
-    id: 1,
-    title: currentLang.value === 'km' ? 'ការជូនដំណឹងនិស្សិតប្រឈមហានិភ័យ' : 'At-Risk Students Alert',
-    badge: currentLang.value === 'km' ? `${props.stats?.at_risk_students || 12} និស្សិត` : `${props.stats?.at_risk_students || 12} Students`,
-    color: 'red',
-    url: '/admin/progress?tab=at_risk',
-    desc: currentLang.value === 'km' ? 'និស្សិតដែលមានអត្រាបញ្ចប់ការសិក្សាទាប (< 30%) ឬពិន្ទុខ្សោយ' : 'Students falling behind completion rate (< 30%) or low scores',
-    btn: currentLang.value === 'km' ? 'ពិនិត្យនិស្សិត →' : 'Review At-Risk →'
-  },
-  {
-    id: 2,
-    title: currentLang.value === 'km' ? 'ការវិភាគប្រធានបទលំបាក AI' : 'Difficult Topics Identified',
-    badge: currentLang.value === 'km' ? '8 ប្រធានបទ' : '8 Topics Flagged',
-    color: 'amber',
-    url: '/admin/ai-rules?tab=weak_topics',
-    desc: currentLang.value === 'km' ? 'ប្រធានបទដែលមានអត្រាឆ្លើយខុសខ្ពស់លើការប្រឡងកម្រងសំណួរ' : 'High failure topics detected by AI engine across courses',
-    btn: currentLang.value === 'km' ? 'ពិនិត្យប្រធានបទ →' : 'Inspect Topics →'
-  },
-  {
-    id: 3,
-    title: currentLang.value === 'km' ? 'វគ្គសិក្សាព្រាងរង់ចាំការបោះពុម្ព' : 'Draft Courses Pending Publish',
-    badge: currentLang.value === 'km' ? `${props.stats?.draft_courses || 12} វគ្គសិក្សា` : `${props.stats?.draft_courses || 12} Courses`,
-    color: 'purple',
-    url: '/admin/course-module/all?status=draft',
-    desc: currentLang.value === 'km' ? 'វគ្គសិក្សាបង្កើតដោយគ្រូរង់ចាំការអនុម័តពីរដ្ឋបាល' : 'Courses created by teachers waiting for admin approval',
-    btn: currentLang.value === 'km' ? 'ពិនិត្យវគ្គសិក្សា →' : 'Review Courses →'
-  },
-  {
-    id: 4,
-    title: currentLang.value === 'km' ? 'ការប៉ុនប៉ងចូលប្រព័ន្ធមិនជោគជ័យ' : 'Failed Security Login Attempts',
-    badge: currentLang.value === 'km' ? `${props.stats?.failed_login_alerts || 3} ការជូនដំណឹង` : `${props.stats?.failed_login_alerts || 3} Alerts`,
-    color: 'rose',
-    url: '/admin/auth-logs',
-    desc: currentLang.value === 'km' ? 'កំណត់ហេតុការផ្ទៀងផ្ទាត់មិនប្រក្រតីក្នុងថ្ងៃនេះ' : 'Suspicious repetitive authentication failures today',
-    btn: currentLang.value === 'km' ? 'ពិនិត្យកំណត់ហេតុ →' : 'Inspect Logs →'
-  }
-])
 </script>
 
 <template>
-  <AdminLayout>
-    <div class="space-y-5 text-slate-800 dark:text-slate-100 font-sans pb-10">
-      
-      <!-- ── EXECUTIVE DASHBOARD HEADER ── -->
-      <div class="relative overflow-hidden bg-white dark:bg-linear-to-r dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-xl backdrop-blur-xl">
-        <!-- Ambient background glow -->
-        <div class="absolute -top-12 -right-12 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+  <AdminLayout title="Admin Dashboard">
+    <div class="space-y-6 text-slate-800 dark:text-slate-100 font-sans pb-10">
 
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800/80 pb-4">
+      <!-- ── 1. HEADER (Filters, Refresh, Export) ── -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-none backdrop-blur-xl">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <!-- Title & Welcome -->
           <div>
             <div class="flex items-center gap-2.5">
-              <span class="text-xl">📊</span>
-              <h2 class="text-xl sm:text-2xl font-black bg-clip-text text-transparent bg-linear-to-r from-indigo-600 via-sky-600 to-indigo-700 dark:from-indigo-400 dark:via-cyan-300 dark:to-sky-400 tracking-normal font-sans leading-relaxed">
-                {{ currentLang === 'km' ? 'ផ្ទាំងគ្រប់គ្រងប្រតិបត្តិការទូទៅ' : 'Admin Executive Dashboard' }}
-              </h2>
-            </div>
-            <p class="text-xs text-slate-600 dark:text-slate-300 mt-1 flex flex-wrap items-center gap-2 font-medium">
-              <span>{{ currentLang === 'km' ? 'សូមស្វាគមន៍ការត្រឡប់មកវិញ,' : 'Welcome back,' }} <strong class="text-indigo-600 dark:text-indigo-300 font-bold">{{ userName }}</strong> 👋</span>
-              <span class="text-slate-300 dark:text-slate-600">·</span>
-              <span>{{ todayFormatted }}</span>
-              <span class="text-slate-300 dark:text-slate-600">·</span>
-              <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/25 shadow-xs">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span>
-                {{ currentLang === 'km' ? 'ស្ថានភាពប្រព័ន្ធ: ប្រក្រតី' : 'System Status: Healthy' }}
+              <span class="text-2xl">🏠</span>
+              <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                ADMIN DASHBOARD
+              </h1>
+              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30">
+                Official ELMS
               </span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2 font-medium">
+              <span>សូមស្វាគមន៍, <strong class="text-slate-900 dark:text-white font-bold">{{ userName }}</strong> 👋</span>
+              <span class="text-slate-300 dark:text-slate-700">·</span>
+              <span>Overview of Institutional Learning Performance & System Health</span>
             </p>
           </div>
 
-          <!-- Controls Right -->
-          <div class="flex flex-wrap items-center gap-2">
-            <button
-              @click="applyFilters"
-              :disabled="isRefreshing"
-              class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/70 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1.5 transition-all shadow-xs active:scale-95 cursor-pointer"
-            >
-              <svg :class="{ 'animate-spin': isRefreshing }" class="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              <span>{{ currentLang === 'km' ? 'ផ្ទុកឡើងវិញ' : 'Refresh' }}</span>
-            </button>
+          <!-- Controls: Period, Major, Refresh, Export -->
+          <div class="flex flex-wrap items-center gap-2.5">
+            <!-- Period Filter -->
+            <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
+              <button
+                v-for="p in [
+                  { id: 'today', name: 'Today' },
+                  { id: 'week', name: 'Week' },
+                  { id: 'month', name: 'Month' },
+                  { id: 'semester', name: 'Semester' }
+                ]"
+                :key="p.id"
+                @click="periodFilter = p.id; applyFilters()"
+                :class="[
+                  periodFilter === p.id 
+                    ? 'bg-emerald-600 text-white font-bold shadow-xs' 
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200',
+                  'px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer'
+                ]"
+              >
+                {{ p.name }}
+              </button>
+            </div>
 
-            <button
-              @click="exportReport"
-              class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md shadow-indigo-600/25 transition-all active:scale-95 cursor-pointer"
-            >
-              <span>📤</span> {{ currentLang === 'km' ? 'នាំចេញរបាយការណ៍' : 'Export Report' }}
-            </button>
-
-            <button
-              @click="showCustomizeModal = true"
-              class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200/70 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700/80 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
-            >
-              <span>⚙️</span> {{ currentLang === 'km' ? 'កំណត់ផ្ទាល់ខ្លួន' : 'Customize' }}
-            </button>
-          </div>
-        </div>
-
-        <!-- Filter Bar Row -->
-        <div class="flex flex-wrap items-center justify-between gap-3 pt-3 text-xs">
-          <!-- Period Selector Pills -->
-          <div class="flex flex-wrap items-center gap-1 bg-slate-50 dark:bg-slate-900/90 p-1 rounded-xl border border-slate-200 dark:border-slate-800 shadow-inner">
-            <span class="text-slate-500 dark:text-slate-400 px-2 text-[11px] font-medium">{{ currentLang === 'km' ? 'រយៈពេល:' : 'Period:' }}</span>
-            <button
-              v-for="p in [
-                { id: 'today', name: currentLang === 'km' ? 'ថ្ងៃនេះ' : 'Today' },
-                { id: 'week', name: currentLang === 'km' ? 'សប្តាហ៍នេះ' : 'This Week' },
-                { id: 'month', name: currentLang === 'km' ? 'ខែនេះ' : 'This Month' },
-                { id: 'semester', name: currentLang === 'km' ? 'ឆមាសនេះ' : 'This Semester' },
-                { id: 'custom', name: currentLang === 'km' ? 'កំណត់ផ្ទាល់' : 'Custom' }
-              ]"
-              :key="p.id"
-              @click="periodFilter = p.id; applyFilters()"
-              :class="[
-                periodFilter === p.id 
-                  ? 'bg-indigo-600 text-white font-bold shadow-sm' 
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800/60',
-                'px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer'
-              ]"
-            >
-              {{ p.name }}
-            </button>
-          </div>
-
-          <!-- Major Filter Dropdown -->
-          <div class="flex items-center gap-2">
-            <span class="text-slate-500 dark:text-slate-400 font-medium text-[11px]">{{ currentLang === 'km' ? 'ចម្រាញ់តាមជំនាញ:' : 'Filter Major:' }}</span>
+            <!-- Major Filter Dropdown -->
             <select
               v-model="majorFilter"
               @change="applyFilters"
-              class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3 py-1 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-indigo-500 shadow-inner cursor-pointer hover:border-slate-300 dark:hover:border-slate-600"
+              class="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs font-semibold focus:outline-none focus:border-emerald-500 cursor-pointer"
             >
-              <option value="all">{{ currentLang === 'km' ? 'ជំនាញទាំងអស់ (5)' : 'All Majors (5)' }}</option>
+              <option value="all">All Majors (5 SPI Majors)</option>
               <option v-for="m in allMajors" :key="m.id" :value="m.id">{{ m.name }}</option>
             </select>
+
+            <!-- Refresh Button -->
+            <button
+              @click="applyFilters"
+              :disabled="isRefreshing"
+              class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+            >
+              <svg :class="{ 'animate-spin': isRefreshing }" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span>Refresh</span>
+            </button>
+
+            <!-- Export Report Button -->
+            <button
+              @click="exportReport"
+              class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
+            >
+              <span>📥 Export Report</span>
+            </button>
           </div>
         </div>
       </div>
 
-      <!-- ── ROW 1: PRIMARY KPI SUMMARY CARDS (CLEAN MUTED TAGS & ALIGNED ALERTS) ── -->
-      <div v-if="widgetVisibility.kpiCards" class="grid grid-cols-2 lg:grid-cols-5 gap-3.5">
-        <!-- Card 1: Total Students -->
-        <div class="bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/70 rounded-2xl p-4 shadow-sm dark:shadow-md hover:border-indigo-400 dark:hover:border-indigo-500/50 transition-all group">
+      <!-- ── 2. SUMMARY CARDS (5 Core Questions — Clickable) ── -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <!-- 1. Total Students ➔ /admin/user-management/students -->
+        <Link
+          href="/admin/user-management/students"
+          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm dark:shadow-none hover:border-emerald-500 dark:hover:border-emerald-500/50 hover:shadow-md transition-all group cursor-pointer block"
+        >
           <div class="flex items-center justify-between">
-            <span class="text-xl">👨‍🎓</span>
-            <span class="px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-slate-100 dark:bg-slate-700/40 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700/60">
-              {{ currentLang === 'km' ? 'សកម្ម' : 'Active' }}
+            <span class="text-2xl">👨‍🎓</span>
+            <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20">
+              User Mgmt →
             </span>
           </div>
-          <p class="text-slate-500 dark:text-slate-400 text-xs font-medium mt-2">{{ currentLang === 'km' ? 'និស្សិតសរុប' : 'Total Students' }}</p>
-          <h4 class="text-2xl font-extrabold text-slate-900 dark:text-white mt-0.5 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors">
+          <p class="text-slate-500 dark:text-slate-400 text-xs font-semibold mt-2.5">Total Students</p>
+          <h4 class="text-2xl font-black text-slate-900 dark:text-white mt-0.5 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
             {{ (stats?.total_students || 2458).toLocaleString() }}
           </h4>
-          <p class="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold mt-1">{{ currentLang === 'km' ? '↑ +86 ក្នុងខែនេះ' : '↑ +86 this month' }}</p>
-        </div>
+          <p class="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold mt-1">
+            ✓ {{ (stats?.active_students || 2390).toLocaleString() }} Active Students
+          </p>
+        </Link>
 
-        <!-- Card 2: Teachers -->
-        <div class="bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/70 rounded-2xl p-4 shadow-sm dark:shadow-md hover:border-emerald-400 dark:hover:border-emerald-500/50 transition-all group">
+        <!-- 2. Faculty Teachers ➔ /admin/user-management/teachers -->
+        <Link
+          href="/admin/user-management/teachers"
+          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm dark:shadow-none hover:border-indigo-500 dark:hover:border-indigo-500/50 hover:shadow-md transition-all group cursor-pointer block"
+        >
           <div class="flex items-center justify-between">
-            <span class="text-xl">👨‍🏫</span>
-            <span class="px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-slate-100 dark:bg-slate-700/40 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700/60">
-              {{ currentLang === 'km' ? 'មហាវិទ្យាល័យ' : 'Faculty' }}
+            <span class="text-2xl">👨‍🏫</span>
+            <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20">
+              Teachers →
             </span>
           </div>
-          <p class="text-slate-500 dark:text-slate-400 text-xs font-medium mt-2">{{ currentLang === 'km' ? 'សាស្ត្រាចារ្យ' : 'Faculty Teachers' }}</p>
-          <h4 class="text-2xl font-extrabold text-slate-900 dark:text-white mt-0.5 group-hover:text-emerald-600 dark:group-hover:text-emerald-300 transition-colors">
+          <p class="text-slate-500 dark:text-slate-400 text-xs font-semibold mt-2.5">Faculty Teachers</p>
+          <h4 class="text-2xl font-black text-slate-900 dark:text-white mt-0.5 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
             {{ (stats?.total_teachers || 145).toLocaleString() }}
           </h4>
-          <p class="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold mt-1">{{ currentLang === 'km' ? '↑ +4 ក្នុងខែនេះ' : '↑ +4 this month' }}</p>
-        </div>
+          <p class="text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold mt-1">
+            ✓ {{ (stats?.active_teachers || 140).toLocaleString() }} Teaching Faculty
+          </p>
+        </Link>
 
-        <!-- Card 3: Active Courses -->
-        <div class="bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/70 rounded-2xl p-4 shadow-sm dark:shadow-md hover:border-purple-400 dark:hover:border-purple-500/50 transition-all group">
+        <!-- 3. Active Courses ➔ /admin/course-module/all -->
+        <Link
+          href="/admin/course-module/all"
+          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm dark:shadow-none hover:border-purple-500 dark:hover:border-purple-500/50 hover:shadow-md transition-all group cursor-pointer block"
+        >
           <div class="flex items-center justify-between">
-            <span class="text-xl">📚</span>
-            <span class="px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-slate-100 dark:bg-slate-700/40 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700/60">
-              {{ currentLang === 'km' ? 'បានបោះពុម្ព' : 'Published' }}
+            <span class="text-2xl">📚</span>
+            <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-500/20">
+              Courses →
             </span>
           </div>
-          <p class="text-slate-500 dark:text-slate-400 text-xs font-medium mt-2">{{ currentLang === 'km' ? 'វគ្គសិក្សាសកម្ម' : 'Active Courses' }}</p>
-          <h4 class="text-2xl font-extrabold text-slate-900 dark:text-white mt-0.5 group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors">
+          <p class="text-slate-500 dark:text-slate-400 text-xs font-semibold mt-2.5">Active Courses</p>
+          <h4 class="text-2xl font-black text-slate-900 dark:text-white mt-0.5 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
             {{ (stats?.total_courses || 328).toLocaleString() }}
           </h4>
-          <p class="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold mt-1">{{ currentLang === 'km' ? '↑ +12 បានបោះពុម្ព' : '↑ +12 published' }}</p>
-        </div>
+          <p class="text-[11px] text-purple-600 dark:text-purple-400 font-semibold mt-1">
+            ✓ {{ (stats?.published_courses || 290).toLocaleString() }} Approved & Published
+          </p>
+        </Link>
 
-        <!-- Card 4: Completion Rate (Thesis Scope Replacement for Revenue) -->
-        <div class="bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/70 rounded-2xl p-4 shadow-sm dark:shadow-md hover:border-cyan-400 dark:hover:border-cyan-500/50 transition-all group">
+        <!-- 4. Completion Rate ➔ /admin/progress -->
+        <Link
+          href="/admin/progress"
+          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm dark:shadow-none hover:border-teal-500 dark:hover:border-teal-500/50 hover:shadow-md transition-all group cursor-pointer block"
+        >
           <div class="flex items-center justify-between">
-            <span class="text-xl">📈</span>
-            <span class="px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-slate-100 dark:bg-slate-700/40 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700/60">
-              {{ currentLang === 'km' ? 'អប់រំ' : 'Academic' }}
+            <span class="text-2xl">📈</span>
+            <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-teal-50 dark:bg-teal-500/10 text-teal-700 dark:text-teal-400 border border-teal-200 dark:border-teal-500/20">
+              Learning →
             </span>
           </div>
-          <p class="text-slate-500 dark:text-slate-400 text-xs font-medium mt-2">{{ currentLang === 'km' ? 'អត្រាបញ្ចប់ការសិក្សា' : 'Completion Rate' }}</p>
-          <h4 class="text-2xl font-extrabold text-cyan-600 dark:text-cyan-300 mt-0.5 group-hover:text-cyan-500 transition-colors">
+          <p class="text-slate-500 dark:text-slate-400 text-xs font-semibold mt-2.5">Completion Rate</p>
+          <h4 class="text-2xl font-black text-teal-600 dark:text-teal-400 mt-0.5 group-hover:text-teal-500 transition-colors">
             {{ stats?.completion_rate || 76 }}%
           </h4>
-          <p class="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold mt-1">{{ currentLang === 'km' ? '↑ +3.8% ធៀបខែមុន' : '↑ +3.8% vs last mo' }}</p>
-        </div>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-1">
+            76% Done · 18% Progress · 6% New
+          </p>
+        </Link>
 
-        <!-- Card 5: At-Risk Students (AI Thesis Priority) -->
-        <div class="bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/70 rounded-2xl p-4 shadow-sm dark:shadow-md hover:border-red-400 dark:hover:border-red-500/50 transition-all group col-span-2 lg:col-span-1 flex flex-col justify-between">
-          <div>
-            <div class="flex items-center justify-between">
-              <span class="text-xl">⚠️</span>
-              <span class="px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-red-50 dark:bg-red-500/20 text-red-600 dark:text-red-300 border border-red-200 dark:border-red-500/30">
-                {{ currentLang === 'km' ? 'អាទិភាព' : 'Priority' }}
-              </span>
-            </div>
-            <p class="text-slate-500 dark:text-slate-400 text-xs font-medium mt-2">{{ currentLang === 'km' ? 'និស្សិតប្រឈមហានិភ័យ' : 'At-Risk Students' }}</p>
+        <!-- 5. At-Risk Students ➔ /admin/progress?tab=at_risk -->
+        <Link
+          href="/admin/progress?tab=at_risk"
+          class="bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-900/50 rounded-2xl p-4 shadow-sm dark:shadow-none hover:border-rose-500 hover:shadow-md transition-all group cursor-pointer block"
+        >
+          <div class="flex items-center justify-between">
+            <span class="text-2xl">⚠️</span>
+            <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30">
+              AI Alert →
+            </span>
           </div>
-          <div class="flex items-baseline gap-2 mt-1">
-            <h4 class="text-2xl font-extrabold text-red-600 dark:text-red-400">
-              {{ (stats?.at_risk_students || 12).toLocaleString() }}
-            </h4>
-            <span class="text-[11px] text-red-600 dark:text-red-300 font-bold">{{ currentLang === 'km' ? 'ត្រូវចាត់វិធានការ' : 'Action Required' }}</span>
-          </div>
-        </div>
+          <p class="text-slate-500 dark:text-slate-400 text-xs font-semibold mt-2.5">At-Risk Students</p>
+          <h4 class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-0.5 group-hover:text-rose-500 transition-colors">
+            {{ (stats?.at_risk_students || 12).toLocaleString() }}
+          </h4>
+          <p class="text-[11px] text-rose-600 dark:text-rose-400 font-semibold mt-1">
+            ⚠️ Attention Required (AI)
+          </p>
+        </Link>
       </div>
 
-      <!-- ── ROW 2: ANALYTICS CHARTS (2 COLUMNS: 60% LEFT / 40% RIGHT) ── -->
-      <div v-if="widgetVisibility.analyticsRow" class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <!-- ── 3. MIDDLE SECTION: ENROLLMENT TREND & ACADEMIC PERFORMANCE (2 COLUMNS) ── -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
         
-        <!-- Left (60% = 7 Cols): Enrollment & Completion Trend -->
-        <div class="lg:col-span-7 bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/70 rounded-2xl p-4 shadow-sm dark:shadow-lg flex flex-col justify-between">
-          <div class="flex items-center justify-between mb-2">
+        <!-- Left (7 Cols): Enrollment & Completion Trend -->
+        <div class="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-none flex flex-col justify-between">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
-              <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
-                <span>📈</span> {{ currentLang === 'km' ? 'និន្នាការចុះឈ្មោះ & បញ្ចប់វគ្គសិក្សា' : 'ENROLLMENT & COMPLETION TREND' }}
+              <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2 uppercase tracking-wide">
+                <span>📈</span> ENROLLMENT & COMPLETION TREND
               </h3>
-              <p class="text-[11px] text-slate-500 dark:text-slate-400">
-                {{ currentLang === 'km' ? 'កំណើននៃការចុះឈ្មោះនិស្សិតធៀបនឹងការបញ្ចប់វគ្គសិក្សា' : 'Student enrollment growth vs course completion trajectory' }}
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                New Enrollments VS Course Completions (កំណើនអ្នកចុះឈ្មោះធៀបនឹងការបញ្ចប់)
               </p>
             </div>
-            <!-- Timeframe Tabs -->
-            <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
+
+            <!-- Timeframe switcher: Daily | Weekly | Monthly -->
+            <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs shrink-0">
               <button
                 v-for="tf in [
-                  { id: 'daily', label: currentLang === 'km' ? 'ប្រចាំថ្ងៃ' : 'Daily' },
-                  { id: 'weekly', label: currentLang === 'km' ? 'ប្រចាំសប្តាហ៍' : 'Weekly' },
-                  { id: 'monthly', label: currentLang === 'km' ? 'ប្រចាំខែ' : 'Monthly' },
+                  { id: 'daily', label: 'Daily' },
+                  { id: 'weekly', label: 'Weekly' },
+                  { id: 'monthly', label: 'Monthly' },
                 ]"
                 :key="tf.id"
                 @click="chartTimeframe = (tf.id as any)"
                 :class="[
                   chartTimeframe === tf.id 
-                    ? 'bg-indigo-600 text-white font-bold shadow-xs' 
+                    ? 'bg-emerald-600 text-white font-bold shadow-xs' 
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200',
-                  'px-2.5 py-0.5 rounded-lg transition-all cursor-pointer text-[11px]'
+                  'px-3 py-1 rounded-lg transition-all cursor-pointer'
                 ]"
               >
                 {{ tf.label }}
@@ -489,290 +451,202 @@ const actionTasks = computed(() => [
             </div>
           </div>
 
-          <div class="h-[250px]">
-            <VueApexCharts :key="`${isDark ? 'dark' : 'light'}_${currentLang}_${chartTimeframe}`" type="area" height="100%" :options="(enrollmentChartOptions as any)" :series="enrollmentSeries" />
+          <!-- Area Chart -->
+          <div class="h-[280px]">
+            <VueApexCharts
+              :key="`${isDark ? 'dark' : 'light'}_${chartTimeframe}`"
+              type="area"
+              height="100%"
+              :options="(enrollmentChartOptions as any)"
+              :series="enrollmentSeries"
+            />
           </div>
         </div>
 
-        <!-- Right (40% = 5 Cols): Completion Donut & Breakdown Switcher -->
-        <div class="lg:col-span-5 bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/70 rounded-2xl p-4 shadow-sm dark:shadow-lg flex flex-col justify-between">
-          <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/60 pb-2 mb-2">
-            <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-1.5">
-              <span>🎯</span> {{ currentLang === 'km' ? 'សមត្ថភាពសិក្សា & ការបញ្ចប់' : 'ACADEMIC / LEARNING PERFORMANCE' }}
-            </h3>
-            <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-900/90 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-[11px]">
-              <button
-                @click="rightChartTab = 'completion'"
-                :class="rightChartTab === 'completion' ? 'bg-indigo-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
-                class="px-2.5 py-0.5 rounded-lg transition-colors cursor-pointer"
-              >
-                {{ currentLang === 'km' ? 'ការបញ្ចប់ (76%)' : 'Completion' }}
-              </button>
-              <button
-                @click="rightChartTab = 'majors'"
-                :class="rightChartTab === 'majors' ? 'bg-indigo-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
-                class="px-2.5 py-0.5 rounded-lg transition-colors cursor-pointer"
-              >
-                {{ currentLang === 'km' ? 'ជំនាញទាំង ៥' : '5 Majors' }}
-              </button>
-            </div>
-          </div>
-
-          <!-- Tab 1: Completion Ratio Donut -->
-          <div v-if="rightChartTab === 'completion'" class="space-y-3">
-            <div class="h-[170px] flex items-center justify-center">
-              <VueApexCharts :key="`${isDark ? 'dark-donut' : 'light-donut'}_${currentLang}_${rightChartTab}`" type="donut" height="100%" width="100%" :options="(completionDonutOptions as any)" :series="completionDonutSeries" />
-            </div>
-            <div class="grid grid-cols-3 gap-2 text-center text-xs border-t border-slate-100 dark:border-slate-700/60 pt-2">
-              <div class="bg-slate-50 dark:bg-slate-900/60 p-2 rounded-xl border border-slate-200/80 dark:border-slate-800">
-                <span class="text-emerald-600 dark:text-emerald-400 font-bold block text-sm">76%</span>
-                <span class="text-slate-500 dark:text-slate-400 text-[10px]">{{ currentLang === 'km' ? 'បានបញ្ចប់' : 'Completed' }}</span>
-              </div>
-              <div class="bg-slate-50 dark:bg-slate-900/60 p-2 rounded-xl border border-slate-200/80 dark:border-slate-800">
-                <span class="text-amber-600 dark:text-amber-400 font-bold block text-sm">18%</span>
-                <span class="text-slate-500 dark:text-slate-400 text-[10px]">{{ currentLang === 'km' ? 'កំពុងរៀន' : 'In Progress' }}</span>
-              </div>
-              <div class="bg-slate-50 dark:bg-slate-900/60 p-2 rounded-xl border border-slate-200/80 dark:border-slate-800">
-                <span class="text-slate-600 dark:text-slate-400 font-bold block text-sm">6%</span>
-                <span class="text-slate-500 dark:text-slate-400 text-[10px]">{{ currentLang === 'km' ? 'មិនទាន់ចាប់ផ្តើម' : 'Not Started' }}</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Tab 2: Students by 5 Majors -->
-          <div v-else class="space-y-2.5 py-1">
-            <div v-for="m in studentsByMajor" :key="m.name" class="space-y-1 text-xs">
-              <div class="flex justify-between text-slate-700 dark:text-slate-300">
-                <span class="font-medium truncate max-w-48">{{ currentLang === 'km' && m.name_kh ? m.name_kh : m.name }}</span>
-                <div class="flex items-center gap-1.5">
-                  <span class="text-[10px] text-slate-400 font-normal">({{ m.pct }}%)</span>
-                  <span class="font-bold text-indigo-600 dark:text-indigo-300">{{ m.count }} {{ currentLang === 'km' ? 'នាក់' : 'stds' }}</span>
-                </div>
-              </div>
-              <div class="w-full bg-slate-100 dark:bg-slate-900 h-1.5 rounded-full overflow-hidden">
-                <div class="bg-linear-to-r from-indigo-500 via-sky-500 to-cyan-400 h-full rounded-full" :style="{ width: `${m.pct * 3.8}%` }"></div>
-              </div>
-            </div>
-            <div class="text-right border-t border-slate-100 dark:border-slate-700/60 pt-2">
-              <Link href="/admin/academic-structure/majors" class="text-[11px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 font-semibold">
-                {{ currentLang === 'km' ? 'គ្រប់គ្រងរចនាសម្ព័ន្ធជំនាញទាំង ៥ →' : 'Manage All 5 Core Majors →' }}
-              </Link>
-            </div>
-          </div>
-
-        </div>
-
-      </div>
-
-      <!-- ── ROW 3: LIVE DATA & ACTION NEEDED WIDGET (INTERACTIVE LINKS & DESCRIPTIVE BUTTONS) ── -->
-      <div v-if="widgetVisibility.liveDataRow" class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        
-        <!-- Left (60% = 7 Cols): Live Data Table (Interactive Clickable Links) -->
-        <div class="lg:col-span-7 bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/70 rounded-2xl p-4 shadow-sm dark:shadow-lg space-y-3">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-700/60 pb-2">
-            <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-900/90 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
-              <button
-                @click="activeSnapshotTab = 'enrollments'"
-                :class="activeSnapshotTab === 'enrollments' ? 'bg-indigo-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
-                class="px-3 py-1 rounded-lg transition-colors cursor-pointer"
-              >
-                🎓 {{ currentLang === 'km' ? 'ការចុះឈ្មោះចុងក្រោយ' : 'Latest Enrollments' }}
-              </button>
-              <button
-                @click="activeSnapshotTab = 'at_risk'"
-                :class="activeSnapshotTab === 'at_risk' ? 'bg-indigo-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
-                class="px-3 py-1 rounded-lg transition-colors cursor-pointer"
-              >
-                ⚠️ {{ currentLang === 'km' ? 'និស្សិតប្រឈម (At-Risk)' : 'At-Risk Alerts' }}
-              </button>
-              <button
-                @click="activeSnapshotTab = 'activities'"
-                :class="activeSnapshotTab === 'activities' ? 'bg-indigo-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'"
-                class="px-3 py-1 rounded-lg transition-colors cursor-pointer"
-              >
-                🕒 {{ currentLang === 'km' ? 'កំណត់ហេតុថ្មីៗ' : 'Recent Logs' }}
-              </button>
-            </div>
-
-            <Link
-              :href="
-                activeSnapshotTab === 'enrollments' ? '/admin/enrollment/courses' :
-                activeSnapshotTab === 'at_risk' ? '/admin/progress?tab=at_risk' : '/admin/auth-logs'
-              "
-              class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 font-semibold text-right"
-            >
-              {{ currentLang === 'km' ? 'មើលបញ្ជីពេញលេញ →' : 'View Full List →' }}
-            </Link>
-          </div>
-
-          <!-- Table 1: Latest Enrollments (Interactive Clickable Links) -->
-          <div v-if="activeSnapshotTab === 'enrollments'" class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-              <thead>
-                <tr class="bg-slate-50 dark:bg-slate-900/80 text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700/80">
-                  <th class="p-2.5">{{ currentLang === 'km' ? 'និស្សិត' : 'Student' }}</th>
-                  <th class="p-2.5">{{ currentLang === 'km' ? 'វគ្គសិក្សា' : 'Course' }}</th>
-                  <th class="p-2.5">{{ currentLang === 'km' ? 'ជំនាញ' : 'Major' }}</th>
-                  <th class="p-2.5 text-right">{{ currentLang === 'km' ? 'កាលបរិច្ឆេទ' : 'Time' }}</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100 dark:divide-slate-700/50">
-                <tr v-for="row in snapshotTables.latestEnrollments.slice(0, 5)" :key="row.id" class="hover:bg-slate-50/80 dark:hover:bg-slate-700/30 transition-colors">
-                  <td class="p-2.5 font-semibold text-slate-900 dark:text-white truncate max-w-[140px]">
-                    <Link href="/admin/user-management/students" class="hover:text-indigo-600 dark:hover:text-indigo-300 hover:underline">
-                      {{ row.student }}
-                    </Link>
-                  </td>
-                  <td class="p-2.5 text-slate-700 dark:text-slate-300 truncate max-w-[160px]">
-                    <Link href="/admin/course-module/all" class="hover:text-indigo-600 dark:hover:text-indigo-300 hover:underline">
-                      {{ row.course }}
-                    </Link>
-                  </td>
-                  <td class="p-2.5 text-slate-500 dark:text-slate-400 truncate max-w-[120px]">{{ row.major }}</td>
-                  <td class="p-2.5 text-right text-slate-500 dark:text-slate-400 whitespace-nowrap">{{ row.time }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Table 2: Latest At-Risk Alerts (AI Thesis Core) -->
-          <div v-if="activeSnapshotTab === 'at_risk'" class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-              <thead>
-                <tr class="bg-slate-50 dark:bg-slate-900/80 text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700/80">
-                  <th class="p-2.5">{{ currentLang === 'km' ? 'និស្សិត' : 'Student' }}</th>
-                  <th class="p-2.5">{{ currentLang === 'km' ? 'ជំនាញ' : 'Major' }}</th>
-                  <th class="p-2.5">{{ currentLang === 'km' ? 'កត្តាហានិភ័យ AI' : 'Risk Factor' }}</th>
-                  <th class="p-2.5">{{ currentLang === 'km' ? 'កម្រិត' : 'Level' }}</th>
-                  <th class="p-2.5 text-right">{{ currentLang === 'km' ? 'កាលបរិច្ឆេទ' : 'Time' }}</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100 dark:divide-slate-700/50">
-                <tr v-for="row in snapshotTables.atRiskAlerts" :key="row.id" class="hover:bg-slate-50/80 dark:hover:bg-slate-700/30 transition-colors">
-                  <td class="p-2.5 font-semibold text-slate-900 dark:text-white truncate max-w-[140px]">
-                    <Link href="/admin/progress?tab=at_risk" class="hover:text-indigo-600 dark:hover:text-indigo-300 hover:underline">
-                      {{ row.student }}
-                    </Link>
-                  </td>
-                  <td class="p-2.5 text-slate-700 dark:text-slate-300 truncate max-w-[130px]">{{ row.major }}</td>
-                  <td class="p-2.5 text-slate-600 dark:text-slate-400 truncate max-w-[180px]">{{ row.risk_factor }}</td>
-                  <td class="p-2.5">
-                    <span
-                      :class="row.level_color === 'red' ? 'bg-red-50 dark:bg-red-500/15 text-red-700 dark:text-red-400 border-red-200 dark:border-red-500/25' : 'bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-500/25'"
-                      class="px-2 py-0.5 rounded-full text-[10px] font-bold border"
-                    >
-                      {{ row.risk_level }}
-                    </span>
-                  </td>
-                  <td class="p-2.5 text-right text-slate-500 dark:text-slate-400 whitespace-nowrap">{{ row.time }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Table 3: Recent Activity Logs -->
-          <div v-if="activeSnapshotTab === 'activities'" class="space-y-2">
-            <div
-              v-for="(act, idx) in recentActivities.slice(0, 4)"
-              :key="idx"
-              class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-700/40 text-xs"
-            >
-              <div class="flex items-center gap-2 truncate">
-                <span class="w-2 h-2 rounded-full shrink-0" :class="act.color === 'green' ? 'bg-emerald-500' : 'bg-amber-500'"></span>
-                <Link href="/admin/user-management/students" class="font-semibold text-slate-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-300 hover:underline">
-                  {{ act.student }}
-                </Link>
-                <span class="text-slate-500 dark:text-slate-400 truncate">{{ act.detail }}</span>
-              </div>
-              <span class="text-[10px] text-slate-400 shrink-0 ml-2">{{ act.time }}</span>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Right (40% = 5 Cols): Action Needed Widget (Descriptive Button Labels!) -->
-        <div class="lg:col-span-5 bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/70 rounded-2xl p-4 shadow-sm dark:shadow-lg flex flex-col justify-between">
+        <!-- Right (5 Cols): Academic / Learning Performance (Filter by 5 Majors) -->
+        <div class="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-none flex flex-col justify-between">
           <div>
-            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700/60 pb-2 mb-3">
-              <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
-                <span>⚡</span> {{ currentLang === 'km' ? 'ភារកិច្ចត្រូវចាត់វិធានការ' : 'ACTION NEEDED WIDGET' }}
-              </h3>
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/25">
-                {{ currentLang === 'km' ? 'រង់ចាំដំណោះស្រាយ' : 'Tasks Pending' }}
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
+              <div>
+                <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2 uppercase tracking-wide">
+                  <span>🎯</span> ACADEMIC / LEARNING PERFORMANCE
+                </h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Completion Status filtered by 5 Majors
+                </p>
+              </div>
+
+              <!-- Filter by 5 Majors Dropdown -->
+              <select
+                v-model="selectedPerfMajor"
+                class="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1 text-xs font-semibold focus:outline-none focus:border-emerald-500 cursor-pointer"
+              >
+                <option value="all">All 5 Majors</option>
+                <option value="1">Information Technology</option>
+                <option value="2">Social Work</option>
+                <option value="3">Agriculture</option>
+                <option value="4">Tourism</option>
+                <option value="5">English Literature</option>
+              </select>
+            </div>
+
+            <!-- Major Scope Indicator -->
+            <div class="flex items-center justify-between text-xs py-1 text-slate-600 dark:text-slate-300">
+              <span class="font-semibold">{{ currentPerformance.name }}</span>
+              <span class="font-mono text-emerald-600 dark:text-emerald-400 font-bold">
+                {{ currentPerformance.total_count }} Students
               </span>
             </div>
 
-            <div class="space-y-2.5">
-              <div
-                v-for="task in actionTasks"
-                :key="task.id"
-                class="p-2.5 rounded-xl bg-slate-50/80 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600 transition-colors flex items-center justify-between gap-2"
-              >
-                <div class="min-w-0 flex-1">
-                  <div class="flex items-center gap-2">
-                    <span class="font-bold text-xs text-slate-900 dark:text-white truncate">{{ task.title }}</span>
-                    <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-indigo-50 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 shrink-0">
-                      {{ task.badge }}
-                    </span>
-                  </div>
-                  <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">{{ task.desc }}</p>
-                </div>
-                <Link
-                  :href="task.url"
-                  class="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-600/20 dark:hover:bg-indigo-600/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30 text-[11px] font-semibold shrink-0 transition-colors"
-                >
-                  {{ task.btn }}
-                </Link>
+            <!-- Donut Chart -->
+            <div class="h-[180px] flex items-center justify-center my-1">
+              <VueApexCharts
+                :key="`${isDark ? 'dark-donut' : 'light-donut'}_${selectedPerfMajor}`"
+                type="donut"
+                height="100%"
+                width="100%"
+                :options="(completionDonutOptions as any)"
+                :series="completionDonutSeries"
+              />
+            </div>
+
+            <!-- Status Breakdown (Completed, In Progress, Not Started) -->
+            <div class="grid grid-cols-3 gap-2.5 text-center text-xs pt-3 border-t border-slate-100 dark:border-slate-800">
+              <!-- Completed -->
+              <div class="bg-emerald-50 dark:bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-200/80 dark:border-emerald-800/60">
+                <span class="text-emerald-700 dark:text-emerald-400 font-black block text-base">{{ currentPerformance.completed }}%</span>
+                <span class="text-slate-600 dark:text-slate-400 text-[11px] font-semibold">Completed</span>
+              </div>
+              <!-- In Progress -->
+              <div class="bg-amber-50 dark:bg-amber-950/40 p-2.5 rounded-xl border border-amber-200/80 dark:border-amber-800/60">
+                <span class="text-amber-700 dark:text-amber-400 font-black block text-base">{{ currentPerformance.in_progress }}%</span>
+                <span class="text-slate-600 dark:text-slate-400 text-[11px] font-semibold">In Progress</span>
+              </div>
+              <!-- Not Started -->
+              <div class="bg-slate-100 dark:bg-slate-800/80 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700">
+                <span class="text-slate-700 dark:text-slate-300 font-black block text-base">{{ currentPerformance.not_started }}%</span>
+                <span class="text-slate-500 dark:text-slate-400 text-[11px] font-semibold">Not Started</span>
               </div>
             </div>
           </div>
 
-          <div class="pt-3 border-t border-slate-100 dark:border-slate-700/60 text-right">
-            <Link href="/admin/progress?tab=at_risk" class="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300">
-              {{ currentLang === 'km' ? 'ពិនិត្យដំណោះស្រាយនិស្សិតប្រឈមទាំងអស់ →' : 'Review All At-Risk Interventions →' }}
+          <!-- Link to Learning & Progress -->
+          <div class="pt-3 border-t border-slate-100 dark:border-slate-800 text-right mt-3">
+            <Link href="/admin/progress" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-500">
+              View Detailed Student Progress →
             </Link>
           </div>
         </div>
 
       </div>
 
-      <!-- ── CUSTOMIZE DASHBOARD MODAL ── -->
-      <div v-if="showCustomizeModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl">
-          <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3">
-            <h3 class="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
-              <span>⚙️</span> {{ currentLang === 'km' ? 'កំណត់ផ្ទាំងគ្រប់គ្រងផ្ទាល់ខ្លួន' : 'CUSTOMIZE DASHBOARD' }}
-            </h3>
-            <button @click="showCustomizeModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">✕</button>
-          </div>
-
-          <div class="space-y-3 max-h-[60vh] overflow-y-auto pr-1 text-xs">
-            <p class="text-slate-500 dark:text-slate-400 font-semibold">{{ currentLang === 'km' ? 'បង្ហាញ / លាក់ ជួរ:' : 'Show / Hide Rows:' }}</p>
-            <div class="space-y-2">
-              <label v-for="(val, key) in widgetVisibility" :key="key" class="flex items-center gap-2.5 text-slate-700 dark:text-slate-200 cursor-pointer hover:text-slate-900 dark:hover:text-white">
-                <input
-                  type="checkbox"
-                  v-model="widgetVisibility[key]"
-                  class="rounded bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500"
-                />
-                <span class="capitalize">
-                  {{ 
-                    currentLang === 'km' 
-                      ? (key === 'kpiCards' ? 'កាតសង្ខេប KPI' : (key === 'analyticsRow' ? 'តារាងស្ថិតិ & វិភាគ' : 'ទិន្នន័យផ្ទាល់ & សកម្មភាព')) 
-                      : key.replace(/([A-Z])/g, ' $1') 
-                  }}
-                </span>
-              </label>
+      <!-- ── 4. BOTTOM SECTION: ADMIN ALERTS / ACTION REQUIRED ── -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-none">
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
+          <div class="flex items-center gap-2.5">
+            <span class="text-xl">⚡</span>
+            <div>
+              <h3 class="font-bold text-sm text-slate-900 dark:text-white uppercase tracking-wider">
+                ADMIN ALERTS / ACTION REQUIRED
+              </h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">
+                ការជូនដំណឹងសំខាន់ៗដែលទាមទារឱ្យ Admin ពិនិត្យ និងចាត់វិធានការ
+              </p>
             </div>
           </div>
+          <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30">
+            4 Actions Pending
+          </span>
+        </div>
 
-          <div class="flex justify-end items-center gap-2 border-t border-slate-200 dark:border-slate-700 pt-4">
-            <button @click="resetWidgetConfig" class="px-3.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold cursor-pointer">
-              {{ currentLang === 'km' ? 'កំណត់ឡើងវិញ' : 'Reset Layout' }}
-            </button>
-            <button @click="saveWidgetConfig" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-indigo-600/30 cursor-pointer">
-              {{ currentLang === 'km' ? 'រក្សាទុកការកំណត់' : 'Save Preferences' }}
-            </button>
+        <!-- 4 Action Alert Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- 1. 12 At-Risk Students -->
+          <div class="p-4 rounded-2xl bg-rose-50/60 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/40 flex flex-col justify-between space-y-3">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-lg">⚠</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300">
+                  High Priority
+                </span>
+              </div>
+              <h4 class="font-bold text-sm text-slate-900 dark:text-white mt-2">12 At-Risk Students</h4>
+              <p class="text-[11px] text-slate-600 dark:text-slate-400 mt-1">
+                Low course completion (&lt; 30%) and missed deadlines detected by AI.
+              </p>
+            </div>
+            <Link
+              href="/admin/progress?tab=at_risk"
+              class="w-full py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl text-xs text-center shadow-xs transition-all block cursor-pointer"
+            >
+              View Students →
+            </Link>
+          </div>
+
+          <!-- 2. 5 Courses Waiting for Approval -->
+          <div class="p-4 rounded-2xl bg-purple-50/60 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-900/40 flex flex-col justify-between space-y-3">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-lg">📚</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300">
+                  Review Needed
+                </span>
+              </div>
+              <h4 class="font-bold text-sm text-slate-900 dark:text-white mt-2">5 Courses Waiting Approval</h4>
+              <p class="text-[11px] text-slate-600 dark:text-slate-400 mt-1">
+                Teacher-created courses submitted for syllabus & publication approval.
+              </p>
+            </div>
+            <Link
+              href="/admin/course-module/all?status=draft"
+              class="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl text-xs text-center shadow-xs transition-all block cursor-pointer"
+            >
+              Review Courses →
+            </Link>
+          </div>
+
+          <!-- 3. 3 Teacher Accounts Pending -->
+          <div class="p-4 rounded-2xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 flex flex-col justify-between space-y-3">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-lg">👨‍🏫</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300">
+                  Faculty Account
+                </span>
+              </div>
+              <h4 class="font-bold text-sm text-slate-900 dark:text-white mt-2">3 Teacher Accounts Pending</h4>
+              <p class="text-[11px] text-slate-600 dark:text-slate-400 mt-1">
+                Faculty teaching accounts awaiting department role & course assignment.
+              </p>
+            </div>
+            <Link
+              href="/admin/user-management/teachers"
+              class="w-full py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs text-center shadow-xs transition-all block cursor-pointer"
+            >
+              Review Teachers →
+            </Link>
+          </div>
+
+          <!-- 4. 2 New System Notifications -->
+          <div class="p-4 rounded-2xl bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/40 flex flex-col justify-between space-y-3">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-lg">📢</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300">
+                  Broadcast
+                </span>
+              </div>
+              <h4 class="font-bold text-sm text-slate-900 dark:text-white mt-2">2 New Notifications</h4>
+              <p class="text-[11px] text-slate-600 dark:text-slate-400 mt-1">
+                Academic semester calendar announcement ready for campus-wide release.
+              </p>
+            </div>
+            <Link
+              href="/admin/notifications/announcements"
+              class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs text-center shadow-xs transition-all block cursor-pointer"
+            >
+              View Notifications →
+            </Link>
           </div>
         </div>
       </div>

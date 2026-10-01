@@ -140,17 +140,16 @@ class DashboardController extends Controller
 
             $stats = [
                 'total_students'       => $totalStudents,
+                'active_students'      => 2390,
                 'total_teachers'       => $totalTeachers,
+                'active_teachers'      => 140,
                 'total_courses'        => $totalCourses,
                 'published_courses'    => $publishedCourses,
-                'draft_courses'        => $draftCourses,
+                'draft_courses'        => 5,
                 'total_majors'         => $totalMajors,
                 'active_enrollments'   => $activeEnrollments,
                 'at_risk_students'     => $atRiskStudents,
-                'open_alerts'          => $openAlerts,
-                'total_certificates'   => $totalCertificates,
-                'pending_certificates' => 5,
-                'failed_login_alerts'  => 12,
+                'open_alerts'          => 4,
                 'completion_rate'      => $completionRate,
                 'system_health'        => 'healthy',
             ];
@@ -178,7 +177,53 @@ class DashboardController extends Controller
             $completionBreakdown = [
                 'completed'   => 76,
                 'in_progress' => 18,
-                'not_started'  => 6,
+                'not_started' => 6,
+            ];
+
+            // Performance per Major (5 SPI Majors)
+            $majorPerformance = [
+                'all' => [
+                    'name'        => 'All Majors',
+                    'completed'   => 76,
+                    'in_progress' => 18,
+                    'not_started' => 6,
+                    'total_count' => 2458,
+                ],
+                '1' => [
+                    'name'        => 'Information Technology',
+                    'completed'   => 82,
+                    'in_progress' => 14,
+                    'not_started' => 4,
+                    'total_count' => 520,
+                ],
+                '2' => [
+                    'name'        => 'Social Work',
+                    'completed'   => 74,
+                    'in_progress' => 20,
+                    'not_started' => 6,
+                    'total_count' => 548,
+                ],
+                '3' => [
+                    'name'        => 'Agriculture',
+                    'completed'   => 70,
+                    'in_progress' => 22,
+                    'not_started' => 8,
+                    'total_count' => 600,
+                ],
+                '4' => [
+                    'name'        => 'Tourism',
+                    'completed'   => 68,
+                    'in_progress' => 24,
+                    'not_started' => 8,
+                    'total_count' => 410,
+                ],
+                '5' => [
+                    'name'        => 'English Literature',
+                    'completed'   => 85,
+                    'in_progress' => 11,
+                    'not_started' => 4,
+                    'total_count' => 380,
+                ],
             ];
 
             // Students by the 5 Canonical Majors
@@ -190,51 +235,47 @@ class DashboardController extends Controller
                 ['name' => 'English Literature', 'name_kh' => 'អក្សរសាស្ត្រអង់គ្លេស', 'count' => 380, 'pct' => 15],
             ];
 
-            // Quick Actions configuration (Academic & AI focused)
-            $quickActions = [
-                ['title' => 'Add User', 'icon' => '➕', 'url' => '/admin/user-management/all', 'desc' => 'Create Admin / Teacher / Student'],
-                ['title' => 'Enroll Student', 'icon' => '🎓', 'url' => '/admin/enrollment/single', 'desc' => 'Enroll student to course/major'],
-                ['title' => 'Create Course', 'icon' => '📚', 'url' => '/admin/course-module/all', 'desc' => 'Create or edit academic courses'],
-                ['title' => 'AI Recommendations', 'icon' => '🤖', 'url' => '/admin/ai-rules?tab=rules', 'desc' => 'Evaluate learning path rules'],
-                ['title' => 'At-Risk Intervention', 'icon' => '⚠️', 'url' => '/admin/progress?tab=at_risk', 'desc' => 'Inspect detected at-risk students'],
-                ['title' => 'Send Announce', 'icon' => '📢', 'url' => '/admin/notifications/announcements', 'desc' => 'Send system-wide broadcast'],
+            // Official Admin Alerts / Action Required
+            $adminAlerts = [
+                [
+                    'id'           => 1,
+                    'icon'         => '⚠',
+                    'level'        => 'red',
+                    'title'        => '12 At-Risk Students',
+                    'detail'       => 'AI-detected low learning progress (< 30%) and missed quiz deadlines',
+                    'action_label' => 'View Students →',
+                    'url'          => '/admin/progress?tab=at_risk',
+                ],
+                [
+                    'id'           => 2,
+                    'icon'         => '📚',
+                    'level'        => 'purple',
+                    'title'        => '5 Courses Waiting for Approval',
+                    'detail'       => 'Teacher-created courses submitted for syllabus & publication review',
+                    'action_label' => 'Review Courses →',
+                    'url'          => '/admin/course-module/all?status=draft',
+                ],
+                [
+                    'id'           => 3,
+                    'icon'         => '👨‍🏫',
+                    'level'        => 'amber',
+                    'title'        => '3 Teacher Accounts Pending',
+                    'detail'       => 'Faculty teaching accounts awaiting department role assignment',
+                    'action_label' => 'Review Teachers →',
+                    'url'          => '/admin/user-management/teachers',
+                ],
+                [
+                    'id'           => 4,
+                    'icon'         => '📢',
+                    'level'        => 'blue',
+                    'title'        => '2 New System Notifications',
+                    'detail'       => 'Important academic announcements scheduled for semester launch',
+                    'action_label' => 'View Notifications →',
+                    'url'          => '/admin/notifications/announcements',
+                ],
             ];
 
-        // Alerts & Needs Attention (Academic & AI Risk Interventions)
-        $needsAttention = [
-            [
-                'id' => 1,
-                'level' => 'red',
-                'title' => '12 At-Risk Students Detected',
-                'detail' => 'Low course completion (< 30%) and missed deadlines',
-                'action_label' => 'View At-Risk Students →',
-                'url' => '/admin/progress?tab=at_risk',
-            ],
-            [
-                'id' => 2,
-                'level' => 'yellow',
-                'title' => '8 Difficult Topics Flagged',
-                'detail' => 'High failure rates on recent quizzes in C Programming & Agronomy',
-                'action_label' => 'Inspect Difficult Topics →',
-                'url' => '/admin/ai-rules?tab=weak_topics',
-            ],
-            [
-                'id' => 3,
-                'level' => 'purple',
-                'title' => '12 Draft Courses Pending Approval',
-                'detail' => 'Courses submitted by faculty waiting for admin sign-off',
-                'action_label' => 'Review Draft Courses →',
-                'url' => '/admin/course-module/all?status=draft',
-            ],
-            [
-                'id' => 4,
-                'level' => 'yellow',
-                'title' => '12 Failed Login Alerts',
-                'detail' => 'Suspicious repetitive authentication failures logged today',
-                'action_label' => 'Open Security Center →',
-                'url' => '/admin/auth/failed',
-            ],
-        ];
+            $needsAttention = $adminAlerts;
 
         // Recent Activities List (Learning, AI & Course Delivery)
         $recentActivities = [
@@ -357,7 +398,9 @@ class DashboardController extends Controller
             'allMajors'             => $allMajors,
             'enrollmentChartData'   => $enrollmentChartData,
             'completionBreakdown'   => $completionBreakdown,
+            'majorPerformance'      => $majorPerformance,
             'studentsByMajor'       => $studentsByMajor,
+            'adminAlerts'           => $adminAlerts,
             'quickActions'          => $quickActions,
             'needsAttention'        => $needsAttention,
             'recentActivities'      => $recentActivities,
