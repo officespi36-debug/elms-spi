@@ -39,21 +39,40 @@ class CourseModuleController extends Controller
         }
 
         $courses = Schema::hasTable('courses')
-            ? Course::with(['teacher', 'major', 'subject'])->latest()->get()
+            ? Course::with([
+                'teacher',
+                'major.department.faculty',
+                'subject.major',
+                'enrollments.student',
+                'lessons',
+                'quizzes',
+                'materials'
+            ])->latest()->get()
             : collect();
 
-        $defaultCourses = [
-            ['id' => 1, 'code' => 'CRS-IT-CP101', 'title' => 'C Programming Basics', 'subject' => 'C Programming', 'faculty' => 'Faculty of Computing', 'department' => 'Computing', 'major' => 'Information Technology', 'teacher' => 'Mr. Sophea', 'learning_mode' => 'instructor_led', 'mode_label' => '🎥 Teacher-Led', 'is_paid' => true, 'price' => 25, 'status' => 'published', 'students_count' => 52],
-            ['id' => 2, 'code' => 'CRS-IT-DB102', 'title' => 'Database Systems', 'subject' => 'Database Systems & SQL', 'faculty' => 'Faculty of Computing', 'department' => 'Computing', 'major' => 'Information Technology', 'teacher' => 'Mr. Sophea', 'learning_mode' => 'self_paced', 'mode_label' => '💻 Self-Study', 'is_paid' => true, 'price' => 20, 'status' => 'published', 'students_count' => 120],
-            ['id' => 3, 'code' => 'CRS-ENG-EG101', 'title' => 'English Grammar Basics', 'subject' => 'English Grammar', 'faculty' => 'Faculty of Education', 'department' => 'Education', 'major' => 'English Literature', 'teacher' => 'Ms. Srey', 'learning_mode' => 'self_paced', 'mode_label' => '💻 Self-Study', 'is_paid' => false, 'price' => 0, 'status' => 'published', 'students_count' => 1200],
-            ['id' => 4, 'code' => 'CRS-TM-TB101', 'title' => 'Tourism Basics', 'subject' => 'Tourism Basics', 'faculty' => 'Faculty of Tourism', 'department' => 'Tourism', 'major' => 'Tourism', 'teacher' => 'Mr. Long', 'learning_mode' => 'instructor_led', 'mode_label' => '🎥 Teacher-Led', 'is_paid' => true, 'price' => 25, 'status' => 'draft', 'students_count' => 25],
-            ['id' => 5, 'code' => 'CRS-AG-PS101', 'title' => 'Plant Science', 'subject' => 'Plant Science', 'faculty' => 'Faculty of Agriculture', 'department' => 'Agriculture', 'major' => 'Agriculture', 'teacher' => 'Mr. Vuthy', 'learning_mode' => 'instructor_led', 'mode_label' => '🎥 Teacher-Led', 'is_paid' => true, 'price' => 30, 'status' => 'published', 'students_count' => 60],
-            ['id' => 6, 'code' => 'CRS-SW-SW101', 'title' => 'Social Work 101', 'subject' => 'Social Work 101', 'faculty' => 'Faculty of Social Science', 'department' => 'Social Science', 'major' => 'Social Work', 'teacher' => 'Mr. Rithy', 'learning_mode' => 'self_paced', 'mode_label' => '💻 Self-Study', 'is_paid' => true, 'price' => 15, 'status' => 'published', 'students_count' => 548],
-        ];
+        $majors = Schema::hasTable('majors')
+            ? Major::where('is_active', true)->with('department')->get()
+            : collect();
+
+        $subjects = Schema::hasTable('subjects')
+            ? Subject::where('is_active', true)->with('major')->get()
+            : collect();
+
+        $teachers = \App\Models\User::where('role', 'teacher')
+            ->where('status', 'active')
+            ->get(['id', 'name', 'name_kh', 'student_code', 'email', 'phone', 'expertise', 'major_id']);
+
+        $academicYears = Schema::hasTable('academic_years')
+            ? \App\Models\AcademicYear::where('is_active', true)->orderBy('name', 'desc')->get()
+            : collect();
 
         return Inertia::render('Admin/CourseSubjectModule/AllCourses', [
-            'courses'      => $courses->isNotEmpty() ? $courses->toArray() : $defaultCourses,
-            'summaryStats' => $this->getSummaryStats(),
+            'courses'       => $courses,
+            'summaryStats'  => $this->getSummaryStats(),
+            'majors'        => $majors,
+            'subjects'      => $subjects,
+            'teachers'      => $teachers,
+            'academicYears' => $academicYears,
         ]);
     }
 
@@ -208,65 +227,72 @@ class CourseModuleController extends Controller
     {
         $validated = $request->validate([
             'title'         => 'required|string|max:255',
-            'code'          => 'nullable|string|max:50',
+            'code'          => 'required|string|max:50|unique:courses,code',
             'description'   => 'nullable|string',
-            'teacher_id'    => 'nullable|integer',
-            'major_id'      => 'nullable|integer',
+            'teacher_id'    => 'required|exists:users,id',
+            'major_id'      => 'required|exists:majors,id',
+            'subject_id'    => 'nullable|exists:subjects,id',
+            'academic_year' => 'nullable|string|max:255',
             'learning_mode' => 'nullable|string',
             'is_paid'       => 'nullable|boolean',
             'price'         => 'nullable|numeric|min:0',
-            'status'        => 'nullable|string',
+            'status'        => 'required|in:draft,pending,pending_approval,published,rejected',
         ]);
-
-        if (empty($validated['code'])) {
-            $validated['code'] = 'CRS-' . strtoupper(substr(md5(uniqid()), 0, 6));
-        }
-
-        if (empty($validated['teacher_id'])) {
-            $validated['teacher_id'] = \App\Models\User::where('role', 'teacher')->value('id') ?? 1;
-        }
-
-        if (empty($validated['major_id'])) {
-            $validated['major_id'] = \App\Models\Major::value('id') ?? 1;
-        }
 
         if (empty($validated['learning_mode'])) {
             $validated['learning_mode'] = 'instructor_led';
         }
 
-        if (empty($validated['status'])) {
-            $validated['status'] = 'published';
-        }
+        $course = Course::create($validated);
 
-        if (Schema::hasTable('courses')) {
-            Course::create($validated);
-        }
-
-        return redirect()->back()->with('success', 'Course created successfully.');
+        return redirect()->back()->with('success', "Course '{$course->title}' created successfully.");
     }
 
     public function updateCourse(Request $request, int|string $id)
     {
+        $course = Course::findOrFail($id);
+
         $validated = $request->validate([
-            'title'         => 'sometimes|required|string|max:255',
-            'code'          => 'nullable|string|max:50',
+            'title'         => 'required|string|max:255',
+            'code'          => 'required|string|max:50|unique:courses,code,' . $course->id,
             'description'   => 'nullable|string',
-            'teacher_id'    => 'nullable|integer',
-            'major_id'      => 'nullable|integer',
+            'teacher_id'    => 'required|exists:users,id',
+            'major_id'      => 'required|exists:majors,id',
+            'subject_id'    => 'nullable|exists:subjects,id',
+            'academic_year' => 'nullable|string|max:255',
             'learning_mode' => 'nullable|string',
             'is_paid'       => 'nullable|boolean',
             'price'         => 'nullable|numeric|min:0',
-            'status'        => 'nullable|string',
+            'status'        => 'required|in:draft,pending,pending_approval,published,rejected',
         ]);
 
-        if (Schema::hasTable('courses')) {
-            $course = Course::find($id);
-            if ($course) {
-                $course->update(array_filter($validated, fn($v) => $v !== null));
-            }
-        }
+        $course->update($validated);
 
-        return redirect()->back()->with('success', 'Course updated successfully.');
+        return redirect()->back()->with('success', "Course '{$course->title}' updated successfully.");
+    }
+
+    public function approveCourse(int|string $id)
+    {
+        $course = Course::findOrFail($id);
+        $course->update([
+            'status'      => 'published',
+            'reviewed_at' => now(),
+        ]);
+
+        return redirect()->back()->with('success', "Course '{$course->title}' has been approved and published.");
+    }
+
+    public function rejectCourse(Request $request, int|string $id)
+    {
+        $course = Course::findOrFail($id);
+        $note = $request->input('rejection_note', 'Course requires modifications before approval.');
+        $course->update([
+            'status'         => 'rejected',
+            'reviewed_at'    => now(),
+            'rejection_note' => $note,
+        ]);
+
+        return redirect()->back()->with('success', "Course '{$course->title}' has been rejected.");
     }
 
     public function destroyCourse(int|string $id)

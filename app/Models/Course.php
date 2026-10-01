@@ -28,7 +28,7 @@ class Course extends Model
 {
     protected $fillable = [
         'major_id', 'subject_id', 'teacher_id', 'title', 'code', 'description',
-        'learning_mode', 'is_paid', 'price', 'status', 'thumbnail',
+        'academic_year', 'learning_mode', 'is_paid', 'price', 'status', 'thumbnail',
         'submitted_at', 'reviewed_at', 'rejection_note'
     ];
 

@@ -192,6 +192,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('course-module/paid', [Admin\CourseModuleController::class, 'paidCourses'])->name('course-module.paid');
         Route::post('course-module/store', [Admin\CourseModuleController::class, 'storeCourse'])->name('course-module.store');
         Route::put('course-module/update/{id}', [Admin\CourseModuleController::class, 'updateCourse'])->name('course-module.update');
+        Route::post('course-module/approve/{id}', [Admin\CourseModuleController::class, 'approveCourse'])->name('course-module.approve');
+        Route::post('course-module/reject/{id}', [Admin\CourseModuleController::class, 'rejectCourse'])->name('course-module.reject');
         Route::delete('course-module/destroy/{id}', [Admin\CourseModuleController::class, 'destroyCourse'])->name('course-module.destroy');
 
         Route::post('course-module/subjects/store', [Admin\CourseModuleController::class, 'storeSubject'])->name('course-module.subjects.store');
