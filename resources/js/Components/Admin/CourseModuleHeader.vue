@@ -123,7 +123,7 @@ const isApprovalTab = computed(() => {
 
         <!-- 2. Course Approval -->
         <Link
-          href="/admin/course-module/all?status=draft"
+          href="/admin/course-module/approval"
           class="py-1.5 px-3.5 rounded-lg font-bold transition-all flex items-center gap-2"
           :class="(isApprovalTab || activeTab === 'approval')
             ? 'bg-slate-800 text-amber-300 border border-slate-700/60 shadow-sm'

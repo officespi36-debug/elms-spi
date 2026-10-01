@@ -98,4 +98,9 @@ class Course extends Model
     {
         return $this->hasMany(LabIntegration::class);
     }
+
+    public function approvalHistories()
+    {
+        return $this->hasMany(CourseApprovalHistory::class)->latest();
+    }
 }

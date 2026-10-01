@@ -271,28 +271,103 @@ class CourseModuleController extends Controller
         return redirect()->back()->with('success', "Course '{$course->title}' updated successfully.");
     }
 
-    public function approveCourse(int|string $id)
+    public function courseApproval(Request $request): Response
+    {
+        $courses = Schema::hasTable('courses')
+            ? Course::with([
+                'teacher',
+                'major.department.faculty',
+                'subject.major',
+                'modules.lessons',
+                'lessons',
+                'quizzes',
+                'materials',
+                'videos',
+                'approvalHistories.reviewer',
+            ])->latest()->get()
+            : collect();
+
+        $majors = Schema::hasTable('majors')
+            ? Major::where('is_active', true)->with('department')->get()
+            : collect();
+
+        $subjects = Schema::hasTable('subjects')
+            ? Subject::where('is_active', true)->with('major')->get()
+            : collect();
+
+        $teachers = \App\Models\User::where('role', 'teacher')
+            ->where('status', 'active')
+            ->get(['id', 'name', 'name_kh', 'student_code', 'email', 'phone', 'expertise', 'major_id']);
+
+        $academicYears = Schema::hasTable('academic_years')
+            ? \App\Models\AcademicYear::where('is_active', true)->orderBy('name', 'desc')->get()
+            : collect();
+
+        $approvalHistories = Schema::hasTable('course_approval_histories')
+            ? \App\Models\CourseApprovalHistory::with(['course.teacher', 'reviewer'])->latest()->limit(50)->get()
+            : collect();
+
+        $summaryStats = [
+            'total_courses'     => $courses->count(),
+            'pending_count'     => $courses->whereIn('status', ['pending', 'pending_approval', 'draft'])->count(),
+            'approved_count'    => $courses->where('status', 'published')->count(),
+            'rejected_count'    => $courses->where('status', 'rejected')->count(),
+            'total_submissions' => $courses->count(),
+        ];
+
+        return Inertia::render('Admin/CourseSubjectModule/CourseApproval', [
+            'courses'           => $courses,
+            'summaryStats'      => $summaryStats,
+            'majors'            => $majors,
+            'subjects'          => $subjects,
+            'teachers'          => $teachers,
+            'academicYears'     => $academicYears,
+            'approvalHistories' => $approvalHistories,
+        ]);
+    }
+
+    public function approveCourse(Request $request, int|string $id)
     {
         $course = Course::findOrFail($id);
         $course->update([
-            'status'      => 'published',
-            'reviewed_at' => now(),
+            'status'         => 'published',
+            'reviewed_at'    => now(),
+            'rejection_note' => null,
         ]);
 
-        return redirect()->back()->with('success', "Course '{$course->title}' has been approved and published.");
+        if (Schema::hasTable('course_approval_histories')) {
+            \App\Models\CourseApprovalHistory::create([
+                'course_id'   => $course->id,
+                'reviewer_id' => auth()->id(),
+                'action'      => 'approved',
+                'comment'     => $request->input('comment', 'Curriculum verified and approved. Course is published and available for student enrollment.'),
+            ]);
+        }
+
+        return redirect()->back()->with('success', "វគ្គសិក្សា '{$course->title}' ត្រូវបានអនុម័ត និងផ្សព្វផ្សាយជាសាធារណៈ (Approved & Published).");
     }
 
     public function rejectCourse(Request $request, int|string $id)
     {
         $course = Course::findOrFail($id);
-        $note = $request->input('rejection_note', 'Course requires modifications before approval.');
+        $note = $request->input('rejection_note') ?: $request->input('comment', 'Course requires modifications before approval.');
+
         $course->update([
             'status'         => 'rejected',
             'reviewed_at'    => now(),
             'rejection_note' => $note,
         ]);
 
-        return redirect()->back()->with('success', "Course '{$course->title}' has been rejected.");
+        if (Schema::hasTable('course_approval_histories')) {
+            \App\Models\CourseApprovalHistory::create([
+                'course_id'   => $course->id,
+                'reviewer_id' => auth()->id(),
+                'action'      => 'rejected',
+                'comment'     => $note,
+            ]);
+        }
+
+        return redirect()->back()->with('success', "វគ្គសិក្សា '{$course->title}' ត្រូវបានកត់ត្រាបដិសេធ និងផ្ញើសេចក្តីជូនដំណឹងកែសម្រួលទៅកាន់គ្រូ (Rejected with note).");
     }
 
     public function destroyCourse(int|string $id)

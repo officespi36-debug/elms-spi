@@ -101,7 +101,7 @@ const navigation: NavItem[] = [
     icon: 'M12 14l9-5-9-5-9 5 9 5z',
     children: [
       { name: 'Courses', href: '/admin/course-module/all', iconUrl: '/images/nav/sub/all-courses.svg', icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' },
-      { name: 'Course Approval', href: '/admin/course-module/all?status=draft', iconUrl: '/images/nav/sub/roles.svg', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
+      { name: 'Course Approval', href: '/admin/course-module/approval', iconUrl: '/images/nav/sub/roles.svg', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
       { name: 'Enrollment', href: '/admin/enrollment/courses', iconUrl: '/images/nav/enrollment.svg', icon: 'M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122' },
     ]
   },

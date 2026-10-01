@@ -184,6 +184,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('departments', [Admin\AcademicStructureController::class, 'departments'])->name('departments.index');
         // Course & Subject Management Module (Modular routes)
         Route::get('course-module/all', [Admin\CourseModuleController::class, 'allCourses'])->name('course-module.all');
+        Route::get('course-module/approval', [Admin\CourseModuleController::class, 'courseApproval'])->name('course-module.approval');
         Route::get('course-module/subjects', [Admin\CourseModuleController::class, 'subjects'])->name('course-module.subjects');
         Route::get('course-module/teacher-assignments', [Admin\CourseModuleController::class, 'teacherAssignments'])->name('course-module.teacher-assignments');
         Route::get('course-module/teacher-led', [Admin\CourseModuleController::class, 'teacherLed'])->name('course-module.teacher-led');
@@ -216,6 +217,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('enrollment/majors/withdraw/{id}', [Admin\EnrollmentController::class, 'withdrawMajor'])->name('enrollment.majors.withdraw');
 
         Route::post('enrollment/courses/store', [Admin\EnrollmentController::class, 'storeCourseEnrollment'])->name('enrollment.courses.store');
+        Route::put('enrollment/courses/update-status/{id}', [Admin\EnrollmentController::class, 'updateStatus'])->name('enrollment.courses.update-status');
         Route::put('enrollment/courses/toggle-access/{id}', [Admin\EnrollmentController::class, 'toggleAccess'])->name('enrollment.courses.toggle-access');
         Route::put('enrollment/courses/verify-payment/{id}', [Admin\EnrollmentController::class, 'verifyPayment'])->name('enrollment.courses.verify-payment');
         Route::delete('enrollment/courses/remove/{id}', [Admin\EnrollmentController::class, 'removeCourseEnrollment'])->name('enrollment.courses.remove');
