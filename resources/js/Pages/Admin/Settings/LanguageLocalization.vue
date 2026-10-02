@@ -69,13 +69,13 @@ const toast = useToast()
       </div>
     </div>
 
-    <!-- Currency & Payment Display -->
+    <!-- Currency & Numerical Formatting -->
     <div class="border-t border-slate-700/60 pt-6 space-y-4">
-      <h3 class="text-sm font-bold text-slate-200">💱 Currency & Payment Display</h3>
+      <h3 class="text-sm font-bold text-slate-200">💱 Currency & Numerical Formatting</h3>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label class="block text-xs font-medium text-slate-300 mb-1">Exchange Rate (USD to KHR)</label>
+          <label class="block text-xs font-medium text-slate-300 mb-1">Exchange Rate Reference (USD to KHR)</label>
           <div class="flex items-center gap-2">
             <input v-model="form.exchange_rate_usd_khr" type="text" class="w-full bg-slate-900 border border-slate-700 text-xs text-white rounded-xl px-3 py-2.5" />
             <button @click="toast.add({ severity: 'info', summary: 'Updated', detail: 'Rate set to 1 USD = 4,100 KHR', life: 2500 })" type="button" class="px-3 py-2 text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-xl whitespace-nowrap">🔄 Update</button>
@@ -93,7 +93,7 @@ const toast = useToast()
 
       <label class="flex items-center gap-3 cursor-pointer pt-1">
         <input v-model="form.show_khr_equivalent" type="checkbox" class="w-4 h-4 rounded text-blue-600 bg-slate-900 border-slate-700" />
-        <span class="text-xs text-slate-300">Show Khmer Riel equivalent amount alongside USD in checkout (e.g., $10 ≈ 41,000 ៛)</span>
+        <span class="text-xs text-slate-300">Show Khmer Riel numerical equivalent alongside USD (e.g., $10 ≈ 41,000 ៛)</span>
       </label>
     </div>
 

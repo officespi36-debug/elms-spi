@@ -15,7 +15,7 @@ const testEmailRecipient = ref('admin@elms.edu.kh')
     <div class="flex items-center justify-between border-b border-slate-700/60 pb-4">
       <div>
         <h2 class="text-lg font-bold text-white flex items-center gap-2">📧 Email / SMTP Settings</h2>
-        <p class="text-xs text-slate-400">Configure automated email delivery for Payment Receipts, Welcome Emails, Password Reset, and Certificates.</p>
+        <p class="text-xs text-slate-400">Configure automated email delivery for Institutional Announcements, Welcome Emails, Password Reset, and Certificates.</p>
       </div>
       <span class="px-2.5 py-1 text-[11px] font-semibold rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">🟢 Connected</span>
     </div>

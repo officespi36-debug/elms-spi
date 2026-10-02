@@ -15,7 +15,7 @@ const toast = useToast()
     <div class="flex items-center justify-between border-b border-slate-700/60 pb-4">
       <div>
         <h2 class="text-lg font-bold text-white flex items-center gap-2">⚡ Redis / Queue Worker Settings</h2>
-        <p class="text-xs text-slate-400">Monitor background queue workers for Email delivery, Certificate PDF generation, and Payment callbacks.</p>
+        <p class="text-xs text-slate-400">Monitor background queue workers for Email delivery, Certificate PDF generation, and AI inference diagnostics.</p>
       </div>
       <span class="px-2.5 py-1 text-[11px] font-semibold rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">🟢 Redis Connected</span>
     </div>
