@@ -94,9 +94,41 @@ class UserController extends Controller
     public function students()
     {
         $students = User::where('role', 'student')
-            ->with(['major.department.faculty', 'enrollments.course', 'academicYear'])
+            ->with(['major.department.faculty', 'enrollments.course', 'academicYear', 'quizAttempts', 'lessonProgress'])
             ->latest()
-            ->get();
+            ->get()
+            ->map(function ($student) {
+                $enrolledCoursesCount = $student->enrollments->count();
+                $completedCoursesCount = $student->enrollments->where('status', 'completed')->count();
+                
+                // Average quiz score
+                $quizAvg = $student->quizAttempts->count() > 0
+                    ? round($student->quizAttempts->avg('score'), 1)
+                    : 0;
+
+                // Overall progress: from lesson progress or completed courses
+                $progressCount = $student->lessonProgress->count();
+                $overallProgress = $progressCount > 0
+                    ? round($student->lessonProgress->avg('percent'), 1)
+                    : ($enrolledCoursesCount > 0 ? round(($completedCoursesCount / $enrolledCoursesCount) * 100, 1) : 0);
+
+                // Quiz / Assignment stats
+                $passedQuizzes = $student->quizAttempts->where('passed', true)->count();
+                $totalQuizzes = $student->quizAttempts->count();
+                $assignmentStatus = $totalQuizzes > 0
+                    ? "{$passedQuizzes}/{$totalQuizzes} Passed"
+                    : ($enrolledCoursesCount > 0 ? 'In Progress' : 'No Submissions');
+
+                $student->learning_summary = [
+                    'enrolled_courses'   => $enrolledCoursesCount,
+                    'completed_courses'  => $completedCoursesCount,
+                    'average_quiz_score' => $quizAvg,
+                    'assignment_status'  => $assignmentStatus,
+                    'overall_progress'   => $overallProgress,
+                ];
+
+                return $student;
+            });
 
         return Inertia::render('Admin/UserManagementModule/Students', [
             'students'      => $students,
@@ -145,12 +177,12 @@ class UserController extends Controller
             'academic_year'    => 'nullable|string|max:255',
             'academic_year_id' => 'nullable|exists:academic_years,id',
             'phone'            => 'nullable|string|max:30',
+            'gender'           => 'nullable|string|in:male,female,other',
+            'dob'              => 'nullable|date',
             'status'           => 'nullable|in:active,inactive,suspended,pending',
             'qualification'    => 'nullable|string|max:255',
             'expertise'        => 'nullable|string|max:255',
             'bio'              => 'nullable|string',
-            'aba_name'         => 'nullable|string',
-            'aba_number'       => 'nullable|string',
         ]);
 
         if (!empty($data['academic_year_id']) && empty($data['academic_year'])) {
@@ -198,12 +230,12 @@ class UserController extends Controller
             'academic_year'    => 'nullable|string|max:255',
             'academic_year_id' => 'nullable|exists:academic_years,id',
             'phone'            => 'nullable|string|max:30',
+            'gender'           => 'nullable|string|in:male,female,other',
+            'dob'              => 'nullable|date',
             'status'           => 'nullable|in:active,inactive,suspended,pending',
             'qualification'    => 'nullable|string|max:255',
             'expertise'        => 'nullable|string|max:255',
             'bio'              => 'nullable|string',
-            'aba_name'         => 'nullable|string',
-            'aba_number'       => 'nullable|string',
         ]);
 
         if (!empty($data['academic_year_id']) && empty($data['academic_year'])) {
@@ -222,7 +254,23 @@ class UserController extends Controller
             $data['is_active'] = ($data['status'] === 'active');
         }
 
+        // Check if student changed major with existing enrollments
+        $majorWarning = null;
+        if ($user->role === 'student' && isset($data['major_id']) && (int)$data['major_id'] !== (int)$user->major_id) {
+            $existingEnrollmentsCount = $user->enrollments()->count();
+            if ($existingEnrollmentsCount > 0) {
+                $oldMajor = $user->major?->name ?? 'Current Major';
+                $newMajor = Major::find($data['major_id']);
+                $newMajorName = $newMajor?->name ?? 'New Major';
+                $majorWarning = "និស្សិតមានការចុះឈ្មោះ Course ចំនួន {$existingEnrollmentsCount} រួចហើយក្នុង {$oldMajor}។ សូមពិនិត្យផ្ទៀងផ្ទាត់ Course Enrollment ដើម្បីកុំឱ្យទិន្នន័យ Academic ខុសជាមួយ Major ថ្មី ({$newMajorName})។";
+            }
+        }
+
         $user->update($data);
+
+        if ($majorWarning) {
+            return back()->with('success', 'User profile updated successfully.')->with('warning', $majorWarning);
+        }
 
         return back()->with('success', 'User profile updated successfully.');
     }

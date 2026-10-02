@@ -53,6 +53,8 @@ class User extends Authenticatable implements JWTSubject
         'student_code',
         'study_type',
         'phone',
+        'gender',
+        'dob',
         'academic_year',
         'academic_year_id',
         'telegram_id',
@@ -130,5 +132,15 @@ class User extends Authenticatable implements JWTSubject
     public function payments()
     {
         return $this->hasMany(Payment::class, 'student_id');
+    }
+
+    public function quizAttempts()
+    {
+        return $this->hasMany(QuizAttempt::class, 'user_id');
+    }
+
+    public function lessonProgress()
+    {
+        return $this->hasMany(LessonProgress::class, 'user_id');
     }
 }

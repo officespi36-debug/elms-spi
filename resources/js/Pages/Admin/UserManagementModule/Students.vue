@@ -71,10 +71,25 @@ const studentForm = useForm({
   email: '',
   password: '',
   phone: '',
+  gender: 'male',
+  dob: '',
   major_id: '' as string | number,
   academic_year: 'Academic Year 2026 – 2027',
   academic_year_id: null as number | null,
   status: 'active',
+})
+
+// Major change tracking for academic integrity verification
+const initialStudentMajorId = ref<number | string | null>(null)
+const initialStudentEnrollmentsCount = ref<number>(0)
+const initialMajorName = ref<string>('')
+
+const hasMajorChangedWithEnrollments = computed(() => {
+  return isEditMode.value &&
+    initialStudentEnrollmentsCount.value > 0 &&
+    Boolean(studentForm.major_id) &&
+    Boolean(initialStudentMajorId.value) &&
+    Number(studentForm.major_id) !== Number(initialStudentMajorId.value)
 })
 
 // Computed Filtered Students
@@ -110,11 +125,17 @@ const openCreateModal = () => {
   studentForm.email = ''
   studentForm.password = ''
   studentForm.phone = ''
+  studentForm.gender = 'male'
+  studentForm.dob = ''
   studentForm.major_id = props.majors[0]?.id || ''
   studentForm.academic_year = availableAcademicYears.value[0]?.name || 'Academic Year 2026 – 2027'
   studentForm.academic_year_id = availableAcademicYears.value[0]?.id || null
   studentForm.status = 'active'
   
+  initialStudentMajorId.value = null
+  initialStudentEnrollmentsCount.value = 0
+  initialMajorName.value = ''
+
   showCreateEditModal.value = true
 }
 
@@ -129,11 +150,17 @@ const openEditModal = (student: any) => {
   studentForm.email = student.email || ''
   studentForm.password = ''
   studentForm.phone = student.phone || ''
+  studentForm.gender = student.gender || 'male'
+  studentForm.dob = student.dob ? String(student.dob).slice(0, 10) : ''
   studentForm.major_id = student.major_id || (props.majors[0]?.id || '')
   studentForm.academic_year = student.academic_year || availableAcademicYears.value[0]?.name || 'Academic Year 2026 – 2027'
   studentForm.academic_year_id = student.academic_year_id || null
   studentForm.status = student.status || 'active'
   
+  initialStudentMajorId.value = student.major_id
+  initialStudentEnrollmentsCount.value = student.learning_summary?.enrolled_courses ?? student.enrollments?.length ?? 0
+  initialMajorName.value = student.major?.name || 'Current Major'
+
   if (showProfileModal.value) {
     showProfileModal.value = false
   }
@@ -153,12 +180,17 @@ const saveStudent = () => {
   if (isEditMode.value && studentForm.id) {
     studentForm.put(`/admin/users/${studentForm.id}`, {
       preserveScroll: true,
-      onSuccess: () => {
+      onSuccess: (page: any) => {
         showCreateEditModal.value = false
-        triggerToast(
-          'រក្សាទុកបានជោគជ័យ (Saved)',
-          `ព័ត៌មាននិស្សិត "${studentName}" (${studentForm.student_code}) ត្រូវបានកែសម្រួលដោយជោគជ័យ`
-        )
+        const warningMsg = page.props?.flash?.warning
+        if (warningMsg) {
+          triggerToast('បម្រាម Academic (Warning)', warningMsg, 'warning')
+        } else {
+          triggerToast(
+            'រក្សាទុកបានជោគជ័យ (Saved)',
+            `ព័ត៌មាននិស្សិត "${studentName}" (${studentForm.student_code}) ត្រូវបានកែសម្រួលដោយជោគជ័យ`
+          )
+        }
       },
       onError: () => {
         triggerToast('មានបញ្ហាក្នុងការរក្សាទុក', 'សូមពិនិត្យមើលព័ត៌មានដែលបានបញ្ចូលឡើងវិញ', 'warning')
@@ -182,12 +214,12 @@ const saveStudent = () => {
   }
 }
 
-// Toggle Activate / Disable Student
+// Toggle Activate / Disable Student (Do NOT delete immediately to preserve learning history)
 const toggleActivateDisable = (student: any) => {
   const isActivating = student.status !== 'active'
-  const actionText = isActivating ? 'Activate (បើកដំណើរការ)' : 'Disable / Suspend (ផ្អាកដំណើរការ)'
+  const actionText = isActivating ? 'Activate (បើកដំណើរការ)' : 'Disable (ផ្អាកដំណើរការ)'
   
-  if (confirm(`តើអ្នកពិតជាចង់ ${actionText} គណនីនិស្សិត "${student.name}" មែនទេ?`)) {
+  if (confirm(`តើអ្នកពិតជាចង់ ${actionText} គណនីនិស្សិត "${student.name}" មែនទេ? (ប្រព័ន្ធនឹងរក្សាទុក Quiz Results, Assignments, និង Learning History)`)) {
     router.post(`/admin/user-management/toggle-status/${student.id}`, {}, {
       preserveScroll: true,
       onSuccess: () => {
@@ -268,17 +300,28 @@ const isStudentAtRisk = (student: any) => {
 const getStudentLearningData = (student: any) => {
   if (!student) {
     return {
-      enrolledCourses: 4,
-      completedCourses: 2,
-      quizAverage: 76,
-      learningProgress: 68,
+      enrolledCourses: 0,
+      completedCourses: 0,
+      quizAverage: 0,
+      assignmentStatus: 'No Submissions',
+      learningProgress: 0,
       atRisk: false
     }
   }
 
   const atRisk = isStudentAtRisk(student)
+  if (student.learning_summary) {
+    return {
+      enrolledCourses: student.learning_summary.enrolled_courses ?? (student.enrollments?.length || 0),
+      completedCourses: student.learning_summary.completed_courses ?? 0,
+      quizAverage: student.learning_summary.average_quiz_score ?? 0,
+      assignmentStatus: student.learning_summary.assignment_status ?? 'In Progress',
+      learningProgress: student.learning_summary.overall_progress ?? 0,
+      atRisk
+    }
+  }
+
   const codeNum = parseInt(student.student_code?.replace(/\D/g, '') || String(student.id)) || 1
-  
   const enrolled = (student.enrollments && student.enrollments.length > 0) ? student.enrollments.length : ((codeNum % 3) + 3)
   const completed = atRisk ? 0 : Math.min(enrolled - 1, (codeNum % 2) + 1)
   const quizAvg = atRisk ? 38 : (65 + (codeNum * 7) % 30)
@@ -288,6 +331,7 @@ const getStudentLearningData = (student: any) => {
     enrolledCourses: enrolled,
     completedCourses: completed,
     quizAverage: quizAvg,
+    assignmentStatus: quizAvg > 60 ? 'Completed' : 'In Progress',
     learningProgress: progress,
     atRisk
   }
@@ -430,11 +474,12 @@ const getStudentLearningData = (student: any) => {
               </th>
               <th class="py-3.5 px-4">Student ID</th>
               <th class="py-3.5 px-4">Name</th>
-              <th class="py-3.5 px-4">Email</th>
+              <th class="py-3.5 px-4">Email / Phone</th>
               <th class="py-3.5 px-4">Major</th>
               <th class="py-3.5 px-4">Academic Year</th>
+              <th class="py-3.5 px-4 text-center">Enrolled Subjects</th>
               <th class="py-3.5 px-4 text-center">Status</th>
-              <th class="py-3.5 px-4 text-right">Action</th>
+              <th class="py-3.5 px-4 text-right">Actions</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 text-xs">
@@ -469,11 +514,14 @@ const getStudentLearningData = (student: any) => {
                     <span class="font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors block text-xs">
                       {{ student.name }}
                     </span>
+                    <span v-if="student.gender" class="text-[10px] text-slate-400 capitalize">
+                      {{ student.gender }}
+                    </span>
                   </div>
                 </div>
               </td>
 
-              <!-- Email & Phone -->
+              <!-- 3. Email & Phone -->
               <td class="py-3.5 px-4">
                 <div class="font-mono text-slate-800 dark:text-slate-200 font-medium flex items-center gap-1.5">
                   <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
@@ -481,11 +529,11 @@ const getStudentLearningData = (student: any) => {
                 </div>
                 <div class="text-[11px] text-slate-500 dark:text-slate-400 font-mono flex items-center gap-1.5 mt-0.5">
                   <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                  <span>{{ student.phone || '+855 12 345 678' }}</span>
+                  <span>{{ student.phone || 'N/A' }}</span>
                 </div>
               </td>
 
-              <!-- Major & Department (Linked from Academic Structure) -->
+              <!-- 4. Major & Department (Linked from Academic Structure) -->
               <td class="py-3.5 px-4 whitespace-nowrap">
                 <div class="font-bold text-slate-900 dark:text-slate-100 text-xs flex items-center gap-1.5">
                   <svg class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/></svg>
@@ -496,7 +544,7 @@ const getStudentLearningData = (student: any) => {
                 </div>
               </td>
 
-              <!-- Academic Year -->
+              <!-- 5. Academic Year -->
               <td class="py-3.5 px-4 whitespace-nowrap">
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30">
                   <svg class="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -504,7 +552,15 @@ const getStudentLearningData = (student: any) => {
                 </span>
               </td>
 
-              <!-- Status -->
+              <!-- 6. Enrolled Subjects (ចំនួនមុខវិជ្ជា) -->
+              <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold font-mono bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30">
+                  <svg class="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                  <span>{{ student.learning_summary?.enrolled_courses ?? student.enrollments?.length ?? 0 }} Subjects</span>
+                </span>
+              </td>
+
+              <!-- 7. Status -->
               <td class="py-3.5 px-4 text-center whitespace-nowrap">
                 <span
                   v-if="student.status === 'active'"
@@ -522,14 +578,14 @@ const getStudentLearningData = (student: any) => {
                 </span>
               </td>
 
-              <!-- Actions: View Profile, Edit, Activate/Disable -->
+              <!-- 8. Actions: View Profile, Edit, Disable/Activate -->
               <td class="py-3.5 px-4 text-right whitespace-nowrap">
                 <div class="flex items-center justify-end gap-1.5">
                   <!-- 1. VIEW STUDENT PROFILE -->
                   <button
                     @click="openProfileModal(student)"
                     class="p-2 bg-slate-100 hover:bg-indigo-50 dark:bg-slate-800 dark:hover:bg-indigo-500/20 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-300 rounded-xl transition-all cursor-pointer"
-                    title="View Student Profile"
+                    title="View Student Profile (មើលប្រវត្តិរូបនិស្សិត)"
                   >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                   </button>
@@ -538,12 +594,12 @@ const getStudentLearningData = (student: any) => {
                   <button
                     @click="openEditModal(student)"
                     class="p-2 bg-slate-100 hover:bg-emerald-50 dark:bg-slate-800 dark:hover:bg-emerald-500/20 text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-300 rounded-xl transition-all cursor-pointer"
-                    title="Edit Student"
+                    title="Edit Student (កែសម្រួលព័ត៌មាននិស្សិត)"
                   >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                   </button>
 
-                  <!-- 3. ACTIVATE / DISABLE TOGGLE -->
+                  <!-- 3. ACTIVATE / DISABLE TOGGLE (Preserves all Quiz, Assignment & AI Data) -->
                   <button
                     @click="toggleActivateDisable(student)"
                     :class="[
@@ -552,7 +608,7 @@ const getStudentLearningData = (student: any) => {
                         : 'text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-500/20',
                       'p-2 bg-slate-100 dark:bg-slate-800 rounded-xl transition-all cursor-pointer'
                     ]"
-                    :title="student.status === 'active' ? 'Disable Student Account' : 'Activate Student Account'"
+                    :title="student.status === 'active' ? 'Disable Student (ផ្អាកដំណើរការគណនី)' : 'Activate Student (បើកដំណើរការឡើងវិញ)'"
                   >
                     <svg v-if="student.status === 'active'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
                     <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
@@ -562,7 +618,7 @@ const getStudentLearningData = (student: any) => {
             </tr>
 
             <tr v-if="filteredStudents.length === 0">
-              <td colspan="8" class="py-12 text-center text-slate-500 font-medium">
+              <td colspan="9" class="py-12 text-center text-slate-500 font-medium">
                 No student accounts found matching criteria.
               </td>
             </tr>
@@ -602,169 +658,249 @@ const getStudentLearningData = (student: any) => {
           </div>
 
           <!-- Form -->
-          <form @submit.prevent="saveStudent" class="space-y-4 text-xs">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <!-- 1. Student ID -->
-              <div>
-                <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Student ID <span class="text-emerald-600 font-mono">(e.g. SPI-2026-001)</span> *
-                </label>
-                <div class="relative">
-                  <input
-                    v-model="studentForm.student_code"
-                    type="text"
-                    required
-                    placeholder="SPI-2026-001"
-                    class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-emerald-700 dark:text-emerald-400 font-mono font-bold focus:outline-none focus:border-emerald-500 uppercase"
-                  />
-                  <span class="absolute left-3 top-2.5 text-slate-400">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/></svg>
-                  </span>
-                </div>
+          <form @submit.prevent="saveStudent" class="space-y-5 text-xs">
+            <!-- SECTION 1: Student Information -->
+            <div class="space-y-3">
+              <div class="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200 border-b border-slate-100 dark:border-slate-800 pb-1.5 uppercase tracking-wide">
+                <span>👤</span>
+                <span>Student Information (ព័ត៌មានផ្ទាល់ខ្លួននិស្សិត)</span>
               </div>
-
-              <!-- 2. Full Name -->
-              <div>
-                <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Full Name (ឈ្មោះពេញ) *
-                </label>
-                <div class="relative">
-                  <input
-                    v-model="studentForm.name"
-                    type="text"
-                    required
-                    placeholder="e.g. Sok Dara"
-                    class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-900 dark:text-white font-semibold focus:outline-none focus:border-emerald-500"
-                  />
-                  <span class="absolute left-3 top-2.5 text-slate-400">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                  </span>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- 1. Student ID -->
+                <div>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Student ID <span class="text-emerald-600 font-mono">(e.g. SPI-2026-001)</span> *
+                  </label>
+                  <div class="relative">
+                    <input
+                      v-model="studentForm.student_code"
+                      type="text"
+                      required
+                      placeholder="SPI-2026-001"
+                      class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-emerald-700 dark:text-emerald-400 font-mono font-bold focus:outline-none focus:border-emerald-500 uppercase"
+                    />
+                    <span class="absolute left-3 top-2.5 text-slate-400">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/></svg>
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              <!-- 3. Email -->
-              <div>
-                <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Email Address *
-                </label>
-                <div class="relative">
-                  <input
-                    v-model="studentForm.email"
-                    type="email"
-                    required
-                    placeholder="dara@email.com"
-                    class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-900 dark:text-white font-mono focus:outline-none focus:border-emerald-500"
-                  />
-                  <span class="absolute left-3 top-2.5 text-slate-400">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                  </span>
+                <!-- 2. Full Name -->
+                <div>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Full Name (ឈ្មោះពេញ) *
+                  </label>
+                  <div class="relative">
+                    <input
+                      v-model="studentForm.name"
+                      type="text"
+                      required
+                      placeholder="e.g. Sok Dara"
+                      class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-900 dark:text-white font-semibold focus:outline-none focus:border-emerald-500"
+                    />
+                    <span class="absolute left-3 top-2.5 text-slate-400">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              <!-- 4. Password -->
-              <div>
-                <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Password {{ isEditMode ? '(ទុកទំនេរដើម្បីរក្សាទុកពាក្យសម្ងាត់ដដែល)' : '*' }}
-                </label>
-                <div class="relative">
-                  <input
-                    v-model="studentForm.password"
-                    :type="showPassword ? 'text' : 'password'"
-                    :required="!isEditMode"
-                    placeholder="********"
-                    class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-10 py-2.5 text-xs text-slate-900 dark:text-white font-mono focus:outline-none focus:border-emerald-500"
-                  />
-                  <span class="absolute left-3 top-2.5 text-slate-400">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                  </span>
-                  <button
-                    type="button"
-                    @click="showPassword = !showPassword"
-                    class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                <!-- 3. Email -->
+                <div>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Email Address *
+                  </label>
+                  <div class="relative">
+                    <input
+                      v-model="studentForm.email"
+                      type="email"
+                      required
+                      placeholder="dara@spi.edu.kh"
+                      class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-900 dark:text-white font-mono focus:outline-none focus:border-emerald-500"
+                    />
+                    <span class="absolute left-3 top-2.5 text-slate-400">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    </span>
+                  </div>
+                </div>
+
+                <!-- 4. Phone -->
+                <div>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Phone (លេខទូរស័ព្ទ)
+                  </label>
+                  <div class="relative">
+                    <input
+                      v-model="studentForm.phone"
+                      type="text"
+                      placeholder="+855 12 345 678"
+                      class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3.5 py-2.5 text-xs text-slate-900 dark:text-white font-mono focus:outline-none focus:border-emerald-500"
+                    />
+                    <span class="absolute left-3 top-2.5 text-slate-400">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                    </span>
+                  </div>
+                </div>
+
+                <!-- 5. Gender -->
+                <div>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Gender (ភេទ)
+                  </label>
+                  <select
+                    v-model="studentForm.gender"
+                    class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:border-emerald-500 cursor-pointer"
                   >
-                    {{ showPassword ? '🙈' : '👁️' }}
-                  </button>
+                    <option value="male">ប្រុស (Male)</option>
+                    <option value="female">ស្រី (Female)</option>
+                    <option value="other">ផ្សេងៗ (Other)</option>
+                  </select>
+                </div>
+
+                <!-- 6. Date of Birth -->
+                <div>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Date of Birth (ថ្ងៃខែឆ្នាំកំណើត)
+                  </label>
+                  <input
+                    v-model="studentForm.dob"
+                    type="date"
+                    class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-slate-200 font-mono focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION 2: Academic Information -->
+            <div class="space-y-3">
+              <div class="flex items-center gap-2 text-xs font-bold text-emerald-800 dark:text-emerald-300 border-b border-slate-100 dark:border-slate-800 pb-1.5 uppercase tracking-wide">
+                <span>🎓</span>
+                <span>Academic Information (ព័ត៌មានសិក្សា & កំណត់ Major)</span>
+              </div>
+
+              <!-- Major change warning alert -->
+              <div v-if="hasMajorChangedWithEnrollments" class="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-700 dark:text-amber-300 text-xs flex items-start gap-2.5 animate-fade-in">
+                <span class="text-base leading-none">⚠️</span>
+                <div>
+                  <span class="font-bold">បម្រាម Academic Integrity:</span> និស្សិតមានការចុះឈ្មោះ Course ចំនួន <strong>{{ initialStudentEnrollmentsCount }}</strong> រួចហើយក្នុង <strong>{{ initialMajorName }}</strong>។ ការប្តូរ Major នឹងប៉ះពាល់ដល់ការកំណត់មុខវិជ្ជា និងទិន្នន័យសិក្សា!
                 </div>
               </div>
 
-              <!-- 5. Major (5 SPI Majors) -->
-              <div>
-                <label class="flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400 mb-1">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/></svg>
-                  <span>Major (ភ្ជាប់ជាមួយ Academic Structure) *</span>
-                </label>
-                <select
-                  v-model="studentForm.major_id"
-                  required
-                  class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-emerald-700 dark:text-emerald-300 font-bold focus:outline-none focus:border-emerald-500 cursor-pointer"
-                >
-                  <option value="" disabled>-- ជ្រើសរើស Major (5 SPI Majors) --</option>
-                  <option v-for="m in props.majors" :key="m.id" :value="m.id">
-                    {{ m.name }} — {{ m.department?.name || 'Department' }}
-                  </option>
-                </select>
-              </div>
-
-              <!-- 6. Academic Year -->
-              <div>
-                <label class="flex items-center gap-1.5 font-bold text-indigo-700 dark:text-indigo-400 mb-1">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                  <span>Academic Year (ឆ្នាំសិក្សា) *</span>
-                </label>
-                <select
-                  v-model="studentForm.academic_year"
-                  required
-                  class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-indigo-700 dark:text-indigo-300 font-bold focus:outline-none focus:border-indigo-500 cursor-pointer"
-                >
-                  <option v-for="ay in availableAcademicYears" :key="ay.id" :value="ay.name">
-                    {{ ay.name }}
-                  </option>
-                </select>
-              </div>
-
-              <!-- 7. Phone Number -->
-              <div>
-                <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Phone Number
-                </label>
-                <input
-                  v-model="studentForm.phone"
-                  type="text"
-                  placeholder="+855 12 345 678"
-                  class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white font-mono focus:outline-none focus:border-emerald-500"
-                />
-              </div>
-
-              <!-- 8. Status -->
-              <div>
-                <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Status *
-                </label>
-                <div class="flex items-center gap-6 pt-1.5">
-                  <label class="flex items-center gap-2 cursor-pointer font-bold text-slate-800 dark:text-slate-200">
-                    <input
-                      type="radio"
-                      v-model="studentForm.status"
-                      value="active"
-                      class="text-emerald-600 focus:ring-emerald-500 cursor-pointer"
-                    />
-                    <span class="flex items-center gap-1.5 text-xs">
-                      <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                      <span>Active</span>
-                    </span>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Major (5 SPI Majors) -->
+                <div>
+                  <label class="flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-400 mb-1">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/></svg>
+                    <span>Major (5 SPI Majors) *</span>
                   </label>
-                  <label class="flex items-center gap-2 cursor-pointer font-bold text-slate-800 dark:text-slate-200">
-                    <input
-                      type="radio"
-                      v-model="studentForm.status"
-                      value="inactive"
-                      class="text-amber-600 focus:ring-amber-500 cursor-pointer"
-                    />
-                    <span class="flex items-center gap-1.5 text-xs">
-                      <span class="w-2 h-2 rounded-full bg-slate-400"></span>
-                      <span>Inactive</span>
-                    </span>
+                  <select
+                    v-model="studentForm.major_id"
+                    required
+                    class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-emerald-700 dark:text-emerald-300 font-bold focus:outline-none focus:border-emerald-500 cursor-pointer"
+                  >
+                    <option value="" disabled>-- ជ្រើសរើស Major (5 SPI Majors) --</option>
+                    <option v-for="m in props.majors" :key="m.id" :value="m.id">
+                      {{ m.name }} — {{ m.department?.name || 'Department' }}
+                    </option>
+                  </select>
+                </div>
+
+                <!-- Academic Year -->
+                <div>
+                  <label class="flex items-center gap-1.5 font-bold text-indigo-700 dark:text-indigo-400 mb-1">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <span>Academic Year (ឆ្នាំសិក្សា) *</span>
                   </label>
+                  <select
+                    v-model="studentForm.academic_year"
+                    required
+                    class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-indigo-700 dark:text-indigo-300 font-bold focus:outline-none focus:border-indigo-500 cursor-pointer"
+                  >
+                    <option v-for="ay in availableAcademicYears" :key="ay.id" :value="ay.name">
+                      {{ ay.name }}
+                    </option>
+                  </select>
+                </div>
+
+                <!-- Status -->
+                <div class="md:col-span-2">
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                    Status (ស្ថានភាពគណនី) *
+                  </label>
+                  <div class="flex items-center gap-6 pt-1">
+                    <label class="flex items-center gap-2 cursor-pointer font-bold text-slate-800 dark:text-slate-200">
+                      <input
+                        type="radio"
+                        v-model="studentForm.status"
+                        value="active"
+                        class="text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                      />
+                      <span class="flex items-center gap-1.5 text-xs">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span>Active (សកម្ម — អាច Login ចូលរៀនបាន)</span>
+                      </span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer font-bold text-slate-800 dark:text-slate-200">
+                      <input
+                        type="radio"
+                        v-model="studentForm.status"
+                        value="inactive"
+                        class="text-amber-600 focus:ring-amber-500 cursor-pointer"
+                      />
+                      <span class="flex items-center gap-1.5 text-xs">
+                        <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                        <span>Inactive (អសកម្ម — ផ្អាក Login ប៉ុន្តែរក្សាទិន្នន័យសិក្សា)</span>
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION 3: Account Credentials -->
+            <div class="space-y-3">
+              <div class="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200 border-b border-slate-100 dark:border-slate-800 pb-1.5 uppercase tracking-wide">
+                <span>🔐</span>
+                <span>Account Credentials (គណនីចូលប្រព័ន្ធ)</span>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Username / Email -->
+                <div>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Username / Login Email
+                  </label>
+                  <input
+                    :value="studentForm.email || 'will match email'"
+                    disabled
+                    type="text"
+                    class="w-full bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-600 dark:text-slate-400 font-mono cursor-not-allowed"
+                  />
+                  <p class="text-[10px] text-slate-400 mt-1">Username គឺត្រូវគ្នានឹង Email ខាងលើ</p>
+                </div>
+
+                <!-- Password -->
+                <div>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Password {{ isEditMode ? '(ទុកទំនេរដើម្បីរក្សាទុកពាក្យសម្ងាត់ដដែល)' : '*' }}
+                  </label>
+                  <div class="relative">
+                    <input
+                      v-model="studentForm.password"
+                      :type="showPassword ? 'text' : 'password'"
+                      :required="!isEditMode"
+                      placeholder="********"
+                      class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-10 py-2.5 text-xs text-slate-900 dark:text-white font-mono focus:outline-none focus:border-emerald-500"
+                    />
+                    <span class="absolute left-3 top-2.5 text-slate-400">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                    </span>
+                    <button
+                      type="button"
+                      @click="showPassword = !showPassword"
+                      class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                    >
+                      {{ showPassword ? '🙈' : '👁️' }}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -863,29 +999,41 @@ const getStudentLearningData = (student: any) => {
               </div>
             </div>
 
-            <!-- Contact Information -->
+            <!-- Contact & Personal Details -->
             <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 space-y-2">
               <div class="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                Contact & Account Details
+                Personal & Contact Details (ព័ត៌មានផ្ទាល់ខ្លួន)
               </div>
-              <div class="grid grid-cols-2 gap-3 font-mono">
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div>
-                  <span class="text-[10px] text-slate-400 uppercase">Email</span>
-                  <p class="text-slate-900 dark:text-slate-100 font-medium truncate">{{ viewingStudent.email }}</p>
+                  <span class="text-[10px] text-slate-400 uppercase font-semibold block">Email</span>
+                  <p class="text-slate-900 dark:text-slate-100 font-medium font-mono truncate text-xs">{{ viewingStudent.email }}</p>
                 </div>
                 <div>
-                  <span class="text-[10px] text-slate-400 uppercase">Phone</span>
-                  <p class="text-slate-900 dark:text-slate-100 font-medium">{{ viewingStudent.phone || '+855 12 345 678' }}</p>
+                  <span class="text-[10px] text-slate-400 uppercase font-semibold block">Phone</span>
+                  <p class="text-slate-900 dark:text-slate-100 font-medium font-mono text-xs">{{ viewingStudent.phone || 'N/A' }}</p>
+                </div>
+                <div>
+                  <span class="text-[10px] text-slate-400 uppercase font-semibold block">Gender (ភេទ)</span>
+                  <p class="text-slate-900 dark:text-slate-100 font-semibold capitalize text-xs">
+                    {{ viewingStudent.gender === 'female' ? 'Female (ស្រី)' : (viewingStudent.gender === 'other' ? 'Other' : 'Male (ប្រុស)') }}
+                  </p>
+                </div>
+                <div>
+                  <span class="text-[10px] text-slate-400 uppercase font-semibold block">Date of Birth</span>
+                  <p class="text-slate-900 dark:text-slate-100 font-medium font-mono text-xs">
+                    {{ viewingStudent.dob ? String(viewingStudent.dob).slice(0, 10) : 'N/A' }}
+                  </p>
                 </div>
               </div>
             </div>
 
-            <!-- Learning Summary (Enrolled, Completed, Quiz Average, Progress, At-Risk Status) -->
+            <!-- Learning Summary (Enrolled, Completed, Quiz Average, Assignment Status, Overall Progress) -->
             <div class="p-4 rounded-2xl bg-gradient-to-br from-indigo-50/70 to-slate-50 dark:from-slate-800/80 dark:to-indigo-950/20 border border-indigo-100 dark:border-indigo-900/40 space-y-3">
               <div class="flex items-center justify-between border-b border-indigo-100/80 dark:border-slate-700/60 pb-2">
                 <div class="text-[11px] font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
                   <span>📈</span>
-                  <span>LEARNING SUMMARY (ទិន្នន័យសិក្សា & AI RISK)</span>
+                  <span>LEARNING SUMMARY (ទិន្នន័យសិក្សា & PROGRESS)</span>
                 </div>
                 <!-- At-Risk Status Badge -->
                 <span
@@ -897,7 +1045,7 @@ const getStudentLearningData = (student: any) => {
                 </span>
               </div>
 
-              <!-- 4 Stat Counters: Enrolled, Completed, Quiz Avg, Progress -->
+              <!-- 4 Stat Counters: Enrolled, Completed, Quiz Avg, Assignment Status -->
               <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
                 <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-700 shadow-xs">
                   <span class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block">Enrolled Courses</span>
@@ -906,21 +1054,21 @@ const getStudentLearningData = (student: any) => {
                   </span>
                 </div>
                 <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-700 shadow-xs">
-                  <span class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block">Completed</span>
+                  <span class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block">Completed Courses</span>
                   <span class="text-base font-black text-emerald-600 dark:text-emerald-400 mt-0.5 block font-mono">
                     {{ getStudentLearningData(viewingStudent).completedCourses }}
                   </span>
                 </div>
                 <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-700 shadow-xs">
-                  <span class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block">Average Quiz</span>
+                  <span class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block">Average Quiz Score</span>
                   <span class="text-base font-black text-indigo-600 dark:text-indigo-400 mt-0.5 block font-mono">
                     {{ getStudentLearningData(viewingStudent).quizAverage }}%
                   </span>
                 </div>
                 <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-700 shadow-xs">
-                  <span class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block">Progress</span>
-                  <span class="text-base font-black text-teal-600 dark:text-teal-400 mt-0.5 block font-mono">
-                    {{ getStudentLearningData(viewingStudent).learningProgress }}%
+                  <span class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block">Assignment Status</span>
+                  <span class="text-xs font-bold text-teal-600 dark:text-teal-400 mt-1 block font-mono">
+                    {{ getStudentLearningData(viewingStudent).assignmentStatus }}
                   </span>
                 </div>
               </div>
@@ -928,7 +1076,7 @@ const getStudentLearningData = (student: any) => {
               <!-- Learning Progress Bar -->
               <div class="space-y-1 pt-1">
                 <div class="flex justify-between text-[11px] text-slate-600 dark:text-slate-400 font-medium">
-                  <span>Overall Learning Progress</span>
+                  <span>Overall Progress</span>
                   <span class="font-bold font-mono text-slate-900 dark:text-white">{{ getStudentLearningData(viewingStudent).learningProgress }}%</span>
                 </div>
                 <div class="w-full bg-slate-200 dark:bg-slate-700/80 h-2 rounded-full overflow-hidden">
