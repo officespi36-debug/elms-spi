@@ -407,8 +407,8 @@ const resetFilters = () => {
               <th class="py-3.5 px-4">Name</th>
               <th class="py-3.5 px-4">Email / Phone</th>
               <th class="py-3.5 px-4">Department</th>
-              <th class="py-3.5 px-4">Specialization</th>
-              <th class="py-3.5 px-4">Assigned Courses</th>
+              <th class="py-3.5 px-4">Major</th>
+              <th class="py-3.5 px-4">Courses</th>
               <th class="py-3.5 px-4 text-center">Status</th>
               <th class="py-3.5 px-4 text-right">Actions</th>
             </tr>
@@ -464,34 +464,41 @@ const resetFilters = () => {
                   {{ teacher.major?.department?.name || 'Department of Computing' }}
                 </div>
                 <div class="text-[10px] text-slate-400 font-medium">
-                  {{ teacher.major?.name || 'Information Technology' }}
+                  {{ teacher.major?.department?.faculty?.name || 'Faculty of Science' }}
                 </div>
               </td>
 
-              <!-- Specialization -->
-              <td class="py-3.5 px-4">
-                <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-[11px] border border-slate-200 dark:border-slate-700">
-                  {{ teacher.expertise || 'Software Engineering' }}
-                </span>
+              <!-- Major -->
+              <td class="py-3.5 px-4 whitespace-nowrap">
+                <div class="font-bold text-cyan-700 dark:text-cyan-400">
+                  {{ teacher.major?.name || 'Information Technology' }}
+                </div>
+                <div v-if="teacher.expertise" class="text-[10px] text-slate-400 font-medium max-w-[150px] truncate" :title="teacher.expertise">
+                  {{ teacher.expertise }}
+                </div>
               </td>
 
-              <!-- Assigned Courses (Academic View — No Payment/Rates) -->
+              <!-- Courses -->
               <td class="py-3.5 px-4 whitespace-nowrap">
-                <div v-if="teacher.courses && teacher.courses.length > 0" class="flex flex-wrap items-center gap-1.5 max-w-[240px]">
+                <div class="flex items-center gap-1.5">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-300 rounded-lg text-xs font-bold font-mono">
+                    {{ teacher.teaching_summary?.assigned_courses ?? (teacher.courses ? teacher.courses.length : 0) }} Courses
+                  </span>
+                </div>
+                <div v-if="teacher.courses && teacher.courses.length > 0" class="flex flex-wrap items-center gap-1 mt-1 max-w-[220px]">
                   <span
                     v-for="c in teacher.courses.slice(0, 2)"
                     :key="c.id"
-                    class="inline-flex items-center gap-1 px-2 py-0.5 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-300 rounded text-[10px] font-semibold"
+                    class="inline-block px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded text-[9px] font-mono truncate max-w-[100px]"
                     :title="c.title"
                   >
-                    <span>{{ c.code || c.title.substring(0, 14) }}</span>
-                    <span v-if="c.enrollments?.length" class="text-[9px] text-indigo-500">({{ c.enrollments.length }}s)</span>
+                    {{ c.code || c.title }}
                   </span>
-                  <span v-if="teacher.courses.length > 2" class="text-[10px] text-slate-400 font-mono">
-                    +{{ teacher.courses.length - 2 }} more
+                  <span v-if="teacher.courses.length > 2" class="text-[9px] text-slate-400">
+                    +{{ teacher.courses.length - 2 }}
                   </span>
                 </div>
-                <div v-else class="text-[11px] text-slate-400 italic">
+                <div v-else class="text-[10px] text-slate-400 italic mt-0.5">
                   0 Courses Assigned
                 </div>
               </td>
@@ -813,39 +820,46 @@ const resetFilters = () => {
             <button @click="showProfileModal = false" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-all">✕</button>
           </div>
 
-          <!-- Academic Teaching Summary KPI Cards -->
+          <!-- Academic Teaching Summary KPI Cards (User Spec: Assigned Courses, Published Courses, Pending Courses, Total Students) -->
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-            <!-- Assigned Courses -->
+            <!-- 1. Assigned Courses -->
             <div class="p-3 bg-slate-50 dark:bg-slate-950/80 rounded-xl border border-slate-200 dark:border-slate-800">
               <span class="text-slate-500 dark:text-slate-400 text-[10px] uppercase font-bold">Assigned Courses</span>
               <div class="text-lg font-black text-slate-900 dark:text-white font-mono mt-0.5">
-                {{ viewingTeacher.courses ? viewingTeacher.courses.length : 0 }}
+                {{ viewingTeacher.teaching_summary?.assigned_courses ?? (viewingTeacher.courses ? viewingTeacher.courses.length : 0) }}
               </div>
             </div>
 
-            <!-- Total Students -->
+            <!-- 2. Published Courses -->
             <div class="p-3 bg-slate-50 dark:bg-slate-950/80 rounded-xl border border-slate-200 dark:border-slate-800">
-              <span class="text-slate-500 dark:text-slate-400 text-[10px] uppercase font-bold">Active Students</span>
-              <div class="text-lg font-black text-cyan-600 dark:text-cyan-400 font-mono mt-0.5">
-                {{ getTeacherStudentCount(viewingTeacher) }}
-              </div>
-            </div>
-
-            <!-- Lessons Delivered -->
-            <div class="p-3 bg-slate-50 dark:bg-slate-950/80 rounded-xl border border-slate-200 dark:border-slate-800">
-              <span class="text-slate-500 dark:text-slate-400 text-[10px] uppercase font-bold">Lessons / Content</span>
-              <div class="text-lg font-black text-indigo-600 dark:text-indigo-400 font-mono mt-0.5">
-                {{ getTeacherLessonCount(viewingTeacher) }}
-              </div>
-            </div>
-
-            <!-- Quizzes Conducted -->
-            <div class="p-3 bg-slate-50 dark:bg-slate-950/80 rounded-xl border border-slate-200 dark:border-slate-800">
-              <span class="text-slate-500 dark:text-slate-400 text-[10px] uppercase font-bold">Quizzes & Tests</span>
+              <span class="text-slate-500 dark:text-slate-400 text-[10px] uppercase font-bold">Published Courses</span>
               <div class="text-lg font-black text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">
-                {{ getTeacherQuizCount(viewingTeacher) }}
+                {{ viewingTeacher.teaching_summary?.published_courses ?? (viewingTeacher.courses ? viewingTeacher.courses.filter((c: any) => c.status === 'published').length : 0) }}
               </div>
             </div>
+
+            <!-- 3. Pending Courses -->
+            <div class="p-3 bg-slate-50 dark:bg-slate-950/80 rounded-xl border border-slate-200 dark:border-slate-800">
+              <span class="text-slate-500 dark:text-slate-400 text-[10px] uppercase font-bold">Pending Courses</span>
+              <div class="text-lg font-black text-amber-600 dark:text-amber-400 font-mono mt-0.5">
+                {{ viewingTeacher.teaching_summary?.pending_courses ?? (viewingTeacher.courses ? viewingTeacher.courses.filter((c: any) => c.status !== 'published').length : 0) }}
+              </div>
+            </div>
+
+            <!-- 4. Total Students -->
+            <div class="p-3 bg-slate-50 dark:bg-slate-950/80 rounded-xl border border-slate-200 dark:border-slate-800">
+              <span class="text-slate-500 dark:text-slate-400 text-[10px] uppercase font-bold">Total Students</span>
+              <div class="text-lg font-black text-cyan-600 dark:text-cyan-400 font-mono mt-0.5">
+                {{ viewingTeacher.teaching_summary?.total_students ?? getTeacherStudentCount(viewingTeacher) }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Sub-summary: Lessons & Quizzes -->
+          <div class="flex items-center justify-between px-3 py-2 bg-slate-50/70 dark:bg-slate-950/50 rounded-xl border border-slate-200/60 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+            <span>Lessons / Content: <strong class="text-slate-800 dark:text-slate-200">{{ getTeacherLessonCount(viewingTeacher) }} Lessons</strong></span>
+            <span>•</span>
+            <span>Quizzes & Tests: <strong class="text-slate-800 dark:text-slate-200">{{ getTeacherQuizCount(viewingTeacher) }} Quizzes</strong></span>
           </div>
 
           <!-- Basic Information & Department Matrix -->

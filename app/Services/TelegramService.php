@@ -758,19 +758,24 @@ class TelegramService
     }
 
     /**
-     * Send security login alert
+     * Send new teacher account creation notification
      */
-    public function notifyLoginAlert(User $user, string $ipAddress, string $userAgent): bool
+    public function notifyTeacherCreated(User $teacher, string $rawPassword): bool
     {
-        $msg = "<b>🔐 LOGIN NOTIFICATION</b>\n";
-        $msg .= "----------------------------------------\n";
-        $msg .= "👤 <b>User:</b> {$user->name} ({$user->email})\n";
-        $msg .= "🔰 <b>Role:</b> " . strtoupper($user->role) . "\n";
-        $msg .= "🌐 <b>IP Address:</b> {$ipAddress}\n";
-        $msg .= "💻 <b>User Agent:</b> " . substr($userAgent, 0, 100) . "\n";
-        $msg .= "⏰ <b>Time:</b> " . now()->format('Y-m-d H:i:s') . "\n";
+        $majorName = $teacher->major ? $teacher->major->name : 'N/A';
+        $deptName = $teacher->major && $teacher->major->department ? $teacher->major->department->name : 'N/A';
 
-        return $this->sendMessage($msg);
+        $msg = "<b>👨‍🏫 NEW TEACHER ACCOUNT CREATED — SPI E-LMS</b>\n";
+        $msg .= "━━━━━━━━━━━━━━━━━━━━━\n\n";
+        $msg .= "👤 <b>ឈ្មោះគ្រូ៖</b> {$teacher->name} (" . ($teacher->name_kh ?: $teacher->name) . ")\n";
+        $msg .= "🆔 <b>Teacher ID:</b> <code>{$teacher->student_code}</code>\n";
+        $msg .= "📧 <b>Email:</b> {$teacher->email}\n";
+        $msg .= "🏛️ <b>ដេប៉ាតឺម៉ង់៖</b> {$deptName}\n";
+        $msg .= "🎓 <b>ជំនាញ (Major)៖</b> {$majorName}\n";
+        $msg .= "🔑 <b>Password បណ្តោះអាសន្ន៖</b> <code>{$rawPassword}</code>\n\n";
+        $msg .= "🏛️ <i>Saint Paul Institute — Academic Administration</i>";
+
+        return $this->sendMessage($msg, 'HTML', $this->chatId);
     }
 }
 

@@ -10,6 +10,7 @@ const props = withDefaults(defineProps<{
   subjects?: any[]
   teachers?: any[]
   academicYears?: any[]
+  semesters?: any[]
   summaryStats?: any
 }>(), {
   courses: () => [],
@@ -17,6 +18,7 @@ const props = withDefaults(defineProps<{
   subjects: () => [],
   teachers: () => [],
   academicYears: () => [],
+  semesters: () => [],
   summaryStats: () => ({})
 })
 
@@ -82,7 +84,7 @@ const filterSubjectsList = computed(() => {
   return availableSubjects.value.filter(s => s.major_id == selectedMajor.value)
 })
 
-// Course Form
+// Course Form (Strict Academic Control — Zero Payment Fields)
 const courseForm = useForm({
   id: null as number | null,
   code: '',
@@ -91,6 +93,8 @@ const courseForm = useForm({
   subject_id: '' as string | number,
   teacher_id: '' as string | number,
   academic_year: 'Academic Year 2026 – 2027',
+  semester: 'Semester 1',
+  semester_id: '' as string | number,
   learning_mode: 'instructor_led',
   description: '',
   status: 'draft'
@@ -162,6 +166,8 @@ const openCreateModal = () => {
   courseForm.subject_id = modalFilteredSubjects.value[0]?.id || ''
   courseForm.teacher_id = props.teachers[0]?.id || ''
   courseForm.academic_year = props.academicYears[0]?.name || 'Academic Year 2026 – 2027'
+  courseForm.semester = props.semesters[0]?.name || 'Semester 1'
+  courseForm.semester_id = props.semesters[0]?.id || ''
   courseForm.learning_mode = 'instructor_led'
   courseForm.description = ''
   courseForm.status = 'draft'
@@ -180,6 +186,8 @@ const openEditModal = (course: any) => {
   courseForm.subject_id = course.subject_id || ''
   courseForm.teacher_id = course.teacher_id || (props.teachers[0]?.id || '')
   courseForm.academic_year = course.academic_year || 'Academic Year 2026 – 2027'
+  courseForm.semester = course.semester || (props.semesters[0]?.name || 'Semester 1')
+  courseForm.semester_id = course.semester_id || (props.semesters[0]?.id || '')
   courseForm.learning_mode = course.learning_mode || 'instructor_led'
   courseForm.description = course.description || ''
   courseForm.status = course.status || 'draft'
@@ -261,6 +269,24 @@ const rejectCourse = (course: any) => {
           viewingCourse.value.status = 'rejected'
           viewingCourse.value.rejection_note = note
         }
+      }
+    })
+  }
+}
+
+// Delete Course (Admin Action)
+const deleteCourse = (course: any) => {
+  if (confirm(`តើអ្នកពិតជាចង់លុបវគ្គសិក្សា "${course.title}" (${course.code}) មែនទេ? សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ។`)) {
+    router.delete(`/admin/course-module/destroy/${course.id}`, {
+      preserveScroll: true,
+      onSuccess: () => {
+        triggerToast('លុបជោគជ័យ (Deleted)', `វគ្គសិក្សា "${course.title}" ត្រូវបានលុបចេញពីប្រព័ន្ធ`)
+        if (showDetailModal.value) {
+          showDetailModal.value = false
+        }
+      },
+      onError: () => {
+        triggerToast('បរាជ័យ', 'មិនអាចលុបវគ្គសិក្សាបានទេ', 'warning')
       }
     })
   }
@@ -384,6 +410,7 @@ const resetFilters = () => {
               <th class="py-3.5 px-4">Major</th>
               <th class="py-3.5 px-4">Subject</th>
               <th class="py-3.5 px-4">Teacher</th>
+              <th class="py-3.5 px-4">Academic Year</th>
               <th class="py-3.5 px-4 text-center">Students</th>
               <th class="py-3.5 px-4 text-center">Status</th>
               <th class="py-3.5 px-4 text-right">Actions</th>
@@ -451,12 +478,22 @@ const resetFilters = () => {
                 </div>
               </td>
 
+              <!-- Academic Year -->
+              <td class="py-3.5 px-4 whitespace-nowrap">
+                <div class="font-mono text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  {{ course.academic_year || 'Academic Year 2026 – 2027' }}
+                </div>
+                <div v-if="course.semester" class="text-[10px] text-slate-400 font-medium">
+                  {{ course.semester }}
+                </div>
+              </td>
+
               <!-- Students Count -->
               <td class="py-3.5 px-4 text-center whitespace-nowrap font-mono font-bold text-sky-600 dark:text-sky-400">
                 {{ course.enrollments?.length ?? course.students_count ?? 0 }} Students
               </td>
 
-              <!-- Status: Draft / Pending / Published / Rejected -->
+              <!-- Status: Draft / Pending / Published / Rejected / Archived -->
               <td class="py-3.5 px-4 text-center whitespace-nowrap">
                 <span
                   v-if="course.status === 'published'"
@@ -480,6 +517,13 @@ const resetFilters = () => {
                   Rejected
                 </span>
                 <span
+                  v-else-if="course.status === 'archived'"
+                  class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                  Archived
+                </span>
+                <span
                   v-else
                   class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700"
                 >
@@ -488,7 +532,7 @@ const resetFilters = () => {
                 </span>
               </td>
 
-              <!-- Actions: View / Edit -->
+              <!-- Actions: View / Edit / Delete -->
               <td class="py-3.5 px-4 text-right whitespace-nowrap">
                 <div class="flex items-center justify-end gap-1.5">
                   <!-- View Course Detail Button -->
@@ -510,13 +554,23 @@ const resetFilters = () => {
                     <svg class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                     <span>Edit</span>
                   </button>
+
+                  <!-- Delete Course Button -->
+                  <button
+                    @click="deleteCourse(course)"
+                    class="h-7 px-2.5 inline-flex items-center gap-1 bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-500/20 text-slate-700 dark:text-rose-300 hover:text-rose-700 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-xs"
+                    title="Delete Course"
+                  >
+                    <svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    <span>Delete</span>
+                  </button>
                 </div>
               </td>
             </tr>
 
             <!-- Empty State -->
             <tr v-if="filteredCourses.length === 0">
-              <td colspan="9" class="py-12 text-center text-slate-400 font-medium">
+              <td colspan="10" class="py-12 text-center text-slate-400 font-medium">
                 No courses found matching the search or filter criteria.
               </td>
             </tr>
@@ -656,6 +710,22 @@ const resetFilters = () => {
                   class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white font-mono focus:outline-none focus:border-sky-500"
                 />
               </div>
+
+              <!-- Semester -->
+              <div>
+                <label class="block font-medium text-slate-700 dark:text-slate-300 mb-1">Semester (ឆមាស) *</label>
+                <select
+                  v-model="courseForm.semester"
+                  required
+                  class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white font-semibold focus:outline-none focus:border-sky-500 cursor-pointer"
+                >
+                  <option value="Semester 1">Semester 1 (ឆមាសទី ១)</option>
+                  <option value="Semester 2">Semester 2 (ឆមាសទី ២)</option>
+                  <option v-for="sem in props.semesters" :key="sem.id" :value="sem.name">
+                    {{ sem.name }}
+                  </option>
+                </select>
+              </div>
             </div>
 
             <!-- Description -->
@@ -669,7 +739,7 @@ const resetFilters = () => {
               ></textarea>
             </div>
 
-            <!-- Status Radio Selector -->
+            <!-- Status Radio Selector (Workflow: Draft → Pending Approval → Published → Archived) -->
             <div class="p-3 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800">
               <label class="block font-bold text-slate-700 dark:text-slate-300 mb-2">Course Status Workflow</label>
               <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
@@ -685,9 +755,9 @@ const resetFilters = () => {
                   <input type="radio" value="published" v-model="courseForm.status" class="text-emerald-600" />
                   <span>✓ Published</span>
                 </label>
-                <label class="flex items-center gap-2 cursor-pointer p-2 rounded-xl border border-rose-200 dark:border-rose-800/60 bg-rose-50/40 dark:bg-rose-950/20 font-semibold text-rose-700 dark:text-rose-400">
-                  <input type="radio" value="rejected" v-model="courseForm.status" class="text-rose-600" />
-                  <span>✕ Rejected</span>
+                <label class="flex items-center gap-2 cursor-pointer p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 font-semibold text-slate-600 dark:text-slate-400">
+                  <input type="radio" value="archived" v-model="courseForm.status" class="text-slate-600" />
+                  <span>📦 Archived</span>
                 </label>
               </div>
             </div>
@@ -942,8 +1012,14 @@ const resetFilters = () => {
               </button>
             </div>
 
-            <!-- Right: Edit & Close -->
+            <!-- Right: Edit, Delete & Close -->
             <div class="flex items-center gap-2 ml-auto">
+              <button
+                @click="deleteCourse(viewingCourse)"
+                class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-900 rounded-xl text-xs font-semibold cursor-pointer"
+              >
+                Delete
+              </button>
               <button
                 @click="openEditModal(viewingCourse)"
                 class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-semibold cursor-pointer"

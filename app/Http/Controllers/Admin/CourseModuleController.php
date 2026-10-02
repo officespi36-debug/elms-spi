@@ -66,6 +66,10 @@ class CourseModuleController extends Controller
             ? \App\Models\AcademicYear::where('is_active', true)->orderBy('name', 'desc')->get()
             : collect();
 
+        $semesters = Schema::hasTable('semesters')
+            ? \App\Models\Semester::where('is_active', true)->get()
+            : collect();
+
         return Inertia::render('Admin/CourseSubjectModule/AllCourses', [
             'courses'       => $courses,
             'summaryStats'  => $this->getSummaryStats(),
@@ -73,6 +77,7 @@ class CourseModuleController extends Controller
             'subjects'      => $subjects,
             'teachers'      => $teachers,
             'academicYears' => $academicYears,
+            'semesters'     => $semesters,
         ]);
     }
 
@@ -233,14 +238,22 @@ class CourseModuleController extends Controller
             'major_id'      => 'required|exists:majors,id',
             'subject_id'    => 'nullable|exists:subjects,id',
             'academic_year' => 'nullable|string|max:255',
+            'semester'      => 'nullable|string|max:100',
+            'semester_id'   => 'nullable|exists:semesters,id',
             'learning_mode' => 'nullable|string',
             'is_paid'       => 'nullable|boolean',
             'price'         => 'nullable|numeric|min:0',
-            'status'        => 'required|in:draft,pending,pending_approval,published,rejected',
+            'status'        => 'required|in:draft,pending,pending_approval,published,rejected,archived',
         ]);
 
         if (empty($validated['learning_mode'])) {
             $validated['learning_mode'] = 'instructor_led';
+        }
+        if (!isset($validated['is_paid'])) {
+            $validated['is_paid'] = false;
+        }
+        if (!isset($validated['price'])) {
+            $validated['price'] = 0.00;
         }
 
         $course = Course::create($validated);
@@ -260,10 +273,12 @@ class CourseModuleController extends Controller
             'major_id'      => 'required|exists:majors,id',
             'subject_id'    => 'nullable|exists:subjects,id',
             'academic_year' => 'nullable|string|max:255',
+            'semester'      => 'nullable|string|max:100',
+            'semester_id'   => 'nullable|exists:semesters,id',
             'learning_mode' => 'nullable|string',
             'is_paid'       => 'nullable|boolean',
             'price'         => 'nullable|numeric|min:0',
-            'status'        => 'required|in:draft,pending,pending_approval,published,rejected',
+            'status'        => 'required|in:draft,pending,pending_approval,published,rejected,archived',
         ]);
 
         $course->update($validated);

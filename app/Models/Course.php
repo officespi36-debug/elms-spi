@@ -28,7 +28,7 @@ class Course extends Model
 {
     protected $fillable = [
         'major_id', 'subject_id', 'teacher_id', 'title', 'code', 'description',
-        'academic_year', 'learning_mode', 'is_paid', 'price', 'status', 'thumbnail',
+        'academic_year', 'semester', 'semester_id', 'learning_mode', 'is_paid', 'price', 'status', 'thumbnail',
         'submitted_at', 'reviewed_at', 'rejection_note'
     ];
 
@@ -47,6 +47,11 @@ class Course extends Model
     public function subject()
     {
         return $this->belongsTo(Subject::class);
+    }
+
+    public function semester()
+    {
+        return $this->belongsTo(Semester::class);
     }
 
     public function teacher()

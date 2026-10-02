@@ -81,7 +81,23 @@ class UserController extends Controller
         $teachers = User::where('role', 'teacher')
             ->with(['major.department.faculty', 'courses.enrollments', 'courses.lessons', 'courses.quizzes'])
             ->latest()
-            ->get();
+            ->get()
+            ->map(function ($teacher) {
+                $courses = $teacher->courses ?? collect();
+                $assignedCount = $courses->count();
+                $publishedCount = $courses->where('status', 'published')->count();
+                $pendingCount = $courses->whereIn('status', ['pending', 'pending_approval', 'draft'])->count();
+                $totalStudents = $courses->sum(fn ($c) => $c->enrollments ? $c->enrollments->count() : 0);
+
+                $teacher->teaching_summary = [
+                    'assigned_courses'  => $assignedCount,
+                    'published_courses' => $publishedCount,
+                    'pending_courses'   => $pendingCount,
+                    'total_students'    => $totalStudents,
+                ];
+
+                return $teacher;
+            });
 
         return Inertia::render('Admin/UserManagementModule/Teachers', [
             'teachers'     => $teachers,
@@ -277,6 +293,18 @@ class UserController extends Controller
 
     public function toggleStatus(User $user)
     {
+        // Protected last full-access admin check
+        if ($user->role === 'admin' && ($user->status === 'active' || $user->is_active)) {
+            $activeAdminsCount = User::where('role', 'admin')
+                ->where(function ($q) {
+                    $q->where('status', 'active')->orWhere('is_active', true);
+                })
+                ->count();
+            if ($activeAdminsCount <= 1) {
+                return back()->with('error', 'មិនអាចផ្អាកគណនី Admin ចុងក្រោយបានទេ! ប្រព័ន្ធត្រូវមាន Admin យ៉ាងហោចណាស់ម្នាក់ដើម្បីគ្រប់គ្រង។ (Cannot disable the last active administrator!)');
+            }
+        }
+
         $newStatus = ($user->status === 'active') ? 'inactive' : 'active';
         $user->update([
             'status'    => $newStatus,
@@ -288,7 +316,18 @@ class UserController extends Controller
 
     public function suspend(User $user, Request $request)
     {
-        $reason = $request->input('reason', 'Admin Suspension');
+        // Protected last full-access admin check
+        if ($user->role === 'admin' && ($user->status === 'active' || $user->is_active)) {
+            $activeAdminsCount = User::where('role', 'admin')
+                ->where(function ($q) {
+                    $q->where('status', 'active')->orWhere('is_active', true);
+                })
+                ->count();
+            if ($activeAdminsCount <= 1) {
+                return back()->with('error', 'មិនអាចផ្អាកគណនី Admin ចុងក្រោយបានទេ! ប្រព័ន្ធត្រូវមាន Admin យ៉ាងហោចណាស់ម្នាក់ដើម្បីគ្រប់គ្រង។ (Cannot disable the last active administrator!)');
+            }
+        }
+
         $user->update([
             'status'    => 'suspended',
             'is_active' => false,
@@ -313,6 +352,21 @@ class UserController extends Controller
             'ids'    => 'required|array',
             'action' => 'required|in:activate,suspend,delete',
         ]);
+
+        if ($data['action'] === 'suspend' || $data['action'] === 'delete') {
+            $adminIdsInBulk = User::whereIn('id', $data['ids'])->where('role', 'admin')->pluck('id');
+            if ($adminIdsInBulk->isNotEmpty()) {
+                $remainingActiveAdmins = User::where('role', 'admin')
+                    ->where(function ($q) {
+                        $q->where('status', 'active')->orWhere('is_active', true);
+                    })
+                    ->whereNotIn('id', $adminIdsInBulk)
+                    ->count();
+                if ($remainingActiveAdmins < 1) {
+                    return back()->with('error', 'ប្រតិបត្តិការត្រូវបានបដិសេធ! មិនអាចផ្អាក ឬលុប Admin ទាំងអស់បានទេ។ ត្រូវមាន Admin យ៉ាងហោចណាស់ម្នាក់សកម្ម។ (Cannot disable all administrators!)');
+                }
+            }
+        }
 
         if ($data['action'] === 'activate') {
             User::whereIn('id', $data['ids'])->update(['status' => 'active', 'is_active' => true]);

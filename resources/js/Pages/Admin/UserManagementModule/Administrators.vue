@@ -223,10 +223,23 @@ const saveAdmin = () => {
   }
 }
 
-// Toggle Activate / Disable Admin (Preserve history, no hard delete)
+// Toggle Activate / Disable Admin (Preserve history, no hard delete & protected last active admin)
 const toggleActivateDisable = (admin: any) => {
   const isActivating = admin.status !== 'active'
   const actionText = isActivating ? 'Activate (បើកដំណើរការ)' : 'Disable / Inactive (ផ្អាកដំណើរការ)'
+
+  // Protection: Do not allow disabling the last active administrator
+  if (!isActivating) {
+    const activeAdmins = props.administrators.filter(a => (a.status || (a.is_active ? 'active' : 'inactive')) === 'active')
+    if (activeAdmins.length <= 1) {
+      triggerToast(
+        'មិនអាចផ្អាកគណនីបានទេ (Protected)',
+        'ប្រព័ន្ធត្រូវតែមាន Admin សកម្មយ៉ាងហោចណាស់ម្នាក់ដើម្បីគ្រប់គ្រង។ មិនអាចផ្អាក Admin ចុងក្រោយបានឡើយ!',
+        'warning'
+      )
+      return
+    }
+  }
 
   if (confirm(`តើអ្នកពិតជាចង់ ${actionText} គណនីអ្នកគ្រប់គ្រង "${admin.name}" មែនទេ?`)) {
     router.post(`/admin/user-management/toggle-status/${admin.id}`, {}, {
@@ -241,8 +254,8 @@ const toggleActivateDisable = (admin: any) => {
           viewingAdmin.value.is_active = isActivating
         }
       },
-      onError: () => {
-        triggerToast('បរាជ័យ', 'មិនអាចផ្លាស់ប្តូរស្ថានភាពគណនីបានទេ', 'warning')
+      onError: (errors: any) => {
+        triggerToast('បរាជ័យ', errors?.error || 'មិនអាចផ្លាស់ប្តូរស្ថានភាពគណនីបានទេ', 'warning')
       }
     })
   }
