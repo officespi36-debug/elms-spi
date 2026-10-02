@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3'
+import { useLanguage } from '@/Services/i18n'
 
 const props = withDefaults(defineProps<{
   activeTab: 'all' | 'administrators' | 'teachers' | 'students' | 'suspended' | 'import-export'
@@ -25,6 +26,8 @@ const props = withDefaults(defineProps<{
     active_students: 2390,
   })
 })
+
+const { currentLang, t } = useLanguage()
 </script>
 
 <template>
@@ -40,13 +43,15 @@ const props = withDefaults(defineProps<{
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <h1 class="text-lg font-black text-slate-900 dark:text-white tracking-wide uppercase">USER MANAGEMENT MODULE</h1>
+              <h1 class="text-lg font-black text-slate-900 dark:text-white tracking-wide uppercase">
+                {{ t('ការគ្រប់គ្រងអ្នកប្រើប្រាស់', 'USER MANAGEMENT MODULE') }}
+              </h1>
               <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-100/80 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-500/30">
-                Admin Control Panel
+                {{ t('ផ្ទាំងគ្រប់គ្រង Admin', 'Admin Control Panel') }}
               </span>
             </div>
             <p class="text-xs text-slate-600 dark:text-slate-400">
-              គ្រប់គ្រងព័ត៌មានគណនីមនុស្ស (Profiles, Roles, Departments, Majors, Academic Years & Course Enrollments)
+              {{ t('គ្រប់គ្រងព័ត៌មានគណនីមនុស្ស (Profiles, Roles, Departments, Majors, Academic Years & Course Enrollments)', 'Manage user profiles, roles, departments, majors, academic years & course enrollments') }}
             </p>
           </div>
         </div>
@@ -55,7 +60,7 @@ const props = withDefaults(defineProps<{
         <div class="flex items-center gap-2 text-xs font-mono">
           <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 rounded-lg font-medium text-[11px] whitespace-nowrap shadow-xs">
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span>
-            <span>System Live & Active</span>
+            <span>{{ t('ប្រព័ន្ធសកម្មធម្មតា', 'System Live & Active') }}</span>
           </span>
         </div>
       </div>
@@ -66,13 +71,15 @@ const props = withDefaults(defineProps<{
       <!-- Card 1: Admin -->
       <div class="bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 backdrop-blur-xl hover:border-purple-400 dark:hover:border-purple-500/30 transition-all flex items-center justify-between shadow-sm dark:shadow-none">
         <div>
-          <span class="text-xs font-semibold text-purple-700 dark:text-purple-300 uppercase tracking-wider">ADMINISTRATORS</span>
+          <span class="text-xs font-semibold text-purple-700 dark:text-purple-300 uppercase tracking-wider">
+            {{ t('អ្នកគ្រប់គ្រង (ADMINS)', 'ADMINISTRATORS') }}
+          </span>
           <div class="text-2xl font-black text-slate-900 dark:text-white font-mono mt-1">
             {{ props.summaryStats?.total_admins || 3 }}
           </div>
           <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1.5">
             <svg class="w-3.5 h-3.5 text-purple-500 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-            <span>{{ props.summaryStats?.active_admins || 3 }} Active Super Admins</span>
+            <span>{{ props.summaryStats?.active_admins || 3 }} {{ t('Admin កំពុងសកម្ម', 'Active Super Admins') }}</span>
           </p>
         </div>
         <div class="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-500/10 border border-purple-200 dark:border-purple-500/20 flex items-center justify-center text-purple-600 dark:text-purple-400 shadow-sm dark:shadow-lg dark:shadow-purple-500/10">
@@ -83,13 +90,15 @@ const props = withDefaults(defineProps<{
       <!-- Card 2: Teacher -->
       <div class="bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 backdrop-blur-xl hover:border-cyan-400 dark:hover:border-cyan-500/30 transition-all flex items-center justify-between shadow-sm dark:shadow-none">
         <div>
-          <span class="text-xs font-semibold text-cyan-700 dark:text-cyan-300 uppercase tracking-wider">TEACHERS</span>
+          <span class="text-xs font-semibold text-cyan-700 dark:text-cyan-300 uppercase tracking-wider">
+            {{ t('គ្រូបង្រៀន (TEACHERS)', 'TEACHERS') }}
+          </span>
           <div class="text-2xl font-black text-slate-900 dark:text-white font-mono mt-1">
             {{ props.summaryStats?.total_teachers || 145 }}
           </div>
           <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1.5">
             <svg class="w-3.5 h-3.5 text-cyan-500 dark:text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 13v-1m4 1v-3m4 3V8M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
-            <span>{{ props.summaryStats?.active_teachers || 143 }} Active Instructors</span>
+            <span>{{ props.summaryStats?.active_teachers || 143 }} {{ t('គ្រូកំពុងបង្រៀន', 'Active Instructors') }}</span>
           </p>
         </div>
         <div class="w-12 h-12 rounded-2xl bg-cyan-50 dark:bg-cyan-500/10 border border-cyan-200 dark:border-cyan-500/20 flex items-center justify-center text-cyan-600 dark:text-cyan-400 shadow-sm dark:shadow-lg dark:shadow-cyan-500/10">
@@ -100,13 +109,15 @@ const props = withDefaults(defineProps<{
       <!-- Card 3: Student -->
       <div class="bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 backdrop-blur-xl hover:border-emerald-400 dark:hover:border-emerald-500/30 transition-all flex items-center justify-between shadow-sm dark:shadow-none">
         <div>
-          <span class="text-xs font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">STUDENTS</span>
+          <span class="text-xs font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
+            {{ t('និស្សិត (STUDENTS)', 'STUDENTS') }}
+          </span>
           <div class="text-2xl font-black text-slate-900 dark:text-white font-mono mt-1">
             {{ (props.summaryStats?.total_students || 2458).toLocaleString() }}
           </div>
           <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1.5">
             <svg class="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
-            <span>{{ (props.summaryStats?.active_students || 2390).toLocaleString() }} Active Learners</span>
+            <span>{{ (props.summaryStats?.active_students || 2390).toLocaleString() }} {{ t('និស្សិតសកម្ម', 'Active Learners') }}</span>
           </p>
         </div>
         <div class="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shadow-sm dark:shadow-lg dark:shadow-emerald-500/10">
@@ -117,13 +128,15 @@ const props = withDefaults(defineProps<{
       <!-- Card 4: Suspended -->
       <div class="bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 backdrop-blur-xl hover:border-red-400 dark:hover:border-red-500/30 transition-all flex items-center justify-between shadow-sm dark:shadow-none">
         <div>
-          <span class="text-xs font-semibold text-red-700 dark:text-red-300 uppercase tracking-wider">SUSPENDED</span>
+          <span class="text-xs font-semibold text-red-700 dark:text-red-300 uppercase tracking-wider">
+            {{ t('គណនីផ្អាក (SUSPENDED)', 'SUSPENDED') }}
+          </span>
           <div class="text-2xl font-black text-slate-900 dark:text-white font-mono mt-1">
             {{ props.summaryStats?.total_suspended || 12 }}
           </div>
           <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1.5">
             <svg class="w-3.5 h-3.5 text-red-500 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
-            <span>Frozen / Suspended Accounts</span>
+            <span>{{ t('គណនីផ្អាក / ត្រូវបង្កក', 'Frozen / Suspended Accounts') }}</span>
           </p>
         </div>
         <div class="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 flex items-center justify-center text-red-600 dark:text-red-400 shadow-sm dark:shadow-lg dark:shadow-red-500/10">
@@ -144,7 +157,7 @@ const props = withDefaults(defineProps<{
         ]"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-        <span>All Users</span>
+        <span>{{ t('អ្នកប្រើប្រាស់ទាំងអស់', 'All Users') }}</span>
       </Link>
 
       <Link
@@ -157,7 +170,7 @@ const props = withDefaults(defineProps<{
         ]"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-        <span>Administrators</span>
+        <span>{{ t('អ្នកគ្រប់គ្រង (Admins)', 'Administrators') }}</span>
       </Link>
 
       <Link
@@ -170,7 +183,7 @@ const props = withDefaults(defineProps<{
         ]"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
-        <span>Teachers</span>
+        <span>{{ t('សាស្ត្រាចារ្យ (Teachers)', 'Teachers') }}</span>
       </Link>
 
       <Link
@@ -183,7 +196,7 @@ const props = withDefaults(defineProps<{
         ]"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
-        <span>Students</span>
+        <span>{{ t('និស្សិត (Students)', 'Students') }}</span>
       </Link>
 
       <Link
@@ -196,7 +209,7 @@ const props = withDefaults(defineProps<{
         ]"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
-        <span>Suspended Users</span>
+        <span>{{ t('គណនីផ្អាក (Suspended)', 'Suspended Users') }}</span>
       </Link>
     </div>
   </div>

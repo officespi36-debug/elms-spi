@@ -3,8 +3,10 @@ import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { ref, computed, defineAsyncComponent } from 'vue'
 import { router, Link, usePage } from '@inertiajs/vue3'
 const VueApexCharts = defineAsyncComponent(() => import('vue3-apexcharts'))
-import { i18n } from '@/Services/i18n'
+import { useLanguage } from '@/Services/i18n'
 import { isDark } from '@/composables/useTheme'
+
+const { currentLang, t } = useLanguage()
 
 interface MajorPerformanceItem {
   name: string
@@ -241,16 +243,16 @@ const completionDonutOptions = computed<any>(() => ({
             <div class="flex items-center gap-2.5">
               <span class="text-2xl">🏠</span>
               <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                ADMIN DASHBOARD
+                {{ t('ផ្ទាំងគ្រប់គ្រង ADMIN', 'ADMIN DASHBOARD') }}
               </h1>
               <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30">
                 Official ELMS
               </span>
             </div>
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2 font-medium">
-              <span>សូមស្វាគមន៍, <strong class="text-slate-900 dark:text-white font-bold">{{ userName }}</strong> 👋</span>
+              <span>{{ t('សូមស្វាគមន៍,', 'Welcome,') }} <strong class="text-slate-900 dark:text-white font-bold">{{ userName }}</strong> 👋</span>
               <span class="text-slate-300 dark:text-slate-700">·</span>
-              <span>Overview of Institutional Learning Performance & System Health</span>
+              <span>{{ t('ទិដ្ឋភាពទូទៅនៃប្រតិបត្តិការសិក្សា និងសុខភាពប្រព័ន្ធ', 'Overview of Institutional Learning Performance & System Health') }}</span>
             </p>
           </div>
 
@@ -260,10 +262,10 @@ const completionDonutOptions = computed<any>(() => ({
             <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
               <button
                 v-for="p in [
-                  { id: 'today', name: 'Today' },
-                  { id: 'week', name: 'Week' },
-                  { id: 'month', name: 'Month' },
-                  { id: 'semester', name: 'Semester' }
+                  { id: 'today', name: t('ថ្ងៃនេះ', 'Today') },
+                  { id: 'week', name: t('សប្តាហ៍', 'Week') },
+                  { id: 'month', name: t('ខែ', 'Month') },
+                  { id: 'semester', name: t('ឆមាស', 'Semester') }
                 ]"
                 :key="p.id"
                 @click="periodFilter = p.id; applyFilters()"
@@ -284,7 +286,7 @@ const completionDonutOptions = computed<any>(() => ({
               @change="applyFilters"
               class="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs font-semibold focus:outline-none focus:border-emerald-500 cursor-pointer"
             >
-              <option value="all">All Majors (5 SPI Majors)</option>
+              <option value="all">{{ t('ជំនាញទាំងអស់ (All Majors)', 'All Majors (5 SPI Majors)') }}</option>
               <option v-for="m in allMajors" :key="m.id" :value="m.id">{{ m.name }}</option>
             </select>
 
@@ -297,7 +299,7 @@ const completionDonutOptions = computed<any>(() => ({
               <svg :class="{ 'animate-spin': isRefreshing }" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
-              <span>Refresh</span>
+              <span>{{ t('ផ្ទុកឡើងវិញ', 'Refresh') }}</span>
             </button>
 
             <!-- Export Report Button -->
@@ -305,7 +307,7 @@ const completionDonutOptions = computed<any>(() => ({
               @click="exportReport"
               class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
             >
-              <span>📥 Export Report</span>
+              <span>📥 {{ t('ទាញយករបាយការណ៍', 'Export Report') }}</span>
             </button>
           </div>
         </div>
@@ -321,15 +323,15 @@ const completionDonutOptions = computed<any>(() => ({
           <div class="flex items-center justify-between">
             <span class="text-2xl">👨‍🎓</span>
             <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20">
-              User Mgmt →
+              {{ t('និស្សិត →', 'User Mgmt →') }}
             </span>
           </div>
-          <p class="text-slate-500 dark:text-slate-400 text-xs font-semibold mt-2.5">Total Students</p>
+          <p class="text-slate-500 dark:text-slate-400 text-xs font-semibold mt-2.5">{{ t('និស្សិតសរុប', 'Total Students') }}</p>
           <h4 class="text-2xl font-black text-slate-900 dark:text-white mt-0.5 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
             {{ (stats?.total_students || 2458).toLocaleString() }}
           </h4>
           <p class="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold mt-1">
-            ✓ {{ (stats?.active_students || 2390).toLocaleString() }} Active Students
+            ✓ {{ (stats?.active_students || 2390).toLocaleString() }} {{ t('និស្សិតសកម្ម', 'Active Students') }}
           </p>
         </Link>
 
@@ -341,15 +343,15 @@ const completionDonutOptions = computed<any>(() => ({
           <div class="flex items-center justify-between">
             <span class="text-2xl">👨‍🏫</span>
             <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20">
-              Teachers →
+              {{ t('គ្រូបង្រៀន →', 'Teachers →') }}
             </span>
           </div>
-          <p class="text-slate-500 dark:text-slate-400 text-xs font-semibold mt-2.5">Faculty Teachers</p>
+          <p class="text-slate-500 dark:text-slate-400 text-xs font-semibold mt-2.5">{{ t('សាស្ត្រាចារ្យ/គ្រូ', 'Faculty Teachers') }}</p>
           <h4 class="text-2xl font-black text-slate-900 dark:text-white mt-0.5 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
             {{ (stats?.total_teachers || 145).toLocaleString() }}
           </h4>
           <p class="text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold mt-1">
-            ✓ {{ (stats?.active_teachers || 140).toLocaleString() }} Teaching Faculty
+            ✓ {{ (stats?.active_teachers || 140).toLocaleString() }} {{ t('គ្រូកំពុងបង្រៀន', 'Teaching Faculty') }}
           </p>
         </Link>
 
@@ -361,15 +363,15 @@ const completionDonutOptions = computed<any>(() => ({
           <div class="flex items-center justify-between">
             <span class="text-2xl">📚</span>
             <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-500/20">
-              Courses →
+              {{ t('វគ្គសិក្សា →', 'Courses →') }}
             </span>
           </div>
-          <p class="text-slate-500 dark:text-slate-400 text-xs font-semibold mt-2.5">Active Courses</p>
+          <p class="text-slate-500 dark:text-slate-400 text-xs font-semibold mt-2.5">{{ t('វគ្គសិក្សាសកម្ម', 'Active Courses') }}</p>
           <h4 class="text-2xl font-black text-slate-900 dark:text-white mt-0.5 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
             {{ (stats?.total_courses || 328).toLocaleString() }}
           </h4>
           <p class="text-[11px] text-purple-600 dark:text-purple-400 font-semibold mt-1">
-            ✓ {{ (stats?.published_courses || 290).toLocaleString() }} Approved & Published
+            ✓ {{ (stats?.published_courses || 290).toLocaleString() }} {{ t('បានអនុម័ត & ផ្សាយ', 'Approved & Published') }}
           </p>
         </Link>
 
@@ -381,15 +383,15 @@ const completionDonutOptions = computed<any>(() => ({
           <div class="flex items-center justify-between">
             <span class="text-2xl">📈</span>
             <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-teal-50 dark:bg-teal-500/10 text-teal-700 dark:text-teal-400 border border-teal-200 dark:border-teal-500/20">
-              Learning →
+              {{ t('វឌ្ឍនភាព →', 'Learning →') }}
             </span>
           </div>
-          <p class="text-slate-500 dark:text-slate-400 text-xs font-semibold mt-2.5">Completion Rate</p>
+          <p class="text-slate-500 dark:text-slate-400 text-xs font-semibold mt-2.5">{{ t('អត្រាបញ្ចប់ការសិក្សា', 'Completion Rate') }}</p>
           <h4 class="text-2xl font-black text-teal-600 dark:text-teal-400 mt-0.5 group-hover:text-teal-500 transition-colors">
             {{ stats?.completion_rate || 76 }}%
           </h4>
           <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-1">
-            76% Done · 18% Progress · 6% New
+            {{ t('៧៦% បញ្ចប់ · ១៨% កំពុងរៀន · ៦% ថ្មី', '76% Done · 18% Progress · 6% New') }}
           </p>
         </Link>
 
@@ -401,15 +403,15 @@ const completionDonutOptions = computed<any>(() => ({
           <div class="flex items-center justify-between">
             <span class="text-2xl">⚠️</span>
             <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30">
-              AI Alert →
+              {{ t('ការដាស់តឿន AI →', 'AI Alert →') }}
             </span>
           </div>
-          <p class="text-slate-500 dark:text-slate-400 text-xs font-semibold mt-2.5">At-Risk Students</p>
+          <p class="text-slate-500 dark:text-slate-400 text-xs font-semibold mt-2.5">{{ t('និស្សិតប្រឈមហានិភ័យ', 'At-Risk Students') }}</p>
           <h4 class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-0.5 group-hover:text-rose-500 transition-colors">
             {{ (stats?.at_risk_students || 12).toLocaleString() }}
           </h4>
           <p class="text-[11px] text-rose-600 dark:text-rose-400 font-semibold mt-1">
-            ⚠️ Attention Required (AI)
+            ⚠️ {{ t('ត្រូវការការយកចិត្តទុកដាក់ (AI)', 'Attention Required (AI)') }}
           </p>
         </Link>
       </div>

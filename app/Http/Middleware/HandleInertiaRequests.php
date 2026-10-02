@@ -42,8 +42,14 @@ class HandleInertiaRequests extends Middleware
             $botId = $parts[0] ?? '8828915669';
         }
 
+        $locale = $request->cookie('elms_lang') ?? session('elms_lang', 'km');
+        if (in_array($locale, ['km', 'en'])) {
+            app()->setLocale($locale);
+        }
+
         return [
             ...parent::share($request),
+            'locale' => app()->getLocale(),
             'auth' => [
                 'user' => $request->user(),
             ],

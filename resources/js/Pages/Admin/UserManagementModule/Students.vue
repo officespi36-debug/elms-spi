@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { useForm, router } from '@inertiajs/vue3'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import UserModuleHeader from '@/Components/Admin/UserModuleHeader.vue'
+import { useLanguage } from '@/Services/i18n'
 
 const props = withDefaults(defineProps<{
   students?: Array<any>
@@ -17,6 +18,8 @@ const props = withDefaults(defineProps<{
   academicYears: () => [],
   summaryStats: () => ({})
 })
+
+const { currentLang, t } = useLanguage()
 
 const defaultAcademicYears = [
   { id: 1, name: 'Academic Year 2026 – 2027', code: 'AY-2026-2027', status: 'active' },
@@ -339,7 +342,7 @@ const getStudentLearningData = (student: any) => {
 </script>
 
 <template>
-  <AdminLayout title="User Management — Students">
+  <AdminLayout :title="t('ការគ្រប់គ្រងនិស្សិត — User Management', 'User Management — Students')">
     <div class="space-y-6 font-sans">
       <!-- Shared Header -->
       <UserModuleHeader activeTab="students" :summaryStats="props.summaryStats" />
@@ -352,21 +355,23 @@ const getStudentLearningData = (student: any) => {
           </div>
           <div>
             <div class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-              <span>STUDENT MANAGEMENT WORKFLOW</span>
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300">Active Stage 2</span>
+              <span>{{ t('រចនាសម្ព័ន្ធគ្រប់គ្រងនិស្សិត', 'STUDENT MANAGEMENT WORKFLOW') }}</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300">
+                {{ t('ដំណាក់កាលទី ២', 'Active Stage 2') }}
+              </span>
             </div>
             <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-              រៀបចំ និងភ្ជាប់និស្សិត៖ <strong class="text-emerald-600 dark:text-emerald-400">Student</strong> ➔ <strong class="text-indigo-600 dark:text-indigo-400">5 SPI Majors</strong> ➔ <strong class="text-teal-600 dark:text-teal-400">Academic Year (2026–2027)</strong>
+              {{ t('រៀបចំ និងភ្ជាប់និស្សិត៖', 'Organize and place students:') }} <strong class="text-emerald-600 dark:text-emerald-400">{{ t('និស្សិត (Student)', 'Student') }}</strong> ➔ <strong class="text-indigo-600 dark:text-indigo-400">{{ t('ជំនាញទាំង ៥ (5 SPI Majors)', '5 SPI Majors') }}</strong> ➔ <strong class="text-teal-600 dark:text-teal-400">{{ t('ឆ្នាំសិក្សា (Academic Year)', 'Academic Year') }}</strong>
             </p>
           </div>
         </div>
 
         <div class="flex items-center gap-2 text-xs">
           <span class="px-3 py-1.5 rounded-xl bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 font-mono font-bold text-slate-800 dark:text-slate-200">
-            🎓 {{ props.majors.length || 5 }} Majors
+            🎓 {{ props.majors.length || 5 }} {{ t('ជំនាញ', 'Majors') }}
           </span>
           <span class="px-3 py-1.5 rounded-xl bg-white/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 font-mono font-bold text-emerald-600 dark:text-emerald-400">
-            ✓ {{ props.summaryStats?.total_students || filteredStudents.length }} Total Students
+            ✓ {{ props.summaryStats?.total_students || filteredStudents.length }} {{ t('និស្សិតសរុប', 'Total Students') }}
           </span>
         </div>
       </div>
@@ -380,7 +385,7 @@ const getStudentLearningData = (student: any) => {
             <input
               v-model="search"
               type="text"
-              placeholder="Search Student ID (SPI-2026-001), Name, Email..."
+              :placeholder="t('ស្វែងរកអត្តលេខ (SPI-2026-001), ឈ្មោះ, Email...', 'Search Student ID (SPI-2026-001), Name, Email...')"
               class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-xl pl-9 pr-3.5 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-all font-sans"
             />
             <span class="absolute left-3 top-2.5 text-slate-400 dark:text-slate-500">
@@ -390,7 +395,7 @@ const getStudentLearningData = (student: any) => {
 
           <!-- Filter by Major (5 SPI Majors) -->
           <select v-model="selectedMajor" class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3 py-2 text-xs text-emerald-700 dark:text-emerald-300 font-semibold focus:outline-none focus:border-emerald-500 cursor-pointer">
-            <option value="">All Majors (5 SPI Majors)</option>
+            <option value="">{{ t('ជំនាញទាំងអស់ (All Majors)', 'All Majors (5 SPI Majors)') }}</option>
             <option v-for="m in props.majors" :key="m.id" :value="m.id">
               {{ m.name }}
             </option>
@@ -398,7 +403,7 @@ const getStudentLearningData = (student: any) => {
 
           <!-- Filter by Academic Year -->
           <select v-model="selectedAcademicYear" class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3 py-2 text-xs text-indigo-700 dark:text-indigo-300 font-semibold focus:outline-none focus:border-indigo-500 cursor-pointer">
-            <option value="">All Academic Years</option>
+            <option value="">{{ t('ឆ្នាំសិក្សាទាំងអស់ (All Years)', 'All Academic Years') }}</option>
             <option v-for="ay in availableAcademicYears" :key="ay.id" :value="ay.name">
               {{ ay.name }}
             </option>
@@ -406,10 +411,10 @@ const getStudentLearningData = (student: any) => {
 
           <!-- Filter by Status -->
           <select v-model="selectedStatus" class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-700 dark:text-slate-200 focus:outline-none focus:border-emerald-500 cursor-pointer">
-            <option value="">Status: All</option>
-            <option value="active">Active (សកម្ម)</option>
-            <option value="inactive">Inactive (អសកម្ម)</option>
-            <option value="suspended">Suspended (ផ្អាក)</option>
+            <option value="">{{ t('ស្ថានភាពទាំងអស់ (All Status)', 'Status: All') }}</option>
+            <option value="active">{{ t('សកម្ម (Active)', 'Active') }}</option>
+            <option value="inactive">{{ t('អសកម្ម (Inactive)', 'Inactive') }}</option>
+            <option value="suspended">{{ t('ផ្អាក (Suspended)', 'Suspended') }}</option>
           </select>
 
           <!-- Reset Filter Button -->
@@ -418,7 +423,7 @@ const getStudentLearningData = (student: any) => {
             @click="search = ''; selectedMajor = ''; selectedAcademicYear = ''; selectedStatus = ''"
             class="px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer"
           >
-            <span>✕ Reset</span>
+            <span>✕ {{ t('កំណត់ឡើងវិញ', 'Reset') }}</span>
           </button>
         </div>
 
@@ -430,17 +435,17 @@ const getStudentLearningData = (student: any) => {
             class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-600/20 transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            <span>+ Add Student</span>
+            <span>{{ t('+ បន្ថែមនិស្សិត', '+ Add Student') }}</span>
           </button>
 
           <!-- Export CSV -->
           <button
             @click="exportCSV()"
             class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-semibold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
-            title="Export Students to CSV"
+            :title="t('ទាញយកបញ្ជីនិស្សិតជា CSV', 'Export Students to CSV')"
           >
             <svg class="w-4 h-4 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-            <span>Export</span>
+            <span>{{ t('ទាញយក CSV', 'Export') }}</span>
           </button>
         </div>
       </div>
@@ -472,14 +477,14 @@ const getStudentLearningData = (student: any) => {
               <th class="py-3.5 px-4 w-10 text-center">
                 <input type="checkbox" @change="toggleSelectAll" class="rounded bg-white dark:bg-slate-950 border-slate-300 dark:border-slate-700 text-emerald-600 focus:ring-emerald-500 cursor-pointer" />
               </th>
-              <th class="py-3.5 px-4">Student ID</th>
-              <th class="py-3.5 px-4">Name</th>
-              <th class="py-3.5 px-4">Email / Phone</th>
-              <th class="py-3.5 px-4">Major</th>
-              <th class="py-3.5 px-4">Academic Year</th>
-              <th class="py-3.5 px-4 text-center">Enrolled Subjects</th>
-              <th class="py-3.5 px-4 text-center">Status</th>
-              <th class="py-3.5 px-4 text-right">Actions</th>
+              <th class="py-3.5 px-4">{{ t('អត្តលេខ', 'Student ID') }}</th>
+              <th class="py-3.5 px-4">{{ t('ឈ្មោះ', 'Name') }}</th>
+              <th class="py-3.5 px-4">{{ t('ទំនាក់ទំនង (Email/Phone)', 'Email / Phone') }}</th>
+              <th class="py-3.5 px-4">{{ t('ជំនាញ (Major)', 'Major') }}</th>
+              <th class="py-3.5 px-4">{{ t('ឆ្នាំសិក្សា', 'Academic Year') }}</th>
+              <th class="py-3.5 px-4 text-center">{{ t('មុខវិជ្ជាចុះឈ្មោះ', 'Enrolled Subjects') }}</th>
+              <th class="py-3.5 px-4 text-center">{{ t('ស្ថានភាព', 'Status') }}</th>
+              <th class="py-3.5 px-4 text-right">{{ t('សកម្មភាព', 'Actions') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 text-xs">
