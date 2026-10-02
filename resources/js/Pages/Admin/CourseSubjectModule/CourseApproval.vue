@@ -27,6 +27,7 @@ const search = ref('')
 const selectedMajor = ref('')
 const selectedSubject = ref('')
 const selectedTeacher = ref('')
+const selectedAcademicYear = ref('')
 const selectedStatus = ref('')
 const activeViewTab = ref<'queue' | 'history'>('queue')
 
@@ -90,6 +91,8 @@ const filteredCourses = computed(() => {
     const matchesSubject = !selectedSubject.value || course.subject_id == selectedSubject.value || course.subject?.id == selectedSubject.value
     const matchesTeacher = !selectedTeacher.value || course.teacher_id == selectedTeacher.value || course.teacher?.id == selectedTeacher.value
 
+    const matchesYear = !selectedAcademicYear.value || course.academic_year === selectedAcademicYear.value
+
     const currentStatus = (course.status || 'draft').toLowerCase()
     let matchesStatus = true
     if (selectedStatus.value) {
@@ -102,12 +105,12 @@ const filteredCourses = computed(() => {
       }
     }
 
-    return matchesSearch && matchesMajor && matchesSubject && matchesTeacher && matchesStatus
+    return matchesSearch && matchesMajor && matchesSubject && matchesTeacher && matchesYear && matchesStatus
   })
 })
 
 // Reset pagination when filters change
-watch([search, selectedMajor, selectedSubject, selectedTeacher, selectedStatus], () => {
+watch([search, selectedMajor, selectedSubject, selectedTeacher, selectedAcademicYear, selectedStatus], () => {
   currentPage.value = 1
 })
 
@@ -326,9 +329,9 @@ const formatDateTime = (dateStr?: string) => {
 
       <!-- TAB 1: APPROVAL QUEUE (SPECIFICATION 1) -->
       <div v-show="activeViewTab === 'queue'" class="space-y-4">
-        <!-- FILTER BAR -->
-        <div class="p-4 bg-slate-900/60 rounded-2xl border border-slate-800/80 backdrop-blur-md grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-          <!-- Search -->
+        <!-- FILTER BAR (Major, Subject, Teacher, Academic Year, Status, Date) -->
+        <div class="p-4 bg-slate-900/60 rounded-2xl border border-slate-800/80 backdrop-blur-md grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2.5">
+          <!-- 1. Search -->
           <div class="relative lg:col-span-2">
             <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -341,42 +344,81 @@ const formatDateTime = (dateStr?: string) => {
             />
           </div>
 
-          <!-- Major Filter (5 Canonical SPI Majors) -->
+          <!-- 2. Major Filter (5 Canonical SPI Majors) -->
           <div>
             <select
               v-model="selectedMajor"
               class="w-full px-3 py-2 bg-slate-950/60 border border-slate-800 rounded-xl text-xs text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
             >
-              <option value="">ជំនាញទាំងអស់ (All 5 Majors)</option>
+              <option value="">ជំនាញទាំងអស់ (All Majors)</option>
               <option v-for="m in canonicalMajors" :key="m.id" :value="m.id">
                 {{ m.name }}
               </option>
             </select>
           </div>
 
-          <!-- Status Filter -->
+          <!-- 3. Subject Filter -->
+          <div>
+            <select
+              v-model="selectedSubject"
+              class="w-full px-3 py-2 bg-slate-950/60 border border-slate-800 rounded-xl text-xs text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+            >
+              <option value="">មុខវិជ្ជាទាំងអស់ (All Subjects)</option>
+              <option v-for="s in availableSubjects" :key="s.id" :value="s.id">
+                {{ s.name }}
+              </option>
+            </select>
+          </div>
+
+          <!-- 4. Teacher Filter -->
+          <div>
+            <select
+              v-model="selectedTeacher"
+              class="w-full px-3 py-2 bg-slate-950/60 border border-slate-800 rounded-xl text-xs text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+            >
+              <option value="">គ្រូបង្រៀនទាំងអស់ (All Teachers)</option>
+              <option v-for="t in props.teachers" :key="t.id" :value="t.id">
+                {{ t.name }}
+              </option>
+            </select>
+          </div>
+
+          <!-- 5. Academic Year Filter -->
+          <div>
+            <select
+              v-model="selectedAcademicYear"
+              class="w-full px-3 py-2 bg-slate-950/60 border border-slate-800 rounded-xl text-xs text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+            >
+              <option value="">ឆ្នាំសិក្សា (All Academic Years)</option>
+              <option v-for="y in props.academicYears" :key="y.id" :value="y.name">
+                {{ y.name }}
+              </option>
+            </select>
+          </div>
+
+          <!-- 6. Status Filter -->
           <div>
             <select
               v-model="selectedStatus"
               class="w-full px-3 py-2 bg-slate-950/60 border border-slate-800 rounded-xl text-xs text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
             >
-              <option value="">ស្ថានភាពទាំងអស់ (All Status)</option>
+              <option value="">ស្ថានភាព (All Status)</option>
               <option value="pending">⏳ Pending (រង់ចាំពិនិត្យ)</option>
               <option value="approved">✅ Approved / Published</option>
               <option value="rejected">❌ Rejected (ត្រូវកែ)</option>
             </select>
           </div>
 
-          <!-- Clear Filter Button -->
+          <!-- 7. Clear Filter Button -->
           <div class="flex items-center">
             <button
-              @click="search = ''; selectedMajor = ''; selectedSubject = ''; selectedTeacher = ''; selectedStatus = ''"
-              class="w-full py-2 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 text-xs font-semibold transition-all border border-slate-700/60 flex items-center justify-center gap-1.5"
+              @click="search = ''; selectedMajor = ''; selectedSubject = ''; selectedTeacher = ''; selectedAcademicYear = ''; selectedStatus = ''"
+              class="w-full py-2 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 text-xs font-semibold transition-all border border-slate-700/60 flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
-              <span>កំណត់ឡើងវិញ (Reset)</span>
+              <span>Reset</span>
             </button>
           </div>
         </div>

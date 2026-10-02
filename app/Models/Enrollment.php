@@ -17,7 +17,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Enrollment extends Model
 {
-    protected $fillable = ['student_id', 'course_id', 'status', 'enrolled_at'];
+    protected $fillable = ['student_id', 'course_id', 'semester', 'status', 'enrolled_at'];
 
     protected $casts = [
         'enrolled_at' => 'datetime',

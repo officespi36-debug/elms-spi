@@ -359,6 +359,34 @@ class CourseModuleController extends Controller
             ]);
         }
 
+        // Notification for Course Teacher
+        try {
+            if (class_exists(\App\Models\Notification::class)) {
+                \App\Models\Notification::create([
+                    'title'   => 'វគ្គសិក្សាត្រូវបានអនុម័ត (Course Approved)',
+                    'message' => "វគ្គសិក្សា '{$course->title}' របស់អ្នកត្រូវបាន Admin ត្រួតពិនិត្យអនុម័ត និងផ្សព្វផ្សាយ (Published) រួចរាល់។",
+                    'target'  => 'teachers',
+                ]);
+            }
+        } catch (\Throwable $e) {
+            // notification fallback
+        }
+
+        // System Audit Log
+        try {
+            if (class_exists(\App\Models\AuthLog::class)) {
+                \App\Models\AuthLog::create([
+                    'user_id'    => auth()->id(),
+                    'email'      => auth()->user()?->email,
+                    'ip_address' => $request->ip(),
+                    'status'     => 'COURSE_APPROVED',
+                    'location'   => "Course #{$course->id} ({$course->title}) Approved & Published",
+                ]);
+            }
+        } catch (\Throwable $e) {
+            // log fallback
+        }
+
         return redirect()->back()->with('success', "វគ្គសិក្សា '{$course->title}' ត្រូវបានអនុម័ត និងផ្សព្វផ្សាយជាសាធារណៈ (Approved & Published).");
     }
 
@@ -380,6 +408,34 @@ class CourseModuleController extends Controller
                 'action'      => 'rejected',
                 'comment'     => $note,
             ]);
+        }
+
+        // Notification for Course Teacher
+        try {
+            if (class_exists(\App\Models\Notification::class)) {
+                \App\Models\Notification::create([
+                    'title'   => 'វគ្គសិក្សាត្រូវការកែសម្រួល (Course Needs Revision)',
+                    'message' => "វគ្គសិក្សា '{$course->title}' ត្រូវបាន Reject ដោយ Admin ជាមួយនឹង Feedback៖ {$note}",
+                    'target'  => 'teachers',
+                ]);
+            }
+        } catch (\Throwable $e) {
+            // notification fallback
+        }
+
+        // System Audit Log
+        try {
+            if (class_exists(\App\Models\AuthLog::class)) {
+                \App\Models\AuthLog::create([
+                    'user_id'    => auth()->id(),
+                    'email'      => auth()->user()?->email,
+                    'ip_address' => $request->ip(),
+                    'status'     => 'COURSE_REJECTED',
+                    'location'   => "Course #{$course->id} ({$course->title}) Rejected: {$note}",
+                ]);
+            }
+        } catch (\Throwable $e) {
+            // log fallback
         }
 
         return redirect()->back()->with('success', "វគ្គសិក្សា '{$course->title}' ត្រូវបានកត់ត្រាបដិសេធ និងផ្ញើសេចក្តីជូនដំណឹងកែសម្រួលទៅកាន់គ្រូ (Rejected with note).");

@@ -28,6 +28,7 @@ const selectedMajor = ref('')
 const selectedCourse = ref('')
 const selectedTeacher = ref('')
 const selectedAcademicYear = ref('')
+const selectedSemester = ref('')
 const selectedStatus = ref('')
 
 // Pagination
@@ -73,6 +74,7 @@ const enrollForm = useForm({
   student_id: '' as string | number,
   course_id: '' as string | number,
   academic_year: 'Academic Year 2026 – 2027',
+  semester: 'Semester 1',
 })
 
 // Computed Filtered Enrollments List (Specification 1 & 2)
@@ -91,14 +93,15 @@ const filteredEnrollments = computed(() => {
     const matchesCourse = !selectedCourse.value || enr.course_id == selectedCourse.value
     const matchesTeacher = !selectedTeacher.value || enr.teacher_id == selectedTeacher.value || enr.teacher_name === selectedTeacher.value
     const matchesYear = !selectedAcademicYear.value || enr.academic_year === selectedAcademicYear.value
+    const matchesSemester = !selectedSemester.value || enr.semester === selectedSemester.value
     const matchesStatus = !selectedStatus.value || enr.status === selectedStatus.value
 
-    return matchesSearch && matchesMajor && matchesCourse && matchesTeacher && matchesYear && matchesStatus
+    return matchesSearch && matchesMajor && matchesCourse && matchesTeacher && matchesYear && matchesSemester && matchesStatus
   })
 })
 
 // Reset pagination on filter change
-watch([search, selectedMajor, selectedCourse, selectedTeacher, selectedAcademicYear, selectedStatus], () => {
+watch([search, selectedMajor, selectedCourse, selectedTeacher, selectedAcademicYear, selectedSemester, selectedStatus], () => {
   currentPage.value = 1
 })
 
@@ -149,6 +152,7 @@ const openEnrollModal = () => {
   enrollForm.student_id = props.students[0]?.id || ''
   enrollForm.course_id = props.courses[0]?.id || ''
   enrollForm.academic_year = props.academicYears[0]?.name || 'Academic Year 2026 – 2027'
+  enrollForm.semester = 'Semester 1'
   showEnrollModal.value = true
 }
 
@@ -325,7 +329,7 @@ const formatDate = (dateStr?: string) => {
         </div>
 
         <!-- FILTERS GRID -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2.5 pt-2 border-t border-slate-800/70">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-2.5 pt-2 border-t border-slate-800/70">
           <!-- 1. Search Student -->
           <div class="relative lg:col-span-2">
             <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -371,14 +375,26 @@ const formatDate = (dateStr?: string) => {
               v-model="selectedAcademicYear"
               class="w-full px-3 py-2 bg-slate-950/60 border border-slate-800 rounded-xl text-xs text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
             >
-              <option value="">ឆ្នាំសិក្សាទាំងអស់ (All Years)</option>
+              <option value="">ឆ្នាំសិក្សា (All Years)</option>
               <option v-for="y in props.academicYears" :key="y.id" :value="y.name">
                 {{ y.name }}
               </option>
             </select>
           </div>
 
-          <!-- 5. Status Filter -->
+          <!-- 5. Semester Filter -->
+          <div>
+            <select
+              v-model="selectedSemester"
+              class="w-full px-3 py-2 bg-slate-950/60 border border-slate-800 rounded-xl text-xs text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+            >
+              <option value="">ឆមាស (All Semesters)</option>
+              <option value="Semester 1">Semester 1</option>
+              <option value="Semester 2">Semester 2</option>
+            </select>
+          </div>
+
+          <!-- 6. Status Filter -->
           <div>
             <select
               v-model="selectedStatus"
@@ -404,6 +420,7 @@ const formatDate = (dateStr?: string) => {
                 <th class="py-3 px-4">Major</th>
                 <th class="py-3 px-4">Course</th>
                 <th class="py-3 px-4">Teacher</th>
+                <th class="py-3 px-4">Academic Year & Semester</th>
                 <th class="py-3 px-4">Enrolled Date</th>
                 <th class="py-3 px-4">Progress</th>
                 <th class="py-3 px-4">Status</th>
@@ -454,7 +471,13 @@ const formatDate = (dateStr?: string) => {
                   {{ enr.teacher_name }}
                 </td>
 
-                <!-- 6. Enrolled Date -->
+                <!-- 6. Academic Year & Semester -->
+                <td class="py-3 px-4 whitespace-nowrap">
+                  <div class="font-medium text-slate-200">{{ enr.academic_year }}</div>
+                  <div class="text-[10px] text-sky-400 font-bold font-mono">{{ enr.semester || 'Semester 1' }}</div>
+                </td>
+
+                <!-- 7. Enrolled Date -->
                 <td class="py-3 px-4 whitespace-nowrap text-slate-400 font-mono text-[11px]">
                   {{ formatDate(enr.enrolled_date) }}
                 </td>
@@ -608,7 +631,7 @@ const formatDate = (dateStr?: string) => {
           <form @submit.prevent="submitEnroll" class="space-y-4 text-xs">
             <!-- 1. Select Student -->
             <div>
-              <label class="block font-semibold text-slate-300 mb-1">ជ្រើសរើសនិស្សិត (Select Student) *</label>
+              <label class="block font-semibold text-slate-300 mb-1">១. ជ្រើសរើសនិស្សិត (Select Student) *</label>
               <select
                 v-model="enrollForm.student_id"
                 class="w-full px-3 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
@@ -620,9 +643,34 @@ const formatDate = (dateStr?: string) => {
               </select>
             </div>
 
-            <!-- 2. Select Course -->
+            <!-- 2. Select Academic Year -->
             <div>
-              <label class="block font-semibold text-slate-300 mb-1">ជ្រើសរើសវគ្គសិក្សា (Select Course - Published Only) *</label>
+              <label class="block font-semibold text-slate-300 mb-1">២. ឆ្នាំសិក្សា (Academic Year) *</label>
+              <select
+                v-model="enrollForm.academic_year"
+                class="w-full px-3 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+              >
+                <option v-for="yr in props.academicYears" :key="yr.id" :value="yr.name">
+                  {{ yr.name }}
+                </option>
+              </select>
+            </div>
+
+            <!-- 3. Select Semester -->
+            <div>
+              <label class="block font-semibold text-slate-300 mb-1">៣. ឆមាស (Semester) *</label>
+              <select
+                v-model="enrollForm.semester"
+                class="w-full px-3 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+              >
+                <option value="Semester 1">ឆមាសទី ១ (Semester 1)</option>
+                <option value="Semester 2">ឆមាសទី ២ (Semester 2)</option>
+              </select>
+            </div>
+
+            <!-- 4. Select Published Course -->
+            <div>
+              <label class="block font-semibold text-slate-300 mb-1">៤. ជ្រើសរើសវគ្គសិក្សា (Select Published Course) *</label>
               <select
                 v-model="enrollForm.course_id"
                 class="w-full px-3 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
@@ -630,19 +678,6 @@ const formatDate = (dateStr?: string) => {
                 <option value="" disabled>-- ជ្រើសរើស Course (Published Only) --</option>
                 <option v-for="crs in props.courses" :key="crs.id" :value="crs.id">
                   {{ crs.title }} ({{ crs.code }}) — {{ crs.major?.name }}
-                </option>
-              </select>
-            </div>
-
-            <!-- 3. Academic Year -->
-            <div>
-              <label class="block font-semibold text-slate-300 mb-1">ឆ្នាំសិក្សា (Academic Year)</label>
-              <select
-                v-model="enrollForm.academic_year"
-                class="w-full px-3 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-              >
-                <option v-for="yr in props.academicYears" :key="yr.id" :value="yr.name">
-                  {{ yr.name }}
                 </option>
               </select>
             </div>

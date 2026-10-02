@@ -72,6 +72,7 @@ class EnrollmentController extends Controller
                 'teacher_name'      => $course?->teacher?->name ?: 'Faculty Teacher',
                 'teacher_id'        => $course?->teacher_id,
                 'academic_year'     => $course?->academic_year ?: 'Academic Year 2026 – 2027',
+                'semester'          => $enr->semester ?: ($course?->semester ?: 'Semester 1'),
                 'enrolled_date'     => $enr->enrolled_at ? $enr->enrolled_at->format('Y-m-d') : ($enr->created_at ? $enr->created_at->format('Y-m-d') : '2026-09-01'),
                 'progress'          => $progress,
                 'status'            => $enr->status ?: 'active',
@@ -87,7 +88,7 @@ class EnrollmentController extends Controller
 
         // Published courses available for enrollment (Spec 4: Course must be Published)
         $courses = Schema::hasTable('courses')
-            ? Course::where('status', 'published')->with(['major', 'teacher', 'subject'])->get(['id', 'code', 'title', 'major_id', 'subject_id', 'teacher_id', 'academic_year', 'status'])
+            ? Course::where('status', 'published')->with(['major', 'teacher', 'subject'])->get(['id', 'code', 'title', 'major_id', 'subject_id', 'teacher_id', 'academic_year', 'semester', 'status'])
             : collect();
 
         // Active students (Spec 4: Student has Account and is Active)
@@ -128,6 +129,7 @@ class EnrollmentController extends Controller
             'student_id'    => 'required|exists:users,id',
             'course_id'     => 'required|exists:courses,id',
             'academic_year' => 'nullable|string',
+            'semester'      => 'nullable|string',
         ]);
 
         // Validation 1: Student has Account and is Active
@@ -155,12 +157,7 @@ class EnrollmentController extends Controller
             ]);
         }
 
-        // Validation 4: Academic Year consistency check
-        if (!empty($validated['academic_year']) && !empty($course->academic_year)) {
-            // Can be confirmed or logged
-        }
-
-        // Validation 5: Cannot enroll same course twice
+        // Validation 4: Cannot enroll same course twice
         $alreadyEnrolled = Enrollment::where('student_id', $student->id)
             ->where('course_id', $course->id)
             ->exists();
@@ -171,13 +168,44 @@ class EnrollmentController extends Controller
             ]);
         }
 
+        $semesterVal = !empty($validated['semester']) ? $validated['semester'] : ($course->semester ?: 'Semester 1');
+
         // Enroll Student (Sets to Active with current timestamp)
-        Enrollment::create([
+        $enr = Enrollment::create([
             'student_id'  => $student->id,
             'course_id'   => $course->id,
+            'semester'    => $semesterVal,
             'status'      => 'active',
             'enrolled_at' => now(),
         ]);
+
+        // In-app Notification for Student
+        try {
+            if (class_exists(\App\Models\Notification::class)) {
+                \App\Models\Notification::create([
+                    'title'   => 'ការចុះឈ្មោះវគ្គសិក្សាជោគជ័យ (Course Enrollment)',
+                    'message' => "អ្នកត្រូវបានចុះឈ្មោះចូលរៀនវគ្គសិក្សា '{$course->title}' ({$semesterVal}) រួចរាល់។",
+                    'target'  => 'students',
+                ]);
+            }
+        } catch (\Throwable $e) {
+            // notification fallback
+        }
+
+        // Audit Log
+        try {
+            if (class_exists(\App\Models\AuthLog::class)) {
+                \App\Models\AuthLog::create([
+                    'user_id'    => auth()->id(),
+                    'email'      => auth()->user()?->email,
+                    'ip_address' => $request->ip(),
+                    'status'     => 'STUDENT_ENROLLED',
+                    'location'   => "Student #{$student->id} enrolled in Course #{$course->id} ({$semesterVal})",
+                ]);
+            }
+        } catch (\Throwable $e) {
+            // log fallback
+        }
 
         return redirect()->back()->with('success', "បានចុះឈ្មោះនិស្សិត '{$student->name}' ចូលរៀនវគ្គ '{$course->title}' ដោយជោគជ័យ (Enrolled Successfully)។");
     }
@@ -191,8 +219,22 @@ class EnrollmentController extends Controller
         $enr = Enrollment::findOrFail($id);
         $enr->update(['status' => $validated['status']]);
 
+        try {
+            if (class_exists(\App\Models\AuthLog::class)) {
+                \App\Models\AuthLog::create([
+                    'user_id'    => auth()->id(),
+                    'email'      => auth()->user()?->email,
+                    'ip_address' => $request->ip(),
+                    'status'     => 'ENROLLMENT_STATUS_CHANGED',
+                    'location'   => "Enrollment #{$id} status changed to {$validated['status']}",
+                ]);
+            }
+        } catch (\Throwable $e) {
+            // log fallback
+        }
+
         return redirect()->back()->with('success', "ស្ថានភាពការចុះឈ្មោះត្រូវបានផ្លាស់ប្តូរទៅជា {$validated['status']} (Status updated).");
-    }
+
 
     public function removeCourseEnrollment(int|string $id)
     {
