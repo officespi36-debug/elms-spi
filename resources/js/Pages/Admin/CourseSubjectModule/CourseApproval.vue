@@ -796,7 +796,7 @@ const formatDateTime = (dateStr?: string) => {
                 >
                   <div class="flex items-center gap-2">
                     <span class="w-5 h-5 rounded-lg bg-indigo-500/20 text-indigo-300 text-[10px] font-bold flex items-center justify-center">
-                      {{ idx + 1 }}
+                      {{ Number(idx) + 1 }}
                     </span>
                     <span class="font-medium text-slate-200">{{ lesson.title }}</span>
                   </div>

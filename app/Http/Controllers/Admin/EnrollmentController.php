@@ -234,7 +234,7 @@ class EnrollmentController extends Controller
         }
 
         return redirect()->back()->with('success', "ស្ថានភាពការចុះឈ្មោះត្រូវបានផ្លាស់ប្តូរទៅជា {$validated['status']} (Status updated).");
-
+    }
 
     public function removeCourseEnrollment(int|string $id)
     {
