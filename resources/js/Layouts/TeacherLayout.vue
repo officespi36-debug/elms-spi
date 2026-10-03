@@ -1257,14 +1257,17 @@ const onIconError = (e: Event) => {
             />
           </button>
 
-          <!-- Theme Switcher Pill (Matching Login page style) -->
+          <!-- Theme Switcher Pill (with Colorful Mode Text) -->
           <button
             type="button"
             @click="toggleTheme($event)"
-            class="p-1.5 px-2.5 h-8 rounded-full bg-white/90 dark:bg-[#121214]/80 backdrop-blur-md hover:bg-zinc-100 dark:hover:bg-[#1c1c1f] text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white transition-all duration-150 border border-zinc-300/80 dark:border-zinc-800 shadow-xs flex items-center justify-center gap-1.5 text-xs font-semibold cursor-pointer select-none active:scale-95 group focus:outline-none"
+            class="px-2.5 sm:px-3 h-8 rounded-full bg-white/95 dark:bg-[#182234] backdrop-blur-md hover:bg-amber-50/50 dark:hover:bg-indigo-950/40 transition-all duration-200 border border-zinc-200 dark:border-slate-700/80 shadow-xs flex items-center justify-center gap-1.5 text-xs font-bold cursor-pointer select-none active:scale-95 group focus:outline-none"
             :title="isDark ? (currentLang === 'km' ? 'ប្ដូរទៅ Light Mode' : 'Switch to Light Mode') : (currentLang === 'km' ? 'ប្ដូរទៅ Dark Mode' : 'Switch to Dark Mode')"
           >
-            <i :class="['pi text-xs transition-transform duration-500 group-hover:rotate-45', isDark ? 'pi-sun text-amber-400' : 'pi-moon text-indigo-500']"></i>
+            <i :class="['pi text-xs transition-transform duration-500 group-hover:rotate-45', isDark ? 'pi-moon text-indigo-400' : 'pi-sun text-amber-500']"></i>
+            <span :class="isDark ? 'text-indigo-300 font-bold' : 'text-amber-600 font-bold'" class="text-[11px] sm:text-xs tracking-tight">
+              {{ isDark ? 'Dark Mode' : 'Light Mode' }}
+            </span>
           </button>
 
 

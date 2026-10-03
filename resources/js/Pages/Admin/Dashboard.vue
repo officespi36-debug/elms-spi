@@ -274,7 +274,7 @@ const completionDonutOptions = computed<any>(() => ({
           <div>
             <div class="flex items-center gap-2.5">
               <span class="text-2xl">🏠</span>
-              <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+              <h1 class="text-xl sm:text-2xl font-black bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-600 dark:from-emerald-400 dark:via-teal-300 dark:to-indigo-300 bg-clip-text text-transparent tracking-tight">
                 {{ t('ផ្ទាំងគ្រប់គ្រង ADMIN', 'ADMIN DASHBOARD') }}
               </h1>
               <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30">
@@ -282,7 +282,7 @@ const completionDonutOptions = computed<any>(() => ({
               </span>
             </div>
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2 font-medium">
-              <span>{{ t('សូមស្វាគមន៍,', 'Welcome,') }} <strong class="text-slate-900 dark:text-white font-bold">{{ userName }}</strong> 👋</span>
+              <span>{{ t('សូមស្វាគមន៍,', 'Welcome,') }} <strong class="text-emerald-700 dark:text-emerald-300 font-bold">{{ userName }}</strong> 👋</span>
               <span class="text-slate-300 dark:text-slate-700">·</span>
               <span>{{ t('ទិដ្ឋភាពទូទៅនៃប្រតិបត្តិការសិក្សា និងសុខភាពប្រព័ន្ធ', 'Overview of Institutional Learning Performance & System Health') }}</span>
             </p>
@@ -303,8 +303,8 @@ const completionDonutOptions = computed<any>(() => ({
                 @click="periodFilter = p.id; applyFilters()"
                 :class="[
                   periodFilter === p.id 
-                    ? 'bg-emerald-600 text-white font-bold shadow-xs' 
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200',
+                    ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-slate-950 font-bold shadow-xs' 
+                    : 'text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-slate-700/60',
                   'px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer'
                 ]"
               >
@@ -317,17 +317,17 @@ const completionDonutOptions = computed<any>(() => ({
               v-model="majorFilter"
               @change="applyFilters"
               :style="{ colorScheme: isDark ? 'dark' : 'light' }"
-              class="bg-white dark:bg-[#182234] text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700/80 rounded-xl px-3 py-1.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 cursor-pointer shadow-xs transition-colors"
+              class="bg-white dark:bg-[#182234] text-emerald-800 dark:text-emerald-300 border border-emerald-300/80 dark:border-emerald-500/40 rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 cursor-pointer shadow-xs transition-colors"
             >
-              <option value="all" class="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-100">{{ t('ជំនាញទាំងអស់ (All Majors)', 'All Majors (5 SPI Majors)') }}</option>
-              <option v-for="m in majorsList" :key="m.id" :value="m.id" class="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-100">{{ getMajorDisplayName(m.name) }}</option>
+              <option value="all" class="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-100 font-medium">{{ t('ជំនាញទាំងអស់ (All Majors)', 'All Majors (5 SPI Majors)') }}</option>
+              <option v-for="m in majorsList" :key="m.id" :value="m.id" class="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-100 font-medium">{{ getMajorDisplayName(m.name) }}</option>
             </select>
 
             <!-- Refresh Button -->
             <button
               @click="applyFilters"
               :disabled="isRefreshing"
-              class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+              class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-700 dark:text-slate-200 hover:text-emerald-700 dark:hover:text-emerald-300 border border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-500/40 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
             >
               <svg :class="{ 'animate-spin': isRefreshing }" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -476,8 +476,8 @@ const completionDonutOptions = computed<any>(() => ({
                 @click="chartTimeframe = (tf.id as any)"
                 :class="[
                   chartTimeframe === tf.id 
-                    ? 'bg-emerald-600 text-white font-bold shadow-xs' 
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200',
+                    ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-slate-950 font-bold shadow-xs' 
+                    : 'text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-slate-700/60',
                   'px-3 py-1 rounded-lg transition-all cursor-pointer'
                 ]"
               >
@@ -515,14 +515,14 @@ const completionDonutOptions = computed<any>(() => ({
               <select
                 v-model="selectedPerfMajor"
                 :style="{ colorScheme: isDark ? 'dark' : 'light' }"
-                class="bg-white dark:bg-[#182234] text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700/80 rounded-xl px-2.5 py-1 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 cursor-pointer shadow-xs transition-colors"
+                class="bg-white dark:bg-[#182234] text-emerald-800 dark:text-emerald-300 border border-emerald-300/80 dark:border-emerald-500/40 rounded-xl px-2.5 py-1 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 cursor-pointer shadow-xs transition-colors"
               >
-                <option value="all" class="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-100">{{ t('ជំនាញទាំង ៥ ទាំងអស់', 'All 5 Majors') }}</option>
-                <option value="1" class="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-100">{{ t('បច្ចេកវិទ្យាព័ត៌មាន (IT)', 'Information Technology') }}</option>
-                <option value="2" class="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-100">{{ t('ការងារសង្គម (SW)', 'Social Work') }}</option>
-                <option value="3" class="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-100">{{ t('កសិកម្ម (AGR)', 'Agriculture') }}</option>
-                <option value="4" class="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-100">{{ t('ទេសចរណ៍ (TRM)', 'Tourism') }}</option>
-                <option value="5" class="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-100">{{ t('អក្សរសាស្ត្រអង់គ្លេស (ENG)', 'English Literature') }}</option>
+                <option value="all" class="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-100 font-medium">{{ t('ជំនាញទាំង ៥ ទាំងអស់', 'All 5 Majors') }}</option>
+                <option value="1" class="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-100 font-medium">{{ t('បច្ចេកវិទ្យាព័ត៌មាន (IT)', 'Information Technology') }}</option>
+                <option value="2" class="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-100 font-medium">{{ t('ការងារសង្គម (SW)', 'Social Work') }}</option>
+                <option value="3" class="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-100 font-medium">{{ t('កសិកម្ម (AGR)', 'Agriculture') }}</option>
+                <option value="4" class="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-100 font-medium">{{ t('ទេសចរណ៍ (TRM)', 'Tourism') }}</option>
+                <option value="5" class="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-100 font-medium">{{ t('អក្សរសាស្ត្រអង់គ្លេស (ENG)', 'English Literature') }}</option>
               </select>
             </div>
 
