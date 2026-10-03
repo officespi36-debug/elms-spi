@@ -162,6 +162,24 @@ function exportReport() {
   window.print()
 }
 
+// Top active courses for bottom snapshot table (matching Image style)
+const topCoursesList = [
+  { id: 1, name: 'Web Development & Cloud', major: 'IT', students: 185, completion: 88, status: 'Active' },
+  { id: 2, name: 'Community Social Work', major: 'SW', students: 142, completion: 76, status: 'Active' },
+  { id: 3, name: 'Modern Agronomy & Crop Tech', major: 'AGR', students: 136, completion: 82, status: 'Active' },
+  { id: 4, name: 'Eco-Tourism & Hospitality', major: 'TRM', students: 118, completion: 70, status: 'Active' },
+  { id: 5, name: 'Business English Communication', major: 'ENG', students: 124, completion: 91, status: 'Active' },
+]
+
+// System Infrastructure & Health summary (matching Image style)
+const systemInfrastructure = [
+  { name: 'API Gateway & Server', value: 'Online (99.9%)', icon: '🖥️', status: 'Healthy', color: 'emerald' },
+  { name: 'Primary Database', value: 'Operational', icon: '🗄️', status: 'Healthy', color: 'emerald' },
+  { name: 'AI Prediction Engine', value: 'Evaluating Rules', icon: '🤖', status: 'Running', color: 'indigo' },
+  { name: 'Cloudinary CDN Storage', value: '128 GB / 500 GB', icon: '☁️', status: '25.6%', color: 'blue' },
+  { name: 'Automated Database Backup', value: 'Today, 03:00 AM', icon: '💾', status: 'Success', color: 'teal' },
+]
+
 const getMajorDisplayName = (name: string) => {
   const map: Record<string, { km: string; en: string }> = {
     'All Majors': { km: 'ជំនាញទាំង ៥ ទាំងអស់', en: 'All 5 Majors' },
@@ -394,139 +412,135 @@ const completionDonutOptions = computed<any>(() => ({
         </div>
       </div>
 
-      <!-- ── 2. SUMMARY CARDS (5 Core Questions — Clickable) ── -->
-      <!-- ── 2. SUMMARY CARDS (Vibrant Block Style matching Image 2) ── -->
+      <!-- ── 2. TOP METRIC CARDS (Vibrant Sparkline Cards with Glass Icons matching Image) ── -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         
-        <!-- 1. Total Students ➔ Royal Blue / Indigo -->
+        <!-- 1. Total Students ➔ Royal Indigo -->
         <Link
           href="/admin/user-management/students"
-          class="relative overflow-hidden rounded-2xl p-4.5 bg-gradient-to-br from-blue-600 via-indigo-600 to-indigo-700 text-white shadow-md shadow-indigo-600/20 hover:shadow-xl hover:shadow-indigo-600/30 hover:-translate-y-1 transition-all duration-200 group cursor-pointer block"
+          class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#6366f1] via-[#4f46e5] to-[#4338ca] text-white p-4.5 shadow-md shadow-indigo-600/20 hover:shadow-xl hover:shadow-indigo-600/30 hover:-translate-y-1 transition-all duration-200 group cursor-pointer block flex flex-col justify-between"
         >
-          <!-- Watermark Background Icon -->
-          <div class="absolute -right-2 -bottom-2 text-white/15 pointer-events-none group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
-            <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-            </svg>
-          </div>
-
-          <div class="relative z-10">
+          <div>
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wider uppercase text-white/85">{{ t('និស្សិតសរុប', 'TOTAL STUDENTS') }}</span>
-              <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white/20 hover:bg-white/35 active:scale-95 text-white backdrop-blur-xs flex items-center gap-1 transition-all shadow-xs">
-                {{ t('និស្សិត →', 'User Mgmt →') }}
-              </span>
+              <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-sm shadow-xs shrink-0 group-hover:scale-110 transition-transform">
+                👨‍🎓
+              </div>
             </div>
-            <h4 class="text-3xl font-black tracking-tight text-white mt-2 group-hover:scale-105 origin-left transition-transform">
+            <h4 class="text-3xl font-black tracking-tight text-white mt-1 group-hover:scale-105 origin-left transition-transform">
               {{ (stats?.total_students || 2458).toLocaleString() }}
             </h4>
-            <p class="text-xs text-white/90 font-medium mt-1.5 flex items-center gap-1">
-              <span>✓</span>
-              <span>{{ (stats?.active_students || 2390).toLocaleString() }} {{ t('និស្សិតសកម្ម', 'Active Students') }}</span>
+            <p class="text-xs text-white/90 font-medium mt-1 flex items-center gap-1">
+              <span>▲ 2,390</span>
+              <span class="opacity-80">{{ t('និស្សិតសកម្ម', 'Active Students') }}</span>
             </p>
+          </div>
+
+          <!-- Bottom Wave Sparkline -->
+          <div class="mt-3 -mx-4.5 -mb-4.5 overflow-hidden rounded-b-2xl">
+            <svg class="w-full h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none">
+              <path d="M0 18 Q 20 4, 40 14 T 70 6 T 100 12 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.18"/>
+              <path d="M0 18 Q 20 4, 40 14 T 70 6 T 100 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
+            </svg>
           </div>
         </Link>
 
-        <!-- 2. Faculty Teachers ➔ Coral / Orange / Amber -->
+        <!-- 2. Faculty Teachers ➔ Emerald Green -->
         <Link
           href="/admin/user-management/teachers"
-          class="relative overflow-hidden rounded-2xl p-4.5 bg-gradient-to-br from-amber-500 via-orange-500 to-orange-600 text-white shadow-md shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30 hover:-translate-y-1 transition-all duration-200 group cursor-pointer block"
+          class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#10b981] via-[#059669] to-[#047857] text-white p-4.5 shadow-md shadow-emerald-600/20 hover:shadow-xl hover:shadow-emerald-600/30 hover:-translate-y-1 transition-all duration-200 group cursor-pointer block flex flex-col justify-between"
         >
-          <!-- Watermark Background Icon -->
-          <div class="absolute -right-2 -bottom-2 text-white/15 pointer-events-none group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
-            <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/>
-            </svg>
-          </div>
-
-          <div class="relative z-10">
+          <div>
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wider uppercase text-white/85">{{ t('សាស្ត្រាចារ្យ/គ្រូ', 'FACULTY TEACHERS') }}</span>
-              <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white/20 hover:bg-white/35 active:scale-95 text-white backdrop-blur-xs flex items-center gap-1 transition-all shadow-xs">
-                {{ t('គ្រូបង្រៀន →', 'Teachers →') }}
-              </span>
+              <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-sm shadow-xs shrink-0 group-hover:scale-110 transition-transform">
+                👨‍🏫
+              </div>
             </div>
-            <h4 class="text-3xl font-black tracking-tight text-white mt-2 group-hover:scale-105 origin-left transition-transform">
+            <h4 class="text-3xl font-black tracking-tight text-white mt-1 group-hover:scale-105 origin-left transition-transform">
               {{ (stats?.total_teachers || 145).toLocaleString() }}
             </h4>
-            <p class="text-xs text-white/90 font-medium mt-1.5 flex items-center gap-1">
-              <span>✓</span>
-              <span>{{ (stats?.active_teachers || 140).toLocaleString() }} {{ t('គ្រូកំពុងបង្រៀន', 'Teaching Faculty') }}</span>
+            <p class="text-xs text-white/90 font-medium mt-1 flex items-center gap-1">
+              <span>▲ 140</span>
+              <span class="opacity-80">{{ t('គ្រូកំពុងបង្រៀន', 'Teaching Faculty') }}</span>
             </p>
+          </div>
+
+          <!-- Bottom Wave Sparkline -->
+          <div class="mt-3 -mx-4.5 -mb-4.5 overflow-hidden rounded-b-2xl">
+            <svg class="w-full h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none">
+              <path d="M0 20 Q 25 8, 45 16 T 75 4 T 100 10 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.18"/>
+              <path d="M0 20 Q 25 8, 45 16 T 75 4 T 100 10" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
+            </svg>
           </div>
         </Link>
 
-        <!-- 3. Active Courses ➔ Emerald / Sea Green / Teal -->
+        <!-- 3. Active Courses ➔ Coral Orange -->
         <Link
           href="/admin/course-module/all"
-          class="relative overflow-hidden rounded-2xl p-4.5 bg-gradient-to-br from-emerald-500 via-teal-600 to-teal-700 text-white shadow-md shadow-teal-500/20 hover:shadow-xl hover:shadow-teal-500/30 hover:-translate-y-1 transition-all duration-200 group cursor-pointer block"
+          class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#f59e0b] via-[#ea580c] to-[#d97706] text-white p-4.5 shadow-md shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30 hover:-translate-y-1 transition-all duration-200 group cursor-pointer block flex flex-col justify-between"
         >
-          <!-- Watermark Background Icon -->
-          <div class="absolute -right-2 -bottom-2 text-white/15 pointer-events-none group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
-            <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/>
-            </svg>
-          </div>
-
-          <div class="relative z-10">
+          <div>
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wider uppercase text-white/85">{{ t('វគ្គសិក្សាសកម្ម', 'ACTIVE COURSES') }}</span>
-              <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white/20 hover:bg-white/35 active:scale-95 text-white backdrop-blur-xs flex items-center gap-1 transition-all shadow-xs">
-                {{ t('វគ្គសិក្សា →', 'Courses →') }}
-              </span>
+              <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-sm shadow-xs shrink-0 group-hover:scale-110 transition-transform">
+                📚
+              </div>
             </div>
-            <h4 class="text-3xl font-black tracking-tight text-white mt-2 group-hover:scale-105 origin-left transition-transform">
+            <h4 class="text-3xl font-black tracking-tight text-white mt-1 group-hover:scale-105 origin-left transition-transform">
               {{ (stats?.total_courses || 328).toLocaleString() }}
             </h4>
-            <p class="text-xs text-white/90 font-medium mt-1.5 flex items-center gap-1">
-              <span>✓</span>
-              <span>{{ (stats?.published_courses || 290).toLocaleString() }} {{ t('បានអនុម័ត & ផ្សាយ', 'Approved & Published') }}</span>
+            <p class="text-xs text-white/90 font-medium mt-1 flex items-center gap-1">
+              <span>▲ 290</span>
+              <span class="opacity-80">{{ t('បានអនុម័ត & ផ្សាយ', 'Approved & Published') }}</span>
             </p>
+          </div>
+
+          <!-- Bottom Wave Sparkline -->
+          <div class="mt-3 -mx-4.5 -mb-4.5 overflow-hidden rounded-b-2xl">
+            <svg class="w-full h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none">
+              <path d="M0 16 Q 20 22, 45 8 T 75 14 T 100 4 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.18"/>
+              <path d="M0 16 Q 20 22, 45 8 T 75 14 T 100 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
+            </svg>
           </div>
         </Link>
 
-        <!-- 4. Completion Rate ➔ Electric Sky Blue / Cyan -->
+        <!-- 4. Completion Rate ➔ Royal Blue -->
         <Link
           href="/admin/progress"
-          class="relative overflow-hidden rounded-2xl p-4.5 bg-gradient-to-br from-sky-500 via-cyan-600 to-blue-600 text-white shadow-md shadow-sky-500/20 hover:shadow-xl hover:shadow-sky-500/30 hover:-translate-y-1 transition-all duration-200 group cursor-pointer block"
+          class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0284c7] via-[#2563eb] to-[#1d4ed8] text-white p-4.5 shadow-md shadow-blue-600/20 hover:shadow-xl hover:shadow-blue-600/30 hover:-translate-y-1 transition-all duration-200 group cursor-pointer block flex flex-col justify-between"
         >
-          <!-- Watermark Background Icon -->
-          <div class="absolute -right-2 -bottom-2 text-white/15 pointer-events-none group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
-            <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/>
-            </svg>
-          </div>
-
-          <div class="relative z-10">
+          <div>
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wider uppercase text-white/85">{{ t('អត្រាបញ្ចប់ការសិក្សា', 'COMPLETION RATE') }}</span>
-              <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white/20 hover:bg-white/35 active:scale-95 text-white backdrop-blur-xs flex items-center gap-1 transition-all shadow-xs">
-                {{ t('វឌ្ឍនភាព →', 'Learning →') }}
-              </span>
+              <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-sm shadow-xs shrink-0 group-hover:scale-110 transition-transform">
+                📈
+              </div>
             </div>
-            <h4 class="text-3xl font-black tracking-tight text-white mt-2 group-hover:scale-105 origin-left transition-transform">
+            <h4 class="text-3xl font-black tracking-tight text-white mt-1 group-hover:scale-105 origin-left transition-transform">
               {{ stats?.completion_rate || 76 }}%
             </h4>
-            <p class="text-xs text-white/90 font-medium mt-1.5 flex items-center gap-1">
-              <span>📊</span>
-              <span>{{ t('៧៦% បញ្ចប់ · ១៨% កំពុងរៀន', '76% Done · 18% Progress') }}</span>
+            <p class="text-xs text-white/90 font-medium mt-1 flex items-center gap-1">
+              <span>▲ +4.2%</span>
+              <span class="opacity-80">{{ t('ធៀបនឹងខែមុន', 'vs Last Month') }}</span>
             </p>
+          </div>
+
+          <!-- Bottom Wave Sparkline -->
+          <div class="mt-3 -mx-4.5 -mb-4.5 overflow-hidden rounded-b-2xl">
+            <svg class="w-full h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none">
+              <path d="M0 18 Q 20 6, 45 16 T 75 8 T 100 14 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.18"/>
+              <path d="M0 18 Q 20 6, 45 16 T 75 8 T 100 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
+            </svg>
           </div>
         </Link>
 
-        <!-- 5. At-Risk Students ➔ Ruby Crimson / Red -->
+        <!-- 5. At-Risk Students ➔ Magenta Crimson / Rose -->
         <Link
           href="/admin/progress?tab=at_risk"
-          class="relative overflow-hidden rounded-2xl p-4.5 bg-gradient-to-br from-rose-500 via-red-600 to-rose-700 text-white shadow-md shadow-rose-600/20 hover:shadow-xl hover:shadow-rose-600/30 hover:-translate-y-1 transition-all duration-200 group cursor-pointer block"
+          class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#ec4899] via-[#e11d48] to-[#be123c] text-white p-4.5 shadow-md shadow-rose-600/20 hover:shadow-xl hover:shadow-rose-600/30 hover:-translate-y-1 transition-all duration-200 group cursor-pointer block flex flex-col justify-between"
         >
-          <!-- Watermark Background Icon -->
-          <div class="absolute -right-2 -bottom-2 text-white/15 pointer-events-none group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
-            <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
-            </svg>
-          </div>
-
-          <div class="relative z-10">
+          <div>
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wider uppercase text-white/95 flex items-center gap-1.5">
                 <span class="relative flex h-2 w-2">
@@ -535,31 +549,39 @@ const completionDonutOptions = computed<any>(() => ({
                 </span>
                 {{ t('និស្សិតប្រឈមហានិភ័យ', 'AT-RISK STUDENTS') }}
               </span>
-              <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white/20 hover:bg-white/35 active:scale-95 text-white backdrop-blur-xs flex items-center gap-1 transition-all shadow-xs">
-                {{ t('ការដាស់តឿន AI →', 'AI Alert →') }}
-              </span>
+              <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-sm shadow-xs shrink-0 group-hover:scale-110 transition-transform">
+                ⚠️
+              </div>
             </div>
-            <h4 class="text-3xl font-black tracking-tight text-white mt-2 group-hover:scale-105 origin-left transition-transform">
+            <h4 class="text-3xl font-black tracking-tight text-white mt-1 group-hover:scale-105 origin-left transition-transform">
               {{ (stats?.at_risk_students || 12).toLocaleString() }}
             </h4>
-            <p class="text-xs text-white font-medium mt-1.5 flex items-center gap-1 bg-black/15 px-2 py-0.5 rounded-md w-fit">
-              <span>⚠️</span>
+            <p class="text-xs text-white font-medium mt-1 flex items-center gap-1 bg-black/15 px-2 py-0.5 rounded-md w-fit">
+              <span>●</span>
               <span>{{ t('ត្រូវការការយកចិត្តទុកដាក់ (AI)', 'Attention Required (AI)') }}</span>
             </p>
+          </div>
+
+          <!-- Bottom Wave Sparkline -->
+          <div class="mt-3 -mx-4.5 -mb-4.5 overflow-hidden rounded-b-2xl">
+            <svg class="w-full h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none">
+              <path d="M0 14 Q 25 20, 50 8 T 80 16 T 100 6 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.18"/>
+              <path d="M0 14 Q 25 20, 50 8 T 80 16 T 100 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
+            </svg>
           </div>
         </Link>
       </div>
 
-      <!-- ── 3. MIDDLE SECTION: ENROLLMENT TREND & ACADEMIC PERFORMANCE (2 EQUAL-HEIGHT COLUMNS) ── -->
+      <!-- ── 3. MIDDLE ANALYTICS (3-Column Layout Matching Image Row 2) ── -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
         
-        <!-- Left (7 Cols): Enrollment & Completion Trend -->
-        <div class="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-none flex flex-col justify-between h-full">
+        <!-- Col 1 (6 / 12): Enrollment & Completion Trend -->
+        <div class="lg:col-span-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-none flex flex-col justify-between h-full">
           <div>
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
               <div>
                 <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2 uppercase tracking-wide">
-                  <span>📈</span> {{ t('និន្នាការចុះឈ្មោះ & បញ្ចប់ការសិក្សា', 'ENROLLMENT & COMPLETION TREND') }}
+                  <span>📈</span> {{ t('និន្នាការចុះឈ្មោះ & បញ្ចប់ការសិក្សា', 'Enrollment & Completion Trend') }}
                 </h3>
                 <p class="text-xs text-slate-500 dark:text-slate-300 mt-0.5">
                   {{ t('កំណើននៃការចុះឈ្មោះថ្មី ធៀបនឹងការបញ្ចប់វគ្គសិក្សា', 'New Enrollments VS Course Completions') }}
@@ -589,7 +611,7 @@ const completionDonutOptions = computed<any>(() => ({
             </div>
 
             <!-- Area Chart -->
-            <div class="h-[310px] w-full pt-1">
+            <div class="h-[300px] w-full pt-1">
               <VueApexCharts
                 :key="`${isDark ? 'dark' : 'light'}_${chartTimeframe}_${currentLang}`"
                 type="area"
@@ -601,44 +623,29 @@ const completionDonutOptions = computed<any>(() => ({
           </div>
         </div>
 
-        <!-- Right (5 Cols): Academic / Learning Performance (Filter by 5 Majors) -->
-        <div class="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-none flex flex-col justify-between h-full">
+        <!-- Col 2 (3 / 12): Academic Performance Donut (Matching 'Sales by Category') -->
+        <div class="lg:col-span-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-none flex flex-col justify-between h-full">
           <div>
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
-              <div>
-                <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2 uppercase tracking-wide">
-                  <span>🎯</span> {{ t('លទ្ធផលសិក្សា & វឌ្ឍនភាព', 'ACADEMIC / LEARNING PERFORMANCE') }}
-                </h3>
-                <p class="text-xs text-slate-500 dark:text-slate-300 mt-0.5">
-                  {{ t('ស្ថានភាពបញ្ចប់វគ្គសិក្សាតាមជំនាញទាំង ៥', 'Completion Status filtered by 5 Majors') }}
-                </p>
-              </div>
-
-              <!-- Filter by 5 Majors Dropdown -->
+              <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-1.5 uppercase tracking-wide">
+                <span>🎯</span> {{ t('លទ្ធផលសិក្សា', 'Academic Performance') }}
+              </h3>
               <select
                 v-model="selectedPerfMajor"
                 :style="{ colorScheme: isDark ? 'dark' : 'light' }"
-                class="bg-white dark:bg-[#182234] text-emerald-800 dark:text-emerald-300 border border-emerald-300/80 dark:border-emerald-500/40 rounded-xl px-2.5 py-1 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 cursor-pointer shadow-xs transition-colors"
+                class="bg-white dark:bg-[#182234] text-emerald-800 dark:text-emerald-300 border border-emerald-300/80 dark:border-emerald-500/40 rounded-xl px-2 py-0.5 text-[11px] font-bold focus:outline-none cursor-pointer shadow-xs"
               >
-                <option value="all" class="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-100 font-medium">{{ t('ជំនាញទាំង ៥ ទាំងអស់', 'All 5 Majors') }}</option>
-                <option value="1" class="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-100 font-medium">{{ t('បច្ចេកវិទ្យាព័ត៌មាន (IT)', 'Information Technology') }}</option>
-                <option value="2" class="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-100 font-medium">{{ t('ការងារសង្គម (SW)', 'Social Work') }}</option>
-                <option value="3" class="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-100 font-medium">{{ t('កសិកម្ម (AGR)', 'Agriculture') }}</option>
-                <option value="4" class="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-100 font-medium">{{ t('ទេសចរណ៍ (TRM)', 'Tourism') }}</option>
-                <option value="5" class="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-100 font-medium">{{ t('អក្សរសាស្ត្រអង់គ្លេស (ENG)', 'English Literature') }}</option>
+                <option value="all">{{ t('៥ ជំនាញ', 'All 5 Majors') }}</option>
+                <option value="1">IT</option>
+                <option value="2">Social Work</option>
+                <option value="3">Agriculture</option>
+                <option value="4">Tourism</option>
+                <option value="5">English</option>
               </select>
             </div>
 
-            <!-- Major Scope Indicator -->
-            <div class="flex items-center justify-between text-xs py-1 text-slate-600 dark:text-slate-300">
-              <span class="font-semibold">{{ getMajorDisplayName(currentPerformance.name) }}</span>
-              <span class="font-mono text-emerald-600 dark:text-emerald-400 font-bold">
-                {{ currentPerformance.total_count }} {{ t('និស្សិត', 'Students') }}
-              </span>
-            </div>
-
             <!-- Donut Chart -->
-            <div class="h-[180px] flex items-center justify-center my-1">
+            <div class="h-[175px] flex items-center justify-center my-1">
               <VueApexCharts
                 :key="`${isDark ? 'dark-donut' : 'light-donut'}_${selectedPerfMajor}_${currentLang}`"
                 type="donut"
@@ -649,164 +656,225 @@ const completionDonutOptions = computed<any>(() => ({
               />
             </div>
 
-            <!-- Donut Chart Explicit Legend -->
-            <div class="flex flex-wrap items-center justify-center gap-2.5 sm:gap-4 py-2 px-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 text-xs my-2.5">
-              <div class="flex items-center gap-1.5 font-semibold text-slate-700 dark:text-slate-200">
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs shrink-0"></span>
-                <span>{{ t('បានបញ្ចប់', 'Completed') }}:</span>
-                <span class="font-bold text-emerald-600 dark:text-emerald-400">{{ currentPerformance.completed }}%</span>
+            <!-- Vertical Legend (Matching Image Style) -->
+            <div class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+              <div class="flex items-center justify-between py-0.5">
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full bg-emerald-500 shrink-0"></span>
+                  <span class="font-medium text-slate-700 dark:text-slate-200">{{ t('បានបញ្ចប់', 'Completed') }}</span>
+                </div>
+                <span class="font-black text-emerald-600 dark:text-emerald-400">{{ currentPerformance.completed }}%</span>
               </div>
-              <div class="flex items-center gap-1.5 font-semibold text-slate-700 dark:text-slate-200">
-                <span class="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-xs shrink-0"></span>
-                <span>{{ t('កំពុងរៀន', 'In Progress') }}:</span>
-                <span class="font-bold text-amber-600 dark:text-amber-400">{{ currentPerformance.in_progress }}%</span>
+              <div class="flex items-center justify-between py-0.5">
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full bg-amber-500 shrink-0"></span>
+                  <span class="font-medium text-slate-700 dark:text-slate-200">{{ t('កំពុងរៀន', 'In Progress') }}</span>
+                </div>
+                <span class="font-black text-amber-600 dark:text-amber-400">{{ currentPerformance.in_progress }}%</span>
               </div>
-              <div class="flex items-center gap-1.5 font-semibold text-slate-700 dark:text-slate-200">
-                <span class="w-2.5 h-2.5 rounded-full bg-slate-400 dark:bg-slate-500 shadow-xs shrink-0"></span>
-                <span>{{ t('មិនទាន់ចាប់ផ្ដើម', 'Not Started') }}:</span>
-                <span class="font-bold text-slate-600 dark:text-slate-300">{{ currentPerformance.not_started }}%</span>
-              </div>
-            </div>
-
-            <!-- Status Breakdown (Completed, In Progress, Not Started) -->
-            <div class="grid grid-cols-3 gap-2.5 text-center text-xs pt-3 border-t border-slate-100 dark:border-slate-800">
-              <!-- Completed -->
-              <div class="bg-emerald-50 dark:bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-200/80 dark:border-emerald-800/60">
-                <span class="text-emerald-700 dark:text-emerald-400 font-black block text-base">{{ currentPerformance.completed }}%</span>
-                <span class="text-slate-600 dark:text-slate-300 text-[11px] font-semibold">{{ t('បានបញ្ចប់', 'Completed') }}</span>
-              </div>
-              <!-- In Progress -->
-              <div class="bg-amber-50 dark:bg-amber-950/40 p-2.5 rounded-xl border border-amber-200/80 dark:border-amber-800/60">
-                <span class="text-amber-700 dark:text-amber-400 font-black block text-base">{{ currentPerformance.in_progress }}%</span>
-                <span class="text-slate-600 dark:text-slate-300 text-[11px] font-semibold">{{ t('កំពុងរៀន', 'In Progress') }}</span>
-              </div>
-              <!-- Not Started -->
-              <div class="bg-slate-100 dark:bg-slate-800/80 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700">
-                <span class="text-slate-700 dark:text-slate-200 font-black block text-base">{{ currentPerformance.not_started }}%</span>
-                <span class="text-slate-600 dark:text-slate-300 text-[11px] font-semibold">{{ t('មិនទាន់ចាប់ផ្ដើម', 'Not Started') }}</span>
+              <div class="flex items-center justify-between py-0.5">
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full bg-slate-400 dark:bg-slate-500 shrink-0"></span>
+                  <span class="font-medium text-slate-700 dark:text-slate-200">{{ t('មិនទាន់ចាប់ផ្ដើម', 'Not Started') }}</span>
+                </div>
+                <span class="font-black text-slate-600 dark:text-slate-300">{{ currentPerformance.not_started }}%</span>
               </div>
             </div>
           </div>
 
-          <!-- Link to Learning & Progress -->
-          <div class="pt-3 border-t border-slate-100 dark:border-slate-800 text-right mt-3">
+          <div class="pt-2.5 border-t border-slate-100 dark:border-slate-800 text-right mt-2">
             <Link href="/admin/progress" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-500">
-              {{ t('មើលវឌ្ឍនភាពលម្អិតរបស់និស្សិត →', 'View Detailed Student Progress →') }}
+              {{ t('មើលលម្អិត →', 'View Details →') }}
             </Link>
+          </div>
+        </div>
+
+        <!-- Col 3 (3 / 12): 5 SPI Majors Summary (Matching 'Collection Summary') -->
+        <div class="lg:col-span-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-none flex flex-col justify-between h-full">
+          <div>
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
+              <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-1.5 uppercase tracking-wide">
+                <span>🏛️</span> {{ t('ជំនាញទាំង ៥ SPI', '5 SPI Majors') }}
+              </h3>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30">
+                2,458 {{ t('សរុប', 'Total') }}
+              </span>
+            </div>
+
+            <!-- List of 5 Majors -->
+            <div class="space-y-2.5">
+              <div
+                v-for="(m, idx) in [
+                  { name: 'Information Tech', name_kh: 'បច្ចេកវិទ្យាព័ត៌មាន', count: 520, pct: 21, icon: '💻', color: 'bg-indigo-500' },
+                  { name: 'Social Work', name_kh: 'ការងារសង្គម', count: 548, pct: 23, icon: '🤝', color: 'bg-emerald-500' },
+                  { name: 'Agriculture', name_kh: 'កសិកម្ម', count: 600, pct: 24, icon: '🌾', color: 'bg-amber-500' },
+                  { name: 'Tourism & Hosp.', name_kh: 'ទេសចរណ៍', count: 410, pct: 17, icon: '✈️', color: 'bg-blue-500' },
+                  { name: 'English Literature', name_kh: 'អក្សរសាស្ត្រអង់គ្លេស', count: 380, pct: 15, icon: '📖', color: 'bg-purple-500' },
+                ]"
+                :key="idx"
+                class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800"
+              >
+                <div class="flex items-center gap-2.5">
+                  <div class="w-7 h-7 rounded-lg text-white flex items-center justify-center text-xs shrink-0 shadow-xs" :class="m.color">
+                    {{ m.icon }}
+                  </div>
+                  <div>
+                    <h5 class="text-xs font-semibold text-slate-800 dark:text-slate-100 leading-tight">
+                      {{ currentLang === 'km' ? m.name_kh : m.name }}
+                    </h5>
+                    <span class="text-[10px] text-slate-500 dark:text-slate-400">{{ m.count }} {{ t('នាក់', 'Students') }}</span>
+                  </div>
+                </div>
+                <span class="text-xs font-black text-slate-900 dark:text-white">{{ m.pct }}%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs mt-2">
+            <span class="text-slate-500 dark:text-slate-400">{{ t('សិស្សសកម្មសរុប', 'Active Total') }}:</span>
+            <span class="font-bold text-emerald-600 dark:text-emerald-400">2,390 (97.2%)</span>
           </div>
         </div>
 
       </div>
 
-      <!-- ── 4. BOTTOM SECTION: ADMIN ALERTS / ACTION REQUIRED ── -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-none">
-        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
-          <div class="flex items-center gap-2.5">
-            <span class="text-xl">⚡</span>
-            <div>
-              <h3 class="font-bold text-sm text-slate-900 dark:text-white uppercase tracking-wider">
-                {{ t('ការដាស់តឿន & សកម្មភាពបន្ទាន់', 'ADMIN ALERTS / ACTION REQUIRED') }}
+      <!-- ── 4. BOTTOM ACTION & SNAPSHOT GRID (3-Column Layout Matching Image Row 3) ── -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+        
+        <!-- Col 1 (5 / 12): Top Active Courses Table (Matching 'Top 5 Best Selling Items') -->
+        <div class="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-none flex flex-col justify-between h-full">
+          <div>
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
+              <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2 uppercase tracking-wide">
+                <span>🏆</span> {{ t('វគ្គសិក្សាល្អបំផុតទាំង ៥', 'Top 5 Active Courses') }}
               </h3>
-              <p class="text-xs text-slate-500 dark:text-slate-400">
-                {{ t('ការជូនដំណឹងសំខាន់ៗដែលទាមទារឱ្យ Admin ពិនិត្យ និងចាត់វិធានការ', 'Important institutional alerts requiring Admin review & immediate action') }}
-              </p>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30">
+                Official
+              </span>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead>
+                  <tr class="text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">
+                    <th class="py-2 font-bold">#</th>
+                    <th class="py-2 font-bold">{{ t('ឈ្មោះវគ្គសិក្សា', 'Course Name') }}</th>
+                    <th class="py-2 font-bold text-center">{{ t('ជំនាញ', 'Major') }}</th>
+                    <th class="py-2 font-bold text-center">{{ t('និស្សិត', 'Enrolled') }}</th>
+                    <th class="py-2 font-bold text-right">{{ t('បញ្ចប់', 'Rate') }}</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                  <tr v-for="c in topCoursesList" :key="c.id" class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
+                    <td class="py-2.5 text-slate-400 font-bold">{{ c.id }}</td>
+                    <td class="py-2.5 font-semibold text-slate-800 dark:text-slate-100">{{ c.name }}</td>
+                    <td class="py-2.5 text-center">
+                      <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                        {{ c.major }}
+                      </span>
+                    </td>
+                    <td class="py-2.5 text-center font-bold text-slate-900 dark:text-white">{{ c.students }}</td>
+                    <td class="py-2.5 text-right font-black text-emerald-600 dark:text-emerald-400">{{ c.completion }}%</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
-          <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30">
-            {{ t('៤ សកម្មភាពកំពុងរង់ចាំ', '4 Actions Pending') }}
-          </span>
-        </div>
 
-        <!-- 4 Action Alert Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <!-- 1. 12 At-Risk Students -->
-          <div class="p-4 rounded-2xl bg-rose-50/60 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/40 flex flex-col justify-between space-y-3">
-            <div>
-              <div class="flex items-center justify-between">
-                <span class="text-lg">⚠</span>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300">
-                  {{ t('អាទិភាពខ្ពស់', 'High Priority') }}
-                </span>
-              </div>
-              <h4 class="font-bold text-sm text-slate-900 dark:text-white mt-2">{{ t('១២ និស្សិតប្រឈមហានិភ័យ', '12 At-Risk Students') }}</h4>
-              <p class="text-[11px] text-slate-600 dark:text-slate-400 mt-1">
-                {{ t('AI បានរកឃើញវឌ្ឍនភាពសិក្សាទាប (< ៣០%) និងខកខានកាលបរិច្ឆេទប្រឡង។', 'Low course completion (< 30%) and missed deadlines detected by AI.') }}
-              </p>
-            </div>
-            <Link
-              href="/admin/progress?tab=at_risk"
-              class="w-full py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl text-xs text-center shadow-xs transition-all block cursor-pointer"
-            >
-              {{ t('ពិនិត្យនិស្សិត →', 'View Students →') }}
-            </Link>
-          </div>
-
-          <!-- 2. 5 Courses Waiting for Approval -->
-          <div class="p-4 rounded-2xl bg-purple-50/60 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-900/40 flex flex-col justify-between space-y-3">
-            <div>
-              <div class="flex items-center justify-between">
-                <span class="text-lg">📚</span>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300">
-                  {{ t('ត្រូវការការត្រួតពិនិត្យ', 'Review Needed') }}
-                </span>
-              </div>
-              <h4 class="font-bold text-sm text-slate-900 dark:text-white mt-2">{{ t('៥ វគ្គសិក្សាកំពុងរង់ចាំការអនុម័ត', '5 Courses Waiting Approval') }}</h4>
-              <p class="text-[11px] text-slate-600 dark:text-slate-400 mt-1">
-                {{ t('វគ្គសិក្សាដែលគ្រូបានបង្កើតបញ្ជូនមកពិនិត្យមាតិកា និងអនុម័តផ្សាយ។', 'Teacher-created courses submitted for syllabus & publication approval.') }}
-              </p>
-            </div>
-            <Link
-              href="/admin/course-module/all?status=draft"
-              class="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl text-xs text-center shadow-xs transition-all block cursor-pointer"
-            >
-              {{ t('ពិនិត្យវគ្គសិក្សា →', 'Review Courses →') }}
-            </Link>
-          </div>
-
-          <!-- 3. 3 Teacher Accounts Pending -->
-          <div class="p-4 rounded-2xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 flex flex-col justify-between space-y-3">
-            <div>
-              <div class="flex items-center justify-between">
-                <span class="text-lg">👨‍🏫</span>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300">
-                  {{ t('គណនីគ្រូ', 'Faculty Account') }}
-                </span>
-              </div>
-              <h4 class="font-bold text-sm text-slate-900 dark:text-white mt-2">{{ t('៣ គណនីគ្រូបង្រៀនកំពុងរង់ចាំ', '3 Teacher Accounts Pending') }}</h4>
-              <p class="text-[11px] text-slate-600 dark:text-slate-400 mt-1">
-                {{ t('គណនីសាស្ត្រាចារ្យកំពុងរង់ចាំការកំណត់ដេប៉ាតឺម៉ង់ និងមុខវិជ្ជាបង្រៀន។', 'Faculty teaching accounts awaiting department role & course assignment.') }}
-              </p>
-            </div>
-            <Link
-              href="/admin/user-management/teachers"
-              class="w-full py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs text-center shadow-xs transition-all block cursor-pointer"
-            >
-              {{ t('ពិនិត្យគ្រូបង្រៀន →', 'Review Teachers →') }}
-            </Link>
-          </div>
-
-          <!-- 4. 2 New System Notifications -->
-          <div class="p-4 rounded-2xl bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/40 flex flex-col justify-between space-y-3">
-            <div>
-              <div class="flex items-center justify-between">
-                <span class="text-lg">📢</span>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300">
-                  {{ t('សេចក្តីប្រកាស', 'Broadcast') }}
-                </span>
-              </div>
-              <h4 class="font-bold text-sm text-slate-900 dark:text-white mt-2">{{ t('២ ការជូនដំណឹងប្រព័ន្ធថ្មី', '2 New Notifications') }}</h4>
-              <p class="text-[11px] text-slate-600 dark:text-slate-400 mt-1">
-                {{ t('សេចក្តីប្រកាសប្រតិទិនសិក្សាត្រៀមរួចរាល់សម្រាប់ផ្សាយទូទាំងសាលា។', 'Academic semester calendar announcement ready for campus-wide release.') }}
-              </p>
-            </div>
-            <Link
-              href="/admin/notifications/announcements"
-              class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs text-center shadow-xs transition-all block cursor-pointer"
-            >
-              {{ t('ពិនិត្យការជូនដំណឹង →', 'View Notifications →') }}
+          <div class="pt-3 border-t border-slate-100 dark:border-slate-800 text-center mt-2">
+            <Link href="/admin/course-module/all" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500">
+              {{ t('មើលវគ្គសិក្សាទាំងអស់ →', 'View All Courses →') }}
             </Link>
           </div>
         </div>
+
+        <!-- Col 2 (3.5 / 12): System Infrastructure & Health (Matching 'Stock Summary') -->
+        <div class="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-none flex flex-col justify-between h-full">
+          <div>
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
+              <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-1.5 uppercase tracking-wide">
+                <span>⚡</span> {{ t('ប្រព័ន្ធ & ហេដ្ឋារចនាសម្ព័ន្ធ', 'System Health & Summary') }}
+              </h3>
+              <span class="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                Online
+              </span>
+            </div>
+
+            <!-- List of System Health Metrics -->
+            <div class="space-y-3">
+              <div v-for="(item, idx) in systemInfrastructure" :key="idx" class="flex items-center justify-between text-xs py-1">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-sm shadow-2xs">
+                    {{ item.icon }}
+                  </div>
+                  <div>
+                    <h5 class="font-semibold text-slate-800 dark:text-slate-200">{{ item.name }}</h5>
+                    <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ item.value }}</p>
+                  </div>
+                </div>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30">
+                  {{ item.status }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-100 dark:border-slate-800 text-center mt-2">
+            <Link href="/admin/system-logs" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500">
+              {{ t('មើលរបាយការណ៍ប្រព័ន្ធ →', 'View System Report →') }}
+            </Link>
+          </div>
+        </div>
+
+        <!-- Col 3 (3 / 12): AI Alerts & Critical Intervention (Matching 'Low Stock Alert') -->
+        <div class="lg:col-span-3 bg-rose-50/40 dark:bg-rose-950/20 border border-rose-200/80 dark:border-rose-900/50 rounded-2xl p-5 shadow-sm dark:shadow-none flex flex-col justify-between h-full">
+          <div>
+            <div class="flex items-center justify-between border-b border-rose-200/60 dark:border-rose-900/40 pb-3 mb-3">
+              <div class="flex items-center gap-2">
+                <span class="text-rose-600 dark:text-rose-400">🔔</span>
+                <h3 class="font-bold text-sm text-rose-900 dark:text-rose-200 uppercase tracking-wide">
+                  {{ t('ការដាស់តឿន AI & បន្ទាន់', 'AI & Urgent Alerts') }}
+                </h3>
+              </div>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white">
+                4 {{ t('សកម្មភាព', 'Items') }}
+              </span>
+            </div>
+
+            <div class="space-y-2.5">
+              <div
+                v-for="alert in [
+                  { title: t('១២ និស្សិតប្រឈមហានិភ័យ', '12 At-Risk Students'), status: 'Critical', color: 'bg-rose-600 text-white', url: '/admin/progress?tab=at_risk' },
+                  { title: t('៥ វគ្គសិក្សារង់ចាំការអនុម័ត', '5 Courses Awaiting Approval'), status: 'Pending', color: 'bg-amber-500 text-white', url: '/admin/course-module/all?status=draft' },
+                  { title: t('៣ គណនីគ្រូរង់ចាំការកំណត់', '3 Faculty Accounts Pending'), status: 'Review', color: 'bg-purple-600 text-white', url: '/admin/user-management/teachers' },
+                  { title: t('២ ការជូនដំណឹងប្រព័ន្ធថ្មី', '2 System Announcements'), status: 'Active', color: 'bg-blue-600 text-white', url: '/admin/notifications/announcements' },
+                ]"
+                :key="alert.title"
+                class="flex items-center justify-between p-2.5 rounded-xl bg-white/80 dark:bg-slate-900/80 border border-rose-100 dark:border-rose-900/30 text-xs shadow-2xs"
+              >
+                <div class="flex items-center gap-2 font-semibold text-slate-800 dark:text-slate-100 truncate pr-2">
+                  <span class="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"></span>
+                  <span class="truncate">{{ alert.title }}</span>
+                </div>
+                <Link
+                  :href="alert.url"
+                  class="px-2 py-0.5 rounded-md text-[10px] font-bold shrink-0 transition-opacity hover:opacity-80"
+                  :class="alert.color"
+                >
+                  {{ alert.status }} →
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-rose-200/60 dark:border-rose-900/40 text-center mt-2">
+            <Link href="/admin/progress?tab=at_risk" class="text-xs font-bold text-rose-700 dark:text-rose-400 hover:text-rose-600">
+              {{ t('ដោះស្រាយសកម្មភាពទាំងអស់ →', 'View All Action Items →') }}
+            </Link>
+          </div>
+        </div>
+
       </div>
 
     </div>
