@@ -849,7 +849,7 @@ onUnmounted(() => {
               :title="isSidebarCollapsed ? item.name : undefined"
               :class="[
                 $page.url.startsWith(item.href!) 
-                  ? 'bg-indigo-50 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 border border-indigo-200/90 dark:border-indigo-500/30 font-semibold shadow-xs' 
+                  ? 'bg-[#1d68ed] text-white font-bold shadow-md shadow-blue-600/25' 
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-transparent font-medium',
                 isSidebarCollapsed ? 'justify-center px-0 w-10 h-10 mx-auto' : 'px-3 w-full gap-x-3',
                 'group flex items-center rounded-xl py-2.5 text-xs transition-all duration-200'
@@ -1090,6 +1090,43 @@ onUnmounted(() => {
         </ul>
       </nav>
 
+      <!-- Live Status / Live Gold Rate Card (Matching Image Sidebar Widget) -->
+      <div v-show="!isSidebarCollapsed" class="mx-3 my-2 p-3 rounded-2xl bg-slate-900 border border-slate-800 text-white text-xs shadow-md">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-800 mb-2">
+          <div class="flex items-center gap-1.5">
+            <span class="text-amber-400 text-sm">🪙</span>
+            <span class="font-bold text-amber-300 text-[11px] uppercase tracking-wide">Live Gold Rate</span>
+          </div>
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        </div>
+        <div class="space-y-1.5 text-[11px]">
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400">Gold (24K)</span>
+            <div class="flex items-center gap-1.5">
+              <span class="font-bold">₹ 6,245 /gm</span>
+              <span class="px-1 py-0.2 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-400">▲ 0.65%</span>
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400">Gold (22K)</span>
+            <div class="flex items-center gap-1.5">
+              <span class="font-bold">₹ 5,730 /gm</span>
+              <span class="px-1 py-0.2 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-400">▲ 0.60%</span>
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400">Silver (1 Kg)</span>
+            <div class="flex items-center gap-1.5">
+              <span class="font-bold">₹ 82,100</span>
+              <span class="px-1 py-0.2 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-400">▲ 0.40%</span>
+            </div>
+          </div>
+        </div>
+        <div class="mt-2 pt-1.5 border-t border-slate-800/80 text-[10px] text-slate-500 text-center">
+          Last Updated : 11:30 AM
+        </div>
+      </div>
+
       <!-- User Profile Bottom -->
       <div :class="[isSidebarCollapsed ? 'px-0 py-3' : 'p-3', 'mt-auto border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60']">
         <div :class="[isSidebarCollapsed ? 'flex-col justify-center items-center gap-2.5 w-full' : 'gap-3', 'flex items-center']">
@@ -1279,6 +1316,12 @@ onUnmounted(() => {
               </div>
               <kbd class="hidden lg:inline-flex items-center shrink-0 whitespace-nowrap px-1.5 py-0.5 text-[10px] font-mono font-semibold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700/60 rounded shadow-xs leading-none">Ctrl K</kbd>
             </button>
+          </div>
+
+          <!-- Date Pill (Matching Image Top Header '11 Jul 2026') -->
+          <div class="hidden xl:flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/70 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-2xs">
+            <span>📅</span>
+            <span>11 Jul 2026</span>
           </div>
         </div>
 
