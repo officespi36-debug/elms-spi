@@ -274,7 +274,7 @@ const completionDonutOptions = computed<any>(() => ({
           <div>
             <div class="flex items-center gap-2.5">
               <span class="text-2xl">🏠</span>
-              <h1 class="text-xl sm:text-2xl font-black bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-600 dark:from-emerald-400 dark:via-teal-300 dark:to-indigo-300 bg-clip-text text-transparent tracking-tight">
+              <h1 class="text-xl sm:text-2xl font-black bg-gradient-to-r from-emerald-700 via-teal-700 to-slate-900 dark:from-emerald-400 dark:via-teal-300 dark:to-cyan-300 bg-clip-text text-transparent tracking-tight">
                 {{ t('ផ្ទាំងគ្រប់គ្រង ADMIN', 'ADMIN DASHBOARD') }}
               </h1>
               <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30">
