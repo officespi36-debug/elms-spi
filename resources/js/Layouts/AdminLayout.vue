@@ -62,100 +62,117 @@ const navigation: NavItem[] = [
     name: 'Dashboard',
     href: '/admin/dashboard',
     iconType: 'dashboard',
+    icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'
   },
   {
-    key: 'sales',
-    name: 'Sales',
-    href: '/admin/enrollment/courses',
-    iconType: 'sales',
-    hasArrow: true,
+    key: 'auth',
+    name: 'Authentication',
+    iconType: 'auth',
+    icon: 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z',
+    children: [
+      { name: 'Login & Security', href: '/admin/auth-logs' },
+      { name: 'Roles & Permissions', href: '/admin/auth/roles' },
+    ]
   },
   {
-    key: 'purchase',
-    name: 'Purchase',
-    href: '/admin/academic-structure/departments',
-    iconType: 'purchase',
-    hasArrow: true,
+    key: 'users',
+    name: 'User Management',
+    iconType: 'users',
+    icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z',
+    children: [
+      { name: 'Students', href: '/admin/user-management/students' },
+      { name: 'Teachers', href: '/admin/user-management/teachers' },
+      { name: 'Admins', href: '/admin/user-management/administrators' },
+    ]
   },
   {
-    key: 'inventory',
-    name: 'Inventory',
-    href: '/admin/course-module/all',
-    iconType: 'inventory',
-    hasArrow: true,
+    key: 'academics',
+    name: 'Academic Structure',
+    iconType: 'academics',
+    icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11m0 10V11m0 0h4m-4 0H7',
+    children: [
+      { name: 'Departments', href: '/admin/academic-structure/departments' },
+      { name: 'Majors', href: '/admin/academic-structure/majors' },
+      { name: 'Subjects', href: '/admin/academic-structure/subjects' },
+      { name: 'Academic Years', href: '/admin/academic-structure/academic-years' },
+    ]
   },
   {
-    key: 'customers',
-    name: 'Customers',
-    href: '/admin/user-management/students',
-    iconType: 'customers',
-    hasArrow: true,
+    key: 'courses',
+    name: 'Course Management',
+    iconType: 'courses',
+    icon: 'M12 14l9-5-9-5-9 5 9 5z',
+    children: [
+      { name: 'Courses', href: '/admin/course-module/all' },
+      { name: 'Course Approval', href: '/admin/course-module/approval' },
+      { name: 'Enrollment', href: '/admin/enrollment/courses' },
+    ]
   },
   {
-    key: 'suppliers',
-    name: 'Suppliers',
-    href: '/admin/user-management/teachers',
-    iconType: 'suppliers',
-    hasArrow: true,
+    key: 'assessment',
+    name: 'Assessment',
+    iconType: 'assessment',
+    icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
+    children: [
+      { name: 'Quizzes', href: '/admin/quizzes' },
+      { name: 'Assignments', href: '/admin/quizzes?tab=assignments' },
+      { name: 'Question Bank', href: '/admin/quizzes?tab=bank' },
+    ]
   },
   {
-    key: 'jewellery',
-    name: 'Jewellery',
-    href: '/admin/academic-structure/majors',
-    iconType: 'jewellery',
-    hasArrow: true,
+    key: 'progress',
+    name: 'Learning & Progress',
+    iconType: 'progress',
+    icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6',
+    children: [
+      { name: 'Student Progress', href: '/admin/progress?tab=student' },
+      { name: 'Course Completion', href: '/admin/progress?tab=course' },
+    ]
   },
   {
-    key: 'accounts',
-    name: 'Accounts',
-    href: '/admin/reports?tab=overview',
-    iconType: 'accounts',
-    hasArrow: true,
+    key: 'analytics',
+    name: 'Analytics & Reports',
+    iconType: 'analytics',
+    icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
+    children: [
+      { name: 'Student Analytics', href: '/admin/reports?tab=students' },
+      { name: 'Course Analytics', href: '/admin/reports?tab=courses' },
+      { name: 'Teacher Analytics', href: '/admin/reports?tab=teachers' },
+      { name: 'System Reports', href: '/admin/reports?tab=overview' },
+    ]
   },
   {
-    key: 'gst-reports',
-    name: 'GST Reports',
-    href: '/admin/reports',
-    iconType: 'gst-reports',
-    hasArrow: true,
+    key: 'ai',
+    name: 'AI Management',
+    iconType: 'ai',
+    icon: 'M13 10V3L4 14h7v7l9-11h-7z',
+    children: [
+      { name: 'AI Recommendations', href: '/admin/ai-rules?tab=rules' },
+      { name: 'At-Risk Students', href: '/admin/ai-rules?tab=at_risk' },
+      { name: 'Difficult Topics', href: '/admin/ai-rules?tab=difficult_topics' },
+      { name: 'AI Configuration', href: '/admin/ai-rules?tab=config' },
+    ]
   },
   {
-    key: 'branch',
-    name: 'Branch',
-    href: '/admin/academic-structure/departments',
-    iconType: 'branch',
-    hasArrow: true,
-  },
-  {
-    key: 'employees',
-    name: 'Employees',
-    href: '/admin/user-management/administrators',
-    iconType: 'employees',
-    hasArrow: true,
-  },
-  {
-    key: 'reports',
-    name: 'Reports',
-    href: '/admin/reports',
-    iconType: 'reports',
-    hasArrow: true,
+    key: 'communication',
+    name: 'Communication',
+    iconType: 'communication',
+    icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9',
+    children: [
+      { name: 'Announcements', href: '/admin/notifications/announcements' },
+      { name: 'Notifications', href: '/admin/notifications' },
+    ]
   },
   {
     key: 'settings',
-    name: 'Settings',
+    name: 'System Settings',
     iconType: 'settings',
+    icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z',
     children: [
       { name: 'General Settings', href: '/admin/settings?tab=general' },
       { name: 'Academic Settings', href: '/admin/settings?tab=academic' },
       { name: 'System Logs', href: '/admin/settings?tab=logs' },
     ]
-  },
-  {
-    key: 'backup',
-    name: 'Backup',
-    href: '/admin/auth-logs',
-    iconType: 'backup',
-    hasArrow: true,
   },
   {
     key: 'logout',
@@ -895,7 +912,34 @@ onUnmounted(() => {
               >
                 <div :class="[isSidebarCollapsed ? 'justify-center w-full' : '', 'flex items-center gap-x-3 truncate']">
                   <div class="relative flex items-center justify-center shrink-0">
-                    <svg class="h-4.5 w-4.5 shrink-0 text-slate-300" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                    <svg v-if="item.iconType === 'auth'" class="h-4.5 w-4.5 shrink-0 text-amber-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                    <svg v-else-if="item.iconType === 'users'" class="h-4.5 w-4.5 shrink-0 text-rose-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    <svg v-else-if="item.iconType === 'academics'" class="h-4.5 w-4.5 shrink-0 text-cyan-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                    <svg v-else-if="item.iconType === 'courses'" class="h-4.5 w-4.5 shrink-0 text-emerald-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                    </svg>
+                    <svg v-else-if="item.iconType === 'assessment'" class="h-4.5 w-4.5 shrink-0 text-purple-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                    </svg>
+                    <svg v-else-if="item.iconType === 'progress'" class="h-4.5 w-4.5 shrink-0 text-orange-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 20v-4m5 4v-7m5 7v-10"/>
+                    </svg>
+                    <svg v-else-if="item.iconType === 'analytics'" class="h-4.5 w-4.5 shrink-0 text-blue-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    <svg v-else-if="item.iconType === 'ai'" class="h-4.5 w-4.5 shrink-0 text-indigo-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    <svg v-else-if="item.iconType === 'communication'" class="h-4.5 w-4.5 shrink-0 text-amber-300" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                    <svg v-else class="h-4.5 w-4.5 shrink-0 text-slate-300" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                     </svg>
                   </div>
@@ -993,37 +1037,40 @@ onUnmounted(() => {
           </li>
         </ul>
 
-        <!-- Live Status / Live Gold Rate Card (Directly Below Navigation, Matching Reference Screenshot) -->
+        <!-- Live System Status Card (Matching Reference Card Style with Real LMS Metrics) -->
         <div v-show="!isSidebarCollapsed" class="mt-4 p-3 rounded-2xl bg-[#0a1527] border border-slate-800/90 text-white text-xs shadow-lg">
-          <div class="flex items-center gap-2 pb-2 border-b border-slate-800/80 mb-2.5">
-            <span class="text-amber-400 text-base leading-none">🧈</span>
-            <span class="font-bold text-amber-300 text-[11px] tracking-wide">Live Gold Rate</span>
+          <div class="flex items-center justify-between pb-2 border-b border-slate-800/80 mb-2.5">
+            <div class="flex items-center gap-1.5">
+              <span class="text-blue-400 text-sm leading-none">🎓</span>
+              <span class="font-bold text-blue-300 text-[11px] tracking-wide">Live LMS Status</span>
+            </div>
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="System Online"></span>
           </div>
           <div class="space-y-2 text-[11px]">
             <div>
-              <span class="text-slate-400 block text-[10px] leading-tight">Gold (24K)</span>
+              <span class="text-slate-400 block text-[10px] leading-tight">Active Students</span>
               <div class="flex items-center justify-between mt-0.5">
-                <span class="font-bold text-white text-xs">₹ 6,245 / gm</span>
-                <span class="text-[10px] font-bold text-emerald-400">▲ 0.65%</span>
+                <span class="font-bold text-white text-xs">1,245 Online</span>
+                <span class="text-[10px] font-bold text-emerald-400">▲ 12%</span>
               </div>
             </div>
             <div>
-              <span class="text-slate-400 block text-[10px] leading-tight">Gold (22K)</span>
+              <span class="text-slate-400 block text-[10px] leading-tight">Course Enrollments</span>
               <div class="flex items-center justify-between mt-0.5">
-                <span class="font-bold text-white text-xs">₹ 5,730 / gm</span>
-                <span class="text-[10px] font-bold text-emerald-400">▲ 0.60%</span>
+                <span class="font-bold text-white text-xs">5,730 Active</span>
+                <span class="text-[10px] font-bold text-emerald-400">▲ 8%</span>
               </div>
             </div>
             <div>
-              <span class="text-slate-400 block text-[10px] leading-tight">Silver (1 Kg)</span>
+              <span class="text-slate-400 block text-[10px] leading-tight">System Health</span>
               <div class="flex items-center justify-between mt-0.5">
-                <span class="font-bold text-white text-xs">₹ 82,100</span>
-                <span class="text-[10px] font-bold text-emerald-400">▲ 0.40%</span>
+                <span class="font-bold text-white text-xs">99.9% Uptime</span>
+                <span class="text-[10px] font-bold text-emerald-400">▲ Optimal</span>
               </div>
             </div>
           </div>
           <div class="mt-2.5 pt-2 border-t border-slate-800/80 text-[10px] text-slate-500 text-center">
-            Last Updated : 11:30 AM
+            Last Synced : Realtime
           </div>
         </div>
       </nav>
@@ -1142,7 +1189,34 @@ onUnmounted(() => {
               class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs text-slate-300 hover:text-white hover:bg-slate-800/60 font-normal cursor-pointer"
             >
               <div class="flex items-center gap-3 truncate">
-                <svg class="h-4.5 w-4.5 shrink-0 text-slate-300" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                <svg v-if="item.iconType === 'auth'" class="h-4.5 w-4.5 shrink-0 text-amber-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+                <svg v-else-if="item.iconType === 'users'" class="h-4.5 w-4.5 shrink-0 text-rose-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+                <svg v-else-if="item.iconType === 'academics'" class="h-4.5 w-4.5 shrink-0 text-cyan-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+                <svg v-else-if="item.iconType === 'courses'" class="h-4.5 w-4.5 shrink-0 text-emerald-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+                <svg v-else-if="item.iconType === 'assessment'" class="h-4.5 w-4.5 shrink-0 text-purple-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                </svg>
+                <svg v-else-if="item.iconType === 'progress'" class="h-4.5 w-4.5 shrink-0 text-orange-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 20v-4m5 4v-7m5 7v-10"/>
+                </svg>
+                <svg v-else-if="item.iconType === 'analytics'" class="h-4.5 w-4.5 shrink-0 text-blue-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                <svg v-else-if="item.iconType === 'ai'" class="h-4.5 w-4.5 shrink-0 text-indigo-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+                <svg v-else-if="item.iconType === 'communication'" class="h-4.5 w-4.5 shrink-0 text-amber-300" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                </svg>
+                <svg v-else class="h-4.5 w-4.5 shrink-0 text-slate-300" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                 </svg>
                 <span class="truncate">{{ getNavTitle(item.name) }}</span>
@@ -1192,15 +1266,15 @@ onUnmounted(() => {
         <div class="flex items-center gap-2.5 sm:gap-4 min-w-0">
           <!-- Logo & Title -->
           <Link href="/admin/dashboard" class="flex items-center gap-2.5 shrink-0 group">
-            <div class="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-lg shadow-2xs group-hover:scale-105 transition-transform">
-              💎
+            <div class="w-8 h-8 rounded-lg bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-lg shadow-2xs group-hover:scale-105 transition-transform">
+              <img :src="logoUrl" alt="E-LMS Logo" class="w-6 h-6 rounded-full object-cover" @error="onIconError" />
             </div>
             <div class="hidden sm:block leading-tight">
               <h1 class="text-xs sm:text-sm font-bold text-white tracking-wide truncate">
-                Jewellery Billing Software
+                E-LMS Admin Portal
               </h1>
-              <p class="text-[9px] text-amber-400 font-semibold tracking-wider">
-                Smart Solutions for Smart Business
+              <p class="text-[9px] text-blue-400 font-semibold tracking-wider">
+                Education Management System
               </p>
             </div>
           </Link>
@@ -1227,7 +1301,7 @@ onUnmounted(() => {
                 type="text"
                 v-model="searchQuery"
                 @focus="isSearchOpen = true"
-                placeholder="Search here..."
+                placeholder="Search courses, students, reports..."
                 class="bg-transparent text-xs text-slate-800 placeholder-slate-400 focus:outline-none w-full"
               />
               <svg @click="isSearchOpen = true" class="w-4 h-4 text-slate-400 ml-2 shrink-0 cursor-pointer hover:text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
