@@ -211,7 +211,11 @@ const isUploadingAvatar = ref(false)
 const isSidebarCollapsed = ref(false)
 
 const toggleSidebarCollapse = () => {
-  isSidebarCollapsed.value = !isSidebarCollapsed.value
+  if (typeof window !== 'undefined' && window.innerWidth < 768) {
+    sidebarOpen.value = !sidebarOpen.value
+  } else {
+    isSidebarCollapsed.value = !isSidebarCollapsed.value
+  }
 }
 
 const triggerAvatarUpload = () => {
@@ -784,7 +788,7 @@ onUnmounted(() => {
   <GlobalToast />
   <div class="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 selection:bg-indigo-500/30 transition-colors duration-200">
     <!-- Sidebar for Desktop Matching Reference Design (Dark Navy, Starts Under Header) -->
-    <aside :class="[isSidebarCollapsed ? 'w-20 overflow-visible' : 'w-60', 'fixed top-14 bottom-0 left-0 z-40 hidden flex-col bg-[#071120] text-slate-300 border-r border-slate-800 lg:flex transition-all duration-300 shadow-xl']">
+    <aside :class="[isSidebarCollapsed ? 'w-20 overflow-visible' : 'w-60', 'fixed top-14 bottom-0 left-0 z-40 hidden flex-col bg-[#071120] text-slate-300 border-r border-slate-800 md:flex transition-all duration-300 shadow-xl']">
       <!-- Navigation -->
       <nav
         :class="[
@@ -1080,13 +1084,13 @@ onUnmounted(() => {
     <div
       v-if="sidebarOpen"
       @click="sidebarOpen = false"
-      class="fixed inset-0 bg-slate-950/80 z-50 lg:hidden backdrop-blur-sm transition-opacity"
+      class="fixed inset-0 bg-slate-950/80 z-50 md:hidden backdrop-blur-sm transition-opacity"
     ></div>
 
     <aside
       :class="[
         sidebarOpen ? 'translate-x-0' : '-translate-x-full',
-        'fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col lg:hidden transition-transform duration-300 ease-in-out shadow-2xl'
+        'fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col md:hidden transition-transform duration-300 ease-in-out shadow-2xl'
       ]"
     >
       <div class="h-14 px-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-800">
@@ -1281,7 +1285,7 @@ onUnmounted(() => {
 
           <!-- Hamburger Icon (Toggles Desktop Collapse & Mobile Drawer) -->
           <button
-            @click="toggleSidebarCollapse(); sidebarOpen = !sidebarOpen"
+            @click="toggleSidebarCollapse"
             type="button"
             class="p-1.5 text-slate-300 hover:text-white hover:bg-slate-800/80 rounded-lg transition-colors cursor-pointer shrink-0"
             title="Toggle Navigation Menu"
@@ -1636,7 +1640,7 @@ onUnmounted(() => {
     </div>
 
     <!-- Main Content Area -->
-    <main :class="[isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-60', 'pt-18 pb-12 transition-all duration-300']">
+    <main :class="[isSidebarCollapsed ? 'md:pl-20' : 'md:pl-60', 'pt-16 sm:pt-20 pb-12 transition-all duration-300']">
       <div class="px-4 sm:px-6 lg:px-8">
         <!-- Page Header (Suppressed on Admin Dashboard to Match Clean Reference UI) -->
         <header class="mb-5" v-if="($slots.header || title) && $page.url !== '/admin/dashboard'">
