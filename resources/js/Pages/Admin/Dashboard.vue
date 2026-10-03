@@ -347,105 +347,152 @@ const completionDonutOptions = computed<any>(() => ({
       </div>
 
       <!-- ── 2. SUMMARY CARDS (5 Core Questions — Clickable) ── -->
+      <!-- ── 2. SUMMARY CARDS (Vibrant Block Style matching Image 2) ── -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <!-- 1. Total Students ➔ /admin/user-management/students -->
+        
+        <!-- 1. Total Students ➔ Royal Blue / Indigo -->
         <Link
           href="/admin/user-management/students"
-          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm dark:shadow-none hover:border-emerald-500 dark:hover:border-emerald-500/50 hover:shadow-md transition-all group cursor-pointer block"
+          class="relative overflow-hidden rounded-2xl p-4.5 bg-gradient-to-br from-blue-600 via-indigo-600 to-indigo-700 text-white shadow-md shadow-indigo-600/20 hover:shadow-xl hover:shadow-indigo-600/30 hover:-translate-y-1 transition-all duration-200 group cursor-pointer block"
         >
-          <div class="flex items-center justify-between">
-            <span class="text-2xl">👨‍🎓</span>
-            <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20">
-              {{ t('និស្សិត →', 'User Mgmt →') }}
-            </span>
+          <!-- Watermark Background Icon -->
+          <div class="absolute -right-2 -bottom-2 text-white/15 pointer-events-none group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
+            <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+            </svg>
           </div>
-          <p class="text-slate-500 dark:text-slate-400 text-xs font-semibold mt-2.5">{{ t('និស្សិតសរុប', 'Total Students') }}</p>
-          <h4 class="text-2xl font-black text-slate-900 dark:text-white mt-0.5 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-            {{ (stats?.total_students || 2458).toLocaleString() }}
-          </h4>
-          <p class="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold mt-1">
-            ✓ {{ (stats?.active_students || 2390).toLocaleString() }} {{ t('និស្សិតសកម្ម', 'Active Students') }}
-          </p>
+
+          <div class="relative z-10">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold tracking-wider uppercase text-white/85">{{ t('និស្សិតសរុប', 'TOTAL STUDENTS') }}</span>
+              <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white/20 hover:bg-white/30 text-white backdrop-blur-xs flex items-center gap-1 transition-colors">
+                {{ t('និស្សិត →', 'User Mgmt →') }}
+              </span>
+            </div>
+            <h4 class="text-3xl font-black tracking-tight text-white mt-2 group-hover:scale-105 origin-left transition-transform">
+              {{ (stats?.total_students || 2458).toLocaleString() }}
+            </h4>
+            <p class="text-xs text-white/90 font-medium mt-1.5 flex items-center gap-1">
+              <span>✓</span>
+              <span>{{ (stats?.active_students || 2390).toLocaleString() }} {{ t('និស្សិតសកម្ម', 'Active Students') }}</span>
+            </p>
+          </div>
         </Link>
 
-        <!-- 2. Faculty Teachers ➔ /admin/user-management/teachers -->
+        <!-- 2. Faculty Teachers ➔ Coral / Orange / Amber -->
         <Link
           href="/admin/user-management/teachers"
-          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm dark:shadow-none hover:border-indigo-500 dark:hover:border-indigo-500/50 hover:shadow-md transition-all group cursor-pointer block"
+          class="relative overflow-hidden rounded-2xl p-4.5 bg-gradient-to-br from-amber-500 via-orange-500 to-orange-600 text-white shadow-md shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30 hover:-translate-y-1 transition-all duration-200 group cursor-pointer block"
         >
-          <div class="flex items-center justify-between">
-            <span class="text-2xl">👨‍🏫</span>
-            <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20">
-              {{ t('គ្រូបង្រៀន →', 'Teachers →') }}
-            </span>
+          <!-- Watermark Background Icon -->
+          <div class="absolute -right-2 -bottom-2 text-white/15 pointer-events-none group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
+            <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/>
+            </svg>
           </div>
-          <p class="text-slate-500 dark:text-slate-400 text-xs font-semibold mt-2.5">{{ t('សាស្ត្រាចារ្យ/គ្រូ', 'Faculty Teachers') }}</p>
-          <h4 class="text-2xl font-black text-slate-900 dark:text-white mt-0.5 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-            {{ (stats?.total_teachers || 145).toLocaleString() }}
-          </h4>
-          <p class="text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold mt-1">
-            ✓ {{ (stats?.active_teachers || 140).toLocaleString() }} {{ t('គ្រូកំពុងបង្រៀន', 'Teaching Faculty') }}
-          </p>
+
+          <div class="relative z-10">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold tracking-wider uppercase text-white/85">{{ t('សាស្ត្រាចារ្យ/គ្រូ', 'FACULTY TEACHERS') }}</span>
+              <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white/20 hover:bg-white/30 text-white backdrop-blur-xs flex items-center gap-1 transition-colors">
+                {{ t('គ្រូបង្រៀន →', 'Teachers →') }}
+              </span>
+            </div>
+            <h4 class="text-3xl font-black tracking-tight text-white mt-2 group-hover:scale-105 origin-left transition-transform">
+              {{ (stats?.total_teachers || 145).toLocaleString() }}
+            </h4>
+            <p class="text-xs text-white/90 font-medium mt-1.5 flex items-center gap-1">
+              <span>✓</span>
+              <span>{{ (stats?.active_teachers || 140).toLocaleString() }} {{ t('គ្រូកំពុងបង្រៀន', 'Teaching Faculty') }}</span>
+            </p>
+          </div>
         </Link>
 
-        <!-- 3. Active Courses ➔ /admin/course-module/all -->
+        <!-- 3. Active Courses ➔ Emerald / Sea Green / Teal -->
         <Link
           href="/admin/course-module/all"
-          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm dark:shadow-none hover:border-purple-500 dark:hover:border-purple-500/50 hover:shadow-md transition-all group cursor-pointer block"
+          class="relative overflow-hidden rounded-2xl p-4.5 bg-gradient-to-br from-emerald-500 via-teal-600 to-teal-700 text-white shadow-md shadow-teal-500/20 hover:shadow-xl hover:shadow-teal-500/30 hover:-translate-y-1 transition-all duration-200 group cursor-pointer block"
         >
-          <div class="flex items-center justify-between">
-            <span class="text-2xl">📚</span>
-            <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-500/20">
-              {{ t('វគ្គសិក្សា →', 'Courses →') }}
-            </span>
+          <!-- Watermark Background Icon -->
+          <div class="absolute -right-2 -bottom-2 text-white/15 pointer-events-none group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
+            <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/>
+            </svg>
           </div>
-          <p class="text-slate-500 dark:text-slate-400 text-xs font-semibold mt-2.5">{{ t('វគ្គសិក្សាសកម្ម', 'Active Courses') }}</p>
-          <h4 class="text-2xl font-black text-slate-900 dark:text-white mt-0.5 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-            {{ (stats?.total_courses || 328).toLocaleString() }}
-          </h4>
-          <p class="text-[11px] text-purple-600 dark:text-purple-400 font-semibold mt-1">
-            ✓ {{ (stats?.published_courses || 290).toLocaleString() }} {{ t('បានអនុម័ត & ផ្សាយ', 'Approved & Published') }}
-          </p>
+
+          <div class="relative z-10">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold tracking-wider uppercase text-white/85">{{ t('វគ្គសិក្សាសកម្ម', 'ACTIVE COURSES') }}</span>
+              <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white/20 hover:bg-white/30 text-white backdrop-blur-xs flex items-center gap-1 transition-colors">
+                {{ t('វគ្គសិក្សា →', 'Courses →') }}
+              </span>
+            </div>
+            <h4 class="text-3xl font-black tracking-tight text-white mt-2 group-hover:scale-105 origin-left transition-transform">
+              {{ (stats?.total_courses || 328).toLocaleString() }}
+            </h4>
+            <p class="text-xs text-white/90 font-medium mt-1.5 flex items-center gap-1">
+              <span>✓</span>
+              <span>{{ (stats?.published_courses || 290).toLocaleString() }} {{ t('បានអនុម័ត & ផ្សាយ', 'Approved & Published') }}</span>
+            </p>
+          </div>
         </Link>
 
-        <!-- 4. Completion Rate ➔ /admin/progress -->
+        <!-- 4. Completion Rate ➔ Electric Sky Blue / Cyan -->
         <Link
           href="/admin/progress"
-          class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm dark:shadow-none hover:border-teal-500 dark:hover:border-teal-500/50 hover:shadow-md transition-all group cursor-pointer block"
+          class="relative overflow-hidden rounded-2xl p-4.5 bg-gradient-to-br from-sky-500 via-cyan-600 to-blue-600 text-white shadow-md shadow-sky-500/20 hover:shadow-xl hover:shadow-sky-500/30 hover:-translate-y-1 transition-all duration-200 group cursor-pointer block"
         >
-          <div class="flex items-center justify-between">
-            <span class="text-2xl">📈</span>
-            <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-teal-50 dark:bg-teal-500/10 text-teal-700 dark:text-teal-400 border border-teal-200 dark:border-teal-500/20">
-              {{ t('វឌ្ឍនភាព →', 'Learning →') }}
-            </span>
+          <!-- Watermark Background Icon -->
+          <div class="absolute -right-2 -bottom-2 text-white/15 pointer-events-none group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
+            <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/>
+            </svg>
           </div>
-          <p class="text-slate-500 dark:text-slate-400 text-xs font-semibold mt-2.5">{{ t('អត្រាបញ្ចប់ការសិក្សា', 'Completion Rate') }}</p>
-          <h4 class="text-2xl font-black text-teal-600 dark:text-teal-400 mt-0.5 group-hover:text-teal-500 transition-colors">
-            {{ stats?.completion_rate || 76 }}%
-          </h4>
-          <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-1">
-            {{ t('៧៦% បញ្ចប់ · ១៨% កំពុងរៀន · ៦% ថ្មី', '76% Done · 18% Progress · 6% New') }}
-          </p>
+
+          <div class="relative z-10">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold tracking-wider uppercase text-white/85">{{ t('អត្រាបញ្ចប់ការសិក្សា', 'COMPLETION RATE') }}</span>
+              <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white/20 hover:bg-white/30 text-white backdrop-blur-xs flex items-center gap-1 transition-colors">
+                {{ t('វឌ្ឍនភាព →', 'Learning →') }}
+              </span>
+            </div>
+            <h4 class="text-3xl font-black tracking-tight text-white mt-2 group-hover:scale-105 origin-left transition-transform">
+              {{ stats?.completion_rate || 76 }}%
+            </h4>
+            <p class="text-xs text-white/90 font-medium mt-1.5 flex items-center gap-1">
+              <span>📊</span>
+              <span>{{ t('៧៦% បញ្ចប់ · ១៨% កំពុងរៀន', '76% Done · 18% Progress') }}</span>
+            </p>
+          </div>
         </Link>
 
-        <!-- 5. At-Risk Students ➔ /admin/progress?tab=at_risk -->
+        <!-- 5. At-Risk Students ➔ Ruby Crimson / Red -->
         <Link
           href="/admin/progress?tab=at_risk"
-          class="bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-900/50 rounded-2xl p-4 shadow-sm dark:shadow-none hover:border-rose-500 hover:shadow-md transition-all group cursor-pointer block"
+          class="relative overflow-hidden rounded-2xl p-4.5 bg-gradient-to-br from-rose-500 via-red-600 to-rose-700 text-white shadow-md shadow-rose-600/20 hover:shadow-xl hover:shadow-rose-600/30 hover:-translate-y-1 transition-all duration-200 group cursor-pointer block"
         >
-          <div class="flex items-center justify-between">
-            <span class="text-2xl">⚠️</span>
-            <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30">
-              {{ t('ការដាស់តឿន AI →', 'AI Alert →') }}
-            </span>
+          <!-- Watermark Background Icon -->
+          <div class="absolute -right-2 -bottom-2 text-white/15 pointer-events-none group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
+            <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+            </svg>
           </div>
-          <p class="text-slate-500 dark:text-slate-400 text-xs font-semibold mt-2.5">{{ t('និស្សិតប្រឈមហានិភ័យ', 'At-Risk Students') }}</p>
-          <h4 class="text-2xl font-black text-rose-600 dark:text-rose-400 mt-0.5 group-hover:text-rose-500 transition-colors">
-            {{ (stats?.at_risk_students || 12).toLocaleString() }}
-          </h4>
-          <p class="text-[11px] text-rose-600 dark:text-rose-400 font-semibold mt-1">
-            ⚠️ {{ t('ត្រូវការការយកចិត្តទុកដាក់ (AI)', 'Attention Required (AI)') }}
-          </p>
+
+          <div class="relative z-10">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold tracking-wider uppercase text-white/85">{{ t('និស្សិតប្រឈមហានិភ័យ', 'AT-RISK STUDENTS') }}</span>
+              <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white/20 hover:bg-white/30 text-white backdrop-blur-xs flex items-center gap-1 transition-colors">
+                {{ t('ការដាស់តឿន AI →', 'AI Alert →') }}
+              </span>
+            </div>
+            <h4 class="text-3xl font-black tracking-tight text-white mt-2 group-hover:scale-105 origin-left transition-transform">
+              {{ (stats?.at_risk_students || 12).toLocaleString() }}
+            </h4>
+            <p class="text-xs text-white font-medium mt-1.5 flex items-center gap-1 bg-black/15 px-2 py-0.5 rounded-md w-fit">
+              <span>⚠️</span>
+              <span>{{ t('ត្រូវការការយកចិត្តទុកដាក់ (AI)', 'Attention Required (AI)') }}</span>
+            </p>
+          </div>
         </Link>
       </div>
 
