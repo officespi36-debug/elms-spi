@@ -17,6 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
+        $middleware->encryptCookies(except: [
+            'elms_lang',
+        ]);
         $middleware->web(append: [\App\Http\Middleware\HandleInertiaRequests::class]);
         $middleware->alias(['role' => \App\Http\Middleware\EnsureRole::class]);
         $middleware->preventRequestForgery(except: [

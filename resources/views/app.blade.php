@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="km" translate="no" class="dark notranslate" style="color-scheme: dark; background-color: #0b132b;">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" translate="no" class="dark notranslate" style="color-scheme: dark; background-color: #0b132b;">
 
 <head>
     <meta charset="utf-8">
@@ -22,6 +22,10 @@
                     document.documentElement.classList.remove('dark');
                     document.documentElement.style.colorScheme = 'light';
                     document.documentElement.style.backgroundColor = '#f8fafc';
+                }
+                var storedLang = localStorage.getItem('elms_lang');
+                if (storedLang === 'en' || storedLang === 'km') {
+                    document.documentElement.lang = storedLang;
                 }
             } catch (e) {
                 document.documentElement.classList.add('dark');

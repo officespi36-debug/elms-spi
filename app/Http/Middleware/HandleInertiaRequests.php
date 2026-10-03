@@ -27,6 +27,19 @@ class HandleInertiaRequests extends Middleware
     }
 
     /**
+     * Handle an incoming request.
+     */
+    public function handle(Request $request, \Closure $next)
+    {
+        $locale = $request->cookie('elms_lang') ?? ($_COOKIE['elms_lang'] ?? session('elms_lang', 'km'));
+        if (in_array($locale, ['km', 'en'])) {
+            app()->setLocale($locale);
+        }
+
+        return parent::handle($request, $next);
+    }
+
+    /**
      * Define the props that are shared by default.
      *
      * @see https://inertiajs.com/shared-data
@@ -42,7 +55,7 @@ class HandleInertiaRequests extends Middleware
             $botId = $parts[0] ?? '8828915669';
         }
 
-        $locale = $request->cookie('elms_lang') ?? session('elms_lang', 'km');
+        $locale = $request->cookie('elms_lang') ?? ($_COOKIE['elms_lang'] ?? session('elms_lang', 'km'));
         if (in_array($locale, ['km', 'en'])) {
             app()->setLocale($locale);
         }

@@ -1430,16 +1430,14 @@ const onIconError = (e: Event) => {
           <button
             type="button"
             @click="toggleLanguage"
-            class="px-2.5 h-8 rounded-full bg-white/90 dark:bg-[#121214]/80 backdrop-blur-md hover:bg-zinc-100 dark:hover:bg-[#1c1c1f] text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white transition-all duration-150 border border-zinc-300/80 dark:border-zinc-800 shadow-xs flex items-center gap-1.5 cursor-pointer select-none active:scale-95 group focus:outline-none"
+            class="p-1.5 h-8 w-8 rounded-full bg-white/90 dark:bg-[#121214]/80 backdrop-blur-md hover:bg-zinc-100 dark:hover:bg-[#1c1c1f] transition-all duration-150 border border-zinc-300/80 dark:border-zinc-800 shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
             :title="currentLang === 'km' ? 'ប្តូរទៅជាភាសាអង់គ្លេស (Switch to English)' : 'Switch to Khmer (ប្តូរទៅជាភាសាខ្មែរ)'"
           >
             <img
               :src="currentLang === 'km' ? '/images/flags/km.svg' : '/images/flags/en.svg'"
               :alt="currentLang"
-              class="w-4 h-3 object-cover rounded-[2px] shadow-xs ring-1 ring-zinc-300/60 dark:ring-zinc-700/60 transition-transform duration-200 group-hover:scale-110"
+              class="w-5 h-3.5 object-cover rounded-[3px] shadow-xs ring-1 ring-zinc-300/60 dark:ring-zinc-700/60 transition-transform duration-200 group-hover:scale-110"
             />
-            <span class="font-bold text-[11px] font-sans">{{ currentLang === 'km' ? 'ខ្មែរ' : 'English' }}</span>
-            <span class="text-[10px] text-zinc-400 group-hover:text-indigo-500 font-mono transition-colors">⇄</span>
           </button>
 
           <!-- Theme Switcher Pill (Matching Login page style) -->
