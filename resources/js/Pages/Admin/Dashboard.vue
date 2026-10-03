@@ -242,64 +242,7 @@ const monthlyProfitOptions = computed<any>(() => ({
 
 <template>
   <AdminLayout :title="t('ផ្ទាំងគ្រប់គ្រង Admin', 'Admin Dashboard')">
-    <div class="space-y-5 text-slate-800 dark:text-slate-100 font-sans pb-12">
-
-      <!-- ── 0. TOP SUB-HEADER: Filters, Refresh, Export ── -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs dark:shadow-none flex flex-wrap items-center justify-between gap-3">
-        <div class="flex items-center gap-2">
-          <span class="text-xl">📊</span>
-          <div>
-            <h1 class="text-base sm:text-lg font-black tracking-tight text-slate-900 dark:text-white uppercase">
-              {{ t('ផ្ទាំងគ្រប់គ្រងទូទៅ', 'Dashboard Overview') }}
-            </h1>
-            <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-              {{ t('ប្រព័ន្ធគ្រប់គ្រងវិទ្យាស្ថាន SPI E-LMS & ហិរញ្ញវត្ថុ', 'SPI Higher Education Management & Institutional Analytics') }}
-            </p>
-          </div>
-        </div>
-
-        <!-- Controls: Period, Refresh, Export -->
-        <div class="flex flex-wrap items-center gap-2.5">
-          <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
-            <button
-              v-for="p in [
-                { id: 'today', name: t('ថ្ងៃនេះ', 'Today') },
-                { id: 'week', name: t('សប្តាហ៍', 'Week') },
-                { id: 'month', name: t('ខែ', 'Month') },
-                { id: 'year', name: t('ឆ្នាំ', 'Year') }
-              ]"
-              :key="p.id"
-              @click="periodFilter = p.id; applyFilters()"
-              :class="[
-                periodFilter === p.id 
-                  ? 'bg-blue-600 text-white font-bold shadow-xs' 
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700',
-                'px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer'
-              ]"
-            >
-              {{ p.name }}
-            </button>
-          </div>
-
-          <button
-            @click="applyFilters"
-            :disabled="isRefreshing"
-            class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
-          >
-            <svg :class="{ 'animate-spin': isRefreshing }" class="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            <span>{{ t('ផ្ទុកឡើងវិញ', 'Refresh') }}</span>
-          </button>
-
-          <button
-            @click="exportReport"
-            class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
-          >
-            <span>📥 {{ t('ទាញយករបាយការណ៍', 'Export') }}</span>
-          </button>
-        </div>
-      </div>
+    <div class="space-y-4 text-slate-800 dark:text-slate-100 font-sans pb-12">
 
       <!-- ── ROW 1: 6 TOP KPI CARDS (Pixel-Perfect Matching Reference Image) ── -->
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">

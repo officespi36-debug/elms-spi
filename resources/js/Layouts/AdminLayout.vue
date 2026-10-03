@@ -774,60 +774,8 @@ onUnmounted(() => {
   <Head :title="pageTitle" />
   <GlobalToast />
   <div class="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 selection:bg-indigo-500/30 transition-colors duration-200">
-    <!-- Sidebar for Desktop -->
-    <aside :class="[isSidebarCollapsed ? 'w-20 overflow-visible' : 'w-72', 'fixed inset-y-0 left-0 z-50 hidden flex-col bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl border-r border-slate-200/90 dark:border-slate-800 lg:flex transition-all duration-300 shadow-sm dark:shadow-none']">
-      <!-- Header -->
-      <div
-        :class="[
-          isSidebarCollapsed ? 'justify-center px-2' : 'justify-between px-4',
-          'relative flex h-16 shrink-0 items-center border-b border-slate-200/90 dark:border-slate-800 transition-all duration-300 group/sidebar-header'
-        ]"
-      >
-        <!-- Logo & Title Container -->
-        <div
-          @click="isSidebarCollapsed && toggleSidebarCollapse()"
-          :class="[
-            isSidebarCollapsed ? 'justify-center cursor-pointer' : '',
-            'flex items-center gap-3 min-w-0 shrink-0 transition-all'
-          ]"
-        >
-          <img
-            :src="logoUrl"
-            alt="E-LMS Logo"
-            :class="[
-              isSidebarCollapsed ? 'hover:scale-110' : '',
-              'w-9 h-9 min-w-[36px] min-h-[36px] max-w-[36px] max-h-[36px] aspect-square rounded-full object-cover shadow-md shadow-indigo-500/20 ring-2 ring-indigo-500/30 shrink-0 transition-all duration-300'
-            ]"
-          />
-          <div v-show="!isSidebarCollapsed" class="transition-opacity duration-200 min-w-0">
-            <h1 class="text-base font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-500 tracking-tight whitespace-nowrap">
-              E-LMS Admin
-            </h1>
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium tracking-wide uppercase whitespace-nowrap">{{ currentLang === 'km' ? 'ផ្ទាំងគ្រប់គ្រង' : 'Admin Panel' }}</p>
-          </div>
-        </div>
-
-        <!-- Collapse / Expand Toggle Button -->
-        <button
-          @click="toggleSidebarCollapse"
-          type="button"
-          :title="isSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'"
-          :class="[
-            isSidebarCollapsed
-              ? 'absolute -right-3 top-1/2 -translate-y-1/2 bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 border border-slate-200 dark:border-slate-700 shadow-md rounded-full p-1 hover:scale-110 hover:bg-slate-50 dark:hover:bg-slate-700 z-10'
-              : 'p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0 cursor-pointer',
-            'transition-all duration-200 focus:outline-none'
-          ]"
-        >
-          <svg
-            :class="[isSidebarCollapsed ? 'rotate-180 w-3.5 h-3.5' : 'w-5 h-5', 'transition-transform duration-300']"
-            fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
-          >
-            <path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-          </svg>
-        </button>
-      </div>
-
+    <!-- Sidebar for Desktop Matching Reference Design (Dark Navy, Starts Under Header) -->
+    <aside :class="[isSidebarCollapsed ? 'w-20 overflow-visible' : 'w-60', 'fixed top-14 bottom-0 left-0 z-40 hidden flex-col bg-[#071120] text-slate-300 border-r border-slate-800 lg:flex transition-all duration-300 shadow-xl']">
       <!-- Navigation -->
       <nav
         :class="[
@@ -849,8 +797,8 @@ onUnmounted(() => {
               :title="isSidebarCollapsed ? item.name : undefined"
               :class="[
                 $page.url.startsWith(item.href!) 
-                  ? 'bg-[#1d68ed] text-white font-bold shadow-md shadow-blue-600/25' 
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-transparent font-medium',
+                  ? 'bg-[#1d68ed] text-white font-bold shadow-md shadow-blue-600/30' 
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60 border border-transparent font-medium',
                 isSidebarCollapsed ? 'justify-center px-0 w-10 h-10 mx-auto' : 'px-3 w-full gap-x-3',
                 'group flex items-center rounded-xl py-2.5 text-xs transition-all duration-200'
               ]"
@@ -865,7 +813,7 @@ onUnmounted(() => {
                 />
                 <svg 
                   :class="[
-                    $page.url.startsWith(item.href!) ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300',
+                    $page.url.startsWith(item.href!) ? 'text-white' : 'text-slate-400 group-hover:text-slate-200',
                     item.iconUrl ? 'hidden' : '',
                     'h-5 w-5 shrink-0 transition-colors'
                   ]"
@@ -875,7 +823,7 @@ onUnmounted(() => {
                 </svg>
               </div>
               <span v-show="!isSidebarCollapsed" class="flex-1 truncate">{{ getNavTitle(item.name) }}</span>
-              <span v-if="item.badge && !isSidebarCollapsed" class="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+              <span v-if="item.badge && !isSidebarCollapsed" class="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
                 {{ item.badge }}
               </span>
             </Link>
@@ -888,10 +836,10 @@ onUnmounted(() => {
                 :title="isSidebarCollapsed ? item.name : undefined"
                 :class="[
                   isChildActive(item.children) 
-                    ? 'bg-indigo-50/80 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border border-indigo-200/90 dark:border-indigo-500/20' 
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-transparent',
+                    ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30 font-semibold' 
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60 border border-transparent font-medium',
                   isSidebarCollapsed ? 'justify-center px-0 w-10 h-10 mx-auto' : 'px-3 w-full justify-between',
-                  'group flex items-center rounded-xl py-2.5 text-xs font-medium transition-all duration-200'
+                  'group flex items-center rounded-xl py-2.5 text-xs transition-all duration-200'
                 ]"
               >
                 <div :class="[isSidebarCollapsed ? 'justify-center w-full' : '', 'flex items-center gap-x-3 truncate']">
@@ -905,7 +853,7 @@ onUnmounted(() => {
                     />
                     <svg 
                       :class="[
-                        isChildActive(item.children) ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300',
+                        isChildActive(item.children) ? 'text-blue-400' : 'text-slate-400 group-hover:text-slate-200',
                         item.iconUrl ? 'hidden' : '',
                         'h-5 w-5 shrink-0 transition-colors'
                       ]"
@@ -918,14 +866,14 @@ onUnmounted(() => {
                 </div>
 
                 <div v-show="!isSidebarCollapsed" class="flex items-center gap-1.5">
-                  <span v-if="item.badge" class="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                  <span v-if="item.badge" class="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
                     {{ item.badge }}
                   </span>
 
-                  <!-- Minimal, Sleek Chevron Arrow Indicator (No Bulky Box / Heavy Glow) -->
+                  <!-- Minimal, Sleek Chevron Arrow Indicator -->
                   <svg
                     :class="[
-                      expandedModules[item.key!] ? 'rotate-180 text-indigo-500 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300',
+                      expandedModules[item.key!] ? 'rotate-180 text-blue-400' : 'text-slate-400 group-hover:text-slate-200',
                       'w-4 h-4 transition-transform duration-200 shrink-0 ml-1'
                     ]"
                     fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
@@ -948,13 +896,13 @@ onUnmounted(() => {
                   <!-- Vertical Trunk Line (Connecting down through items) -->
                   <div
                     v-if="idx < item.children.length - 1"
-                    class="absolute -left-4 top-0 bottom-0 w-[2px] bg-slate-200 dark:bg-slate-700/60"
+                    class="absolute -left-4 top-0 bottom-0 w-[2px] bg-slate-800"
                   ></div>
 
                   <!-- Curved Branch Line curving into this item (rounded-bl-xl) -->
                   <div
                     :class="[
-                      isSubActive(sub.href) ? 'border-indigo-500 dark:border-indigo-400/90 shadow-xs shadow-indigo-500/30' : 'border-slate-200 dark:border-slate-700/80 group-hover:border-slate-400',
+                      isSubActive(sub.href) ? 'border-blue-500 shadow-xs shadow-blue-500/30' : 'border-slate-800 group-hover:border-slate-600',
                       'absolute -left-4 top-0 h-1/2 w-3.5 border-l-2 border-b-2 rounded-bl-xl transition-colors duration-200 pointer-events-none'
                     ]"
                   ></div>
@@ -963,8 +911,8 @@ onUnmounted(() => {
                     :href="sub.href"
                     :class="[
                       isSubActive(sub.href) 
-                        ? 'text-indigo-600 dark:text-indigo-300 font-semibold bg-indigo-50 dark:bg-indigo-500/15 border border-indigo-200/90 dark:border-indigo-500/30 shadow-xs' 
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50 border border-transparent',
+                        ? 'text-white font-semibold bg-blue-600/30 border border-blue-500/40 shadow-xs' 
+                        : 'text-slate-400 hover:text-white hover:bg-slate-800/50 border border-transparent',
                       'flex-1 flex items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs transition-all duration-200 ml-1'
                     ]"
                   >
@@ -1004,14 +952,14 @@ onUnmounted(() => {
               <!-- Invisible hover bridge between icon and flyout box -->
               <div class="absolute -left-4 top-0 bottom-0 w-4"></div>
 
-              <div class="relative bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700/80 rounded-2xl p-3 shadow-2xl ring-1 ring-slate-200/80 dark:ring-slate-800/80">
+              <div class="relative bg-[#0c1a2e] border border-slate-800 rounded-2xl p-3 shadow-2xl ring-1 ring-slate-800">
                 <!-- Directional Caret / Arrow Pointer Pointing Left to the Source Icon -->
-                <div class="absolute -left-1.5 top-3.5 w-3 h-3 bg-white dark:bg-slate-900 border-l border-b border-slate-200 dark:border-slate-700/80 rotate-45 z-10 pointer-events-none"></div>
+                <div class="absolute -left-1.5 top-3.5 w-3 h-3 bg-[#0c1a2e] border-l border-b border-slate-800 rotate-45 z-10 pointer-events-none"></div>
 
                 <!-- Flyout Header -->
-                <div class="relative z-20 flex items-center justify-between px-2 py-1.5 mb-2 border-b border-slate-200 dark:border-slate-800 pb-2">
+                <div class="relative z-20 flex items-center justify-between px-2 py-1.5 mb-2 border-b border-slate-800 pb-2">
                   <div class="flex items-center gap-2 min-w-0">
-                    <div class="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 shrink-0 flex items-center justify-center">
+                    <div class="p-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 shrink-0 flex items-center justify-center">
                       <img 
                         v-if="item.iconUrl"
                         :src="item.iconUrl" 
@@ -1020,7 +968,7 @@ onUnmounted(() => {
                         class="w-4 h-4 object-contain shrink-0"
                       />
                       <svg
-                        :class="[item.iconUrl ? 'hidden' : '', 'w-4 h-4 text-indigo-500 dark:text-indigo-400']"
+                        :class="[item.iconUrl ? 'hidden' : '', 'w-4 h-4 text-blue-400']"
                         fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
                       >
                         <path stroke-linecap="round" stroke-linejoin="round" :d="item.icon || 'M4 6h16M4 12h16M4 18h16'" />
@@ -1028,7 +976,7 @@ onUnmounted(() => {
                     </div>
                     <span class="text-xs font-bold text-white truncate">{{ getNavTitle(item.name) }}</span>
                   </div>
-                  <span v-if="item.badge" class="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shrink-0">
+                  <span v-if="item.badge" class="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 shrink-0">
                     {{ item.badge }}
                   </span>
                 </div>
@@ -1041,8 +989,8 @@ onUnmounted(() => {
                     :href="sub.href"
                     :class="[
                       isSubActive(sub.href)
-                        ? 'bg-indigo-500/15 text-indigo-300 font-semibold border border-indigo-500/30 shadow-xs'
-                        : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 border border-transparent',
+                        ? 'bg-blue-600/25 text-blue-300 font-semibold border border-blue-500/30 shadow-xs'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-800/70 border border-transparent',
                       'flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs transition-all duration-150 group/flyout-sub'
                     ]"
                   >
@@ -1056,11 +1004,11 @@ onUnmounted(() => {
                       />
                       <svg
                         :class="[
-                          isSubActive(sub.href) ? 'text-indigo-400 scale-110' : 'text-slate-500 group-hover/flyout-sub:text-slate-300',
+                          isSubActive(sub.href) ? 'text-blue-400 scale-110' : 'text-slate-500 group-hover/flyout-sub:text-slate-300',
                           sub.iconUrl ? 'hidden' : '',
                           'w-4 h-4 shrink-0 transition-colors'
                         ]"
-                        fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75"
+                        fill="none" viewBox="0 0 24 24" stroke-currentColor stroke-width="1.75"
                       >
                         <path stroke-linecap="round" stroke-linejoin="round" :d="sub.icon || 'M4 6h16M4 12h16M4 18h16'" />
                       </svg>
@@ -1076,12 +1024,12 @@ onUnmounted(() => {
               v-else-if="isSidebarCollapsed && (!item.children || item.children.length === 0)"
               class="absolute left-full top-1/2 -translate-y-1/2 ml-3.5 opacity-0 pointer-events-none group-hover/flyout:opacity-100 transition-all duration-200 ease-out translate-x-1 group-hover/flyout:translate-x-0 z-50 whitespace-nowrap"
             >
-              <div class="relative bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 text-white text-xs font-semibold px-3 py-1.5 rounded-xl shadow-xl flex items-center gap-2 ring-1 ring-slate-800/80">
+              <div class="relative bg-[#0c1a2e] border border-slate-800 text-white text-xs font-semibold px-3 py-1.5 rounded-xl shadow-xl flex items-center gap-2 ring-1 ring-slate-800">
                 <!-- Directional Caret / Arrow Pointer Pointing Left to the Source Icon -->
-                <div class="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-slate-900 border-l border-b border-slate-700/80 rotate-45 z-10 pointer-events-none"></div>
+                <div class="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#0c1a2e] border-l border-b border-slate-800 rotate-45 pointer-events-none"></div>
 
                 <span class="relative z-20">{{ getNavTitle(item.name) }}</span>
-                <span v-if="item.badge" class="relative z-20 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                <span v-if="item.badge" class="relative z-20 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
                   {{ item.badge }}
                 </span>
               </div>
@@ -1091,8 +1039,8 @@ onUnmounted(() => {
       </nav>
 
       <!-- Live Status / Live Gold Rate Card (Matching Image Sidebar Widget) -->
-      <div v-show="!isSidebarCollapsed" class="mx-3 my-2 p-3 rounded-2xl bg-slate-900 border border-slate-800 text-white text-xs shadow-md">
-        <div class="flex items-center justify-between pb-2 border-b border-slate-800 mb-2">
+      <div v-show="!isSidebarCollapsed" class="mx-3 my-2 p-3 rounded-2xl bg-[#0e1e36] border border-slate-800 text-white text-xs shadow-md">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-800/80 mb-2">
           <div class="flex items-center gap-1.5">
             <span class="text-amber-400 text-sm">🪙</span>
             <span class="font-bold text-amber-300 text-[11px] uppercase tracking-wide">Live Gold Rate</span>
@@ -1128,7 +1076,7 @@ onUnmounted(() => {
       </div>
 
       <!-- User Profile Bottom -->
-      <div :class="[isSidebarCollapsed ? 'px-0 py-3' : 'p-3', 'mt-auto border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60']">
+      <div :class="[isSidebarCollapsed ? 'px-0 py-3' : 'p-3', 'mt-auto border-t border-slate-800 bg-[#071120]']">
         <div :class="[isSidebarCollapsed ? 'flex-col justify-center items-center gap-2.5 w-full' : 'gap-3', 'flex items-center']">
           <!-- Interactive Avatar with Hover Upload Icon -->
           <div
@@ -1137,11 +1085,11 @@ onUnmounted(() => {
             title="Click to upload profile photo"
           >
             <img
-              :src="user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=fff`"
+              :src="user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=1d68ed&color=fff`"
               alt="Profile"
-              class="h-9 w-9 rounded-full border border-slate-200 dark:border-slate-700 object-cover group-hover:brightness-75 transition-all shadow-md"
+              class="h-9 w-9 rounded-full border border-slate-700 object-cover group-hover:brightness-75 transition-all shadow-md"
             />
-            <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-white dark:ring-slate-900"></span>
+            <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-slate-900"></span>
 
             <!-- Hover Camera Overlay -->
             <div class="absolute inset-0 rounded-full bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -1153,7 +1101,7 @@ onUnmounted(() => {
 
             <!-- Uploading Spinner Indicator -->
             <div v-if="isUploadingAvatar" class="absolute inset-0 rounded-full bg-slate-900/90 flex items-center justify-center">
-              <svg class="animate-spin h-4 w-4 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <svg class="animate-spin h-4 w-4 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
@@ -1171,14 +1119,14 @@ onUnmounted(() => {
 
           <div v-show="!isSidebarCollapsed" class="flex-1 min-w-0">
             <div class="flex items-center gap-1.5 min-w-0">
-              <p class="text-xs font-semibold text-slate-800 dark:text-white truncate cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors" @click="triggerAvatarUpload" title="Click to upload profile photo">
+              <p class="text-xs font-semibold text-slate-200 truncate cursor-pointer hover:text-blue-400 transition-colors" @click="triggerAvatarUpload" title="Click to upload profile photo">
                 {{ user.name }}
               </p>
               <OfficialVerifiedBadge :role="user.role" size="sm" />
             </div>
-            <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">{{ user.email }}</p>
+            <p class="text-[11px] text-slate-400 truncate">{{ user.email }}</p>
           </div>
-          <button @click="logout" title="Log Out" class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
+          <button @click="logout" title="Log Out" class="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
@@ -1232,22 +1180,22 @@ onUnmounted(() => {
           <div v-else class="space-y-1">
             <button
               @click="toggleModule(item.key!)"
-              class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60 font-medium cursor-pointer"
+              class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs text-slate-400 hover:text-white hover:bg-slate-800/60 font-medium cursor-pointer"
             >
               <div class="flex items-center gap-3 truncate">
                 <img v-if="item.iconUrl" :src="item.iconUrl" class="w-5 h-5 object-contain shrink-0" />
                 <span class="truncate">{{ getNavTitle(item.name) }}</span>
               </div>
-              <svg :class="[expandedModules[item.key!] ? 'rotate-180 text-indigo-500 dark:text-indigo-400' : '', 'w-4 h-4 transition-transform text-slate-400 dark:text-slate-500']" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+              <svg :class="[expandedModules[item.key!] ? 'rotate-180 text-blue-400' : '', 'w-4 h-4 transition-transform text-slate-400']" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
-            <div v-show="expandedModules[item.key!]" class="pl-4 ml-4 space-y-1 my-1 border-l border-slate-200 dark:border-slate-800">
+            <div v-show="expandedModules[item.key!]" class="pl-4 ml-4 space-y-1 my-1 border-l border-slate-800">
               <Link
                 v-for="sub in item.children"
                 :key="sub.href"
                 :href="sub.href"
                 @click="sidebarOpen = false"
                 :class="[
-                  $page.url.startsWith(sub.href) ? 'bg-indigo-50 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 font-bold border border-indigo-200 dark:border-indigo-500/25' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60',
+                  $page.url.startsWith(sub.href) ? 'bg-blue-600/25 text-blue-300 font-bold border border-blue-500/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60',
                   'flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs transition-all'
                 ]"
               >
@@ -1260,24 +1208,24 @@ onUnmounted(() => {
       </nav>
 
       <!-- Mobile Footer -->
-      <div class="p-3.5 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90 flex items-center justify-between">
+      <div class="p-3.5 border-t border-slate-800 bg-[#071120] flex items-center justify-between">
         <div class="flex items-center gap-3 min-w-0">
-          <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 text-white font-bold flex items-center justify-center text-xs">
+          <div class="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs">
             {{ user.name ? user.name.charAt(0) : 'A' }}
           </div>
           <div class="min-w-0">
-            <p class="font-bold text-slate-900 dark:text-white text-xs truncate">{{ user.name }}</p>
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate">{{ user.email }}</p>
+            <p class="font-bold text-white text-xs truncate">{{ user.name }}</p>
+            <p class="text-[10px] text-slate-400 truncate">{{ user.email }}</p>
           </div>
         </div>
-        <button @click="logout" class="p-2 text-slate-400 hover:text-red-500 rounded-lg cursor-pointer">
+        <button @click="logout" class="p-2 text-slate-400 hover:text-red-400 rounded-lg cursor-pointer">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
         </button>
       </div>
     </aside>
 
-    <!-- Sticky Top Navbar Matching Reference Image (Dark Navy Theme with Logo, Search Pill, Date Pill, Action Icons) -->
-    <header class="sticky top-0 z-40 bg-[#071120] text-white border-b border-slate-800 shadow-md transition-all duration-300">
+    <!-- Fixed Top Navbar Matching Reference Image (Dark Navy Theme, Spans 100% Width) -->
+    <header class="fixed top-0 inset-x-0 z-50 h-14 bg-[#071120] text-white border-b border-slate-800 shadow-md">
       <div class="flex h-14 items-center justify-between px-3 sm:px-6 gap-3">
         
         <!-- Left Side: Gold Diamond Logo, Title/Subtitle, Hamburger Toggle, White Pill Search Input -->
@@ -1329,7 +1277,7 @@ onUnmounted(() => {
           </div>
         </div>
 
-        <!-- Right Side: Quick Action Icon, Language, Fullscreen, Notifications Bell, Admin Profile Avatar -->
+        <!-- Right Side: Date Pill, Fullscreen, Bell, Settings Gear, Theme/Lang, Admin Profile Avatar -->
         <div class="flex items-center gap-1.5 sm:gap-2">
 
           <!-- Date Dropdown Pill (Matching Image Top Header '11 Jul 2026') -->
@@ -1355,13 +1303,13 @@ onUnmounted(() => {
           <button
             @click="toggleDropdown('search')"
             type="button"
-            class="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg md:hidden focus:outline-none transition-colors cursor-pointer"
+            class="p-1.5 text-slate-400 hover:text-white rounded-lg md:hidden focus:outline-none transition-colors cursor-pointer"
             :title="currentLang === 'km' ? 'ស្វែងរក' : 'Search'"
           >
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           </button>
 
-          <!-- Quick Action Dropdown (Hover Flyout & Smooth Transition) -->
+          <!-- Quick Action Dropdown as Settings Gear Icon Button -->
           <div 
             class="relative nav-dropdown-scope" 
             @mouseenter="isQuickActionOpen = true" 
@@ -1370,12 +1318,13 @@ onUnmounted(() => {
             <button
               @click.stop="isQuickActionOpen = !isQuickActionOpen"
               type="button"
-              class="h-8 px-2.5 bg-slate-100 dark:bg-slate-800/60 hover:bg-slate-200/80 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600 rounded-lg transition-all flex items-center gap-2 cursor-pointer group select-none focus:outline-none focus:ring-0 focus-visible:outline-none"
+              class="p-1.5 w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors flex items-center justify-center cursor-pointer"
               :title="currentLang === 'km' ? 'បង្កើតរហ័ស' : 'Quick Actions'"
             >
-              <img :src="actionBtnIcon" alt="Actions" class="w-4 h-4 shrink-0 group-hover:scale-105 transition-transform" />
-              <span class="hidden sm:inline text-xs font-semibold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white font-sans tracking-wide">{{ currentLang === 'km' ? 'បង្កើតរហ័ស' : 'Quick Create' }}</span>
-              <svg class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-transform duration-200" :class="isQuickActionOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
             </button>
 
             <Transition
@@ -1388,9 +1337,9 @@ onUnmounted(() => {
             >
               <div
                 v-if="isQuickActionOpen"
-                class="absolute right-0 mt-1.5 w-60 rounded-xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700/80 shadow-2xl py-1.5 z-50 overflow-hidden"
+                class="absolute right-0 mt-1.5 w-60 rounded-xl bg-[#0c1a2e] border border-slate-800 shadow-2xl py-1.5 z-50 overflow-hidden"
               >
-                <div class="px-3.5 py-1.5 border-b border-slate-200 dark:border-slate-700/60 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                <div class="px-3.5 py-1.5 border-b border-slate-800 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                   {{ currentLang === 'km' ? 'បង្កើត / បន្ថែមរហ័ស' : 'Quick Create' }}
                 </div>
                 <Link
@@ -1398,7 +1347,7 @@ onUnmounted(() => {
                   :key="act.name"
                   :href="act.href"
                   @click="isQuickActionOpen = false"
-                  class="flex items-center gap-2.5 px-3.5 py-2 text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/60 transition-colors group/item"
+                  class="flex items-center gap-2.5 px-3.5 py-2 text-xs text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors group/item"
                 >
                   <img :src="act.iconUrl" :alt="act.name" class="w-4 h-4 shrink-0 group-hover/item:scale-110 transition-transform" />
                   <span class="font-medium">{{ act.name }}</span>
@@ -1407,158 +1356,47 @@ onUnmounted(() => {
             </Transition>
           </div>
 
-          <!-- Online / Offline Status Badge (Flaticon Style) -->
-          <div 
-            class="relative nav-dropdown-scope" 
-            @mouseenter="isStatusOpen = true" 
-            @mouseleave="isStatusOpen = false"
-          >
-            <button
-              @click.stop="toggleDropdown('status')"
-              type="button"
-              class="h-8 px-2.5 bg-slate-100 dark:bg-slate-800/60 hover:bg-slate-200/80 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600 rounded-lg transition-all flex items-center gap-2 cursor-pointer group select-none focus:outline-none focus:ring-0 focus-visible:outline-none"
-              :title="isOnline ? (currentLang === 'km' ? 'ស្ថានភាព: អនឡាញ' : 'Status: Online') : (currentLang === 'km' ? 'ស្ថានភាព: អូហ្វឡាញ' : 'Status: Offline')"
-            >
-              <div class="relative flex items-center justify-center shrink-0">
-                <img 
-                  :src="isOnline ? onlineIconUrl : offlineIconUrl" 
-                  :alt="isOnline ? 'Online' : 'Offline'"
-                  class="w-4 h-4 object-contain shrink-0 group-hover:scale-110 transition-transform filter drop-shadow-xs" 
-                />
-                <span 
-                  :class="[isOnline ? 'bg-emerald-500 shadow-emerald-500/50' : 'bg-rose-500 shadow-rose-500/50']"
-                  class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full ring-2 ring-white dark:ring-slate-900 shadow-xs animate-pulse"
-                ></span>
-              </div>
-              <span 
-                :class="[isOnline ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400']"
-                class="hidden sm:inline text-xs font-semibold font-sans tracking-wide"
-              >
-                {{ isOnline ? (currentLang === 'km' ? 'អនឡាញ' : 'Online') : (currentLang === 'km' ? 'អូហ្វឡាញ' : 'Offline') }}
-              </span>
-              <svg 
-                :class="[isStatusOpen ? 'rotate-180 text-slate-700 dark:text-slate-200' : 'text-slate-500 dark:text-slate-400']" 
-                class="w-3.5 h-3.5 transition-transform duration-200" 
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-              </svg>
-            </button>
-
-            <!-- Status Dropdown Menu -->
-            <Transition
-              enter-active-class="transition duration-200 ease-out"
-              enter-from-class="transform opacity-0 scale-95 -translate-y-1"
-              enter-to-class="transform opacity-100 scale-100 translate-y-0"
-              leave-active-class="transition duration-150 ease-in"
-              leave-from-class="transform opacity-100 scale-100 translate-y-0"
-              leave-to-class="transform opacity-0 scale-95 -translate-y-1"
-            >
-              <div
-                v-if="isStatusOpen"
-                class="absolute right-0 mt-1.5 w-56 rounded-xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700/80 shadow-2xl py-1.5 z-50 overflow-hidden"
-              >
-                <div class="px-3.5 py-1.5 border-b border-slate-200 dark:border-slate-700/60 flex items-center justify-between">
-                  <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ currentLang === 'km' ? 'ស្ថានភាពប្រព័ន្ធ' : 'System Status' }}</span>
-                  <span 
-                    :class="[isOnline ? 'bg-emerald-50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/30' : 'bg-rose-50 dark:bg-rose-500/20 text-rose-600 dark:text-rose-300 border-rose-200 dark:border-rose-500/30']"
-                    class="px-2 py-0.5 text-[9px] font-bold rounded-full border"
-                  >
-                    {{ isOnline ? (currentLang === 'km' ? 'បានភ្ជាប់' : 'Connected') : (currentLang === 'km' ? 'ដាច់ការតភ្ជាប់' : 'Disconnected') }}
-                  </span>
-                </div>
-
-                <div class="p-1 space-y-1">
-                  <button
-                    @click="setStatusMode(true)"
-                    :class="[isOnline ? 'bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 font-semibold border-emerald-200 dark:border-emerald-500/30' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/60 border-transparent']"
-                    class="w-full flex items-center justify-between px-3 py-2 text-xs rounded-lg border transition-all cursor-pointer text-left"
-                  >
-                    <div class="flex items-center gap-2.5">
-                      <img :src="onlineIconUrl" alt="Online" class="w-4 h-4 object-contain" />
-                      <div>
-                        <p class="font-medium text-xs text-slate-900 dark:text-white">{{ currentLang === 'km' ? 'អនឡាញ' : 'Online' }}</p>
-                        <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ currentLang === 'km' ? 'ភ្ជាប់អ៊ីនធឺណិតធម្មតា' : 'Connected to internet' }}</p>
-                      </div>
-                    </div>
-                    <svg v-if="isOnline" class="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                    </svg>
-                  </button>
-
-                  <button
-                    @click="setStatusMode(false)"
-                    :class="[!isOnline ? 'bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-300 font-semibold border-rose-200 dark:border-rose-500/30' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/60 border-transparent']"
-                    class="w-full flex items-center justify-between px-3 py-2 text-xs rounded-lg border transition-all cursor-pointer text-left"
-                  >
-                    <div class="flex items-center gap-2.5">
-                      <img :src="offlineIconUrl" alt="Offline" class="w-4 h-4 object-contain" />
-                      <div>
-                        <p class="font-medium text-xs text-slate-900 dark:text-white">{{ currentLang === 'km' ? 'អូហ្វឡាញ' : 'Offline' }}</p>
-                        <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ currentLang === 'km' ? 'ដាច់ការតភ្ជាប់អ៊ីនធឺណិត' : 'No internet connection' }}</p>
-                      </div>
-                    </div>
-                    <svg v-if="!isOnline" class="w-3.5 h-3.5 text-rose-500 dark:text-rose-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </Transition>
-          </div>
-
-          <!-- Language Switcher Pill (Direct 1-Click Toggle: Khmer / English) -->
+          <!-- Language Switcher (Direct 1-Click Toggle: Khmer / English) -->
           <button
             type="button"
             @click="toggleLanguage"
-            class="p-1.5 h-8 w-8 rounded-full bg-white/90 dark:bg-[#121214]/80 backdrop-blur-md hover:bg-zinc-100 dark:hover:bg-[#1c1c1f] transition-all duration-150 border border-zinc-300/80 dark:border-zinc-800 shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
-            :title="currentLang === 'km' ? 'ប្តូរទៅជាភាសាអង់គ្លេស (Switch to English)' : 'Switch to Khmer (ប្តូរទៅជាភាសាខ្មែរ)'"
+            class="p-1 h-8 w-8 rounded-full bg-slate-800/80 hover:bg-slate-700 transition-all border border-slate-700/60 shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
+            :title="currentLang === 'km' ? 'Switch to English' : 'Switch to Khmer'"
           >
             <img
               :src="currentLang === 'km' ? '/images/flags/km.svg' : '/images/flags/en.svg'"
               :alt="currentLang"
-              class="w-5 h-3.5 object-cover rounded-[3px] shadow-xs ring-1 ring-zinc-300/60 dark:ring-zinc-700/60 transition-transform duration-200 group-hover:scale-110"
+              class="w-4 h-3 object-cover rounded-[2px]"
             />
           </button>
 
-          <!-- Theme Switcher Pill (with Colorful Mode Text) -->
+          <!-- Theme Switcher (Sun/Moon Minimal Icon) -->
           <button
             type="button"
             @click="toggleTheme($event)"
-            class="px-2.5 sm:px-3 h-8 rounded-full bg-white/95 dark:bg-[#182234] backdrop-blur-md hover:bg-amber-50/50 dark:hover:bg-indigo-950/40 transition-all duration-200 border border-zinc-200 dark:border-slate-700/80 shadow-xs flex items-center justify-center gap-1.5 text-xs font-bold cursor-pointer select-none active:scale-95 group focus:outline-none"
-            :title="isDark ? (currentLang === 'km' ? 'ប្ដូរទៅ Light Mode' : 'Switch to Light Mode') : (currentLang === 'km' ? 'ប្ដូរទៅ Dark Mode' : 'Switch to Dark Mode')"
+            class="h-8 w-8 rounded-full bg-slate-800/80 hover:bg-slate-700 transition-all border border-slate-700/60 shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
+            :title="isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
           >
-            <i :class="['pi text-xs transition-transform duration-500 group-hover:rotate-45', isDark ? 'pi-moon text-indigo-400' : 'pi-sun text-amber-500']"></i>
-            <span :class="isDark ? 'text-indigo-300 font-bold' : 'text-amber-600 font-bold'" class="text-[11px] sm:text-xs tracking-tight">
-              {{ isDark ? 'Dark Mode' : 'Light Mode' }}
-            </span>
+            <i :class="['pi text-xs', isDark ? 'pi-moon text-indigo-400' : 'pi-sun text-amber-400']"></i>
           </button>
 
-
-
-          <!-- Notifications Bell Dropdown -->
+          <!-- Notifications Bell (White Circle with Red Badge Matching Image) -->
           <div class="relative nav-dropdown-scope">
             <button
               @click.stop="handleNotificationToggle"
               type="button"
-              class="relative p-1.5 w-8 h-8 rounded-full sm:rounded-2xl bg-white/90 dark:bg-[#121214]/80 backdrop-blur-md hover:bg-zinc-100 dark:hover:bg-[#1c1c1f] text-zinc-700 dark:text-zinc-200 hover:text-zinc-950 dark:hover:text-white transition-all duration-150 border border-zinc-300/80 dark:border-zinc-800 shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
+              class="relative p-1.5 w-8 h-8 rounded-full bg-white text-slate-800 hover:bg-slate-100 transition-all shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
               :title="currentLang === 'km' ? 'ការជូនដំណឹង' : 'Notifications'"
             >
-              <svg class="w-4 h-4 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-105" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <svg class="w-4 h-4 text-slate-700 transition-transform duration-300 group-hover:rotate-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
               <!-- Notification Count Badge with Number -->
               <span
                 v-if="unreadNotificationsCount > 0"
-                class="absolute -top-1.5 -right-1.5 flex items-center justify-center pointer-events-none z-10"
+                class="absolute -top-1 -right-1 min-w-[17px] h-[17px] px-1 flex items-center justify-center rounded-full bg-[#f43f5e] text-white text-[9.5px] font-black leading-none ring-2 ring-[#071120] shadow-sm select-none"
               >
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-50"></span>
-                <span class="relative min-w-[17px] h-[17px] px-1 flex items-center justify-center rounded-full bg-[#f43f5e] text-white text-[9.5px] font-black leading-none ring-2 ring-white dark:ring-[#121214] shadow-sm select-none">
-                  {{ unreadNotificationsCount > 99 ? '99+' : unreadNotificationsCount }}
-                </span>
+                {{ unreadNotificationsCount > 99 ? '99+' : unreadNotificationsCount }}
               </span>
             </button>
 
@@ -1764,10 +1602,10 @@ onUnmounted(() => {
     </div>
 
     <!-- Main Content Area -->
-    <main :class="[isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72', 'pt-3.5 sm:pt-4 pb-10 transition-all duration-300']">
+    <main :class="[isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-60', 'pt-18 pb-12 transition-all duration-300']">
       <div class="px-4 sm:px-6 lg:px-8">
-        <!-- Page Header -->
-        <header class="mb-6" v-if="title || $slots.header">
+        <!-- Page Header (Suppressed on Admin Dashboard to Match Clean Reference UI) -->
+        <header class="mb-5" v-if="($slots.header || title) && $page.url !== '/admin/dashboard'">
           <slot name="header">
             <h2 class="text-2xl font-black leading-relaxed bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-800 dark:from-white dark:via-slate-100 dark:to-slate-300 bg-clip-text text-transparent sm:truncate sm:text-3xl tracking-normal font-sans">{{ title }}</h2>
           </slot>
