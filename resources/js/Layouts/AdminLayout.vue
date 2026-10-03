@@ -1259,7 +1259,7 @@ onUnmounted(() => {
 
           <!-- Harmonized Breadcrumb -->
           <div class="hidden sm:flex items-center gap-2 text-xs font-medium truncate">
-            <span class="text-slate-500 dark:text-slate-400 font-normal">Admin</span>
+            <span class="text-slate-500 dark:text-slate-400 font-normal">{{ currentBreadcrumb[0] }}</span>
             <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             <span class="px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/20 font-semibold truncate">
               {{ currentBreadcrumb[1] }}

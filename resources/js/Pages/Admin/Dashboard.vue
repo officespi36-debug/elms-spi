@@ -162,6 +162,21 @@ function exportReport() {
   window.print()
 }
 
+const getMajorDisplayName = (name: string) => {
+  const map: Record<string, { km: string; en: string }> = {
+    'All Majors': { km: 'ជំនាញទាំង ៥ ទាំងអស់', en: 'All 5 Majors' },
+    'Information Technology': { km: 'បច្ចេកវិទ្យាព័ត៌មាន (IT)', en: 'Information Technology' },
+    'Social Work': { km: 'ការងារសង្គម (SW)', en: 'Social Work' },
+    'Agriculture': { km: 'កសិកម្ម (AGR)', en: 'Agriculture' },
+    'Tourism': { km: 'ទេសចរណ៍ (TRM)', en: 'Tourism' },
+    'English Literature': { km: 'អក្សរសាស្ត្រអង់គ្លេស (ENG)', en: 'English Literature' },
+  }
+  if (map[name]) {
+    return currentLang.value === 'km' ? map[name].km : map[name].en
+  }
+  return name
+}
+
 // Enrollment Chart Series
 const activeChartData = computed(() => {
   const tf = chartTimeframe.value
@@ -174,8 +189,8 @@ const activeChartData = computed(() => {
 })
 
 const enrollmentSeries = computed(() => [
-  { name: 'New Enrollments', data: activeChartData.value.enrollments },
-  { name: 'Course Completions', data: activeChartData.value.completions },
+  { name: t('ការចុះឈ្មោះថ្មី', 'New Enrollments'), data: activeChartData.value.enrollments },
+  { name: t('ការបញ្ចប់វគ្គសិក្សា', 'Course Completions'), data: activeChartData.value.completions },
 ])
 
 const enrollmentChartOptions = computed<any>(() => ({
@@ -205,7 +220,11 @@ const completionDonutSeries = computed(() => [
 
 const completionDonutOptions = computed<any>(() => ({
   chart: { type: 'donut', background: 'transparent' },
-  labels: ['Completed', 'In Progress', 'Not Started'],
+  labels: [
+    t('បានបញ្ចប់', 'Completed'),
+    t('កំពុងរៀន', 'In Progress'),
+    t('មិនទាន់ចាប់ផ្ដើម', 'Not Started')
+  ],
   colors: ['#10b981', '#f59e0b', '#64748b'],
   legend: { show: false },
   stroke: { colors: [isDark.value ? '#1e293b' : '#ffffff'] },
@@ -218,7 +237,7 @@ const completionDonutOptions = computed<any>(() => ({
           show: true,
           total: {
             show: true,
-            label: 'Completion',
+            label: t('ការបញ្ចប់', 'Completion'),
             color: isDark.value ? '#94a3b8' : '#64748b',
             fontSize: '11px',
             formatter: () => `${currentPerformance.value.completed}%`,
@@ -232,7 +251,7 @@ const completionDonutOptions = computed<any>(() => ({
 </script>
 
 <template>
-  <AdminLayout title="Admin Dashboard">
+  <AdminLayout :title="t('ផ្ទាំងគ្រប់គ្រង Admin', 'Admin Dashboard')">
     <div class="space-y-6 text-slate-800 dark:text-slate-100 font-sans pb-10">
 
       <!-- ── 1. HEADER (Filters, Refresh, Export) ── -->
@@ -287,7 +306,7 @@ const completionDonutOptions = computed<any>(() => ({
               class="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs font-semibold focus:outline-none focus:border-emerald-500 cursor-pointer"
             >
               <option value="all">{{ t('ជំនាញទាំងអស់ (All Majors)', 'All Majors (5 SPI Majors)') }}</option>
-              <option v-for="m in allMajors" :key="m.id" :value="m.id">{{ m.name }}</option>
+              <option v-for="m in allMajors" :key="m.id" :value="m.id">{{ getMajorDisplayName(m.name) }}</option>
             </select>
 
             <!-- Refresh Button -->
@@ -424,10 +443,10 @@ const completionDonutOptions = computed<any>(() => ({
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
               <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2 uppercase tracking-wide">
-                <span>📈</span> ENROLLMENT & COMPLETION TREND
+                <span>📈</span> {{ t('និន្នាការចុះឈ្មោះ & បញ្ចប់ការសិក្សា', 'ENROLLMENT & COMPLETION TREND') }}
               </h3>
               <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                New Enrollments VS Course Completions (កំណើនអ្នកចុះឈ្មោះធៀបនឹងការបញ្ចប់)
+                {{ t('កំណើននៃការចុះឈ្មោះថ្មី ធៀបនឹងការបញ្ចប់វគ្គសិក្សា', 'New Enrollments VS Course Completions') }}
               </p>
             </div>
 
@@ -435,9 +454,9 @@ const completionDonutOptions = computed<any>(() => ({
             <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs shrink-0">
               <button
                 v-for="tf in [
-                  { id: 'daily', label: 'Daily' },
-                  { id: 'weekly', label: 'Weekly' },
-                  { id: 'monthly', label: 'Monthly' },
+                  { id: 'daily', label: t('ប្រចាំថ្ងៃ', 'Daily') },
+                  { id: 'weekly', label: t('ប្រចាំសប្តាហ៍', 'Weekly') },
+                  { id: 'monthly', label: t('ប្រចាំខែ', 'Monthly') },
                 ]"
                 :key="tf.id"
                 @click="chartTimeframe = (tf.id as any)"
@@ -456,7 +475,7 @@ const completionDonutOptions = computed<any>(() => ({
           <!-- Area Chart -->
           <div class="h-[280px]">
             <VueApexCharts
-              :key="`${isDark ? 'dark' : 'light'}_${chartTimeframe}`"
+              :key="`${isDark ? 'dark' : 'light'}_${chartTimeframe}_${currentLang}`"
               type="area"
               height="100%"
               :options="(enrollmentChartOptions as any)"
@@ -471,10 +490,10 @@ const completionDonutOptions = computed<any>(() => ({
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
               <div>
                 <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2 uppercase tracking-wide">
-                  <span>🎯</span> ACADEMIC / LEARNING PERFORMANCE
+                  <span>🎯</span> {{ t('លទ្ធផលសិក្សា & វឌ្ឍនភាព', 'ACADEMIC / LEARNING PERFORMANCE') }}
                 </h3>
                 <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Completion Status filtered by 5 Majors
+                  {{ t('ស្ថានភាពបញ្ចប់វគ្គសិក្សាតាមជំនាញទាំង ៥', 'Completion Status filtered by 5 Majors') }}
                 </p>
               </div>
 
@@ -483,27 +502,27 @@ const completionDonutOptions = computed<any>(() => ({
                 v-model="selectedPerfMajor"
                 class="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1 text-xs font-semibold focus:outline-none focus:border-emerald-500 cursor-pointer"
               >
-                <option value="all">All 5 Majors</option>
-                <option value="1">Information Technology</option>
-                <option value="2">Social Work</option>
-                <option value="3">Agriculture</option>
-                <option value="4">Tourism</option>
-                <option value="5">English Literature</option>
+                <option value="all">{{ t('ជំនាញទាំង ៥ ទាំងអស់', 'All 5 Majors') }}</option>
+                <option value="1">{{ t('បច្ចេកវិទ្យាព័ត៌មាន (IT)', 'Information Technology') }}</option>
+                <option value="2">{{ t('ការងារសង្គម (SW)', 'Social Work') }}</option>
+                <option value="3">{{ t('កសិកម្ម (AGR)', 'Agriculture') }}</option>
+                <option value="4">{{ t('ទេសចរណ៍ (TRM)', 'Tourism') }}</option>
+                <option value="5">{{ t('អក្សរសាស្ត្រអង់គ្លេស (ENG)', 'English Literature') }}</option>
               </select>
             </div>
 
             <!-- Major Scope Indicator -->
             <div class="flex items-center justify-between text-xs py-1 text-slate-600 dark:text-slate-300">
-              <span class="font-semibold">{{ currentPerformance.name }}</span>
+              <span class="font-semibold">{{ getMajorDisplayName(currentPerformance.name) }}</span>
               <span class="font-mono text-emerald-600 dark:text-emerald-400 font-bold">
-                {{ currentPerformance.total_count }} Students
+                {{ currentPerformance.total_count }} {{ t('និស្សិត', 'Students') }}
               </span>
             </div>
 
             <!-- Donut Chart -->
             <div class="h-[180px] flex items-center justify-center my-1">
               <VueApexCharts
-                :key="`${isDark ? 'dark-donut' : 'light-donut'}_${selectedPerfMajor}`"
+                :key="`${isDark ? 'dark-donut' : 'light-donut'}_${selectedPerfMajor}_${currentLang}`"
                 type="donut"
                 height="100%"
                 width="100%"
@@ -517,17 +536,17 @@ const completionDonutOptions = computed<any>(() => ({
               <!-- Completed -->
               <div class="bg-emerald-50 dark:bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-200/80 dark:border-emerald-800/60">
                 <span class="text-emerald-700 dark:text-emerald-400 font-black block text-base">{{ currentPerformance.completed }}%</span>
-                <span class="text-slate-600 dark:text-slate-400 text-[11px] font-semibold">Completed</span>
+                <span class="text-slate-600 dark:text-slate-400 text-[11px] font-semibold">{{ t('បានបញ្ចប់', 'Completed') }}</span>
               </div>
               <!-- In Progress -->
               <div class="bg-amber-50 dark:bg-amber-950/40 p-2.5 rounded-xl border border-amber-200/80 dark:border-amber-800/60">
                 <span class="text-amber-700 dark:text-amber-400 font-black block text-base">{{ currentPerformance.in_progress }}%</span>
-                <span class="text-slate-600 dark:text-slate-400 text-[11px] font-semibold">In Progress</span>
+                <span class="text-slate-600 dark:text-slate-400 text-[11px] font-semibold">{{ t('កំពុងរៀន', 'In Progress') }}</span>
               </div>
               <!-- Not Started -->
               <div class="bg-slate-100 dark:bg-slate-800/80 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700">
                 <span class="text-slate-700 dark:text-slate-300 font-black block text-base">{{ currentPerformance.not_started }}%</span>
-                <span class="text-slate-500 dark:text-slate-400 text-[11px] font-semibold">Not Started</span>
+                <span class="text-slate-500 dark:text-slate-400 text-[11px] font-semibold">{{ t('មិនទាន់ចាប់ផ្ដើម', 'Not Started') }}</span>
               </div>
             </div>
           </div>
@@ -535,7 +554,7 @@ const completionDonutOptions = computed<any>(() => ({
           <!-- Link to Learning & Progress -->
           <div class="pt-3 border-t border-slate-100 dark:border-slate-800 text-right mt-3">
             <Link href="/admin/progress" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-500">
-              View Detailed Student Progress →
+              {{ t('មើលវឌ្ឍនភាពលម្អិតរបស់និស្សិត →', 'View Detailed Student Progress →') }}
             </Link>
           </div>
         </div>
@@ -549,15 +568,15 @@ const completionDonutOptions = computed<any>(() => ({
             <span class="text-xl">⚡</span>
             <div>
               <h3 class="font-bold text-sm text-slate-900 dark:text-white uppercase tracking-wider">
-                ADMIN ALERTS / ACTION REQUIRED
+                {{ t('ការដាស់តឿន & សកម្មភាពបន្ទាន់', 'ADMIN ALERTS / ACTION REQUIRED') }}
               </h3>
               <p class="text-xs text-slate-500 dark:text-slate-400">
-                ការជូនដំណឹងសំខាន់ៗដែលទាមទារឱ្យ Admin ពិនិត្យ និងចាត់វិធានការ
+                {{ t('ការជូនដំណឹងសំខាន់ៗដែលទាមទារឱ្យ Admin ពិនិត្យ និងចាត់វិធានការ', 'Important institutional alerts requiring Admin review & immediate action') }}
               </p>
             </div>
           </div>
           <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30">
-            4 Actions Pending
+            {{ t('៤ សកម្មភាពកំពុងរង់ចាំ', '4 Actions Pending') }}
           </span>
         </div>
 
@@ -569,19 +588,19 @@ const completionDonutOptions = computed<any>(() => ({
               <div class="flex items-center justify-between">
                 <span class="text-lg">⚠</span>
                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300">
-                  High Priority
+                  {{ t('អាទិភាពខ្ពស់', 'High Priority') }}
                 </span>
               </div>
-              <h4 class="font-bold text-sm text-slate-900 dark:text-white mt-2">12 At-Risk Students</h4>
+              <h4 class="font-bold text-sm text-slate-900 dark:text-white mt-2">{{ t('១២ និស្សិតប្រឈមហានិភ័យ', '12 At-Risk Students') }}</h4>
               <p class="text-[11px] text-slate-600 dark:text-slate-400 mt-1">
-                Low course completion (&lt; 30%) and missed deadlines detected by AI.
+                {{ t('AI បានរកឃើញវឌ្ឍនភាពសិក្សាទាប (< ៣០%) និងខកខានកាលបរិច្ឆេទប្រឡង។', 'Low course completion (< 30%) and missed deadlines detected by AI.') }}
               </p>
             </div>
             <Link
               href="/admin/progress?tab=at_risk"
               class="w-full py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl text-xs text-center shadow-xs transition-all block cursor-pointer"
             >
-              View Students →
+              {{ t('ពិនិត្យនិស្សិត →', 'View Students →') }}
             </Link>
           </div>
 
@@ -591,19 +610,19 @@ const completionDonutOptions = computed<any>(() => ({
               <div class="flex items-center justify-between">
                 <span class="text-lg">📚</span>
                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300">
-                  Review Needed
+                  {{ t('ត្រូវការការត្រួតពិនិត្យ', 'Review Needed') }}
                 </span>
               </div>
-              <h4 class="font-bold text-sm text-slate-900 dark:text-white mt-2">5 Courses Waiting Approval</h4>
+              <h4 class="font-bold text-sm text-slate-900 dark:text-white mt-2">{{ t('៥ វគ្គសិក្សាកំពុងរង់ចាំការអនុម័ត', '5 Courses Waiting Approval') }}</h4>
               <p class="text-[11px] text-slate-600 dark:text-slate-400 mt-1">
-                Teacher-created courses submitted for syllabus & publication approval.
+                {{ t('វគ្គសិក្សាដែលគ្រូបានបង្កើតបញ្ជូនមកពិនិត្យមាតិកា និងអនុម័តផ្សាយ។', 'Teacher-created courses submitted for syllabus & publication approval.') }}
               </p>
             </div>
             <Link
               href="/admin/course-module/all?status=draft"
               class="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl text-xs text-center shadow-xs transition-all block cursor-pointer"
             >
-              Review Courses →
+              {{ t('ពិនិត្យវគ្គសិក្សា →', 'Review Courses →') }}
             </Link>
           </div>
 
@@ -613,19 +632,19 @@ const completionDonutOptions = computed<any>(() => ({
               <div class="flex items-center justify-between">
                 <span class="text-lg">👨‍🏫</span>
                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300">
-                  Faculty Account
+                  {{ t('គណនីគ្រូ', 'Faculty Account') }}
                 </span>
               </div>
-              <h4 class="font-bold text-sm text-slate-900 dark:text-white mt-2">3 Teacher Accounts Pending</h4>
+              <h4 class="font-bold text-sm text-slate-900 dark:text-white mt-2">{{ t('៣ គណនីគ្រូបង្រៀនកំពុងរង់ចាំ', '3 Teacher Accounts Pending') }}</h4>
               <p class="text-[11px] text-slate-600 dark:text-slate-400 mt-1">
-                Faculty teaching accounts awaiting department role & course assignment.
+                {{ t('គណនីសាស្ត្រាចារ្យកំពុងរង់ចាំការកំណត់ដេប៉ាតឺម៉ង់ និងមុខវិជ្ជាបង្រៀន។', 'Faculty teaching accounts awaiting department role & course assignment.') }}
               </p>
             </div>
             <Link
               href="/admin/user-management/teachers"
               class="w-full py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl text-xs text-center shadow-xs transition-all block cursor-pointer"
             >
-              Review Teachers →
+              {{ t('ពិនិត្យគ្រូបង្រៀន →', 'Review Teachers →') }}
             </Link>
           </div>
 
@@ -635,19 +654,19 @@ const completionDonutOptions = computed<any>(() => ({
               <div class="flex items-center justify-between">
                 <span class="text-lg">📢</span>
                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300">
-                  Broadcast
+                  {{ t('សេចក្តីប្រកាស', 'Broadcast') }}
                 </span>
               </div>
-              <h4 class="font-bold text-sm text-slate-900 dark:text-white mt-2">2 New Notifications</h4>
+              <h4 class="font-bold text-sm text-slate-900 dark:text-white mt-2">{{ t('២ ការជូនដំណឹងប្រព័ន្ធថ្មី', '2 New Notifications') }}</h4>
               <p class="text-[11px] text-slate-600 dark:text-slate-400 mt-1">
-                Academic semester calendar announcement ready for campus-wide release.
+                {{ t('សេចក្តីប្រកាសប្រតិទិនសិក្សាត្រៀមរួចរាល់សម្រាប់ផ្សាយទូទាំងសាលា។', 'Academic semester calendar announcement ready for campus-wide release.') }}
               </p>
             </div>
             <Link
               href="/admin/notifications/announcements"
               class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs text-center shadow-xs transition-all block cursor-pointer"
             >
-              View Notifications →
+              {{ t('ពិនិត្យការជូនដំណឹង →', 'View Notifications →') }}
             </Link>
           </div>
         </div>
