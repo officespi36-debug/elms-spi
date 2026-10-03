@@ -190,12 +190,31 @@ const majorsList = computed(() => {
   ]
 })
 
+// Localized categories for Chart Timeframe
+const chartCategories = computed(() => {
+  const tf = chartTimeframe.value
+  if (tf === 'daily') {
+    return currentLang.value === 'km' 
+      ? ['ច័ន្ទ', 'អង្គារ', 'ពុធ', 'ព្រហ', 'សុក្រ', 'សៅរ៍', 'អាទិត្យ']
+      : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+  }
+  if (tf === 'weekly') {
+    return currentLang.value === 'km'
+      ? ['សប្តាហ៍ទី ១', 'សប្តាហ៍ទី ២', 'សប្តាហ៍ទី ៣', 'សប្តាហ៍ទី ៤']
+      : ['Week 1', 'Week 2', 'Week 3', 'Week 4']
+  }
+  // monthly
+  return currentLang.value === 'km'
+    ? ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ']
+    : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+})
+
 // Enrollment Chart Series
 const activeChartData = computed(() => {
   const tf = chartTimeframe.value
   const data = props.enrollmentChartData?.[tf] || props.enrollmentChartData?.monthly
   return {
-    categories: data?.categories || ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+    categories: chartCategories.value,
     enrollments: data?.enrollments || [140, 220, 310, 450, 520, 680, 720, 610, 590, 810, 940, 1120],
     completions: data?.completions || [90, 150, 210, 310, 390, 510, 540, 480, 460, 640, 720, 890],
   }
@@ -207,20 +226,49 @@ const enrollmentSeries = computed(() => [
 ])
 
 const enrollmentChartOptions = computed<any>(() => ({
-  chart: { type: 'area', toolbar: { show: false }, background: 'transparent' },
+  chart: {
+    type: 'area',
+    toolbar: { show: false },
+    background: 'transparent',
+    parentHeightOffset: 0,
+  },
   colors: ['#6366f1', '#10b981'],
   stroke: { curve: 'smooth', width: 3 },
   dataLabels: { enabled: false },
   fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.35, opacityTo: 0.05 } },
   xaxis: {
-    categories: activeChartData.value.categories,
-    labels: { style: { colors: isDark.value ? '#94a3b8' : '#64748b', fontSize: '11px' } }
+    type: 'category',
+    categories: chartCategories.value,
+    labels: {
+      show: true,
+      rotate: -25,
+      rotateAlways: false,
+      style: {
+        colors: isDark.value ? '#cbd5e1' : '#475569',
+        fontSize: '11px',
+        fontWeight: 600,
+      },
+    },
+    axisBorder: { show: true, color: isDark.value ? '#334155' : '#cbd5e1' },
+    axisTicks: { show: true, color: isDark.value ? '#334155' : '#cbd5e1' },
   },
   yaxis: {
-    labels: { style: { colors: isDark.value ? '#94a3b8' : '#64748b', fontSize: '11px' } }
+    labels: {
+      style: {
+        colors: isDark.value ? '#cbd5e1' : '#475569',
+        fontSize: '11px',
+        fontWeight: 600,
+      },
+    },
   },
   grid: { borderColor: isDark.value ? '#334155' : '#e2e8f0', strokeDashArray: 4 },
-  legend: { labels: { colors: isDark.value ? '#cbd5e1' : '#475569' }, position: 'top', horizontalAlign: 'right' },
+  legend: {
+    labels: { colors: isDark.value ? '#cbd5e1' : '#334155' },
+    position: 'top',
+    horizontalAlign: 'right',
+    fontSize: '12px',
+    fontWeight: 600,
+  },
   tooltip: { theme: isDark.value ? 'dark' : 'light', shared: true, intersect: false },
 }))
 
@@ -365,7 +413,7 @@ const completionDonutOptions = computed<any>(() => ({
           <div class="relative z-10">
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wider uppercase text-white/85">{{ t('និស្សិតសរុប', 'TOTAL STUDENTS') }}</span>
-              <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white/20 hover:bg-white/30 text-white backdrop-blur-xs flex items-center gap-1 transition-colors">
+              <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white/20 hover:bg-white/35 active:scale-95 text-white backdrop-blur-xs flex items-center gap-1 transition-all shadow-xs">
                 {{ t('និស្សិត →', 'User Mgmt →') }}
               </span>
             </div>
@@ -394,7 +442,7 @@ const completionDonutOptions = computed<any>(() => ({
           <div class="relative z-10">
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wider uppercase text-white/85">{{ t('សាស្ត្រាចារ្យ/គ្រូ', 'FACULTY TEACHERS') }}</span>
-              <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white/20 hover:bg-white/30 text-white backdrop-blur-xs flex items-center gap-1 transition-colors">
+              <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white/20 hover:bg-white/35 active:scale-95 text-white backdrop-blur-xs flex items-center gap-1 transition-all shadow-xs">
                 {{ t('គ្រូបង្រៀន →', 'Teachers →') }}
               </span>
             </div>
@@ -423,7 +471,7 @@ const completionDonutOptions = computed<any>(() => ({
           <div class="relative z-10">
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wider uppercase text-white/85">{{ t('វគ្គសិក្សាសកម្ម', 'ACTIVE COURSES') }}</span>
-              <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white/20 hover:bg-white/30 text-white backdrop-blur-xs flex items-center gap-1 transition-colors">
+              <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white/20 hover:bg-white/35 active:scale-95 text-white backdrop-blur-xs flex items-center gap-1 transition-all shadow-xs">
                 {{ t('វគ្គសិក្សា →', 'Courses →') }}
               </span>
             </div>
@@ -452,7 +500,7 @@ const completionDonutOptions = computed<any>(() => ({
           <div class="relative z-10">
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wider uppercase text-white/85">{{ t('អត្រាបញ្ចប់ការសិក្សា', 'COMPLETION RATE') }}</span>
-              <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white/20 hover:bg-white/30 text-white backdrop-blur-xs flex items-center gap-1 transition-colors">
+              <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white/20 hover:bg-white/35 active:scale-95 text-white backdrop-blur-xs flex items-center gap-1 transition-all shadow-xs">
                 {{ t('វឌ្ឍនភាព →', 'Learning →') }}
               </span>
             </div>
@@ -480,8 +528,14 @@ const completionDonutOptions = computed<any>(() => ({
 
           <div class="relative z-10">
             <div class="flex items-center justify-between">
-              <span class="text-[11px] font-bold tracking-wider uppercase text-white/85">{{ t('និស្សិតប្រឈមហានិភ័យ', 'AT-RISK STUDENTS') }}</span>
-              <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white/20 hover:bg-white/30 text-white backdrop-blur-xs flex items-center gap-1 transition-colors">
+              <span class="text-[11px] font-bold tracking-wider uppercase text-white/95 flex items-center gap-1.5">
+                <span class="relative flex h-2 w-2">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-85"></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                </span>
+                {{ t('និស្សិតប្រឈមហានិភ័យ', 'AT-RISK STUDENTS') }}
+              </span>
+              <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white/20 hover:bg-white/35 active:scale-95 text-white backdrop-blur-xs flex items-center gap-1 transition-all shadow-xs">
                 {{ t('ការដាស់តឿន AI →', 'AI Alert →') }}
               </span>
             </div>
@@ -496,64 +550,66 @@ const completionDonutOptions = computed<any>(() => ({
         </Link>
       </div>
 
-      <!-- ── 3. MIDDLE SECTION: ENROLLMENT TREND & ACADEMIC PERFORMANCE (2 COLUMNS) ── -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      <!-- ── 3. MIDDLE SECTION: ENROLLMENT TREND & ACADEMIC PERFORMANCE (2 EQUAL-HEIGHT COLUMNS) ── -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
         
         <!-- Left (7 Cols): Enrollment & Completion Trend -->
-        <div class="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-none flex flex-col justify-between">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-            <div>
-              <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2 uppercase tracking-wide">
-                <span>📈</span> {{ t('និន្នាការចុះឈ្មោះ & បញ្ចប់ការសិក្សា', 'ENROLLMENT & COMPLETION TREND') }}
-              </h3>
-              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                {{ t('កំណើននៃការចុះឈ្មោះថ្មី ធៀបនឹងការបញ្ចប់វគ្គសិក្សា', 'New Enrollments VS Course Completions') }}
-              </p>
+        <div class="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-none flex flex-col justify-between h-full">
+          <div>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+              <div>
+                <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2 uppercase tracking-wide">
+                  <span>📈</span> {{ t('និន្នាការចុះឈ្មោះ & បញ្ចប់ការសិក្សា', 'ENROLLMENT & COMPLETION TREND') }}
+                </h3>
+                <p class="text-xs text-slate-500 dark:text-slate-300 mt-0.5">
+                  {{ t('កំណើននៃការចុះឈ្មោះថ្មី ធៀបនឹងការបញ្ចប់វគ្គសិក្សា', 'New Enrollments VS Course Completions') }}
+                </p>
+              </div>
+
+              <!-- Timeframe switcher: Daily | Weekly | Monthly -->
+              <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs shrink-0">
+                <button
+                  v-for="tf in [
+                    { id: 'daily', label: t('ប្រចាំថ្ងៃ', 'Daily') },
+                    { id: 'weekly', label: t('ប្រចាំសប្តាហ៍', 'Weekly') },
+                    { id: 'monthly', label: t('ប្រចាំខែ', 'Monthly') },
+                  ]"
+                  :key="tf.id"
+                  @click="chartTimeframe = (tf.id as any)"
+                  :class="[
+                    chartTimeframe === tf.id 
+                      ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-slate-950 font-bold shadow-xs' 
+                      : 'text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-slate-700/60',
+                    'px-3 py-1 rounded-lg transition-all cursor-pointer'
+                  ]"
+                >
+                  {{ tf.label }}
+                </button>
+              </div>
             </div>
 
-            <!-- Timeframe switcher: Daily | Weekly | Monthly -->
-            <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs shrink-0">
-              <button
-                v-for="tf in [
-                  { id: 'daily', label: t('ប្រចាំថ្ងៃ', 'Daily') },
-                  { id: 'weekly', label: t('ប្រចាំសប្តាហ៍', 'Weekly') },
-                  { id: 'monthly', label: t('ប្រចាំខែ', 'Monthly') },
-                ]"
-                :key="tf.id"
-                @click="chartTimeframe = (tf.id as any)"
-                :class="[
-                  chartTimeframe === tf.id 
-                    ? 'bg-emerald-600 dark:bg-emerald-500 text-white dark:text-slate-950 font-bold shadow-xs' 
-                    : 'text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-slate-700/60',
-                  'px-3 py-1 rounded-lg transition-all cursor-pointer'
-                ]"
-              >
-                {{ tf.label }}
-              </button>
+            <!-- Area Chart -->
+            <div class="h-[310px] w-full pt-1">
+              <VueApexCharts
+                :key="`${isDark ? 'dark' : 'light'}_${chartTimeframe}_${currentLang}`"
+                type="area"
+                height="100%"
+                :options="(enrollmentChartOptions as any)"
+                :series="enrollmentSeries"
+              />
             </div>
-          </div>
-
-          <!-- Area Chart -->
-          <div class="h-[280px]">
-            <VueApexCharts
-              :key="`${isDark ? 'dark' : 'light'}_${chartTimeframe}_${currentLang}`"
-              type="area"
-              height="100%"
-              :options="(enrollmentChartOptions as any)"
-              :series="enrollmentSeries"
-            />
           </div>
         </div>
 
         <!-- Right (5 Cols): Academic / Learning Performance (Filter by 5 Majors) -->
-        <div class="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-none flex flex-col justify-between">
+        <div class="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm dark:shadow-none flex flex-col justify-between h-full">
           <div>
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
               <div>
                 <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2 uppercase tracking-wide">
                   <span>🎯</span> {{ t('លទ្ធផលសិក្សា & វឌ្ឍនភាព', 'ACADEMIC / LEARNING PERFORMANCE') }}
                 </h3>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                <p class="text-xs text-slate-500 dark:text-slate-300 mt-0.5">
                   {{ t('ស្ថានភាពបញ្ចប់វគ្គសិក្សាតាមជំនាញទាំង ៥', 'Completion Status filtered by 5 Majors') }}
                 </p>
               </div>
@@ -593,22 +649,41 @@ const completionDonutOptions = computed<any>(() => ({
               />
             </div>
 
+            <!-- Donut Chart Explicit Legend -->
+            <div class="flex flex-wrap items-center justify-center gap-2.5 sm:gap-4 py-2 px-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 text-xs my-2.5">
+              <div class="flex items-center gap-1.5 font-semibold text-slate-700 dark:text-slate-200">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs shrink-0"></span>
+                <span>{{ t('បានបញ្ចប់', 'Completed') }}:</span>
+                <span class="font-bold text-emerald-600 dark:text-emerald-400">{{ currentPerformance.completed }}%</span>
+              </div>
+              <div class="flex items-center gap-1.5 font-semibold text-slate-700 dark:text-slate-200">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-xs shrink-0"></span>
+                <span>{{ t('កំពុងរៀន', 'In Progress') }}:</span>
+                <span class="font-bold text-amber-600 dark:text-amber-400">{{ currentPerformance.in_progress }}%</span>
+              </div>
+              <div class="flex items-center gap-1.5 font-semibold text-slate-700 dark:text-slate-200">
+                <span class="w-2.5 h-2.5 rounded-full bg-slate-400 dark:bg-slate-500 shadow-xs shrink-0"></span>
+                <span>{{ t('មិនទាន់ចាប់ផ្ដើម', 'Not Started') }}:</span>
+                <span class="font-bold text-slate-600 dark:text-slate-300">{{ currentPerformance.not_started }}%</span>
+              </div>
+            </div>
+
             <!-- Status Breakdown (Completed, In Progress, Not Started) -->
             <div class="grid grid-cols-3 gap-2.5 text-center text-xs pt-3 border-t border-slate-100 dark:border-slate-800">
               <!-- Completed -->
               <div class="bg-emerald-50 dark:bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-200/80 dark:border-emerald-800/60">
                 <span class="text-emerald-700 dark:text-emerald-400 font-black block text-base">{{ currentPerformance.completed }}%</span>
-                <span class="text-slate-600 dark:text-slate-400 text-[11px] font-semibold">{{ t('បានបញ្ចប់', 'Completed') }}</span>
+                <span class="text-slate-600 dark:text-slate-300 text-[11px] font-semibold">{{ t('បានបញ្ចប់', 'Completed') }}</span>
               </div>
               <!-- In Progress -->
               <div class="bg-amber-50 dark:bg-amber-950/40 p-2.5 rounded-xl border border-amber-200/80 dark:border-amber-800/60">
                 <span class="text-amber-700 dark:text-amber-400 font-black block text-base">{{ currentPerformance.in_progress }}%</span>
-                <span class="text-slate-600 dark:text-slate-400 text-[11px] font-semibold">{{ t('កំពុងរៀន', 'In Progress') }}</span>
+                <span class="text-slate-600 dark:text-slate-300 text-[11px] font-semibold">{{ t('កំពុងរៀន', 'In Progress') }}</span>
               </div>
               <!-- Not Started -->
               <div class="bg-slate-100 dark:bg-slate-800/80 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700">
-                <span class="text-slate-700 dark:text-slate-300 font-black block text-base">{{ currentPerformance.not_started }}%</span>
-                <span class="text-slate-500 dark:text-slate-400 text-[11px] font-semibold">{{ t('មិនទាន់ចាប់ផ្ដើម', 'Not Started') }}</span>
+                <span class="text-slate-700 dark:text-slate-200 font-black block text-base">{{ currentPerformance.not_started }}%</span>
+                <span class="text-slate-600 dark:text-slate-300 text-[11px] font-semibold">{{ t('មិនទាន់ចាប់ផ្ដើម', 'Not Started') }}</span>
               </div>
             </div>
           </div>
