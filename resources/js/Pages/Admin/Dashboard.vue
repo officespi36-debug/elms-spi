@@ -177,6 +177,19 @@ const getMajorDisplayName = (name: string) => {
   return name
 }
 
+const majorsList = computed(() => {
+  if (props.allMajors && props.allMajors.length > 0) {
+    return props.allMajors
+  }
+  return [
+    { id: 1, name: 'Information Technology' },
+    { id: 2, name: 'Social Work' },
+    { id: 3, name: 'Agriculture' },
+    { id: 4, name: 'Tourism' },
+    { id: 5, name: 'English Literature' },
+  ]
+})
+
 // Enrollment Chart Series
 const activeChartData = computed(() => {
   const tf = chartTimeframe.value
@@ -303,10 +316,11 @@ const completionDonutOptions = computed<any>(() => ({
             <select
               v-model="majorFilter"
               @change="applyFilters"
-              class="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs font-semibold focus:outline-none focus:border-emerald-500 cursor-pointer"
+              :style="{ colorScheme: isDark ? 'dark' : 'light' }"
+              class="bg-white dark:bg-[#182234] text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700/80 rounded-xl px-3 py-1.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 cursor-pointer shadow-xs transition-colors"
             >
-              <option value="all">{{ t('ជំនាញទាំងអស់ (All Majors)', 'All Majors (5 SPI Majors)') }}</option>
-              <option v-for="m in allMajors" :key="m.id" :value="m.id">{{ getMajorDisplayName(m.name) }}</option>
+              <option value="all" class="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-100">{{ t('ជំនាញទាំងអស់ (All Majors)', 'All Majors (5 SPI Majors)') }}</option>
+              <option v-for="m in majorsList" :key="m.id" :value="m.id" class="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-100">{{ getMajorDisplayName(m.name) }}</option>
             </select>
 
             <!-- Refresh Button -->
@@ -500,14 +514,15 @@ const completionDonutOptions = computed<any>(() => ({
               <!-- Filter by 5 Majors Dropdown -->
               <select
                 v-model="selectedPerfMajor"
-                class="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1 text-xs font-semibold focus:outline-none focus:border-emerald-500 cursor-pointer"
+                :style="{ colorScheme: isDark ? 'dark' : 'light' }"
+                class="bg-white dark:bg-[#182234] text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700/80 rounded-xl px-2.5 py-1 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 cursor-pointer shadow-xs transition-colors"
               >
-                <option value="all">{{ t('ជំនាញទាំង ៥ ទាំងអស់', 'All 5 Majors') }}</option>
-                <option value="1">{{ t('បច្ចេកវិទ្យាព័ត៌មាន (IT)', 'Information Technology') }}</option>
-                <option value="2">{{ t('ការងារសង្គម (SW)', 'Social Work') }}</option>
-                <option value="3">{{ t('កសិកម្ម (AGR)', 'Agriculture') }}</option>
-                <option value="4">{{ t('ទេសចរណ៍ (TRM)', 'Tourism') }}</option>
-                <option value="5">{{ t('អក្សរសាស្ត្រអង់គ្លេស (ENG)', 'English Literature') }}</option>
+                <option value="all" class="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-100">{{ t('ជំនាញទាំង ៥ ទាំងអស់', 'All 5 Majors') }}</option>
+                <option value="1" class="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-100">{{ t('បច្ចេកវិទ្យាព័ត៌មាន (IT)', 'Information Technology') }}</option>
+                <option value="2" class="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-100">{{ t('ការងារសង្គម (SW)', 'Social Work') }}</option>
+                <option value="3" class="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-100">{{ t('កសិកម្ម (AGR)', 'Agriculture') }}</option>
+                <option value="4" class="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-100">{{ t('ទេសចរណ៍ (TRM)', 'Tourism') }}</option>
+                <option value="5" class="bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-100">{{ t('អក្សរសាស្ត្រអង់គ្លេស (ENG)', 'English Literature') }}</option>
               </select>
             </div>
 

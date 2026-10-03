@@ -250,3 +250,34 @@ html.dark .custom-scrollbar-slim::-webkit-scrollbar-thumb:hover,
 ::view-transition-new(root) {
   z-index: 99999;
 }
+
+/* Universal Select & Option Form Controls (Flawless Light & Dark Mode Text Rendering) */
+select {
+  color-scheme: light dark;
+}
+
+html.dark select,
+.dark select {
+  color-scheme: dark !important;
+  color: #f8fafc !important;
+  background-color: #1e293b !important;
+}
+
+html.dark select option,
+.dark select option {
+  color-scheme: dark !important;
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+}
+
+html:not(.dark) select {
+  color-scheme: light !important;
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+}
+
+html:not(.dark) select option {
+  color-scheme: light !important;
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
