@@ -47,9 +47,12 @@ interface NavItem {
   key?: string
   name: string
   href?: string
+  iconType?: string
   icon?: string
   iconUrl?: string
   badge?: string
+  hasArrow?: boolean
+  isLogout?: boolean
   children?: NavSubItem[]
 }
 
@@ -58,119 +61,108 @@ const navigation: NavItem[] = [
     key: 'dashboard',
     name: 'Dashboard',
     href: '/admin/dashboard',
-    iconUrl: '/images/nav/dashboard.svg',
-    icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'
+    iconType: 'dashboard',
   },
   {
-    key: 'auth',
-    name: 'Authentication',
-    iconUrl: '/images/nav/auth.svg',
-    icon: 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z',
-    children: [
-      { name: 'Login & Security', href: '/admin/auth-logs', iconUrl: '/images/nav/sub/overview.svg', icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z' },
-      { name: 'Roles & Permissions', href: '/admin/auth/roles', iconUrl: '/images/nav/sub/roles.svg', icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' },
-    ]
+    key: 'sales',
+    name: 'Sales',
+    href: '/admin/enrollment/courses',
+    iconType: 'sales',
+    hasArrow: true,
   },
   {
-    key: 'users',
-    name: 'User Management',
-    iconUrl: '/images/nav/users.svg',
-    icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z',
-    children: [
-      { name: 'Students', href: '/admin/user-management/students', iconUrl: '/images/nav/sub/students.svg', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
-      { name: 'Teachers', href: '/admin/user-management/teachers', iconUrl: '/images/nav/sub/teachers.svg', icon: 'M12 14l9-5-9-5-9 5 9 5z' },
-      { name: 'Admins', href: '/admin/user-management/administrators', iconUrl: '/images/nav/sub/admins.svg', icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' },
-    ]
+    key: 'purchase',
+    name: 'Purchase',
+    href: '/admin/academic-structure/departments',
+    iconType: 'purchase',
+    hasArrow: true,
   },
   {
-    key: 'academics',
-    name: 'Academic Structure',
-    iconUrl: '/images/nav/academics.svg',
-    icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11m0 10V11m0 0h4m-4 0H7',
-    children: [
-      { name: 'Departments', href: '/admin/academic-structure/departments', iconUrl: '/images/nav/sub/departments.svg', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11' },
-      { name: 'Majors', href: '/admin/academic-structure/majors', iconUrl: '/images/nav/sub/majors.svg', icon: 'M12 14l9-5-9-5-9 5 9 5z' },
-      { name: 'Subjects', href: '/admin/academic-structure/subjects', iconUrl: '/images/nav/sub/subjects.svg', icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253' },
-      { name: 'Academic Years', href: '/admin/academic-structure/academic-years', iconUrl: '/images/nav/sub/academic-years.svg', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
-    ]
+    key: 'inventory',
+    name: 'Inventory',
+    href: '/admin/course-module/all',
+    iconType: 'inventory',
+    hasArrow: true,
   },
   {
-    key: 'courses',
-    name: 'Course Management',
-    iconUrl: '/images/nav/courses.svg',
-    icon: 'M12 14l9-5-9-5-9 5 9 5z',
-    children: [
-      { name: 'Courses', href: '/admin/course-module/all', iconUrl: '/images/nav/sub/all-courses.svg', icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' },
-      { name: 'Course Approval', href: '/admin/course-module/approval', iconUrl: '/images/nav/sub/roles.svg', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
-      { name: 'Enrollment', href: '/admin/enrollment/courses', iconUrl: '/images/nav/enrollment.svg', icon: 'M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122' },
-    ]
+    key: 'customers',
+    name: 'Customers',
+    href: '/admin/user-management/students',
+    iconType: 'customers',
+    hasArrow: true,
   },
   {
-    key: 'assessment',
-    name: 'Assessment',
-    iconUrl: '/images/nav/quiz.svg',
-    icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
-    children: [
-      { name: 'Quizzes', href: '/admin/quizzes', iconUrl: '/images/nav/quiz.svg', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4' },
-      { name: 'Assignments', href: '/admin/quizzes?tab=assignments', iconUrl: '/images/nav/sub/teacher-assignments.svg', icon: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' },
-      { name: 'Question Bank', href: '/admin/quizzes?tab=bank', iconUrl: '/images/nav/sub/overview.svg', icon: 'M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
-    ]
+    key: 'suppliers',
+    name: 'Suppliers',
+    href: '/admin/user-management/teachers',
+    iconType: 'suppliers',
+    hasArrow: true,
   },
   {
-    key: 'progress',
-    name: 'Learning & Progress',
-    iconUrl: '/images/nav/progress.svg',
-    icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6',
-    children: [
-      { name: 'Student Progress', href: '/admin/progress?tab=student', iconUrl: '/images/nav/sub/students.svg', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
-      { name: 'Course Completion', href: '/admin/progress?tab=course', iconUrl: '/images/nav/sub/roles.svg', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
-    ]
+    key: 'jewellery',
+    name: 'Jewellery',
+    href: '/admin/academic-structure/majors',
+    iconType: 'jewellery',
+    hasArrow: true,
   },
   {
-    key: 'analytics',
-    name: 'Analytics & Reports',
-    iconUrl: '/images/nav/analytics.svg',
-    icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
-    children: [
-      { name: 'Student Analytics', href: '/admin/reports?tab=students', iconUrl: '/images/nav/sub/students.svg', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
-      { name: 'Course Analytics', href: '/admin/reports?tab=courses', iconUrl: '/images/nav/sub/all-courses.svg', icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253' },
-      { name: 'Teacher Analytics', href: '/admin/reports?tab=teachers', iconUrl: '/images/nav/sub/teachers.svg', icon: 'M12 14l9-5-9-5-9 5 9 5z' },
-      { name: 'System Reports', href: '/admin/reports?tab=overview', iconUrl: '/images/nav/sub/overview.svg', icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z' },
-    ]
+    key: 'accounts',
+    name: 'Accounts',
+    href: '/admin/reports?tab=overview',
+    iconType: 'accounts',
+    hasArrow: true,
   },
   {
-    key: 'ai',
-    name: 'AI Management',
-    iconUrl: '/images/nav/ai.svg',
-    icon: 'M13 10V3L4 14h7v7l9-11h-7z',
-    children: [
-      { name: 'AI Recommendations', href: '/admin/ai-rules?tab=rules', iconUrl: '/images/nav/ai.svg', icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
-      { name: 'At-Risk Students', href: '/admin/ai-rules?tab=at_risk', iconUrl: '/images/nav/sub/failed.svg', icon: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z' },
-      { name: 'Difficult Topics', href: '/admin/ai-rules?tab=difficult_topics', iconUrl: '/images/nav/sub/failed.svg', icon: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z' },
-      { name: 'AI Configuration', href: '/admin/ai-rules?tab=config', iconUrl: '/images/nav/settings.svg', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
-    ]
+    key: 'gst-reports',
+    name: 'GST Reports',
+    href: '/admin/reports',
+    iconType: 'gst-reports',
+    hasArrow: true,
   },
   {
-    key: 'communication',
-    name: 'Communication',
-    iconUrl: '/images/nav/notification.svg',
-    icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9',
-    children: [
-      { name: 'Announcements', href: '/admin/notifications/announcements', iconUrl: '/images/actions/announcement.svg', icon: 'M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z' },
-      { name: 'Notifications', href: '/admin/notifications', iconUrl: '/images/nav/notification.svg', icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9' },
-    ]
+    key: 'branch',
+    name: 'Branch',
+    href: '/admin/academic-structure/departments',
+    iconType: 'branch',
+    hasArrow: true,
+  },
+  {
+    key: 'employees',
+    name: 'Employees',
+    href: '/admin/user-management/administrators',
+    iconType: 'employees',
+    hasArrow: true,
+  },
+  {
+    key: 'reports',
+    name: 'Reports',
+    href: '/admin/reports',
+    iconType: 'reports',
+    hasArrow: true,
   },
   {
     key: 'settings',
-    name: 'System Settings',
-    iconUrl: '/images/nav/settings.svg',
-    icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z',
+    name: 'Settings',
+    iconType: 'settings',
     children: [
-      { name: 'General Settings', href: '/admin/settings?tab=general', iconUrl: '/images/nav/settings.svg' },
-      { name: 'Academic Settings', href: '/admin/settings?tab=academic', iconUrl: '/images/nav/sub/academic-years.svg' },
-      { name: 'System Logs', href: '/admin/settings?tab=logs', iconUrl: '/images/nav/sub/policies.svg' },
+      { name: 'General Settings', href: '/admin/settings?tab=general' },
+      { name: 'Academic Settings', href: '/admin/settings?tab=academic' },
+      { name: 'System Logs', href: '/admin/settings?tab=logs' },
     ]
   },
+  {
+    key: 'backup',
+    name: 'Backup',
+    href: '/admin/auth-logs',
+    iconType: 'backup',
+    hasArrow: true,
+  },
+  {
+    key: 'logout',
+    name: 'Logout',
+    iconType: 'logout',
+    isLogout: true,
+  }
 ]
 
 const isSubActive = (subHref: string) => {
@@ -790,45 +782,104 @@ onUnmounted(() => {
             :key="item.name"
             :class="isSidebarCollapsed ? 'relative group/flyout flex justify-center w-full' : 'relative'"
           >
-            <!-- Direct Link (No Children) -->
+            <!-- 1. Logout Action Button -->
+            <button
+              v-if="item.isLogout"
+              @click="logout"
+              type="button"
+              :title="isSidebarCollapsed ? item.name : undefined"
+              :class="[
+                isSidebarCollapsed ? 'justify-center px-0 w-10 h-10 mx-auto' : 'px-3 w-full gap-x-3',
+                'group flex items-center rounded-xl py-2 text-xs font-medium text-slate-300 hover:text-white hover:bg-rose-500/10 transition-all duration-200 cursor-pointer'
+              ]"
+            >
+              <div class="relative flex items-center justify-center shrink-0">
+                <svg class="h-4.5 w-4.5 shrink-0 text-rose-500" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" fill="none">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9"/>
+                </svg>
+              </div>
+              <span v-show="!isSidebarCollapsed" class="flex-1 truncate text-left">{{ getNavTitle(item.name) }}</span>
+            </button>
+
+            <!-- 2. Direct Link (No Children) -->
             <Link
-              v-if="!item.children || item.children.length === 0"
+              v-else-if="!item.children || item.children.length === 0"
               :href="item.href!"
               :title="isSidebarCollapsed ? item.name : undefined"
               :class="[
                 $page.url.startsWith(item.href!) 
-                  ? 'bg-[#1d68ed] text-white font-bold shadow-md shadow-blue-600/30' 
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60 border border-transparent font-medium',
+                  ? 'bg-[#1d68ed] text-white font-medium shadow-md shadow-blue-600/30' 
+                  : 'text-slate-300 hover:text-white hover:bg-slate-800/60 border border-transparent font-normal',
                 isSidebarCollapsed ? 'justify-center px-0 w-10 h-10 mx-auto' : 'px-3 w-full gap-x-3',
-                'group flex items-center rounded-xl py-2.5 text-xs transition-all duration-200'
+                'group flex items-center rounded-xl py-2 text-xs transition-all duration-200'
               ]"
             >
               <div class="relative flex items-center justify-center shrink-0">
-                <img 
-                  v-if="item.iconUrl"
-                  :src="item.iconUrl" 
-                  :alt="item.name"
-                  @error="onIconError"
-                  class="w-5 h-5 object-contain shrink-0 filter drop-shadow-sm transition-transform duration-200 group-hover:scale-110"
-                />
-                <svg 
-                  :class="[
-                    $page.url.startsWith(item.href!) ? 'text-white' : 'text-slate-400 group-hover:text-slate-200',
-                    item.iconUrl ? 'hidden' : '',
-                    'h-5 w-5 shrink-0 transition-colors'
-                  ]"
-                  fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-                >
-                  <path stroke-linecap="round" stroke-linejoin="round" :d="item.icon || 'M4 6h16M4 12h16M4 18h16'" />
+                <!-- Dashboard -->
+                <svg v-if="item.iconType === 'dashboard'" class="h-4.5 w-4.5 shrink-0 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                <!-- Sales -->
+                <svg v-else-if="item.iconType === 'sales'" class="h-4.5 w-4.5 shrink-0 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+                <!-- Purchase -->
+                <svg v-else-if="item.iconType === 'purchase'" class="h-4.5 w-4.5 shrink-0 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <!-- Inventory -->
+                <svg v-else-if="item.iconType === 'inventory'" class="h-4.5 w-4.5 shrink-0 text-amber-500 fill-amber-500/20" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+                <!-- Customers -->
+                <svg v-else-if="item.iconType === 'customers'" class="h-4.5 w-4.5 shrink-0 text-rose-400 fill-rose-500/20" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+                <!-- Suppliers -->
+                <svg v-else-if="item.iconType === 'suppliers'" class="h-4.5 w-4.5 shrink-0 text-emerald-400 fill-emerald-500/10" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 17a2 2 0 100 4 2 2 0 000-4zm10 0a2 2 0 100 4 2 2 0 000-4zM3 4h11a1 1 0 011 1v10H3V4zm11 3h3.586a1 1 0 01.707.293l2.414 2.414a1 1 0 01.293.707V15H14V7z"/>
+                </svg>
+                <!-- Jewellery -->
+                <svg v-else-if="item.iconType === 'jewellery'" class="h-4.5 w-4.5 shrink-0 text-yellow-400 fill-yellow-400/20" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 2l8 6-8 14L4 8l8-6zm-4.5 6l4.5 11 4.5-11H7.5zM6 8h12"/>
+                </svg>
+                <!-- Accounts -->
+                <svg v-else-if="item.iconType === 'accounts'" class="h-4.5 w-4.5 shrink-0 text-cyan-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                  <rect x="3" y="4" width="18" height="16" rx="3" stroke-width="2"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 8h6M9 11h4a2 2 0 000-4H9v9m3-2l3 3"/>
+                </svg>
+                <!-- GST Reports -->
+                <svg v-else-if="item.iconType === 'gst-reports'" class="h-4.5 w-4.5 shrink-0 text-purple-400 fill-purple-400/10" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <!-- Branch -->
+                <svg v-else-if="item.iconType === 'branch'" class="h-4.5 w-4.5 shrink-0 text-slate-300" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+                <!-- Employees -->
+                <svg v-else-if="item.iconType === 'employees'" class="h-4.5 w-4.5 shrink-0 text-blue-400 fill-blue-400/20" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+                <!-- Reports -->
+                <svg v-else-if="item.iconType === 'reports'" class="h-4.5 w-4.5 shrink-0 text-slate-300" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 20v-4m5 4v-7m5 7v-10"/>
+                </svg>
+                <!-- Backup -->
+                <svg v-else-if="item.iconType === 'backup'" class="h-4.5 w-4.5 shrink-0 text-slate-300" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"/>
                 </svg>
               </div>
               <span v-show="!isSidebarCollapsed" class="flex-1 truncate">{{ getNavTitle(item.name) }}</span>
-              <span v-if="item.badge && !isSidebarCollapsed" class="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                {{ item.badge }}
-              </span>
+              <svg
+                v-if="item.hasArrow && !isSidebarCollapsed"
+                class="w-3.5 h-3.5 text-slate-500 ml-auto shrink-0 transition-transform group-hover:translate-x-0.5"
+                fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+              </svg>
             </Link>
 
-            <!-- Collapsible Module with Submenu -->
+            <!-- 3. Collapsible Module with Submenu (Settings) -->
             <div v-else class="space-y-1 w-full flex flex-col items-center">
               <button
                 @click="toggleModule(item.key!)"
@@ -837,44 +888,25 @@ onUnmounted(() => {
                 :class="[
                   isChildActive(item.children) 
                     ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30 font-semibold' 
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60 border border-transparent font-medium',
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800/60 border border-transparent font-normal',
                   isSidebarCollapsed ? 'justify-center px-0 w-10 h-10 mx-auto' : 'px-3 w-full justify-between',
-                  'group flex items-center rounded-xl py-2.5 text-xs transition-all duration-200'
+                  'group flex items-center rounded-xl py-2 text-xs transition-all duration-200 cursor-pointer'
                 ]"
               >
                 <div :class="[isSidebarCollapsed ? 'justify-center w-full' : '', 'flex items-center gap-x-3 truncate']">
                   <div class="relative flex items-center justify-center shrink-0">
-                    <img 
-                      v-if="item.iconUrl"
-                      :src="item.iconUrl" 
-                      :alt="item.name"
-                      @error="onIconError"
-                      class="w-5 h-5 object-contain shrink-0 filter drop-shadow-sm transition-transform duration-200 group-hover:scale-110"
-                    />
-                    <svg 
-                      :class="[
-                        isChildActive(item.children) ? 'text-blue-400' : 'text-slate-400 group-hover:text-slate-200',
-                        item.iconUrl ? 'hidden' : '',
-                        'h-5 w-5 shrink-0 transition-colors'
-                      ]"
-                      fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-                    >
-                      <path stroke-linecap="round" stroke-linejoin="round" :d="item.icon || 'M4 6h16M4 12h16M4 18h16'" />
+                    <svg class="h-4.5 w-4.5 shrink-0 text-slate-300" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                     </svg>
                   </div>
                   <span v-show="!isSidebarCollapsed" class="truncate">{{ getNavTitle(item.name) }}</span>
                 </div>
 
-                <div v-show="!isSidebarCollapsed" class="flex items-center gap-1.5">
-                  <span v-if="item.badge" class="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                    {{ item.badge }}
-                  </span>
-
-                  <!-- Minimal, Sleek Chevron Arrow Indicator -->
+                <div v-show="!isSidebarCollapsed" class="flex items-center">
                   <svg
                     :class="[
-                      expandedModules[item.key!] ? 'rotate-180 text-blue-400' : 'text-slate-400 group-hover:text-slate-200',
-                      'w-4 h-4 transition-transform duration-200 shrink-0 ml-1'
+                      expandedModules[item.key!] ? 'rotate-180 text-blue-400' : 'text-slate-500 group-hover:text-slate-300',
+                      'w-3.5 h-3.5 transition-transform duration-200 shrink-0 ml-1'
                     ]"
                     fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                   >
@@ -883,23 +915,20 @@ onUnmounted(() => {
                 </div>
               </button>
 
-              <!-- Submenu Items with Curved Circuit Tree Branches -->
+              <!-- Submenu Items -->
               <div
                 v-show="!isSidebarCollapsed && expandedModules[item.key!]"
-                class="relative ml-6 pl-4 space-y-1 my-1.5 transition-all duration-300"
+                class="relative ml-6 pl-4 space-y-1 my-1.5 transition-all duration-300 w-full pr-3"
               >
                 <div
                   v-for="(sub, idx) in item.children"
                   :key="sub.name"
                   class="group relative flex items-center"
                 >
-                  <!-- Vertical Trunk Line (Connecting down through items) -->
                   <div
                     v-if="idx < item.children.length - 1"
                     class="absolute -left-4 top-0 bottom-0 w-[2px] bg-slate-800"
                   ></div>
-
-                  <!-- Curved Branch Line curving into this item (rounded-bl-xl) -->
                   <div
                     :class="[
                       isSubActive(sub.href) ? 'border-blue-500 shadow-xs shadow-blue-500/30' : 'border-slate-800 group-hover:border-slate-600',
@@ -916,28 +945,6 @@ onUnmounted(() => {
                       'flex-1 flex items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs transition-all duration-200 ml-1'
                     ]"
                   >
-                    <!-- Clean Vector Mini-Icon / Circuit Node -->
-                    <div class="relative flex items-center justify-center shrink-0">
-                      <img
-                        v-if="sub.iconUrl"
-                        :src="sub.iconUrl" 
-                        :alt="sub.name"
-                        @error="onIconError"
-                        class="w-4 h-4 object-contain shrink-0 filter drop-shadow-xs transition-transform duration-200 group-hover:scale-110"
-                      />
-                      <svg
-                        :class="[
-                          isSubActive(sub.href) ? 'text-indigo-600 dark:text-indigo-400 scale-110' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300',
-                          sub.iconUrl ? 'hidden' : '',
-                          'w-4 h-4 transition-all duration-200 shrink-0'
-                        ]"
-                        fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75"
-                      >
-                        <path stroke-linecap="round" stroke-linejoin="round" :d="sub.icon || 'M4 6h16M4 12h16M4 18h16'" />
-                      </svg>
-                    </div>
-
-                    <!-- Item Name -->
                     <span class="truncate">{{ getNavTitle(sub.name) }}</span>
                   </Link>
                 </div>
@@ -949,39 +956,12 @@ onUnmounted(() => {
               v-if="isSidebarCollapsed && item.children && item.children.length > 0"
               class="absolute left-full top-0 ml-3.5 w-64 opacity-0 pointer-events-none group-hover/flyout:opacity-100 group-hover/flyout:pointer-events-auto transition-all duration-200 ease-out translate-x-1 group-hover/flyout:translate-x-0 z-50"
             >
-              <!-- Invisible hover bridge between icon and flyout box -->
               <div class="absolute -left-4 top-0 bottom-0 w-4"></div>
-
               <div class="relative bg-[#0c1a2e] border border-slate-800 rounded-2xl p-3 shadow-2xl ring-1 ring-slate-800">
-                <!-- Directional Caret / Arrow Pointer Pointing Left to the Source Icon -->
                 <div class="absolute -left-1.5 top-3.5 w-3 h-3 bg-[#0c1a2e] border-l border-b border-slate-800 rotate-45 z-10 pointer-events-none"></div>
-
-                <!-- Flyout Header -->
                 <div class="relative z-20 flex items-center justify-between px-2 py-1.5 mb-2 border-b border-slate-800 pb-2">
-                  <div class="flex items-center gap-2 min-w-0">
-                    <div class="p-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 shrink-0 flex items-center justify-center">
-                      <img 
-                        v-if="item.iconUrl"
-                        :src="item.iconUrl" 
-                        :alt="item.name"
-                        @error="onIconError"
-                        class="w-4 h-4 object-contain shrink-0"
-                      />
-                      <svg
-                        :class="[item.iconUrl ? 'hidden' : '', 'w-4 h-4 text-blue-400']"
-                        fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-                      >
-                        <path stroke-linecap="round" stroke-linejoin="round" :d="item.icon || 'M4 6h16M4 12h16M4 18h16'" />
-                      </svg>
-                    </div>
-                    <span class="text-xs font-bold text-white truncate">{{ getNavTitle(item.name) }}</span>
-                  </div>
-                  <span v-if="item.badge" class="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 shrink-0">
-                    {{ item.badge }}
-                  </span>
+                  <span class="text-xs font-bold text-white truncate">{{ getNavTitle(item.name) }}</span>
                 </div>
-
-                <!-- Flyout Children links -->
                 <div class="relative z-20 space-y-1 max-h-[70vh] overflow-y-auto custom-scrollbar pr-1">
                   <Link
                     v-for="sub in item.children"
@@ -994,25 +974,6 @@ onUnmounted(() => {
                       'flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs transition-all duration-150 group/flyout-sub'
                     ]"
                   >
-                    <div class="relative flex items-center justify-center shrink-0">
-                      <img 
-                        v-if="sub.iconUrl"
-                        :src="sub.iconUrl" 
-                        :alt="sub.name"
-                        @error="onIconError"
-                        class="w-4 h-4 object-contain shrink-0 group-hover/flyout-sub:scale-110 transition-transform"
-                      />
-                      <svg
-                        :class="[
-                          isSubActive(sub.href) ? 'text-blue-400 scale-110' : 'text-slate-500 group-hover/flyout-sub:text-slate-300',
-                          sub.iconUrl ? 'hidden' : '',
-                          'w-4 h-4 shrink-0 transition-colors'
-                        ]"
-                        fill="none" viewBox="0 0 24 24" stroke-currentColor stroke-width="1.75"
-                      >
-                        <path stroke-linecap="round" stroke-linejoin="round" :d="sub.icon || 'M4 6h16M4 12h16M4 18h16'" />
-                      </svg>
-                    </div>
                     <span class="truncate">{{ getNavTitle(sub.name) }}</span>
                   </Link>
                 </div>
@@ -1025,114 +986,47 @@ onUnmounted(() => {
               class="absolute left-full top-1/2 -translate-y-1/2 ml-3.5 opacity-0 pointer-events-none group-hover/flyout:opacity-100 transition-all duration-200 ease-out translate-x-1 group-hover/flyout:translate-x-0 z-50 whitespace-nowrap"
             >
               <div class="relative bg-[#0c1a2e] border border-slate-800 text-white text-xs font-semibold px-3 py-1.5 rounded-xl shadow-xl flex items-center gap-2 ring-1 ring-slate-800">
-                <!-- Directional Caret / Arrow Pointer Pointing Left to the Source Icon -->
                 <div class="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#0c1a2e] border-l border-b border-slate-800 rotate-45 pointer-events-none"></div>
-
                 <span class="relative z-20">{{ getNavTitle(item.name) }}</span>
-                <span v-if="item.badge" class="relative z-20 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                  {{ item.badge }}
-                </span>
               </div>
             </div>
           </li>
         </ul>
+
+        <!-- Live Status / Live Gold Rate Card (Directly Below Navigation, Matching Reference Screenshot) -->
+        <div v-show="!isSidebarCollapsed" class="mt-4 p-3 rounded-2xl bg-[#0a1527] border border-slate-800/90 text-white text-xs shadow-lg">
+          <div class="flex items-center gap-2 pb-2 border-b border-slate-800/80 mb-2.5">
+            <span class="text-amber-400 text-base leading-none">🧈</span>
+            <span class="font-bold text-amber-300 text-[11px] tracking-wide">Live Gold Rate</span>
+          </div>
+          <div class="space-y-2 text-[11px]">
+            <div>
+              <span class="text-slate-400 block text-[10px] leading-tight">Gold (24K)</span>
+              <div class="flex items-center justify-between mt-0.5">
+                <span class="font-bold text-white text-xs">₹ 6,245 / gm</span>
+                <span class="text-[10px] font-bold text-emerald-400">▲ 0.65%</span>
+              </div>
+            </div>
+            <div>
+              <span class="text-slate-400 block text-[10px] leading-tight">Gold (22K)</span>
+              <div class="flex items-center justify-between mt-0.5">
+                <span class="font-bold text-white text-xs">₹ 5,730 / gm</span>
+                <span class="text-[10px] font-bold text-emerald-400">▲ 0.60%</span>
+              </div>
+            </div>
+            <div>
+              <span class="text-slate-400 block text-[10px] leading-tight">Silver (1 Kg)</span>
+              <div class="flex items-center justify-between mt-0.5">
+                <span class="font-bold text-white text-xs">₹ 82,100</span>
+                <span class="text-[10px] font-bold text-emerald-400">▲ 0.40%</span>
+              </div>
+            </div>
+          </div>
+          <div class="mt-2.5 pt-2 border-t border-slate-800/80 text-[10px] text-slate-500 text-center">
+            Last Updated : 11:30 AM
+          </div>
+        </div>
       </nav>
-
-      <!-- Live Status / Live Gold Rate Card (Matching Image Sidebar Widget) -->
-      <div v-show="!isSidebarCollapsed" class="mx-3 my-2 p-3 rounded-2xl bg-[#0e1e36] border border-slate-800 text-white text-xs shadow-md">
-        <div class="flex items-center justify-between pb-2 border-b border-slate-800/80 mb-2">
-          <div class="flex items-center gap-1.5">
-            <span class="text-amber-400 text-sm">🪙</span>
-            <span class="font-bold text-amber-300 text-[11px] uppercase tracking-wide">Live Gold Rate</span>
-          </div>
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        </div>
-        <div class="space-y-1.5 text-[11px]">
-          <div class="flex items-center justify-between">
-            <span class="text-slate-400">Gold (24K)</span>
-            <div class="flex items-center gap-1.5">
-              <span class="font-bold">₹ 6,245 /gm</span>
-              <span class="px-1 py-0.2 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-400">▲ 0.65%</span>
-            </div>
-          </div>
-          <div class="flex items-center justify-between">
-            <span class="text-slate-400">Gold (22K)</span>
-            <div class="flex items-center gap-1.5">
-              <span class="font-bold">₹ 5,730 /gm</span>
-              <span class="px-1 py-0.2 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-400">▲ 0.60%</span>
-            </div>
-          </div>
-          <div class="flex items-center justify-between">
-            <span class="text-slate-400">Silver (1 Kg)</span>
-            <div class="flex items-center gap-1.5">
-              <span class="font-bold">₹ 82,100</span>
-              <span class="px-1 py-0.2 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-400">▲ 0.40%</span>
-            </div>
-          </div>
-        </div>
-        <div class="mt-2 pt-1.5 border-t border-slate-800/80 text-[10px] text-slate-500 text-center">
-          Last Updated : 11:30 AM
-        </div>
-      </div>
-
-      <!-- User Profile Bottom -->
-      <div :class="[isSidebarCollapsed ? 'px-0 py-3' : 'p-3', 'mt-auto border-t border-slate-800 bg-[#071120]']">
-        <div :class="[isSidebarCollapsed ? 'flex-col justify-center items-center gap-2.5 w-full' : 'gap-3', 'flex items-center']">
-          <!-- Interactive Avatar with Hover Upload Icon -->
-          <div
-            @click="triggerAvatarUpload"
-            class="relative group cursor-pointer shrink-0 mx-auto"
-            title="Click to upload profile photo"
-          >
-            <img
-              :src="user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=1d68ed&color=fff`"
-              alt="Profile"
-              class="h-9 w-9 rounded-full border border-slate-700 object-cover group-hover:brightness-75 transition-all shadow-md"
-            />
-            <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-slate-900"></span>
-
-            <!-- Hover Camera Overlay -->
-            <div class="absolute inset-0 rounded-full bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-              <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </div>
-
-            <!-- Uploading Spinner Indicator -->
-            <div v-if="isUploadingAvatar" class="absolute inset-0 rounded-full bg-slate-900/90 flex items-center justify-center">
-              <svg class="animate-spin h-4 w-4 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            </div>
-          </div>
-
-          <!-- Hidden Input for Avatar File Upload -->
-          <input
-            type="file"
-            ref="avatarInput"
-            accept="image/*"
-            class="hidden"
-            @change="handleAvatarChange"
-          />
-
-          <div v-show="!isSidebarCollapsed" class="flex-1 min-w-0">
-            <div class="flex items-center gap-1.5 min-w-0">
-              <p class="text-xs font-semibold text-slate-200 truncate cursor-pointer hover:text-blue-400 transition-colors" @click="triggerAvatarUpload" title="Click to upload profile photo">
-                {{ user.name }}
-              </p>
-              <OfficialVerifiedBadge :role="user.role" size="sm" />
-            </div>
-            <p class="text-[11px] text-slate-400 truncate">{{ user.email }}</p>
-          </div>
-          <button @click="logout" title="Log Out" class="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-          </button>
-        </div>
-      </div>
     </aside>
 
     <!-- Mobile Drawer Sidebar (Sliding Drawer on Mobile) -->
@@ -1161,29 +1055,96 @@ onUnmounted(() => {
         </button>
       </div>
 
-      <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto custom-scrollbar">
+      <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto custom-scrollbar bg-[#071120] text-slate-300">
         <template v-for="item in navigation" :key="item.name">
+          <!-- Mobile Logout -->
+          <button
+            v-if="item.isLogout"
+            @click="sidebarOpen = false; logout()"
+            type="button"
+            class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-rose-500/10 transition-colors cursor-pointer"
+          >
+            <div class="flex items-center gap-3 truncate">
+              <svg class="h-4.5 w-4.5 shrink-0 text-rose-500" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" fill="none">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9"/>
+              </svg>
+              <span class="truncate">{{ getNavTitle(item.name) }}</span>
+            </div>
+          </button>
+
+          <!-- Mobile Direct Link -->
           <Link
-            v-if="!item.children || item.children.length === 0"
+            v-else-if="!item.children || item.children.length === 0"
             :href="item.href!"
             @click="sidebarOpen = false"
             :class="[
-              $page.url.startsWith(item.href!) ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 font-bold border border-indigo-200 dark:border-indigo-500/30 shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60',
-              'flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-colors'
+              $page.url.startsWith(item.href!) ? 'bg-[#1d68ed] text-white font-medium shadow-md shadow-blue-600/30' : 'text-slate-300 hover:text-white hover:bg-slate-800/60 font-normal',
+              'flex items-center justify-between px-3 py-2.5 rounded-xl text-xs transition-colors'
             ]"
           >
             <div class="flex items-center gap-3 truncate">
-              <img v-if="item.iconUrl" :src="item.iconUrl" class="w-5 h-5 object-contain shrink-0" />
+              <!-- Dashboard -->
+              <svg v-if="item.iconType === 'dashboard'" class="h-4.5 w-4.5 shrink-0 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+              </svg>
+              <svg v-else-if="item.iconType === 'sales'" class="h-4.5 w-4.5 shrink-0 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+              </svg>
+              <svg v-else-if="item.iconType === 'purchase'" class="h-4.5 w-4.5 shrink-0 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              <svg v-else-if="item.iconType === 'inventory'" class="h-4.5 w-4.5 shrink-0 text-amber-500" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+              </svg>
+              <svg v-else-if="item.iconType === 'customers'" class="h-4.5 w-4.5 shrink-0 text-rose-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+              </svg>
+              <svg v-else-if="item.iconType === 'suppliers'" class="h-4.5 w-4.5 shrink-0 text-emerald-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 17a2 2 0 100 4 2 2 0 000-4zm10 0a2 2 0 100 4 2 2 0 000-4zM3 4h11a1 1 0 011 1v10H3V4zm11 3h3.586a1 1 0 01.707.293l2.414 2.414a1 1 0 01.293.707V15H14V7z"/>
+              </svg>
+              <svg v-else-if="item.iconType === 'jewellery'" class="h-4.5 w-4.5 shrink-0 text-yellow-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 2l8 6-8 14L4 8l8-6zm-4.5 6l4.5 11 4.5-11H7.5zM6 8h12"/>
+              </svg>
+              <svg v-else-if="item.iconType === 'accounts'" class="h-4.5 w-4.5 shrink-0 text-cyan-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                <rect x="3" y="4" width="18" height="16" rx="3" stroke-width="2"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 8h6M9 11h4a2 2 0 000-4H9v9m3-2l3 3"/>
+              </svg>
+              <svg v-else-if="item.iconType === 'gst-reports'" class="h-4.5 w-4.5 shrink-0 text-purple-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              <svg v-else-if="item.iconType === 'branch'" class="h-4.5 w-4.5 shrink-0 text-slate-300" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+              </svg>
+              <svg v-else-if="item.iconType === 'employees'" class="h-4.5 w-4.5 shrink-0 text-blue-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              </svg>
+              <svg v-else-if="item.iconType === 'reports'" class="h-4.5 w-4.5 shrink-0 text-slate-300" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 20v-4m5 4v-7m5 7v-10"/>
+              </svg>
+              <svg v-else-if="item.iconType === 'backup'" class="h-4.5 w-4.5 shrink-0 text-slate-300" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"/>
+              </svg>
               <span class="truncate">{{ getNavTitle(item.name) }}</span>
             </div>
+            <svg
+              v-if="item.hasArrow"
+              class="w-3.5 h-3.5 text-slate-500 shrink-0"
+              fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+            </svg>
           </Link>
+
+          <!-- Mobile Collapsible (Settings) -->
           <div v-else class="space-y-1">
             <button
               @click="toggleModule(item.key!)"
-              class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs text-slate-400 hover:text-white hover:bg-slate-800/60 font-medium cursor-pointer"
+              class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs text-slate-300 hover:text-white hover:bg-slate-800/60 font-normal cursor-pointer"
             >
               <div class="flex items-center gap-3 truncate">
-                <img v-if="item.iconUrl" :src="item.iconUrl" class="w-5 h-5 object-contain shrink-0" />
+                <svg class="h-4.5 w-4.5 shrink-0 text-slate-300" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
                 <span class="truncate">{{ getNavTitle(item.name) }}</span>
               </div>
               <svg :class="[expandedModules[item.key!] ? 'rotate-180 text-blue-400' : '', 'w-4 h-4 transition-transform text-slate-400']" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -1199,7 +1160,6 @@ onUnmounted(() => {
                   'flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs transition-all'
                 ]"
               >
-                <img v-if="sub.iconUrl" :src="sub.iconUrl" class="w-4 h-4 object-contain shrink-0" />
                 <span class="truncate">{{ getNavTitle(sub.name) }}</span>
               </Link>
             </div>
