@@ -1276,57 +1276,80 @@ onUnmounted(() => {
       </div>
     </aside>
 
-    <!-- Sticky Top Navbar (Desktop & Mobile) -->
-    <header :class="[isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72', 'sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800/80 transition-all duration-300']">
-      <div class="flex h-14 items-center justify-between px-4 sm:px-6 lg:px-8 gap-4">
+    <!-- Sticky Top Navbar Matching Reference Image (Dark Navy Theme with Logo, Search Pill, Date Pill, Action Icons) -->
+    <header class="sticky top-0 z-40 bg-[#071120] text-white border-b border-slate-800 shadow-md transition-all duration-300">
+      <div class="flex h-14 items-center justify-between px-3 sm:px-6 gap-3">
         
-        <!-- Left Side: Mobile Menu Toggle, Breadcrumbs & Sleek Search Input -->
-        <div class="flex items-center gap-3.5 min-w-0">
-          <!-- Sidebar Toggle (Mobile Only) -->
+        <!-- Left Side: Gold Diamond Logo, Title/Subtitle, Hamburger Toggle, White Pill Search Input -->
+        <div class="flex items-center gap-2.5 sm:gap-4 min-w-0">
+          <!-- Logo & Title -->
+          <Link href="/admin/dashboard" class="flex items-center gap-2.5 shrink-0 group">
+            <div class="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-lg shadow-2xs group-hover:scale-105 transition-transform">
+              💎
+            </div>
+            <div class="hidden sm:block leading-tight">
+              <h1 class="text-xs sm:text-sm font-bold text-white tracking-wide truncate">
+                Jewellery Billing Software
+              </h1>
+              <p class="text-[9px] text-amber-400 font-semibold tracking-wider">
+                Smart Solutions for Smart Business
+              </p>
+            </div>
+          </Link>
+
+          <!-- Hamburger Icon (Toggles Desktop Collapse & Mobile Drawer) -->
           <button
-            @click="sidebarOpen = !sidebarOpen"
+            @click="toggleSidebarCollapse(); sidebarOpen = !sidebarOpen"
             type="button"
-            class="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg focus:outline-none transition-colors cursor-pointer lg:hidden"
-            title="Toggle Mobile Navigation"
+            class="p-1.5 text-slate-300 hover:text-white hover:bg-slate-800/80 rounded-lg transition-colors cursor-pointer shrink-0"
+            title="Toggle Navigation Menu"
           >
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
 
-          <!-- Harmonized Breadcrumb -->
-          <div class="hidden sm:flex items-center gap-2 text-xs font-medium truncate">
-            <span class="text-slate-500 dark:text-slate-400 font-normal">{{ currentBreadcrumb[0] }}</span>
-            <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-            <span class="px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/20 font-semibold truncate">
-              {{ currentBreadcrumb[1] }}
-            </span>
-          </div>
-
-          <!-- Sleek Glassmorphic Search Bar -->
+          <!-- Long White Pill Search Input with Dual Magnifying Glass Icons -->
           <div class="relative hidden md:block">
-            <button
-              @click="toggleDropdown('search')"
-              type="button"
-              class="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/60 hover:bg-slate-200/70 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-700/60 hover:border-indigo-500/40 text-xs transition-all w-56 lg:w-72 justify-between shadow-inner group cursor-pointer"
-            >
-              <div class="flex items-center gap-2 truncate min-w-0 flex-1">
-                <svg class="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400 shrink-0 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                <span class="truncate text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-300">{{ currentLang === 'km' ? 'ស្វែងរកប្រព័ន្ធ... (Ctrl K)' : 'Global Search... (Ctrl K)' }}</span>
-              </div>
-              <kbd class="hidden lg:inline-flex items-center shrink-0 whitespace-nowrap px-1.5 py-0.5 text-[10px] font-mono font-semibold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700/60 rounded shadow-xs leading-none">Ctrl K</kbd>
-            </button>
-          </div>
-
-          <!-- Date Pill (Matching Image Top Header '11 Jul 2026') -->
-          <div class="hidden xl:flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/70 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-2xs">
-            <span>📅</span>
-            <span>11 Jul 2026</span>
+            <div class="flex items-center bg-white text-slate-800 rounded-full px-3.5 py-1.5 w-60 lg:w-80 xl:w-96 shadow-sm border border-slate-200">
+              <svg class="w-4 h-4 text-slate-400 mr-2 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="text"
+                v-model="searchQuery"
+                @focus="isSearchOpen = true"
+                placeholder="Search here..."
+                class="bg-transparent text-xs text-slate-800 placeholder-slate-400 focus:outline-none w-full"
+              />
+              <svg @click="isSearchOpen = true" class="w-4 h-4 text-slate-400 ml-2 shrink-0 cursor-pointer hover:text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
           </div>
         </div>
 
         <!-- Right Side: Quick Action Icon, Language, Fullscreen, Notifications Bell, Admin Profile Avatar -->
         <div class="flex items-center gap-1.5 sm:gap-2">
+
+          <!-- Date Dropdown Pill (Matching Image Top Header '11 Jul 2026') -->
+          <div class="hidden sm:flex items-center gap-1.5 bg-white text-slate-700 px-3.5 py-1.5 rounded-full text-xs font-semibold shadow-sm border border-slate-200 select-none mr-1">
+            <span class="text-slate-400 text-xs">📅</span>
+            <span class="font-bold">11 Jul 2026</span>
+            <span class="text-slate-400 text-[10px] ml-0.5">⌄</span>
+          </div>
+
+          <!-- Fullscreen Toggle Icon -->
+          <button
+            @click="toggleFullscreen"
+            type="button"
+            class="p-1.5 text-slate-300 hover:text-white transition-colors cursor-pointer"
+            title="Fullscreen"
+          >
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0 0l-5-5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+            </svg>
+          </button>
 
           <!-- Mobile Search Button -->
           <button
@@ -1641,26 +1664,29 @@ onUnmounted(() => {
             </transition>
           </div>
 
-          <!-- Admin Profile Dropdown Menu -->
+          <!-- Admin Profile Dropdown Menu (Matching Image: Avatar + Admin ⌄ + Main Branch in Green) -->
           <div class="relative ml-1 nav-dropdown-scope">
             <button
               @click.stop="toggleDropdown('profile')"
               type="button"
-              class="flex items-center gap-2 p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 border border-transparent hover:border-slate-200 dark:hover:border-slate-700/60 transition-all focus:outline-none group cursor-pointer"
+              class="flex items-center gap-2 p-1 rounded-xl hover:bg-slate-800/80 transition-all focus:outline-none cursor-pointer"
             >
-              <div class="relative shrink-0">
+              <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center text-blue-600 text-sm font-bold shadow-xs shrink-0 overflow-hidden ring-1 ring-slate-700">
                 <img
-                  :src="user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=6366f1&color=fff`"
+                  v-if="user.avatar"
+                  :src="user.avatar"
                   alt="Admin Profile"
-                  class="w-7 h-7 rounded-full border border-slate-200 dark:border-slate-700 object-cover shadow-xs group-hover:border-indigo-500/50 transition-colors"
+                  class="w-full h-full object-cover"
                 />
-                <span class="absolute bottom-0 right-0 w-2 h-2 bg-emerald-500 rounded-full ring-2 ring-white dark:ring-slate-900"></span>
+                <span v-else>👤</span>
               </div>
-              <div class="hidden md:flex items-center gap-1 min-w-0">
-                <span class="text-xs font-semibold text-slate-700 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors truncate max-w-[200px]">{{ user.name }}</span>
-                <OfficialVerifiedBadge :role="user.role" size="sm" :show-label="false" />
+              <div class="hidden md:block text-left leading-tight">
+                <div class="flex items-center gap-1">
+                  <span class="text-xs font-bold text-white">{{ user.name || 'Admin' }}</span>
+                  <span class="text-slate-400 text-[10px]" :class="isProfileOpen ? 'rotate-180' : ''">⌄</span>
+                </div>
+                <span class="text-[10px] font-bold text-emerald-400 block tracking-tight">Main Branch</span>
               </div>
-              <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200 transition-transform" :class="isProfileOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
 
             <!-- Profile Account Dropdown with Multi-Account Switcher -->
