@@ -418,7 +418,7 @@ const completionDonutOptions = computed<any>(() => ({
         <!-- 1. Total Students ➔ Royal Indigo -->
         <Link
           href="/admin/user-management/students"
-          class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#6366f1] via-[#4f46e5] to-[#4338ca] text-white p-4.5 shadow-md shadow-indigo-600/20 hover:shadow-xl hover:shadow-indigo-600/30 hover:-translate-y-1 transition-all duration-200 group cursor-pointer block flex flex-col justify-between"
+          class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#6366f1] via-[#4f46e5] to-[#4338ca] text-white p-4.5 shadow-md shadow-indigo-600/20 hover:shadow-xl hover:shadow-indigo-600/30 hover:-translate-y-1 transition-all duration-200 group cursor-pointer flex flex-col justify-between"
         >
           <div>
             <div class="flex items-center justify-between">
@@ -448,7 +448,7 @@ const completionDonutOptions = computed<any>(() => ({
         <!-- 2. Faculty Teachers ➔ Emerald Green -->
         <Link
           href="/admin/user-management/teachers"
-          class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#10b981] via-[#059669] to-[#047857] text-white p-4.5 shadow-md shadow-emerald-600/20 hover:shadow-xl hover:shadow-emerald-600/30 hover:-translate-y-1 transition-all duration-200 group cursor-pointer block flex flex-col justify-between"
+          class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#10b981] via-[#059669] to-[#047857] text-white p-4.5 shadow-md shadow-emerald-600/20 hover:shadow-xl hover:shadow-emerald-600/30 hover:-translate-y-1 transition-all duration-200 group cursor-pointer flex flex-col justify-between"
         >
           <div>
             <div class="flex items-center justify-between">
@@ -478,7 +478,7 @@ const completionDonutOptions = computed<any>(() => ({
         <!-- 3. Active Courses ➔ Coral Orange -->
         <Link
           href="/admin/course-module/all"
-          class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#f59e0b] via-[#ea580c] to-[#d97706] text-white p-4.5 shadow-md shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30 hover:-translate-y-1 transition-all duration-200 group cursor-pointer block flex flex-col justify-between"
+          class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#f59e0b] via-[#ea580c] to-[#d97706] text-white p-4.5 shadow-md shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30 hover:-translate-y-1 transition-all duration-200 group cursor-pointer flex flex-col justify-between"
         >
           <div>
             <div class="flex items-center justify-between">
@@ -508,7 +508,7 @@ const completionDonutOptions = computed<any>(() => ({
         <!-- 4. Completion Rate ➔ Royal Blue -->
         <Link
           href="/admin/progress"
-          class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0284c7] via-[#2563eb] to-[#1d4ed8] text-white p-4.5 shadow-md shadow-blue-600/20 hover:shadow-xl hover:shadow-blue-600/30 hover:-translate-y-1 transition-all duration-200 group cursor-pointer block flex flex-col justify-between"
+          class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0284c7] via-[#2563eb] to-[#1d4ed8] text-white p-4.5 shadow-md shadow-blue-600/20 hover:shadow-xl hover:shadow-blue-600/30 hover:-translate-y-1 transition-all duration-200 group cursor-pointer flex flex-col justify-between"
         >
           <div>
             <div class="flex items-center justify-between">
@@ -538,7 +538,7 @@ const completionDonutOptions = computed<any>(() => ({
         <!-- 5. At-Risk Students ➔ Magenta Crimson / Rose -->
         <Link
           href="/admin/progress?tab=at_risk"
-          class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#ec4899] via-[#e11d48] to-[#be123c] text-white p-4.5 shadow-md shadow-rose-600/20 hover:shadow-xl hover:shadow-rose-600/30 hover:-translate-y-1 transition-all duration-200 group cursor-pointer block flex flex-col justify-between"
+          class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#ec4899] via-[#e11d48] to-[#be123c] text-white p-4.5 shadow-md shadow-rose-600/20 hover:shadow-xl hover:shadow-rose-600/30 hover:-translate-y-1 transition-all duration-200 group cursor-pointer flex flex-col justify-between"
         >
           <div>
             <div class="flex items-center justify-between">
