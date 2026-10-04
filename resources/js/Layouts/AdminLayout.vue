@@ -211,10 +211,14 @@ const isUploadingAvatar = ref(false)
 const isSidebarCollapsed = ref(false)
 
 const toggleSidebarCollapse = () => {
+  playTopBarSound()
   if (typeof window !== 'undefined' && window.innerWidth < 768) {
     sidebarOpen.value = !sidebarOpen.value
   } else {
     isSidebarCollapsed.value = !isSidebarCollapsed.value
+    try {
+      localStorage.setItem('elms_sidebar_collapsed', isSidebarCollapsed.value ? 'true' : 'false')
+    } catch {}
   }
 }
 
@@ -302,6 +306,44 @@ const isQuickActionOpen = ref(false)
 const isLangOpen = ref(false)
 const isStatusOpen = ref(false)
 const isFullscreen = ref(false)
+const isDateOpen = ref(false)
+const selectedDateLabel = ref('11 Jul 2026')
+const activeDatePreset = ref('today')
+const customDateInput = ref('2026-07-11')
+
+const datePresets = [
+  { id: 'today', label_km: 'ថ្ងៃនេះ (11 Jul)', label_en: 'Today (11 Jul)', value: '11 Jul 2026' },
+  { id: 'yesterday', label_km: 'ម្សិលមិញ (10 Jul)', label_en: 'Yesterday', value: '10 Jul 2026' },
+  { id: 'week', label_km: 'សប្តាហ៍នេះ', label_en: 'This Week', value: '05 - 11 Jul' },
+  { id: 'month', label_km: 'ខែនេះ (July)', label_en: 'This Month', value: 'Jul 2026' },
+  { id: 'term', label_km: 'ឆមាសទី ២', label_en: 'Semester 2', value: 'Sem 2, 2026' },
+  { id: 'year', label_km: 'ឆ្នាំសិក្សា ២០២៦', label_en: 'Year 2026', value: 'AY 2025-2026' },
+]
+
+const selectDatePreset = (preset: { id: string; label_km: string; label_en: string; value: string }) => {
+  playTopBarSound()
+  activeDatePreset.value = preset.id
+  selectedDateLabel.value = preset.value
+  isDateOpen.value = false
+  if (page.url.startsWith('/admin/dashboard')) {
+    router.get('/admin/dashboard', { period: preset.id }, { preserveState: true, preserveScroll: true })
+  }
+}
+
+const applyCustomDate = () => {
+  if (!customDateInput.value) return
+  playTopBarSound()
+  const d = new Date(customDateInput.value)
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  const formatted = `${String(d.getDate()).padStart(2, '0')} ${months[d.getMonth()]} ${d.getFullYear()}`
+  selectedDateLabel.value = formatted
+  activeDatePreset.value = 'custom'
+  isDateOpen.value = false
+  if (page.url.startsWith('/admin/dashboard')) {
+    router.get('/admin/dashboard', { date: customDateInput.value }, { preserveState: true, preserveScroll: true })
+  }
+}
+
 const currentLang = computed(() => i18n.locale.value)
 
 const navTranslations: Record<string, { km: string; en: string }> = {
@@ -497,7 +539,8 @@ const quickActions = computed(() => [
   { name: currentLang.value === 'km' ? 'ចុះឈ្មោះនិស្សិត' : 'Enroll Student', href: '/admin/enrollment/courses', iconUrl: '/images/nav/enrollment.svg' },
   { name: currentLang.value === 'km' ? 'និស្សិតប្រឈមហានិភ័យ' : 'At-Risk Students', href: '/admin/progress?tab=at_risk', iconUrl: '/images/nav/sub/failed.svg' },
   { name: currentLang.value === 'km' ? 'ផ្ញើសារប្រកាស' : 'Announcement', href: '/admin/notifications/announcements', iconUrl: '/images/actions/announcement.svg' },
-  { name: currentLang.value === 'km' ? 'ចេញវិញ្ញាបនបត្រ' : 'Issue Certificate', href: '/admin/certificates/issued', iconUrl: '/images/actions/certificate.svg' }
+  { name: currentLang.value === 'km' ? 'ចេញវិញ្ញាបនបត្រ' : 'Issue Certificate', href: '/admin/certificates/issued', iconUrl: '/images/actions/certificate.svg' },
+  { name: currentLang.value === 'km' ? 'ការកំណត់ប្រព័ន្ធ' : 'System Settings', href: '/admin/settings', iconUrl: '/images/nav/settings.svg' }
 ])
 
 const searchableLinks = computed(() => {
@@ -535,6 +578,17 @@ const filteredSearchResults = computed(() => {
     item.category.toLowerCase().includes(q)
   )
 })
+
+const handleSearchEnter = () => {
+  if (filteredSearchResults.value.length > 0) {
+    const target = filteredSearchResults.value[0].href
+    isSearchOpen.value = false
+    router.visit(target)
+  } else if (searchQuery.value.trim()) {
+    isSearchOpen.value = false
+    router.visit(`/admin/reports?tab=students&q=${encodeURIComponent(searchQuery.value.trim())}`)
+  }
+}
 
 interface NotificationItem {
   id: number
@@ -699,6 +753,7 @@ const getNotifDesc = (n: NotificationItem) => currentLang.value === 'km' ? n.des
 const getNotifTime = (n: NotificationItem) => currentLang.value === 'km' ? n.time_km : n.time_en
 
 const toggleFullscreen = () => {
+  playTopBarSound()
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen().catch(err => console.log(err))
     isFullscreen.value = true
@@ -710,6 +765,10 @@ const toggleFullscreen = () => {
   }
 }
 
+const onFullscreenChange = () => {
+  isFullscreen.value = !!document.fullscreenElement
+}
+
 const closeAllDropdowns = () => {
   isSearchOpen.value = false
   isNotificationOpen.value = false
@@ -717,15 +776,17 @@ const closeAllDropdowns = () => {
   isQuickActionOpen.value = false
   isLangOpen.value = false
   isStatusOpen.value = false
+  isDateOpen.value = false
 }
 
-const toggleDropdown = (target: 'search' | 'notification' | 'profile' | 'quick' | 'lang' | 'status') => {
+const toggleDropdown = (target: 'search' | 'notification' | 'profile' | 'quick' | 'lang' | 'status' | 'date') => {
   const current = target === 'search' ? isSearchOpen.value
     : target === 'notification' ? isNotificationOpen.value
     : target === 'profile' ? isProfileOpen.value
     : target === 'quick' ? isQuickActionOpen.value
     : target === 'lang' ? isLangOpen.value
-    : isStatusOpen.value
+    : target === 'status' ? isStatusOpen.value
+    : isDateOpen.value
 
   closeAllDropdowns()
 
@@ -735,6 +796,7 @@ const toggleDropdown = (target: 'search' | 'notification' | 'profile' | 'quick' 
   else if (target === 'quick') isQuickActionOpen.value = !current
   else if (target === 'lang') isLangOpen.value = !current
   else if (target === 'status') isStatusOpen.value = !current
+  else if (target === 'date') isDateOpen.value = !current
 }
 
 const handleDocumentClick = (e: MouseEvent) => {
@@ -767,12 +829,19 @@ watch(
 )
 
 onMounted(() => {
+  try {
+    const saved = localStorage.getItem('elms_sidebar_collapsed')
+    if (saved !== null) {
+      isSidebarCollapsed.value = saved === 'true'
+    }
+  } catch {}
   loadPersistedNotifications()
   initTheme()
   window.addEventListener('keydown', handleKeydown)
   window.addEventListener('online', updateOnlineStatus)
   window.addEventListener('offline', updateOnlineStatus)
   window.addEventListener('click', handleDocumentClick)
+  document.addEventListener('fullscreenchange', onFullscreenChange)
 })
 
 onUnmounted(() => {
@@ -780,6 +849,7 @@ onUnmounted(() => {
   window.removeEventListener('online', updateOnlineStatus)
   window.removeEventListener('offline', updateOnlineStatus)
   window.removeEventListener('click', handleDocumentClick)
+  document.removeEventListener('fullscreenchange', onFullscreenChange)
 })
 </script>
 
@@ -1287,8 +1357,11 @@ onUnmounted(() => {
           <button
             @click="toggleSidebarCollapse"
             type="button"
-            class="p-1.5 text-slate-300 hover:text-white hover:bg-slate-800/80 rounded-lg transition-colors cursor-pointer shrink-0"
-            title="Toggle Navigation Menu"
+            :class="[
+              isSidebarCollapsed ? 'bg-blue-600/20 text-blue-400 border border-blue-500/50' : 'text-slate-300 hover:text-white hover:bg-slate-800/80 border border-transparent',
+              'p-1.5 rounded-lg transition-all duration-200 cursor-pointer shrink-0 active:scale-95 focus:outline-none'
+            ]"
+            :title="isSidebarCollapsed ? (currentLang === 'km' ? 'ពង្រីកម៉ឺនុយ' : 'Expand Sidebar') : (currentLang === 'km' ? 'បង្រួមម៉ឺនុយ' : 'Collapse Sidebar')"
           >
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
@@ -1297,18 +1370,19 @@ onUnmounted(() => {
 
           <!-- Long White Pill Search Input with Dual Magnifying Glass Icons -->
           <div class="relative hidden md:block">
-            <div class="flex items-center bg-white text-slate-800 rounded-full px-3.5 py-1.5 w-60 lg:w-80 xl:w-96 shadow-sm border border-slate-200">
-              <svg class="w-4 h-4 text-slate-400 mr-2 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <div class="flex items-center bg-white text-slate-800 rounded-full px-3.5 py-1.5 w-60 lg:w-80 xl:w-96 shadow-sm border border-slate-200 focus-within:ring-2 focus-within:ring-blue-500/40 focus-within:border-blue-500 transition-all">
+              <svg @click="toggleDropdown('search')" class="w-4 h-4 text-slate-400 mr-2 shrink-0 cursor-pointer hover:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <input
                 type="text"
                 v-model="searchQuery"
                 @focus="isSearchOpen = true"
-                placeholder="Search courses, students, reports..."
+                @keydown.enter="handleSearchEnter"
+                :placeholder="currentLang === 'km' ? 'ស្វែងរកវគ្គសិក្សា និស្សិត របាយការណ៍...' : 'Search courses, students, reports...'"
                 class="bg-transparent text-xs text-slate-800 placeholder-slate-400 focus:outline-none w-full"
               />
-              <svg @click="isSearchOpen = true" class="w-4 h-4 text-slate-400 ml-2 shrink-0 cursor-pointer hover:text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <svg @click="handleSearchEnter" class="w-4 h-4 text-slate-400 ml-2 shrink-0 cursor-pointer hover:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
@@ -1318,21 +1392,94 @@ onUnmounted(() => {
         <!-- Right Side: Date Pill, Fullscreen, Bell, Settings Gear, Theme/Lang, Admin Profile Avatar -->
         <div class="flex items-center gap-1.5 sm:gap-2">
 
-          <!-- Date Dropdown Pill (Matching Image Top Header '11 Jul 2026') -->
-          <div class="hidden sm:flex items-center gap-1.5 bg-white text-slate-700 px-3.5 py-1.5 rounded-full text-xs font-semibold shadow-sm border border-slate-200 select-none mr-1">
-            <span class="text-slate-400 text-xs">📅</span>
-            <span class="font-bold">11 Jul 2026</span>
-            <span class="text-slate-400 text-[10px] ml-0.5">⌄</span>
+          <!-- Date Dropdown Pill (Fully Interactive with Presets & Picker) -->
+          <div class="relative nav-dropdown-scope">
+            <button
+              @click.stop="toggleDropdown('date')"
+              type="button"
+              class="hidden sm:flex items-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 px-3.5 py-1.5 rounded-full text-xs font-semibold shadow-sm border border-slate-200 select-none mr-1 cursor-pointer transition-all active:scale-95 focus:outline-none"
+              :title="currentLang === 'km' ? 'ជ្រើសរើសកាលបរិច្ឆេទ / ឆមាសសិក្សា' : 'Select Date / Academic Term'"
+            >
+              <span class="text-slate-400 text-xs">📅</span>
+              <span class="font-bold text-slate-900">{{ selectedDateLabel }}</span>
+              <span class="text-slate-400 text-[10px] ml-0.5 transition-transform duration-200" :class="isDateOpen ? 'rotate-180 text-blue-600' : ''">⌄</span>
+            </button>
+
+            <!-- Date Dropdown Menu -->
+            <Transition
+              enter-active-class="transition duration-150 ease-out"
+              enter-from-class="opacity-0 -translate-y-1 scale-95"
+              enter-to-class="opacity-100 translate-y-0 scale-100"
+              leave-active-class="transition duration-100 ease-in"
+              leave-from-class="opacity-100 translate-y-0 scale-100"
+              leave-to-class="opacity-0 -translate-y-1 scale-95"
+            >
+              <div
+                v-if="isDateOpen"
+                @click.stop
+                class="absolute right-0 mt-2 w-72 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-3 z-50 overflow-hidden"
+              >
+                <div class="px-2 pb-2 mb-2 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                  <span class="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
+                    <span>📅</span> {{ currentLang === 'km' ? 'កាលបរិច្ឆេទ & ឆមាសសិក្សា' : 'Date & Academic Term' }}
+                  </span>
+                  <span class="text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-md">Live</span>
+                </div>
+
+                <!-- Quick Preset Filter Buttons -->
+                <div class="grid grid-cols-2 gap-1.5 mb-3">
+                  <button
+                    v-for="preset in datePresets"
+                    :key="preset.id"
+                    @click="selectDatePreset(preset)"
+                    type="button"
+                    :class="[
+                      activeDatePreset === preset.id
+                        ? 'bg-blue-600 text-white font-bold shadow-xs'
+                        : 'bg-slate-50 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-300 font-medium',
+                      'px-2.5 py-1.5 rounded-xl text-xs text-left transition-all cursor-pointer truncate'
+                    ]"
+                  >
+                    {{ currentLang === 'km' ? preset.label_km : preset.label_en }}
+                  </button>
+                </div>
+
+                <!-- Direct Date Picker Input -->
+                <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 space-y-1.5">
+                  <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    {{ currentLang === 'km' ? 'ជ្រើសរើសថ្ងៃជាក់លាក់' : 'Pick Specific Date' }}
+                  </label>
+                  <div class="flex items-center gap-2">
+                    <input
+                      type="date"
+                      v-model="customDateInput"
+                      @change="applyCustomDate"
+                      class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                    <button
+                      @click="applyCustomDate"
+                      type="button"
+                      class="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg cursor-pointer transition-colors shrink-0"
+                    >
+                      {{ currentLang === 'km' ? 'អនុវត្ត' : 'Apply' }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </Transition>
           </div>
 
           <!-- Fullscreen Toggle Icon -->
           <button
             @click="toggleFullscreen"
             type="button"
-            class="p-1.5 text-slate-300 hover:text-white transition-colors cursor-pointer"
-            title="Fullscreen"
+            class="p-1.5 text-slate-300 hover:text-white transition-colors cursor-pointer select-none active:scale-95 focus:outline-none"
+            :title="isFullscreen ? (currentLang === 'km' ? 'ចេញពីពេញអេក្រង់' : 'Exit Fullscreen') : (currentLang === 'km' ? 'ពេញអេក្រង់' : 'Fullscreen')"
           >
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <svg v-if="isFullscreen" class="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 9L4 4m0 0h5m-5 0v5m11 2l5 5m0 0h-5m5 0v-5M9 15l-5 5m0 0h5m-5 0v-5m16-6l-5-5m0 0h5m-5 0v5" />
+            </svg>
+            <svg v-else class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0 0l-5-5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
             </svg>
           </button>
