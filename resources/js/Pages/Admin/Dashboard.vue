@@ -257,15 +257,19 @@ const performanceBarOptions = computed<any>(() => ({
   <AdminLayout :title="t('ផ្ទាំងគ្រប់គ្រង Admin', 'Admin Dashboard')">
     <div class="space-y-4 text-slate-800 dark:text-slate-100 font-sans pb-12">
 
-      <!-- ── ROW 1: 6 TOP KPI CARDS (Matching Vibrant Wave Aesthetic with Pure LMS Data) ── -->
+      <!-- ── ROW 1: 6 TOP KPI CARDS (Interactive Vibrant Wave Cards with Pure LMS Data) ── -->
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
         
         <!-- Card 1: Total Students ➔ Royal Purple/Violet -->
-        <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#7c3aed] to-[#6366f1] text-white p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+        <Link
+          href="/admin/user-management/students"
+          class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#7c3aed] to-[#6366f1] text-white p-4 shadow-sm hover:shadow-lg hover:scale-[1.02] active:scale-[0.99] transition-all flex flex-col justify-between group cursor-pointer"
+          :title="t('ចុចដើម្បីគ្រប់គ្រងនិស្សិត', 'Click to manage students')"
+        >
           <div>
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ t('និស្សិតសរុប', "TOTAL STUDENTS") }}</span>
-              <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-sm shadow-2xs">
+              <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-sm shadow-2xs group-hover:scale-110 transition-transform">
                 🎓
               </div>
             </div>
@@ -284,14 +288,18 @@ const performanceBarOptions = computed<any>(() => ({
               <path d="M0 18 Q 20 4, 40 14 T 70 6 T 100 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
             </svg>
           </div>
-        </div>
+        </Link>
 
         <!-- Card 2: Total Courses ➔ Emerald Green -->
-        <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#10b981] to-[#059669] text-white p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+        <Link
+          href="/admin/course-module/all"
+          class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#10b981] to-[#059669] text-white p-4 shadow-sm hover:shadow-lg hover:scale-[1.02] active:scale-[0.99] transition-all flex flex-col justify-between group cursor-pointer"
+          :title="t('ចុចដើម្បីគ្រប់គ្រងវគ្គសិក្សា', 'Click to manage courses')"
+        >
           <div>
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ t('វគ្គសិក្សាសរុប', 'TOTAL COURSES') }}</span>
-              <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-sm shadow-2xs">
+              <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-sm shadow-2xs group-hover:scale-110 transition-transform">
                 📚
               </div>
             </div>
@@ -309,14 +317,18 @@ const performanceBarOptions = computed<any>(() => ({
               <path d="M0 20 Q 25 8, 45 16 T 75 4 T 100 10" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
             </svg>
           </div>
-        </div>
+        </Link>
 
         <!-- Card 3: Total Teachers ➔ Vivid Orange -->
-        <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#f97316] to-[#ea580c] text-white p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+        <Link
+          href="/admin/user-management/teachers"
+          class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#f97316] to-[#ea580c] text-white p-4 shadow-sm hover:shadow-lg hover:scale-[1.02] active:scale-[0.99] transition-all flex flex-col justify-between group cursor-pointer"
+          :title="t('ចុចដើម្បីគ្រប់គ្រងសាស្ត្រាចារ្យ', 'Click to manage faculty')"
+        >
           <div>
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ t('សាស្ត្រាចារ្យសរុប', "TOTAL TEACHERS") }}</span>
-              <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-sm shadow-2xs">
+              <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-sm shadow-2xs group-hover:scale-110 transition-transform">
                 👨‍🏫
               </div>
             </div>
@@ -334,14 +346,18 @@ const performanceBarOptions = computed<any>(() => ({
               <path d="M0 16 Q 20 22, 45 8 T 75 14 T 100 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
             </svg>
           </div>
-        </div>
+        </Link>
 
         <!-- Card 4: Active Students ➔ Royal Blue -->
-        <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0284c7] to-[#2563eb] text-white p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+        <Link
+          href="/admin/user-management/students"
+          class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0284c7] to-[#2563eb] text-white p-4 shadow-sm hover:shadow-lg hover:scale-[1.02] active:scale-[0.99] transition-all flex flex-col justify-between group cursor-pointer"
+          :title="t('ចុចដើម្បីមើលវត្តមាននិស្សិត', 'Click to view student attendance')"
+        >
           <div>
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ t('និស្សិតសកម្មអនឡាញ', 'ACTIVE STUDENTS') }}</span>
-              <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-sm shadow-2xs">
+              <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-sm shadow-2xs group-hover:scale-110 transition-transform">
                 💻
               </div>
             </div>
@@ -359,14 +375,18 @@ const performanceBarOptions = computed<any>(() => ({
               <path d="M0 18 Q 20 6, 45 16 T 75 8 T 100 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
             </svg>
           </div>
-        </div>
+        </Link>
 
         <!-- Card 5: Course Completion Rate ➔ Bright Rose/Pink -->
-        <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#ec4899] to-[#e11d48] text-white p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+        <Link
+          href="/admin/progress?tab=course"
+          class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#ec4899] to-[#e11d48] text-white p-4 shadow-sm hover:shadow-lg hover:scale-[1.02] active:scale-[0.99] transition-all flex flex-col justify-between group cursor-pointer"
+          :title="t('ចុចដើម្បីមើលរបាយការណ៍បញ្ចប់វគ្គ', 'Click to view completion report')"
+        >
           <div>
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ t('អត្រាបញ្ចប់វគ្គ', 'COMPLETION RATE') }}</span>
-              <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-sm shadow-2xs">
+              <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-sm shadow-2xs group-hover:scale-110 transition-transform">
                 🏆
               </div>
             </div>
@@ -384,14 +404,18 @@ const performanceBarOptions = computed<any>(() => ({
               <path d="M0 19 Q 25 10, 50 18 T 80 8 T 100 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
             </svg>
           </div>
-        </div>
+        </Link>
 
         <!-- Card 6: At-Risk Students ➔ Teal/Cyan -->
-        <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#06b6d4] to-[#0d9488] text-white p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+        <Link
+          href="/admin/ai-rules?tab=at_risk"
+          class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#06b6d4] to-[#0d9488] text-white p-4 shadow-sm hover:shadow-lg hover:scale-[1.02] active:scale-[0.99] transition-all flex flex-col justify-between group cursor-pointer"
+          :title="t('ចុចដើម្បីពិនិត្យនិស្សិតប្រឈមហានិភ័យ', 'Click to review at-risk students')"
+        >
           <div>
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ t('និស្សិតប្រឈមហានិភ័យ', 'AT-RISK STUDENTS') }}</span>
-              <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-sm shadow-2xs">
+              <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-sm shadow-2xs group-hover:scale-110 transition-transform">
                 ⚠️
               </div>
             </div>
@@ -409,7 +433,7 @@ const performanceBarOptions = computed<any>(() => ({
               <path d="M0 12 Q 25 20, 50 10 T 75 16 T 100 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
             </svg>
           </div>
-        </div>
+        </Link>
 
       </div>
 
@@ -481,68 +505,68 @@ const performanceBarOptions = computed<any>(() => ({
                 </div>
               </div>
 
-              <!-- Vertical Right Legend -->
-              <div class="space-y-3 w-full text-xs">
-                <div class="flex items-center justify-between">
+              <!-- Vertical Right Legend (Interactive Links) -->
+              <div class="space-y-1.5 w-full text-xs">
+                <Link href="/admin/academic-structure/majors" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                   <div class="flex items-center gap-2">
                     <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
                     <div>
-                      <p class="font-bold text-slate-800 dark:text-slate-100 leading-tight">Info Tech (IT)</p>
+                      <p class="font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 leading-tight">Info Tech (IT)</p>
                       <p class="text-[10px] text-slate-400">520 {{ t('នាក់', 'Students') }}</p>
                     </div>
                   </div>
                   <span class="font-black text-slate-900 dark:text-white">21%</span>
-                </div>
+                </Link>
 
-                <div class="flex items-center justify-between">
+                <Link href="/admin/academic-structure/majors" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                   <div class="flex items-center gap-2">
                     <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
                     <div>
-                      <p class="font-bold text-slate-800 dark:text-slate-100 leading-tight">Social Work (SW)</p>
+                      <p class="font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 leading-tight">Social Work (SW)</p>
                       <p class="text-[10px] text-slate-400">548 {{ t('នាក់', 'Students') }}</p>
                     </div>
                   </div>
                   <span class="font-black text-slate-900 dark:text-white">23%</span>
-                </div>
+                </Link>
 
-                <div class="flex items-center justify-between">
+                <Link href="/admin/academic-structure/majors" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                   <div class="flex items-center gap-2">
                     <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
                     <div>
-                      <p class="font-bold text-slate-800 dark:text-slate-100 leading-tight">Agriculture (AGR)</p>
+                      <p class="font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 leading-tight">Agriculture (AGR)</p>
                       <p class="text-[10px] text-slate-400">600 {{ t('នាក់', 'Students') }}</p>
                     </div>
                   </div>
                   <span class="font-black text-slate-900 dark:text-white">24%</span>
-                </div>
+                </Link>
 
-                <div class="flex items-center justify-between">
+                <Link href="/admin/academic-structure/majors" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                   <div class="flex items-center gap-2">
                     <span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
                     <div>
-                      <p class="font-bold text-slate-800 dark:text-slate-100 leading-tight">Tourism (TRM)</p>
+                      <p class="font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 leading-tight">Tourism (TRM)</p>
                       <p class="text-[10px] text-slate-400">410 {{ t('នាក់', 'Students') }}</p>
                     </div>
                   </div>
                   <span class="font-black text-slate-900 dark:text-white">17%</span>
-                </div>
+                </Link>
 
-                <div class="flex items-center justify-between">
+                <Link href="/admin/academic-structure/majors" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                   <div class="flex items-center gap-2">
                     <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
                     <div>
-                      <p class="font-bold text-slate-800 dark:text-slate-100 leading-tight">English Lit (ENG)</p>
+                      <p class="font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 leading-tight">English Lit (ENG)</p>
                       <p class="text-[10px] text-slate-400">380 {{ t('នាក់', 'Students') }}</p>
                     </div>
                   </div>
                   <span class="font-black text-slate-900 dark:text-white">15%</span>
-                </div>
+                </Link>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Col 3 (3/12): Academic Progress Breakdown -->
+        <!-- Col 3 (3/12): Academic Progress Breakdown (Interactive Links) -->
         <div class="lg:col-span-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs dark:shadow-none flex flex-col justify-between">
           <div>
             <div class="border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
@@ -552,66 +576,66 @@ const performanceBarOptions = computed<any>(() => ({
             </div>
 
             <!-- List items -->
-            <div class="space-y-3.5 mt-2 text-xs">
-              <div class="flex items-center justify-between">
+            <div class="space-y-1.5 mt-2 text-xs">
+              <Link href="/admin/progress?tab=course" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600 flex items-center justify-center text-sm">
+                  <div class="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600 flex items-center justify-center text-sm group-hover:scale-105 transition-transform">
                     ✅
                   </div>
-                  <span class="font-bold text-slate-800 dark:text-slate-200">{{ t('បានបញ្ចប់', 'Completed') }}</span>
+                  <span class="font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400">{{ t('បានបញ្ចប់', 'Completed') }}</span>
                 </div>
                 <div class="text-right">
                   <span class="font-bold text-slate-900 dark:text-white">1,868</span>
                   <span class="ml-2 text-slate-400 font-semibold">76%</span>
                 </div>
-              </div>
+              </Link>
 
-              <div class="flex items-center justify-between">
+              <Link href="/admin/enrollment/courses" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-500/15 text-blue-600 flex items-center justify-center text-sm">
+                  <div class="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-500/15 text-blue-600 flex items-center justify-center text-sm group-hover:scale-105 transition-transform">
                     📖
                   </div>
-                  <span class="font-bold text-slate-800 dark:text-slate-200">{{ t('កំពុងរៀន', 'In Progress') }}</span>
+                  <span class="font-bold text-slate-800 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400">{{ t('កំពុងរៀន', 'In Progress') }}</span>
                 </div>
                 <div class="text-right">
                   <span class="font-bold text-slate-900 dark:text-white">442</span>
                   <span class="ml-2 text-slate-400 font-semibold">18%</span>
                 </div>
-              </div>
+              </Link>
 
-              <div class="flex items-center justify-between">
+              <Link href="/admin/user-management/students" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-500/15 text-amber-600 flex items-center justify-center text-sm">
+                  <div class="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-500/15 text-amber-600 flex items-center justify-center text-sm group-hover:scale-105 transition-transform">
                     ⏳
                   </div>
-                  <span class="font-bold text-slate-800 dark:text-slate-200">{{ t('មិនទាន់ចាប់ផ្ដើម', 'Not Started') }}</span>
+                  <span class="font-bold text-slate-800 dark:text-slate-200 group-hover:text-amber-600 dark:group-hover:text-amber-400">{{ t('មិនទាន់ចាប់ផ្ដើម', 'Not Started') }}</span>
                 </div>
                 <div class="text-right">
                   <span class="font-bold text-slate-900 dark:text-white">148</span>
                   <span class="ml-2 text-slate-400 font-semibold">6%</span>
                 </div>
-              </div>
+              </Link>
 
-              <div class="flex items-center justify-between">
+              <Link href="/admin/verify-certificate" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-500/15 text-purple-600 flex items-center justify-center text-sm">
+                  <div class="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-500/15 text-purple-600 flex items-center justify-center text-sm group-hover:scale-105 transition-transform">
                     📜
                   </div>
-                  <span class="font-bold text-slate-800 dark:text-slate-200">{{ t('វិញ្ញាបនបត្រចេញរួច', 'Certificates') }}</span>
+                  <span class="font-bold text-slate-800 dark:text-slate-200 group-hover:text-purple-600 dark:group-hover:text-purple-400">{{ t('វិញ្ញាបនបត្រចេញរួច', 'Certificates') }}</span>
                 </div>
                 <div class="text-right">
                   <span class="font-bold text-slate-900 dark:text-white">1,540</span>
                   <span class="ml-2 text-slate-400 font-semibold">92%</span>
                 </div>
-              </div>
+              </Link>
             </div>
           </div>
 
           <!-- Total Enrolled bottom border -->
-          <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs mt-3">
-            <span class="font-bold text-slate-700 dark:text-slate-300">{{ t('និស្សិតចុះឈ្មោះសរុប', 'Total Enrolled') }}</span>
+          <Link href="/admin/user-management/students" class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs mt-3 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer group">
+            <span class="font-bold text-slate-700 dark:text-slate-300 group-hover:text-blue-600 dark:group-hover:text-blue-400">{{ t('និស្សិតចុះឈ្មោះសរុប', 'Total Enrolled') }}</span>
             <span class="font-black text-emerald-600 dark:text-emerald-400 text-sm">2,458 {{ t('នាក់', 'Students') }}</span>
-          </div>
+          </Link>
         </div>
 
       </div>
@@ -640,15 +664,21 @@ const performanceBarOptions = computed<any>(() => ({
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-                  <tr v-for="item in [
-                    { id: 1, name: 'Web & Mobile Development', major: 'IT', students: 185, pass: '94%' },
-                    { id: 2, name: 'Community Social Work', major: 'SW', students: 142, pass: '88%' },
-                    { id: 3, name: 'Modern Crop Agronomy', major: 'AGR', students: 136, pass: '82%' },
-                    { id: 4, name: 'Eco-Tourism & Hospitality', major: 'TRM', students: 118, pass: '79%' },
-                    { id: 5, name: 'Business English Communication', major: 'ENG', students: 124, pass: '91%' },
-                  ]" :key="item.id" class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                  <tr
+                    v-for="item in [
+                      { id: 1, name: 'Web & Mobile Development', major: 'IT', students: 185, pass: '94%' },
+                      { id: 2, name: 'Community Social Work', major: 'SW', students: 142, pass: '88%' },
+                      { id: 3, name: 'Modern Crop Agronomy', major: 'AGR', students: 136, pass: '82%' },
+                      { id: 4, name: 'Eco-Tourism & Hospitality', major: 'TRM', students: 118, pass: '79%' },
+                      { id: 5, name: 'Business English Communication', major: 'ENG', students: 124, pass: '91%' },
+                    ]"
+                    :key="item.id"
+                    @click="router.visit('/admin/course-module/all')"
+                    class="hover:bg-blue-50/70 dark:hover:bg-slate-800/70 transition-colors cursor-pointer group"
+                    :title="t('ចុចដើម្បីពិនិត្យវគ្គសិក្សា', 'Click to view course')"
+                  >
                     <td class="py-2.5 text-slate-400 font-bold">{{ item.id }}</td>
-                    <td class="py-2.5 font-semibold text-slate-800 dark:text-slate-100">{{ item.name }}</td>
+                    <td class="py-2.5 font-semibold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{{ item.name }}</td>
                     <td class="py-2.5 text-center">
                       <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400">
                         {{ item.major }}
@@ -669,7 +699,7 @@ const performanceBarOptions = computed<any>(() => ({
           </div>
         </div>
 
-        <!-- Col 2 (4/12): Academic Structure Summary -->
+        <!-- Col 2 (4/12): Academic Structure Summary (Interactive Links) -->
         <div class="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs dark:shadow-none flex flex-col justify-between">
           <div>
             <div class="border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
@@ -678,56 +708,56 @@ const performanceBarOptions = computed<any>(() => ({
               </h3>
             </div>
 
-            <div class="space-y-3 mt-2 text-xs">
-              <div class="flex items-center justify-between">
+            <div class="space-y-1.5 mt-2 text-xs">
+              <Link href="/admin/academic-structure/majors" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-blue-500 text-white flex items-center justify-center text-xs shadow-2xs">
+                  <div class="w-7 h-7 rounded-lg bg-blue-500 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform">
                     🏛️
                   </div>
-                  <span class="font-semibold text-slate-700 dark:text-slate-200">{{ t('ជំនាញបណ្តុះបណ្តាល', 'Academic Majors') }}</span>
+                  <span class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400">{{ t('ជំនាញបណ្តុះបណ្តាល', 'Academic Majors') }}</span>
                 </div>
                 <span class="font-black text-slate-900 dark:text-white text-sm">5 {{ t('ដេប៉ាតឺម៉ង់', 'Majors') }}</span>
-              </div>
+              </Link>
 
-              <div class="flex items-center justify-between">
+              <Link href="/admin/academic-structure/departments" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-xs shadow-2xs">
+                  <div class="w-7 h-7 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform">
                     👥
                   </div>
-                  <span class="font-semibold text-slate-700 dark:text-slate-200">{{ t('ថ្នាក់សិក្សាសកម្ម', 'Active Classes / Cohorts') }}</span>
+                  <span class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400">{{ t('ថ្នាក់សិក្សាសកម្ម', 'Active Classes / Cohorts') }}</span>
                 </div>
                 <span class="font-black text-slate-900 dark:text-white text-sm">36 {{ t('ថ្នាក់', 'Classes') }}</span>
-              </div>
+              </Link>
 
-              <div class="flex items-center justify-between">
+              <Link href="/admin/academic-structure/academic-years" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs shadow-2xs">
+                  <div class="w-7 h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform">
                     ⏰
                   </div>
-                  <span class="font-semibold text-slate-700 dark:text-slate-200">{{ t('វេនសិក្សាផ្លូវការ', 'Study Shifts') }}</span>
+                  <span class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-amber-600 dark:group-hover:text-amber-400">{{ t('វេនសិក្សាផ្លូវការ', 'Study Shifts') }}</span>
                 </div>
                 <span class="font-black text-slate-900 dark:text-white text-sm">4 {{ t('វេន', 'Shifts') }}</span>
-              </div>
+              </Link>
 
-              <div class="flex items-center justify-between">
+              <Link href="/admin/course-module/all" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-purple-600 text-white flex items-center justify-center text-xs shadow-2xs">
+                  <div class="w-7 h-7 rounded-lg bg-purple-600 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform">
                     📑
                   </div>
-                  <span class="font-semibold text-slate-700 dark:text-slate-200">{{ t('មេរៀន និងធនធានបង្រៀន', 'Published Lessons') }}</span>
+                  <span class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-purple-600 dark:group-hover:text-purple-400">{{ t('មេរៀន និងធនធានបង្រៀន', 'Published Lessons') }}</span>
                 </div>
                 <span class="font-black text-slate-900 dark:text-white text-sm">1,420</span>
-              </div>
+              </Link>
 
-              <div class="flex items-center justify-between">
+              <Link href="/admin/quizzes" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-rose-500 text-white flex items-center justify-center text-xs shadow-2xs">
+                  <div class="w-7 h-7 rounded-lg bg-rose-500 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform">
                     📝
                   </div>
-                  <span class="font-semibold text-slate-700 dark:text-slate-200">{{ t('កម្រងសំណួរ & ការប្រឡង', 'Quizzes & Exams') }}</span>
+                  <span class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-rose-600 dark:group-hover:text-rose-400">{{ t('កម្រងសំណួរ & ការប្រឡង', 'Quizzes & Exams') }}</span>
                 </div>
                 <span class="font-black text-slate-900 dark:text-white text-sm">580</span>
-              </div>
+              </Link>
             </div>
           </div>
 
@@ -751,21 +781,26 @@ const performanceBarOptions = computed<any>(() => ({
               </div>
             </div>
 
-            <div class="space-y-2.5 text-xs">
-              <div v-for="alert in [
-                { title: '12 At-Risk Students', desc: 'Completion < 30% on quizzes', status: 'Action', color: 'bg-rose-500 text-white', link: '/admin/progress?tab=at_risk' },
-                { title: '5 Courses Waiting Review', desc: 'Faculty syllabus submitted', status: 'Pending', color: 'bg-amber-500 text-white', link: '/admin/course-module/all' },
-                { title: '3 Teachers Accounts', desc: 'Department verification', status: 'Review', color: 'bg-blue-500 text-white', link: '/admin/user-management/teachers' },
-                { title: '2 Announcements', desc: 'Ready for semester start', status: 'Scheduled', color: 'bg-emerald-500 text-white', link: '/admin/notifications/announcements' },
-              ]" :key="alert.title" class="p-2 rounded-xl bg-white/70 dark:bg-slate-900/60 border border-rose-100 dark:border-rose-900/30 flex items-center justify-between">
+            <div class="space-y-2 text-xs">
+              <Link
+                v-for="alert in [
+                  { title: '12 At-Risk Students', desc: 'Completion < 30% on quizzes', status: 'Action', color: 'bg-rose-500 text-white', link: '/admin/progress?tab=at_risk' },
+                  { title: '5 Courses Waiting Review', desc: 'Faculty syllabus submitted', status: 'Pending', color: 'bg-amber-500 text-white', link: '/admin/course-module/all' },
+                  { title: '3 Teachers Accounts', desc: 'Department verification', status: 'Review', color: 'bg-blue-500 text-white', link: '/admin/user-management/teachers' },
+                  { title: '2 Announcements', desc: 'Ready for semester start', status: 'Scheduled', color: 'bg-emerald-500 text-white', link: '/admin/notifications/announcements' },
+                ]"
+                :key="alert.title"
+                :href="alert.link"
+                class="p-2.5 rounded-xl bg-white/70 dark:bg-slate-900/60 border border-rose-100 dark:border-rose-900/30 flex items-center justify-between hover:bg-white dark:hover:bg-slate-800 hover:shadow-xs transition-all cursor-pointer group"
+              >
                 <div>
-                  <h5 class="font-bold text-slate-900 dark:text-slate-100 leading-tight">{{ alert.title }}</h5>
+                  <h5 class="font-bold text-slate-900 dark:text-slate-100 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors leading-tight">{{ alert.title }}</h5>
                   <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ alert.desc }}</p>
                 </div>
-                <Link :href="alert.link" class="px-2 py-0.5 rounded text-[10px] font-bold shrink-0 ml-2" :class="alert.color">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold shrink-0 ml-2 group-hover:scale-105 transition-transform" :class="alert.color">
                   {{ alert.status }}
-                </Link>
-              </div>
+                </span>
+              </Link>
             </div>
           </div>
 
@@ -804,7 +839,7 @@ const performanceBarOptions = computed<any>(() => ({
           </div>
         </div>
 
-        <!-- Col 2 (4/12): Recent Academic Activities -->
+        <!-- Col 2 (4/12): Recent Academic Activities (Interactive Links) -->
         <div class="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs dark:shadow-none flex flex-col justify-between">
           <div>
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
@@ -815,14 +850,14 @@ const performanceBarOptions = computed<any>(() => ({
             </div>
 
             <!-- 5 Academic Activities -->
-            <div class="space-y-3 mt-1 text-xs">
-              <div class="flex items-center justify-between">
+            <div class="space-y-1.5 mt-1 text-xs">
+              <Link href="/admin/reports?tab=students" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-blue-500 text-white flex items-center justify-center text-xs">
+                  <div class="w-7 h-7 rounded-lg bg-blue-500 text-white flex items-center justify-center text-xs group-hover:scale-105 transition-transform">
                     🎓
                   </div>
                   <div>
-                    <h5 class="font-bold text-slate-900 dark:text-white leading-tight">Kosal Seng</h5>
+                    <h5 class="font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 leading-tight">Kosal Seng</h5>
                     <p class="text-[10px] text-slate-400">{{ t('ចុះឈ្មោះ: Web Development', 'Enrolled: Web Development') }}</p>
                   </div>
                 </div>
@@ -830,15 +865,15 @@ const performanceBarOptions = computed<any>(() => ({
                   <span class="font-bold text-emerald-600 dark:text-emerald-400 block">{{ t('ជោគជ័យ', 'Enrolled') }}</span>
                   <span class="text-[10px] text-slate-400">10 mins ago</span>
                 </div>
-              </div>
+              </Link>
 
-              <div class="flex items-center justify-between">
+              <Link href="/admin/reports?tab=students" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-xs">
+                  <div class="w-7 h-7 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-xs group-hover:scale-105 transition-transform">
                     📝
                   </div>
                   <div>
-                    <h5 class="font-bold text-slate-900 dark:text-white leading-tight">Sreyneang Pich</h5>
+                    <h5 class="font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 leading-tight">Sreyneang Pich</h5>
                     <p class="text-[10px] text-slate-400">{{ t('ប្រគល់កិច្ចការ: Social Work', 'Submitted: Social Work') }}</p>
                   </div>
                 </div>
@@ -846,15 +881,15 @@ const performanceBarOptions = computed<any>(() => ({
                   <span class="font-bold text-blue-600 dark:text-blue-400 block">Grade: A</span>
                   <span class="text-[10px] text-slate-400">25 mins ago</span>
                 </div>
-              </div>
+              </Link>
 
-              <div class="flex items-center justify-between">
+              <Link href="/admin/reports?tab=teachers" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-purple-500 text-white flex items-center justify-center text-xs">
+                  <div class="w-7 h-7 rounded-lg bg-purple-500 text-white flex items-center justify-center text-xs group-hover:scale-105 transition-transform">
                     👨‍🏫
                   </div>
                   <div>
-                    <h5 class="font-bold text-slate-900 dark:text-white leading-tight">Dr. Sokha Meas</h5>
+                    <h5 class="font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 leading-tight">Dr. Sokha Meas</h5>
                     <p class="text-[10px] text-slate-400">{{ t('បង្កើតកម្រងសំណួរប្រឡងបញ្ចប់', 'Published Final Exam Quiz') }}</p>
                   </div>
                 </div>
@@ -862,15 +897,15 @@ const performanceBarOptions = computed<any>(() => ({
                   <span class="font-bold text-purple-600 dark:text-purple-400 block">50 MCQs</span>
                   <span class="text-[10px] text-slate-400">1 hour ago</span>
                 </div>
-              </div>
+              </Link>
 
-              <div class="flex items-center justify-between">
+              <Link href="/admin/reports?tab=students" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs">
+                  <div class="w-7 h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs group-hover:scale-105 transition-transform">
                     📜
                   </div>
                   <div>
-                    <h5 class="font-bold text-slate-900 dark:text-white leading-tight">Virak Chea</h5>
+                    <h5 class="font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 leading-tight">Virak Chea</h5>
                     <p class="text-[10px] text-slate-400">{{ t('បញ្ចប់វគ្គ: Crop Agronomy', 'Completed: Crop Agronomy') }}</p>
                   </div>
                 </div>
@@ -878,15 +913,15 @@ const performanceBarOptions = computed<any>(() => ({
                   <span class="font-bold text-amber-600 dark:text-amber-400 block">Certificate</span>
                   <span class="text-[10px] text-slate-400">2 hours ago</span>
                 </div>
-              </div>
+              </Link>
 
-              <div class="flex items-center justify-between">
+              <Link href="/admin/reports?tab=students" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-teal-500 text-white flex items-center justify-center text-xs">
+                  <div class="w-7 h-7 rounded-lg bg-teal-500 text-white flex items-center justify-center text-xs group-hover:scale-105 transition-transform">
                     📥
                   </div>
                   <div>
-                    <h5 class="font-bold text-slate-900 dark:text-white leading-tight">Linda Meng</h5>
+                    <h5 class="font-bold text-slate-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 leading-tight">Linda Meng</h5>
                     <p class="text-[10px] text-slate-400">{{ t('ចុះឈ្មោះ: Hospitality & Tourism', 'Enrolled: Tourism') }}</p>
                   </div>
                 </div>
@@ -894,12 +929,12 @@ const performanceBarOptions = computed<any>(() => ({
                   <span class="font-bold text-teal-600 dark:text-teal-400 block">Semester 2</span>
                   <span class="text-[10px] text-slate-400">3 hours ago</span>
                 </div>
-              </div>
+              </Link>
             </div>
           </div>
         </div>
 
-        <!-- Col 3 (4/12): Department Wise Enrollment Distribution -->
+        <!-- Col 3 (4/12): Department Wise Enrollment Distribution (Interactive Links) -->
         <div class="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs dark:shadow-none flex flex-col justify-between">
           <div>
             <div class="border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
@@ -909,56 +944,56 @@ const performanceBarOptions = computed<any>(() => ({
             </div>
 
             <!-- 5 Horizontal Progress Bars for 5 Departments -->
-            <div class="space-y-3.5 mt-2 text-xs">
-              <div>
+            <div class="space-y-2 mt-2 text-xs">
+              <Link href="/admin/academic-structure/departments" class="block p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center justify-between mb-1">
-                  <span class="font-bold text-slate-700 dark:text-slate-200">Information Technology (IT)</span>
+                  <span class="font-bold text-slate-700 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Information Technology (IT)</span>
                   <span class="font-black text-slate-900 dark:text-white">520 {{ t('នាក់', 'Students') }}</span>
                 </div>
                 <div class="w-full h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                   <div class="h-full bg-blue-600 rounded-full" style="width: 86%;"></div>
                 </div>
-              </div>
+              </Link>
 
-              <div>
+              <Link href="/admin/academic-structure/departments" class="block p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center justify-between mb-1">
-                  <span class="font-bold text-slate-700 dark:text-slate-200">Social Work (SW)</span>
+                  <span class="font-bold text-slate-700 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Social Work (SW)</span>
                   <span class="font-black text-slate-900 dark:text-white">548 {{ t('នាក់', 'Students') }}</span>
                 </div>
                 <div class="w-full h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                   <div class="h-full bg-emerald-500 rounded-full" style="width: 91%;"></div>
                 </div>
-              </div>
+              </Link>
 
-              <div>
+              <Link href="/admin/academic-structure/departments" class="block p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center justify-between mb-1">
-                  <span class="font-bold text-slate-700 dark:text-slate-200">Agriculture (AGR)</span>
+                  <span class="font-bold text-slate-700 dark:text-slate-200 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Agriculture (AGR)</span>
                   <span class="font-black text-slate-900 dark:text-white">600 {{ t('នាក់', 'Students') }}</span>
                 </div>
                 <div class="w-full h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                   <div class="h-full bg-amber-500 rounded-full" style="width: 100%;"></div>
                 </div>
-              </div>
+              </Link>
 
-              <div>
+              <Link href="/admin/academic-structure/departments" class="block p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center justify-between mb-1">
-                  <span class="font-bold text-slate-700 dark:text-slate-200">Tourism & Hospitality (TRM)</span>
+                  <span class="font-bold text-slate-700 dark:text-slate-200 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Tourism & Hospitality (TRM)</span>
                   <span class="font-black text-slate-900 dark:text-white">410 {{ t('នាក់', 'Students') }}</span>
                 </div>
                 <div class="w-full h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                   <div class="h-full bg-purple-600 rounded-full" style="width: 68%;"></div>
                 </div>
-              </div>
+              </Link>
 
-              <div>
+              <Link href="/admin/academic-structure/departments" class="block p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center justify-between mb-1">
-                  <span class="font-bold text-slate-700 dark:text-slate-200">English Literature (ENG)</span>
+                  <span class="font-bold text-slate-700 dark:text-slate-200 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">English Literature (ENG)</span>
                   <span class="font-black text-slate-900 dark:text-white">380 {{ t('នាក់', 'Students') }}</span>
                 </div>
                 <div class="w-full h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                   <div class="h-full bg-rose-500 rounded-full" style="width: 63%;"></div>
                 </div>
-              </div>
+              </Link>
             </div>
           </div>
 

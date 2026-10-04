@@ -1111,41 +1111,41 @@ onUnmounted(() => {
           </li>
         </ul>
 
-        <!-- Live System Status Card (Matching Reference Card Style with Real LMS Metrics) -->
+        <!-- Live System Status Card (Interactive with direct links to status/management) -->
         <div v-show="!isSidebarCollapsed" class="mt-4 p-3 rounded-2xl bg-[#0a1527] border border-slate-800/90 text-white text-xs shadow-lg">
-          <div class="flex items-center justify-between pb-2 border-b border-slate-800/80 mb-2.5">
+          <Link href="/admin/settings?tab=logs" class="flex items-center justify-between pb-2 border-b border-slate-800/80 mb-2.5 hover:text-blue-300 transition-colors cursor-pointer group">
             <div class="flex items-center gap-1.5">
               <span class="text-blue-400 text-sm leading-none">🎓</span>
-              <span class="font-bold text-blue-300 text-[11px] tracking-wide">Live LMS Status</span>
+              <span class="font-bold text-blue-300 group-hover:text-blue-200 text-[11px] tracking-wide">{{ currentLang === 'km' ? 'ស្ថានភាពប្រព័ន្ធផ្ទាល់' : 'Live LMS Status' }}</span>
             </div>
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="System Online"></span>
-          </div>
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" :title="currentLang === 'km' ? 'ប្រព័ន្ធដំណើរការធម្មតា' : 'System Online'"></span>
+          </Link>
           <div class="space-y-2 text-[11px]">
-            <div>
-              <span class="text-slate-400 block text-[10px] leading-tight">Active Students</span>
+            <Link href="/admin/user-management/students" class="block p-1 -mx-1 rounded-lg hover:bg-slate-800/60 transition-colors cursor-pointer">
+              <span class="text-slate-400 block text-[10px] leading-tight">{{ currentLang === 'km' ? 'និស្សិតសកម្ម' : 'Active Students' }}</span>
               <div class="flex items-center justify-between mt-0.5">
                 <span class="font-bold text-white text-xs">1,245 Online</span>
                 <span class="text-[10px] font-bold text-emerald-400">▲ 12%</span>
               </div>
-            </div>
-            <div>
-              <span class="text-slate-400 block text-[10px] leading-tight">Course Enrollments</span>
+            </Link>
+            <Link href="/admin/enrollment/courses" class="block p-1 -mx-1 rounded-lg hover:bg-slate-800/60 transition-colors cursor-pointer">
+              <span class="text-slate-400 block text-[10px] leading-tight">{{ currentLang === 'km' ? 'ការចុះឈ្មោះវគ្គសិក្សា' : 'Course Enrollments' }}</span>
               <div class="flex items-center justify-between mt-0.5">
                 <span class="font-bold text-white text-xs">5,730 Active</span>
                 <span class="text-[10px] font-bold text-emerald-400">▲ 8%</span>
               </div>
-            </div>
-            <div>
-              <span class="text-slate-400 block text-[10px] leading-tight">System Health</span>
+            </Link>
+            <Link href="/admin/settings?tab=logs" class="block p-1 -mx-1 rounded-lg hover:bg-slate-800/60 transition-colors cursor-pointer">
+              <span class="text-slate-400 block text-[10px] leading-tight">{{ currentLang === 'km' ? 'សុខភាពប្រព័ន្ធ' : 'System Health' }}</span>
               <div class="flex items-center justify-between mt-0.5">
                 <span class="font-bold text-white text-xs">99.9% Uptime</span>
                 <span class="text-[10px] font-bold text-emerald-400">▲ Optimal</span>
               </div>
-            </div>
+            </Link>
           </div>
-          <div class="mt-2.5 pt-2 border-t border-slate-800/80 text-[10px] text-slate-500 text-center">
-            Last Synced : Realtime
-          </div>
+          <Link href="/admin/settings?tab=logs" class="block mt-2.5 pt-2 border-t border-slate-800/80 text-[10px] text-slate-500 hover:text-slate-300 text-center transition-colors cursor-pointer">
+            {{ currentLang === 'km' ? 'ធ្វើសមកាលកម្មចុងក្រោយ : ពេលជាក់ស្តែង' : 'Last Synced : Realtime' }}
+          </Link>
         </div>
       </nav>
     </aside>
