@@ -269,8 +269,8 @@ const performanceBarOptions = computed<any>(() => ({
           <div>
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ t('និស្សិតសរុប', "TOTAL STUDENTS") }}</span>
-              <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-sm shadow-2xs group-hover:scale-110 transition-transform">
-                🎓
+              <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-2xs group-hover:scale-110 transition-transform p-1">
+                <img :src="'/images/dashboard/card-students-3d.svg'" alt="Students" class="w-full h-full object-contain drop-shadow-sm" />
               </div>
             </div>
             <h4 class="text-2xl font-black tracking-tight text-white mt-1">
@@ -299,8 +299,8 @@ const performanceBarOptions = computed<any>(() => ({
           <div>
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ t('វគ្គសិក្សាសរុប', 'TOTAL COURSES') }}</span>
-              <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-sm shadow-2xs group-hover:scale-110 transition-transform">
-                📚
+              <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-2xs group-hover:scale-110 transition-transform p-1">
+                <img :src="'/images/dashboard/card-courses-3d.svg'" alt="Courses" class="w-full h-full object-contain drop-shadow-sm" />
               </div>
             </div>
             <h4 class="text-2xl font-black tracking-tight text-white mt-1">
@@ -328,8 +328,8 @@ const performanceBarOptions = computed<any>(() => ({
           <div>
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ t('សាស្ត្រាចារ្យសរុប', "TOTAL TEACHERS") }}</span>
-              <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-sm shadow-2xs group-hover:scale-110 transition-transform">
-                👨‍🏫
+              <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-2xs group-hover:scale-110 transition-transform p-1">
+                <img :src="'/images/dashboard/card-teachers-3d.svg'" alt="Teachers" class="w-full h-full object-contain drop-shadow-sm" />
               </div>
             </div>
             <h4 class="text-2xl font-black tracking-tight text-white mt-1">
@@ -357,8 +357,8 @@ const performanceBarOptions = computed<any>(() => ({
           <div>
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ t('និស្សិតសកម្មអនឡាញ', 'ACTIVE STUDENTS') }}</span>
-              <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-sm shadow-2xs group-hover:scale-110 transition-transform">
-                💻
+              <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-2xs group-hover:scale-110 transition-transform p-1">
+                <img :src="'/images/dashboard/card-active-3d.svg'" alt="Active" class="w-full h-full object-contain drop-shadow-sm" />
               </div>
             </div>
             <h4 class="text-2xl font-black tracking-tight text-white mt-1">
@@ -386,8 +386,8 @@ const performanceBarOptions = computed<any>(() => ({
           <div>
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ t('អត្រាបញ្ចប់វគ្គ', 'COMPLETION RATE') }}</span>
-              <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-sm shadow-2xs group-hover:scale-110 transition-transform">
-                🏆
+              <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-2xs group-hover:scale-110 transition-transform p-1">
+                <img :src="'/images/dashboard/card-completion-3d.svg'" alt="Completion" class="w-full h-full object-contain drop-shadow-sm" />
               </div>
             </div>
             <h4 class="text-2xl font-black tracking-tight text-white mt-1">
@@ -415,8 +415,8 @@ const performanceBarOptions = computed<any>(() => ({
           <div>
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ t('និស្សិតប្រឈមហានិភ័យ', 'AT-RISK STUDENTS') }}</span>
-              <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-sm shadow-2xs group-hover:scale-110 transition-transform">
-                ⚠️
+              <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-2xs group-hover:scale-110 transition-transform p-1">
+                <img :src="'/images/dashboard/card-at-risk-3d.svg'" alt="At Risk" class="w-full h-full object-contain drop-shadow-sm" />
               </div>
             </div>
             <h4 class="text-2xl font-black tracking-tight text-white mt-1">

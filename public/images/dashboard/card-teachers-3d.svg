@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <defs>
+    <linearGradient id="boardGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#15803d"/>
+      <stop offset="100%" stop-color="#14532d"/>
+    </linearGradient>
+    <linearGradient id="hairGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="100%" stop-color="#eab308"/>
+    </linearGradient>
+    <linearGradient id="suitGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5c3826"/>
+      <stop offset="100%" stop-color="#3b1d11"/>
+    </linearGradient>
+    <filter id="teacherShadow" x="-15%" y="-15%" width="130%" height="135%">
+      <feDropShadow dx="0" dy="2" stdDeviation="1.5" flood-color="#000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#teacherShadow)">
+    <!-- Chalkboard with Wooden Border -->
+    <rect x="7" y="7" width="34" height="26" rx="2.5" fill="#fef3c7" stroke="#d97706" stroke-width="0.8"/>
+    <rect x="9.5" y="9.5" width="29" height="21" rx="1.5" fill="url(#boardGrad)"/>
+
+    <!-- Teacher Head & Hair -->
+    <circle cx="24" cy="18" r="7" fill="#fde047"/>
+    <!-- Hair Top -->
+    <path d="M17 17 C17 12 21 10 24 10 C27 10 31 12 31 17 C29 15 27 15 24 15 C21 15 19 15 17 17 Z" fill="url(#hairGrad)"/>
+
+    <!-- Glasses Frame -->
+    <rect x="18.5" y="16.5" width="4.5" height="3.5" rx="1" fill="#fef9c3" stroke="#854d0e" stroke-width="1"/>
+    <rect x="25" y="16.5" width="4.5" height="3.5" rx="1" fill="#fef9c3" stroke="#854d0e" stroke-width="1"/>
+    <line x1="23" y1="18.2" x2="25" y2="18.2" stroke="#854d0e" stroke-width="1.2"/>
+
+    <!-- Smile -->
+    <path d="M22 22.5 Q 24 24, 26 22.5" stroke="#a16207" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+
+    <!-- Shoulders & Suit Jacket -->
+    <path d="M12 40 C12 30 17 26 24 26 C31 26 36 30 36 40 Z" fill="url(#suitGrad)"/>
+    <!-- White Shirt Collar -->
+    <polygon points="24,31 20,26 28,26" fill="#ffffff"/>
+    <polygon points="24,34 22.5,30 25.5,30" fill="#dc2626"/>
+
+    <!-- Open Book Held in Hands -->
+    <g transform="translate(14, 30)">
+      <path d="M10 3.5 Q 5 2, 0 4 L 0 11 Q 5 9.5, 10 11 Q 15 9.5, 20 11 L 20 4 Q 15 2, 10 3.5 Z" fill="#ec4899" stroke="#be185d" stroke-width="0.6"/>
+      <!-- Pages -->
+      <path d="M10 3.8 Q 5.5 2.5, 1 4.2 L 1 10 Q 5.5 8.5, 10 9.8 Q 14.5 8.5, 19 10 L 19 4.2 Q 14.5 2.5, 10 3.8 Z" fill="#f8fafc"/>
+      <line x1="10" y1="3.8" x2="10" y2="10.2" stroke="#cbd5e1" stroke-width="0.8"/>
+    </g>
+
+    <!-- Hands on Book -->
+    <circle cx="15" cy="35" r="1.8" fill="#fde047"/>
+    <circle cx="33" cy="35" r="1.8" fill="#fde047"/>
+  </g>
+</svg>

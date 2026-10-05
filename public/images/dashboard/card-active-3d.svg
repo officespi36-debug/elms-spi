@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <defs>
+    <!-- Screen Gradient -->
+    <linearGradient id="screenGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="60%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#0369a1"/>
+    </linearGradient>
+    <!-- Metal Bezel Gradient -->
+    <linearGradient id="bezelGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#64748b"/>
+      <stop offset="100%" stop-color="#334155"/>
+    </linearGradient>
+    <!-- Metal Base Gradient -->
+    <linearGradient id="baseGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#e2e8f0"/>
+      <stop offset="50%" stop-color="#cbd5e1"/>
+      <stop offset="100%" stop-color="#94a3b8"/>
+    </linearGradient>
+    <filter id="laptopShadow" x="-15%" y="-15%" width="130%" height="135%">
+      <feDropShadow dx="0" dy="2.5" stdDeviation="1.5" flood-color="#000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#laptopShadow)">
+    <!-- Laptop Display Lid (Back + Bezel) -->
+    <rect x="9" y="8" width="30" height="21" rx="2.5" fill="url(#bezelGrad)" stroke="#1e293b" stroke-width="0.8"/>
+    
+    <!-- Bright Cyan Glowing Screen -->
+    <rect x="11.5" y="10.5" width="25" height="16" rx="1.5" fill="url(#screenGrad)"/>
+
+    <!-- Screen Glass Specular Highlight Angle -->
+    <path d="M12 11 L25 11 L13 25 L12 25 Z" fill="#ffffff" opacity="0.18"/>
+
+    <!-- Screen Content / Code Lines Preview -->
+    <rect x="14" y="13.5" width="8" height="1.5" rx="0.75" fill="#e0f2fe" opacity="0.8"/>
+    <rect x="14" y="16.5" width="14" height="1.5" rx="0.75" fill="#bae6fd" opacity="0.7"/>
+    <rect x="14" y="19.5" width="11" height="1.5" rx="0.75" fill="#7dd3fc" opacity="0.7"/>
+
+    <!-- Hinge -->
+    <rect x="20" y="28.5" width="8" height="2" rx="1" fill="#475569"/>
+
+    <!-- Keyboard Base / Bottom Tray (Perspective Trapezoid) -->
+    <path d="M5 33 L43 33 L39 29 L9 29 Z" fill="url(#baseGrad)" stroke="#64748b" stroke-width="0.7"/>
+
+    <!-- Front Lip Edge -->
+    <path d="M5 33 L43 33 L43 35 C43 35.8 42.2 36.5 41.2 36.5 L6.8 36.5 C5.8 36.5 5 35.8 5 35 Z" fill="#94a3b8" stroke="#475569" stroke-width="0.7"/>
+
+    <!-- Thumb Indent / Notch -->
+    <rect x="21.5" y="33" width="5" height="1.5" rx="0.75" fill="#475569"/>
+
+    <!-- Trackpad -->
+    <rect x="19" y="30.5" width="10" height="2.2" rx="0.6" fill="#e2e8f0" stroke="#94a3b8" stroke-width="0.5"/>
+  </g>
+</svg>

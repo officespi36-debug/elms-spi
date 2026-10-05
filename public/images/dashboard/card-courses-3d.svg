@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <defs>
+    <!-- Green Book Gradient -->
+    <linearGradient id="bookGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a3e635"/>
+      <stop offset="100%" stop-color="#4d7c0f"/>
+    </linearGradient>
+    <!-- Pink Book Gradient -->
+    <linearGradient id="bookPink" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fb7185"/>
+      <stop offset="100%" stop-color="#be123c"/>
+    </linearGradient>
+    <!-- Blue Book Gradient -->
+    <linearGradient id="bookBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0369a1"/>
+    </linearGradient>
+    <filter id="booksShadow" x="-15%" y="-15%" width="130%" height="135%">
+      <feDropShadow dx="0" dy="2" stdDeviation="1.5" flood-color="#000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#booksShadow)">
+    <!-- Blue Book (Right / Back) -->
+    <g transform="translate(18, 14)">
+      <!-- Cover -->
+      <rect x="0" y="0" width="16" height="23" rx="2.5" fill="url(#bookBlue)"/>
+      <!-- Pages thickness at bottom -->
+      <rect x="2" y="20.5" width="13.5" height="3" rx="1" fill="#f1f5f9"/>
+      <!-- Spine crease -->
+      <line x1="3" y1="1" x2="3" y2="22" stroke="#bae6fd" stroke-width="0.8" opacity="0.6"/>
+    </g>
+
+    <!-- Pink Book (Middle) -->
+    <g transform="translate(12, 10)">
+      <!-- Cover -->
+      <rect x="0" y="0" width="16" height="23" rx="2.5" fill="url(#bookPink)"/>
+      <!-- Pages thickness at bottom -->
+      <rect x="2" y="20.5" width="13.5" height="3" rx="1" fill="#f1f5f9"/>
+      <!-- Spine crease -->
+      <line x1="3" y1="1" x2="3" y2="22" stroke="#fecdd3" stroke-width="0.8" opacity="0.6"/>
+    </g>
+
+    <!-- Green Book (Front / Left) -->
+    <g transform="translate(6, 6)">
+      <!-- Cover -->
+      <rect x="0" y="0" width="16" height="23" rx="2.5" fill="url(#bookGreen)"/>
+      <!-- Pages thickness at bottom -->
+      <rect x="2" y="20.5" width="13.5" height="3" rx="1" fill="#f1f5f9"/>
+      <!-- Spine crease -->
+      <line x1="3" y1="1" x2="3" y2="22" stroke="#d9f99d" stroke-width="0.8" opacity="0.7"/>
+      <!-- Title Bookmark Ribbon -->
+      <path d="M7 0 V7 L9 5 L11 7 V0 Z" fill="#fef08a" opacity="0.9"/>
+    </g>
+  </g>
+</svg>

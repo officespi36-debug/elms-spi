@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <defs>
+    <!-- Cap Diamond Gradient -->
+    <linearGradient id="capTopGrad" x1="10" y1="12" x2="38" y2="28" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4338ca"/>
+      <stop offset="50%" stop-color="#312e81"/>
+      <stop offset="100%" stop-color="#1e1b4b"/>
+    </linearGradient>
+    <linearGradient id="capRimGrad" x1="14" y1="22" x2="34" y2="34" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#312e81"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <!-- Gold Tassel Gradient -->
+    <linearGradient id="goldGrad" x1="24" y1="18" x2="33" y2="36" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="35%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <filter id="capShadow" x="-15%" y="-15%" width="130%" height="135%">
+      <feDropShadow dx="0" dy="2" stdDeviation="1.5" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#capShadow)">
+    <!-- Skull Cap Base Underneath -->
+    <path d="M16 22.5 C16 29 20 33 24 33 C28 33 32 29 32 22.5 Z" fill="url(#capRimGrad)" stroke="#1e1b4b" stroke-width="0.8"/>
+
+    <!-- Diamond Mortarboard Top -->
+    <path d="M24 10 L41 18.5 L24 27 L7 18.5 Z" fill="url(#capTopGrad)"/>
+    <path d="M7 18.5 L24 27 L41 18.5 L41 20.2 L24 28.7 L7 20.2 Z" fill="#1e1b4b"/>
+
+    <!-- Specular Highlight Ridge on Diamond -->
+    <path d="M24 10.8 L39.5 18.5 L24 26.2" stroke="#6366f1" stroke-width="0.8" stroke-linecap="round" opacity="0.6"/>
+
+    <!-- Center Button -->
+    <ellipse cx="24" cy="18.5" rx="2" ry="1.4" fill="#fbbf24" stroke="#d97706" stroke-width="0.6"/>
+
+    <!-- Tassel String and Hanging Droplet -->
+    <path d="M24 18.5 Q 29 19, 31 23 T 31.5 30" fill="none" stroke="url(#goldGrad)" stroke-width="1.8" stroke-linecap="round"/>
+    <!-- Tassel Brush/Fringe -->
+    <path d="M30 30 C30 30, 29.5 35, 31.5 36.5 C33.5 35, 33 30, 33 30 Z" fill="url(#goldGrad)"/>
+    <ellipse cx="31.5" cy="30.5" rx="1.5" ry="0.8" fill="#fde047"/>
+  </g>
+</svg>
