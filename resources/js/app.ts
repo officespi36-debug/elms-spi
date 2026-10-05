@@ -109,10 +109,21 @@ createInertiaApp({
     }
 
     vueApp.mount(el)
+
+    // Smoothly fade out and remove initial preloader once Vue is fully mounted
+    if (typeof window !== 'undefined') {
+      const preloader = document.getElementById('initial-page-preloader')
+      if (preloader) {
+        preloader.style.opacity = '0'
+        setTimeout(() => {
+          try { preloader.remove() } catch (e) {}
+        }, 350)
+      }
+    }
   },
   progress: {
-    color: '#3B82F6',
+    color: '#ea580c',
     showSpinner: false,
-    delay: 50,
+    delay: 100,
   },
 })

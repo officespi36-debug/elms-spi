@@ -4,6 +4,7 @@ import { Head, Link, router, usePage } from '@inertiajs/vue3'
 import { i18n } from '@/Services/i18n'
 import { useTheme, initTheme, playNotificationSound, playClickSound } from '@/composables/useTheme'
 import GlobalToast from '@/Components/GlobalToast.vue'
+import GlobalLoadingOverlay from '@/Components/GlobalLoadingOverlay.vue'
 import OfficialVerifiedBadge from '@/Components/OfficialVerifiedBadge.vue'
 import LogoutConfirmModal from '@/Components/LogoutConfirmModal.vue'
 import ProfileAccountDropdown from '@/Components/ProfileAccountDropdown.vue'
@@ -856,6 +857,7 @@ onUnmounted(() => {
 <template>
   <Head :title="pageTitle" />
   <GlobalToast />
+  <GlobalLoadingOverlay />
   <div class="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 selection:bg-indigo-500/30 transition-colors duration-200">
     <!-- Sidebar for Desktop Matching Reference Design (Dark Navy, Starts Under Header) -->
     <aside :class="[isSidebarCollapsed ? 'w-20 overflow-visible' : 'w-60', 'fixed top-14 bottom-0 left-0 z-40 hidden flex-col bg-[#071120] text-slate-300 border-r border-slate-800 md:flex transition-all duration-300 shadow-xl']">

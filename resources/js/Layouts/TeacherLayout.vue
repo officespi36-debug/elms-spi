@@ -4,6 +4,7 @@ import { Head, Link, usePage, router } from '@inertiajs/vue3'
 import { i18n } from '@/Services/i18n'
 import { useTheme, initTheme, playNotificationSound, playClickSound } from '@/composables/useTheme'
 import GlobalToast from '@/Components/GlobalToast.vue'
+import GlobalLoadingOverlay from '@/Components/GlobalLoadingOverlay.vue'
 import OfficialVerifiedBadge from '@/Components/OfficialVerifiedBadge.vue'
 import LogoutConfirmModal from '@/Components/LogoutConfirmModal.vue'
 import ProfileAccountDropdown from '@/Components/ProfileAccountDropdown.vue'
@@ -680,6 +681,7 @@ const onIconError = (e: Event) => {
 <template>
   <Head :title="pageTitle" />
   <GlobalToast />
+  <GlobalLoadingOverlay />
   <div class="min-h-screen bg-slate-50 dark:bg-[#0B0F19] text-slate-800 dark:text-slate-200 selection:bg-indigo-500/30 transition-colors duration-200">
     <!-- Desktop Sidebar (Fixed Positioning exactly like AdminLayout) -->
     <aside :class="[isSidebarCollapsed ? 'w-20 overflow-visible' : 'w-72', 'fixed inset-y-0 left-0 z-50 hidden flex-col bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl border-r border-slate-200/90 dark:border-slate-800 lg:flex transition-all duration-300 shadow-sm dark:shadow-none']">

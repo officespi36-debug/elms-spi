@@ -187,6 +187,28 @@
 
 <body class="font-sans antialiased bg-[#0b132b] text-slate-100 min-h-screen notranslate" translate="no"
     style="background-color: #0b132b; color: #f8fafc;">
+    
+    <!-- Instant Initial Page Preloader (Exact match to requested 4-dot loader) -->
+    <div id="initial-page-preloader"
+        style="position: fixed; inset: 0; z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #0b132b; transition: opacity 0.3s ease; pointer-events: none;">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 14px;">
+            <span class="init-dot init-dot-1" style="width: 16px; height: 16px; border-radius: 50%; background: #475569; animation: initDotTravel 1.4s infinite cubic-bezier(0.45, 0, 0.55, 1); animation-delay: 0s;"></span>
+            <span class="init-dot init-dot-2" style="width: 16px; height: 16px; border-radius: 50%; background: #475569; animation: initDotTravel 1.4s infinite cubic-bezier(0.45, 0, 0.55, 1); animation-delay: 0.22s;"></span>
+            <span class="init-dot init-dot-3" style="width: 16px; height: 16px; border-radius: 50%; background: #475569; animation: initDotTravel 1.4s infinite cubic-bezier(0.45, 0, 0.55, 1); animation-delay: 0.44s;"></span>
+            <span class="init-dot init-dot-4" style="width: 16px; height: 16px; border-radius: 50%; background: #475569; animation: initDotTravel 1.4s infinite cubic-bezier(0.45, 0, 0.55, 1); animation-delay: 0.66s;"></span>
+        </div>
+        <p style="margin: 0; font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; font-size: 14px; font-weight: 600; color: #94a3b8; letter-spacing: 0.3px;">
+            Please wait while loading
+        </p>
+    </div>
+    <style>
+        @keyframes initDotTravel {
+            0%, 100% { background-color: #475569; transform: scale(0.9); opacity: 0.6; }
+            20%, 40% { background-color: #ea580c; transform: scale(1.18); opacity: 1; box-shadow: 0 0 14px rgba(234, 88, 12, 0.55); }
+            60% { background-color: #475569; transform: scale(0.95); opacity: 0.65; }
+        }
+    </style>
+
     @inertia
 </body>
 
