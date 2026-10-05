@@ -471,7 +471,6 @@ const selectLanguage = (code: string) => {
   i18n.setLanguage(nextLang)
   try {
     router.reload({
-      preserveScroll: true,
       onFinish: () => hideLoading(750),
       onError: () => hideLoading(750)
     })
@@ -535,7 +534,6 @@ const toggleLanguage = () => {
   i18n.setLanguage(nextLang)
   try {
     router.reload({
-      preserveScroll: true,
       onFinish: () => hideLoading(750),
       onError: () => hideLoading(750)
     })
