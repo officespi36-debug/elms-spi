@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { Head, Link, usePage, router } from '@inertiajs/vue3'
 import { i18n } from '@/Services/i18n'
 import { useTheme, initTheme, playNotificationSound, playClickSound } from '@/composables/useTheme'
+import { useLoading } from '@/composables/useLoading'
 import GlobalToast from '@/Components/GlobalToast.vue'
 import GlobalLoadingOverlay from '@/Components/GlobalLoadingOverlay.vue'
 import AiTutorFloatingWidget from '@/Components/AiTutorFloatingWidget.vue'
@@ -10,6 +11,7 @@ import LogoutConfirmModal from '@/Components/LogoutConfirmModal.vue'
 import ProfileAccountDropdown from '@/Components/ProfileAccountDropdown.vue'
 
 const { isDark, toggleTheme } = useTheme()
+const { showLoading, hideLoading } = useLoading()
 
 const logoUrl = '/images/logo.png'
 const actionBtnIcon = '/images/actions/action-button.svg'
@@ -110,7 +112,17 @@ const playTopBarSound = async () => {
 const toggleLanguage = () => {
   playTopBarSound()
   const nextLang = currentLang.value === 'km' ? 'en' : 'km'
+  showLoading(nextLang === 'km' ? 'សូមរង់ចាំ កំពុងដំណើរការ...' : 'Please wait while loading')
   i18n.setLanguage(nextLang)
+  try {
+    router.reload({
+      preserveScroll: true,
+      onFinish: () => hideLoading(750),
+      onError: () => hideLoading(750)
+    })
+  } catch {
+    hideLoading(750)
+  }
 }
 
 const isOnline = ref(typeof window !== 'undefined' ? window.navigator.onLine : true)
@@ -937,7 +949,7 @@ const onIconError = (e: Event) => {
           />
           <div v-show="!isSidebarCollapsed" class="transition-opacity duration-200 min-w-0">
             <h1 class="text-sm font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-500 tracking-tight whitespace-nowrap">
-              E-LMS Student
+              {{ currentLang === 'km' ? 'E-LMS និស្សិត' : 'E-LMS Student' }}
             </h1>
             <p class="text-[10px] text-slate-400 font-medium tracking-wide uppercase whitespace-nowrap">{{ currentLang === 'km' ? 'ផ្ទាំងសិស្ស' : 'Student Panel' }}</p>
           </div>

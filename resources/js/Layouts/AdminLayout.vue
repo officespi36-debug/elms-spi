@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { Head, Link, router, usePage } from '@inertiajs/vue3'
 import { i18n } from '@/Services/i18n'
 import { useTheme, initTheme, playNotificationSound, playClickSound } from '@/composables/useTheme'
+import { useLoading } from '@/composables/useLoading'
 import GlobalToast from '@/Components/GlobalToast.vue'
 import GlobalLoadingOverlay from '@/Components/GlobalLoadingOverlay.vue'
 import OfficialVerifiedBadge from '@/Components/OfficialVerifiedBadge.vue'
@@ -10,6 +11,7 @@ import LogoutConfirmModal from '@/Components/LogoutConfirmModal.vue'
 import ProfileAccountDropdown from '@/Components/ProfileAccountDropdown.vue'
 
 const { isDark, toggleTheme } = useTheme()
+const { showLoading, hideLoading } = useLoading()
 
 const logoUrl = '/images/logo.png'
 const actionBtnIcon = '/images/actions/action-button.svg'
@@ -347,6 +349,17 @@ const applyCustomDate = () => {
 
 const currentLang = computed(() => i18n.locale.value)
 
+const dateDisplayLabel = computed(() => {
+  if (activeDatePreset.value === 'today') {
+    return currentLang.value === 'km' ? 'ថ្ងៃនេះ (11 Jul)' : '11 Jul 2026'
+  }
+  const preset = datePresets.find(p => p.id === activeDatePreset.value)
+  if (preset) {
+    return currentLang.value === 'km' ? preset.label_km : preset.label_en
+  }
+  return selectedDateLabel.value
+})
+
 const navTranslations: Record<string, { km: string; en: string }> = {
   // Main Navigation Modules (11 Thesis-Aligned Modules)
   'Dashboard': { km: 'ផ្ទាំងគ្រប់គ្រង', en: 'Dashboard' },
@@ -451,8 +464,20 @@ const languages = [
 ]
 
 const selectLanguage = (code: string) => {
-  i18n.setLanguage(code as 'km' | 'en')
+  const nextLang = (code === 'en' ? 'en' : 'km') as 'km' | 'en'
+  playTopBarSound()
   isLangOpen.value = false
+  showLoading(nextLang === 'km' ? 'សូមរង់ចាំ កំពុងដំណើរការ...' : 'Please wait while loading')
+  i18n.setLanguage(nextLang)
+  try {
+    router.reload({
+      preserveScroll: true,
+      onFinish: () => hideLoading(750),
+      onError: () => hideLoading(750)
+    })
+  } catch {
+    hideLoading(750)
+  }
 }
 
 // Web Audio API Sound Synthesizer for Language Switch (Sweet chime identical to Login form)
@@ -506,7 +531,17 @@ const playTopBarSound = async () => {
 const toggleLanguage = () => {
   playTopBarSound()
   const nextLang = currentLang.value === 'km' ? 'en' : 'km'
+  showLoading(nextLang === 'km' ? 'សូមរង់ចាំ កំពុងដំណើរការ...' : 'Please wait while loading')
   i18n.setLanguage(nextLang)
+  try {
+    router.reload({
+      preserveScroll: true,
+      onFinish: () => hideLoading(750),
+      onError: () => hideLoading(750)
+    })
+  } catch {
+    hideLoading(750)
+  }
 }
 
 const currentBreadcrumb = computed(() => {
@@ -1347,10 +1382,10 @@ onUnmounted(() => {
             </div>
             <div class="hidden sm:block leading-tight">
               <h1 class="text-xs sm:text-sm font-bold text-white tracking-wide truncate">
-                E-LMS Admin Portal
+                {{ currentLang === 'km' ? 'E-LMS ផតថលអ្នកគ្រប់គ្រង' : 'E-LMS Admin Portal' }}
               </h1>
               <p class="text-[9px] text-blue-400 font-semibold tracking-wider">
-                Education Management System
+                {{ currentLang === 'km' ? 'ប្រព័ន្ធគ្រប់គ្រងការអប់រំ' : 'Education Management System' }}
               </p>
             </div>
           </Link>
@@ -1403,7 +1438,7 @@ onUnmounted(() => {
               :title="currentLang === 'km' ? 'ជ្រើសរើសកាលបរិច្ឆេទ / ឆមាសសិក្សា' : 'Select Date / Academic Term'"
             >
               <span class="text-slate-400 text-xs">📅</span>
-              <span class="font-bold text-slate-900">{{ selectedDateLabel }}</span>
+              <span class="font-bold text-slate-900">{{ dateDisplayLabel }}</span>
               <span class="text-slate-400 text-[10px] ml-0.5 transition-transform duration-200" :class="isDateOpen ? 'rotate-180 text-blue-600' : ''">⌄</span>
             </button>
 
@@ -1548,7 +1583,7 @@ onUnmounted(() => {
             type="button"
             @click="toggleLanguage"
             class="p-1 h-8 w-8 rounded-full bg-slate-800/80 hover:bg-slate-700 transition-all border border-slate-700/60 shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
-            :title="currentLang === 'km' ? 'Switch to English' : 'Switch to Khmer'"
+            :title="currentLang === 'km' ? 'Switch to English' : 'ប្តូរទៅភាសាខ្មែរ'"
           >
             <img
               :src="currentLang === 'km' ? '/images/flags/km.svg' : '/images/flags/en.svg'"
@@ -1562,7 +1597,7 @@ onUnmounted(() => {
             type="button"
             @click="toggleTheme($event)"
             class="h-8 w-8 rounded-full bg-slate-800/80 hover:bg-slate-700 transition-all border border-slate-700/60 shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
-            :title="isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+            :title="isDark ? (currentLang === 'km' ? 'ប្តូរទៅ Light Mode' : 'Switch to Light Mode') : (currentLang === 'km' ? 'ប្តូរទៅ Dark Mode' : 'Switch to Dark Mode')"
           >
             <i :class="['pi text-xs', isDark ? 'pi-moon text-indigo-400' : 'pi-sun text-amber-400']"></i>
           </button>
@@ -1710,7 +1745,7 @@ onUnmounted(() => {
                   <span class="text-xs font-bold text-white">{{ user.name || 'Admin' }}</span>
                   <span class="text-slate-400 text-[10px]" :class="isProfileOpen ? 'rotate-180' : ''">⌄</span>
                 </div>
-                <span class="text-[10px] font-bold text-emerald-400 block tracking-tight">Main Branch</span>
+                <span class="text-[10px] font-bold text-emerald-400 block tracking-tight">{{ currentLang === 'km' ? 'សាខាកណ្តាល' : 'Main Branch' }}</span>
               </div>
             </button>
 
