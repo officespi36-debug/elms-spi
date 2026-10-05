@@ -17,7 +17,7 @@ const { isLoading, loadingText } = useLoading()
     >
       <div
         v-if="isLoading"
-        class="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-transparent pointer-events-none select-none p-4"
+        class="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-slate-900/10 dark:bg-slate-950/30 backdrop-blur-[2px] select-none p-4"
         role="status"
         aria-live="polite"
       >
