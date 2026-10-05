@@ -46,10 +46,10 @@ const dotGapClass = computed(() => {
 
     <!-- Text Below -->
     <div class="space-y-0.5">
-      <p class="text-sm font-semibold tracking-wide text-slate-100 drop-shadow-md">
+      <p class="text-sm font-semibold tracking-wide text-slate-800 dark:text-slate-100 drop-shadow-sm">
         {{ displayText }}
       </p>
-      <p v-if="subtext" class="text-xs text-slate-300 font-medium drop-shadow-sm">
+      <p v-if="subtext" class="text-xs text-slate-600 dark:text-slate-300 font-medium drop-shadow-sm">
         {{ subtext }}
       </p>
     </div>
@@ -57,15 +57,19 @@ const dotGapClass = computed(() => {
 </template>
 
 <style scoped>
-/* 4 Dots Travelling Animation - Exact match to user's favorite sleek dark screen */
+/* 4 Dots Travelling Animation - Visible on both light dashboard and dark mode */
 .dot-item {
-  --dot-base: #334155;
+  --dot-base: #64748b;
   display: inline-block;
   border-radius: 9999px;
   background-color: var(--dot-base);
   flex-shrink: 0;
   transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
   animation: dotTravel 1.8s infinite ease-in-out;
+}
+
+:global(.dark) .dot-item {
+  --dot-base: #475569;
 }
 
 .dot-1 { animation-delay: 0s; }

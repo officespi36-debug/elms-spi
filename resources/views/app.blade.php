@@ -188,24 +188,28 @@
 <body class="font-sans antialiased bg-[#0b132b] text-slate-100 min-h-screen notranslate" translate="no"
     style="background-color: #0b132b; color: #f8fafc;">
     
-    <!-- Instant Initial Page Preloader (Exact match to user's desired dark sleek style) -->
+    <!-- Instant Initial Page Preloader (Zero background - Shows directly over page) -->
     <div id="initial-page-preloader"
-        style="position: fixed; inset: 0; z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #0b132b; transition: opacity 0.45s ease-out; pointer-events: none;">
-        <div style="display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 16px;">
-            <span class="init-dot init-dot-1" style="width: 18px; height: 18px; border-radius: 50%; background: #334155; animation: initDotTravel 1.8s infinite ease-in-out; animation-delay: 0s; display: inline-block;"></span>
-            <span class="init-dot init-dot-2" style="width: 18px; height: 18px; border-radius: 50%; background: #334155; animation: initDotTravel 1.8s infinite ease-in-out; animation-delay: 0.3s; display: inline-block;"></span>
-            <span class="init-dot init-dot-3" style="width: 18px; height: 18px; border-radius: 50%; background: #334155; animation: initDotTravel 1.8s infinite ease-in-out; animation-delay: 0.6s; display: inline-block;"></span>
-            <span class="init-dot init-dot-4" style="width: 18px; height: 18px; border-radius: 50%; background: #334155; animation: initDotTravel 1.8s infinite ease-in-out; animation-delay: 0.9s; display: inline-block;"></span>
+        style="position: fixed; inset: 0; z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; background: transparent; transition: opacity 0.35s ease-out; pointer-events: none;">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 14px;">
+            <span class="init-dot init-dot-1" style="width: 18px; height: 18px; border-radius: 50%; background: #64748b; animation: initDotTravel 1.8s infinite ease-in-out; animation-delay: 0s; display: inline-block;"></span>
+            <span class="init-dot init-dot-2" style="width: 18px; height: 18px; border-radius: 50%; background: #64748b; animation: initDotTravel 1.8s infinite ease-in-out; animation-delay: 0.3s; display: inline-block;"></span>
+            <span class="init-dot init-dot-3" style="width: 18px; height: 18px; border-radius: 50%; background: #64748b; animation: initDotTravel 1.8s infinite ease-in-out; animation-delay: 0.6s; display: inline-block;"></span>
+            <span class="init-dot init-dot-4" style="width: 18px; height: 18px; border-radius: 50%; background: #64748b; animation: initDotTravel 1.8s infinite ease-in-out; animation-delay: 0.9s; display: inline-block;"></span>
         </div>
-        <p style="margin: 0; font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; font-size: 14px; font-weight: 600; color: #cbd5e1; letter-spacing: 0.4px;">
+        <p class="preloader-text" style="margin: 0; font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; font-size: 14px; font-weight: 600; color: #0f172a; letter-spacing: 0.4px; text-shadow: 0 1px 3px rgba(255, 255, 255, 0.9);">
             Please wait while loading
         </p>
     </div>
     <style>
+        html.dark #initial-page-preloader .preloader-text {
+            color: #f1f5f9 !important;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9) !important;
+        }
         @keyframes initDotTravel {
-            0%, 100% { background-color: #334155; transform: scale(0.9); opacity: 0.65; box-shadow: none; }
-            20%, 35% { background-color: #f97316; transform: scale(1.22); opacity: 1; box-shadow: 0 0 16px rgba(249, 115, 22, 0.75); }
-            50% { background-color: #334155; transform: scale(0.95); opacity: 0.7; box-shadow: none; }
+            0%, 100% { background-color: #64748b; transform: scale(0.9); opacity: 0.65; box-shadow: none; }
+            20%, 35% { background-color: #ea580c; transform: scale(1.22); opacity: 1; box-shadow: 0 0 16px rgba(234, 88, 12, 0.75); }
+            50% { background-color: #64748b; transform: scale(0.95); opacity: 0.7; box-shadow: none; }
         }
     </style>
 
