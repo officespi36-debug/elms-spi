@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { usePage, Link, Head } from '@inertiajs/vue3'
 import { adminMenu, teacherMenu, studentMenu } from '@/composables/useSidebar'
 import GlobalToast from '@/Components/GlobalToast.vue'
+import GlobalLoadingOverlay from '@/Components/GlobalLoadingOverlay.vue'
 
 const props = defineProps<{ title?: string }>()
 
@@ -19,6 +20,7 @@ const menu = computed(() => {
 <template>
   <Head :title="props.title || 'E-LMS'" />
   <GlobalToast />
+  <GlobalLoadingOverlay />
   <div class="min-h-screen flex bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100">
     <!-- Sidebar -->
     <aside class="w-64 bg-slate-900 text-white flex flex-col flex-shrink-0">
