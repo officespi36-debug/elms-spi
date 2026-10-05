@@ -17,13 +17,12 @@ const { isLoading, loadingText } = useLoading()
     >
       <div
         v-if="isLoading"
-        class="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[#0b132b]/95 backdrop-blur-md select-none p-4"
+        class="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-transparent pointer-events-none select-none p-4"
         role="status"
         aria-live="polite"
       >
         <DotLoader
           :text="loadingText"
-          :card="false"
           dot-size="md"
         />
       </div>

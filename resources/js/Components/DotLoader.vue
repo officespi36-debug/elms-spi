@@ -35,14 +35,9 @@ const dotGapClass = computed(() => {
 </script>
 
 <template>
-  <div
-    :class="[
-      'flex flex-col items-center justify-center select-none text-center',
-      card ? 'bg-white dark:bg-slate-900 shadow-2xl rounded-2xl px-12 py-8 border border-slate-100 dark:border-slate-800' : ''
-    ]"
-  >
+  <div class="flex flex-col items-center justify-center select-none text-center bg-transparent">
     <!-- 4 Sequential Traveling Dots -->
-    <div class="flex items-center justify-center mb-4" :class="dotGapClass">
+    <div class="flex items-center justify-center mb-3.5" :class="dotGapClass">
       <span class="dot-item dot-1 rounded-full shrink-0" :class="dotSizeClass"></span>
       <span class="dot-item dot-2 rounded-full shrink-0" :class="dotSizeClass"></span>
       <span class="dot-item dot-3 rounded-full shrink-0" :class="dotSizeClass"></span>
@@ -51,10 +46,10 @@ const dotGapClass = computed(() => {
 
     <!-- Text Below -->
     <div class="space-y-0.5">
-      <p class="text-sm font-semibold tracking-wide" :class="card ? 'text-slate-700 dark:text-slate-200' : 'text-[#cbd5e1]'">
+      <p class="text-sm font-semibold tracking-wide text-slate-100 drop-shadow-md">
         {{ displayText }}
       </p>
-      <p v-if="subtext" class="text-xs text-slate-400 font-medium">
+      <p v-if="subtext" class="text-xs text-slate-300 font-medium drop-shadow-sm">
         {{ subtext }}
       </p>
     </div>
