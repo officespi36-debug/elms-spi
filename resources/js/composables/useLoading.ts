@@ -38,7 +38,7 @@ if (typeof window !== 'undefined') {
     isLoading.value = true
   })
 
-  router.on('finish', () => {
+  const endLoading = () => {
     // Keep it visible for at least 750ms so it doesn't disappear too fast and is clearly visible
     const elapsed = Date.now() - showStartTime
     const remaining = Math.max(0, 750 - elapsed)
@@ -46,5 +46,12 @@ if (typeof window !== 'undefined') {
     finishTimer = setTimeout(() => {
       isLoading.value = false
     }, remaining)
+  }
+
+  router.on('finish', endLoading)
+  router.on('error', endLoading)
+  router.on('cancel', () => {
+    clearTimeout(finishTimer)
+    isLoading.value = false
   })
 }
