@@ -33,8 +33,8 @@ const displaySubtext = computed(() => {
 const dotSizeClasses = computed(() => {
   switch (props.dotSize) {
     case 'sm': return 'w-3 h-3 gap-2'
-    case 'lg': return 'w-6 h-6 gap-3.5'
-    default: return 'w-4 h-4 sm:w-4.5 sm:h-4.5 gap-2.5 sm:gap-3'
+    case 'lg': return 'w-6 h-6 gap-4'
+    default: return 'w-4 h-4 sm:w-5 sm:h-5 gap-3'
   }
 })
 </script>
@@ -43,10 +43,10 @@ const dotSizeClasses = computed(() => {
   <div
     :class="[
       'flex flex-col items-center justify-center select-none text-center',
-      card ? 'bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-8 py-6 rounded-2xl shadow-2xl border border-slate-200/80 dark:border-slate-800' : ''
+      card ? 'bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-9 py-7 rounded-2xl shadow-2xl border border-slate-200/80 dark:border-slate-800' : ''
     ]"
   >
-    <!-- 4 Sequential Traveling Dots (Matching User Screenshot) -->
+    <!-- 4 Sequential Traveling Dots (Smooth & Moderate Pace) -->
     <div class="flex items-center justify-center" :class="dotSizeClasses">
       <span class="dot-item dot-1 rounded-full shrink-0"></span>
       <span class="dot-item dot-2 rounded-full shrink-0"></span>
@@ -55,7 +55,7 @@ const dotSizeClasses = computed(() => {
     </div>
 
     <!-- Text Below -->
-    <div class="mt-3.5 space-y-0.5">
+    <div class="mt-4 space-y-0.5">
       <p class="text-xs sm:text-sm font-semibold tracking-wide text-slate-700 dark:text-slate-200">
         {{ displayText }}
       </p>
@@ -67,18 +67,18 @@ const dotSizeClasses = computed(() => {
 </template>
 
 <style scoped>
-/* 4 Dots Travelling Animation */
+/* 4 Dots Travelling Animation - Calmer, Smoother, Easily Visible */
 .dot-item {
   aspect-ratio: 1 / 1;
   background-color: #cbd5e1;
-  transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
-  animation: dotTravel 1.4s infinite cubic-bezier(0.45, 0, 0.55, 1);
+  transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+  animation: dotTravel 1.8s infinite ease-in-out;
 }
 
 .dot-1 { animation-delay: 0s; }
-.dot-2 { animation-delay: 0.22s; }
-.dot-3 { animation-delay: 0.44s; }
-.dot-4 { animation-delay: 0.66s; }
+.dot-2 { animation-delay: 0.3s; }
+.dot-3 { animation-delay: 0.6s; }
+.dot-4 { animation-delay: 0.9s; }
 
 @keyframes dotTravel {
   0%, 100% {
@@ -87,16 +87,16 @@ const dotSizeClasses = computed(() => {
     opacity: 0.65;
     box-shadow: none;
   }
-  20%, 40% {
+  20%, 35% {
     background-color: #ea580c; /* Deep warm vibrant orange from image */
-    transform: scale(1.18);
+    transform: scale(1.22);
     opacity: 1;
-    box-shadow: 0 0 14px rgba(234, 88, 12, 0.6);
+    box-shadow: 0 0 16px rgba(234, 88, 12, 0.65);
   }
-  60% {
+  50% {
     background-color: #cbd5e1;
     transform: scale(0.95);
-    opacity: 0.75;
+    opacity: 0.7;
     box-shadow: none;
   }
 }

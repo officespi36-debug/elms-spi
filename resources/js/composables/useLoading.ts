@@ -3,17 +3,23 @@ import { router } from '@inertiajs/vue3'
 
 const isLoading = ref(false)
 const loadingText = ref<string>('Please wait while loading')
-let delayTimer: any = null
+let showStartTime = 0
+let finishTimer: any = null
 
 export function useLoading() {
   const showLoading = (text: string = 'Please wait while loading') => {
     loadingText.value = text
+    showStartTime = Date.now()
     isLoading.value = true
   }
 
-  const hideLoading = () => {
-    clearTimeout(delayTimer)
-    isLoading.value = false
+  const hideLoading = (minDisplayMs: number = 700) => {
+    const elapsed = Date.now() - showStartTime
+    const remaining = Math.max(0, minDisplayMs - elapsed)
+    clearTimeout(finishTimer)
+    finishTimer = setTimeout(() => {
+      isLoading.value = false
+    }, remaining)
   }
 
   return {
@@ -27,15 +33,18 @@ export function useLoading() {
 // Hook into Inertia visit lifecycle for automatic page transition loading
 if (typeof window !== 'undefined') {
   router.on('start', () => {
-    clearTimeout(delayTimer)
-    // 150ms buffer to avoid flicker on instant local/cached transitions
-    delayTimer = setTimeout(() => {
-      isLoading.value = true
-    }, 150)
+    clearTimeout(finishTimer)
+    showStartTime = Date.now()
+    isLoading.value = true
   })
 
   router.on('finish', () => {
-    clearTimeout(delayTimer)
-    isLoading.value = false
+    // Keep it visible for at least 750ms so it doesn't disappear too fast and is clearly visible
+    const elapsed = Date.now() - showStartTime
+    const remaining = Math.max(0, 750 - elapsed)
+    clearTimeout(finishTimer)
+    finishTimer = setTimeout(() => {
+      isLoading.value = false
+    }, remaining)
   })
 }
