@@ -188,48 +188,32 @@
 <body class="font-sans antialiased bg-[#0b132b] text-slate-100 min-h-screen notranslate" translate="no"
     style="background-color: #0b132b; color: #f8fafc;">
     
-    <!-- Instant Initial Page Preloader (Frosted glass capsule - High contrast in Light & Dark modes) -->
+    <!-- Instant Initial Page Preloader (Exact 1:1 match to screenshot) -->
     <div id="initial-page-preloader"
-        style="position: fixed; inset: 0; z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.08); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); transition: opacity 0.35s ease-out; pointer-events: none;">
-        <div class="preloader-capsule" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 18px 32px; border-radius: 16px; background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(226, 232, 240, 0.9); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.04);">
-            <div style="display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 12px;">
-                <span class="init-dot init-dot-1" style="width: 18px; height: 18px; border-radius: 50%; background: #cbd5e1; animation: initDotTravel 1.4s infinite ease-in-out; animation-delay: 0s; display: inline-block;"></span>
-                <span class="init-dot init-dot-2" style="width: 18px; height: 18px; border-radius: 50%; background: #cbd5e1; animation: initDotTravel 1.4s infinite ease-in-out; animation-delay: 0.35s; display: inline-block;"></span>
-                <span class="init-dot init-dot-3" style="width: 18px; height: 18px; border-radius: 50%; background: #cbd5e1; animation: initDotTravel 1.4s infinite ease-in-out; animation-delay: 0.70s; display: inline-block;"></span>
-                <span class="init-dot init-dot-4" style="width: 18px; height: 18px; border-radius: 50%; background: #cbd5e1; animation: initDotTravel 1.4s infinite ease-in-out; animation-delay: 1.05s; display: inline-block;"></span>
-            </div>
-            <p class="preloader-text" style="margin: 0; font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; font-size: 14px; font-weight: 600; color: #1e293b; letter-spacing: 0.3px;">
-                Please wait while loading
-            </p>
+        style="position: fixed; inset: 0; z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #0b132b; transition: opacity 0.45s ease-out; pointer-events: none;">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 16px;">
+            <span class="init-dot init-dot-1" style="width: 18px; height: 18px; border-radius: 50%; background: #334155; animation: initDotTravel 1.6s infinite ease-in-out; animation-delay: 0s; display: inline-block;"></span>
+            <span class="init-dot init-dot-2" style="width: 18px; height: 18px; border-radius: 50%; background: #334155; animation: initDotTravel 1.6s infinite ease-in-out; animation-delay: 0.35s; display: inline-block;"></span>
+            <span class="init-dot init-dot-3" style="width: 18px; height: 18px; border-radius: 50%; background: #334155; animation: initDotTravel 1.6s infinite ease-in-out; animation-delay: 0.70s; display: inline-block;"></span>
+            <span class="init-dot init-dot-4" style="width: 18px; height: 18px; border-radius: 50%; background: #334155; animation: initDotTravel 1.6s infinite ease-in-out; animation-delay: 1.05s; display: inline-block;"></span>
         </div>
+        <p style="margin: 0; font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; font-size: 14px; font-weight: 600; color: #cbd5e1; letter-spacing: 0.4px;">
+            Please wait while loading
+        </p>
     </div>
     <style>
-        html.dark #initial-page-preloader {
-            background: rgba(11, 19, 43, 0.35) !important;
-        }
-        html.dark #initial-page-preloader .preloader-capsule {
-            background: rgba(15, 23, 42, 0.92) !important;
-            border-color: rgba(51, 65, 85, 0.8) !important;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
-        }
-        html.dark #initial-page-preloader .preloader-text {
-            color: #f1f5f9 !important;
-        }
-        html.dark #initial-page-preloader .init-dot {
-            background: #334155 !important;
-        }
         @keyframes initDotTravel {
-            0%, 30%, 100% {
-                background-color: #cbd5e1;
+            0%, 35%, 100% {
+                background-color: #334155;
                 transform: scale(0.9);
-                opacity: 0.7;
+                opacity: 0.65;
                 box-shadow: none;
             }
-            12% {
+            15% {
                 background-color: #f97316;
                 transform: scale(1.22);
                 opacity: 1;
-                box-shadow: 0 0 14px rgba(249, 115, 22, 0.8);
+                box-shadow: 0 0 16px rgba(249, 115, 22, 0.8);
             }
         }
     </style>
