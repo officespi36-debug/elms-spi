@@ -2,12 +2,12 @@ import { ref } from 'vue'
 import { router } from '@inertiajs/vue3'
 
 const isLoading = ref(false)
-const loadingText = ref<string>('Please wait while loading')
+const loadingText = ref<string>('')
 let showStartTime = 0
 let finishTimer: any = null
 
 export function useLoading() {
-  const showLoading = (text: string = 'Please wait while loading') => {
+  const showLoading = (text: string = '') => {
     loadingText.value = text
     showStartTime = Date.now()
     isLoading.value = true

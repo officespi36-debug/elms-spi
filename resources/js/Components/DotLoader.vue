@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useLanguage } from '@/Services/i18n'
 
 const props = withDefaults(defineProps<{
   text?: string
@@ -13,8 +14,13 @@ const props = withDefaults(defineProps<{
   card: false
 })
 
+const { currentLang } = useLanguage()
+
 const displayText = computed(() => {
-  return props.text || 'Please wait while loading'
+  if (props.text) return props.text
+  return currentLang.value === 'km'
+    ? 'សូមរង់ចាំ កំពុងដំណើរការ...'
+    : 'Please wait while loading'
 })
 
 const dotSizeClass = computed(() => {

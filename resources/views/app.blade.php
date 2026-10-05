@@ -197,10 +197,21 @@
             <span class="init-dot init-dot-3" style="width: 18px; height: 18px; border-radius: 50%; background: #334155; animation: initDotTravel 1.6s infinite ease-in-out; animation-delay: 0.70s; display: inline-block;"></span>
             <span class="init-dot init-dot-4" style="width: 18px; height: 18px; border-radius: 50%; background: #334155; animation: initDotTravel 1.6s infinite ease-in-out; animation-delay: 1.05s; display: inline-block;"></span>
         </div>
-        <p style="margin: 0; font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; font-size: 14px; font-weight: 600; color: #cbd5e1; letter-spacing: 0.4px;">
-            Please wait while loading
+        <p id="initial-preloader-text" style="margin: 0; font-family: 'Plus Jakarta Sans', 'Kantumruy Pro', system-ui, -apple-system, sans-serif; font-size: 14px; font-weight: 600; color: #cbd5e1; letter-spacing: 0.4px;">
+            សូមរង់ចាំ កំពុងដំណើរការ...
         </p>
     </div>
+    <script>
+        (function() {
+            try {
+                var lang = localStorage.getItem('elms_lang') || document.documentElement.lang || 'km';
+                var el = document.getElementById('initial-preloader-text');
+                if (el) {
+                    el.textContent = (lang === 'en') ? 'Please wait while loading' : 'សូមរង់ចាំ កំពុងដំណើរការ...';
+                }
+            } catch(e) {}
+        })();
+    </script>
     <style>
         @keyframes initDotTravel {
             0%, 35%, 100% {
