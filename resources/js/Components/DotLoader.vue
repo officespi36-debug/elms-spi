@@ -51,10 +51,10 @@ const dotGapClass = computed(() => {
 
     <!-- Text Below -->
     <div class="space-y-0.5">
-      <p class="text-sm font-semibold tracking-wide text-slate-700 dark:text-slate-200">
+      <p class="text-sm font-semibold tracking-wide" :class="card ? 'text-slate-700 dark:text-slate-200' : 'text-[#cbd5e1]'">
         {{ displayText }}
       </p>
-      <p v-if="subtext" class="text-xs text-slate-400 dark:text-slate-500 font-medium">
+      <p v-if="subtext" class="text-xs text-slate-400 font-medium">
         {{ subtext }}
       </p>
     </div>
@@ -62,19 +62,15 @@ const dotGapClass = computed(() => {
 </template>
 
 <style scoped>
-/* 4 Dots Travelling Animation - Smooth, Clear, Distinctly Visible */
+/* 4 Dots Travelling Animation - Exact match to user's favorite sleek dark screen */
 .dot-item {
-  --dot-base: #cbd5e1;
+  --dot-base: #334155;
   display: inline-block;
   border-radius: 9999px;
   background-color: var(--dot-base);
   flex-shrink: 0;
   transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
   animation: dotTravel 1.8s infinite ease-in-out;
-}
-
-:global(.dark) .dot-item {
-  --dot-base: #475569;
 }
 
 .dot-1 { animation-delay: 0s; }
@@ -90,10 +86,10 @@ const dotGapClass = computed(() => {
     box-shadow: none;
   }
   20%, 35% {
-    background-color: #ea580c; /* Deep warm vibrant orange */
+    background-color: #f97316; /* Glowing warm vibrant orange */
     transform: scale(1.22);
     opacity: 1;
-    box-shadow: 0 0 14px rgba(234, 88, 12, 0.7);
+    box-shadow: 0 0 16px rgba(249, 115, 22, 0.75);
   }
   50% {
     background-color: var(--dot-base);

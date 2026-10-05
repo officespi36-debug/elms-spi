@@ -17,17 +17,15 @@ const { isLoading, loadingText } = useLoading()
     >
       <div
         v-if="isLoading"
-        class="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-900/40 dark:bg-slate-950/70 backdrop-blur-sm select-none p-4"
+        class="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[#0b132b]/95 backdrop-blur-md select-none p-4"
         role="status"
         aria-live="polite"
       >
-        <div class="relative max-w-sm w-full">
-          <DotLoader
-            :text="loadingText"
-            :card="true"
-            dot-size="md"
-          />
-        </div>
+        <DotLoader
+          :text="loadingText"
+          :card="false"
+          dot-size="md"
+        />
       </div>
     </Transition>
   </Teleport>
