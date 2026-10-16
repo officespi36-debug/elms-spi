@@ -778,14 +778,17 @@ const announcementsAlert = computed(() => props.adminAlerts?.find(a => a.type ==
       <!-- ── ROW 3: 3-COLUMN OPERATIONAL SECTION (Real Database Courses & Alerts) ── -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
         
-        <!-- Col 1 (5/12): Top Performing Courses Table (Real Database Records) -->
+        <!-- Col 1 (5/12): Top Performing Courses Table (Human-Crafted Academic Table) -->
         <div class="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs dark:shadow-none flex flex-col justify-between">
           <div>
             <div class="border-b border-slate-100 dark:border-slate-800 pb-3 mb-3 flex items-center justify-between">
-              <h3 class="font-bold text-sm text-slate-900 dark:text-white">
-                {{ t('វគ្គសិក្សាដែលមានលទ្ធផលខ្ពស់បំផុត', 'Top Performing Courses') }}
-              </h3>
-              <button @click="downloadExportReport" class="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">
+              <div>
+                <h3 class="font-bold text-sm text-slate-900 dark:text-white">
+                  {{ t('វគ្គសិក្សាដែលមានលទ្ធផលខ្ពស់បំផុត', 'Top Performing Courses') }}
+                </h3>
+                <p class="text-[11px] text-slate-400 mt-0.5">{{ t('វគ្គសិក្សាដែលមានអត្រាប្រឡងជាប់ខ្ពស់ជាងគេប្រចាំឆមាស', 'Highest completion & pass rates this term') }}</p>
+              </div>
+              <button @click="downloadExportReport" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/40 hover:bg-blue-100 transition-colors cursor-pointer">
                 {{ t('ទាញយក CSV', 'Export CSV') }}
               </button>
             </div>
@@ -793,12 +796,12 @@ const announcementsAlert = computed(() => props.adminAlerts?.find(a => a.type ==
             <div class="overflow-x-auto">
               <table class="w-full text-left text-xs">
                 <thead>
-                  <tr class="text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
-                    <th class="py-2">#</th>
-                    <th class="py-2">{{ t('ឈ្មោះវគ្គសិក្សា', 'Course Name') }}</th>
-                    <th class="py-2 text-center">{{ t('ជំនាញ', 'Major') }}</th>
-                    <th class="py-2 text-center">{{ t('និស្សិត', 'Students') }}</th>
-                    <th class="py-2 text-right">{{ t('បញ្ចប់ (%)', 'Pass (%)') }}</th>
+                  <tr class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
+                    <th class="py-2.5">#</th>
+                    <th class="py-2.5">{{ t('ឈ្មោះវគ្គសិក្សា', 'Course Name') }}</th>
+                    <th class="py-2.5 text-center">{{ t('ជំនាញ', 'Major') }}</th>
+                    <th class="py-2.5 text-center">{{ t('និស្សិត', 'Students') }}</th>
+                    <th class="py-2.5 text-right">{{ t('បញ្ចប់ (%)', 'Pass (%)') }}</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
@@ -806,27 +809,41 @@ const announcementsAlert = computed(() => props.adminAlerts?.find(a => a.type ==
                     v-for="item in props.topCourses"
                     :key="item.id"
                     @click="openCourseDetail(item)"
-                    class="hover:bg-blue-50/70 dark:hover:bg-slate-800/70 transition-colors cursor-pointer group"
+                    class="hover:bg-slate-50/80 dark:hover:bg-slate-800/60 transition-colors cursor-pointer group"
                     :title="t('ចុចដើម្បីពិនិត្យវគ្គសិក្សា', 'Click to view course details')"
                   >
-                    <td class="py-2.5 text-slate-400 font-bold">{{ item.index }}</td>
-                    <td class="py-2.5 font-semibold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate max-w-[170px]">{{ item.name }}</td>
-                    <td class="py-2.5 text-center">
+                    <td class="py-3 text-slate-400 font-semibold tabular-nums">{{ item.index }}</td>
+                    <td class="py-3 max-w-[190px]">
+                      <div class="font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate leading-tight">
+                        {{ item.name }}
+                      </div>
+                      <div class="text-[11px] text-slate-400 font-normal mt-0.5 truncate flex items-center gap-1">
+                        <span>{{ item.instructor || 'Faculty Specialist' }}</span>
+                      </div>
+                    </td>
+                    <td class="py-3 text-center">
                       <span
-                        class="px-2 py-0.5 rounded text-[10px] font-bold"
+                        class="px-2 py-0.5 rounded-md text-[10px] font-bold border"
                         :class="[
-                          item.major === 'IT' ? 'bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400' :
-                          item.major === 'SW' ? 'bg-indigo-50 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-400' :
-                          item.major === 'AGR' ? 'bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' :
-                          item.major === 'TRM' ? 'bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400' :
-                          'bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400'
+                          item.major === 'IT' ? 'bg-blue-50 text-blue-700 border-blue-200/50 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/40' :
+                          item.major === 'SW' ? 'bg-indigo-50 text-indigo-700 border-indigo-200/50 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800/40' :
+                          item.major === 'AGR' ? 'bg-emerald-50 text-emerald-700 border-emerald-200/50 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/40' :
+                          item.major === 'TRM' ? 'bg-amber-50 text-amber-700 border-amber-200/50 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/40' :
+                          'bg-rose-50 text-rose-700 border-rose-200/50 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800/40'
                         ]"
                       >
                         {{ item.major }}
                       </span>
                     </td>
-                    <td class="py-2.5 text-center text-slate-600 dark:text-slate-300 font-medium">{{ item.students }}</td>
-                    <td class="py-2.5 text-right font-bold text-emerald-600 dark:text-emerald-400">{{ item.pass }}</td>
+                    <td class="py-3 text-center text-slate-600 dark:text-slate-300 font-semibold tabular-nums">{{ item.students }}</td>
+                    <td class="py-3 text-right">
+                      <div class="flex items-center justify-end gap-2">
+                        <div class="w-12 h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden hidden sm:block">
+                          <div class="h-full rounded-full bg-emerald-500" :style="`width: ${item.pass};`"></div>
+                        </div>
+                        <span class="font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">{{ item.pass }}</span>
+                      </div>
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -834,112 +851,135 @@ const announcementsAlert = computed(() => props.adminAlerts?.find(a => a.type ==
           </div>
         </div>
 
-        <!-- Col 2 (4/12): Academic Structure Summary (Real Database Counts) -->
+        <!-- Col 2 (4/12): Academic Structure Summary (Refined Institutional Metrics) -->
         <div class="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs dark:shadow-none flex flex-col justify-between">
           <div>
             <div class="border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
               <h3 class="font-bold text-sm text-slate-900 dark:text-white">
                 {{ t('រចនាសម្ព័ន្ធអប់រំ និងធនធាន', 'Academic Structure Summary') }}
               </h3>
+              <p class="text-[11px] text-slate-400 mt-0.5">{{ t('ទិន្នន័យគ្រប់គ្រងទូទៅនៃគ្រឹះស្ថានសិក្សា', 'Core institutional framework and learning assets') }}</p>
             </div>
 
             <div class="space-y-1.5 mt-2 text-xs">
-              <Link href="/admin/academic-structure/majors" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
-                <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0">
+              <Link href="/admin/academic-structure/majors" class="flex items-center justify-between p-2 -mx-1 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0 border border-blue-100 dark:border-blue-900/30">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <line x1="3" y1="22" x2="21" y2="22" /><line x1="6" y1="18" x2="6" y2="11" /><line x1="10" y1="18" x2="10" y2="11" /><line x1="14" y1="18" x2="14" y2="11" /><line x1="18" y1="18" x2="18" y2="11" /><polygon points="12 2 20 7 4 7" />
                     </svg>
                   </div>
-                  <span class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400">{{ t('ជំនាញបណ្តុះបណ្តាល', 'Academic Majors') }}</span>
+                  <div>
+                    <span class="font-bold text-slate-800 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 block leading-tight">{{ t('ជំនាញបណ្តុះបណ្តាល', 'Academic Majors') }}</span>
+                    <span class="text-[10px] text-slate-400">{{ t('គ្រប់ជំនាញសកម្មក្នុងប្រព័ន្ធ', 'Active Degree Programs') }}</span>
+                  </div>
                 </div>
-                <span class="font-black text-slate-900 dark:text-white text-sm">{{ props.academicStructure?.majors || 5 }} {{ t('ដេប៉ាតឺម៉ង់', 'Majors') }}</span>
+                <span class="font-bold text-slate-900 dark:text-white text-sm tabular-nums">{{ props.academicStructure?.majors || 5 }} <span class="text-xs font-normal text-slate-400">{{ t('ជំនាញ', 'Majors') }}</span></span>
               </Link>
 
-              <Link href="/admin/academic-structure/classes" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
-                <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0">
+              <Link href="/admin/academic-structure/classes" class="flex items-center justify-between p-2 -mx-1 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0 border border-emerald-100 dark:border-emerald-900/30">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
                     </svg>
                   </div>
-                  <span class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400">{{ t('ថ្នាក់រៀនសកម្ម', 'Active Classes / Cohorts') }}</span>
+                  <div>
+                    <span class="font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 block leading-tight">{{ t('ថ្នាក់រៀនសកម្ម', 'Active Classes / Cohorts') }}</span>
+                    <span class="text-[10px] text-slate-400">{{ t('ថ្នាក់ និងក្រុមសិក្សាផ្លូវការ', 'All Active Academic Cohorts') }}</span>
+                  </div>
                 </div>
-                <span class="font-black text-slate-900 dark:text-white text-sm">{{ props.academicStructure?.classes || 36 }} {{ t('ថ្នាក់', 'Classes') }}</span>
+                <span class="font-bold text-slate-900 dark:text-white text-sm tabular-nums">{{ props.academicStructure?.classes || 36 }} <span class="text-xs font-normal text-slate-400">{{ t('ថ្នាក់', 'Classes') }}</span></span>
               </Link>
 
-              <Link href="/admin/academic-structure/academic-years" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
-                <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0">
+              <Link href="/admin/academic-structure/academic-years" class="flex items-center justify-between p-2 -mx-1 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0 border border-amber-100 dark:border-amber-900/30">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
                     </svg>
                   </div>
-                  <span class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-amber-600 dark:group-hover:text-amber-400">{{ t('វេនសិក្សាផ្លូវការ', 'Study Shifts') }}</span>
+                  <div>
+                    <span class="font-bold text-slate-800 dark:text-slate-200 group-hover:text-amber-600 dark:group-hover:text-amber-400 block leading-tight">{{ t('វេនសិក្សាផ្លូវការ', 'Study Shifts') }}</span>
+                    <span class="text-[10px] text-slate-400">{{ t('ព្រឹក រសៀល យប់ ចុងសប្តាហ៍', 'Morning, Afternoon, Weekend') }}</span>
+                  </div>
                 </div>
-                <span class="font-black text-slate-900 dark:text-white text-sm">{{ props.academicStructure?.shifts || 4 }} {{ t('វេន', 'Shifts') }}</span>
+                <span class="font-bold text-slate-900 dark:text-white text-sm tabular-nums">{{ props.academicStructure?.shifts || 4 }} <span class="text-xs font-normal text-slate-400">{{ t('វេន', 'Shifts') }}</span></span>
               </Link>
 
-              <Link href="/admin/course-module/all" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
-                <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-purple-600 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0">
+              <Link href="/admin/course-module/all" class="flex items-center justify-between p-2 -mx-1 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0 border border-purple-100 dark:border-purple-900/30">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" /><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
                     </svg>
                   </div>
-                  <span class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-purple-600 dark:group-hover:text-purple-400">{{ t('មេរៀន និងធនធានបង្រៀន', 'Published Lessons') }}</span>
+                  <div>
+                    <span class="font-bold text-slate-800 dark:text-slate-200 group-hover:text-purple-600 dark:group-hover:text-purple-400 block leading-tight">{{ t('មេរៀន និងធនធានបង្រៀន', 'Published Lessons') }}</span>
+                    <span class="text-[10px] text-slate-400">{{ t('ឯកសារ PDF ស្លាយ វីដេអូ', 'Curriculum & Resources') }}</span>
+                  </div>
                 </div>
-                <span class="font-black text-slate-900 dark:text-white text-sm">{{ (props.academicStructure?.lessons || 0).toLocaleString() }}</span>
+                <span class="font-bold text-slate-900 dark:text-white text-sm tabular-nums">{{ (props.academicStructure?.lessons || 0).toLocaleString() }}</span>
               </Link>
 
-              <Link href="/admin/quizzes" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
-                <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-rose-500 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0">
+              <Link href="/admin/quizzes" class="flex items-center justify-between p-2 -mx-1 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0 border border-rose-100 dark:border-rose-900/30">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" />
                     </svg>
                   </div>
-                  <span class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-rose-600 dark:group-hover:text-rose-400">{{ t('កម្រងសំណួរ & ការប្រឡង', 'Quizzes & Exams') }}</span>
+                  <div>
+                    <span class="font-bold text-slate-800 dark:text-slate-200 group-hover:text-rose-600 dark:group-hover:text-rose-400 block leading-tight">{{ t('កម្រងសំណួរ & ការប្រឡង', 'Quizzes & Exams') }}</span>
+                    <span class="text-[10px] text-slate-400">{{ t('វិញ្ញាសាវាយតម្លៃអនឡាញ', 'Automated Grading Banks') }}</span>
+                  </div>
                 </div>
-                <span class="font-black text-slate-900 dark:text-white text-sm">{{ (props.academicStructure?.quizzes || 0).toLocaleString() }}</span>
+                <span class="font-bold text-slate-900 dark:text-white text-sm tabular-nums">{{ (props.academicStructure?.quizzes || 0).toLocaleString() }}</span>
               </Link>
             </div>
           </div>
         </div>
 
-        <!-- Col 3 (3/12): Critical Admin Alerts & Actions (Real Live DB Alerts) -->
-        <div class="lg:col-span-3 bg-[#fff1f2] dark:bg-rose-950/25 border border-rose-200 dark:border-rose-900/50 rounded-2xl p-5 shadow-xs dark:shadow-none flex flex-col justify-between">
+        <!-- Col 3 (3/12): Critical Admin Alerts & Actions (Human SaaS Alert Card) -->
+        <div class="lg:col-span-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs dark:shadow-none flex flex-col justify-between">
           <div>
-            <div class="flex items-center justify-between border-b border-rose-200/60 dark:border-rose-900/40 pb-3 mb-3">
-              <div class="flex items-center gap-1.5">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4.5 h-4.5 text-amber-500 shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                </svg>
-                <h3 class="font-bold text-sm text-rose-900 dark:text-rose-200">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
+              <div class="flex items-center gap-2">
+                <span class="relative flex h-2.5 w-2.5">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+                </span>
+                <h3 class="font-bold text-sm text-slate-900 dark:text-white">
                   {{ t('ការដាស់តឿនបន្ទាន់', 'Critical Alerts') }}
-                  <span class="text-rose-600 text-xs font-semibold">({{ props.adminAlerts?.length || 4 }} Items)</span>
                 </h3>
               </div>
+              <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200/60">
+                {{ props.adminAlerts?.length || 4 }} Items
+              </span>
             </div>
 
-            <div class="space-y-2 text-xs">
+            <div class="space-y-2.5 text-xs">
               <div
                 v-for="alert in props.adminAlerts"
                 :key="alert.title"
                 @click="openAlertModal(alert.type)"
-                class="p-2.5 rounded-xl bg-white/70 dark:bg-slate-900/60 border border-rose-100 dark:border-rose-900/30 flex items-center justify-between hover:bg-white dark:hover:bg-slate-800 hover:shadow-xs transition-all cursor-pointer group"
+                class="p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 flex items-center justify-between hover:border-slate-300 dark:hover:border-slate-700 hover:bg-white dark:hover:bg-slate-800 transition-all cursor-pointer group shadow-2xs"
                 :title="t('ចុចដើម្បីចាត់ការភ្លាមៗ', 'Click to manage action item')"
               >
-                <div>
-                  <h5 class="font-bold text-slate-900 dark:text-slate-100 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors leading-tight">{{ alert.title }}</h5>
-                  <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ alert.desc }}</p>
+                <div class="min-w-0 pr-2">
+                  <h5 class="font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-tight truncate">{{ alert.title }}</h5>
+                  <p class="text-[11px] text-slate-400 dark:text-slate-400 mt-0.5 truncate">{{ alert.desc }}</p>
                 </div>
                 <button
                   type="button"
                   @click.stop="openAlertModal(alert.type)"
-                  class="px-2.5 py-1 rounded-md text-[11px] font-bold shrink-0 ml-2 group-hover:scale-105 active:scale-95 transition-transform shadow-2xs cursor-pointer"
-                  :class="alert.color"
+                  class="px-3 py-1 rounded-lg text-[11px] font-semibold shrink-0 transition-all cursor-pointer shadow-2xs"
+                  :class="[
+                    alert.type === 'at_risk' ? 'bg-rose-600 hover:bg-rose-700 text-white' :
+                    alert.type === 'courses_review' ? 'bg-amber-500 hover:bg-amber-600 text-white' :
+                    alert.type === 'teachers_review' ? 'bg-blue-600 hover:bg-blue-700 text-white' :
+                    'bg-slate-800 hover:bg-slate-900 text-white dark:bg-slate-200 dark:text-slate-900'
+                  ]"
                 >
                   {{ alert.status }}
                 </button>
@@ -957,10 +997,13 @@ const announcementsAlert = computed(() => props.adminAlerts?.find(a => a.type ==
         <div class="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs dark:shadow-none flex flex-col justify-between">
           <div>
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
-              <h3 class="font-bold text-sm text-slate-900 dark:text-white">
-                {{ t('និន្នាការអត្រាប្រឡងជាប់ (%)', 'Monthly Exam Pass Rate (%)') }}
-              </h3>
-              <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+              <div>
+                <h3 class="font-bold text-sm text-slate-900 dark:text-white">
+                  {{ t('និន្នាការអត្រាប្រឡងជាប់ (%)', 'Monthly Exam Pass Rate (%)') }}
+                </h3>
+                <p class="text-[11px] text-slate-400 mt-0.5">{{ t('ស្ថិតិប្រឡងបញ្ចប់វគ្គ និងតេស្តប្រចាំខែ', 'Midterm & final assessment results') }}</p>
+              </div>
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200/60">
                 93% Current
               </span>
             </div>
@@ -972,7 +1015,7 @@ const announcementsAlert = computed(() => props.adminAlerts?.find(a => a.type ==
                 :options="{
                   chart: { type: 'bar', toolbar: { show: false }, background: 'transparent' },
                   colors: ['#10b981'],
-                  plotOptions: { bar: { borderRadius: 4, columnWidth: '45%' } },
+                  plotOptions: { bar: { borderRadius: 6, columnWidth: '38%' } },
                   dataLabels: { enabled: false },
                   xaxis: {
                     categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
@@ -990,93 +1033,101 @@ const announcementsAlert = computed(() => props.adminAlerts?.find(a => a.type ==
           </div>
         </div>
 
-        <!-- Col 2 (4/12): Recent Academic Activities (Real DB Events) -->
+        <!-- Col 2 (4/12): Recent Academic Activities (Authentic Human User Feed) -->
         <div class="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs dark:shadow-none flex flex-col justify-between">
           <div>
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
-              <h3 class="font-bold text-sm text-slate-900 dark:text-white">
-                {{ t('សកម្មភាពសិក្សាថ្មីៗ', 'Recent Academic Activities') }}
-              </h3>
-              <Link href="/admin/reports?tab=students" class="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline">{{ t('មើលទាំងអស់ →', 'View All →') }}</Link>
+              <div>
+                <h3 class="font-bold text-sm text-slate-900 dark:text-white">
+                  {{ t('សកម្មភាពសិក្សាថ្មីៗ', 'Recent Academic Activities') }}
+                </h3>
+                <p class="text-[11px] text-slate-400 mt-0.5">{{ t('ប្រតិបត្តិការផ្ទាល់របស់និស្សិត និងសាស្ត្រាចារ្យ', 'Live interactions across departments') }}</p>
+              </div>
+              <Link href="/admin/reports?tab=students" class="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1">
+                <span>{{ t('មើលទាំងអស់', 'View All') }}</span>
+                <span>→</span>
+              </Link>
             </div>
 
-            <div class="space-y-1.5 mt-1 text-xs">
+            <div class="space-y-2 mt-1 text-xs">
               <Link
                 v-for="(act, idx) in props.recentActivities"
                 :key="idx"
                 href="/admin/reports?tab=students"
-                class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group"
+                class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-all group"
               >
-                <div class="flex items-center gap-2.5 truncate">
+                <div class="flex items-center gap-3 min-w-0">
+                  <!-- Authentic User Initials Avatar with Soft Contrast -->
                   <div
-                    class="w-7 h-7 rounded-lg text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0"
+                    class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 shadow-xs ring-2 ring-white dark:ring-slate-800"
                     :class="[
-                      act.color === 'blue' ? 'bg-blue-600' :
-                      act.color === 'emerald' ? 'bg-emerald-600' :
-                      act.color === 'purple' ? 'bg-purple-600' :
-                      act.color === 'amber' ? 'bg-amber-500' : 'bg-teal-600'
+                      idx === 0 ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' :
+                      idx === 1 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300' :
+                      idx === 2 ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300' :
+                      idx === 3 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300' :
+                      'bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300'
                     ]"
                   >
-                    <svg v-if="act.icon === 'user'" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>
-                    </svg>
-                    <svg v-else xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
-                    </svg>
+                    {{ act.name.split(' ').map(n => n[0]).join('').slice(0, 2) }}
                   </div>
-                  <div class="truncate">
-                    <h5 class="font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 leading-tight truncate">{{ act.name }}</h5>
-                    <p class="text-[10px] text-slate-400 truncate">{{ act.action }}</p>
+                  <div class="min-w-0">
+                    <h5 class="font-bold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 leading-tight truncate">
+                      {{ act.name }}
+                    </h5>
+                    <p class="text-[11px] text-slate-400 truncate mt-0.5">{{ act.action }}</p>
                   </div>
                 </div>
-                <div class="text-right shrink-0 ml-2">
+                <div class="text-right shrink-0 ml-3">
                   <span
-                    class="font-bold block"
+                    class="font-semibold text-[11px] px-2 py-0.5 rounded-md inline-block border"
                     :class="[
-                      act.badge.includes('Grade') ? 'text-blue-600 dark:text-blue-400' :
-                      act.badge.includes('MCQ') ? 'text-purple-600 dark:text-purple-400' :
-                      act.badge.includes('Certificate') ? 'text-amber-500 dark:text-amber-400' :
-                      act.badge.includes('Semester') ? 'text-teal-600 dark:text-teal-400' :
-                      'text-emerald-600 dark:text-emerald-400'
+                      act.badge.includes('Grade') ? 'bg-blue-50 text-blue-700 border-blue-200/50 dark:bg-blue-950/40 dark:text-blue-300' :
+                      act.badge.includes('MCQ') ? 'bg-purple-50 text-purple-700 border-purple-200/50 dark:bg-purple-950/40 dark:text-purple-300' :
+                      act.badge.includes('Certificate') ? 'bg-amber-50 text-amber-700 border-amber-200/50 dark:bg-amber-950/40 dark:text-amber-300' :
+                      act.badge.includes('Semester') ? 'bg-teal-50 text-teal-700 border-teal-200/50 dark:bg-teal-950/40 dark:text-teal-300' :
+                      'bg-emerald-50 text-emerald-700 border-emerald-200/50 dark:bg-emerald-950/40 dark:text-emerald-300'
                     ]"
-                  >{{ act.badge }}</span>
-                  <span class="text-[10px] text-slate-400">{{ act.time }}</span>
+                  >
+                    {{ act.badge }}
+                  </span>
+                  <span class="text-[10px] text-slate-400 block mt-0.5">{{ act.time }}</span>
                 </div>
               </Link>
             </div>
           </div>
         </div>
 
-        <!-- Col 3 (4/12): Department Wise Enrollment Distribution (Real DB Counts) -->
+        <!-- Col 3 (4/12): Department Wise Enrollment Distribution (Refined Human Metric Bars) -->
         <div class="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs dark:shadow-none flex flex-col justify-between">
           <div>
             <div class="border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
               <h3 class="font-bold text-sm text-slate-900 dark:text-white">
                 {{ t('ការចុះឈ្មោះតាមមហាវិទ្យាល័យ / ដេប៉ាតឺម៉ង់', 'Department Wise Enrollment') }}
               </h3>
+              <p class="text-[11px] text-slate-400 mt-0.5">{{ t('ការបែងចែកចំនួននិស្សិតតាមមុខជំនាញសំខាន់ៗ', 'Student distribution across faculty departments') }}</p>
             </div>
 
-            <div class="space-y-2 mt-2 text-xs">
+            <div class="space-y-3 mt-2 text-xs">
               <Link
-                v-for="dept in props.deptWiseEnrollment"
+                v-for="(dept, dIdx) in props.deptWiseEnrollment"
                 :key="dept.id"
                 href="/admin/academic-structure/departments"
                 class="block p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group"
               >
-                <div class="flex items-center justify-between mb-1">
-                  <span class="font-bold text-slate-700 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate max-w-[200px]">{{ dept.name }}</span>
-                  <span class="font-black text-slate-900 dark:text-white shrink-0 ml-1">{{ dept.count.toLocaleString() }} {{ t('នាក់', 'Students') }}</span>
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate max-w-[210px]">{{ dept.name }}</span>
+                  <span class="font-bold text-slate-900 dark:text-white shrink-0 ml-2 tabular-nums">
+                    {{ dept.count.toLocaleString() }} <span class="text-[11px] text-slate-400 font-normal">({{ Math.round((dept.count / 600) * 100) }}%)</span>
+                  </span>
                 </div>
-                <div class="w-full h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                <div class="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                   <div
                     class="h-full rounded-full transition-all duration-500"
                     :class="[
-                      dept.color || (
-                        dept.name.includes('IT') ? 'bg-blue-600' :
-                        dept.name.includes('SW') ? 'bg-emerald-500' :
-                        dept.name.includes('AGR') ? 'bg-amber-500' :
-                        dept.name.includes('TRM') ? 'bg-purple-600' : 'bg-rose-500'
-                      )
+                      dIdx === 0 ? 'bg-blue-600' :
+                      dIdx === 1 ? 'bg-emerald-500' :
+                      dIdx === 2 ? 'bg-amber-500' :
+                      dIdx === 3 ? 'bg-purple-500' : 'bg-rose-500'
                     ]"
                     :style="`width: ${Math.min(100, Math.round((dept.count / 600) * 100))}%;`"
                   ></div>
@@ -1085,7 +1136,7 @@ const announcementsAlert = computed(() => props.adminAlerts?.find(a => a.type ==
             </div>
           </div>
 
-          <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400 font-bold mt-2">
+          <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400 font-medium mt-3">
             <span>0</span>
             <span>200</span>
             <span>400</span>
