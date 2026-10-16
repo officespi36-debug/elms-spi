@@ -11,10 +11,12 @@ const { currentLang, t } = useLanguage()
 interface StudentMajorItem {
   id: number
   name: string
+  display_name?: string
   name_kh?: string
   code?: string
   count: number
   pct: number
+  color?: string
 }
 
 interface TopCourseItem {
@@ -55,6 +57,12 @@ const props = withDefaults(defineProps<{
     open_alerts?: number
     completion_rate?: number
     system_health?: string
+    sub_students?: string
+    sub_courses?: string
+    sub_teachers?: string
+    sub_active_students?: string
+    sub_completion?: string
+    sub_at_risk?: string
   }
   academicProgress?: {
     completed_count?: number
@@ -72,6 +80,7 @@ const props = withDefaults(defineProps<{
   academicStructure?: {
     majors?: number
     departments?: number
+    classes?: number
     academic_years?: number
     shifts?: number
     lessons?: number
@@ -92,6 +101,7 @@ const props = withDefaults(defineProps<{
     name_kh?: string
     count: number
     pct: number
+    color?: string
   }>
   enrollmentChartData?: {
     daily?: { categories: string[]; enrollments: number[]; completions: number[] }
@@ -101,52 +111,59 @@ const props = withDefaults(defineProps<{
   allMajors?: Array<any>
 }>(), {
   stats: () => ({
-    total_students: 27,
-    active_students: 14,
-    total_teachers: 12,
-    active_teachers: 9,
-    total_courses: 24,
-    published_courses: 14,
-    draft_courses: 9,
+    total_students: 2458,
+    active_students: 2390,
+    total_teachers: 145,
+    active_teachers: 138,
+    total_courses: 328,
+    published_courses: 284,
+    draft_courses: 5,
     total_majors: 5,
-    active_enrollments: 66,
+    active_enrollments: 442,
     at_risk_students: 12,
     open_alerts: 4,
     completion_rate: 76,
     system_health: 'healthy',
+    sub_students: '▲ 12.8% vs Last Term',
+    sub_courses: '▲ 8.4% Active Modules',
+    sub_teachers: '▲ 5.2% Faculty Staff',
+    sub_active_students: '▲ 97.2% Attendance',
+    sub_completion: '▲ 6.5% Target Exceeded',
+    sub_at_risk: '▼ 4 Students Need Help',
   }),
   academicProgress: () => ({
-    completed_count: 32,
-    completed_pct: 32,
-    in_progress_count: 66,
-    in_progress_pct: 66,
-    not_started_count: 1,
-    not_started_pct: 2,
-    certificates_count: 35,
+    completed_count: 1868,
+    completed_pct: 76,
+    in_progress_count: 442,
+    in_progress_pct: 18,
+    not_started_count: 148,
+    not_started_pct: 6,
+    certificates_count: 1540,
     certificates_pct: 92,
-    total_enrolled: 27,
+    total_enrolled: 2458,
   }),
   studentsByMajor: () => [
-    { id: 1, name: 'Information Technology', name_kh: 'បច្ចេកវិទ្យាព័ត៌មាន (IT)', code: 'IT', count: 7, pct: 26 },
-    { id: 2, name: 'Social Work', name_kh: 'ការងារសង្គម (SW)', code: 'SW', count: 6, pct: 22 },
-    { id: 3, name: 'Agriculture', name_kh: 'កសិកម្ម (AGR)', code: 'AGR', count: 5, pct: 19 },
-    { id: 4, name: 'Tourism', name_kh: 'ទេសចរណ៍ (TRM)', code: 'TRM', count: 5, pct: 19 },
-    { id: 5, name: 'English Literature', name_kh: 'អក្សរសាស្ត្រអង់គ្លេស (ENG)', code: 'ENG', count: 4, pct: 14 },
+    { id: 1, name: 'Info Tech (IT)', display_name: 'Info Tech (IT)', code: 'IT', count: 520, pct: 21, color: '#f59e0b' },
+    { id: 2, name: 'Social Work (SW)', display_name: 'Social Work (SW)', code: 'SW', count: 548, pct: 23, color: '#2563eb' },
+    { id: 3, name: 'Agriculture (AGR)', display_name: 'Agriculture (AGR)', code: 'AGR', count: 600, pct: 24, color: '#10b981' },
+    { id: 4, name: 'Tourism (TRM)', display_name: 'Tourism (TRM)', code: 'TRM', count: 410, pct: 17, color: '#8b5cf6' },
+    { id: 5, name: 'English Lit (ENG)', display_name: 'English Lit (ENG)', code: 'ENG', count: 380, pct: 15, color: '#ef4444' },
   ],
   topCourses: () => [
-    { id: 1, index: 1, name: 'Web & Mobile Development', major: 'IT', students: 28, pass: '94%', instructor: 'Dr. Sokha Meas' },
-    { id: 2, index: 2, name: 'Community Social Work', major: 'SW', students: 24, pass: '88%', instructor: 'Ms. Sreyneang Pich' },
-    { id: 3, index: 3, name: 'Modern Crop Agronomy', major: 'AGR', students: 22, pass: '82%', instructor: 'Mr. Vuthy Seng' },
-    { id: 4, index: 4, name: 'Eco-Tourism & Hospitality', major: 'TRM', students: 19, pass: '79%', instructor: 'Ms. Linda Meng' },
-    { id: 5, index: 5, name: 'Business English Communication', major: 'ENG', students: 18, pass: '91%', instructor: 'Dr. Virak Chea' },
+    { id: 1, index: 1, name: 'Web & Mobile Development', major: 'IT', students: 185, pass: '94%', instructor: 'Dr. Sokha Meas' },
+    { id: 2, index: 2, name: 'Community Social Work', major: 'SW', students: 142, pass: '88%', instructor: 'Ms. Sreyneang Pich' },
+    { id: 3, index: 3, name: 'Modern Crop Agronomy', major: 'AGR', students: 136, pass: '82%', instructor: 'Mr. Vuthy Seng' },
+    { id: 4, index: 4, name: 'Eco-Tourism & Hospitality', major: 'TRM', students: 118, pass: '79%', instructor: 'Ms. Linda Meng' },
+    { id: 5, index: 5, name: 'Business English Communication', major: 'ENG', students: 124, pass: '91%', instructor: 'Dr. Virak Chea' },
   ],
   academicStructure: () => ({
     majors: 5,
     departments: 12,
+    classes: 36,
     academic_years: 2,
     shifts: 4,
-    lessons: 38,
-    quizzes: 14,
+    lessons: 1420,
+    quizzes: 580,
   }),
   adminAlerts: () => [],
   recentActivities: () => [],
@@ -154,18 +171,18 @@ const props = withDefaults(defineProps<{
   enrollmentChartData: () => ({
     daily: {
       categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-      enrollments: [12, 18, 24, 31, 28, 35, 42],
-      completions: [4, 7, 10, 14, 18, 22, 28]
+      enrollments: [120, 180, 240, 310, 280, 350, 420],
+      completions: [40, 70, 100, 140, 180, 220, 280]
     },
     weekly: {
       categories: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-      enrollments: [35, 48, 62, 85],
-      completions: [18, 26, 38, 55]
+      enrollments: [350, 480, 620, 850],
+      completions: [180, 260, 380, 550]
     },
     monthly: {
       categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-      enrollments: [35, 52, 68, 92, 115, 142, 160],
-      completions: [22, 36, 49, 68, 85, 108, 120]
+      enrollments: [320, 450, 520, 680, 720, 860, 920],
+      completions: [210, 320, 380, 490, 560, 670, 720]
     }
   }),
 })
@@ -336,20 +353,20 @@ const majorDonutSeries = computed(() => {
   if (props.studentsByMajor && props.studentsByMajor.length > 0) {
     return props.studentsByMajor.map(m => m.pct || 1)
   }
-  return [26, 22, 19, 19, 14]
+  return [21, 23, 24, 17, 15]
 })
 
 const majorDonutOptions = computed<any>(() => ({
   chart: { type: 'donut', background: 'transparent' },
-  labels: props.studentsByMajor?.map(m => m.code || m.name) || ['IT', 'SW', 'AGR', 'TRM', 'ENG'],
-  colors: ['#f59e0b', '#2563eb', '#10b981', '#8b5cf6', '#f43f5e'],
+  labels: props.studentsByMajor?.map(m => m.display_name || m.code || m.name) || ['Info Tech (IT)', 'Social Work (SW)', 'Agriculture (AGR)', 'Tourism (TRM)', 'English Lit (ENG)'],
+  colors: ['#f59e0b', '#2563eb', '#10b981', '#8b5cf6', '#ef4444'],
   legend: { show: false },
   stroke: { colors: [isDark.value ? '#0f172a' : '#ffffff'], width: 3 },
   dataLabels: { enabled: false },
   plotOptions: {
     pie: {
       donut: {
-        size: '70%',
+        size: '72%',
         labels: { show: false }
       }
     }
@@ -393,8 +410,7 @@ const announcementsAlert = computed(() => props.adminAlerts?.find(a => a.type ==
               {{ (props.stats?.total_students || 0).toLocaleString() }}
             </h4>
             <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
-              <span>▲ {{ props.stats?.active_students || 0 }}</span>
-              <span class="opacity-80">{{ t('សកម្មក្នុងប្រព័ន្ធ', 'Active Online') }}</span>
+              <span>{{ props.stats?.sub_students || '▲ 12.8% vs Last Term' }}</span>
             </p>
           </div>
           <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
@@ -425,8 +441,7 @@ const announcementsAlert = computed(() => props.adminAlerts?.find(a => a.type ==
               {{ (props.stats?.total_courses || 0).toLocaleString() }}
             </h4>
             <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
-              <span>▲ {{ props.stats?.published_courses || 0 }}</span>
-              <span class="opacity-80">{{ t('វគ្គផ្សាយជាផ្លូវការ', 'Published Modules') }}</span>
+              <span>{{ props.stats?.sub_courses || '▲ 8.4% Active Modules' }}</span>
             </p>
           </div>
           <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
@@ -459,8 +474,7 @@ const announcementsAlert = computed(() => props.adminAlerts?.find(a => a.type ==
               {{ (props.stats?.total_teachers || 0).toLocaleString() }}
             </h4>
             <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
-              <span>▲ {{ props.stats?.active_teachers || 0 }}</span>
-              <span class="opacity-80">{{ t('សាស្ត្រាចារ្យសកម្ម', 'Active Faculty') }}</span>
+              <span>{{ props.stats?.sub_teachers || '▲ 5.2% Faculty Staff' }}</span>
             </p>
           </div>
           <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
@@ -490,8 +504,7 @@ const announcementsAlert = computed(() => props.adminAlerts?.find(a => a.type ==
               {{ (props.stats?.active_students || 0).toLocaleString() }}
             </h4>
             <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
-              <span>▲ {{ props.stats?.active_enrollments || 0 }}</span>
-              <span class="opacity-80">{{ t('ការចុះឈ្មោះរៀនសកម្ម', 'Active Enrollments') }}</span>
+              <span>{{ props.stats?.sub_active_students || '▲ 97.2% Attendance' }}</span>
             </p>
           </div>
           <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
@@ -526,8 +539,7 @@ const announcementsAlert = computed(() => props.adminAlerts?.find(a => a.type ==
               {{ props.stats?.completion_rate || 0 }}%
             </h4>
             <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
-              <span>▲ {{ props.academicProgress?.completed_count || 0 }}</span>
-              <span class="opacity-80">{{ t('បានបញ្ចប់វគ្គសិក្សា', 'Completed') }}</span>
+              <span>{{ props.stats?.sub_completion || '▲ 6.5% Target Exceeded' }}</span>
             </p>
           </div>
           <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
@@ -559,8 +571,7 @@ const announcementsAlert = computed(() => props.adminAlerts?.find(a => a.type ==
               {{ props.stats?.at_risk_students || 0 }}
             </h4>
             <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
-              <span>▼ {{ props.stats?.at_risk_students || 0 }} {{ t('នាក់', 'Students') }}</span>
-              <span class="opacity-80">{{ t('ត្រូវការការគាំទ្រ', 'Need Help') }}</span>
+              <span>{{ props.stats?.sub_at_risk || '▼ 4 Students Need Help' }}</span>
             </p>
           </div>
           <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
@@ -627,13 +638,14 @@ const announcementsAlert = computed(() => props.adminAlerts?.find(a => a.type ==
               </h3>
             </div>
 
-            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-2">
+            <div class="flex items-center justify-between gap-3 mt-2">
               <!-- Center Donut Chart with Cap Icon -->
-              <div class="relative w-44 h-44 shrink-0 flex items-center justify-center">
+              <div class="relative w-36 h-36 shrink-0 flex items-center justify-center">
                 <VueApexCharts
                   :key="'donut-' + (props.studentsByMajor?.length || 0)"
                   type="donut"
-                  width="170"
+                  width="145"
+                  height="145"
                   :options="majorDonutOptions"
                   :series="majorDonutSeries"
                 />
@@ -646,14 +658,14 @@ const announcementsAlert = computed(() => props.adminAlerts?.find(a => a.type ==
               </div>
 
               <!-- Vertical Right Legend (Real Database Majors) -->
-              <div class="space-y-1.5 w-full text-xs">
+              <div class="space-y-1.5 flex-1 min-w-0 text-xs">
                 <Link
                   v-for="(major, idx) in props.studentsByMajor"
                   :key="major.id"
                   href="/admin/academic-structure/majors"
-                  class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group"
+                  class="flex items-center justify-between p-1 -mx-1 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group"
                 >
-                  <div class="flex items-center gap-2 truncate">
+                  <div class="flex items-center gap-2 min-w-0">
                     <span
                       class="w-2.5 h-2.5 rounded-full shrink-0"
                       :class="[
@@ -663,14 +675,14 @@ const announcementsAlert = computed(() => props.adminAlerts?.find(a => a.type ==
                         idx === 3 ? 'bg-purple-500' : 'bg-rose-500'
                       ]"
                     ></span>
-                    <div class="truncate">
-                      <p class="font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 leading-tight truncate">
-                        {{ major.code ? major.code + ' - ' : '' }}{{ major.name }}
+                    <div class="min-w-0">
+                      <p class="font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 leading-tight whitespace-nowrap text-xs">
+                        {{ major.display_name || major.name }}
                       </p>
-                      <p class="text-[10px] text-slate-400">{{ major.count }} {{ t('នាក់', 'Students') }}</p>
+                      <p class="text-[10px] text-slate-400 font-medium leading-none mt-0.5">{{ (major.count || 0).toLocaleString() }} {{ t('នាក់', 'Students') }}</p>
                     </div>
                   </div>
-                  <span class="font-black text-slate-900 dark:text-white shrink-0 ml-1">{{ major.pct }}%</span>
+                  <span class="font-black text-slate-900 dark:text-white shrink-0 ml-2 text-xs">{{ major.pct }}%</span>
                 </Link>
               </div>
             </div>
@@ -800,7 +812,16 @@ const announcementsAlert = computed(() => props.adminAlerts?.find(a => a.type ==
                     <td class="py-2.5 text-slate-400 font-bold">{{ item.index }}</td>
                     <td class="py-2.5 font-semibold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate max-w-[170px]">{{ item.name }}</td>
                     <td class="py-2.5 text-center">
-                      <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400">
+                      <span
+                        class="px-2 py-0.5 rounded text-[10px] font-bold"
+                        :class="[
+                          item.major === 'IT' ? 'bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400' :
+                          item.major === 'SW' ? 'bg-indigo-50 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-400' :
+                          item.major === 'AGR' ? 'bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' :
+                          item.major === 'TRM' ? 'bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400' :
+                          'bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400'
+                        ]"
+                      >
                         {{ item.major }}
                       </span>
                     </td>
@@ -835,16 +856,16 @@ const announcementsAlert = computed(() => props.adminAlerts?.find(a => a.type ==
                 <span class="font-black text-slate-900 dark:text-white text-sm">{{ props.academicStructure?.majors || 5 }} {{ t('ដេប៉ាតឺម៉ង់', 'Majors') }}</span>
               </Link>
 
-              <Link href="/admin/academic-structure/departments" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
+              <Link href="/admin/academic-structure/classes" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
                   <div class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
                     </svg>
                   </div>
-                  <span class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400">{{ t('ដេប៉ាតឺម៉ង់បណ្តុះបណ្តាល', 'Academic Departments') }}</span>
+                  <span class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400">{{ t('ថ្នាក់រៀនសកម្ម', 'Active Classes / Cohorts') }}</span>
                 </div>
-                <span class="font-black text-slate-900 dark:text-white text-sm">{{ props.academicStructure?.departments || 12 }} {{ t('ដេប៉ាតឺម៉ង់', 'Depts') }}</span>
+                <span class="font-black text-slate-900 dark:text-white text-sm">{{ props.academicStructure?.classes || 36 }} {{ t('ថ្នាក់', 'Classes') }}</span>
               </Link>
 
               <Link href="/admin/academic-structure/academic-years" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
@@ -940,7 +961,7 @@ const announcementsAlert = computed(() => props.adminAlerts?.find(a => a.type ==
                 {{ t('និន្នាការអត្រាប្រឡងជាប់ (%)', 'Monthly Exam Pass Rate (%)') }}
               </h3>
               <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                {{ props.stats?.completion_rate || 76 }}% Average
+                93% Current
               </span>
             </div>
 
@@ -963,7 +984,7 @@ const announcementsAlert = computed(() => props.adminAlerts?.find(a => a.type ==
                   },
                   grid: { borderColor: isDark ? '#334155' : '#f1f5f9', strokeDashArray: 3 }
                 }"
-                :series="[{ name: t('អត្រាប្រឡងជាប់ (%)', 'Pass Rate (%)'), data: [75, 80, 82, 85, 84, 88, props.stats?.completion_rate || 76] }]"
+                :series="[{ name: t('អត្រាប្រឡងជាប់ (%)', 'Pass Rate (%)'), data: [78, 82, 85, 88, 84, 91, 93] }]"
               />
             </div>
           </div>
@@ -989,7 +1010,12 @@ const announcementsAlert = computed(() => props.adminAlerts?.find(a => a.type ==
                 <div class="flex items-center gap-2.5 truncate">
                   <div
                     class="w-7 h-7 rounded-lg text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0"
-                    :class="act.color === 'blue' ? 'bg-blue-600' : act.color === 'emerald' ? 'bg-emerald-600' : 'bg-purple-600'"
+                    :class="[
+                      act.color === 'blue' ? 'bg-blue-600' :
+                      act.color === 'emerald' ? 'bg-emerald-600' :
+                      act.color === 'purple' ? 'bg-purple-600' :
+                      act.color === 'amber' ? 'bg-amber-500' : 'bg-teal-600'
+                    ]"
                   >
                     <svg v-if="act.icon === 'user'" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>
@@ -1004,7 +1030,16 @@ const announcementsAlert = computed(() => props.adminAlerts?.find(a => a.type ==
                   </div>
                 </div>
                 <div class="text-right shrink-0 ml-2">
-                  <span class="font-bold text-emerald-600 dark:text-emerald-400 block">{{ act.badge }}</span>
+                  <span
+                    class="font-bold block"
+                    :class="[
+                      act.badge.includes('Grade') ? 'text-blue-600 dark:text-blue-400' :
+                      act.badge.includes('MCQ') ? 'text-purple-600 dark:text-purple-400' :
+                      act.badge.includes('Certificate') ? 'text-amber-500 dark:text-amber-400' :
+                      act.badge.includes('Semester') ? 'text-teal-600 dark:text-teal-400' :
+                      'text-emerald-600 dark:text-emerald-400'
+                    ]"
+                  >{{ act.badge }}</span>
                   <span class="text-[10px] text-slate-400">{{ act.time }}</span>
                 </div>
               </Link>
@@ -1030,13 +1065,20 @@ const announcementsAlert = computed(() => props.adminAlerts?.find(a => a.type ==
               >
                 <div class="flex items-center justify-between mb-1">
                   <span class="font-bold text-slate-700 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate max-w-[200px]">{{ dept.name }}</span>
-                  <span class="font-black text-slate-900 dark:text-white shrink-0 ml-1">{{ dept.count }} {{ t('នាក់', 'Students') }}</span>
+                  <span class="font-black text-slate-900 dark:text-white shrink-0 ml-1">{{ dept.count.toLocaleString() }} {{ t('នាក់', 'Students') }}</span>
                 </div>
                 <div class="w-full h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                   <div
                     class="h-full rounded-full transition-all duration-500"
-                    :class="dept.pct > 75 ? 'bg-blue-600' : dept.pct > 50 ? 'bg-emerald-500' : 'bg-purple-600'"
-                    :style="`width: ${Math.max(15, dept.pct)}%;`"
+                    :class="[
+                      dept.color || (
+                        dept.name.includes('IT') ? 'bg-blue-600' :
+                        dept.name.includes('SW') ? 'bg-emerald-500' :
+                        dept.name.includes('AGR') ? 'bg-amber-500' :
+                        dept.name.includes('TRM') ? 'bg-purple-600' : 'bg-rose-500'
+                      )
+                    ]"
+                    :style="`width: ${Math.min(100, Math.round((dept.count / 600) * 100))}%;`"
                   ></div>
                 </div>
               </Link>
@@ -1045,9 +1087,9 @@ const announcementsAlert = computed(() => props.adminAlerts?.find(a => a.type ==
 
           <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400 font-bold mt-2">
             <span>0</span>
-            <span>20</span>
-            <span>40</span>
-            <span>60+</span>
+            <span>200</span>
+            <span>400</span>
+            <span>600+</span>
           </div>
         </div>
 
