@@ -2,7 +2,7 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "vite build",
+        "build": "vite build && node -e \"require('fs').copyFileSync('public/build/sw.js', 'public/sw.js')\"",
         "dev": "vite"
     },
     "devDependencies": {

@@ -30,6 +30,26 @@
             } catch (e) {
                 document.documentElement.classList.add('dark');
             }
+
+            // Instant PWA Legacy Cache Cleanup & Service Worker Sync
+            try {
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistrations().then(function(regs) {
+                        for (var i = 0; i < regs.length; i++) {
+                            regs[i].update();
+                        }
+                    });
+                }
+                if ('caches' in window) {
+                    caches.keys().then(function(keys) {
+                        for (var i = 0; i < keys.length; i++) {
+                            if (keys[i].indexOf('spi-elms-v') !== -1) {
+                                caches.delete(keys[i]);
+                            }
+                        }
+                    });
+                }
+            } catch (e) {}
         })();
     </script>
     <style>
