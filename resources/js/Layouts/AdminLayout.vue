@@ -892,8 +892,8 @@ onUnmounted(() => {
   <GlobalToast />
   <GlobalLoadingOverlay />
   <div class="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 selection:bg-indigo-500/30 transition-colors duration-200">
-    <!-- Sidebar for Desktop Matching Reference Design (Dark Navy, Starts Under Header) -->
-    <aside :class="[isSidebarCollapsed ? 'w-20 overflow-visible' : 'w-60', 'fixed top-14 bottom-0 left-0 z-40 hidden flex-col bg-[#071120] text-slate-300 border-r border-slate-800 md:flex transition-all duration-300 shadow-xl']">
+    <!-- Sidebar for Desktop Matching Reference Design (Dark Slate, Clean Enterprise SaaS) -->
+    <aside :class="[isSidebarCollapsed ? 'w-20 overflow-visible' : 'w-60', 'fixed top-14 bottom-0 left-0 z-40 hidden flex-col bg-[#0f172a] text-slate-300 border-r border-slate-800/80 md:flex transition-all duration-200']">
       <!-- Navigation -->
       <nav
         :class="[
@@ -916,11 +916,11 @@ onUnmounted(() => {
               :title="isSidebarCollapsed ? item.name : undefined"
               :class="[
                 isSidebarCollapsed ? 'justify-center px-0 w-10 h-10 mx-auto' : 'px-3 w-full gap-x-3',
-                'group flex items-center rounded-xl py-2 text-xs font-medium text-slate-300 hover:text-white hover:bg-rose-500/10 transition-all duration-200 cursor-pointer'
+                'group flex items-center rounded-md py-2 text-xs font-medium text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer'
               ]"
             >
               <div class="relative flex items-center justify-center shrink-0">
-                <svg class="h-4.5 w-4.5 shrink-0 text-rose-500" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" fill="none">
+                <svg class="h-4.5 w-4.5 shrink-0 text-slate-400 group-hover:text-rose-400 transition-colors" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9"/>
                 </svg>
               </div>
@@ -934,65 +934,20 @@ onUnmounted(() => {
               :title="isSidebarCollapsed ? item.name : undefined"
               :class="[
                 $page.url.startsWith(item.href!) 
-                  ? 'bg-[#1d68ed] text-white font-medium shadow-md shadow-blue-600/30' 
-                  : 'text-slate-300 hover:text-white hover:bg-slate-800/60 border border-transparent font-normal',
+                  ? 'bg-blue-600/10 text-blue-400 font-medium border-l-2 border-blue-500 rounded-r-md' 
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border-l-2 border-transparent font-medium rounded-r-md',
                 isSidebarCollapsed ? 'justify-center px-0 w-10 h-10 mx-auto' : 'px-3 w-full gap-x-3',
-                'group flex items-center rounded-xl py-2 text-xs transition-all duration-200'
+                'group flex items-center py-2 text-xs transition-colors'
               ]"
             >
               <div class="relative flex items-center justify-center shrink-0">
                 <!-- Dashboard -->
-                <svg v-if="item.iconType === 'dashboard'" class="h-4.5 w-4.5 shrink-0 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <svg v-if="item.iconType === 'dashboard'" class="h-4.5 w-4.5 shrink-0 transition-colors" :class="$page.url.startsWith(item.href!) ? 'text-blue-400' : 'text-slate-400 group-hover:text-slate-200'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                 </svg>
-                <!-- Sales -->
-                <svg v-else-if="item.iconType === 'sales'" class="h-4.5 w-4.5 shrink-0 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
-                </svg>
-                <!-- Purchase -->
-                <svg v-else-if="item.iconType === 'purchase'" class="h-4.5 w-4.5 shrink-0 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <!-- Other direct links fallback -->
+                <svg v-else class="h-4.5 w-4.5 shrink-0 text-slate-400 group-hover:text-slate-200 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-                <!-- Inventory -->
-                <svg v-else-if="item.iconType === 'inventory'" class="h-4.5 w-4.5 shrink-0 text-amber-500 fill-amber-500/20" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                </svg>
-                <!-- Customers -->
-                <svg v-else-if="item.iconType === 'customers'" class="h-4.5 w-4.5 shrink-0 text-rose-400 fill-rose-500/20" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                </svg>
-                <!-- Suppliers -->
-                <svg v-else-if="item.iconType === 'suppliers'" class="h-4.5 w-4.5 shrink-0 text-emerald-400 fill-emerald-500/10" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 17a2 2 0 100 4 2 2 0 000-4zm10 0a2 2 0 100 4 2 2 0 000-4zM3 4h11a1 1 0 011 1v10H3V4zm11 3h3.586a1 1 0 01.707.293l2.414 2.414a1 1 0 01.293.707V15H14V7z"/>
-                </svg>
-                <!-- Jewellery -->
-                <svg v-else-if="item.iconType === 'jewellery'" class="h-4.5 w-4.5 shrink-0 text-yellow-400 fill-yellow-400/20" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 2l8 6-8 14L4 8l8-6zm-4.5 6l4.5 11 4.5-11H7.5zM6 8h12"/>
-                </svg>
-                <!-- Accounts -->
-                <svg v-else-if="item.iconType === 'accounts'" class="h-4.5 w-4.5 shrink-0 text-cyan-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
-                  <rect x="3" y="4" width="18" height="16" rx="3" stroke-width="2"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 8h6M9 11h4a2 2 0 000-4H9v9m3-2l3 3"/>
-                </svg>
-                <!-- GST Reports -->
-                <svg v-else-if="item.iconType === 'gst-reports'" class="h-4.5 w-4.5 shrink-0 text-purple-400 fill-purple-400/10" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-                <!-- Branch -->
-                <svg v-else-if="item.iconType === 'branch'" class="h-4.5 w-4.5 shrink-0 text-slate-300" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                </svg>
-                <!-- Employees -->
-                <svg v-else-if="item.iconType === 'employees'" class="h-4.5 w-4.5 shrink-0 text-blue-400 fill-blue-400/20" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                </svg>
-                <!-- Reports -->
-                <svg v-else-if="item.iconType === 'reports'" class="h-4.5 w-4.5 shrink-0 text-slate-300" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 20v-4m5 4v-7m5 7v-10"/>
-                </svg>
-                <!-- Backup -->
-                <svg v-else-if="item.iconType === 'backup'" class="h-4.5 w-4.5 shrink-0 text-slate-300" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"/>
                 </svg>
               </div>
               <span v-show="!isSidebarCollapsed" class="flex-1 truncate">{{ getNavTitle(item.name) }}</span>
@@ -1005,7 +960,7 @@ onUnmounted(() => {
               </svg>
             </Link>
 
-            <!-- 3. Collapsible Module with Submenu (Settings) -->
+            <!-- 3. Collapsible Module with Submenu (Unified Enterprise Muted Slate Icons) -->
             <div v-else class="space-y-1 w-full flex flex-col items-center">
               <button
                 @click="toggleModule(item.key!)"
@@ -1013,42 +968,92 @@ onUnmounted(() => {
                 :title="isSidebarCollapsed ? item.name : undefined"
                 :class="[
                   isChildActive(item.children) 
-                    ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30 font-semibold' 
-                    : 'text-slate-300 hover:text-white hover:bg-slate-800/60 border border-transparent font-normal',
+                    ? 'bg-slate-800/80 text-white font-medium border-l-2 border-blue-500 rounded-r-md' 
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 border-l-2 border-transparent font-medium rounded-r-md',
                   isSidebarCollapsed ? 'justify-center px-0 w-10 h-10 mx-auto' : 'px-3 w-full justify-between',
-                  'group flex items-center rounded-xl py-2 text-xs transition-all duration-200 cursor-pointer'
+                  'group flex items-center py-2 text-xs transition-colors cursor-pointer'
                 ]"
               >
                 <div :class="[isSidebarCollapsed ? 'justify-center w-full' : '', 'flex items-center gap-x-3 truncate']">
                   <div class="relative flex items-center justify-center shrink-0">
-                    <svg v-if="item.iconType === 'auth'" class="h-4.5 w-4.5 shrink-0 text-amber-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                    <svg
+                      v-if="item.iconType === 'auth'"
+                      class="h-4.5 w-4.5 shrink-0 transition-colors"
+                      :class="isChildActive(item.children) ? 'text-blue-400' : 'text-slate-400 group-hover:text-slate-200'"
+                      viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"
+                    >
                       <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                     </svg>
-                    <svg v-else-if="item.iconType === 'users'" class="h-4.5 w-4.5 shrink-0 text-rose-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                    <svg
+                      v-else-if="item.iconType === 'users'"
+                      class="h-4.5 w-4.5 shrink-0 transition-colors"
+                      :class="isChildActive(item.children) ? 'text-blue-400' : 'text-slate-400 group-hover:text-slate-200'"
+                      viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"
+                    >
                       <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                     </svg>
-                    <svg v-else-if="item.iconType === 'academics'" class="h-4.5 w-4.5 shrink-0 text-cyan-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                    <svg
+                      v-else-if="item.iconType === 'academics'"
+                      class="h-4.5 w-4.5 shrink-0 transition-colors"
+                      :class="isChildActive(item.children) ? 'text-blue-400' : 'text-slate-400 group-hover:text-slate-200'"
+                      viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"
+                    >
                       <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                     </svg>
-                    <svg v-else-if="item.iconType === 'courses'" class="h-4.5 w-4.5 shrink-0 text-emerald-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                    <svg
+                      v-else-if="item.iconType === 'courses'"
+                      class="h-4.5 w-4.5 shrink-0 transition-colors"
+                      :class="isChildActive(item.children) ? 'text-blue-400' : 'text-slate-400 group-hover:text-slate-200'"
+                      viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"
+                    >
                       <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                     </svg>
-                    <svg v-else-if="item.iconType === 'assessment'" class="h-4.5 w-4.5 shrink-0 text-purple-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                    <svg
+                      v-else-if="item.iconType === 'assessment'"
+                      class="h-4.5 w-4.5 shrink-0 transition-colors"
+                      :class="isChildActive(item.children) ? 'text-blue-400' : 'text-slate-400 group-hover:text-slate-200'"
+                      viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"
+                    >
                       <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                     </svg>
-                    <svg v-else-if="item.iconType === 'progress'" class="h-4.5 w-4.5 shrink-0 text-orange-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                    <svg
+                      v-else-if="item.iconType === 'progress'"
+                      class="h-4.5 w-4.5 shrink-0 transition-colors"
+                      :class="isChildActive(item.children) ? 'text-blue-400' : 'text-slate-400 group-hover:text-slate-200'"
+                      viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"
+                    >
                       <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 20v-4m5 4v-7m5 7v-10"/>
                     </svg>
-                    <svg v-else-if="item.iconType === 'analytics'" class="h-4.5 w-4.5 shrink-0 text-blue-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                    <svg
+                      v-else-if="item.iconType === 'analytics'"
+                      class="h-4.5 w-4.5 shrink-0 transition-colors"
+                      :class="isChildActive(item.children) ? 'text-blue-400' : 'text-slate-400 group-hover:text-slate-200'"
+                      viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"
+                    >
                       <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                     </svg>
-                    <svg v-else-if="item.iconType === 'ai'" class="h-4.5 w-4.5 shrink-0 text-indigo-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                    <svg
+                      v-else-if="item.iconType === 'ai'"
+                      class="h-4.5 w-4.5 shrink-0 transition-colors"
+                      :class="isChildActive(item.children) ? 'text-blue-400' : 'text-slate-400 group-hover:text-slate-200'"
+                      viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"
+                    >
                       <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                     </svg>
-                    <svg v-else-if="item.iconType === 'communication'" class="h-4.5 w-4.5 shrink-0 text-amber-300" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                    <svg
+                      v-else-if="item.iconType === 'communication'"
+                      class="h-4.5 w-4.5 shrink-0 transition-colors"
+                      :class="isChildActive(item.children) ? 'text-blue-400' : 'text-slate-400 group-hover:text-slate-200'"
+                      viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"
+                    >
                       <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                     </svg>
-                    <svg v-else class="h-4.5 w-4.5 shrink-0 text-slate-300" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                    <svg
+                      v-else
+                      class="h-4.5 w-4.5 shrink-0 transition-colors"
+                      :class="isChildActive(item.children) ? 'text-blue-400' : 'text-slate-400 group-hover:text-slate-200'"
+                      viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"
+                    >
                       <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                     </svg>
                   </div>
@@ -1085,7 +1090,7 @@ onUnmounted(() => {
                   <div
                     :class="[
                       isSubActive(sub.href) ? 'border-blue-500 shadow-xs shadow-blue-500/30' : 'border-slate-800 group-hover:border-slate-600',
-                      'absolute -left-4 top-0 h-1/2 w-3.5 border-l-2 border-b-2 rounded-bl-xl transition-colors duration-200 pointer-events-none'
+                      'absolute -left-4 top-0 h-1/2 w-3.5 border-l-2 border-b-2 rounded-bl-lg transition-colors duration-200 pointer-events-none'
                     ]"
                   ></div>
 
@@ -1093,9 +1098,9 @@ onUnmounted(() => {
                     :href="sub.href"
                     :class="[
                       isSubActive(sub.href) 
-                        ? 'text-white font-semibold bg-blue-600/30 border border-blue-500/40 shadow-xs' 
-                        : 'text-slate-400 hover:text-white hover:bg-slate-800/50 border border-transparent',
-                      'flex-1 flex items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs transition-all duration-200 ml-1'
+                        ? 'text-blue-400 font-medium bg-blue-500/10 border border-blue-500/20' 
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 border border-transparent',
+                      'flex-1 flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs transition-colors ml-1'
                     ]"
                   >
                     <span class="truncate">{{ getNavTitle(sub.name) }}</span>
@@ -1234,51 +1239,19 @@ onUnmounted(() => {
             :href="item.href!"
             @click="sidebarOpen = false"
             :class="[
-              $page.url.startsWith(item.href!) ? 'bg-[#1d68ed] text-white font-medium shadow-md shadow-blue-600/30' : 'text-slate-300 hover:text-white hover:bg-slate-800/60 font-normal',
-              'flex items-center justify-between px-3 py-2.5 rounded-xl text-xs transition-colors'
+              $page.url.startsWith(item.href!) 
+                ? 'bg-blue-600/10 text-blue-400 font-medium border-l-2 border-blue-500 rounded-r-md' 
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 font-medium rounded-r-md',
+              'flex items-center justify-between px-3 py-2 text-xs transition-colors'
             ]"
           >
             <div class="flex items-center gap-3 truncate">
               <!-- Dashboard -->
-              <svg v-if="item.iconType === 'dashboard'" class="h-4.5 w-4.5 shrink-0 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <svg v-if="item.iconType === 'dashboard'" class="h-4.5 w-4.5 shrink-0 transition-colors" :class="$page.url.startsWith(item.href!) ? 'text-blue-400' : 'text-slate-400'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
               </svg>
-              <svg v-else-if="item.iconType === 'sales'" class="h-4.5 w-4.5 shrink-0 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
-              </svg>
-              <svg v-else-if="item.iconType === 'purchase'" class="h-4.5 w-4.5 shrink-0 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <svg v-else class="h-4.5 w-4.5 shrink-0 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-              </svg>
-              <svg v-else-if="item.iconType === 'inventory'" class="h-4.5 w-4.5 shrink-0 text-amber-500" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-              </svg>
-              <svg v-else-if="item.iconType === 'customers'" class="h-4.5 w-4.5 shrink-0 text-rose-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-              </svg>
-              <svg v-else-if="item.iconType === 'suppliers'" class="h-4.5 w-4.5 shrink-0 text-emerald-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M8 17a2 2 0 100 4 2 2 0 000-4zm10 0a2 2 0 100 4 2 2 0 000-4zM3 4h11a1 1 0 011 1v10H3V4zm11 3h3.586a1 1 0 01.707.293l2.414 2.414a1 1 0 01.293.707V15H14V7z"/>
-              </svg>
-              <svg v-else-if="item.iconType === 'jewellery'" class="h-4.5 w-4.5 shrink-0 text-yellow-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 2l8 6-8 14L4 8l8-6zm-4.5 6l4.5 11 4.5-11H7.5zM6 8h12"/>
-              </svg>
-              <svg v-else-if="item.iconType === 'accounts'" class="h-4.5 w-4.5 shrink-0 text-cyan-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
-                <rect x="3" y="4" width="18" height="16" rx="3" stroke-width="2"/>
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 8h6M9 11h4a2 2 0 000-4H9v9m3-2l3 3"/>
-              </svg>
-              <svg v-else-if="item.iconType === 'gst-reports'" class="h-4.5 w-4.5 shrink-0 text-purple-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-              </svg>
-              <svg v-else-if="item.iconType === 'branch'" class="h-4.5 w-4.5 shrink-0 text-slate-300" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-              </svg>
-              <svg v-else-if="item.iconType === 'employees'" class="h-4.5 w-4.5 shrink-0 text-blue-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-              </svg>
-              <svg v-else-if="item.iconType === 'reports'" class="h-4.5 w-4.5 shrink-0 text-slate-300" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 20v-4m5 4v-7m5 7v-10"/>
-              </svg>
-              <svg v-else-if="item.iconType === 'backup'" class="h-4.5 w-4.5 shrink-0 text-slate-300" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"/>
               </svg>
               <span class="truncate">{{ getNavTitle(item.name) }}</span>
             </div>
@@ -1295,37 +1268,92 @@ onUnmounted(() => {
           <div v-else class="space-y-1">
             <button
               @click="toggleModule(item.key!)"
-              class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs text-slate-300 hover:text-white hover:bg-slate-800/60 font-normal cursor-pointer"
+              :class="[
+                isChildActive(item.children) 
+                  ? 'bg-slate-800/80 text-white font-medium border-l-2 border-blue-500 rounded-r-md' 
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 font-medium rounded-r-md',
+                'w-full flex items-center justify-between px-3 py-2 text-xs transition-colors cursor-pointer'
+              ]"
             >
               <div class="flex items-center gap-3 truncate">
-                <svg v-if="item.iconType === 'auth'" class="h-4.5 w-4.5 shrink-0 text-amber-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                <svg
+                  v-if="item.iconType === 'auth'"
+                  class="h-4.5 w-4.5 shrink-0 transition-colors"
+                  :class="isChildActive(item.children) ? 'text-blue-400' : 'text-slate-400'"
+                  viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"
+                >
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                 </svg>
-                <svg v-else-if="item.iconType === 'users'" class="h-4.5 w-4.5 shrink-0 text-rose-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                <svg
+                  v-else-if="item.iconType === 'users'"
+                  class="h-4.5 w-4.5 shrink-0 transition-colors"
+                  :class="isChildActive(item.children) ? 'text-blue-400' : 'text-slate-400'"
+                  viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"
+                >
                   <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                 </svg>
-                <svg v-else-if="item.iconType === 'academics'" class="h-4.5 w-4.5 shrink-0 text-cyan-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                <svg
+                  v-else-if="item.iconType === 'academics'"
+                  class="h-4.5 w-4.5 shrink-0 transition-colors"
+                  :class="isChildActive(item.children) ? 'text-blue-400' : 'text-slate-400'"
+                  viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"
+                >
                   <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                 </svg>
-                <svg v-else-if="item.iconType === 'courses'" class="h-4.5 w-4.5 shrink-0 text-emerald-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                <svg
+                  v-else-if="item.iconType === 'courses'"
+                  class="h-4.5 w-4.5 shrink-0 transition-colors"
+                  :class="isChildActive(item.children) ? 'text-blue-400' : 'text-slate-400'"
+                  viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"
+                >
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                 </svg>
-                <svg v-else-if="item.iconType === 'assessment'" class="h-4.5 w-4.5 shrink-0 text-purple-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                <svg
+                  v-else-if="item.iconType === 'assessment'"
+                  class="h-4.5 w-4.5 shrink-0 transition-colors"
+                  :class="isChildActive(item.children) ? 'text-blue-400' : 'text-slate-400'"
+                  viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"
+                >
                   <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                 </svg>
-                <svg v-else-if="item.iconType === 'progress'" class="h-4.5 w-4.5 shrink-0 text-orange-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                <svg
+                  v-else-if="item.iconType === 'progress'"
+                  class="h-4.5 w-4.5 shrink-0 transition-colors"
+                  :class="isChildActive(item.children) ? 'text-blue-400' : 'text-slate-400'"
+                  viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"
+                >
                   <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 20v-4m5 4v-7m5 7v-10"/>
                 </svg>
-                <svg v-else-if="item.iconType === 'analytics'" class="h-4.5 w-4.5 shrink-0 text-blue-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                <svg
+                  v-else-if="item.iconType === 'analytics'"
+                  class="h-4.5 w-4.5 shrink-0 transition-colors"
+                  :class="isChildActive(item.children) ? 'text-blue-400' : 'text-slate-400'"
+                  viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"
+                >
                   <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                 </svg>
-                <svg v-else-if="item.iconType === 'ai'" class="h-4.5 w-4.5 shrink-0 text-indigo-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                <svg
+                  v-else-if="item.iconType === 'ai'"
+                  class="h-4.5 w-4.5 shrink-0 transition-colors"
+                  :class="isChildActive(item.children) ? 'text-blue-400' : 'text-slate-400'"
+                  viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"
+                >
                   <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                 </svg>
-                <svg v-else-if="item.iconType === 'communication'" class="h-4.5 w-4.5 shrink-0 text-amber-300" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                <svg
+                  v-else-if="item.iconType === 'communication'"
+                  class="h-4.5 w-4.5 shrink-0 transition-colors"
+                  :class="isChildActive(item.children) ? 'text-blue-400' : 'text-slate-400'"
+                  viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"
+                >
                   <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                 </svg>
-                <svg v-else class="h-4.5 w-4.5 shrink-0 text-slate-300" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                <svg
+                  v-else
+                  class="h-4.5 w-4.5 shrink-0 transition-colors"
+                  :class="isChildActive(item.children) ? 'text-blue-400' : 'text-slate-400'"
+                  viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none"
+                >
                   <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                 </svg>
                 <span class="truncate">{{ getNavTitle(item.name) }}</span>
@@ -1339,8 +1367,8 @@ onUnmounted(() => {
                 :href="sub.href"
                 @click="sidebarOpen = false"
                 :class="[
-                  $page.url.startsWith(sub.href) ? 'bg-blue-600/25 text-blue-300 font-bold border border-blue-500/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60',
-                  'flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs transition-all'
+                  $page.url.startsWith(sub.href) ? 'bg-blue-600/15 text-blue-400 font-medium border border-blue-500/20' : 'text-slate-400 hover:text-white hover:bg-slate-800/60',
+                  'flex items-center gap-2.5 px-3 py-1.5 rounded-md text-xs transition-colors'
                 ]"
               >
                 <span class="truncate">{{ getNavTitle(sub.name) }}</span>
@@ -1351,7 +1379,7 @@ onUnmounted(() => {
       </nav>
 
       <!-- Mobile Footer -->
-      <div class="p-3.5 border-t border-slate-800 bg-[#071120] flex items-center justify-between">
+      <div class="p-3.5 border-t border-slate-800 bg-[#0f172a] flex items-center justify-between">
         <div class="flex items-center gap-3 min-w-0">
           <div class="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs">
             {{ user.name ? user.name.charAt(0) : 'A' }}
@@ -1367,11 +1395,11 @@ onUnmounted(() => {
       </div>
     </aside>
 
-    <!-- Fixed Top Navbar Matching Reference Image (Dark Navy Theme, Spans 100% Width) -->
-    <header class="fixed top-0 inset-x-0 z-50 h-14 bg-[#071120] text-white border-b border-slate-800 shadow-md">
+    <!-- Fixed Top Navbar Matching Reference Image (Dark Slate Theme, Spans 100% Width) -->
+    <header class="fixed top-0 inset-x-0 z-50 h-14 bg-[#0f172a] text-white border-b border-slate-800/80 shadow-2xs">
       <div class="flex h-14 items-center justify-between px-3 sm:px-6 gap-3">
         
-        <!-- Left Side: Gold Diamond Logo, Title/Subtitle, Hamburger Toggle, White Pill Search Input -->
+        <!-- Left Side: Logo, Title/Subtitle, Hamburger Toggle, Clean 320px Search Input -->
         <div class="flex items-center gap-2.5 sm:gap-4 min-w-0">
           <!-- Logo & Title -->
           <Link href="/admin/dashboard" class="flex items-center gap-2.5 shrink-0 group">
@@ -1403,10 +1431,10 @@ onUnmounted(() => {
             </svg>
           </button>
 
-          <!-- Long White Pill Search Input with Dual Magnifying Glass Icons -->
+          <!-- Enterprise SaaS Search Bar (320px width, rounded-lg, subtle ⌘K shortcut badge) -->
           <div class="relative hidden md:block">
-            <div class="flex items-center bg-white text-slate-800 rounded-full px-3.5 py-1.5 w-60 lg:w-80 xl:w-96 shadow-sm border border-slate-200 focus-within:ring-2 focus-within:ring-blue-500/40 focus-within:border-blue-500 transition-all">
-              <svg @click="toggleDropdown('search')" class="w-4 h-4 text-slate-400 mr-2 shrink-0 cursor-pointer hover:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <div class="flex items-center bg-slate-900/90 hover:bg-slate-900 text-slate-200 rounded-lg px-3 py-1.5 w-80 shadow-2xs border border-slate-700/80 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
+              <svg @click="toggleDropdown('search')" class="w-3.5 h-3.5 text-slate-400 mr-2 shrink-0 cursor-pointer hover:text-blue-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <input
@@ -1414,30 +1442,30 @@ onUnmounted(() => {
                 v-model="searchQuery"
                 @focus="isSearchOpen = true"
                 @keydown.enter="handleSearchEnter"
-                :placeholder="currentLang === 'km' ? 'ស្វែងរកវគ្គសិក្សា និស្សិត របាយការណ៍...' : 'Search courses, students, reports...'"
-                class="bg-transparent text-xs text-slate-800 placeholder-slate-400 focus:outline-none w-full"
+                :placeholder="currentLang === 'km' ? 'ស្វែងរកវគ្គសិក្សា និស្សិត...' : 'Search courses, students, reports...'"
+                class="bg-transparent text-xs text-slate-200 placeholder-slate-400 focus:outline-none w-full"
               />
-              <svg @click="handleSearchEnter" class="w-4 h-4 text-slate-400 ml-2 shrink-0 cursor-pointer hover:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+              <kbd class="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono font-medium text-slate-400 bg-slate-800 border border-slate-700 rounded select-none shrink-0 ml-1">
+                ⌘K
+              </kbd>
             </div>
           </div>
         </div>
 
-        <!-- Right Side: Date Pill, Fullscreen, Bell, Settings Gear, Theme/Lang, Admin Profile Avatar -->
+        <!-- Right Side: Date Dropdown, Fullscreen, Bell, Settings Gear, Theme/Lang, Admin Profile Avatar -->
         <div class="flex items-center gap-1.5 sm:gap-2">
 
-          <!-- Date Dropdown Pill (Fully Interactive with Presets & Picker) -->
+          <!-- Date Dropdown Button (Enterprise rounded-lg style) -->
           <div class="relative nav-dropdown-scope">
             <button
               @click.stop="toggleDropdown('date')"
               type="button"
-              class="hidden sm:flex items-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 px-3.5 py-1.5 rounded-full text-xs font-semibold shadow-sm border border-slate-200 select-none mr-1 cursor-pointer transition-all active:scale-95 focus:outline-none"
+              class="hidden sm:flex items-center gap-1.5 bg-slate-900/90 hover:bg-slate-800 text-slate-200 px-3 py-1.5 rounded-lg text-xs font-medium shadow-2xs border border-slate-700/80 select-none mr-1 cursor-pointer transition-all active:scale-95 focus:outline-none"
               :title="currentLang === 'km' ? 'ជ្រើសរើសកាលបរិច្ឆេទ / ឆមាសសិក្សា' : 'Select Date / Academic Term'"
             >
               <span class="text-slate-400 text-xs">📅</span>
-              <span class="font-bold text-slate-900">{{ dateDisplayLabel }}</span>
-              <span class="text-slate-400 text-[10px] ml-0.5 transition-transform duration-200" :class="isDateOpen ? 'rotate-180 text-blue-600' : ''">⌄</span>
+              <span class="font-medium text-slate-200">{{ dateDisplayLabel }}</span>
+              <span class="text-slate-400 text-[10px] ml-0.5 transition-transform duration-200" :class="isDateOpen ? 'rotate-180 text-blue-400' : ''">⌄</span>
             </button>
 
             <!-- Date Dropdown Menu -->
@@ -1766,7 +1794,7 @@ onUnmounted(() => {
     <!-- Global Command Palette Modal (Search Dialog) -->
     <div v-if="isSearchOpen" class="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 px-4">
       <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity" @click="isSearchOpen = false"></div>
-      <div class="relative w-full max-w-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden z-50">
+      <div class="relative w-full max-w-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl overflow-hidden z-50">
         <!-- Search Input Header -->
         <div class="flex items-center px-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/90">
           <svg class="w-5 h-5 text-indigo-500 dark:text-indigo-400 shrink-0 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
