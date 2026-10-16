@@ -269,8 +269,14 @@ const performanceBarOptions = computed<any>(() => ({
           <div>
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ t('និស្សិតសរុប', "TOTAL STUDENTS") }}</span>
-              <div class="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform p-1">
-                <img :src="'/images/dashboard/card-students-3d.png'" alt="Students" class="w-full h-full object-contain drop-shadow" />
+              <div class="text-white/90 group-hover:text-white group-hover:scale-110 transition-transform duration-200 shrink-0">
+                <!-- Clean outline bag icon matching Image 2 -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M8 8V6a4 4 0 0 1 8 0v2" />
+                  <path d="M5 8h14l-1.3 12.2a2 2 0 0 1-2 1.8H8.3a2 2 0 0 1-2-1.8L5 8z" />
+                  <path d="M9 8v5" />
+                  <path d="M15 8v5" />
+                </svg>
               </div>
             </div>
             <h4 class="text-2xl font-black tracking-tight text-white mt-1">
@@ -299,8 +305,12 @@ const performanceBarOptions = computed<any>(() => ({
           <div>
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ t('វគ្គសិក្សាសរុប', 'TOTAL COURSES') }}</span>
-              <div class="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform p-1">
-                <img :src="'/images/dashboard/card-courses-3d.png'" alt="Courses" class="w-full h-full object-contain drop-shadow" />
+              <div class="text-white/90 group-hover:text-white group-hover:scale-110 transition-transform duration-200 shrink-0">
+                <!-- Clean outline courses icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                </svg>
               </div>
             </div>
             <h4 class="text-2xl font-black tracking-tight text-white mt-1">
@@ -328,8 +338,14 @@ const performanceBarOptions = computed<any>(() => ({
           <div>
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ t('សាស្ត្រាចារ្យសរុប', "TOTAL TEACHERS") }}</span>
-              <div class="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform p-1">
-                <img :src="'/images/dashboard/card-teachers-3d.png'" alt="Teachers" class="w-full h-full object-contain drop-shadow" />
+              <div class="text-white/90 group-hover:text-white group-hover:scale-110 transition-transform duration-200 shrink-0">
+                <!-- Clean outline teachers/faculty icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
               </div>
             </div>
             <h4 class="text-2xl font-black tracking-tight text-white mt-1">
@@ -357,8 +373,11 @@ const performanceBarOptions = computed<any>(() => ({
           <div>
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ t('និស្សិតសកម្មអនឡាញ', 'ACTIVE STUDENTS') }}</span>
-              <div class="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform p-1">
-                <img :src="'/images/dashboard/card-active-3d.png'" alt="Active" class="w-full h-full object-contain drop-shadow" />
+              <div class="text-white/90 group-hover:text-white group-hover:scale-110 transition-transform duration-200 shrink-0">
+                <!-- Clean outline online activity icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                </svg>
               </div>
             </div>
             <h4 class="text-2xl font-black tracking-tight text-white mt-1">
@@ -386,8 +405,16 @@ const performanceBarOptions = computed<any>(() => ({
           <div>
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ t('អត្រាបញ្ចប់វគ្គ', 'COMPLETION RATE') }}</span>
-              <div class="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform p-1">
-                <img :src="'/images/dashboard/card-completion-3d.png'" alt="Completion" class="w-full h-full object-contain drop-shadow" />
+              <div class="text-white/90 group-hover:text-white group-hover:scale-110 transition-transform duration-200 shrink-0">
+                <!-- Clean outline completion trophy icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+                  <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+                  <path d="M4 22h16" />
+                  <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+                  <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+                  <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+                </svg>
               </div>
             </div>
             <h4 class="text-2xl font-black tracking-tight text-white mt-1">
@@ -415,8 +442,13 @@ const performanceBarOptions = computed<any>(() => ({
           <div>
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ t('និស្សិតប្រឈមហានិភ័យ', 'AT-RISK STUDENTS') }}</span>
-              <div class="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform p-1">
-                <img :src="'/images/dashboard/card-at-risk-3d.png'" alt="At Risk" class="w-full h-full object-contain drop-shadow" />
+              <div class="text-white/90 group-hover:text-white group-hover:scale-110 transition-transform duration-200 shrink-0">
+                <!-- Clean outline warning alert icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
               </div>
             </div>
             <h4 class="text-2xl font-black tracking-tight text-white mt-1">
