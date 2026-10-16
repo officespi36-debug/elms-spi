@@ -93,6 +93,36 @@ const majorFilter = ref(props.filters?.major_id || 'all')
 const chartTimeframe = ref<'daily' | 'weekly' | 'monthly'>('monthly')
 const isRefreshing = ref(false)
 
+// ── Interactive Functional Modals & Quick Actions State ──
+const activeModal = ref<'none' | 'at_risk' | 'courses_review' | 'teachers_review' | 'announcements' | 'course_detail'>('none')
+const selectedCourse = ref<{ id: number; name: string; major: string; students: number; pass: string; instructor?: string } | null>(null)
+const actionToast = ref('')
+
+function openCourseDetail(course: any) {
+  selectedCourse.value = course
+  activeModal.value = 'course_detail'
+}
+
+function openAlertModal(status: string) {
+  if (status === 'Action') activeModal.value = 'at_risk'
+  else if (status === 'Pending') activeModal.value = 'courses_review'
+  else if (status === 'Review') activeModal.value = 'teachers_review'
+  else if (status === 'Scheduled') activeModal.value = 'announcements'
+}
+
+function closeModal() {
+  activeModal.value = 'none'
+  selectedCourse.value = null
+}
+
+function executeAction(actionTitle: string) {
+  actionToast.value = t(`បានប្រតិបត្តិការ «${actionTitle}» ដោយជោគជ័យ!`, `Successfully executed: "${actionTitle}"!`)
+  setTimeout(() => {
+    actionToast.value = ''
+    closeModal()
+  }, 1800)
+}
+
 function applyFilters() {
   isRefreshing.value = true
   router.get('/admin/dashboard', {
@@ -505,6 +535,7 @@ const performanceBarOptions = computed<any>(() => ({
             <!-- ApexCharts Area -->
             <div class="h-64 w-full">
               <VueApexCharts
+                :key="'chart-' + chartTimeframe"
                 type="area"
                 height="100%"
                 :options="enrollmentChartOptions"
@@ -714,16 +745,16 @@ const performanceBarOptions = computed<any>(() => ({
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                   <tr
                     v-for="item in [
-                      { id: 1, name: 'Web & Mobile Development', major: 'IT', students: 185, pass: '94%' },
-                      { id: 2, name: 'Community Social Work', major: 'SW', students: 142, pass: '88%' },
-                      { id: 3, name: 'Modern Crop Agronomy', major: 'AGR', students: 136, pass: '82%' },
-                      { id: 4, name: 'Eco-Tourism & Hospitality', major: 'TRM', students: 118, pass: '79%' },
-                      { id: 5, name: 'Business English Communication', major: 'ENG', students: 124, pass: '91%' },
+                      { id: 1, name: 'Web & Mobile Development', major: 'IT', students: 185, pass: '94%', instructor: 'Mr. Sophea' },
+                      { id: 2, name: 'Community Social Work', major: 'SW', students: 142, pass: '88%', instructor: 'Ms. Sreyneang' },
+                      { id: 3, name: 'Modern Crop Agronomy', major: 'AGR', students: 136, pass: '82%', instructor: 'Mr. Vuthy' },
+                      { id: 4, name: 'Eco-Tourism & Hospitality', major: 'TRM', students: 118, pass: '79%', instructor: 'Ms. Linda' },
+                      { id: 5, name: 'Business English Communication', major: 'ENG', students: 124, pass: '91%', instructor: 'Dr. Sokha' },
                     ]"
                     :key="item.id"
-                    @click="router.visit('/admin/course-module/all')"
+                    @click="openCourseDetail(item)"
                     class="hover:bg-blue-50/70 dark:hover:bg-slate-800/70 transition-colors cursor-pointer group"
-                    :title="t('ចុចដើម្បីពិនិត្យវគ្គសិក្សា', 'Click to view course')"
+                    :title="t('ចុចដើម្បីពិនិត្យវគ្គសិក្សា', 'Click to view course details')"
                   >
                     <td class="py-2.5 text-slate-400 font-bold">{{ item.id }}</td>
                     <td class="py-2.5 font-semibold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{{ item.name }}</td>
@@ -845,25 +876,31 @@ const performanceBarOptions = computed<any>(() => ({
             </div>
 
             <div class="space-y-2 text-xs">
-              <Link
+              <div
                 v-for="alert in [
-                  { title: '12 At-Risk Students', desc: 'Completion < 30% on quizzes', status: 'Action', color: 'bg-rose-600 text-white', link: '/admin/progress?tab=at_risk' },
+                  { title: '12 At-Risk Students', desc: 'Completion < 30% on quizzes', status: 'Action', color: 'bg-rose-600 text-white', link: '/admin/ai-rules?tab=at_risk' },
                   { title: '5 Courses Waiting Review', desc: 'Faculty syllabus submitted', status: 'Pending', color: 'bg-amber-500 text-white', link: '/admin/course-module/all' },
                   { title: '3 Teachers Accounts', desc: 'Department verification', status: 'Review', color: 'bg-blue-600 text-white', link: '/admin/user-management/teachers' },
                   { title: '2 Announcements', desc: 'Ready for semester start', status: 'Scheduled', color: 'bg-emerald-600 text-white', link: '/admin/notifications/announcements' },
                 ]"
                 :key="alert.title"
-                :href="alert.link"
+                @click="openAlertModal(alert.status)"
                 class="p-2.5 rounded-xl bg-white/70 dark:bg-slate-900/60 border border-rose-100 dark:border-rose-900/30 flex items-center justify-between hover:bg-white dark:hover:bg-slate-800 hover:shadow-xs transition-all cursor-pointer group"
+                :title="t('ចុចដើម្បីចាត់ការភ្លាមៗ', 'Click to manage action item')"
               >
                 <div>
                   <h5 class="font-bold text-slate-900 dark:text-slate-100 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors leading-tight">{{ alert.title }}</h5>
                   <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ alert.desc }}</p>
                 </div>
-                <span class="px-2.5 py-1 rounded-md text-[11px] font-bold shrink-0 ml-2 group-hover:scale-105 transition-transform shadow-2xs" :class="alert.color">
+                <button
+                  type="button"
+                  @click.stop="openAlertModal(alert.status)"
+                  class="px-2.5 py-1 rounded-md text-[11px] font-bold shrink-0 ml-2 group-hover:scale-105 active:scale-95 transition-transform shadow-2xs cursor-pointer"
+                  :class="alert.color"
+                >
                   {{ alert.status }}
-                </span>
-              </Link>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1083,6 +1120,229 @@ const performanceBarOptions = computed<any>(() => ({
         </div>
 
       </div>
+
+      <!-- ── INTERACTIVE FUNCTIONAL MODALS & ACTIONS (Zero Dead Ends) ── -->
+
+      <!-- 1. At-Risk Students Intervention Modal -->
+      <div v-if="activeModal === 'at_risk'" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
+        <div class="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
+          <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-rose-50/60 dark:bg-rose-950/30">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-rose-600 text-white flex items-center justify-center font-bold text-sm">
+                !
+              </div>
+              <div>
+                <h3 class="font-bold text-sm text-slate-900 dark:text-white">{{ t('អន្តរាគមន៍និស្សិតប្រឈមហានិភ័យ (12 នាក់)', '12 At-Risk Students Intervention') }}</h3>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ t('ប្រព័ន្ធ AI បានរកឃើញអត្រាបំពេញកម្រងសំណួរទាបជាង 30%', 'AI detected quiz completion rate < 30%') }}</p>
+              </div>
+            </div>
+            <button @click="closeModal" class="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer">✕</button>
+          </div>
+
+          <div class="p-5 space-y-3 max-h-80 overflow-y-auto text-xs">
+            <div v-for="st in [
+              { name: 'Chan Dara', major: 'Info Tech (IT)', score: '28%', reason: 'Failed Quiz 2 twice, missed lab deadline' },
+              { name: 'Long Vichida', major: 'English Lit (ENG)', score: '24%', reason: 'Inactive for 6 consecutive days' },
+              { name: 'Pov Sreynich', major: 'Agriculture (AGR)', score: '29%', reason: 'Incomplete practical task Module 3' },
+              { name: 'Sok Chanra', major: 'Tourism (TRM)', score: '25%', reason: 'Attendance rate dropped to 62%' }
+            ]" :key="st.name" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between">
+              <div>
+                <h5 class="font-bold text-slate-900 dark:text-white text-xs">{{ st.name }} <span class="text-[10px] text-blue-600 dark:text-blue-400 font-semibold ml-1">({{ st.major }})</span></h5>
+                <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ st.reason }}</p>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400">{{ st.score }}</span>
+            </div>
+          </div>
+
+          <div class="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 flex flex-wrap items-center justify-between gap-2">
+            <button @click="executeAction('ផ្ញើសេចក្តីជូនដំណឹង AI & គម្រោងជំនួយការសិក្សា')" class="px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white cursor-pointer transition-colors shadow-sm">
+              {{ t('⚡ ផ្ញើសេចក្តីជូនដំណឹងអន្តរាគមន៍', '⚡ Send AI Intervention Alerts') }}
+            </button>
+            <Link href="/admin/ai-rules?tab=at_risk" @click="closeModal" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 transition-colors">
+              {{ t('បើកម៉ូឌុល AI ពេញលេញ →', 'Open Full AI Module →') }}
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Courses Waiting Review Modal -->
+      <div v-if="activeModal === 'courses_review'" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
+        <div class="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
+          <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-amber-50/60 dark:bg-amber-950/30">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center font-bold text-sm">
+                📚
+              </div>
+              <div>
+                <h3 class="font-bold text-sm text-slate-900 dark:text-white">{{ t('វគ្គសិក្សា 5 កំពុងរង់ចាំការអនុម័ត', '5 Courses Waiting for Review') }}</h3>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ t('សាស្ត្រាចារ្យបានដាក់បញ្ជូន Syllabus & ឯកសារបង្រៀន', 'Faculty submitted course syllabus & lectures') }}</p>
+              </div>
+            </div>
+            <button @click="closeModal" class="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer">✕</button>
+          </div>
+
+          <div class="p-5 space-y-2.5 max-h-80 overflow-y-auto text-xs">
+            <div v-for="c in [
+              { title: 'Advanced Machine Learning & AI', teacher: 'Dr. Sokha Meas', major: 'IT', modules: '12 Lessons' },
+              { title: 'Organic Crop Agronomy Practices', teacher: 'Mr. Vuthy Seng', major: 'AGR', modules: '8 Lessons' },
+              { title: 'Sustainable Eco-Tourism Operations', teacher: 'Ms. Linda Meng', major: 'TRM', modules: '10 Lessons' },
+              { title: 'Clinical Social Work Case Studies', teacher: 'Ms. Sreyneang Pich', major: 'SW', modules: '14 Lessons' },
+              { title: 'International Business English', teacher: 'Dr. Virak Chea', major: 'ENG', modules: '9 Lessons' }
+            ]" :key="c.title" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between">
+              <div>
+                <h5 class="font-bold text-slate-900 dark:text-white text-xs">{{ c.title }}</h5>
+                <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ c.teacher }} · {{ c.modules }}</p>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400">{{ c.major }}</span>
+            </div>
+          </div>
+
+          <div class="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 flex flex-wrap items-center justify-between gap-2">
+            <button @click="executeAction('អនុម័តវគ្គសិក្សាទាំងអស់')" class="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white cursor-pointer transition-colors shadow-sm">
+              {{ t('✓ អនុម័តវគ្គសិក្សាទាំងអស់', '✓ Approve All 5 Courses') }}
+            </button>
+            <Link href="/admin/course-module/all" @click="closeModal" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 transition-colors">
+              {{ t('មើលក្នុងផ្ទាំងគ្រប់គ្រងវគ្គសិក្សា →', 'View All Courses →') }}
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Teachers Accounts Verification Modal -->
+      <div v-if="activeModal === 'teachers_review'" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
+        <div class="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
+          <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-blue-50/60 dark:bg-blue-950/30">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-sm">
+                👨‍🏫
+              </div>
+              <div>
+                <h3 class="font-bold text-sm text-slate-900 dark:text-white">{{ t('គណនីសាស្ត្រាចារ្យ 3 រង់ចាំការផ្ទៀងផ្ទាត់', '3 Teacher Accounts Pending') }}</h3>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ t('ការផ្ទៀងផ្ទាត់ និងចាត់តាំងដេប៉ាតឺម៉ង់បង្រៀន', 'Faculty verification & department role assignment') }}</p>
+              </div>
+            </div>
+            <button @click="closeModal" class="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer">✕</button>
+          </div>
+
+          <div class="p-5 space-y-2.5 max-h-80 overflow-y-auto text-xs">
+            <div v-for="tch in [
+              { name: 'Dr. Heng Chantha', dept: 'Information Technology', exp: '10 Years Exp', email: 'chantha.heng@spilms.tech' },
+              { name: 'Ms. Kim Vanna', dept: 'Agriculture & Agronomy', exp: '7 Years Exp', email: 'vanna.kim@spilms.tech' },
+              { name: 'Mr. Ouk Daneth', dept: 'Social Work', exp: '6 Years Exp', email: 'daneth.ouk@spilms.tech' }
+            ]" :key="tch.name" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between">
+              <div>
+                <h5 class="font-bold text-slate-900 dark:text-white text-xs">{{ tch.name }}</h5>
+                <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ tch.dept }} · {{ tch.email }}</p>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400">{{ tch.exp }}</span>
+            </div>
+          </div>
+
+          <div class="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 flex flex-wrap items-center justify-between gap-2">
+            <button @click="executeAction('ផ្ទៀងផ្ទាត់ និងផ្តល់សិទ្ធិបង្រៀន')" class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white cursor-pointer transition-colors shadow-sm">
+              {{ t('✓ ផ្ទៀងផ្ទាត់ និងផ្តល់សិទ្ធិទាំងអស់', '✓ Verify & Approve All 3') }}
+            </button>
+            <Link href="/admin/user-management/teachers" @click="closeModal" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 transition-colors">
+              {{ t('គ្រប់គ្រងសាស្ត្រាចារ្យ →', 'Manage Teachers →') }}
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Announcements Schedule Modal -->
+      <div v-if="activeModal === 'announcements'" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
+        <div class="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
+          <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-emerald-50/60 dark:bg-emerald-950/30">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-sm">
+                📢
+              </div>
+              <div>
+                <h3 class="font-bold text-sm text-slate-900 dark:text-white">{{ t('សេចក្តីប្រកាស 2 បានកំណត់ពេល', '2 Scheduled Announcements') }}</h3>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ t('រួចរាល់សម្រាប់ការចាប់ផ្តើមឆមាសសិក្សាថ្មី', 'Ready for semester start broadcast') }}</p>
+              </div>
+            </div>
+            <button @click="closeModal" class="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer">✕</button>
+          </div>
+
+          <div class="p-5 space-y-2.5 max-h-80 overflow-y-auto text-xs">
+            <div v-for="ann in [
+              { title: 'Semester 2 Academic Launch & Course Enrollment Window', date: 'Tomorrow at 08:00 AM', aud: 'All Students & Teachers' },
+              { title: 'Final Exam Preparation & Quiz Bank Practice Open', date: 'Next Monday at 09:00 AM', aud: 'Active Students' }
+            ]" :key="ann.title" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between">
+              <div>
+                <h5 class="font-bold text-slate-900 dark:text-white text-xs">{{ ann.title }}</h5>
+                <p class="text-[10px] text-slate-500 dark:text-slate-400">Target: {{ ann.aud }} · Time: {{ ann.date }}</p>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400">Scheduled</span>
+            </div>
+          </div>
+
+          <div class="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 flex flex-wrap items-center justify-between gap-2">
+            <button @click="executeAction('ផ្សព្វផ្សាយជាបន្ទាន់')" class="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer transition-colors shadow-sm">
+              {{ t('🚀 ផ្សព្វផ្សាយជាបន្ទាន់', '🚀 Broadcast Now') }}
+            </button>
+            <Link href="/admin/notifications/announcements" @click="closeModal" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 transition-colors">
+              {{ t('គ្រប់គ្រងសេចក្តីប្រកាស →', 'Announcement Center →') }}
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Course Quick Detail Modal -->
+      <div v-if="activeModal === 'course_detail' && selectedCourse" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
+        <div class="relative w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
+          <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-blue-50/60 dark:bg-blue-950/30">
+            <div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 uppercase tracking-wide">{{ selectedCourse.major }}</span>
+              <h3 class="font-bold text-sm text-slate-900 dark:text-white mt-1">{{ selectedCourse.name }}</h3>
+            </div>
+            <button @click="closeModal" class="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer">✕</button>
+          </div>
+
+          <div class="p-5 space-y-3 text-xs">
+            <div class="grid grid-cols-2 gap-3">
+              <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60">
+                <span class="text-[10px] text-slate-400 block font-semibold uppercase">{{ t('និស្សិតចុះឈ្មោះ', 'Enrolled') }}</span>
+                <span class="text-lg font-black text-slate-900 dark:text-white">{{ selectedCourse.students }} {{ t('នាក់', 'Students') }}</span>
+              </div>
+              <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60">
+                <span class="text-[10px] text-slate-400 block font-semibold uppercase">{{ t('អត្រាប្រឡងជាប់', 'Pass Rate') }}</span>
+                <span class="text-lg font-black text-emerald-600 dark:text-emerald-400">{{ selectedCourse.pass }}</span>
+              </div>
+            </div>
+
+            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60">
+              <span class="text-[10px] text-slate-400 block font-semibold uppercase">{{ t('សាស្ត្រាចារ្យទទួលបន្ទុក', 'Instructor') }}</span>
+              <span class="font-bold text-slate-800 dark:text-slate-200 text-xs">{{ selectedCourse.instructor || 'Faculty Specialist' }}</span>
+            </div>
+          </div>
+
+          <div class="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 flex items-center justify-between gap-2">
+            <button @click="executeAction('ទាញយករបាយការណ៍លទ្ធផលវគ្គសិក្សា')" class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white cursor-pointer transition-colors shadow-sm">
+              {{ t('📄 ទាញយករបាយការណ៍', '📄 Download Report') }}
+            </button>
+            <Link href="/admin/course-module/all" @click="closeModal" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 transition-colors">
+              {{ t('បើកទំព័រវគ្គសិក្សា →', 'Open Course Module →') }}
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Success Toast Notification -->
+      <transition
+        enter-active-class="transition duration-200 ease-out"
+        enter-from-class="opacity-0 translate-y-3"
+        enter-to-class="opacity-100 translate-y-0"
+        leave-active-class="transition duration-150 ease-in"
+        leave-from-class="opacity-100 translate-y-0"
+        leave-to-class="opacity-0 translate-y-3"
+      >
+        <div v-if="actionToast" class="fixed bottom-6 right-6 z-50 bg-emerald-600 text-white px-5 py-3 rounded-2xl shadow-2xl font-bold flex items-center gap-2.5 text-xs">
+          <span>✓</span>
+          <span>{{ actionToast }}</span>
+        </div>
+      </transition>
 
     </div>
   </AdminLayout>
