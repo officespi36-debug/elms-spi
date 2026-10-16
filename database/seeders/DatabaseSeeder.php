@@ -251,5 +251,11 @@ class DatabaseSeeder extends Seeder
         foreach ($settings as $setting) {
             Setting::updateOrCreate(['key' => $setting['key']], $setting);
         }
+
+        // Call Academic & Dashboard Real Data seeders for production
+        $this->call([
+            AcademicSeeder::class,
+            DashboardRealDataSeeder::class,
+        ]);
     }
 }
