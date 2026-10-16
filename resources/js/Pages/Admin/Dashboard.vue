@@ -533,7 +533,10 @@ const performanceBarOptions = computed<any>(() => ({
                   :series="majorDonutSeries"
                 />
                 <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <span class="text-2xl">🎓</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-slate-800 dark:text-slate-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                    <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                  </svg>
                 </div>
               </div>
 
@@ -611,8 +614,10 @@ const performanceBarOptions = computed<any>(() => ({
             <div class="space-y-1.5 mt-2 text-xs">
               <Link href="/admin/progress?tab=course" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600 flex items-center justify-center text-sm group-hover:scale-105 transition-transform">
-                    ✅
+                  <div class="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
                   </div>
                   <span class="font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400">{{ t('បានបញ្ចប់', 'Completed') }}</span>
                 </div>
@@ -624,8 +629,11 @@ const performanceBarOptions = computed<any>(() => ({
 
               <Link href="/admin/enrollment/courses" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-500/15 text-blue-600 flex items-center justify-center text-sm group-hover:scale-105 transition-transform">
-                    📖
+                  <div class="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                    </svg>
                   </div>
                   <span class="font-bold text-slate-800 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400">{{ t('កំពុងរៀន', 'In Progress') }}</span>
                 </div>
@@ -637,8 +645,13 @@ const performanceBarOptions = computed<any>(() => ({
 
               <Link href="/admin/user-management/students" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-500/15 text-amber-600 flex items-center justify-center text-sm group-hover:scale-105 transition-transform">
-                    ⏳
+                  <div class="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M5 22h14" />
+                      <path d="M5 2h14" />
+                      <path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22" />
+                      <path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2" />
+                    </svg>
                   </div>
                   <span class="font-bold text-slate-800 dark:text-slate-200 group-hover:text-amber-600 dark:group-hover:text-amber-400">{{ t('មិនទាន់ចាប់ផ្ដើម', 'Not Started') }}</span>
                 </div>
@@ -650,8 +663,11 @@ const performanceBarOptions = computed<any>(() => ({
 
               <Link href="/admin/verify-certificate" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-500/15 text-purple-600 flex items-center justify-center text-sm group-hover:scale-105 transition-transform">
-                    📜
+                  <div class="w-7 h-7 rounded-lg bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="8" r="6" />
+                      <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
+                    </svg>
                   </div>
                   <span class="font-bold text-slate-800 dark:text-slate-200 group-hover:text-purple-600 dark:group-hover:text-purple-400">{{ t('វិញ្ញាបនបត្រចេញរួច', 'Certificates') }}</span>
                 </div>
@@ -723,12 +739,6 @@ const performanceBarOptions = computed<any>(() => ({
               </table>
             </div>
           </div>
-
-          <div class="pt-3 border-t border-slate-100 dark:border-slate-800 text-center mt-2">
-            <Link href="/admin/course-module/all" class="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline">
-              {{ t('មើលវគ្គសិក្សាទាំងអស់ →', 'View All Courses →') }}
-            </Link>
-          </div>
         </div>
 
         <!-- Col 2 (4/12): Academic Structure Summary (Interactive Links) -->
@@ -743,8 +753,15 @@ const performanceBarOptions = computed<any>(() => ({
             <div class="space-y-1.5 mt-2 text-xs">
               <Link href="/admin/academic-structure/majors" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-blue-500 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform">
-                    🏛️
+                  <div class="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="3" y1="22" x2="21" y2="22" />
+                      <line x1="6" y1="18" x2="6" y2="11" />
+                      <line x1="10" y1="18" x2="10" y2="11" />
+                      <line x1="14" y1="18" x2="14" y2="11" />
+                      <line x1="18" y1="18" x2="18" y2="11" />
+                      <polygon points="12 2 20 7 4 7" />
+                    </svg>
                   </div>
                   <span class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400">{{ t('ជំនាញបណ្តុះបណ្តាល', 'Academic Majors') }}</span>
                 </div>
@@ -753,8 +770,13 @@ const performanceBarOptions = computed<any>(() => ({
 
               <Link href="/admin/academic-structure/departments" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform">
-                    👥
+                  <div class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                      <circle cx="9" cy="7" r="4" />
+                      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
                   </div>
                   <span class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400">{{ t('ថ្នាក់សិក្សាសកម្ម', 'Active Classes / Cohorts') }}</span>
                 </div>
@@ -763,8 +785,11 @@ const performanceBarOptions = computed<any>(() => ({
 
               <Link href="/admin/academic-structure/academic-years" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform">
-                    ⏰
+                  <div class="w-7 h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
                   </div>
                   <span class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-amber-600 dark:group-hover:text-amber-400">{{ t('វេនសិក្សាផ្លូវការ', 'Study Shifts') }}</span>
                 </div>
@@ -773,8 +798,11 @@ const performanceBarOptions = computed<any>(() => ({
 
               <Link href="/admin/course-module/all" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-purple-600 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform">
-                    📑
+                  <div class="w-7 h-7 rounded-lg bg-purple-600 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                    </svg>
                   </div>
                   <span class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-purple-600 dark:group-hover:text-purple-400">{{ t('មេរៀន និងធនធានបង្រៀន', 'Published Lessons') }}</span>
                 </div>
@@ -783,20 +811,20 @@ const performanceBarOptions = computed<any>(() => ({
 
               <Link href="/admin/quizzes" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-rose-500 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform">
-                    📝
+                  <div class="w-7 h-7 rounded-lg bg-rose-500 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="16" y1="13" x2="8" y2="13" />
+                      <line x1="16" y1="17" x2="8" y2="17" />
+                      <polyline points="10 9 9 9 8 9" />
+                    </svg>
                   </div>
                   <span class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-rose-600 dark:group-hover:text-rose-400">{{ t('កម្រងសំណួរ & ការប្រឡង', 'Quizzes & Exams') }}</span>
                 </div>
                 <span class="font-black text-slate-900 dark:text-white text-sm">580</span>
               </Link>
             </div>
-          </div>
-
-          <div class="pt-3 border-t border-slate-100 dark:border-slate-800 text-center mt-2">
-            <Link href="/admin/academic-structure/majors" class="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline">
-              {{ t('មើលរចនាសម្ព័ន្ធអប់រំទាំងអស់ →', 'View Academic Structure →') }}
-            </Link>
           </div>
         </div>
 
@@ -805,7 +833,10 @@ const performanceBarOptions = computed<any>(() => ({
           <div>
             <div class="flex items-center justify-between border-b border-rose-200/60 dark:border-rose-900/40 pb-3 mb-3">
               <div class="flex items-center gap-1.5">
-                <span class="text-rose-600">🔔</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4.5 h-4.5 text-amber-500 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                </svg>
                 <h3 class="font-bold text-sm text-rose-900 dark:text-rose-200">
                   {{ t('ការដាស់តឿនបន្ទាន់', 'Critical Alerts') }}
                   <span class="text-rose-600 text-xs font-semibold">(4 Items)</span>
@@ -816,10 +847,10 @@ const performanceBarOptions = computed<any>(() => ({
             <div class="space-y-2 text-xs">
               <Link
                 v-for="alert in [
-                  { title: '12 At-Risk Students', desc: 'Completion < 30% on quizzes', status: 'Action', color: 'bg-rose-500 text-white', link: '/admin/progress?tab=at_risk' },
+                  { title: '12 At-Risk Students', desc: 'Completion < 30% on quizzes', status: 'Action', color: 'bg-rose-600 text-white', link: '/admin/progress?tab=at_risk' },
                   { title: '5 Courses Waiting Review', desc: 'Faculty syllabus submitted', status: 'Pending', color: 'bg-amber-500 text-white', link: '/admin/course-module/all' },
-                  { title: '3 Teachers Accounts', desc: 'Department verification', status: 'Review', color: 'bg-blue-500 text-white', link: '/admin/user-management/teachers' },
-                  { title: '2 Announcements', desc: 'Ready for semester start', status: 'Scheduled', color: 'bg-emerald-500 text-white', link: '/admin/notifications/announcements' },
+                  { title: '3 Teachers Accounts', desc: 'Department verification', status: 'Review', color: 'bg-blue-600 text-white', link: '/admin/user-management/teachers' },
+                  { title: '2 Announcements', desc: 'Ready for semester start', status: 'Scheduled', color: 'bg-emerald-600 text-white', link: '/admin/notifications/announcements' },
                 ]"
                 :key="alert.title"
                 :href="alert.link"
@@ -829,17 +860,11 @@ const performanceBarOptions = computed<any>(() => ({
                   <h5 class="font-bold text-slate-900 dark:text-slate-100 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors leading-tight">{{ alert.title }}</h5>
                   <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ alert.desc }}</p>
                 </div>
-                <span class="px-2 py-0.5 rounded text-[10px] font-bold shrink-0 ml-2 group-hover:scale-105 transition-transform" :class="alert.color">
+                <span class="px-2.5 py-1 rounded-md text-[11px] font-bold shrink-0 ml-2 group-hover:scale-105 transition-transform shadow-2xs" :class="alert.color">
                   {{ alert.status }}
                 </span>
               </Link>
             </div>
-          </div>
-
-          <div class="pt-3 border-t border-rose-200/60 dark:border-rose-900/40 text-center mt-2">
-            <Link href="/admin/progress?tab=at_risk" class="text-xs font-bold text-rose-600 dark:text-rose-400 hover:underline">
-              {{ t('មើលការដាស់តឿនទាំងអស់ →', 'View All Action Items →') }}
-            </Link>
           </div>
         </div>
 
@@ -885,8 +910,11 @@ const performanceBarOptions = computed<any>(() => ({
             <div class="space-y-1.5 mt-1 text-xs">
               <Link href="/admin/reports?tab=students" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-blue-500 text-white flex items-center justify-center text-xs group-hover:scale-105 transition-transform">
-                    🎓
+                  <div class="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                      <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                    </svg>
                   </div>
                   <div>
                     <h5 class="font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 leading-tight">Kosal Seng</h5>
@@ -901,8 +929,13 @@ const performanceBarOptions = computed<any>(() => ({
 
               <Link href="/admin/reports?tab=students" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-xs group-hover:scale-105 transition-transform">
-                    📝
+                  <div class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                      <polyline points="14 2 14 8 20 8"/>
+                      <line x1="16" y1="13" x2="8" y2="13"/>
+                      <line x1="16" y1="17" x2="8" y2="17"/>
+                    </svg>
                   </div>
                   <div>
                     <h5 class="font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 leading-tight">Sreyneang Pich</h5>
@@ -917,8 +950,12 @@ const performanceBarOptions = computed<any>(() => ({
 
               <Link href="/admin/reports?tab=teachers" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-purple-500 text-white flex items-center justify-center text-xs group-hover:scale-105 transition-transform">
-                    👨‍🏫
+                  <div class="w-7 h-7 rounded-lg bg-purple-600 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                      <line x1="12" y1="17" x2="12.01" y2="17" />
+                    </svg>
                   </div>
                   <div>
                     <h5 class="font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 leading-tight">Dr. Sokha Meas</h5>
@@ -933,8 +970,11 @@ const performanceBarOptions = computed<any>(() => ({
 
               <Link href="/admin/reports?tab=students" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs group-hover:scale-105 transition-transform">
-                    📜
+                  <div class="w-7 h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="8" r="6"/>
+                      <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
+                    </svg>
                   </div>
                   <div>
                     <h5 class="font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 leading-tight">Virak Chea</h5>
@@ -949,8 +989,12 @@ const performanceBarOptions = computed<any>(() => ({
 
               <Link href="/admin/reports?tab=students" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-teal-500 text-white flex items-center justify-center text-xs group-hover:scale-105 transition-transform">
-                    📥
+                  <div class="w-7 h-7 rounded-lg bg-teal-600 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                      <circle cx="9" cy="7" r="4"/>
+                      <polyline points="16 11 18 13 22 9"/>
+                    </svg>
                   </div>
                   <div>
                     <h5 class="font-bold text-slate-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 leading-tight">Linda Meng</h5>
