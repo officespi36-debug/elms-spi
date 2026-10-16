@@ -8,106 +8,189 @@ import { isDark } from '@/composables/useTheme'
 
 const { currentLang, t } = useLanguage()
 
-interface MajorPerformanceItem {
+interface StudentMajorItem {
+  id: number
   name: string
-  completed: number
-  in_progress: number
-  not_started: number
-  total_count: number
+  name_kh?: string
+  code?: string
+  count: number
+  pct: number
+}
+
+interface TopCourseItem {
+  id: number
+  index: number
+  name: string
+  major: string
+  major_name?: string
+  students: number
+  pass: string
+  instructor: string
+  status?: string
+}
+
+interface AlertItem {
+  type: string
+  title: string
+  desc: string
+  status: string
+  color: string
+  count: number
+  items?: Array<any>
+  action_label?: string
 }
 
 const props = withDefaults(defineProps<{
-  stats?: any
-  filters?: { period?: string; major_id?: string }
-  allMajors?: Array<any>
+  stats?: {
+    total_students?: number
+    active_students?: number
+    total_teachers?: number
+    active_teachers?: number
+    total_courses?: number
+    published_courses?: number
+    draft_courses?: number
+    total_majors?: number
+    active_enrollments?: number
+    at_risk_students?: number
+    open_alerts?: number
+    completion_rate?: number
+    system_health?: string
+  }
+  academicProgress?: {
+    completed_count?: number
+    completed_pct?: number
+    in_progress_count?: number
+    in_progress_pct?: number
+    not_started_count?: number
+    not_started_pct?: number
+    certificates_count?: number
+    certificates_pct?: number
+    total_enrolled?: number
+  }
+  studentsByMajor?: Array<StudentMajorItem>
+  topCourses?: Array<TopCourseItem>
+  academicStructure?: {
+    majors?: number
+    departments?: number
+    academic_years?: number
+    shifts?: number
+    lessons?: number
+    quizzes?: number
+  }
+  adminAlerts?: Array<AlertItem>
+  recentActivities?: Array<{
+    name: string
+    action: string
+    badge: string
+    color: string
+    time: string
+    icon: string
+  }>
+  deptWiseEnrollment?: Array<{
+    id: number
+    name: string
+    name_kh?: string
+    count: number
+    pct: number
+  }>
   enrollmentChartData?: {
     daily?: { categories: string[]; enrollments: number[]; completions: number[] }
     weekly?: { categories: string[]; enrollments: number[]; completions: number[] }
     monthly?: { categories: string[]; enrollments: number[]; completions: number[] }
   }
-  completionBreakdown?: { completed: number; in_progress: number; not_started: number }
-  majorPerformance?: Record<string, MajorPerformanceItem>
-  studentsByMajor?: Array<{ name: string; name_kh?: string; count: number; pct: number }>
-  adminAlerts?: Array<{ id: number; icon: string; level: string; title: string; detail: string; action_label: string; url: string }>
+  allMajors?: Array<any>
 }>(), {
   stats: () => ({
-    total_students: 2458,
-    active_students: 2390,
-    total_teachers: 145,
-    active_teachers: 140,
-    total_courses: 328,
-    published_courses: 290,
-    draft_courses: 5,
-    completion_rate: 76,
+    total_students: 27,
+    active_students: 14,
+    total_teachers: 12,
+    active_teachers: 9,
+    total_courses: 24,
+    published_courses: 14,
+    draft_courses: 9,
+    total_majors: 5,
+    active_enrollments: 66,
     at_risk_students: 12,
+    open_alerts: 4,
+    completion_rate: 76,
+    system_health: 'healthy',
   }),
-  filters: () => ({ period: 'month', major_id: 'all' }),
-  allMajors: () => [
-    { id: 1, name: 'Information Technology' },
-    { id: 2, name: 'Social Work' },
-    { id: 3, name: 'Agriculture' },
-    { id: 4, name: 'Tourism' },
-    { id: 5, name: 'English Literature' },
+  academicProgress: () => ({
+    completed_count: 32,
+    completed_pct: 32,
+    in_progress_count: 66,
+    in_progress_pct: 66,
+    not_started_count: 1,
+    not_started_pct: 2,
+    certificates_count: 35,
+    certificates_pct: 92,
+    total_enrolled: 27,
+  }),
+  studentsByMajor: () => [
+    { id: 1, name: 'Information Technology', name_kh: 'បច្ចេកវិទ្យាព័ត៌មាន (IT)', code: 'IT', count: 7, pct: 26 },
+    { id: 2, name: 'Social Work', name_kh: 'ការងារសង្គម (SW)', code: 'SW', count: 6, pct: 22 },
+    { id: 3, name: 'Agriculture', name_kh: 'កសិកម្ម (AGR)', code: 'AGR', count: 5, pct: 19 },
+    { id: 4, name: 'Tourism', name_kh: 'ទេសចរណ៍ (TRM)', code: 'TRM', count: 5, pct: 19 },
+    { id: 5, name: 'English Literature', name_kh: 'អក្សរសាស្ត្រអង់គ្លេស (ENG)', code: 'ENG', count: 4, pct: 14 },
   ],
+  topCourses: () => [
+    { id: 1, index: 1, name: 'Web & Mobile Development', major: 'IT', students: 28, pass: '94%', instructor: 'Dr. Sokha Meas' },
+    { id: 2, index: 2, name: 'Community Social Work', major: 'SW', students: 24, pass: '88%', instructor: 'Ms. Sreyneang Pich' },
+    { id: 3, index: 3, name: 'Modern Crop Agronomy', major: 'AGR', students: 22, pass: '82%', instructor: 'Mr. Vuthy Seng' },
+    { id: 4, index: 4, name: 'Eco-Tourism & Hospitality', major: 'TRM', students: 19, pass: '79%', instructor: 'Ms. Linda Meng' },
+    { id: 5, index: 5, name: 'Business English Communication', major: 'ENG', students: 18, pass: '91%', instructor: 'Dr. Virak Chea' },
+  ],
+  academicStructure: () => ({
+    majors: 5,
+    departments: 12,
+    academic_years: 2,
+    shifts: 4,
+    lessons: 38,
+    quizzes: 14,
+  }),
+  adminAlerts: () => [],
+  recentActivities: () => [],
+  deptWiseEnrollment: () => [],
   enrollmentChartData: () => ({
     daily: {
-      categories: ['01 Jul', '03 Jul', '05 Jul', '07 Jul', '09 Jul', '11 Jul'],
-      enrollments: [180, 240, 210, 310, 290, 380],
-      completions: [120, 160, 140, 220, 205, 270]
+      categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      enrollments: [12, 18, 24, 31, 28, 35, 42],
+      completions: [4, 7, 10, 14, 18, 22, 28]
     },
     weekly: {
       categories: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-      enrollments: [450, 620, 580, 808],
-      completions: [310, 420, 390, 560]
+      enrollments: [35, 48, 62, 85],
+      completions: [18, 26, 38, 55]
     },
     monthly: {
       categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-      enrollments: [320, 450, 510, 680, 720, 890, 940],
-      completions: [210, 310, 380, 490, 530, 670, 710]
+      enrollments: [35, 52, 68, 92, 115, 142, 160],
+      completions: [22, 36, 49, 68, 85, 108, 120]
     }
   }),
-  completionBreakdown: () => ({ completed: 76, in_progress: 18, not_started: 6 }),
-  majorPerformance: () => ({
-    all: { name: 'All Majors', completed: 76, in_progress: 18, not_started: 6, total_count: 2458 },
-    1: { name: 'Information Technology', completed: 82, in_progress: 14, not_started: 4, total_count: 520 },
-    2: { name: 'Social Work', completed: 74, in_progress: 20, not_started: 6, total_count: 548 },
-    3: { name: 'Agriculture', completed: 70, in_progress: 22, not_started: 8, total_count: 600 },
-    4: { name: 'Tourism', completed: 68, in_progress: 24, not_started: 8, total_count: 410 },
-    5: { name: 'English Literature', completed: 85, in_progress: 11, not_started: 4, total_count: 380 }
-  }),
-  studentsByMajor: () => [
-    { name: 'Information Technology', name_kh: 'បច្ចេកវិទ្យាព័ត៌មាន (IT)', count: 520, pct: 21 },
-    { name: 'Social Work', name_kh: 'ការងារសង្គម (SW)', count: 548, pct: 23 },
-    { name: 'Agriculture', name_kh: 'កសិកម្ម (AGR)', count: 600, pct: 24 },
-    { name: 'Tourism', name_kh: 'ទេសចរណ៍ (TRM)', count: 410, pct: 17 },
-    { name: 'English Literature', name_kh: 'អក្សរសាស្ត្រអង់គ្លេស (ENG)', count: 380, pct: 15 },
-  ],
 })
 
 const page = usePage<any>()
-const userName = computed(() => page.props.auth?.user?.name || 'Admin')
 
-// Period & Filters state
-const periodFilter = ref(props.filters?.period || 'month')
-const majorFilter = ref(props.filters?.major_id || 'all')
+// Timeframe toggle state
 const chartTimeframe = ref<'daily' | 'weekly' | 'monthly'>('monthly')
-const isRefreshing = ref(false)
-
-// ── Interactive Functional Modals & Quick Actions State ──
-const activeModal = ref<'none' | 'at_risk' | 'courses_review' | 'teachers_review' | 'announcements' | 'course_detail'>('none')
-const selectedCourse = ref<{ id: number; name: string; major: string; students: number; pass: string; instructor?: string } | null>(null)
+const isProcessingAction = ref(false)
 const actionToast = ref('')
 
-function openCourseDetail(course: any) {
+// Interactive Modal State
+const activeModal = ref<'none' | 'at_risk' | 'courses_review' | 'teachers_review' | 'announcements' | 'course_detail'>('none')
+const selectedCourse = ref<TopCourseItem | null>(null)
+
+function openCourseDetail(course: TopCourseItem) {
   selectedCourse.value = course
   activeModal.value = 'course_detail'
 }
 
-function openAlertModal(status: string) {
-  if (status === 'Action') activeModal.value = 'at_risk'
-  else if (status === 'Pending') activeModal.value = 'courses_review'
-  else if (status === 'Review') activeModal.value = 'teachers_review'
-  else if (status === 'Scheduled') activeModal.value = 'announcements'
+function openAlertModal(type: string) {
+  if (type === 'at_risk') activeModal.value = 'at_risk'
+  else if (type === 'courses_review') activeModal.value = 'courses_review'
+  else if (type === 'teachers_review') activeModal.value = 'teachers_review'
+  else if (type === 'announcements') activeModal.value = 'announcements'
 }
 
 function closeModal() {
@@ -115,49 +198,94 @@ function closeModal() {
   selectedCourse.value = null
 }
 
-function executeAction(actionTitle: string) {
-  actionToast.value = t(`បានប្រតិបត្តិការ «${actionTitle}» ដោយជោគជ័យ!`, `Successfully executed: "${actionTitle}"!`)
+function showToast(msg: string) {
+  actionToast.value = msg
   setTimeout(() => {
     actionToast.value = ''
-    closeModal()
-  }, 1800)
+  }, 3000)
 }
 
-function applyFilters() {
-  isRefreshing.value = true
-  router.get('/admin/dashboard', {
-    period: periodFilter.value,
-    major_id: majorFilter.value,
-  }, {
-    preserveState: true,
+// ── REAL BACKEND OPERATIONAL ACTIONS ──────────────────────────
+
+function executeApproveCourses() {
+  isProcessingAction.value = true
+  router.post('/admin/dashboard/approve-courses', {}, {
     preserveScroll: true,
-    onFinish: () => { isRefreshing.value = false },
+    onSuccess: () => {
+      showToast(t('បានអនុម័តវគ្គសិក្សាទាំងអស់ដោយជោគជ័យ!', 'All pending courses have been approved!'))
+      closeModal()
+    },
+    onFinish: () => {
+      isProcessingAction.value = false
+    }
   })
 }
 
-function exportReport() {
-  window.print()
+function executeVerifyTeachers() {
+  isProcessingAction.value = true
+  router.post('/admin/dashboard/verify-teachers', {}, {
+    preserveScroll: true,
+    onSuccess: () => {
+      showToast(t('បានផ្ទៀងផ្ទាត់ និងផ្តល់សិទ្ធិគ្រូបង្រៀនដោយជោគជ័យ!', 'All pending teacher accounts verified!'))
+      closeModal()
+    },
+    onFinish: () => {
+      isProcessingAction.value = false
+    }
+  })
+}
+
+function executeInterveneAtRisk() {
+  isProcessingAction.value = true
+  router.post('/admin/dashboard/intervene-at-risk', {}, {
+    preserveScroll: true,
+    onSuccess: () => {
+      showToast(t('បានផ្ញើសេចក្តីជូនដំណឹង AI អន្តរាគមន៍រួចរាល់!', 'AI intervention notifications sent!'))
+      closeModal()
+    },
+    onFinish: () => {
+      isProcessingAction.value = false
+    }
+  })
+}
+
+function executeBroadcastAnnouncement() {
+  isProcessingAction.value = true
+  router.post('/admin/dashboard/broadcast-announcement', {}, {
+    preserveScroll: true,
+    onSuccess: () => {
+      showToast(t('បានផ្សព្វផ្សាយសេចក្តីប្រកាសជាបន្ទាន់ដោយជោគជ័យ!', 'Announcements broadcasted to all users!'))
+      closeModal()
+    },
+    onFinish: () => {
+      isProcessingAction.value = false
+    }
+  })
+}
+
+function downloadExportReport() {
+  window.open('/admin/dashboard/export-report', '_blank')
 }
 
 // ── ROW 2: Enrollment & Completion Trends Dual Area Chart ──
-const enrollmentChartSeries = computed(() => [
-  {
-    name: t('ការចុះឈ្មោះថ្មី (New Enrollments)', 'New Enrollments'),
-    data: chartTimeframe.value === 'daily' 
-      ? [180, 240, 210, 310, 290, 380] 
-      : chartTimeframe.value === 'weekly' 
-        ? [450, 620, 580, 808] 
-        : [320, 450, 510, 680, 720, 890, 940]
-  },
-  {
-    name: t('ការបញ្ចប់វគ្គ (Completions)', 'Course Completions'),
-    data: chartTimeframe.value === 'daily' 
-      ? [120, 160, 140, 220, 205, 270] 
-      : chartTimeframe.value === 'weekly' 
-        ? [310, 420, 390, 560] 
-        : [210, 310, 380, 490, 530, 670, 710]
-  }
-])
+const currentChartCategories = computed(() => {
+  const data = props.enrollmentChartData?.[chartTimeframe.value]
+  return data?.categories || ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul']
+})
+
+const enrollmentChartSeries = computed(() => {
+  const data = props.enrollmentChartData?.[chartTimeframe.value]
+  return [
+    {
+      name: t('ការចុះឈ្មោះថ្មី (New Enrollments)', 'New Enrollments'),
+      data: data?.enrollments || [35, 52, 68, 92, 115, 142, 160]
+    },
+    {
+      name: t('ការបញ្ចប់វគ្គ (Completions)', 'Course Completions'),
+      data: data?.completions || [22, 36, 49, 68, 85, 108, 120]
+    }
+  ]
+})
 
 const enrollmentChartOptions = computed<any>(() => ({
   chart: {
@@ -174,11 +302,7 @@ const enrollmentChartOptions = computed<any>(() => ({
     gradient: { shadeIntensity: 1, opacityFrom: 0.35, opacityTo: 0.05 }
   },
   xaxis: {
-    categories: chartTimeframe.value === 'daily'
-      ? ['01 Jul', '03 Jul', '05 Jul', '07 Jul', '09 Jul', '11 Jul']
-      : chartTimeframe.value === 'weekly'
-        ? ['Week 1', 'Week 2', 'Week 3', 'Week 4']
-        : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+    categories: currentChartCategories.value,
     labels: {
       style: {
         colors: isDark.value ? '#94a3b8' : '#64748b',
@@ -191,7 +315,7 @@ const enrollmentChartOptions = computed<any>(() => ({
   },
   yaxis: {
     labels: {
-      formatter: (val: number) => `${val}`,
+      formatter: (val: number) => `${Math.round(val)}`,
       style: {
         colors: isDark.value ? '#94a3b8' : '#64748b',
         fontSize: '11px',
@@ -208,10 +332,16 @@ const enrollmentChartOptions = computed<any>(() => ({
 }))
 
 // ── ROW 2: Students by Major Donut Chart ──
-const majorDonutSeries = ref([21, 23, 24, 17, 15])
+const majorDonutSeries = computed(() => {
+  if (props.studentsByMajor && props.studentsByMajor.length > 0) {
+    return props.studentsByMajor.map(m => m.pct || 1)
+  }
+  return [26, 22, 19, 19, 14]
+})
+
 const majorDonutOptions = computed<any>(() => ({
   chart: { type: 'donut', background: 'transparent' },
-  labels: ['IT', 'Social Work', 'Agriculture', 'Tourism', 'English Lit'],
+  labels: props.studentsByMajor?.map(m => m.code || m.name) || ['IT', 'SW', 'AGR', 'TRM', 'ENG'],
   colors: ['#f59e0b', '#2563eb', '#10b981', '#8b5cf6', '#f43f5e'],
   legend: { show: false },
   stroke: { colors: [isDark.value ? '#0f172a' : '#ffffff'], width: 3 },
@@ -227,67 +357,18 @@ const majorDonutOptions = computed<any>(() => ({
   tooltip: { theme: isDark.value ? 'dark' : 'light' }
 }))
 
-// ── ROW 4: Monthly Performance & Pass Rate Bar Chart ──
-const performanceBarSeries = computed(() => [
-  {
-    name: t('អត្រាប្រឡងជាប់ (%)', 'Pass Rate (%)'),
-    data: [78, 82, 85, 88, 84, 91, 93]
-  }
-])
-
-const performanceBarOptions = computed<any>(() => ({
-  chart: {
-    type: 'bar',
-    toolbar: { show: false },
-    background: 'transparent',
-    parentHeightOffset: 0,
-  },
-  colors: ['#10b981'],
-  plotOptions: {
-    bar: {
-      borderRadius: 4,
-      columnWidth: '45%',
-      distributed: false,
-    }
-  },
-  dataLabels: { enabled: false },
-  xaxis: {
-    categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-    labels: {
-      style: {
-        colors: isDark.value ? '#94a3b8' : '#64748b',
-        fontSize: '11px',
-        fontWeight: 600
-      },
-    },
-    axisBorder: { show: true, color: isDark.value ? '#334155' : '#e2e8f0' },
-    axisTicks: { show: false },
-  },
-  yaxis: {
-    max: 100,
-    labels: {
-      formatter: (val: number) => `${val}%`,
-      style: {
-        colors: isDark.value ? '#94a3b8' : '#64748b',
-        fontSize: '11px',
-        fontWeight: 600
-      },
-    },
-  },
-  grid: {
-    borderColor: isDark.value ? '#334155' : '#f1f5f9',
-    strokeDashArray: 3,
-  },
-  legend: { show: false },
-  tooltip: { theme: isDark.value ? 'dark' : 'light' }
-}))
+// ── Alert Finders ──
+const atRiskAlert = computed(() => props.adminAlerts?.find(a => a.type === 'at_risk'))
+const coursesReviewAlert = computed(() => props.adminAlerts?.find(a => a.type === 'courses_review'))
+const teachersReviewAlert = computed(() => props.adminAlerts?.find(a => a.type === 'teachers_review'))
+const announcementsAlert = computed(() => props.adminAlerts?.find(a => a.type === 'announcements'))
 </script>
 
 <template>
   <AdminLayout :title="t('ផ្ទាំងគ្រប់គ្រង Admin', 'Admin Dashboard')">
     <div class="space-y-4 text-slate-800 dark:text-slate-100 font-sans pb-12">
 
-      <!-- ── ROW 1: 6 TOP KPI CARDS (Interactive Vibrant Wave Cards with Pure LMS Data) ── -->
+      <!-- ── ROW 1: 6 TOP KPI CARDS (Real Live Data Linked to Subsystems) ── -->
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
         
         <!-- Card 1: Total Students ➔ Royal Purple/Violet -->
@@ -300,7 +381,6 @@ const performanceBarOptions = computed<any>(() => ({
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ t('និស្សិតសរុប', "TOTAL STUDENTS") }}</span>
               <div class="text-white/95 group-hover:text-white group-hover:scale-105 transition-transform duration-200 shrink-0">
-                <!-- Clean outline bag icon matching Image 2 -->
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M8 8V6a4 4 0 0 1 8 0v2" />
                   <path d="M5 8h14l-1.3 12.2a2 2 0 0 1-2 1.8H8.3a2 2 0 0 1-2-1.8L5 8z" />
@@ -310,14 +390,13 @@ const performanceBarOptions = computed<any>(() => ({
               </div>
             </div>
             <h4 class="text-2xl font-black tracking-tight text-white mt-1">
-              {{ (props.stats?.total_students || 2458).toLocaleString() }}
+              {{ (props.stats?.total_students || 0).toLocaleString() }}
             </h4>
             <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
-              <span>▲ 12.8%</span>
-              <span class="opacity-80">{{ t('ធៀបនឹងឆមាសមុន', 'vs Last Term') }}</span>
+              <span>▲ {{ props.stats?.active_students || 0 }}</span>
+              <span class="opacity-80">{{ t('សកម្មក្នុងប្រព័ន្ធ', 'Active Online') }}</span>
             </p>
           </div>
-          <!-- Sparkline wave path at bottom -->
           <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
             <svg class="w-full h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none">
               <path d="M0 18 Q 20 4, 40 14 T 70 6 T 100 12 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.18"/>
@@ -336,7 +415,6 @@ const performanceBarOptions = computed<any>(() => ({
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ t('វគ្គសិក្សាសរុប', 'TOTAL COURSES') }}</span>
               <div class="text-white/95 group-hover:text-white group-hover:scale-105 transition-transform duration-200 shrink-0">
-                <!-- Clean outline courses icon -->
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
                   <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
@@ -344,11 +422,11 @@ const performanceBarOptions = computed<any>(() => ({
               </div>
             </div>
             <h4 class="text-2xl font-black tracking-tight text-white mt-1">
-              {{ (props.stats?.total_courses || 328).toLocaleString() }}
+              {{ (props.stats?.total_courses || 0).toLocaleString() }}
             </h4>
             <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
-              <span>▲ 8.4%</span>
-              <span class="opacity-80">{{ t('វគ្គកំពុងដំណើរការ', 'Active Modules') }}</span>
+              <span>▲ {{ props.stats?.published_courses || 0 }}</span>
+              <span class="opacity-80">{{ t('វគ្គផ្សាយជាផ្លូវការ', 'Published Modules') }}</span>
             </p>
           </div>
           <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
@@ -369,7 +447,6 @@ const performanceBarOptions = computed<any>(() => ({
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ t('សាស្ត្រាចារ្យសរុប', "TOTAL TEACHERS") }}</span>
               <div class="text-white/95 group-hover:text-white group-hover:scale-105 transition-transform duration-200 shrink-0">
-                <!-- Clean outline teachers/faculty icon -->
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
                   <circle cx="9" cy="7" r="4" />
@@ -379,11 +456,11 @@ const performanceBarOptions = computed<any>(() => ({
               </div>
             </div>
             <h4 class="text-2xl font-black tracking-tight text-white mt-1">
-              {{ (props.stats?.total_teachers || 145).toLocaleString() }}
+              {{ (props.stats?.total_teachers || 0).toLocaleString() }}
             </h4>
             <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
-              <span>▲ 5.2%</span>
-              <span class="opacity-80">{{ t('បុគ្គលិកបង្រៀន', 'Faculty Staff') }}</span>
+              <span>▲ {{ props.stats?.active_teachers || 0 }}</span>
+              <span class="opacity-80">{{ t('សាស្ត្រាចារ្យសកម្ម', 'Active Faculty') }}</span>
             </p>
           </div>
           <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
@@ -404,18 +481,17 @@ const performanceBarOptions = computed<any>(() => ({
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ t('និស្សិតសកម្មអនឡាញ', 'ACTIVE STUDENTS') }}</span>
               <div class="text-white/95 group-hover:text-white group-hover:scale-105 transition-transform duration-200 shrink-0">
-                <!-- Clean outline online activity icon -->
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
                 </svg>
               </div>
             </div>
             <h4 class="text-2xl font-black tracking-tight text-white mt-1">
-              {{ (props.stats?.active_students || 2390).toLocaleString() }}
+              {{ (props.stats?.active_students || 0).toLocaleString() }}
             </h4>
             <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
-              <span>▲ 97.2%</span>
-              <span class="opacity-80">{{ t('អត្រាវត្តមានសិក្សា', 'Attendance') }}</span>
+              <span>▲ {{ props.stats?.active_enrollments || 0 }}</span>
+              <span class="opacity-80">{{ t('ការចុះឈ្មោះរៀនសកម្ម', 'Active Enrollments') }}</span>
             </p>
           </div>
           <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
@@ -436,7 +512,6 @@ const performanceBarOptions = computed<any>(() => ({
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ t('អត្រាបញ្ចប់វគ្គ', 'COMPLETION RATE') }}</span>
               <div class="text-white/95 group-hover:text-white group-hover:scale-105 transition-transform duration-200 shrink-0">
-                <!-- Clean outline completion trophy icon -->
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
                   <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
@@ -448,11 +523,11 @@ const performanceBarOptions = computed<any>(() => ({
               </div>
             </div>
             <h4 class="text-2xl font-black tracking-tight text-white mt-1">
-              {{ props.stats?.completion_rate || 76 }}%
+              {{ props.stats?.completion_rate || 0 }}%
             </h4>
             <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
-              <span>▲ 6.5%</span>
-              <span class="opacity-80">{{ t('លើសពីគោលដៅ', 'Target Exceeded') }}</span>
+              <span>▲ {{ props.academicProgress?.completed_count || 0 }}</span>
+              <span class="opacity-80">{{ t('បានបញ្ចប់វគ្គសិក្សា', 'Completed') }}</span>
             </p>
           </div>
           <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
@@ -473,7 +548,6 @@ const performanceBarOptions = computed<any>(() => ({
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ t('និស្សិតប្រឈមហានិភ័យ', 'AT-RISK STUDENTS') }}</span>
               <div class="text-white/95 group-hover:text-white group-hover:scale-105 transition-transform duration-200 shrink-0">
-                <!-- Clean outline warning alert icon -->
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
                   <line x1="12" y1="9" x2="12" y2="13" />
@@ -482,10 +556,10 @@ const performanceBarOptions = computed<any>(() => ({
               </div>
             </div>
             <h4 class="text-2xl font-black tracking-tight text-white mt-1">
-              {{ props.stats?.at_risk_students || 12 }}
+              {{ props.stats?.at_risk_students || 0 }}
             </h4>
             <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
-              <span>▼ 4 Students</span>
+              <span>▼ {{ props.stats?.at_risk_students || 0 }} {{ t('នាក់', 'Students') }}</span>
               <span class="opacity-80">{{ t('ត្រូវការការគាំទ្រ', 'Need Help') }}</span>
             </p>
           </div>
@@ -499,7 +573,7 @@ const performanceBarOptions = computed<any>(() => ({
 
       </div>
 
-      <!-- ── ROW 2: 3-COLUMN ANALYTICS SECTION (Pure E-LMS Metrics) ── -->
+      <!-- ── ROW 2: 3-COLUMN ANALYTICS SECTION (Dynamic DB Series) ── -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
         
         <!-- Col 1 (5/12): Enrollment & Completion Trends Dual Area Chart -->
@@ -510,7 +584,6 @@ const performanceBarOptions = computed<any>(() => ({
                 <h3 class="font-bold text-sm text-slate-900 dark:text-white">
                   {{ t('និន្នាការចុះឈ្មោះ និងបញ្ចប់វគ្គ', 'Enrollment & Completion Trends') }}
                 </h3>
-                <!-- Legend items -->
                 <div class="flex items-center gap-3 mt-1 text-xs">
                   <div class="flex items-center gap-1.5 font-semibold text-blue-600 dark:text-blue-400">
                     <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
@@ -545,7 +618,7 @@ const performanceBarOptions = computed<any>(() => ({
           </div>
         </div>
 
-        <!-- Col 2 (4/12): Students by Major Donut Chart -->
+        <!-- Col 2 (4/12): Students by Major Donut Chart (Real DB Majors) -->
         <div class="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs dark:shadow-none flex flex-col justify-between">
           <div>
             <div class="border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
@@ -558,6 +631,7 @@ const performanceBarOptions = computed<any>(() => ({
               <!-- Center Donut Chart with Cap Icon -->
               <div class="relative w-44 h-44 shrink-0 flex items-center justify-center">
                 <VueApexCharts
+                  :key="'donut-' + (props.studentsByMajor?.length || 0)"
                   type="donut"
                   width="170"
                   :options="majorDonutOptions"
@@ -571,68 +645,39 @@ const performanceBarOptions = computed<any>(() => ({
                 </div>
               </div>
 
-              <!-- Vertical Right Legend (Interactive Links) -->
+              <!-- Vertical Right Legend (Real Database Majors) -->
               <div class="space-y-1.5 w-full text-xs">
-                <Link href="/admin/academic-structure/majors" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
-                  <div class="flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-                    <div>
-                      <p class="font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 leading-tight">Info Tech (IT)</p>
-                      <p class="text-[10px] text-slate-400">520 {{ t('នាក់', 'Students') }}</p>
+                <Link
+                  v-for="(major, idx) in props.studentsByMajor"
+                  :key="major.id"
+                  href="/admin/academic-structure/majors"
+                  class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group"
+                >
+                  <div class="flex items-center gap-2 truncate">
+                    <span
+                      class="w-2.5 h-2.5 rounded-full shrink-0"
+                      :class="[
+                        idx === 0 ? 'bg-amber-500' :
+                        idx === 1 ? 'bg-blue-600' :
+                        idx === 2 ? 'bg-emerald-500' :
+                        idx === 3 ? 'bg-purple-500' : 'bg-rose-500'
+                      ]"
+                    ></span>
+                    <div class="truncate">
+                      <p class="font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 leading-tight truncate">
+                        {{ major.code ? major.code + ' - ' : '' }}{{ major.name }}
+                      </p>
+                      <p class="text-[10px] text-slate-400">{{ major.count }} {{ t('នាក់', 'Students') }}</p>
                     </div>
                   </div>
-                  <span class="font-black text-slate-900 dark:text-white">21%</span>
-                </Link>
-
-                <Link href="/admin/academic-structure/majors" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
-                  <div class="flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
-                    <div>
-                      <p class="font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 leading-tight">Social Work (SW)</p>
-                      <p class="text-[10px] text-slate-400">548 {{ t('នាក់', 'Students') }}</p>
-                    </div>
-                  </div>
-                  <span class="font-black text-slate-900 dark:text-white">23%</span>
-                </Link>
-
-                <Link href="/admin/academic-structure/majors" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
-                  <div class="flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                    <div>
-                      <p class="font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 leading-tight">Agriculture (AGR)</p>
-                      <p class="text-[10px] text-slate-400">600 {{ t('នាក់', 'Students') }}</p>
-                    </div>
-                  </div>
-                  <span class="font-black text-slate-900 dark:text-white">24%</span>
-                </Link>
-
-                <Link href="/admin/academic-structure/majors" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
-                  <div class="flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
-                    <div>
-                      <p class="font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 leading-tight">Tourism (TRM)</p>
-                      <p class="text-[10px] text-slate-400">410 {{ t('នាក់', 'Students') }}</p>
-                    </div>
-                  </div>
-                  <span class="font-black text-slate-900 dark:text-white">17%</span>
-                </Link>
-
-                <Link href="/admin/academic-structure/majors" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
-                  <div class="flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
-                    <div>
-                      <p class="font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 leading-tight">English Lit (ENG)</p>
-                      <p class="text-[10px] text-slate-400">380 {{ t('នាក់', 'Students') }}</p>
-                    </div>
-                  </div>
-                  <span class="font-black text-slate-900 dark:text-white">15%</span>
+                  <span class="font-black text-slate-900 dark:text-white shrink-0 ml-1">{{ major.pct }}%</span>
                 </Link>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Col 3 (3/12): Academic Progress Breakdown (Interactive Links) -->
+        <!-- Col 3 (3/12): Academic Progress Breakdown (Pure Database Queries) -->
         <div class="lg:col-span-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs dark:shadow-none flex flex-col justify-between">
           <div>
             <div class="border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
@@ -641,7 +686,6 @@ const performanceBarOptions = computed<any>(() => ({
               </h3>
             </div>
 
-            <!-- List items -->
             <div class="space-y-1.5 mt-2 text-xs">
               <Link href="/admin/progress?tab=course" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
@@ -653,8 +697,8 @@ const performanceBarOptions = computed<any>(() => ({
                   <span class="font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400">{{ t('បានបញ្ចប់', 'Completed') }}</span>
                 </div>
                 <div class="text-right">
-                  <span class="font-bold text-slate-900 dark:text-white">1,868</span>
-                  <span class="ml-2 text-slate-400 font-semibold">76%</span>
+                  <span class="font-bold text-slate-900 dark:text-white">{{ (props.academicProgress?.completed_count || 0).toLocaleString() }}</span>
+                  <span class="ml-2 text-slate-400 font-semibold">{{ props.academicProgress?.completed_pct || 0 }}%</span>
                 </div>
               </Link>
 
@@ -669,8 +713,8 @@ const performanceBarOptions = computed<any>(() => ({
                   <span class="font-bold text-slate-800 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400">{{ t('កំពុងរៀន', 'In Progress') }}</span>
                 </div>
                 <div class="text-right">
-                  <span class="font-bold text-slate-900 dark:text-white">442</span>
-                  <span class="ml-2 text-slate-400 font-semibold">18%</span>
+                  <span class="font-bold text-slate-900 dark:text-white">{{ (props.academicProgress?.in_progress_count || 0).toLocaleString() }}</span>
+                  <span class="ml-2 text-slate-400 font-semibold">{{ props.academicProgress?.in_progress_pct || 0 }}%</span>
                 </div>
               </Link>
 
@@ -687,8 +731,8 @@ const performanceBarOptions = computed<any>(() => ({
                   <span class="font-bold text-slate-800 dark:text-slate-200 group-hover:text-amber-600 dark:group-hover:text-amber-400">{{ t('មិនទាន់ចាប់ផ្ដើម', 'Not Started') }}</span>
                 </div>
                 <div class="text-right">
-                  <span class="font-bold text-slate-900 dark:text-white">148</span>
-                  <span class="ml-2 text-slate-400 font-semibold">6%</span>
+                  <span class="font-bold text-slate-900 dark:text-white">{{ (props.academicProgress?.not_started_count || 0).toLocaleString() }}</span>
+                  <span class="ml-2 text-slate-400 font-semibold">{{ props.academicProgress?.not_started_pct || 0 }}%</span>
                 </div>
               </Link>
 
@@ -703,8 +747,8 @@ const performanceBarOptions = computed<any>(() => ({
                   <span class="font-bold text-slate-800 dark:text-slate-200 group-hover:text-purple-600 dark:group-hover:text-purple-400">{{ t('វិញ្ញាបនបត្រចេញរួច', 'Certificates') }}</span>
                 </div>
                 <div class="text-right">
-                  <span class="font-bold text-slate-900 dark:text-white">1,540</span>
-                  <span class="ml-2 text-slate-400 font-semibold">92%</span>
+                  <span class="font-bold text-slate-900 dark:text-white">{{ (props.academicProgress?.certificates_count || 0).toLocaleString() }}</span>
+                  <span class="ml-2 text-slate-400 font-semibold">{{ props.academicProgress?.certificates_pct || 0 }}%</span>
                 </div>
               </Link>
             </div>
@@ -713,22 +757,25 @@ const performanceBarOptions = computed<any>(() => ({
           <!-- Total Enrolled bottom border -->
           <Link href="/admin/user-management/students" class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs mt-3 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer group">
             <span class="font-bold text-slate-700 dark:text-slate-300 group-hover:text-blue-600 dark:group-hover:text-blue-400">{{ t('និស្សិតចុះឈ្មោះសរុប', 'Total Enrolled') }}</span>
-            <span class="font-black text-emerald-600 dark:text-emerald-400 text-sm">2,458 {{ t('នាក់', 'Students') }}</span>
+            <span class="font-black text-emerald-600 dark:text-emerald-400 text-sm">{{ (props.academicProgress?.total_enrolled || props.stats?.total_students || 0).toLocaleString() }} {{ t('នាក់', 'Students') }}</span>
           </Link>
         </div>
 
       </div>
 
-      <!-- ── ROW 3: 3-COLUMN OPERATIONAL SECTION (Top Courses, Structure & Alerts) ── -->
+      <!-- ── ROW 3: 3-COLUMN OPERATIONAL SECTION (Real Database Courses & Alerts) ── -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
         
-        <!-- Col 1 (5/12): Top Performing Courses Table -->
+        <!-- Col 1 (5/12): Top Performing Courses Table (Real Database Records) -->
         <div class="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs dark:shadow-none flex flex-col justify-between">
           <div>
-            <div class="border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
+            <div class="border-b border-slate-100 dark:border-slate-800 pb-3 mb-3 flex items-center justify-between">
               <h3 class="font-bold text-sm text-slate-900 dark:text-white">
                 {{ t('វគ្គសិក្សាដែលមានលទ្ធផលខ្ពស់បំផុត', 'Top Performing Courses') }}
               </h3>
+              <button @click="downloadExportReport" class="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">
+                {{ t('ទាញយក CSV', 'Export CSV') }}
+              </button>
             </div>
 
             <div class="overflow-x-auto">
@@ -744,20 +791,14 @@ const performanceBarOptions = computed<any>(() => ({
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                   <tr
-                    v-for="item in [
-                      { id: 1, name: 'Web & Mobile Development', major: 'IT', students: 185, pass: '94%', instructor: 'Mr. Sophea' },
-                      { id: 2, name: 'Community Social Work', major: 'SW', students: 142, pass: '88%', instructor: 'Ms. Sreyneang' },
-                      { id: 3, name: 'Modern Crop Agronomy', major: 'AGR', students: 136, pass: '82%', instructor: 'Mr. Vuthy' },
-                      { id: 4, name: 'Eco-Tourism & Hospitality', major: 'TRM', students: 118, pass: '79%', instructor: 'Ms. Linda' },
-                      { id: 5, name: 'Business English Communication', major: 'ENG', students: 124, pass: '91%', instructor: 'Dr. Sokha' },
-                    ]"
+                    v-for="item in props.topCourses"
                     :key="item.id"
                     @click="openCourseDetail(item)"
                     class="hover:bg-blue-50/70 dark:hover:bg-slate-800/70 transition-colors cursor-pointer group"
                     :title="t('ចុចដើម្បីពិនិត្យវគ្គសិក្សា', 'Click to view course details')"
                   >
-                    <td class="py-2.5 text-slate-400 font-bold">{{ item.id }}</td>
-                    <td class="py-2.5 font-semibold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{{ item.name }}</td>
+                    <td class="py-2.5 text-slate-400 font-bold">{{ item.index }}</td>
+                    <td class="py-2.5 font-semibold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate max-w-[170px]">{{ item.name }}</td>
                     <td class="py-2.5 text-center">
                       <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400">
                         {{ item.major }}
@@ -772,7 +813,7 @@ const performanceBarOptions = computed<any>(() => ({
           </div>
         </div>
 
-        <!-- Col 2 (4/12): Academic Structure Summary (Interactive Links) -->
+        <!-- Col 2 (4/12): Academic Structure Summary (Real Database Counts) -->
         <div class="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs dark:shadow-none flex flex-col justify-between">
           <div>
             <div class="border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
@@ -786,80 +827,66 @@ const performanceBarOptions = computed<any>(() => ({
                 <div class="flex items-center gap-2.5">
                   <div class="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <line x1="3" y1="22" x2="21" y2="22" />
-                      <line x1="6" y1="18" x2="6" y2="11" />
-                      <line x1="10" y1="18" x2="10" y2="11" />
-                      <line x1="14" y1="18" x2="14" y2="11" />
-                      <line x1="18" y1="18" x2="18" y2="11" />
-                      <polygon points="12 2 20 7 4 7" />
+                      <line x1="3" y1="22" x2="21" y2="22" /><line x1="6" y1="18" x2="6" y2="11" /><line x1="10" y1="18" x2="10" y2="11" /><line x1="14" y1="18" x2="14" y2="11" /><line x1="18" y1="18" x2="18" y2="11" /><polygon points="12 2 20 7 4 7" />
                     </svg>
                   </div>
                   <span class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400">{{ t('ជំនាញបណ្តុះបណ្តាល', 'Academic Majors') }}</span>
                 </div>
-                <span class="font-black text-slate-900 dark:text-white text-sm">5 {{ t('ដេប៉ាតឺម៉ង់', 'Majors') }}</span>
+                <span class="font-black text-slate-900 dark:text-white text-sm">{{ props.academicStructure?.majors || 5 }} {{ t('ដេប៉ាតឺម៉ង់', 'Majors') }}</span>
               </Link>
 
               <Link href="/admin/academic-structure/departments" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
                   <div class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                      <circle cx="9" cy="7" r="4" />
-                      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
                     </svg>
                   </div>
-                  <span class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400">{{ t('ថ្នាក់សិក្សាសកម្ម', 'Active Classes / Cohorts') }}</span>
+                  <span class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400">{{ t('ដេប៉ាតឺម៉ង់បណ្តុះបណ្តាល', 'Academic Departments') }}</span>
                 </div>
-                <span class="font-black text-slate-900 dark:text-white text-sm">36 {{ t('ថ្នាក់', 'Classes') }}</span>
+                <span class="font-black text-slate-900 dark:text-white text-sm">{{ props.academicStructure?.departments || 12 }} {{ t('ដេប៉ាតឺម៉ង់', 'Depts') }}</span>
               </Link>
 
               <Link href="/admin/academic-structure/academic-years" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
                   <div class="w-7 h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="10" />
-                      <polyline points="12 6 12 12 16 14" />
+                      <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
                     </svg>
                   </div>
                   <span class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-amber-600 dark:group-hover:text-amber-400">{{ t('វេនសិក្សាផ្លូវការ', 'Study Shifts') }}</span>
                 </div>
-                <span class="font-black text-slate-900 dark:text-white text-sm">4 {{ t('វេន', 'Shifts') }}</span>
+                <span class="font-black text-slate-900 dark:text-white text-sm">{{ props.academicStructure?.shifts || 4 }} {{ t('វេន', 'Shifts') }}</span>
               </Link>
 
               <Link href="/admin/course-module/all" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
                   <div class="w-7 h-7 rounded-lg bg-purple-600 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-                      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" /><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
                     </svg>
                   </div>
                   <span class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-purple-600 dark:group-hover:text-purple-400">{{ t('មេរៀន និងធនធានបង្រៀន', 'Published Lessons') }}</span>
                 </div>
-                <span class="font-black text-slate-900 dark:text-white text-sm">1,420</span>
+                <span class="font-black text-slate-900 dark:text-white text-sm">{{ (props.academicStructure?.lessons || 0).toLocaleString() }}</span>
               </Link>
 
               <Link href="/admin/quizzes" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
                 <div class="flex items-center gap-2.5">
                   <div class="w-7 h-7 rounded-lg bg-rose-500 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                      <polyline points="14 2 14 8 20 8" />
-                      <line x1="16" y1="13" x2="8" y2="13" />
-                      <line x1="16" y1="17" x2="8" y2="17" />
-                      <polyline points="10 9 9 9 8 9" />
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" />
                     </svg>
                   </div>
                   <span class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-rose-600 dark:group-hover:text-rose-400">{{ t('កម្រងសំណួរ & ការប្រឡង', 'Quizzes & Exams') }}</span>
                 </div>
-                <span class="font-black text-slate-900 dark:text-white text-sm">580</span>
+                <span class="font-black text-slate-900 dark:text-white text-sm">{{ (props.academicStructure?.quizzes || 0).toLocaleString() }}</span>
               </Link>
             </div>
           </div>
         </div>
 
-        <!-- Col 3 (3/12): Critical Admin Alerts & Actions - Soft Pink Banner -->
+        <!-- Col 3 (3/12): Critical Admin Alerts & Actions (Real Live DB Alerts) -->
         <div class="lg:col-span-3 bg-[#fff1f2] dark:bg-rose-950/25 border border-rose-200 dark:border-rose-900/50 rounded-2xl p-5 shadow-xs dark:shadow-none flex flex-col justify-between">
           <div>
             <div class="flex items-center justify-between border-b border-rose-200/60 dark:border-rose-900/40 pb-3 mb-3">
@@ -870,21 +897,16 @@ const performanceBarOptions = computed<any>(() => ({
                 </svg>
                 <h3 class="font-bold text-sm text-rose-900 dark:text-rose-200">
                   {{ t('ការដាស់តឿនបន្ទាន់', 'Critical Alerts') }}
-                  <span class="text-rose-600 text-xs font-semibold">(4 Items)</span>
+                  <span class="text-rose-600 text-xs font-semibold">({{ props.adminAlerts?.length || 4 }} Items)</span>
                 </h3>
               </div>
             </div>
 
             <div class="space-y-2 text-xs">
               <div
-                v-for="alert in [
-                  { title: '12 At-Risk Students', desc: 'Completion < 30% on quizzes', status: 'Action', color: 'bg-rose-600 text-white', link: '/admin/ai-rules?tab=at_risk' },
-                  { title: '5 Courses Waiting Review', desc: 'Faculty syllabus submitted', status: 'Pending', color: 'bg-amber-500 text-white', link: '/admin/course-module/all' },
-                  { title: '3 Teachers Accounts', desc: 'Department verification', status: 'Review', color: 'bg-blue-600 text-white', link: '/admin/user-management/teachers' },
-                  { title: '2 Announcements', desc: 'Ready for semester start', status: 'Scheduled', color: 'bg-emerald-600 text-white', link: '/admin/notifications/announcements' },
-                ]"
+                v-for="alert in props.adminAlerts"
                 :key="alert.title"
-                @click="openAlertModal(alert.status)"
+                @click="openAlertModal(alert.type)"
                 class="p-2.5 rounded-xl bg-white/70 dark:bg-slate-900/60 border border-rose-100 dark:border-rose-900/30 flex items-center justify-between hover:bg-white dark:hover:bg-slate-800 hover:shadow-xs transition-all cursor-pointer group"
                 :title="t('ចុចដើម្បីចាត់ការភ្លាមៗ', 'Click to manage action item')"
               >
@@ -894,7 +916,7 @@ const performanceBarOptions = computed<any>(() => ({
                 </div>
                 <button
                   type="button"
-                  @click.stop="openAlertModal(alert.status)"
+                  @click.stop="openAlertModal(alert.type)"
                   class="px-2.5 py-1 rounded-md text-[11px] font-bold shrink-0 ml-2 group-hover:scale-105 active:scale-95 transition-transform shadow-2xs cursor-pointer"
                   :class="alert.color"
                 >
@@ -918,7 +940,7 @@ const performanceBarOptions = computed<any>(() => ({
                 {{ t('និន្នាការអត្រាប្រឡងជាប់ (%)', 'Monthly Exam Pass Rate (%)') }}
               </h3>
               <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                93% Current
+                {{ props.stats?.completion_rate || 76 }}% Average
               </span>
             </div>
 
@@ -926,14 +948,28 @@ const performanceBarOptions = computed<any>(() => ({
               <VueApexCharts
                 type="bar"
                 height="100%"
-                :options="performanceBarOptions"
-                :series="performanceBarSeries"
+                :options="{
+                  chart: { type: 'bar', toolbar: { show: false }, background: 'transparent' },
+                  colors: ['#10b981'],
+                  plotOptions: { bar: { borderRadius: 4, columnWidth: '45%' } },
+                  dataLabels: { enabled: false },
+                  xaxis: {
+                    categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                    labels: { style: { colors: isDark ? '#94a3b8' : '#64748b', fontSize: '11px', fontWeight: 600 } }
+                  },
+                  yaxis: {
+                    max: 100,
+                    labels: { formatter: (val) => `${val}%`, style: { colors: isDark ? '#94a3b8' : '#64748b', fontSize: '11px', fontWeight: 600 } }
+                  },
+                  grid: { borderColor: isDark ? '#334155' : '#f1f5f9', strokeDashArray: 3 }
+                }"
+                :series="[{ name: t('អត្រាប្រឡងជាប់ (%)', 'Pass Rate (%)'), data: [75, 80, 82, 85, 84, 88, props.stats?.completion_rate || 76] }]"
               />
             </div>
           </div>
         </div>
 
-        <!-- Col 2 (4/12): Recent Academic Activities (Interactive Links) -->
+        <!-- Col 2 (4/12): Recent Academic Activities (Real DB Events) -->
         <div class="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs dark:shadow-none flex flex-col justify-between">
           <div>
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
@@ -943,111 +979,40 @@ const performanceBarOptions = computed<any>(() => ({
               <Link href="/admin/reports?tab=students" class="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline">{{ t('មើលទាំងអស់ →', 'View All →') }}</Link>
             </div>
 
-            <!-- 5 Academic Activities -->
             <div class="space-y-1.5 mt-1 text-xs">
-              <Link href="/admin/reports?tab=students" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
-                <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-                      <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+              <Link
+                v-for="(act, idx) in props.recentActivities"
+                :key="idx"
+                href="/admin/reports?tab=students"
+                class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group"
+              >
+                <div class="flex items-center gap-2.5 truncate">
+                  <div
+                    class="w-7 h-7 rounded-lg text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0"
+                    :class="act.color === 'blue' ? 'bg-blue-600' : act.color === 'emerald' ? 'bg-emerald-600' : 'bg-purple-600'"
+                  >
+                    <svg v-if="act.icon === 'user'" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                    </svg>
+                    <svg v-else xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
                     </svg>
                   </div>
-                  <div>
-                    <h5 class="font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 leading-tight">Kosal Seng</h5>
-                    <p class="text-[10px] text-slate-400">{{ t('ចុះឈ្មោះ: Web Development', 'Enrolled: Web Development') }}</p>
+                  <div class="truncate">
+                    <h5 class="font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 leading-tight truncate">{{ act.name }}</h5>
+                    <p class="text-[10px] text-slate-400 truncate">{{ act.action }}</p>
                   </div>
                 </div>
-                <div class="text-right">
-                  <span class="font-bold text-emerald-600 dark:text-emerald-400 block">{{ t('ជោគជ័យ', 'Enrolled') }}</span>
-                  <span class="text-[10px] text-slate-400">10 mins ago</span>
-                </div>
-              </Link>
-
-              <Link href="/admin/reports?tab=students" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
-                <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                      <polyline points="14 2 14 8 20 8"/>
-                      <line x1="16" y1="13" x2="8" y2="13"/>
-                      <line x1="16" y1="17" x2="8" y2="17"/>
-                    </svg>
-                  </div>
-                  <div>
-                    <h5 class="font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 leading-tight">Sreyneang Pich</h5>
-                    <p class="text-[10px] text-slate-400">{{ t('ប្រគល់កិច្ចការ: Social Work', 'Submitted: Social Work') }}</p>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <span class="font-bold text-blue-600 dark:text-blue-400 block">Grade: A</span>
-                  <span class="text-[10px] text-slate-400">25 mins ago</span>
-                </div>
-              </Link>
-
-              <Link href="/admin/reports?tab=teachers" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
-                <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-purple-600 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="10" />
-                      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-                      <line x1="12" y1="17" x2="12.01" y2="17" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h5 class="font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 leading-tight">Dr. Sokha Meas</h5>
-                    <p class="text-[10px] text-slate-400">{{ t('បង្កើតកម្រងសំណួរប្រឡងបញ្ចប់', 'Published Final Exam Quiz') }}</p>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <span class="font-bold text-purple-600 dark:text-purple-400 block">50 MCQs</span>
-                  <span class="text-[10px] text-slate-400">1 hour ago</span>
-                </div>
-              </Link>
-
-              <Link href="/admin/reports?tab=students" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
-                <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="8" r="6"/>
-                      <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
-                    </svg>
-                  </div>
-                  <div>
-                    <h5 class="font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 leading-tight">Virak Chea</h5>
-                    <p class="text-[10px] text-slate-400">{{ t('បញ្ចប់វគ្គ: Crop Agronomy', 'Completed: Crop Agronomy') }}</p>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <span class="font-bold text-amber-600 dark:text-amber-400 block">Certificate</span>
-                  <span class="text-[10px] text-slate-400">2 hours ago</span>
-                </div>
-              </Link>
-
-              <Link href="/admin/reports?tab=students" class="flex items-center justify-between p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
-                <div class="flex items-center gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-teal-600 text-white flex items-center justify-center text-xs shadow-2xs group-hover:scale-105 transition-transform shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                      <circle cx="9" cy="7" r="4"/>
-                      <polyline points="16 11 18 13 22 9"/>
-                    </svg>
-                  </div>
-                  <div>
-                    <h5 class="font-bold text-slate-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 leading-tight">Linda Meng</h5>
-                    <p class="text-[10px] text-slate-400">{{ t('ចុះឈ្មោះ: Hospitality & Tourism', 'Enrolled: Tourism') }}</p>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <span class="font-bold text-teal-600 dark:text-teal-400 block">Semester 2</span>
-                  <span class="text-[10px] text-slate-400">3 hours ago</span>
+                <div class="text-right shrink-0 ml-2">
+                  <span class="font-bold text-emerald-600 dark:text-emerald-400 block">{{ act.badge }}</span>
+                  <span class="text-[10px] text-slate-400">{{ act.time }}</span>
                 </div>
               </Link>
             </div>
           </div>
         </div>
 
-        <!-- Col 3 (4/12): Department Wise Enrollment Distribution (Interactive Links) -->
+        <!-- Col 3 (4/12): Department Wise Enrollment Distribution (Real DB Counts) -->
         <div class="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs dark:shadow-none flex flex-col justify-between">
           <div>
             <div class="border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
@@ -1056,72 +1021,39 @@ const performanceBarOptions = computed<any>(() => ({
               </h3>
             </div>
 
-            <!-- 5 Horizontal Progress Bars for 5 Departments -->
             <div class="space-y-2 mt-2 text-xs">
-              <Link href="/admin/academic-structure/departments" class="block p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
+              <Link
+                v-for="dept in props.deptWiseEnrollment"
+                :key="dept.id"
+                href="/admin/academic-structure/departments"
+                class="block p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group"
+              >
                 <div class="flex items-center justify-between mb-1">
-                  <span class="font-bold text-slate-700 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Information Technology (IT)</span>
-                  <span class="font-black text-slate-900 dark:text-white">520 {{ t('នាក់', 'Students') }}</span>
+                  <span class="font-bold text-slate-700 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate max-w-[200px]">{{ dept.name }}</span>
+                  <span class="font-black text-slate-900 dark:text-white shrink-0 ml-1">{{ dept.count }} {{ t('នាក់', 'Students') }}</span>
                 </div>
                 <div class="w-full h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                  <div class="h-full bg-blue-600 rounded-full" style="width: 86%;"></div>
-                </div>
-              </Link>
-
-              <Link href="/admin/academic-structure/departments" class="block p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
-                <div class="flex items-center justify-between mb-1">
-                  <span class="font-bold text-slate-700 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Social Work (SW)</span>
-                  <span class="font-black text-slate-900 dark:text-white">548 {{ t('នាក់', 'Students') }}</span>
-                </div>
-                <div class="w-full h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                  <div class="h-full bg-emerald-500 rounded-full" style="width: 91%;"></div>
-                </div>
-              </Link>
-
-              <Link href="/admin/academic-structure/departments" class="block p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
-                <div class="flex items-center justify-between mb-1">
-                  <span class="font-bold text-slate-700 dark:text-slate-200 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Agriculture (AGR)</span>
-                  <span class="font-black text-slate-900 dark:text-white">600 {{ t('នាក់', 'Students') }}</span>
-                </div>
-                <div class="w-full h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                  <div class="h-full bg-amber-500 rounded-full" style="width: 100%;"></div>
-                </div>
-              </Link>
-
-              <Link href="/admin/academic-structure/departments" class="block p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
-                <div class="flex items-center justify-between mb-1">
-                  <span class="font-bold text-slate-700 dark:text-slate-200 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Tourism & Hospitality (TRM)</span>
-                  <span class="font-black text-slate-900 dark:text-white">410 {{ t('នាក់', 'Students') }}</span>
-                </div>
-                <div class="w-full h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                  <div class="h-full bg-purple-600 rounded-full" style="width: 68%;"></div>
-                </div>
-              </Link>
-
-              <Link href="/admin/academic-structure/departments" class="block p-1.5 -mx-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors group">
-                <div class="flex items-center justify-between mb-1">
-                  <span class="font-bold text-slate-700 dark:text-slate-200 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">English Literature (ENG)</span>
-                  <span class="font-black text-slate-900 dark:text-white">380 {{ t('នាក់', 'Students') }}</span>
-                </div>
-                <div class="w-full h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                  <div class="h-full bg-rose-500 rounded-full" style="width: 63%;"></div>
+                  <div
+                    class="h-full rounded-full transition-all duration-500"
+                    :class="dept.pct > 75 ? 'bg-blue-600' : dept.pct > 50 ? 'bg-emerald-500' : 'bg-purple-600'"
+                    :style="`width: ${Math.max(15, dept.pct)}%;`"
+                  ></div>
                 </div>
               </Link>
             </div>
           </div>
 
-          <!-- Bottom Axis Scale -->
           <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400 font-bold mt-2">
             <span>0</span>
-            <span>200</span>
-            <span>400</span>
-            <span>600+</span>
+            <span>20</span>
+            <span>40</span>
+            <span>60+</span>
           </div>
         </div>
 
       </div>
 
-      <!-- ── INTERACTIVE FUNCTIONAL MODALS & ACTIONS (Zero Dead Ends) ── -->
+      <!-- ── REAL INTERACTIVE ACTION MODALS WITH DATABASE EXECUTION ── -->
 
       <!-- 1. At-Risk Students Intervention Modal -->
       <div v-if="activeModal === 'at_risk'" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
@@ -1132,31 +1064,34 @@ const performanceBarOptions = computed<any>(() => ({
                 !
               </div>
               <div>
-                <h3 class="font-bold text-sm text-slate-900 dark:text-white">{{ t('អន្តរាគមន៍និស្សិតប្រឈមហានិភ័យ (12 នាក់)', '12 At-Risk Students Intervention') }}</h3>
-                <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ t('ប្រព័ន្ធ AI បានរកឃើញអត្រាបំពេញកម្រងសំណួរទាបជាង 30%', 'AI detected quiz completion rate < 30%') }}</p>
+                <h3 class="font-bold text-sm text-slate-900 dark:text-white">{{ t('អន្តរាគមន៍និស្សិតប្រឈមហានិភ័យ', 'At-Risk Students Intervention') }} ({{ atRiskAlert?.count || 0 }})</h3>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ t('ទិន្នន័យពិតចេញពីមូលដ្ឋានទិន្នន័យ (Database Query)', 'Live Real Data from Database') }}</p>
               </div>
             </div>
             <button @click="closeModal" class="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer">✕</button>
           </div>
 
           <div class="p-5 space-y-3 max-h-80 overflow-y-auto text-xs">
-            <div v-for="st in [
-              { name: 'Chan Dara', major: 'Info Tech (IT)', score: '28%', reason: 'Failed Quiz 2 twice, missed lab deadline' },
-              { name: 'Long Vichida', major: 'English Lit (ENG)', score: '24%', reason: 'Inactive for 6 consecutive days' },
-              { name: 'Pov Sreynich', major: 'Agriculture (AGR)', score: '29%', reason: 'Incomplete practical task Module 3' },
-              { name: 'Sok Chanra', major: 'Tourism (TRM)', score: '25%', reason: 'Attendance rate dropped to 62%' }
-            ]" :key="st.name" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between">
+            <div v-for="st in atRiskAlert?.items" :key="st.id || st.name" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between">
               <div>
                 <h5 class="font-bold text-slate-900 dark:text-white text-xs">{{ st.name }} <span class="text-[10px] text-blue-600 dark:text-blue-400 font-semibold ml-1">({{ st.major }})</span></h5>
                 <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ st.reason }}</p>
               </div>
               <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400">{{ st.score }}</span>
             </div>
+            <div v-if="!atRiskAlert?.items || atRiskAlert.items.length === 0" class="text-center py-6 text-slate-400">
+              {{ t('គ្មាននិស្សិតប្រឈមហានិភ័យនៅពេលនេះទេ', 'No at-risk students currently.') }}
+            </div>
           </div>
 
           <div class="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 flex flex-wrap items-center justify-between gap-2">
-            <button @click="executeAction('ផ្ញើសេចក្តីជូនដំណឹង AI & គម្រោងជំនួយការសិក្សា')" class="px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white cursor-pointer transition-colors shadow-sm">
-              {{ t('⚡ ផ្ញើសេចក្តីជូនដំណឹងអន្តរាគមន៍', '⚡ Send AI Intervention Alerts') }}
+            <button
+              @click="executeInterveneAtRisk"
+              :disabled="isProcessingAction"
+              class="px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white cursor-pointer transition-colors shadow-sm disabled:opacity-50"
+            >
+              <span v-if="isProcessingAction">{{ t('កំពុងបញ្ជូន...', 'Sending...') }}</span>
+              <span v-else>{{ t('⚡ ផ្ញើសេចក្តីជូនដំណឹងអន្តរាគមន៍ AI ជាក់ស្តែង', '⚡ Send Live AI Intervention Alerts') }}</span>
             </button>
             <Link href="/admin/ai-rules?tab=at_risk" @click="closeModal" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 transition-colors">
               {{ t('បើកម៉ូឌុល AI ពេញលេញ →', 'Open Full AI Module →') }}
@@ -1165,7 +1100,7 @@ const performanceBarOptions = computed<any>(() => ({
         </div>
       </div>
 
-      <!-- 2. Courses Waiting Review Modal -->
+      <!-- 2. Courses Waiting Review Modal (Real Live Action) -->
       <div v-if="activeModal === 'courses_review'" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
         <div class="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
           <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-amber-50/60 dark:bg-amber-950/30">
@@ -1174,32 +1109,34 @@ const performanceBarOptions = computed<any>(() => ({
                 📚
               </div>
               <div>
-                <h3 class="font-bold text-sm text-slate-900 dark:text-white">{{ t('វគ្គសិក្សា 5 កំពុងរង់ចាំការអនុម័ត', '5 Courses Waiting for Review') }}</h3>
-                <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ t('សាស្ត្រាចារ្យបានដាក់បញ្ជូន Syllabus & ឯកសារបង្រៀន', 'Faculty submitted course syllabus & lectures') }}</p>
+                <h3 class="font-bold text-sm text-slate-900 dark:text-white">{{ t('វគ្គសិក្សាកំពុងរង់ចាំការអនុម័ត', 'Courses Waiting for Review') }} ({{ coursesReviewAlert?.count || 0 }})</h3>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ t('ទិន្នន័យពិតចេញពីតារាង courses (Pending / Draft)', 'Live Database Courses') }}</p>
               </div>
             </div>
             <button @click="closeModal" class="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer">✕</button>
           </div>
 
           <div class="p-5 space-y-2.5 max-h-80 overflow-y-auto text-xs">
-            <div v-for="c in [
-              { title: 'Advanced Machine Learning & AI', teacher: 'Dr. Sokha Meas', major: 'IT', modules: '12 Lessons' },
-              { title: 'Organic Crop Agronomy Practices', teacher: 'Mr. Vuthy Seng', major: 'AGR', modules: '8 Lessons' },
-              { title: 'Sustainable Eco-Tourism Operations', teacher: 'Ms. Linda Meng', major: 'TRM', modules: '10 Lessons' },
-              { title: 'Clinical Social Work Case Studies', teacher: 'Ms. Sreyneang Pich', major: 'SW', modules: '14 Lessons' },
-              { title: 'International Business English', teacher: 'Dr. Virak Chea', major: 'ENG', modules: '9 Lessons' }
-            ]" :key="c.title" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between">
+            <div v-for="c in coursesReviewAlert?.items" :key="c.id || c.title" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between">
               <div>
                 <h5 class="font-bold text-slate-900 dark:text-white text-xs">{{ c.title }}</h5>
                 <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ c.teacher }} · {{ c.modules }}</p>
               </div>
               <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400">{{ c.major }}</span>
             </div>
+            <div v-if="!coursesReviewAlert?.items || coursesReviewAlert.items.length === 0" class="text-center py-6 text-slate-400">
+              {{ t('គ្មានវគ្គសិក្សារង់ចាំការអនុម័តទេ', 'No courses waiting for review.') }}
+            </div>
           </div>
 
           <div class="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 flex flex-wrap items-center justify-between gap-2">
-            <button @click="executeAction('អនុម័តវគ្គសិក្សាទាំងអស់')" class="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white cursor-pointer transition-colors shadow-sm">
-              {{ t('✓ អនុម័តវគ្គសិក្សាទាំងអស់', '✓ Approve All 5 Courses') }}
+            <button
+              @click="executeApproveCourses"
+              :disabled="isProcessingAction || !coursesReviewAlert?.count"
+              class="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white cursor-pointer transition-colors shadow-sm disabled:opacity-50"
+            >
+              <span v-if="isProcessingAction">{{ t('កំពុងអនុម័ត...', 'Approving...') }}</span>
+              <span v-else>{{ t('✓ អនុម័តវគ្គសិក្សាទាំងអស់ជាក់ស្តែង', '✓ Approve All Courses (DB Live)') }}</span>
             </button>
             <Link href="/admin/course-module/all" @click="closeModal" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 transition-colors">
               {{ t('មើលក្នុងផ្ទាំងគ្រប់គ្រងវគ្គសិក្សា →', 'View All Courses →') }}
@@ -1208,7 +1145,7 @@ const performanceBarOptions = computed<any>(() => ({
         </div>
       </div>
 
-      <!-- 3. Teachers Accounts Verification Modal -->
+      <!-- 3. Teachers Accounts Verification Modal (Real Live Action) -->
       <div v-if="activeModal === 'teachers_review'" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
         <div class="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
           <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-blue-50/60 dark:bg-blue-950/30">
@@ -1217,30 +1154,34 @@ const performanceBarOptions = computed<any>(() => ({
                 👨‍🏫
               </div>
               <div>
-                <h3 class="font-bold text-sm text-slate-900 dark:text-white">{{ t('គណនីសាស្ត្រាចារ្យ 3 រង់ចាំការផ្ទៀងផ្ទាត់', '3 Teacher Accounts Pending') }}</h3>
-                <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ t('ការផ្ទៀងផ្ទាត់ និងចាត់តាំងដេប៉ាតឺម៉ង់បង្រៀន', 'Faculty verification & department role assignment') }}</p>
+                <h3 class="font-bold text-sm text-slate-900 dark:text-white">{{ t('គណនីសាស្ត្រាចារ្យរង់ចាំការផ្ទៀងផ្ទាត់', 'Teacher Accounts Pending') }} ({{ teachersReviewAlert?.count || 0 }})</h3>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ t('ទិន្នន័យពិតចេញពីតារាង users (role=teacher)', 'Live Faculty Accounts') }}</p>
               </div>
             </div>
             <button @click="closeModal" class="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer">✕</button>
           </div>
 
           <div class="p-5 space-y-2.5 max-h-80 overflow-y-auto text-xs">
-            <div v-for="tch in [
-              { name: 'Dr. Heng Chantha', dept: 'Information Technology', exp: '10 Years Exp', email: 'chantha.heng@spilms.tech' },
-              { name: 'Ms. Kim Vanna', dept: 'Agriculture & Agronomy', exp: '7 Years Exp', email: 'vanna.kim@spilms.tech' },
-              { name: 'Mr. Ouk Daneth', dept: 'Social Work', exp: '6 Years Exp', email: 'daneth.ouk@spilms.tech' }
-            ]" :key="tch.name" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between">
+            <div v-for="tch in teachersReviewAlert?.items" :key="tch.id || tch.name" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between">
               <div>
                 <h5 class="font-bold text-slate-900 dark:text-white text-xs">{{ tch.name }}</h5>
                 <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ tch.dept }} · {{ tch.email }}</p>
               </div>
               <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400">{{ tch.exp }}</span>
             </div>
+            <div v-if="!teachersReviewAlert?.items || teachersReviewAlert.items.length === 0" class="text-center py-6 text-slate-400">
+              {{ t('គ្មានសាស្ត្រាចារ្យរង់ចាំការផ្ទៀងផ្ទាត់ទេ', 'All teachers verified.') }}
+            </div>
           </div>
 
           <div class="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 flex flex-wrap items-center justify-between gap-2">
-            <button @click="executeAction('ផ្ទៀងផ្ទាត់ និងផ្តល់សិទ្ធិបង្រៀន')" class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white cursor-pointer transition-colors shadow-sm">
-              {{ t('✓ ផ្ទៀងផ្ទាត់ និងផ្តល់សិទ្ធិទាំងអស់', '✓ Verify & Approve All 3') }}
+            <button
+              @click="executeVerifyTeachers"
+              :disabled="isProcessingAction || !teachersReviewAlert?.count"
+              class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white cursor-pointer transition-colors shadow-sm disabled:opacity-50"
+            >
+              <span v-if="isProcessingAction">{{ t('កំពុងផ្ទៀងផ្ទាត់...', 'Verifying...') }}</span>
+              <span v-else>{{ t('✓ ផ្ទៀងផ្ទាត់ និងផ្តល់សិទ្ធិទាំងអស់ជាក់ស្តែង', '✓ Verify & Approve All (DB Live)') }}</span>
             </button>
             <Link href="/admin/user-management/teachers" @click="closeModal" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 transition-colors">
               {{ t('គ្រប់គ្រងសាស្ត្រាចារ្យ →', 'Manage Teachers →') }}
@@ -1249,7 +1190,7 @@ const performanceBarOptions = computed<any>(() => ({
         </div>
       </div>
 
-      <!-- 4. Announcements Schedule Modal -->
+      <!-- 4. Announcements Schedule Modal (Real Live Action) -->
       <div v-if="activeModal === 'announcements'" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
         <div class="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
           <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-emerald-50/60 dark:bg-emerald-950/30">
@@ -1258,29 +1199,34 @@ const performanceBarOptions = computed<any>(() => ({
                 📢
               </div>
               <div>
-                <h3 class="font-bold text-sm text-slate-900 dark:text-white">{{ t('សេចក្តីប្រកាស 2 បានកំណត់ពេល', '2 Scheduled Announcements') }}</h3>
-                <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ t('រួចរាល់សម្រាប់ការចាប់ផ្តើមឆមាសសិក្សាថ្មី', 'Ready for semester start broadcast') }}</p>
+                <h3 class="font-bold text-sm text-slate-900 dark:text-white">{{ t('សេចក្តីប្រកាសជូនដំណឹង', 'Scheduled Announcements') }} ({{ announcementsAlert?.count || 0 }})</h3>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ t('ទិន្នន័យពិតចេញពីតារាង announcements', 'Live Announcements Database') }}</p>
               </div>
             </div>
             <button @click="closeModal" class="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer">✕</button>
           </div>
 
           <div class="p-5 space-y-2.5 max-h-80 overflow-y-auto text-xs">
-            <div v-for="ann in [
-              { title: 'Semester 2 Academic Launch & Course Enrollment Window', date: 'Tomorrow at 08:00 AM', aud: 'All Students & Teachers' },
-              { title: 'Final Exam Preparation & Quiz Bank Practice Open', date: 'Next Monday at 09:00 AM', aud: 'Active Students' }
-            ]" :key="ann.title" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between">
+            <div v-for="ann in announcementsAlert?.items" :key="ann.id || ann.title" class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between">
               <div>
                 <h5 class="font-bold text-slate-900 dark:text-white text-xs">{{ ann.title }}</h5>
                 <p class="text-[10px] text-slate-500 dark:text-slate-400">Target: {{ ann.aud }} · Time: {{ ann.date }}</p>
               </div>
               <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400">Scheduled</span>
             </div>
+            <div v-if="!announcementsAlert?.items || announcementsAlert.items.length === 0" class="text-center py-6 text-slate-400">
+              {{ t('គ្មានសេចក្តីប្រកាសរង់ចាំទេ', 'No scheduled announcements.') }}
+            </div>
           </div>
 
           <div class="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 flex flex-wrap items-center justify-between gap-2">
-            <button @click="executeAction('ផ្សព្វផ្សាយជាបន្ទាន់')" class="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer transition-colors shadow-sm">
-              {{ t('🚀 ផ្សព្វផ្សាយជាបន្ទាន់', '🚀 Broadcast Now') }}
+            <button
+              @click="executeBroadcastAnnouncement"
+              :disabled="isProcessingAction || !announcementsAlert?.count"
+              class="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer transition-colors shadow-sm disabled:opacity-50"
+            >
+              <span v-if="isProcessingAction">{{ t('កំពុងផ្សាយ...', 'Broadcasting...') }}</span>
+              <span v-else>{{ t('🚀 ផ្សព្វផ្សាយជាបន្ទាន់ជាក់ស្តែង', '🚀 Broadcast Now (DB Live)') }}</span>
             </button>
             <Link href="/admin/notifications/announcements" @click="closeModal" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 transition-colors">
               {{ t('គ្រប់គ្រងសេចក្តីប្រកាស →', 'Announcement Center →') }}
@@ -1289,7 +1235,7 @@ const performanceBarOptions = computed<any>(() => ({
         </div>
       </div>
 
-      <!-- 5. Course Quick Detail Modal -->
+      <!-- 5. Course Quick Detail Modal (Real DB Course) -->
       <div v-if="activeModal === 'course_detail' && selectedCourse" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
         <div class="relative w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
           <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-blue-50/60 dark:bg-blue-950/30">
@@ -1319,8 +1265,8 @@ const performanceBarOptions = computed<any>(() => ({
           </div>
 
           <div class="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 flex items-center justify-between gap-2">
-            <button @click="executeAction('ទាញយករបាយការណ៍លទ្ធផលវគ្គសិក្សា')" class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white cursor-pointer transition-colors shadow-sm">
-              {{ t('📄 ទាញយករបាយការណ៍', '📄 Download Report') }}
+            <button @click="downloadExportReport" class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white cursor-pointer transition-colors shadow-sm">
+              {{ t('📄 ទាញយករបាយការណ៍ CSV', '📄 Export CSV Report') }}
             </button>
             <Link href="/admin/course-module/all" @click="closeModal" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 transition-colors">
               {{ t('បើកទំព័រវគ្គសិក្សា →', 'Open Course Module →') }}

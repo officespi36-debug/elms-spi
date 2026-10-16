@@ -135,6 +135,13 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/api/system-status', [Admin\DashboardController::class, 'apiSystemStatus']);
         Route::get('/api/alerts', [Admin\DashboardController::class, 'apiAlerts']);
         Route::get('/api/top-courses', [Admin\DashboardController::class, 'apiTopCourses']);
+
+        // Dashboard Live Quick Actions
+        Route::post('/dashboard/approve-courses', [Admin\DashboardController::class, 'approveCourses'])->name('dashboard.approve-courses');
+        Route::post('/dashboard/verify-teachers', [Admin\DashboardController::class, 'verifyTeachers'])->name('dashboard.verify-teachers');
+        Route::post('/dashboard/intervene-at-risk', [Admin\DashboardController::class, 'interveneAtRisk'])->name('dashboard.intervene-at-risk');
+        Route::post('/dashboard/broadcast-announcement', [Admin\DashboardController::class, 'broadcastAnnouncement'])->name('dashboard.broadcast-announcement');
+        Route::get('/dashboard/export-report', [Admin\DashboardController::class, 'exportReport'])->name('dashboard.export-report');
         Route::resource('users', Admin\UserController::class);
         Route::get('user-management', [Admin\UserController::class, 'allUsers'])->name('user-management.all');
         Route::get('user-management/all', [Admin\UserController::class, 'allUsers']);
