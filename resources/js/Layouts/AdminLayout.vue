@@ -303,31 +303,70 @@ const onIconError = (e: Event) => {
 // --- Top Navbar State & Logic ---
 const searchQuery = ref('')
 const isSearchOpen = ref(false)
+const isTopSearchDropdownOpen = ref(false)
 const isNotificationOpen = ref(false)
 const isProfileOpen = ref(false)
+const isSettingsOpen = ref(false)
 const isQuickActionOpen = ref(false)
 const isLangOpen = ref(false)
 const isStatusOpen = ref(false)
 const isFullscreen = ref(false)
 const isDateOpen = ref(false)
-const selectedDateLabel = ref('11 Jul 2026')
-const activeDatePreset = ref('today')
-const customDateInput = ref('2026-07-11')
 
-const datePresets = [
-  { id: 'today', label_km: 'ថ្ងៃនេះ (11 Jul)', label_en: 'Today (11 Jul)', value: '11 Jul 2026' },
-  { id: 'yesterday', label_km: 'ម្សិលមិញ (10 Jul)', label_en: 'Yesterday', value: '10 Jul 2026' },
-  { id: 'week', label_km: 'សប្តាហ៍នេះ', label_en: 'This Week', value: '05 - 11 Jul' },
-  { id: 'month', label_km: 'ខែនេះ (July)', label_en: 'This Month', value: 'Jul 2026' },
-  { id: 'term', label_km: 'ឆមាសទី ២', label_en: 'Semester 2', value: 'Sem 2, 2026' },
-  { id: 'year', label_km: 'ឆ្នាំសិក្សា ២០២៦', label_en: 'Year 2026', value: 'AY 2025-2026' },
-]
+// Dynamic current real-time date
+const getNowDate = () => new Date()
+const monthsEnList = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const monthsKmList = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ']
+
+const currentDayNum = getNowDate().getDate()
+const currentMonthEn = monthsEnList[getNowDate().getMonth()]
+const currentMonthKm = monthsKmList[getNowDate().getMonth()]
+const currentYearNum = getNowDate().getFullYear()
+
+const todayFormattedEn = `${String(currentDayNum).padStart(2, '0')} ${currentMonthEn} ${currentYearNum}`
+const todayIso = `${currentYearNum}-${String(getNowDate().getMonth() + 1).padStart(2, '0')}-${String(currentDayNum).padStart(2, '0')}`
+
+const activeDatePreset = ref(
+  (typeof window !== 'undefined' && localStorage.getItem('elms_admin_date_preset')) || 'today'
+)
+const selectedDateLabel = ref(
+  (typeof window !== 'undefined' && localStorage.getItem('elms_admin_date_label')) || todayFormattedEn
+)
+const customDateInput = ref(
+  (typeof window !== 'undefined' && localStorage.getItem('elms_admin_custom_date')) || todayIso
+)
+
+const datePresets = computed(() => {
+  const d = getNowDate()
+  const day = d.getDate()
+  const month = monthsEnList[d.getMonth()]
+  const monthKm = monthsKmList[d.getMonth()]
+  const yr = d.getFullYear()
+
+  const yDate = new Date()
+  yDate.setDate(d.getDate() - 1)
+  const yDay = yDate.getDate()
+  const yMonth = monthsEnList[yDate.getMonth()]
+
+  return [
+    { id: 'today', label_km: `ថ្ងៃនេះ (${day} ${monthKm})`, label_en: `Today (${day} ${month})`, value: `${String(day).padStart(2, '0')} ${month} ${yr}` },
+    { id: 'yesterday', label_km: `ម្សិលមិញ (${yDay} ${yMonth})`, label_en: `Yesterday (${yDay} ${yMonth})`, value: `${String(yDay).padStart(2, '0')} ${yMonth} ${yDate.getFullYear()}` },
+    { id: 'week', label_km: 'សប្តាហ៍នេះ', label_en: 'This Week', value: 'This Week' },
+    { id: 'month', label_km: `ខែនេះ (${monthKm})`, label_en: `This Month (${month})`, value: `${month} ${yr}` },
+    { id: 'term', label_km: 'ឆមាសទី ១ (២០២៦-២០២៧)', label_en: 'Semester 1 (2026-2027)', value: 'Sem 1, 2026' },
+    { id: 'year', label_km: 'ឆ្នាំសិក្សា ២០២៦-២០២៧', label_en: 'AY 2026-2027', value: 'AY 2026-2027' },
+  ]
+})
 
 const selectDatePreset = (preset: { id: string; label_km: string; label_en: string; value: string }) => {
   playTopBarSound()
   activeDatePreset.value = preset.id
   selectedDateLabel.value = preset.value
   isDateOpen.value = false
+  try {
+    localStorage.setItem('elms_admin_date_preset', preset.id)
+    localStorage.setItem('elms_admin_date_label', preset.value)
+  } catch {}
   if (page.url.startsWith('/admin/dashboard')) {
     router.get('/admin/dashboard', { period: preset.id }, { preserveState: true, preserveScroll: true })
   }
@@ -337,13 +376,17 @@ const applyCustomDate = () => {
   if (!customDateInput.value) return
   playTopBarSound()
   const d = new Date(customDateInput.value)
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-  const formatted = `${String(d.getDate()).padStart(2, '0')} ${months[d.getMonth()]} ${d.getFullYear()}`
+  const formatted = `${String(d.getDate()).padStart(2, '0')} ${monthsEnList[d.getMonth()]} ${d.getFullYear()}`
   selectedDateLabel.value = formatted
   activeDatePreset.value = 'custom'
   isDateOpen.value = false
+  try {
+    localStorage.setItem('elms_admin_date_preset', 'custom')
+    localStorage.setItem('elms_admin_date_label', formatted)
+    localStorage.setItem('elms_admin_custom_date', customDateInput.value)
+  } catch {}
   if (page.url.startsWith('/admin/dashboard')) {
-    router.get('/admin/dashboard', { date: customDateInput.value }, { preserveState: true, preserveScroll: true })
+    router.get('/admin/dashboard', { period: 'custom', date: customDateInput.value }, { preserveState: true, preserveScroll: true })
   }
 }
 
@@ -351,9 +394,9 @@ const currentLang = computed(() => i18n.locale.value)
 
 const dateDisplayLabel = computed(() => {
   if (activeDatePreset.value === 'today') {
-    return currentLang.value === 'km' ? 'ថ្ងៃនេះ (11 Jul)' : '11 Jul 2026'
+    return currentLang.value === 'km' ? `ថ្ងៃនេះ (${currentDayNum} ${currentMonthKm})` : `${currentDayNum} ${currentMonthEn} ${currentYearNum}`
   }
-  const preset = datePresets.find(p => p.id === activeDatePreset.value)
+  const preset = datePresets.value.find(p => p.id === activeDatePreset.value)
   if (preset) {
     return currentLang.value === 'km' ? preset.label_km : preset.label_en
   }
@@ -604,6 +647,50 @@ const searchableLinks = computed(() => {
   return list
 })
 
+interface GlobalSearchResult {
+  pages: Array<{ title: string; title_km?: string; category: string; url: string; icon?: string }>
+  courses: Array<{ id: number; title: string; code: string; url: string }>
+  students: Array<{ id: number; name: string; subtitle: string; url: string }>
+  teachers: Array<{ id: number; name: string; subtitle: string; url: string }>
+}
+
+const isSearching = ref(false)
+const globalSearchResults = ref<GlobalSearchResult>({
+  pages: [],
+  courses: [],
+  students: [],
+  teachers: []
+})
+
+let searchDebounceTimer: any = null
+
+const performGlobalSearch = (query: string) => {
+  if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
+  searchDebounceTimer = setTimeout(async () => {
+    isSearching.value = true
+    try {
+      const res = await fetch(`/admin/api/global-search?q=${encodeURIComponent(query.trim())}`, {
+        headers: {
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      if (res.ok) {
+        const data = await res.json()
+        globalSearchResults.value = data.results || { pages: [], courses: [], students: [], teachers: [] }
+      }
+    } catch (e) {
+      // fallback
+    } finally {
+      isSearching.value = false
+    }
+  }, 200)
+}
+
+watch(searchQuery, (newVal) => {
+  performGlobalSearch(newVal)
+})
+
 const filteredSearchResults = computed(() => {
   if (!searchQuery.value.trim()) return searchableLinks.value.slice(0, 7)
   const q = searchQuery.value.toLowerCase()
@@ -614,13 +701,40 @@ const filteredSearchResults = computed(() => {
 })
 
 const handleSearchEnter = () => {
+  playClickSound()
+  if (globalSearchResults.value.courses && globalSearchResults.value.courses.length > 0) {
+    const target = globalSearchResults.value.courses[0].url
+    closeAllDropdowns()
+    router.visit(target)
+    return
+  }
+  if (globalSearchResults.value.students && globalSearchResults.value.students.length > 0) {
+    const target = globalSearchResults.value.students[0].url
+    closeAllDropdowns()
+    router.visit(target)
+    return
+  }
+  if (globalSearchResults.value.teachers && globalSearchResults.value.teachers.length > 0) {
+    const target = globalSearchResults.value.teachers[0].url
+    closeAllDropdowns()
+    router.visit(target)
+    return
+  }
+  if (globalSearchResults.value.pages && globalSearchResults.value.pages.length > 0) {
+    const target = globalSearchResults.value.pages[0].url
+    closeAllDropdowns()
+    router.visit(target)
+    return
+  }
   if (filteredSearchResults.value.length > 0) {
     const target = filteredSearchResults.value[0].href
-    isSearchOpen.value = false
+    closeAllDropdowns()
     router.visit(target)
-  } else if (searchQuery.value.trim()) {
-    isSearchOpen.value = false
-    router.visit(`/admin/reports?tab=students&q=${encodeURIComponent(searchQuery.value.trim())}`)
+    return
+  }
+  if (searchQuery.value.trim()) {
+    closeAllDropdowns()
+    router.visit(`/admin/course-module/all?search=${encodeURIComponent(searchQuery.value.trim())}`)
   }
 }
 
@@ -805,18 +919,23 @@ const onFullscreenChange = () => {
 
 const closeAllDropdowns = () => {
   isSearchOpen.value = false
+  isTopSearchDropdownOpen.value = false
   isNotificationOpen.value = false
   isProfileOpen.value = false
+  isSettingsOpen.value = false
   isQuickActionOpen.value = false
   isLangOpen.value = false
   isStatusOpen.value = false
   isDateOpen.value = false
 }
 
-const toggleDropdown = (target: 'search' | 'notification' | 'profile' | 'quick' | 'lang' | 'status' | 'date') => {
+const toggleDropdown = (target: 'search' | 'topsearch' | 'notification' | 'profile' | 'settings' | 'quick' | 'lang' | 'status' | 'date') => {
+  playClickSound()
   const current = target === 'search' ? isSearchOpen.value
+    : target === 'topsearch' ? isTopSearchDropdownOpen.value
     : target === 'notification' ? isNotificationOpen.value
     : target === 'profile' ? isProfileOpen.value
+    : target === 'settings' ? isSettingsOpen.value
     : target === 'quick' ? isQuickActionOpen.value
     : target === 'lang' ? isLangOpen.value
     : target === 'status' ? isStatusOpen.value
@@ -824,9 +943,21 @@ const toggleDropdown = (target: 'search' | 'notification' | 'profile' | 'quick' 
 
   closeAllDropdowns()
 
-  if (target === 'search') isSearchOpen.value = !current
+  if (target === 'search') {
+    isSearchOpen.value = !current
+    if (isSearchOpen.value && (!globalSearchResults.value.pages || globalSearchResults.value.pages.length === 0)) {
+      performGlobalSearch('')
+    }
+  }
+  else if (target === 'topsearch') {
+    isTopSearchDropdownOpen.value = !current
+    if (isTopSearchDropdownOpen.value && (!globalSearchResults.value.pages || globalSearchResults.value.pages.length === 0)) {
+      performGlobalSearch('')
+    }
+  }
   else if (target === 'notification') isNotificationOpen.value = !current
   else if (target === 'profile') isProfileOpen.value = !current
+  else if (target === 'settings') isSettingsOpen.value = !current
   else if (target === 'quick') isQuickActionOpen.value = !current
   else if (target === 'lang') isLangOpen.value = !current
   else if (target === 'status') isStatusOpen.value = !current
@@ -844,6 +975,9 @@ const handleKeydown = (e: KeyboardEvent) => {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
     e.preventDefault()
     toggleDropdown('search')
+    if (isSearchOpen.value) {
+      performGlobalSearch('')
+    }
   } else if (e.key === 'Escape') {
     closeAllDropdowns()
   }
@@ -1403,24 +1537,157 @@ onUnmounted(() => {
             </svg>
           </button>
 
-          <!-- Long White Pill Search Input with Dual Magnifying Glass Icons -->
-          <div class="relative hidden md:block">
+          <!-- Long White Pill Search Input with Dual Magnifying Glass Icons & Direct Dropdown -->
+          <div class="relative hidden md:block nav-dropdown-scope">
             <div class="flex items-center bg-white text-slate-800 rounded-full px-3.5 py-1.5 w-60 lg:w-80 xl:w-96 shadow-sm border border-slate-200 focus-within:ring-2 focus-within:ring-blue-500/40 focus-within:border-blue-500 transition-all">
-              <svg @click="toggleDropdown('search')" class="w-4 h-4 text-slate-400 mr-2 shrink-0 cursor-pointer hover:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <svg @click="toggleDropdown('topsearch')" class="w-4 h-4 text-slate-400 mr-2 shrink-0 cursor-pointer hover:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <input
                 type="text"
                 v-model="searchQuery"
-                @focus="isSearchOpen = true"
+                @focus="isTopSearchDropdownOpen = true; performGlobalSearch(searchQuery)"
                 @keydown.enter="handleSearchEnter"
+                @keydown.esc="isTopSearchDropdownOpen = false"
                 :placeholder="currentLang === 'km' ? 'ស្វែងរកវគ្គសិក្សា និស្សិត របាយការណ៍...' : 'Search courses, students, reports...'"
                 class="bg-transparent text-xs text-slate-800 placeholder-slate-400 focus:outline-none w-full"
               />
-              <svg @click="handleSearchEnter" class="w-4 h-4 text-slate-400 ml-2 shrink-0 cursor-pointer hover:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <span class="text-[9.5px] text-slate-400 font-mono bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 shrink-0 ml-1 select-none">⌘K</span>
+              <svg @click="handleSearchEnter" class="w-4 h-4 text-slate-400 ml-1.5 shrink-0 cursor-pointer hover:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
+
+            <!-- Top Search Dropdown Menu (Anchored directly under Search Bar) -->
+            <Transition
+              enter-active-class="transition duration-150 ease-out"
+              enter-from-class="opacity-0 -translate-y-1 scale-98"
+              enter-to-class="opacity-100 translate-y-0 scale-100"
+              leave-active-class="transition duration-100 ease-in"
+              leave-from-class="opacity-100 translate-y-0 scale-100"
+              leave-to-class="opacity-0 -translate-y-1 scale-98"
+            >
+              <div
+                v-if="isTopSearchDropdownOpen"
+                @click.stop
+                class="absolute left-0 mt-2 w-full min-w-[360px] max-w-[480px] rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xl p-2.5 z-50 overflow-hidden max-h-[460px] overflow-y-auto custom-scrollbar"
+              >
+                <!-- Loading State -->
+                <div v-if="isSearching" class="flex items-center justify-center py-6 text-xs text-slate-400 gap-2">
+                  <svg class="animate-spin w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                  <span>{{ currentLang === 'km' ? 'កំពុងស្វែងរក...' : 'Searching LMS database...' }}</span>
+                </div>
+
+                <div v-else class="space-y-3">
+                  <!-- Courses Section -->
+                  <div v-if="globalSearchResults.courses && globalSearchResults.courses.length > 0">
+                    <div class="px-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
+                      <span>📚</span> {{ currentLang === 'km' ? 'វគ្គសិក្សា' : 'Courses' }}
+                    </div>
+                    <div class="space-y-0.5">
+                      <Link
+                        v-for="c in globalSearchResults.courses"
+                        :key="c.id"
+                        :href="c.url"
+                        @click="closeAllDropdowns"
+                        class="flex items-center justify-between p-2 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/30 text-slate-800 dark:text-slate-100 transition-colors group cursor-pointer"
+                      >
+                        <div class="min-w-0">
+                          <p class="text-xs font-bold truncate group-hover:text-blue-600 dark:group-hover:text-blue-400">{{ c.title }}</p>
+                          <p class="text-[10px] text-slate-400 font-mono">{{ c.code }}</p>
+                        </div>
+                        <span class="text-xs text-slate-400 group-hover:translate-x-0.5 transition-transform">→</span>
+                      </Link>
+                    </div>
+                  </div>
+
+                  <!-- Students Section -->
+                  <div v-if="globalSearchResults.students && globalSearchResults.students.length > 0">
+                    <div class="px-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                      <span>🎓</span> {{ currentLang === 'km' ? 'និស្សិត / សិស្ស' : 'Students' }}
+                    </div>
+                    <div class="space-y-0.5">
+                      <Link
+                        v-for="s in globalSearchResults.students"
+                        :key="s.id"
+                        :href="s.url"
+                        @click="closeAllDropdowns"
+                        class="flex items-center justify-between p-2 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-900/30 text-slate-800 dark:text-slate-100 transition-colors group cursor-pointer"
+                      >
+                        <div class="min-w-0">
+                          <p class="text-xs font-bold truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400">{{ s.name }}</p>
+                          <p class="text-[10px] text-slate-400 truncate">{{ s.subtitle }}</p>
+                        </div>
+                        <span class="text-xs text-slate-400 group-hover:translate-x-0.5 transition-transform">→</span>
+                      </Link>
+                    </div>
+                  </div>
+
+                  <!-- Teachers Section -->
+                  <div v-if="globalSearchResults.teachers && globalSearchResults.teachers.length > 0">
+                    <div class="px-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                      <span>👨‍🏫</span> {{ currentLang === 'km' ? 'សាស្ត្រាចារ្យ / គ្រូ' : 'Faculty / Teachers' }}
+                    </div>
+                    <div class="space-y-0.5">
+                      <Link
+                        v-for="t in globalSearchResults.teachers"
+                        :key="t.id"
+                        :href="t.url"
+                        @click="closeAllDropdowns"
+                        class="flex items-center justify-between p-2 rounded-xl hover:bg-amber-50 dark:hover:bg-amber-900/30 text-slate-800 dark:text-slate-100 transition-colors group cursor-pointer"
+                      >
+                        <div class="min-w-0">
+                          <p class="text-xs font-bold truncate group-hover:text-amber-600 dark:group-hover:text-amber-400">{{ t.name }}</p>
+                          <p class="text-[10px] text-slate-400 truncate">{{ t.subtitle }}</p>
+                        </div>
+                        <span class="text-xs text-slate-400 group-hover:translate-x-0.5 transition-transform">→</span>
+                      </Link>
+                    </div>
+                  </div>
+
+                  <!-- Navigation Modules -->
+                  <div v-if="globalSearchResults.pages && globalSearchResults.pages.length > 0">
+                    <div class="px-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
+                      <span>⚡</span> {{ currentLang === 'km' ? 'ទំព័រ & ម៉ូឌុល' : 'Navigation & Modules' }}
+                    </div>
+                    <div class="grid grid-cols-2 gap-1">
+                      <Link
+                        v-for="p in globalSearchResults.pages"
+                        :key="p.url"
+                        :href="p.url"
+                        @click="closeAllDropdowns"
+                        class="p-2 rounded-xl bg-slate-50/70 dark:bg-slate-800/60 hover:bg-purple-50 dark:hover:bg-purple-900/30 text-slate-800 dark:text-slate-100 transition-colors group cursor-pointer truncate"
+                      >
+                        <p class="text-xs font-bold truncate group-hover:text-purple-600 dark:group-hover:text-purple-400">
+                          {{ currentLang === 'km' && p.title_km ? p.title_km : p.title }}
+                        </p>
+                        <p class="text-[9px] text-slate-400 uppercase tracking-tight truncate">{{ p.category }}</p>
+                      </Link>
+                    </div>
+                  </div>
+
+                  <!-- Empty result -->
+                  <div v-if="(!globalSearchResults.courses?.length && !globalSearchResults.students?.length && !globalSearchResults.teachers?.length && !globalSearchResults.pages?.length)" class="py-6 text-center text-xs text-slate-400">
+                    <p class="font-semibold text-slate-500">{{ currentLang === 'km' ? 'មិនមានទិន្នន័យត្រូវគ្នានឹង' : 'No matches found for' }} "{{ searchQuery }}"</p>
+                    <p class="text-[11px] text-slate-400 mt-1">{{ currentLang === 'km' ? 'ចុច Enter ដើម្បីស្វែងរកក្នុងតារាងវគ្គសិក្សា' : 'Press Enter to search all courses' }}</p>
+                  </div>
+                </div>
+
+                <!-- Footer with Command Palette trigger -->
+                <div class="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px] text-slate-400">
+                  <span class="flex items-center gap-1">
+                    <kbd class="px-1 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700">Enter</kbd> {{ currentLang === 'km' ? 'ជ្រើសរើស' : 'Select' }}
+                  </span>
+                  <button
+                    type="button"
+                    @click="isTopSearchDropdownOpen = false; isSearchOpen = true"
+                    class="text-blue-600 dark:text-blue-400 font-bold hover:underline cursor-pointer"
+                  >
+                    {{ currentLang === 'km' ? 'បើកផ្ទាំងពេញលេញ (Ctrl+K) →' : 'Full Command Palette (Ctrl+K) →' }}
+                  </button>
+                </div>
+              </div>
+            </Transition>
           </div>
         </div>
 
@@ -1435,7 +1702,7 @@ onUnmounted(() => {
               class="hidden sm:flex items-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 px-3.5 py-1.5 rounded-full text-xs font-semibold shadow-sm border border-slate-200 select-none mr-1 cursor-pointer transition-all active:scale-95 focus:outline-none"
               :title="currentLang === 'km' ? 'ជ្រើសរើសកាលបរិច្ឆេទ / ឆមាសសិក្សា' : 'Select Date / Academic Term'"
             >
-              <span class="text-slate-400 text-xs">📅</span>
+              <span class="text-blue-500 text-xs">📅</span>
               <span class="font-bold text-slate-900">{{ dateDisplayLabel }}</span>
               <span class="text-slate-400 text-[10px] ml-0.5 transition-transform duration-200" :class="isDateOpen ? 'rotate-180 text-blue-600' : ''">⌄</span>
             </button>
@@ -1508,13 +1775,13 @@ onUnmounted(() => {
           <button
             @click="toggleFullscreen"
             type="button"
-            class="p-1.5 text-slate-300 hover:text-white transition-colors cursor-pointer select-none active:scale-95 focus:outline-none"
+            class="h-8 w-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition-all border border-slate-700/60 shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 focus:outline-none"
             :title="isFullscreen ? (currentLang === 'km' ? 'ចេញពីពេញអេក្រង់' : 'Exit Fullscreen') : (currentLang === 'km' ? 'ពេញអេក្រង់' : 'Fullscreen')"
           >
-            <svg v-if="isFullscreen" class="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <svg v-if="isFullscreen" class="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 9L4 4m0 0h5m-5 0v5m11 2l5 5m0 0h-5m5 0v-5M9 15l-5 5m0 0h5m-5 0v-5m16-6l-5-5m0 0h5m-5 0v5" />
             </svg>
-            <svg v-else class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <svg v-else class="w-4 h-4 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0 0l-5-5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
             </svg>
           </button>
@@ -1529,49 +1796,117 @@ onUnmounted(() => {
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           </button>
 
-          <!-- Quick Action Dropdown as Settings Gear Icon Button -->
-          <div 
-            class="relative nav-dropdown-scope" 
-            @mouseenter="isQuickActionOpen = true" 
-            @mouseleave="isQuickActionOpen = false"
-          >
+          <!-- Settings Gear Button with Dropdown -->
+          <div class="relative nav-dropdown-scope">
             <button
-              @click.stop="isQuickActionOpen = !isQuickActionOpen"
+              @click.stop="toggleDropdown('settings')"
               type="button"
-              class="p-1.5 w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors flex items-center justify-center cursor-pointer"
-              :title="currentLang === 'km' ? 'បង្កើតរហ័ស' : 'Quick Actions'"
+              class="p-1.5 w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition-all border border-slate-700/60 shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 focus:outline-none"
+              :class="isSettingsOpen ? 'bg-blue-600/30 text-blue-400 ring-2 ring-blue-500/50' : ''"
+              :title="currentLang === 'km' ? 'ការកំណត់ប្រព័ន្ធ & ឧបករណ៍គ្រប់គ្រង' : 'Settings & Admin Tools'"
             >
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <svg class="w-4 h-4 transition-transform duration-300" :class="isSettingsOpen ? 'rotate-90 text-blue-400' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </button>
 
+            <!-- Settings & Administration Dropdown Menu -->
             <Transition
               enter-active-class="transition duration-150 ease-out"
-              enter-from-class="opacity-0 -translate-y-1"
-              enter-to-class="opacity-100 translate-y-0"
+              enter-from-class="opacity-0 -translate-y-1 scale-95"
+              enter-to-class="opacity-100 translate-y-0 scale-100"
               leave-active-class="transition duration-100 ease-in"
-              leave-from-class="opacity-100 translate-y-0"
-              leave-to-class="opacity-0 -translate-y-1"
+              leave-from-class="opacity-100 translate-y-0 scale-100"
+              leave-to-class="opacity-0 -translate-y-1 scale-95"
             >
               <div
-                v-if="isQuickActionOpen"
-                class="absolute right-0 mt-1.5 w-60 rounded-xl bg-[#0c1a2e] border border-slate-800 shadow-2xl py-1.5 z-50 overflow-hidden"
+                v-if="isSettingsOpen"
+                @click.stop
+                class="absolute right-0 mt-2 w-72 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xl p-2.5 z-50 overflow-hidden divide-y divide-slate-100 dark:divide-slate-800"
               >
-                <div class="px-3.5 py-1.5 border-b border-slate-800 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  {{ currentLang === 'km' ? 'បង្កើត / បន្ថែមរហ័ស' : 'Quick Create' }}
+                <!-- Header -->
+                <div class="px-2 pb-2 flex items-center justify-between">
+                  <span class="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
+                    <span>⚙️</span> {{ currentLang === 'km' ? 'ការកំណត់ប្រព័ន្ធ & ឧបករណ៍' : 'Settings & Admin Tools' }}
+                  </span>
+                  <span class="text-[9px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded-md uppercase">E-LMS</span>
                 </div>
-                <Link
-                  v-for="act in quickActions"
-                  :key="act.name"
-                  :href="act.href"
-                  @click="isQuickActionOpen = false"
-                  class="flex items-center gap-2.5 px-3.5 py-2 text-xs text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors group/item"
-                >
-                  <img :src="act.iconUrl" :alt="act.name" class="w-4 h-4 shrink-0 group-hover/item:scale-110 transition-transform" />
-                  <span class="font-medium">{{ act.name }}</span>
-                </Link>
+
+                <!-- Section 1: System Settings -->
+                <div class="py-1.5 space-y-0.5">
+                  <div class="px-2 pb-1 text-[9.5px] font-bold uppercase tracking-wider text-slate-400">
+                    {{ currentLang === 'km' ? 'ការកំណត់ប្រព័ន្ធ' : 'Configuration' }}
+                  </div>
+                  <Link
+                    href="/admin/settings?tab=general"
+                    @click="closeAllDropdowns"
+                    class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    <span class="text-sm">⚙️</span>
+                    <span class="font-medium">{{ currentLang === 'km' ? 'ការកំណត់ទូទៅ' : 'General Settings' }}</span>
+                  </Link>
+                  <Link
+                    href="/admin/settings?tab=academic"
+                    @click="closeAllDropdowns"
+                    class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    <span class="text-sm">🏫</span>
+                    <span class="font-medium">{{ currentLang === 'km' ? 'ការកំណត់កម្មវិធីសិក្សា' : 'Academic Structure' }}</span>
+                  </Link>
+                  <Link
+                    href="/admin/auth/roles"
+                    @click="closeAllDropdowns"
+                    class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    <span class="text-sm">🛡️</span>
+                    <span class="font-medium">{{ currentLang === 'km' ? 'សិទ្ធិ & តួនាទី' : 'Roles & Permissions' }}</span>
+                  </Link>
+                  <Link
+                    href="/admin/auth-logs"
+                    @click="closeAllDropdowns"
+                    class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    <span class="text-sm">🔐</span>
+                    <span class="font-medium">{{ currentLang === 'km' ? 'កំណត់ត្រាសុវត្ថិភាពការចូល' : 'Login Security & Logs' }}</span>
+                  </Link>
+                  <Link
+                    href="/admin/settings?tab=logs"
+                    @click="closeAllDropdowns"
+                    class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    <span class="text-sm">📜</span>
+                    <span class="font-medium">{{ currentLang === 'km' ? 'សុខភាពប្រព័ន្ធ & Logs' : 'System Logs & Uptime' }}</span>
+                  </Link>
+                </div>
+
+                <!-- Section 2: Quick Management Actions -->
+                <div class="py-1.5 space-y-0.5">
+                  <div class="px-2 pb-1 text-[9.5px] font-bold uppercase tracking-wider text-slate-400">
+                    {{ currentLang === 'km' ? 'បង្កើត / បន្ថែមរហ័ស' : 'Quick Actions' }}
+                  </div>
+                  <Link
+                    v-for="act in quickActions"
+                    :key="act.name"
+                    :href="act.href"
+                    @click="closeAllDropdowns"
+                    class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    <img :src="act.iconUrl" :alt="act.name" class="w-3.5 h-3.5 shrink-0" @error="onIconError" />
+                    <span class="font-medium truncate">{{ act.name }}</span>
+                  </Link>
+                </div>
+
+                <!-- Footer with direct Settings link -->
+                <div class="pt-2 text-center">
+                  <Link
+                    href="/admin/settings"
+                    @click="closeAllDropdowns"
+                    class="block w-full py-1.5 rounded-xl bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 font-bold text-xs transition-colors"
+                  >
+                    {{ currentLang === 'km' ? 'បើកផ្ទាំងការកំណត់ពេញលេញ →' : 'Open Full Settings Dashboard →' }}
+                  </Link>
+                </div>
               </div>
             </Transition>
           </div>
@@ -1581,7 +1916,7 @@ onUnmounted(() => {
             type="button"
             @click="toggleLanguage"
             class="p-1 h-8 w-8 rounded-full bg-slate-800/80 hover:bg-slate-700 transition-all border border-slate-700/60 shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
-            :title="currentLang === 'km' ? 'Switch to English' : 'ប្តូរទៅភាសាខ្មែរ'"
+            :title="currentLang === 'km' ? 'Switch to English (ប្តូរទៅ English)' : 'ប្តូរទៅភាសាខ្មែរ (Switch to Khmer)'"
           >
             <img
               :src="currentLang === 'km' ? '/images/flags/km.svg' : '/images/flags/en.svg'"
@@ -1590,14 +1925,19 @@ onUnmounted(() => {
             />
           </button>
 
-          <!-- Theme Switcher (Sun/Moon Minimal Icon) -->
+          <!-- Theme Switcher (Crisp SVG Sun/Moon Icons) -->
           <button
             type="button"
             @click="toggleTheme($event)"
             class="h-8 w-8 rounded-full bg-slate-800/80 hover:bg-slate-700 transition-all border border-slate-700/60 shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
             :title="isDark ? (currentLang === 'km' ? 'ប្តូរទៅ Light Mode' : 'Switch to Light Mode') : (currentLang === 'km' ? 'ប្តូរទៅ Dark Mode' : 'Switch to Dark Mode')"
           >
-            <i :class="['pi text-xs', isDark ? 'pi-moon text-indigo-400' : 'pi-sun text-amber-400']"></i>
+            <svg v-if="isDark" class="w-4 h-4 text-amber-400 group-hover:rotate-45 transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/>
+            </svg>
+            <svg v-else class="w-4 h-4 text-indigo-400 group-hover:-rotate-12 transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+            </svg>
           </button>
 
           <!-- Notifications Bell (White Circle with Red Badge Matching Image) -->
@@ -1772,8 +2112,11 @@ onUnmounted(() => {
           <svg class="w-5 h-5 text-indigo-500 dark:text-indigo-400 shrink-0 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           <input
             v-model="searchQuery"
+            @input="performGlobalSearch(searchQuery)"
+            @keydown.enter="handleSearchEnter"
+            @keydown.esc="isSearchOpen = false"
             type="text"
-            :placeholder="currentLang === 'km' ? 'ស្វែងរកម៉ូឌុល ទំព័រ ឬមុខងារគ្រប់គ្រងទាំងអស់...' : 'Search modules, pages, or admin functions...'"
+            :placeholder="currentLang === 'km' ? 'ស្វែងរកវគ្គសិក្សា និស្សិត គ្រូ ឬម៉ូឌុលប្រព័ន្ធ...' : 'Search courses, students, teachers, or modules...'"
             class="w-full bg-transparent py-4 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none"
             autofocus
           />
@@ -1783,38 +2126,120 @@ onUnmounted(() => {
         </div>
 
         <!-- Search Results List -->
-        <div class="max-h-96 overflow-y-auto p-2 custom-scrollbar">
-          <div v-if="filteredSearchResults.length === 0" class="p-8 text-center text-slate-500 dark:text-slate-400 text-sm">
+        <div class="max-h-96 overflow-y-auto p-3 custom-scrollbar">
+          <!-- Loading State -->
+          <div v-if="isSearching" class="p-8 text-center text-slate-400 text-xs flex items-center justify-center gap-2">
+            <svg class="animate-spin w-4 h-4 text-indigo-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <span>{{ currentLang === 'km' ? 'កំពុងស្វែងរកក្នុងមូលដ្ឋានទិន្នន័យ E-LMS...' : 'Searching E-LMS database...' }}</span>
+          </div>
+
+          <div v-else-if="filteredSearchResults.length === 0 && (!globalSearchResults.courses?.length && !globalSearchResults.students?.length && !globalSearchResults.teachers?.length)" class="p-8 text-center text-slate-500 dark:text-slate-400 text-sm">
             {{ currentLang === 'km' ? 'មិនរកឃើញទិន្នន័យស្វែងរកឡើយ' : 'No results found' }}
           </div>
-          <div v-else class="space-y-1">
-            <Link
-              v-for="res in filteredSearchResults"
-              :key="res.href"
-              :href="res.href"
-              @click="isSearchOpen = false"
-              class="group flex items-center justify-between p-3 rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-600/15 border border-transparent hover:border-indigo-200 dark:hover:border-indigo-500/30 transition-all"
-            >
-              <div class="flex items-center gap-3">
-                <div class="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-500/20 text-slate-500 dark:text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors shrink-0 flex items-center justify-center">
-                  <img v-if="res.iconUrl" :src="res.iconUrl" :alt="res.name" class="w-4 h-4 object-contain shrink-0" />
-                  <svg v-else-if="res.icon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" :d="res.icon"/></svg>
-                </div>
-                <div>
-                  <h4 class="text-xs font-semibold text-slate-800 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-200 transition-colors">{{ res.name }}</h4>
-                  <p class="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wide">{{ res.category }}</p>
-                </div>
+
+          <div v-else class="space-y-3">
+            <!-- Global Courses Section -->
+            <div v-if="globalSearchResults.courses && globalSearchResults.courses.length > 0">
+              <div class="px-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
+                <span>📚</span> {{ currentLang === 'km' ? 'វគ្គសិក្សា' : 'Courses' }}
               </div>
-              <svg class="w-4 h-4 text-slate-400 dark:text-slate-600 group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-            </Link>
+              <div class="space-y-1">
+                <Link
+                  v-for="c in globalSearchResults.courses"
+                  :key="'cmd-c-' + c.id"
+                  :href="c.url"
+                  @click="isSearchOpen = false"
+                  class="group flex items-center justify-between p-2.5 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/30 border border-transparent hover:border-blue-200 dark:hover:border-blue-800 transition-all cursor-pointer"
+                >
+                  <div class="min-w-0">
+                    <h4 class="text-xs font-semibold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-300 truncate">{{ c.title }}</h4>
+                    <p class="text-[10px] text-slate-400 font-mono">{{ c.code }}</p>
+                  </div>
+                  <span class="text-xs text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+                </Link>
+              </div>
+            </div>
+
+            <!-- Global Students Section -->
+            <div v-if="globalSearchResults.students && globalSearchResults.students.length > 0">
+              <div class="px-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                <span>🎓</span> {{ currentLang === 'km' ? 'និស្សិត / សិស្ស' : 'Students' }}
+              </div>
+              <div class="space-y-1">
+                <Link
+                  v-for="s in globalSearchResults.students"
+                  :key="'cmd-s-' + s.id"
+                  :href="s.url"
+                  @click="isSearchOpen = false"
+                  class="group flex items-center justify-between p-2.5 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-900/30 border border-transparent hover:border-emerald-200 dark:hover:border-emerald-800 transition-all cursor-pointer"
+                >
+                  <div class="min-w-0">
+                    <h4 class="text-xs font-semibold text-slate-800 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-300 truncate">{{ s.name }}</h4>
+                    <p class="text-[10px] text-slate-400 truncate">{{ s.subtitle }}</p>
+                  </div>
+                  <span class="text-xs text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+                </Link>
+              </div>
+            </div>
+
+            <!-- Global Teachers Section -->
+            <div v-if="globalSearchResults.teachers && globalSearchResults.teachers.length > 0">
+              <div class="px-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                <span>👨‍🏫</span> {{ currentLang === 'km' ? 'សាស្ត្រាចារ្យ / គ្រូបង្រៀន' : 'Teachers' }}
+              </div>
+              <div class="space-y-1">
+                <Link
+                  v-for="t in globalSearchResults.teachers"
+                  :key="'cmd-t-' + t.id"
+                  :href="t.url"
+                  @click="isSearchOpen = false"
+                  class="group flex items-center justify-between p-2.5 rounded-xl hover:bg-amber-50 dark:hover:bg-amber-900/30 border border-transparent hover:border-amber-200 dark:hover:border-amber-800 transition-all cursor-pointer"
+                >
+                  <div class="min-w-0">
+                    <h4 class="text-xs font-semibold text-slate-800 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-300 truncate">{{ t.name }}</h4>
+                    <p class="text-[10px] text-slate-400 truncate">{{ t.subtitle }}</p>
+                  </div>
+                  <span class="text-xs text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0">→</span>
+                </Link>
+              </div>
+            </div>
+
+            <!-- System Modules and Navigation -->
+            <div v-if="filteredSearchResults.length > 0">
+              <div class="px-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
+                <span>⚡</span> {{ currentLang === 'km' ? 'ទំព័រ & មុខងារគ្រប់គ្រងប្រព័ន្ធ' : 'Pages & Admin Features' }}
+              </div>
+              <div class="space-y-1">
+                <Link
+                  v-for="res in filteredSearchResults"
+                  :key="res.href"
+                  :href="res.href"
+                  @click="isSearchOpen = false"
+                  class="group flex items-center justify-between p-2.5 rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-600/15 border border-transparent hover:border-indigo-200 dark:hover:border-indigo-500/30 transition-all cursor-pointer"
+                >
+                  <div class="flex items-center gap-3 min-w-0">
+                    <div class="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-500/20 text-slate-500 dark:text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors shrink-0 flex items-center justify-center">
+                      <img v-if="res.iconUrl" :src="res.iconUrl" :alt="res.name" class="w-4 h-4 object-contain shrink-0" />
+                      <svg v-else-if="res.icon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" :d="res.icon"/></svg>
+                    </div>
+                    <div class="min-w-0">
+                      <h4 class="text-xs font-semibold text-slate-800 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-200 transition-colors truncate">{{ res.name }}</h4>
+                      <p class="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wide truncate">{{ res.category }}</p>
+                    </div>
+                  </div>
+                  <svg class="w-4 h-4 text-slate-400 dark:text-slate-600 group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-colors shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- Command Palette Footer -->
         <div class="px-4 py-2.5 bg-slate-50 dark:bg-slate-900/90 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
           <div class="flex items-center gap-3">
-            <span><kbd class="px-1.5 py-0.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded text-[10px]">Ctrl K</kbd> ដើម្បីបើក/បិទ</span>
-            <span><kbd class="px-1.5 py-0.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded text-[10px]">ESC</kbd> ដើម្បីចាកចេញ</span>
+            <span><kbd class="px-1.5 py-0.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded text-[10px]">Ctrl K</kbd> {{ currentLang === 'km' ? 'ដើម្បីបើក/បិទ' : 'to toggle' }}</span>
+            <span><kbd class="px-1.5 py-0.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded text-[10px]">ESC</kbd> {{ currentLang === 'km' ? 'ដើម្បីចាកចេញ' : 'to close' }}</span>
+            <span><kbd class="px-1.5 py-0.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded text-[10px]">Enter</kbd> {{ currentLang === 'km' ? 'ជ្រើសរើស' : 'to select' }}</span>
           </div>
           <span class="text-indigo-600 dark:text-indigo-400 font-medium">E-LMS Command Palette</span>
         </div>

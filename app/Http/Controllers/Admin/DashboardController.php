@@ -603,4 +603,128 @@ class DashboardController extends Controller
             ];
         });
     }
+
+    /**
+     * Unified Global Search for Navbar Command Palette & Search Bar
+     */
+    public function apiGlobalSearch(Request $request)
+    {
+        $q = trim((string) $request->input('q', ''));
+
+        $pages = [
+            ['title' => 'Dashboard', 'title_km' => 'ផ្ទាំងគ្រប់គ្រង', 'category' => 'Overview', 'url' => '/admin/dashboard', 'icon' => 'dashboard'],
+            ['title' => 'Students', 'title_km' => 'និស្សិត / សិស្ស', 'category' => 'User Management', 'url' => '/admin/user-management/students', 'icon' => 'users'],
+            ['title' => 'Teachers', 'title_km' => 'សាស្ត្រាចារ្យ / គ្រូ', 'category' => 'User Management', 'url' => '/admin/user-management/teachers', 'icon' => 'users'],
+            ['title' => 'Administrators', 'title_km' => 'អ្នកគ្រប់គ្រងប្រព័ន្ធ', 'category' => 'User Management', 'url' => '/admin/user-management/administrators', 'icon' => 'users'],
+            ['title' => 'All Courses', 'title_km' => 'វគ្គសិក្សាទាំងអស់', 'category' => 'Course Management', 'url' => '/admin/course-module/all', 'icon' => 'courses'],
+            ['title' => 'Course Approval', 'title_km' => 'អនុម័តវគ្គសិក្សា', 'category' => 'Course Management', 'url' => '/admin/course-module/approval', 'icon' => 'courses'],
+            ['title' => 'Enrollments', 'title_km' => 'ការចុះឈ្មោះវគ្គសិក្សា', 'category' => 'Enrollment', 'url' => '/admin/enrollment/courses', 'icon' => 'enrollment'],
+            ['title' => 'Departments', 'title_km' => 'ដេប៉ាតឺម៉ង់', 'category' => 'Academic Structure', 'url' => '/admin/academic-structure/departments', 'icon' => 'academics'],
+            ['title' => 'Majors', 'title_km' => 'ជំនាញឯកទេស (5 Majors)', 'category' => 'Academic Structure', 'url' => '/admin/academic-structure/majors', 'icon' => 'academics'],
+            ['title' => 'Subjects', 'title_km' => 'មុខវិជ្ជា', 'category' => 'Academic Structure', 'url' => '/admin/academic-structure/subjects', 'icon' => 'academics'],
+            ['title' => 'Academic Years', 'title_km' => 'ឆ្នាំសិក្សា', 'category' => 'Academic Structure', 'url' => '/admin/academic-structure/academic-years', 'icon' => 'academics'],
+            ['title' => 'Quizzes & Assignments', 'title_km' => 'កម្រងសំណួរ & កិច្ចការ', 'category' => 'Assessment', 'url' => '/admin/quizzes', 'icon' => 'assessment'],
+            ['title' => 'Student Progress', 'title_km' => 'វឌ្ឍនភាពនិស្សិត', 'category' => 'Learning & Progress', 'url' => '/admin/progress?tab=student', 'icon' => 'progress'],
+            ['title' => 'Course Analytics & Reports', 'title_km' => 'របាយការណ៍ & ស្ថិតិ', 'category' => 'Analytics', 'url' => '/admin/reports?tab=courses', 'icon' => 'analytics'],
+            ['title' => 'AI Recommendations', 'title_km' => 'ការគ្រប់គ្រង AI', 'category' => 'AI Management', 'url' => '/admin/ai-rules?tab=rules', 'icon' => 'ai'],
+            ['title' => 'Announcements', 'title_km' => 'សេចក្តីប្រកាស', 'category' => 'Communication', 'url' => '/admin/notifications/announcements', 'icon' => 'announcement'],
+            ['title' => 'System Settings', 'title_km' => 'ការកំណត់ប្រព័ន្ធ', 'category' => 'Settings', 'url' => '/admin/settings', 'icon' => 'settings'],
+            ['title' => 'Login Security & Auth Logs', 'title_km' => 'សុវត្ថិភាពការចូល', 'category' => 'Authentication', 'url' => '/admin/auth-logs', 'icon' => 'auth'],
+        ];
+
+        if ($q === '') {
+            $recentCourses = Course::latest()->limit(4)->get(['id', 'code', 'title'])->map(function ($c) {
+                return [
+                    'id' => $c->id,
+                    'title' => $c->title,
+                    'code' => $c->code ?: 'CRS-' . $c->id,
+                    'url' => '/admin/course-module/all?search=' . urlencode($c->title),
+                ];
+            });
+
+            $recentStudents = User::where('role', 'student')->latest()->limit(4)->get(['id', 'name', 'email', 'student_code'])->map(function ($s) {
+                return [
+                    'id' => $s->id,
+                    'name' => $s->name,
+                    'subtitle' => $s->student_code ?: $s->email,
+                    'url' => '/admin/user-management/students?search=' . urlencode($s->name),
+                ];
+            });
+
+            $recentTeachers = User::where('role', 'teacher')->latest()->limit(4)->get(['id', 'name', 'email'])->map(function ($t) {
+                return [
+                    'id' => $t->id,
+                    'name' => $t->name,
+                    'subtitle' => $t->email,
+                    'url' => '/admin/user-management/teachers?search=' . urlencode($t->name),
+                ];
+            });
+
+            return response()->json([
+                'query' => '',
+                'results' => [
+                    'pages' => array_slice($pages, 0, 8),
+                    'courses' => $recentCourses,
+                    'students' => $recentStudents,
+                    'teachers' => $recentTeachers,
+                ]
+            ]);
+        }
+
+        $matchedPages = array_values(array_filter($pages, function ($p) use ($q) {
+            return stripos($p['title'], $q) !== false
+                || stripos($p['title_km'], $q) !== false
+                || stripos($p['category'], $q) !== false;
+        }));
+
+        $matchedCourses = Course::where(function ($builder) use ($q) {
+            $builder->where('title', 'like', "%{$q}%")
+                ->orWhere('code', 'like', "%{$q}%")
+                ->orWhere('description', 'like', "%{$q}%");
+        })->limit(6)->get(['id', 'code', 'title'])->map(function ($c) {
+            return [
+                'id' => $c->id,
+                'title' => $c->title,
+                'code' => $c->code ?: 'CRS-' . $c->id,
+                'url' => '/admin/course-module/all?search=' . urlencode($c->title),
+            ];
+        });
+
+        $matchedStudents = User::where('role', 'student')->where(function ($builder) use ($q) {
+            $builder->where('name', 'like', "%{$q}%")
+                ->orWhere('email', 'like', "%{$q}%")
+                ->orWhere('student_code', 'like', "%{$q}%")
+                ->orWhere('phone', 'like', "%{$q}%");
+        })->limit(6)->get(['id', 'name', 'email', 'student_code'])->map(function ($s) {
+            return [
+                'id' => $s->id,
+                'name' => $s->name,
+                'subtitle' => $s->student_code ?: $s->email,
+                'url' => '/admin/user-management/students?search=' . urlencode($s->name),
+            ];
+        });
+
+        $matchedTeachers = User::where('role', 'teacher')->where(function ($builder) use ($q) {
+            $builder->where('name', 'like', "%{$q}%")
+                ->orWhere('email', 'like', "%{$q}%")
+                ->orWhere('phone', 'like', "%{$q}%");
+        })->limit(6)->get(['id', 'name', 'email'])->map(function ($t) {
+            return [
+                'id' => $t->id,
+                'name' => $t->name,
+                'subtitle' => $t->email,
+                'url' => '/admin/user-management/teachers?search=' . urlencode($t->name),
+            ];
+        });
+
+        return response()->json([
+            'query' => $q,
+            'results' => [
+                'pages' => $matchedPages,
+                'courses' => $matchedCourses,
+                'students' => $matchedStudents,
+                'teachers' => $matchedTeachers,
+            ]
+        ]);
+    }
 }

@@ -119,6 +119,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/system-status', [Admin\DashboardController::class, 'apiSystemStatus']);
         Route::get('/alerts', [Admin\DashboardController::class, 'apiAlerts']);
         Route::get('/top-courses', [Admin\DashboardController::class, 'apiTopCourses']);
+        Route::get('/global-search', [Admin\DashboardController::class, 'apiGlobalSearch']);
     });
 
     // ─── ADMIN (FR: A5 Admin column) ───
@@ -135,6 +136,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/api/system-status', [Admin\DashboardController::class, 'apiSystemStatus']);
         Route::get('/api/alerts', [Admin\DashboardController::class, 'apiAlerts']);
         Route::get('/api/top-courses', [Admin\DashboardController::class, 'apiTopCourses']);
+        Route::get('/api/global-search', [Admin\DashboardController::class, 'apiGlobalSearch'])->name('api.global-search');
 
         // Dashboard Live Quick Actions
         Route::post('/dashboard/approve-courses', [Admin\DashboardController::class, 'approveCourses'])->name('dashboard.approve-courses');
