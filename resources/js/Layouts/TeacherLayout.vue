@@ -66,34 +66,8 @@ const getAudioContext = (): AudioContext | null => {
 }
 
 const playTopBarSound = async () => {
-  try {
-    const ctx = getAudioContext()
-    if (!ctx) return
-
-    if (ctx.state === 'suspended') {
-      await ctx.resume()
-    }
-
-    const now = ctx.currentTime
-
-    // Sweet clear selection chime
-    const osc = ctx.createOscillator()
-    const gain = ctx.createGain()
-    osc.connect(gain)
-    gain.connect(ctx.destination)
-
-    osc.type = 'sine'
-    osc.frequency.setValueAtTime(750, now)
-    osc.frequency.exponentialRampToValueAtTime(1150, now + 0.09)
-
-    gain.gain.setValueAtTime(0.3, now)
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.11)
-
-    osc.start(now)
-    osc.stop(now + 0.11)
-  } catch (e) {
-    // Graceful fallback
-  }
+  // Disabled: sound plays only on notification bell
+  return
 }
 
 const toggleLanguage = () => {
