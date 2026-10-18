@@ -152,8 +152,8 @@ const handleRemoveAccount = (e: Event, id: number) => {
 
     <!-- Accounts Area: Active Card + Other Accounts + Toggleable Add Form -->
     <div class="px-3.5 py-2 space-y-2">
-      <!-- Active Account Card (Blue Left Accent) -->
-      <div class="relative p-2.5 rounded-xl bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200/80 dark:border-blue-800/50 border-l-4 border-l-blue-600 flex items-center justify-between gap-2 shadow-2xs">
+      <!-- Active Account Card (Smooth, Clean Rounded Accent) -->
+      <div class="relative p-2.5 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/70 dark:border-blue-800/50 flex items-center justify-between gap-2 shadow-2xs">
         <div class="flex items-center gap-2.5 min-w-0">
           <div class="relative shrink-0">
             <img
