@@ -1771,22 +1771,7 @@ onUnmounted(() => {
             </Transition>
           </div>
 
-          <!-- Fullscreen Toggle Icon -->
-          <button
-            @click="toggleFullscreen"
-            type="button"
-            class="h-8 w-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition-all border border-slate-700/60 shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 focus:outline-none"
-            :title="isFullscreen ? (currentLang === 'km' ? 'ចេញពីពេញអេក្រង់' : 'Exit Fullscreen') : (currentLang === 'km' ? 'ពេញអេក្រង់' : 'Fullscreen')"
-          >
-            <svg v-if="isFullscreen" class="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 9L4 4m0 0h5m-5 0v5m11 2l5 5m0 0h-5m5 0v-5M9 15l-5 5m0 0h5m-5 0v-5m16-6l-5-5m0 0h5m-5 0v5" />
-            </svg>
-            <svg v-else class="w-4 h-4 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0 0l-5-5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-            </svg>
-          </button>
-
-          <!-- Mobile Search Button -->
+          <!-- Mobile Search Button (Mobile Only) -->
           <button
             @click="toggleDropdown('search')"
             type="button"
@@ -1795,121 +1780,6 @@ onUnmounted(() => {
           >
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           </button>
-
-          <!-- Settings Gear Button with Dropdown -->
-          <div class="relative nav-dropdown-scope">
-            <button
-              @click.stop="toggleDropdown('settings')"
-              type="button"
-              class="p-1.5 w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition-all border border-slate-700/60 shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 focus:outline-none"
-              :class="isSettingsOpen ? 'bg-blue-600/30 text-blue-400 ring-2 ring-blue-500/50' : ''"
-              :title="currentLang === 'km' ? 'ការកំណត់ប្រព័ន្ធ & ឧបករណ៍គ្រប់គ្រង' : 'Settings & Admin Tools'"
-            >
-              <svg class="w-4 h-4 transition-transform duration-300" :class="isSettingsOpen ? 'rotate-90 text-blue-400' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </button>
-
-            <!-- Settings & Administration Dropdown Menu -->
-            <Transition
-              enter-active-class="transition duration-150 ease-out"
-              enter-from-class="opacity-0 -translate-y-1 scale-95"
-              enter-to-class="opacity-100 translate-y-0 scale-100"
-              leave-active-class="transition duration-100 ease-in"
-              leave-from-class="opacity-100 translate-y-0 scale-100"
-              leave-to-class="opacity-0 -translate-y-1 scale-95"
-            >
-              <div
-                v-if="isSettingsOpen"
-                @click.stop
-                class="absolute right-0 mt-2 w-72 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xl p-2.5 z-50 overflow-hidden divide-y divide-slate-100 dark:divide-slate-800"
-              >
-                <!-- Header -->
-                <div class="px-2 pb-2 flex items-center justify-between">
-                  <span class="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
-                    <span>⚙️</span> {{ currentLang === 'km' ? 'ការកំណត់ប្រព័ន្ធ & ឧបករណ៍' : 'Settings & Admin Tools' }}
-                  </span>
-                  <span class="text-[9px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded-md uppercase">E-LMS</span>
-                </div>
-
-                <!-- Section 1: System Settings -->
-                <div class="py-1.5 space-y-0.5">
-                  <div class="px-2 pb-1 text-[9.5px] font-bold uppercase tracking-wider text-slate-400">
-                    {{ currentLang === 'km' ? 'ការកំណត់ប្រព័ន្ធ' : 'Configuration' }}
-                  </div>
-                  <Link
-                    href="/admin/settings?tab=general"
-                    @click="closeAllDropdowns"
-                    class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                  >
-                    <span class="text-sm">⚙️</span>
-                    <span class="font-medium">{{ currentLang === 'km' ? 'ការកំណត់ទូទៅ' : 'General Settings' }}</span>
-                  </Link>
-                  <Link
-                    href="/admin/settings?tab=academic"
-                    @click="closeAllDropdowns"
-                    class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                  >
-                    <span class="text-sm">🏫</span>
-                    <span class="font-medium">{{ currentLang === 'km' ? 'ការកំណត់កម្មវិធីសិក្សា' : 'Academic Structure' }}</span>
-                  </Link>
-                  <Link
-                    href="/admin/auth/roles"
-                    @click="closeAllDropdowns"
-                    class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                  >
-                    <span class="text-sm">🛡️</span>
-                    <span class="font-medium">{{ currentLang === 'km' ? 'សិទ្ធិ & តួនាទី' : 'Roles & Permissions' }}</span>
-                  </Link>
-                  <Link
-                    href="/admin/auth-logs"
-                    @click="closeAllDropdowns"
-                    class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                  >
-                    <span class="text-sm">🔐</span>
-                    <span class="font-medium">{{ currentLang === 'km' ? 'កំណត់ត្រាសុវត្ថិភាពការចូល' : 'Login Security & Logs' }}</span>
-                  </Link>
-                  <Link
-                    href="/admin/settings?tab=logs"
-                    @click="closeAllDropdowns"
-                    class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                  >
-                    <span class="text-sm">📜</span>
-                    <span class="font-medium">{{ currentLang === 'km' ? 'សុខភាពប្រព័ន្ធ & Logs' : 'System Logs & Uptime' }}</span>
-                  </Link>
-                </div>
-
-                <!-- Section 2: Quick Management Actions -->
-                <div class="py-1.5 space-y-0.5">
-                  <div class="px-2 pb-1 text-[9.5px] font-bold uppercase tracking-wider text-slate-400">
-                    {{ currentLang === 'km' ? 'បង្កើត / បន្ថែមរហ័ស' : 'Quick Actions' }}
-                  </div>
-                  <Link
-                    v-for="act in quickActions"
-                    :key="act.name"
-                    :href="act.href"
-                    @click="closeAllDropdowns"
-                    class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                  >
-                    <img :src="act.iconUrl" :alt="act.name" class="w-3.5 h-3.5 shrink-0" @error="onIconError" />
-                    <span class="font-medium truncate">{{ act.name }}</span>
-                  </Link>
-                </div>
-
-                <!-- Footer with direct Settings link -->
-                <div class="pt-2 text-center">
-                  <Link
-                    href="/admin/settings"
-                    @click="closeAllDropdowns"
-                    class="block w-full py-1.5 rounded-xl bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 font-bold text-xs transition-colors"
-                  >
-                    {{ currentLang === 'km' ? 'បើកផ្ទាំងការកំណត់ពេញលេញ →' : 'Open Full Settings Dashboard →' }}
-                  </Link>
-                </div>
-              </div>
-            </Transition>
-          </div>
 
           <!-- Language Switcher (Direct 1-Click Toggle: Khmer / English) -->
           <button
