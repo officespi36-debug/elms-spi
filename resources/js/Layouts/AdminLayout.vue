@@ -1005,12 +1005,12 @@ onUnmounted(() => {
   <GlobalLoadingOverlay />
   <div class="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 selection:bg-indigo-500/30 transition-colors duration-200">
     <!-- Sidebar for Desktop Matching Reference Design (Dark Navy, Starts Under Header) -->
-    <aside :class="[isSidebarCollapsed ? 'w-20 overflow-visible' : 'w-60', 'fixed top-14 bottom-0 left-0 z-40 hidden flex-col bg-[#071120] text-slate-300 border-r border-slate-800 md:flex transition-all duration-300 shadow-xl']">
+    <aside :class="[isSidebarCollapsed ? 'w-20 overflow-visible' : 'w-60 overflow-hidden', 'fixed top-14 bottom-0 left-0 z-40 hidden flex-col bg-[#071120] text-slate-300 border-r border-slate-800 md:flex transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] will-change-[width] shadow-xl']">
       <!-- Navigation -->
       <nav
         :class="[
-          isSidebarCollapsed ? 'px-0 overflow-visible' : 'px-3 custom-scrollbar overflow-y-auto',
-          'flex flex-1 flex-col py-4'
+          isSidebarCollapsed ? 'px-2 overflow-visible' : 'px-3 custom-scrollbar overflow-y-auto',
+          'flex flex-1 flex-col py-4 transition-[padding] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]'
         ]"
         :style="isSidebarCollapsed ? { scrollbarWidth: 'none', msOverflowStyle: 'none' } : {}"
       >
@@ -1018,7 +1018,7 @@ onUnmounted(() => {
           <li
             v-for="item in navigation"
             :key="item.name"
-            :class="isSidebarCollapsed ? 'relative group/flyout flex justify-center w-full' : 'relative'"
+            :class="isSidebarCollapsed ? 'relative group/flyout flex justify-center w-full' : 'relative w-full'"
           >
             <!-- 1. Logout Action Button -->
             <button
@@ -1027,16 +1027,23 @@ onUnmounted(() => {
               type="button"
               :title="isSidebarCollapsed ? item.name : undefined"
               :class="[
-                isSidebarCollapsed ? 'justify-center px-0 w-10 h-10 mx-auto' : 'px-3 w-full gap-x-3',
-                'group flex items-center rounded-xl py-2 text-xs font-medium text-slate-300 hover:text-white hover:bg-rose-500/10 transition-all duration-200 cursor-pointer'
+                isSidebarCollapsed ? 'justify-center px-0 w-10 h-10 mx-auto' : 'px-2.5 w-full justify-start h-10',
+                'group flex items-center rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-rose-500/10 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer'
               ]"
             >
-              <div class="relative flex items-center justify-center shrink-0">
+              <div class="relative flex items-center justify-center shrink-0 w-8 h-8 rounded-lg group-hover:bg-rose-500/15 transition-colors">
                 <svg class="h-4.5 w-4.5 shrink-0 text-rose-500" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" fill="none">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9"/>
                 </svg>
               </div>
-              <span v-show="!isSidebarCollapsed" class="flex-1 truncate text-left">{{ getNavTitle(item.name) }}</span>
+              <div
+                :class="[
+                  'flex items-center min-w-0 overflow-hidden whitespace-nowrap transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]',
+                  isSidebarCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[200px] opacity-100 ml-2.5 flex-1'
+                ]"
+              >
+                <span class="truncate text-left font-medium">{{ getNavTitle(item.name) }}</span>
+              </div>
             </button>
 
             <!-- 2. Direct Link (No Children) -->
@@ -1048,11 +1055,11 @@ onUnmounted(() => {
                 $page.url.startsWith(item.href!) 
                   ? 'bg-[#1d68ed] text-white font-medium shadow-md shadow-blue-600/30' 
                   : 'text-slate-300 hover:text-white hover:bg-slate-800/60 border border-transparent font-normal',
-                isSidebarCollapsed ? 'justify-center px-0 w-10 h-10 mx-auto' : 'px-3 w-full gap-x-3',
-                'group flex items-center rounded-xl py-2 text-xs transition-all duration-200'
+                isSidebarCollapsed ? 'justify-center px-0 w-10 h-10 mx-auto' : 'px-2.5 w-full justify-start h-10',
+                'group flex items-center rounded-xl text-xs transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]'
               ]"
             >
-              <div class="relative flex items-center justify-center shrink-0">
+              <div class="relative flex items-center justify-center shrink-0 w-8 h-8">
                 <!-- Dashboard -->
                 <svg v-if="item.iconType === 'dashboard'" class="h-4.5 w-4.5 shrink-0 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
@@ -1107,14 +1114,21 @@ onUnmounted(() => {
                   <path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"/>
                 </svg>
               </div>
-              <span v-show="!isSidebarCollapsed" class="flex-1 truncate">{{ getNavTitle(item.name) }}</span>
-              <svg
-                v-if="item.hasArrow && !isSidebarCollapsed"
-                class="w-3.5 h-3.5 text-slate-500 ml-auto shrink-0 transition-transform group-hover:translate-x-0.5"
-                fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+              <div
+                :class="[
+                  'flex items-center justify-between min-w-0 overflow-hidden whitespace-nowrap transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]',
+                  isSidebarCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[200px] opacity-100 ml-2.5 flex-1'
+                ]"
               >
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-              </svg>
+                <span class="truncate">{{ getNavTitle(item.name) }}</span>
+                <svg
+                  v-if="item.hasArrow"
+                  class="w-3.5 h-3.5 text-slate-500 ml-auto shrink-0 transition-transform group-hover:translate-x-0.5"
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                </svg>
+              </div>
             </Link>
 
             <!-- 3. Collapsible Module with Submenu (Settings) -->
@@ -1127,12 +1141,12 @@ onUnmounted(() => {
                   isChildActive(item.children) 
                     ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30 font-semibold' 
                     : 'text-slate-300 hover:text-white hover:bg-slate-800/60 border border-transparent font-normal',
-                  isSidebarCollapsed ? 'justify-center px-0 w-10 h-10 mx-auto' : 'px-3 w-full justify-between',
-                  'group flex items-center rounded-xl py-2 text-xs transition-all duration-200 cursor-pointer'
+                  isSidebarCollapsed ? 'justify-center px-0 w-10 h-10 mx-auto' : 'px-2.5 w-full justify-between h-10',
+                  'group flex items-center rounded-xl text-xs transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer'
                 ]"
               >
-                <div :class="[isSidebarCollapsed ? 'justify-center w-full' : '', 'flex items-center gap-x-3 truncate']">
-                  <div class="relative flex items-center justify-center shrink-0">
+                <div class="flex items-center min-w-0">
+                  <div class="relative flex items-center justify-center shrink-0 w-8 h-8">
                     <svg v-if="item.iconType === 'auth'" class="h-4.5 w-4.5 shrink-0 text-amber-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                     </svg>
@@ -1164,10 +1178,22 @@ onUnmounted(() => {
                       <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                     </svg>
                   </div>
-                  <span v-show="!isSidebarCollapsed" class="truncate">{{ getNavTitle(item.name) }}</span>
+                  <div
+                    :class="[
+                      'flex items-center min-w-0 overflow-hidden whitespace-nowrap transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]',
+                      isSidebarCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[150px] opacity-100 ml-2.5'
+                    ]"
+                  >
+                    <span class="truncate">{{ getNavTitle(item.name) }}</span>
+                  </div>
                 </div>
 
-                <div v-show="!isSidebarCollapsed" class="flex items-center">
+                <div
+                  :class="[
+                    'flex items-center overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]',
+                    isSidebarCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[30px] opacity-100'
+                  ]"
+                >
                   <svg
                     :class="[
                       expandedModules[item.key!] ? 'rotate-180 text-blue-400' : 'text-slate-500 group-hover:text-slate-300',
@@ -1180,38 +1206,44 @@ onUnmounted(() => {
                 </div>
               </button>
 
-              <!-- Submenu Items -->
+              <!-- Submenu Items (Smooth Accordion Slide & Fade) -->
               <div
-                v-show="!isSidebarCollapsed && expandedModules[item.key!]"
-                class="relative ml-6 pl-4 space-y-1 my-1.5 transition-all duration-300 w-full pr-3"
+                :class="[
+                  'overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] w-full',
+                  (!isSidebarCollapsed && expandedModules[item.key!])
+                    ? 'max-h-96 opacity-100 my-1.5'
+                    : 'max-h-0 opacity-0 my-0 pointer-events-none'
+                ]"
               >
-                <div
-                  v-for="(sub, idx) in item.children"
-                  :key="sub.name"
-                  class="group relative flex items-center"
-                >
+                <div class="relative ml-6 pl-4 space-y-1 pr-3">
                   <div
-                    v-if="idx < item.children.length - 1"
-                    class="absolute -left-4 top-0 bottom-0 w-[2px] bg-slate-800"
-                  ></div>
-                  <div
-                    :class="[
-                      isSubActive(sub.href) ? 'border-blue-500 shadow-xs shadow-blue-500/30' : 'border-slate-800 group-hover:border-slate-600',
-                      'absolute -left-4 top-0 h-1/2 w-3.5 border-l-2 border-b-2 rounded-bl-xl transition-colors duration-200 pointer-events-none'
-                    ]"
-                  ></div>
-
-                  <Link
-                    :href="sub.href"
-                    :class="[
-                      isSubActive(sub.href) 
-                        ? 'text-white font-semibold bg-blue-600/30 border border-blue-500/40 shadow-xs' 
-                        : 'text-slate-400 hover:text-white hover:bg-slate-800/50 border border-transparent',
-                      'flex-1 flex items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs transition-all duration-200 ml-1'
-                    ]"
+                    v-for="(sub, idx) in item.children"
+                    :key="sub.name"
+                    class="group relative flex items-center"
                   >
-                    <span class="truncate">{{ getNavTitle(sub.name) }}</span>
-                  </Link>
+                    <div
+                      v-if="idx < item.children.length - 1"
+                      class="absolute -left-4 top-0 bottom-0 w-[2px] bg-slate-800"
+                    ></div>
+                    <div
+                      :class="[
+                        isSubActive(sub.href) ? 'border-blue-500 shadow-xs shadow-blue-500/30' : 'border-slate-800 group-hover:border-slate-600',
+                        'absolute -left-4 top-0 h-1/2 w-3.5 border-l-2 border-b-2 rounded-bl-xl transition-colors duration-200 pointer-events-none'
+                      ]"
+                    ></div>
+
+                    <Link
+                      :href="sub.href"
+                      :class="[
+                        isSubActive(sub.href) 
+                          ? 'text-white font-semibold bg-blue-600/30 border border-blue-500/40 shadow-xs' 
+                          : 'text-slate-400 hover:text-white hover:bg-slate-800/50 border border-transparent',
+                        'flex-1 flex items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs transition-all duration-200 ml-1'
+                      ]"
+                    >
+                      <span class="truncate">{{ getNavTitle(sub.name) }}</span>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1259,7 +1291,14 @@ onUnmounted(() => {
         </ul>
 
         <!-- Live System Status Card (Interactive with direct links to status/management) -->
-        <div v-show="!isSidebarCollapsed" class="mt-4 p-3 rounded-2xl bg-[#0a1527] border border-slate-800/90 text-white text-xs shadow-lg">
+        <div
+          :class="[
+            'transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] overflow-hidden',
+            isSidebarCollapsed
+              ? 'max-h-0 opacity-0 pointer-events-none mt-0 p-0 border-transparent -translate-y-2'
+              : 'max-h-[380px] opacity-100 mt-4 p-3 translate-y-0 rounded-2xl bg-[#0a1527] border border-slate-800/90 text-white text-xs shadow-lg'
+          ]"
+        >
           <Link href="/admin/settings?tab=logs" class="flex items-center justify-between pb-2 border-b border-slate-800/80 mb-2.5 hover:text-blue-300 transition-colors cursor-pointer group">
             <div class="flex items-center gap-1.5">
               <span class="text-blue-400 text-sm leading-none">🎓</span>
@@ -1298,16 +1337,25 @@ onUnmounted(() => {
     </aside>
 
     <!-- Mobile Drawer Sidebar (Sliding Drawer on Mobile) -->
-    <div
-      v-if="sidebarOpen"
-      @click="sidebarOpen = false"
-      class="fixed inset-0 bg-slate-950/80 z-50 md:hidden backdrop-blur-sm transition-opacity"
-    ></div>
+    <Transition
+      enter-active-class="transition-opacity duration-300 ease-out"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="transition-opacity duration-300 ease-in"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
+      <div
+        v-if="sidebarOpen"
+        @click="sidebarOpen = false"
+        class="fixed inset-0 bg-slate-950/80 z-50 md:hidden backdrop-blur-sm"
+      ></div>
+    </Transition>
 
     <aside
       :class="[
         sidebarOpen ? 'translate-x-0' : '-translate-x-full',
-        'fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col md:hidden transition-transform duration-300 ease-in-out shadow-2xl'
+        'fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col md:hidden transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] shadow-2xl'
       ]"
     >
       <div class="h-14 px-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-800">
@@ -1505,12 +1553,20 @@ onUnmounted(() => {
             @click="toggleSidebarCollapse"
             type="button"
             :class="[
-              isSidebarCollapsed ? 'bg-blue-600/20 text-blue-400 border border-blue-500/50' : 'text-slate-300 hover:text-white hover:bg-slate-800/80 border border-transparent',
-              'p-1.5 rounded-lg transition-all duration-200 cursor-pointer shrink-0 active:scale-95 focus:outline-none'
+              isSidebarCollapsed 
+                ? 'bg-blue-600/20 text-blue-400 border border-blue-500/50 shadow-xs ring-2 ring-blue-500/20' 
+                : 'text-slate-300 hover:text-white hover:bg-slate-800/80 border border-transparent',
+              'p-1.5 rounded-lg transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer shrink-0 active:scale-95 focus:outline-none group'
             ]"
             :title="isSidebarCollapsed ? (currentLang === 'km' ? 'ពង្រីកម៉ឺនុយ' : 'Expand Sidebar') : (currentLang === 'km' ? 'បង្រួមម៉ឺនុយ' : 'Collapse Sidebar')"
           >
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <svg
+              :class="[
+                isSidebarCollapsed ? 'rotate-180 text-blue-400' : 'rotate-0 text-slate-300 group-hover:text-white',
+                'w-5 h-5 transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]'
+              ]"
+              fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+            >
               <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
@@ -2093,7 +2149,7 @@ onUnmounted(() => {
     </div>
 
     <!-- Main Content Area -->
-    <main :class="[isSidebarCollapsed ? 'md:pl-20' : 'md:pl-60', 'pt-16 sm:pt-20 pb-12 transition-all duration-300']">
+    <main :class="[isSidebarCollapsed ? 'md:pl-20' : 'md:pl-60', 'pt-16 sm:pt-20 pb-12 transition-[padding-left] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] will-change-[padding-left]']">
       <div class="px-4 sm:px-6 lg:px-8">
         <!-- Page Header (Suppressed on Admin Dashboard to Match Clean Reference UI) -->
         <header class="mb-5" v-if="($slots.header || title) && $page.url !== '/admin/dashboard'">
