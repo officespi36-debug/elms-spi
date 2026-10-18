@@ -2062,7 +2062,7 @@ onUnmounted(() => {
             </transition>
           </div>
 
-          <!-- Admin Profile Dropdown Menu (Matching Image: Avatar + Admin ⌄ + Main Branch in Green) -->
+          <!-- Admin Profile Dropdown Menu (Avatar + Name ⌄) -->
           <div class="relative ml-1 nav-dropdown-scope">
             <button
               @click.stop="toggleDropdown('profile')"
@@ -2078,12 +2078,9 @@ onUnmounted(() => {
                 />
                 <span v-else>👤</span>
               </div>
-              <div class="hidden md:block text-left leading-tight">
-                <div class="flex items-center gap-1">
-                  <span class="text-xs font-bold text-white">{{ user.name || 'Admin' }}</span>
-                  <span class="text-slate-400 text-[10px]" :class="isProfileOpen ? 'rotate-180' : ''">⌄</span>
-                </div>
-                <span class="text-[10px] font-bold text-emerald-400 block tracking-tight">{{ currentLang === 'km' ? 'សាខាកណ្តាល' : 'Main Branch' }}</span>
+              <div class="hidden md:flex items-center gap-1 text-left">
+                <span class="text-xs font-bold text-white">{{ user.name || 'Admin' }}</span>
+                <span class="text-slate-400 text-[10px] transition-transform duration-200" :class="isProfileOpen ? 'rotate-180 text-blue-400' : ''">⌄</span>
               </div>
             </button>
 
