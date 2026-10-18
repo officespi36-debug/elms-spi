@@ -61,22 +61,25 @@ export function useMultiAccount() {
     const existingIndex = savedAccounts.value.findIndex(a => a.id === currentUser.id)
     const existing = existingIndex !== -1 ? savedAccounts.value[existingIndex] : null
 
-    // If account exists and already has switch_token, just update metadata
-    if (existing && existing.switch_token) {
-      savedAccounts.value[existingIndex] = {
-        ...existing,
-        name: currentUser.name || existing.name,
-        name_kh: currentUser.name_kh || existing.name_kh,
-        email: currentUser.email || existing.email,
-        role: currentUser.role || existing.role,
-        avatar: currentUser.avatar || existing.avatar,
-        last_active: Date.now(),
-      }
-      persistStorage()
-      return
+    const currentEntry: SavedAccount = {
+      id: currentUser.id,
+      name: currentUser.name || (existing ? existing.name : ''),
+      name_kh: currentUser.name_kh || (existing ? existing.name_kh : ''),
+      email: currentUser.email || (existing ? existing.email : ''),
+      role: currentUser.role || (existing ? existing.role : 'admin'),
+      avatar: currentUser.avatar || (existing ? existing.avatar : ''),
+      switch_token: existing?.switch_token || '',
+      last_active: Date.now(),
     }
 
-    // Otherwise fetch switch token from server to enable seamless 1-click switching back later
+    if (existingIndex !== -1) {
+      savedAccounts.value[existingIndex] = currentEntry
+    } else {
+      savedAccounts.value.unshift(currentEntry)
+    }
+    persistStorage()
+
+    // Always fetch latest token & suggested accounts from server
     try {
       const res = await fetch('/api/auth/multi-account/current-token', {
         headers: {
@@ -86,22 +89,27 @@ export function useMultiAccount() {
       })
       if (res.ok) {
         const data = await res.json()
-        if (data.success && data.switch_token) {
-          const newEntry: SavedAccount = {
-            id: currentUser.id,
-            name: currentUser.name,
-            name_kh: currentUser.name_kh,
-            email: currentUser.email,
-            role: currentUser.role,
-            avatar: currentUser.avatar,
-            switch_token: data.switch_token,
-            last_active: Date.now(),
+        if (data.success) {
+          if (data.switch_token) {
+            const idx = savedAccounts.value.findIndex(a => a.id === currentUser.id)
+            if (idx !== -1) {
+              savedAccounts.value[idx].switch_token = data.switch_token
+            }
           }
 
-          if (existingIndex !== -1) {
-            savedAccounts.value[existingIndex] = newEntry
-          } else {
-            savedAccounts.value.unshift(newEntry)
+          if (data.suggested_accounts && Array.isArray(data.suggested_accounts)) {
+            for (const sug of data.suggested_accounts) {
+              const sIdx = savedAccounts.value.findIndex(a => a.id === sug.id || a.email === sug.email)
+              if (sIdx === -1) {
+                savedAccounts.value.push(sug)
+              } else {
+                savedAccounts.value[sIdx] = {
+                  ...savedAccounts.value[sIdx],
+                  ...sug,
+                  switch_token: sug.switch_token || savedAccounts.value[sIdx].switch_token,
+                }
+              }
+            }
           }
           persistStorage()
         }
@@ -182,11 +190,6 @@ export function useMultiAccount() {
    * 1-Click switch to a saved account.
    */
   const switchAccount = async (targetAccount: SavedAccount): Promise<boolean> => {
-    if (!targetAccount.switch_token) {
-      addError.value = 'Password required for this account.'
-      return false
-    }
-
     isSwitching.value = true
     activeSwitchingId.value = targetAccount.id
     addError.value = null
@@ -203,7 +206,7 @@ export function useMultiAccount() {
         },
         body: JSON.stringify({
           user_id: targetAccount.id,
-          switch_token: targetAccount.switch_token,
+          switch_token: targetAccount.switch_token || '',
         }),
       })
 
@@ -216,8 +219,11 @@ export function useMultiAccount() {
         return false
       }
 
-      // Update last active
+      // Update last active and switch_token
       targetAccount.last_active = Date.now()
+      if (data.switch_token) {
+        targetAccount.switch_token = data.switch_token
+      }
       persistStorage()
 
       // Navigate to target dashboard

@@ -9,6 +9,7 @@ import GlobalLoadingOverlay from '@/Components/GlobalLoadingOverlay.vue'
 import OfficialVerifiedBadge from '@/Components/OfficialVerifiedBadge.vue'
 import LogoutConfirmModal from '@/Components/LogoutConfirmModal.vue'
 import ProfileAccountDropdown from '@/Components/ProfileAccountDropdown.vue'
+import AdminProfileModal from '@/Components/AdminProfileModal.vue'
 
 const { isDark, toggleTheme } = useTheme()
 const { showLoading, hideLoading } = useLoading()
@@ -225,6 +226,8 @@ const toggleSidebarCollapse = () => {
   }
 }
 
+const isAdminProfileModalOpen = ref(false)
+
 const triggerAvatarUpload = () => {
   avatarInput.value?.click()
 }
@@ -241,6 +244,7 @@ const handleAvatarChange = (e: Event) => {
 
   router.post('/user/avatar', formData, {
     forceFormData: true,
+    preserveScroll: true,
     onSuccess: () => {
       isUploadingAvatar.value = false
     },
@@ -249,6 +253,7 @@ const handleAvatarChange = (e: Event) => {
     },
     onFinish: () => {
       isUploadingAvatar.value = false
+      if (target) target.value = ''
     }
   })
 }
@@ -1962,6 +1967,7 @@ onUnmounted(() => {
               @close="isProfileOpen = false"
               @logout="logout"
               @trigger-avatar-upload="triggerAvatarUpload(); isProfileOpen = false"
+              @manage-profile="isAdminProfileModalOpen = true; isProfileOpen = false"
             />
           </div>
 
@@ -2127,6 +2133,23 @@ onUnmounted(() => {
         <slot />
       </div>
     </main>
+
+    <!-- Hidden Avatar File Input -->
+    <input
+      ref="avatarInput"
+      type="file"
+      accept="image/*"
+      class="hidden"
+      @change="handleAvatarChange"
+    />
+
+    <!-- Admin Personal Profile & Security Modal -->
+    <AdminProfileModal
+      :show="isAdminProfileModalOpen"
+      :user="user"
+      @close="isAdminProfileModalOpen = false"
+      @trigger-avatar-upload="triggerAvatarUpload"
+    />
 
     <!-- Logout Confirmation Modal (Centered, Glassmorphic, Modern) -->
     <LogoutConfirmModal

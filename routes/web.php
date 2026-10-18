@@ -156,6 +156,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('user-management/suspend/{user}', [Admin\UserController::class, 'suspend'])->name('user-management.suspend');
         Route::post('user-management/restore/{user}', [Admin\UserController::class, 'restore'])->name('user-management.restore');
         Route::post('user-management/toggle-status/{user}', [Admin\UserController::class, 'toggleStatus'])->name('user-management.toggle-status');
+
+        // Admin Personal Profile Management
+        Route::post('profile/update', [Admin\UserController::class, 'updateCurrentProfile'])->name('profile.update');
+        Route::post('profile/password', [Admin\UserController::class, 'updateCurrentPassword'])->name('profile.password');
+
         // ─── Academic Structure Module ───
         Route::get('academic-structure/faculties', [Admin\AcademicStructureController::class, 'faculties'])->name('academic-structure.faculties');
         Route::post('academic-structure/faculties', [Admin\AcademicStructureController::class, 'storeFaculty'])->name('academic-structure.faculties.store');

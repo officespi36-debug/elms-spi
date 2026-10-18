@@ -10,6 +10,7 @@ use App\Models\Major;
 use App\Models\User;
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
@@ -410,5 +411,41 @@ class UserController extends Controller
         }
 
         return back()->with('error', 'No file uploaded.');
+    }
+
+    public function updateCurrentProfile(Request $request)
+    {
+        $user = User::findOrFail(auth()->id());
+
+        $validated = $request->validate([
+            'name'    => 'required|string|max:255',
+            'name_kh' => 'nullable|string|max:255',
+            'email'   => 'required|email|max:255|unique:users,email,' . $user->id,
+            'phone'   => 'nullable|string|max:50',
+        ]);
+
+        $user->update($validated);
+
+        return back()->with('success', 'Profile updated successfully.');
+    }
+
+    public function updateCurrentPassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required|string',
+            'password'         => 'required|string|min:6|confirmed',
+        ]);
+
+        $user = User::findOrFail(auth()->id());
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors(['current_password' => 'The current password you entered is incorrect.']);
+        }
+
+        $user->update([
+            'password' => Hash::make($request->password),
+        ]);
+
+        return back()->with('success', 'Password updated successfully.');
     }
 }

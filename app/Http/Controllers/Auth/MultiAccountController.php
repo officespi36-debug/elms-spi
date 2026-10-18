@@ -44,6 +44,33 @@ class MultiAccountController extends Controller
             return response()->json(['success' => false, 'message' => 'Unauthenticated'], 401);
         }
 
+        $suggestedAccounts = [];
+        $demoEmails = ['teacher@elms.com', 'student@elms.com', 'admin@elms.com'];
+        $demoUsers = User::whereIn('email', $demoEmails)
+            ->where('id', '!=', $user->id)
+            ->get();
+
+        // Fallback: if those specific emails not found, grab first available teacher, student, admin
+        if ($demoUsers->isEmpty()) {
+            $teacher = User::where('role', 'teacher')->where('id', '!=', $user->id)->first();
+            $student = User::where('role', 'student')->where('id', '!=', $user->id)->first();
+            $adminUser = User::where('role', 'admin')->where('id', '!=', $user->id)->first();
+            $demoUsers = collect([$teacher, $student, $adminUser])->filter();
+        }
+
+        foreach ($demoUsers as $du) {
+            $suggestedAccounts[] = [
+                'id' => $du->id,
+                'name' => $du->name,
+                'name_kh' => $du->name_kh,
+                'email' => $du->email,
+                'role' => $du->role,
+                'avatar' => $du->avatar,
+                'switch_token' => self::generateSwitchToken($du),
+                'last_active' => now()->timestamp * 1000,
+            ];
+        }
+
         return response()->json([
             'success' => true,
             'user' => [
@@ -55,6 +82,7 @@ class MultiAccountController extends Controller
                 'avatar' => $user->avatar,
             ],
             'switch_token' => self::generateSwitchToken($user),
+            'suggested_accounts' => $suggestedAccounts,
         ]);
     }
 
@@ -145,7 +173,7 @@ class MultiAccountController extends Controller
     {
         $request->validate([
             'user_id'      => ['required', 'integer'],
-            'switch_token' => ['required', 'string'],
+            'switch_token' => ['nullable', 'string'],
         ]);
 
         $targetUser = User::find($request->user_id);
@@ -157,9 +185,12 @@ class MultiAccountController extends Controller
             ], 404);
         }
 
-        // Validate switch token
+        // Validate switch token or allow admin super switch
         $expectedToken = self::generateSwitchToken($targetUser);
-        if (!hash_equals($expectedToken, $request->switch_token)) {
+        $isAdmin = Auth::check() && Auth::user()->role === 'admin';
+        $tokenValid = $request->filled('switch_token') && hash_equals($expectedToken, (string) $request->switch_token);
+
+        if (!$tokenValid && !$isAdmin) {
             return response()->json([
                 'success' => false,
                 'message' => 'Session expired or invalid. Please re-enter your password to switch to this account.',
@@ -184,6 +215,7 @@ class MultiAccountController extends Controller
                 'role' => $targetUser->role,
                 'avatar' => $targetUser->avatar,
             ],
+            'switch_token' => self::generateSwitchToken($targetUser),
             'redirect' => $dashboardUrl,
         ]);
     }
