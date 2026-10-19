@@ -917,7 +917,7 @@ const onIconError = (e: Event) => {
             alt="E-LMS Logo"
             :class="[
               isSidebarCollapsed ? 'hover:scale-110' : '',
-              'w-9 h-9 min-w-[36px] min-h-[36px] max-w-[36px] max-h-[36px] aspect-square rounded-full object-cover shadow-md shadow-indigo-500/20 shrink-0 transition-all duration-300'
+              'w-9 h-9 min-w-[36px] min-h-[36px] max-w-[36px] max-h-[36px] aspect-square rounded-full object-cover shrink-0 transition-all duration-300'
             ]"
           />
           <div v-show="!isSidebarCollapsed" class="transition-opacity duration-200 min-w-0">
