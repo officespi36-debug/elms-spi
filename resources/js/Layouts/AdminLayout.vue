@@ -1342,7 +1342,7 @@ onUnmounted(() => {
     >
       <div class="h-14 px-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-800">
         <div class="flex items-center gap-3">
-          <img :src="logoUrl" alt="E-LMS Logo" class="w-8 h-8 rounded-full object-cover ring-2 ring-indigo-500/30" />
+          <img :src="logoUrl" alt="E-LMS Logo" class="w-8 h-8 rounded-full object-cover shrink-0" />
           <div>
             <span class="font-bold text-sm text-slate-900 dark:text-white block">E-LMS Admin</span>
             <span class="text-[9px] text-slate-500 dark:text-slate-400 uppercase tracking-wide block">{{ currentLang === 'km' ? 'ផ្ទាំងគ្រប់គ្រង' : 'ADMIN PANEL' }}</span>
@@ -1519,9 +1519,7 @@ onUnmounted(() => {
         <div class="flex items-center gap-2.5 sm:gap-4 min-w-0">
           <!-- Logo & Title -->
           <Link href="/admin/dashboard" class="flex items-center gap-2.5 shrink-0 group">
-            <div class="w-8 h-8 rounded-lg bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-lg shadow-2xs group-hover:scale-105 transition-transform">
-              <img :src="logoUrl" alt="E-LMS Logo" class="w-6 h-6 rounded-full object-cover" @error="onIconError" />
-            </div>
+            <img :src="logoUrl" alt="E-LMS Logo" class="w-8 h-8 rounded-full object-cover group-hover:scale-105 transition-transform shrink-0" @error="onIconError" />
             <div class="hidden sm:block leading-tight">
               <h1 class="text-xs sm:text-sm font-bold text-white tracking-wide truncate">
                 {{ currentLang === 'km' ? 'ផ្ទាំងអ្នកគ្រប់គ្រង E-LMS' : 'E-LMS Admin Portal' }}

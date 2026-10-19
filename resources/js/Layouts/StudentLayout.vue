@@ -917,7 +917,7 @@ const onIconError = (e: Event) => {
             alt="E-LMS Logo"
             :class="[
               isSidebarCollapsed ? 'hover:scale-110' : '',
-              'w-9 h-9 min-w-[36px] min-h-[36px] max-w-[36px] max-h-[36px] aspect-square rounded-full object-cover shadow-md shadow-indigo-500/20 ring-2 ring-indigo-500/30 shrink-0 transition-all duration-300'
+              'w-9 h-9 min-w-[36px] min-h-[36px] max-w-[36px] max-h-[36px] aspect-square rounded-full object-cover shadow-md shadow-indigo-500/20 shrink-0 transition-all duration-300'
             ]"
           />
           <div v-show="!isSidebarCollapsed" class="transition-opacity duration-200 min-w-0">
@@ -1242,7 +1242,7 @@ const onIconError = (e: Event) => {
     >
       <div class="h-16 px-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 shrink-0">
         <div class="flex items-center gap-3">
-          <img :src="logoUrl" alt="E-LMS Logo" loading="lazy" decoding="async" class="w-8 h-8 rounded-full object-cover ring-2 ring-indigo-500/30" />
+          <img :src="logoUrl" alt="E-LMS Logo" loading="lazy" decoding="async" class="w-8 h-8 rounded-full object-cover" />
           <span class="font-bold text-sm text-slate-900 dark:text-white">E-LMS Student</span>
         </div>
         <button @click="sidebarOpen = false" class="p-1 text-slate-400 hover:text-slate-900 dark:hover:text-white">
