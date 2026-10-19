@@ -1502,29 +1502,31 @@ onUnmounted(() => {
             </div>
           </Link>
 
-          <!-- Hamburger Icon (Toggles Desktop Collapse & Mobile Drawer with Dynamic Shape Change) -->
+          <!-- Sidebar Layout Toggle Icon (Modern PanelLeft Window Standard) -->
           <button
             @click.stop.prevent="toggleSidebarCollapse"
             type="button"
             :class="[
               'p-2 rounded-xl transition-all duration-200 cursor-pointer shrink-0 active:scale-95 focus:outline-none flex items-center justify-center border',
               isSidebarCollapsed
-                ? 'bg-blue-500/10 text-blue-400 border-blue-500/25 hover:bg-blue-500/20 hover:text-blue-300'
+                ? 'bg-blue-500/10 text-blue-400 border-blue-500/20 hover:bg-blue-500/20'
                 : 'text-slate-300 hover:text-white hover:bg-slate-800/60 border-transparent'
             ]"
             :title="isSidebarCollapsed ? (currentLang === 'km' ? 'ពង្រីកម៉ឺនុយ' : 'Expand Sidebar') : (currentLang === 'km' ? 'បង្រួមម៉ឺនុយ' : 'Collapse Sidebar')"
           >
             <div class="w-5 h-5 flex items-center justify-center pointer-events-none">
-              <!-- Collapsed on Desktop: Sleek Arrow pointing right (Expand) -->
+              <!-- Collapsed on Desktop: PanelLeftOpen (Window with Right Chevron to Expand) -->
               <svg
                 v-if="isSidebarCollapsed"
                 class="w-5 h-5 transition-transform duration-200"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
-                stroke-width="2"
+                stroke-width="1.8"
               >
-                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                <rect x="3" y="3.5" width="18" height="17" rx="3" />
+                <path d="M9 3.5v17" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="m14 9.5 2.5 2.5-2.5 2.5" />
               </svg>
 
               <!-- Drawer open on Mobile: Close X Icon -->
@@ -1539,16 +1541,18 @@ onUnmounted(() => {
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
 
-              <!-- Normal Expanded State: Modern 3-bar Hamburger with Indented Center Bar -->
+              <!-- Expanded on Desktop: PanelLeftClose (Window with Left Chevron to Collapse) -->
               <svg
                 v-else
                 class="w-5 h-5 transition-transform duration-200"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
-                stroke-width="2"
+                stroke-width="1.8"
               >
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h10.5m-10.5 5.25h16.5" />
+                <rect x="3" y="3.5" width="18" height="17" rx="3" />
+                <path d="M9 3.5v17" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="m15.5 14.5-2.5-2.5 2.5-2.5" />
               </svg>
             </div>
           </button>
