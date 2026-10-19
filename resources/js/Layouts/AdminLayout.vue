@@ -1051,14 +1051,14 @@ onUnmounted(() => {
               :title="isSidebarCollapsed ? item.name : undefined"
               :class="[
                 $page.url.startsWith(item.href!) 
-                  ? 'bg-[#1d68ed] text-white font-medium shadow-md shadow-blue-600/30' 
-                  : 'text-slate-300 hover:text-white hover:bg-slate-800/60 border border-transparent font-normal',
-                'elms-nav-item group flex items-center w-full h-10 px-2 rounded-xl text-xs'
+                  ? 'bg-slate-800/90 text-white font-medium border border-slate-700/60 shadow-xs relative before:absolute before:left-0 before:top-2 before:bottom-2 before:w-1 before:bg-blue-500 before:rounded-r' 
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/50 border border-transparent font-normal',
+                'elms-nav-item group flex items-center w-full h-10 px-2 rounded-xl text-xs transition-colors'
               ]"
             >
               <div class="relative flex items-center justify-center shrink-0 w-10 h-10 rounded-lg">
                 <!-- Dashboard -->
-                <svg v-if="item.iconType === 'dashboard'" class="h-4.5 w-4.5 shrink-0 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <svg v-if="item.iconType === 'dashboard'" :class="['h-4.5 w-4.5 shrink-0 transition-colors', $page.url.startsWith(item.href!) ? 'text-blue-400' : 'text-slate-400 group-hover:text-white']" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                 </svg>
                 <!-- Sales -->
@@ -1223,7 +1223,7 @@ onUnmounted(() => {
                     ></div>
                     <div
                       :class="[
-                        isSubActive(sub.href) ? 'border-blue-500 shadow-xs shadow-blue-500/30' : 'border-slate-800 group-hover:border-slate-600',
+                        isSubActive(sub.href) ? 'border-blue-500' : 'border-slate-800 group-hover:border-slate-600',
                         'absolute -left-4 top-0 h-1/2 w-3.5 border-l-2 border-b-2 rounded-bl-xl transition-colors duration-200 pointer-events-none'
                       ]"
                     ></div>
@@ -1232,7 +1232,7 @@ onUnmounted(() => {
                       :href="sub.href"
                       :class="[
                         isSubActive(sub.href) 
-                          ? 'text-white font-semibold bg-blue-600/30 border border-blue-500/40 shadow-xs' 
+                          ? 'text-white font-medium bg-blue-500/15 border border-blue-500/30' 
                           : 'text-slate-400 hover:text-white hover:bg-slate-800/50 border border-transparent',
                         'flex-1 flex items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs transition-all duration-200 ml-1'
                       ]"
@@ -1346,13 +1346,15 @@ onUnmounted(() => {
             :href="item.href!"
             @click="sidebarOpen = false"
             :class="[
-              $page.url.startsWith(item.href!) ? 'bg-[#1d68ed] text-white font-medium shadow-md shadow-blue-600/30' : 'text-slate-300 hover:text-white hover:bg-slate-800/60 font-normal',
+              $page.url.startsWith(item.href!) 
+                ? 'bg-slate-800/90 text-white font-medium border border-slate-700/60 shadow-xs relative before:absolute before:left-0 before:top-2 before:bottom-2 before:w-1 before:bg-blue-500 before:rounded-r' 
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/60 border border-transparent font-normal',
               'flex items-center justify-between px-3 py-2.5 rounded-xl text-xs transition-colors'
             ]"
           >
             <div class="flex items-center gap-3 truncate">
               <!-- Dashboard -->
-              <svg v-if="item.iconType === 'dashboard'" class="h-4.5 w-4.5 shrink-0 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <svg v-if="item.iconType === 'dashboard'" :class="['h-4.5 w-4.5 shrink-0 transition-colors', $page.url.startsWith(item.href!) ? 'text-blue-400' : 'text-slate-400 group-hover:text-white']" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
               </svg>
               <svg v-else-if="item.iconType === 'sales'" class="h-4.5 w-4.5 shrink-0 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -1500,17 +1502,54 @@ onUnmounted(() => {
             </div>
           </Link>
 
-          <!-- Hamburger Icon (Toggles Desktop Collapse & Mobile Drawer) -->
+          <!-- Hamburger Icon (Toggles Desktop Collapse & Mobile Drawer with Dynamic Shape Change) -->
           <button
             @click.stop.prevent="toggleSidebarCollapse"
             type="button"
-            class="p-2 rounded-xl text-slate-200 hover:text-white hover:bg-slate-800/60 transition-colors duration-200 cursor-pointer shrink-0 active:scale-95 focus:outline-none flex items-center justify-center border border-transparent"
+            :class="[
+              'p-2 rounded-xl transition-all duration-200 cursor-pointer shrink-0 active:scale-95 focus:outline-none flex items-center justify-center border',
+              isSidebarCollapsed
+                ? 'bg-blue-500/10 text-blue-400 border-blue-500/25 hover:bg-blue-500/20 hover:text-blue-300'
+                : 'text-slate-300 hover:text-white hover:bg-slate-800/60 border-transparent'
+            ]"
             :title="isSidebarCollapsed ? (currentLang === 'km' ? 'ពង្រីកម៉ឺនុយ' : 'Expand Sidebar') : (currentLang === 'km' ? 'បង្រួមម៉ឺនុយ' : 'Collapse Sidebar')"
           >
-            <div class="w-5 h-4 flex flex-col justify-between items-center pointer-events-none">
-              <span class="h-0.5 w-4.5 bg-current rounded-full"></span>
-              <span class="h-0.5 w-4.5 bg-current rounded-full"></span>
-              <span class="h-0.5 w-4.5 bg-current rounded-full"></span>
+            <div class="w-5 h-5 flex items-center justify-center pointer-events-none">
+              <!-- Collapsed on Desktop: Sleek Arrow pointing right (Expand) -->
+              <svg
+                v-if="isSidebarCollapsed"
+                class="w-5 h-5 transition-transform duration-200"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+              </svg>
+
+              <!-- Drawer open on Mobile: Close X Icon -->
+              <svg
+                v-else-if="sidebarOpen"
+                class="w-5 h-5 text-rose-400 transition-transform duration-200"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+
+              <!-- Normal Expanded State: Modern 3-bar Hamburger with Indented Center Bar -->
+              <svg
+                v-else
+                class="w-5 h-5 transition-transform duration-200"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h10.5m-10.5 5.25h16.5" />
+              </svg>
             </div>
           </button>
 
