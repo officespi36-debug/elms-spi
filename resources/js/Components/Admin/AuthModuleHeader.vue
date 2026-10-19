@@ -62,8 +62,13 @@ const getThreatExplanation = (level: string) => {
 
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 relative z-10">
         <div class="flex items-center gap-3.5">
-          <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-600 via-indigo-700 to-blue-700 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25 shrink-0 ring-4 ring-indigo-50 dark:ring-indigo-950/60">
-            <img :src="'/images/nav/auth.svg'" alt="Authentication" class="w-6 h-6 object-contain filter brightness-0 invert" />
+          <!-- Squircle with soft halo matching Image 1 exactly! -->
+          <div class="w-14 h-14 rounded-[22px] bg-indigo-50/90 dark:bg-indigo-950/50 border border-indigo-100/90 dark:border-indigo-800/60 flex items-center justify-center p-1.5 shrink-0 shadow-xs">
+            <div class="w-11 h-11 rounded-[16px] bg-gradient-to-br from-[#4f46e5] to-[#4338ca] text-white flex items-center justify-center shadow-lg shadow-indigo-500/35 shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path fill-rule="evenodd" d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z" clip-rule="evenodd" />
+              </svg>
+            </div>
           </div>
           <div>
             <div class="flex items-center gap-2 flex-wrap">
@@ -110,170 +115,150 @@ const getThreatExplanation = (level: string) => {
       </div>
     </div>
 
-    <!-- ── 4 TOP KPI CARDS (Matching Dashboard.vue Aesthetics) ── -->
+    <!-- ── 4 TOP KPI CARDS (Matching Authentic Design with Glowing Squircles) ── -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-      <!-- Card 1: Total Roles ➔ Royal Purple/Violet -->
+      <!-- Card 1: Total Roles -->
       <Link
         href="/admin/auth/roles"
-        class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#7c3aed] to-[#6366f1] text-white p-4 shadow-sm hover:shadow-lg hover:scale-[1.02] active:scale-[0.99] transition-all flex flex-col justify-between group cursor-pointer"
+        class="relative overflow-hidden bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group cursor-pointer"
         :title="i18n.t('auth_card1_btn', 'Manage Roles & Permissions')"
       >
-        <div>
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">
-              {{ i18n.t('auth_total_roles', 'TOTAL ROLES') }}
-            </span>
-            <div class="text-white/95 group-hover:text-white group-hover:scale-105 transition-transform duration-200 shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                <path d="m9 12 2 2 4-4"/>
-              </svg>
-            </div>
-          </div>
-          <h4 class="text-2xl font-black tracking-tight text-white mt-1">
-            {{ Number(stats.total_roles || 0).toLocaleString() }}
-          </h4>
-          <div class="mt-1 flex items-center justify-between">
-            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-md border border-white/25 shadow-xs">
-              {{ i18n.t('auth_rbac_active', 'RBAC Active') }}
-            </span>
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wide uppercase">
+            {{ i18n.t('auth_total_roles', 'Total Roles') }}
+          </span>
+          <!-- Squircle icon matching Image 2 -->
+          <div class="w-10 h-10 rounded-[16px] bg-gradient-to-br from-[#7c3aed] to-[#6366f1] text-white flex items-center justify-center shadow-md shadow-indigo-500/25 shrink-0 group-hover:scale-110 transition-transform duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="m9 12 2 2 4-4"/>
+            </svg>
           </div>
         </div>
-        <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
-          <svg class="w-full h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none">
-            <path d="M0 18 Q 20 4, 40 14 T 70 6 T 100 12 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.18"/>
-            <path d="M0 18 Q 20 4, 40 14 T 70 6 T 100 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
-          </svg>
+
+        <div class="mt-4 flex items-baseline justify-between">
+          <span class="text-3xl font-black text-slate-900 dark:text-white font-mono tracking-tight">
+            {{ Number(stats.total_roles || 0).toLocaleString() }}
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-500/30 shadow-xs">
+            {{ i18n.t('auth_rbac_active', 'RBAC Active') }}
+          </span>
         </div>
       </Link>
 
-      <!-- Card 2: Active Sessions ➔ Emerald Green -->
+      <!-- Card 2: Active Sessions -->
       <Link
         href="/admin/auth/sessions"
-        class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#10b981] to-[#059669] text-white p-4 shadow-sm hover:shadow-lg hover:scale-[1.02] active:scale-[0.99] transition-all flex flex-col justify-between group cursor-pointer"
+        class="relative overflow-hidden bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group cursor-pointer"
         :title="i18n.t('auth_card2_btn', 'Monitor Active Sessions')"
       >
-        <div>
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">
-              {{ i18n.t('auth_active_sessions', 'ACTIVE SESSIONS') }}
-            </span>
-            <div class="text-white/95 group-hover:text-white group-hover:scale-105 transition-transform duration-200 shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <rect width="20" height="14" x="2" y="3" rx="2"/>
-                <line x1="8" x2="16" y1="21" y2="21"/>
-                <line x1="12" x2="12" y1="17" y2="21"/>
-                <circle cx="12" cy="10" r="1.5" fill="currentColor"/>
-              </svg>
-            </div>
-          </div>
-          <h4 class="text-2xl font-black tracking-tight text-white mt-1">
-            {{ Number(stats.active_sessions_count || 0).toLocaleString() }}
-          </h4>
-          <div class="mt-1 flex items-center justify-between">
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-md border border-white/25 shadow-xs">
-              <span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
-              {{ i18n.t('auth_live_monitor', 'Live Monitor') }}
-            </span>
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wide uppercase">
+            {{ i18n.t('auth_active_sessions', 'Active Sessions') }}
+          </span>
+          <!-- Squircle icon matching Image 3 -->
+          <div class="w-10 h-10 rounded-[16px] bg-gradient-to-br from-[#10b981] to-[#059669] text-white flex items-center justify-center shadow-md shadow-emerald-500/25 shrink-0 group-hover:scale-110 transition-transform duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="18" height="12" x="3" y="4" rx="2.5"/>
+              <line x1="8" x2="16" y1="20" y2="20"/>
+              <line x1="12" x2="12" y1="16" y2="20"/>
+              <circle cx="12" cy="10" r="1.5" fill="currentColor"/>
+            </svg>
           </div>
         </div>
-        <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
-          <svg class="w-full h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none">
-            <path d="M0 20 Q 25 8, 45 16 T 75 4 T 100 10 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.18"/>
-            <path d="M0 20 Q 25 8, 45 16 T 75 4 T 100 10" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
-          </svg>
+
+        <div class="mt-4 flex items-baseline justify-between">
+          <span class="text-3xl font-black text-slate-900 dark:text-white font-mono tracking-tight">
+            {{ Number(stats.active_sessions_count || 0).toLocaleString() }}
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-500/30 shadow-xs">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse"></span>
+            {{ i18n.t('auth_live_monitor', 'Live Monitor') }}
+          </span>
         </div>
       </Link>
 
-      <!-- Card 3: Failed Logins Today ➔ Vivid Orange -->
+      <!-- Card 3: Failed Logins Today -->
       <Link
         href="/admin/auth/failed"
-        class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#f97316] to-[#ea580c] text-white p-4 shadow-sm hover:shadow-lg hover:scale-[1.02] active:scale-[0.99] transition-all flex flex-col justify-between group cursor-pointer"
+        class="relative overflow-hidden bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group cursor-pointer"
         :title="i18n.t('auth_card4_btn', 'Investigate Threat Logs')"
       >
-        <div>
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">
-              {{ i18n.t('auth_failed_logins_today', 'FAILED LOGINS TODAY') }}
-            </span>
-            <div class="text-white/95 group-hover:text-white group-hover:scale-105 transition-transform duration-200 shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
-                <line x1="12" y1="9" x2="12" y2="13"/>
-                <line x1="12" y1="17" x2="12.01" y2="17"/>
-              </svg>
-            </div>
-          </div>
-          <h4 class="text-2xl font-black tracking-tight text-white mt-1">
-            {{ Number(stats.failed_logins_today || 0).toLocaleString() }}
-          </h4>
-          <div class="mt-1 flex items-center justify-between">
-            <div class="relative group/audit" @click.stop.prevent>
-              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-md border border-white/25 shadow-xs cursor-help">
-                <span>{{ i18n.t('auth_audit_required', 'Audit Required') }}</span>
-                <span class="text-[9px] opacity-80">ℹ️</span>
-              </span>
-              <!-- Tooltip -->
-              <div class="absolute left-0 bottom-full mb-2 w-64 p-2.5 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl text-xs text-slate-100 opacity-0 group-hover/audit:opacity-100 transition-all pointer-events-none z-50">
-                <p class="text-[11px] leading-snug">
-                  🔍 {{ i18n.t('auth_audit_required', 'Audit Required') }}: {{ stats.failed_logins_today }} {{ i18n.t('auth_card4_attempts', 'Attempts') }}.
-                </p>
-                <div class="absolute -bottom-1.5 left-4 w-3 h-3 bg-slate-900 border-r border-b border-slate-700 rotate-45 pointer-events-none"></div>
-              </div>
-            </div>
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wide uppercase">
+            {{ i18n.t('auth_failed_logins_today', 'Failed Logins Today') }}
+          </span>
+          <!-- Squircle icon with cross -->
+          <div class="w-10 h-10 rounded-[16px] bg-gradient-to-br from-[#f97316] to-[#ea580c] text-white flex items-center justify-center shadow-md shadow-orange-500/25 shrink-0 group-hover:scale-110 transition-transform duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"/>
+              <line x1="15" y1="9" x2="9" y2="15"/>
+              <line x1="9" y1="9" x2="15" y2="15"/>
+            </svg>
           </div>
         </div>
-        <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
-          <svg class="w-full h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none">
-            <path d="M0 16 Q 20 22, 45 8 T 75 14 T 100 4 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.18"/>
-            <path d="M0 16 Q 20 22, 45 8 T 75 14 T 100 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
-          </svg>
+
+        <div class="mt-4 flex items-baseline justify-between">
+          <span
+            class="text-3xl font-black font-mono tracking-tight"
+            :class="stats.failed_logins_today > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-900 dark:text-white'"
+          >
+            {{ Number(stats.failed_logins_today || 0).toLocaleString() }}
+          </span>
+          <div class="relative group/audit" @click.stop.prevent>
+            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-xl text-xs font-bold bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-500/30 shadow-xs cursor-help">
+              <span>{{ i18n.t('auth_audit_required', 'Audit Required') }}</span>
+              <span class="text-[10px] opacity-70">ℹ️</span>
+            </span>
+            <!-- Tooltip -->
+            <div class="absolute right-0 bottom-full mb-2 w-64 p-2.5 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl text-xs text-slate-100 opacity-0 group-hover/audit:opacity-100 transition-all pointer-events-none z-50">
+              <p class="text-[11px] leading-snug">
+                🔍 {{ i18n.t('auth_audit_required', 'Audit Required') }}: {{ stats.failed_logins_today }} {{ i18n.t('auth_card4_attempts', 'Attempts') }}.
+              </p>
+              <div class="absolute -bottom-1.5 right-4 w-3 h-3 bg-slate-900 border-r border-b border-slate-700 rotate-45 pointer-events-none"></div>
+            </div>
+          </div>
         </div>
       </Link>
 
-      <!-- Card 4: Locked Accounts / Risk ➔ Bright Rose/Crimson -->
+      <!-- Card 4: Locked Accounts / Risk -->
       <Link
         href="/admin/auth/cyber-security"
-        class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#f43f5e] to-[#e11d48] text-white p-4 shadow-sm hover:shadow-lg hover:scale-[1.02] active:scale-[0.99] transition-all flex flex-col justify-between group cursor-pointer"
+        class="relative overflow-hidden bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group cursor-pointer"
         :title="i18n.t('auth_threat_status', 'Cyber Forensics')"
       >
-        <div>
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">
-              {{ i18n.t('auth_locked_accounts', 'LOCKED ACCOUNTS / RISK') }}
-            </span>
-            <div class="text-white/95 group-hover:text-white group-hover:scale-105 transition-transform duration-200 shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                <circle cx="12" cy="16" r="1.5" fill="currentColor"/>
-              </svg>
-            </div>
-          </div>
-          <h4 class="text-2xl font-black tracking-tight text-white mt-1">
-            {{ Number(stats.locked_accounts_count || 0).toLocaleString() }}
-          </h4>
-          <div class="mt-1 flex items-center justify-between">
-            <div class="relative group/risk" @click.stop.prevent>
-              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-md border border-white/25 shadow-xs cursor-help">
-                <span>{{ stats.threat_level }} Risk</span>
-                <span class="text-[9px] opacity-80">ℹ️</span>
-              </span>
-              <!-- Tooltip -->
-              <div class="absolute left-0 bottom-full mb-2 w-64 p-2.5 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl text-xs text-slate-100 opacity-0 group-hover/risk:opacity-100 transition-all pointer-events-none z-50">
-                <p class="text-[11px] leading-snug">
-                  {{ getThreatExplanation(stats.threat_level) }}
-                </p>
-                <div class="absolute -bottom-1.5 left-4 w-3 h-3 bg-slate-900 border-r border-b border-slate-700 rotate-45 pointer-events-none"></div>
-              </div>
-            </div>
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-500 dark:text-slate-400 tracking-wide uppercase">
+            {{ i18n.t('auth_locked_accounts', 'Locked Accounts / Risk') }}
+          </span>
+          <!-- Squircle icon matching Image 1 Lock -->
+          <div class="w-10 h-10 rounded-[16px] bg-gradient-to-br from-[#f43f5e] to-[#e11d48] text-white flex items-center justify-center shadow-md shadow-rose-500/25 shrink-0 group-hover:scale-110 transition-transform duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <path fill-rule="evenodd" d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z" clip-rule="evenodd" />
+            </svg>
           </div>
         </div>
-        <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
-          <svg class="w-full h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none">
-            <path d="M0 18 Q 20 6, 45 16 T 75 8 T 100 14 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.18"/>
-            <path d="M0 18 Q 20 6, 45 16 T 75 8 T 100 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
-          </svg>
+
+        <div class="mt-4 flex items-baseline justify-between">
+          <span
+            class="text-3xl font-black font-mono tracking-tight"
+            :class="stats.locked_accounts_count > 0 ? 'text-red-600 dark:text-red-400' : 'text-slate-900 dark:text-white'"
+          >
+            {{ Number(stats.locked_accounts_count || 0).toLocaleString() }}
+          </span>
+          <div class="relative group/risk" @click.stop.prevent>
+            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-xl text-xs font-bold bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-500/30 shadow-xs cursor-help">
+              <span>{{ stats.threat_level }} Risk</span>
+              <span class="text-[10px] opacity-70">ℹ️</span>
+            </span>
+            <!-- Tooltip -->
+            <div class="absolute right-0 bottom-full mb-2 w-64 p-2.5 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl text-xs text-slate-100 opacity-0 group-hover/risk:opacity-100 transition-all pointer-events-none z-50">
+              <p class="text-[11px] leading-snug">
+                {{ getThreatExplanation(stats.threat_level) }}
+              </p>
+              <div class="absolute -bottom-1.5 right-4 w-3 h-3 bg-slate-900 border-r border-b border-slate-700 rotate-45 pointer-events-none"></div>
+            </div>
+          </div>
         </div>
       </Link>
     </div>
