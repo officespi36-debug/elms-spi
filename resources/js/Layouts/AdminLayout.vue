@@ -215,7 +215,6 @@ const isUploadingAvatar = ref(false)
 const isSidebarCollapsed = ref(false)
 
 const toggleSidebarCollapse = () => {
-  playTopBarSound()
   if (typeof window !== 'undefined' && window.innerWidth < 768) {
     sidebarOpen.value = !sidebarOpen.value
   } else {
@@ -1005,12 +1004,12 @@ onUnmounted(() => {
   <GlobalLoadingOverlay />
   <div class="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 selection:bg-indigo-500/30 transition-colors duration-200">
     <!-- Sidebar for Desktop Matching Reference Design (Dark Navy, Starts Under Header) -->
-    <aside :class="[isSidebarCollapsed ? 'w-20 overflow-visible' : 'w-60 overflow-hidden', 'fixed top-14 bottom-0 left-0 z-40 hidden flex-col bg-[#071120] text-slate-300 border-r border-slate-800 md:flex transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] will-change-[width] shadow-xl']">
+    <aside :class="[isSidebarCollapsed ? 'is-collapsed w-20 overflow-visible' : 'w-60 overflow-hidden', 'elms-sidebar-anim fixed top-14 bottom-0 left-0 z-40 hidden flex-col bg-[#071120] text-slate-300 border-r border-slate-800 md:flex shadow-xl']">
       <!-- Navigation -->
       <nav
         :class="[
-          isSidebarCollapsed ? 'px-2 overflow-visible' : 'px-3 custom-scrollbar overflow-y-auto',
-          'flex flex-1 flex-col py-4 transition-[padding] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]'
+          isSidebarCollapsed ? 'overflow-visible' : 'custom-scrollbar overflow-y-auto',
+          'flex flex-1 flex-col py-4 px-3'
         ]"
         :style="isSidebarCollapsed ? { scrollbarWidth: 'none', msOverflowStyle: 'none' } : {}"
       >
@@ -1018,7 +1017,8 @@ onUnmounted(() => {
           <li
             v-for="item in navigation"
             :key="item.name"
-            :class="isSidebarCollapsed ? 'relative group/flyout flex justify-center w-full' : 'relative w-full'"
+            class="relative w-full"
+            :class="isSidebarCollapsed ? 'group/flyout' : ''"
           >
             <!-- 1. Logout Action Button -->
             <button
@@ -1026,20 +1026,17 @@ onUnmounted(() => {
               @click="logout"
               type="button"
               :title="isSidebarCollapsed ? item.name : undefined"
-              :class="[
-                isSidebarCollapsed ? 'justify-center px-0 w-10 h-10 mx-auto' : 'px-2.5 w-full justify-start h-10',
-                'group flex items-center rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-rose-500/10 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer'
-              ]"
+              class="elms-nav-item group flex items-center w-full h-10 px-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-rose-500/10 cursor-pointer"
             >
-              <div class="relative flex items-center justify-center shrink-0 w-8 h-8 rounded-lg group-hover:bg-rose-500/15 transition-colors">
+              <div class="relative flex items-center justify-center shrink-0 w-10 h-10 rounded-lg group-hover:bg-rose-500/15 transition-colors">
                 <svg class="h-4.5 w-4.5 shrink-0 text-rose-500" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" fill="none">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9"/>
                 </svg>
               </div>
               <div
                 :class="[
-                  'flex items-center min-w-0 overflow-hidden whitespace-nowrap transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]',
-                  isSidebarCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[200px] opacity-100 ml-2.5 flex-1'
+                  'elms-nav-label-container flex items-center min-w-0 overflow-hidden whitespace-nowrap',
+                  isSidebarCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[200px] opacity-100 ml-2 flex-1'
                 ]"
               >
                 <span class="truncate text-left font-medium">{{ getNavTitle(item.name) }}</span>
@@ -1055,11 +1052,10 @@ onUnmounted(() => {
                 $page.url.startsWith(item.href!) 
                   ? 'bg-[#1d68ed] text-white font-medium shadow-md shadow-blue-600/30' 
                   : 'text-slate-300 hover:text-white hover:bg-slate-800/60 border border-transparent font-normal',
-                isSidebarCollapsed ? 'justify-center px-0 w-10 h-10 mx-auto' : 'px-2.5 w-full justify-start h-10',
-                'group flex items-center rounded-xl text-xs transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]'
+                'elms-nav-item group flex items-center w-full h-10 px-2 rounded-xl text-xs'
               ]"
             >
-              <div class="relative flex items-center justify-center shrink-0 w-8 h-8">
+              <div class="relative flex items-center justify-center shrink-0 w-10 h-10 rounded-lg">
                 <!-- Dashboard -->
                 <svg v-if="item.iconType === 'dashboard'" class="h-4.5 w-4.5 shrink-0 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
@@ -1116,8 +1112,8 @@ onUnmounted(() => {
               </div>
               <div
                 :class="[
-                  'flex items-center justify-between min-w-0 overflow-hidden whitespace-nowrap transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]',
-                  isSidebarCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[200px] opacity-100 ml-2.5 flex-1'
+                  'elms-nav-label-container flex items-center justify-between min-w-0 overflow-hidden whitespace-nowrap',
+                  isSidebarCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[200px] opacity-100 ml-2 flex-1'
                 ]"
               >
                 <span class="truncate">{{ getNavTitle(item.name) }}</span>
@@ -1141,12 +1137,11 @@ onUnmounted(() => {
                   isChildActive(item.children) 
                     ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30 font-semibold' 
                     : 'text-slate-300 hover:text-white hover:bg-slate-800/60 border border-transparent font-normal',
-                  isSidebarCollapsed ? 'justify-center px-0 w-10 h-10 mx-auto' : 'px-2.5 w-full justify-between h-10',
-                  'group flex items-center rounded-xl text-xs transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer'
+                  'elms-nav-item group flex items-center justify-between w-full h-10 px-2 rounded-xl text-xs cursor-pointer'
                 ]"
               >
                 <div class="flex items-center min-w-0">
-                  <div class="relative flex items-center justify-center shrink-0 w-8 h-8">
+                  <div class="relative flex items-center justify-center shrink-0 w-10 h-10 rounded-lg">
                     <svg v-if="item.iconType === 'auth'" class="h-4.5 w-4.5 shrink-0 text-amber-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                     </svg>
@@ -1180,8 +1175,8 @@ onUnmounted(() => {
                   </div>
                   <div
                     :class="[
-                      'flex items-center min-w-0 overflow-hidden whitespace-nowrap transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]',
-                      isSidebarCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[150px] opacity-100 ml-2.5'
+                      'elms-nav-label-container flex items-center min-w-0 overflow-hidden whitespace-nowrap',
+                      isSidebarCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[150px] opacity-100 ml-2'
                     ]"
                   >
                     <span class="truncate">{{ getNavTitle(item.name) }}</span>
@@ -1190,7 +1185,7 @@ onUnmounted(() => {
 
                 <div
                   :class="[
-                    'flex items-center overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]',
+                    'elms-nav-label-container flex items-center overflow-hidden',
                     isSidebarCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[30px] opacity-100'
                   ]"
                 >
@@ -1209,7 +1204,7 @@ onUnmounted(() => {
               <!-- Submenu Items (Smooth Accordion Slide & Fade) -->
               <div
                 :class="[
-                  'overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] w-full',
+                  'overflow-hidden transition-all duration-300 ease-in-out w-full',
                   (!isSidebarCollapsed && expandedModules[item.key!])
                     ? 'max-h-96 opacity-100 my-1.5'
                     : 'max-h-0 opacity-0 my-0 pointer-events-none'
@@ -1251,9 +1246,9 @@ onUnmounted(() => {
             <!-- Flyout Popover for Collapsed Sidebar Mode (Has Children) -->
             <div
               v-if="isSidebarCollapsed && item.children && item.children.length > 0"
-              class="absolute left-full top-0 ml-3.5 w-64 opacity-0 pointer-events-none group-hover/flyout:opacity-100 group-hover/flyout:pointer-events-auto transition-all duration-200 ease-out translate-x-1 group-hover/flyout:translate-x-0 z-50"
+              class="absolute left-full top-0 ml-2 w-64 opacity-0 pointer-events-none group-hover/flyout:opacity-100 group-hover/flyout:pointer-events-auto transition-all duration-200 ease-out translate-x-1 group-hover/flyout:translate-x-0 z-50"
             >
-              <div class="absolute -left-4 top-0 bottom-0 w-4"></div>
+              <div class="absolute -left-3 top-0 bottom-0 w-3"></div>
               <div class="relative bg-[#0c1a2e] border border-slate-800 rounded-2xl p-3 shadow-2xl ring-1 ring-slate-800">
                 <div class="absolute -left-1.5 top-3.5 w-3 h-3 bg-[#0c1a2e] border-l border-b border-slate-800 rotate-45 z-10 pointer-events-none"></div>
                 <div class="relative z-20 flex items-center justify-between px-2 py-1.5 mb-2 border-b border-slate-800 pb-2">
@@ -1280,7 +1275,7 @@ onUnmounted(() => {
             <!-- Sleek Tooltip Popover for Collapsed Sidebar Mode (No Children) -->
             <div
               v-else-if="isSidebarCollapsed && (!item.children || item.children.length === 0)"
-              class="absolute left-full top-1/2 -translate-y-1/2 ml-3.5 opacity-0 pointer-events-none group-hover/flyout:opacity-100 transition-all duration-200 ease-out translate-x-1 group-hover/flyout:translate-x-0 z-50 whitespace-nowrap"
+              class="absolute left-full top-1/2 -translate-y-1/2 ml-2 opacity-0 pointer-events-none group-hover/flyout:opacity-100 transition-all duration-200 ease-out translate-x-1 group-hover/flyout:translate-x-0 z-50 whitespace-nowrap"
             >
               <div class="relative bg-[#0c1a2e] border border-slate-800 text-white text-xs font-semibold px-3 py-1.5 rounded-xl shadow-xl flex items-center gap-2 ring-1 ring-slate-800">
                 <div class="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#0c1a2e] border-l border-b border-slate-800 rotate-45 pointer-events-none"></div>
@@ -1289,50 +1284,6 @@ onUnmounted(() => {
             </div>
           </li>
         </ul>
-
-        <!-- Live System Status Card (Interactive with direct links to status/management) -->
-        <div
-          :class="[
-            'transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] overflow-hidden',
-            isSidebarCollapsed
-              ? 'max-h-0 opacity-0 pointer-events-none mt-0 p-0 border-transparent -translate-y-2'
-              : 'max-h-[380px] opacity-100 mt-4 p-3 translate-y-0 rounded-2xl bg-[#0a1527] border border-slate-800/90 text-white text-xs shadow-lg'
-          ]"
-        >
-          <Link href="/admin/settings?tab=logs" class="flex items-center justify-between pb-2 border-b border-slate-800/80 mb-2.5 hover:text-blue-300 transition-colors cursor-pointer group">
-            <div class="flex items-center gap-1.5">
-              <span class="text-blue-400 text-sm leading-none">🎓</span>
-              <span class="font-bold text-blue-300 group-hover:text-blue-200 text-[11px] tracking-wide">{{ currentLang === 'km' ? 'ស្ថានភាពប្រព័ន្ធផ្ទាល់' : 'Live LMS Status' }}</span>
-            </div>
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" :title="currentLang === 'km' ? 'ប្រព័ន្ធដំណើរការធម្មតា' : 'System Online'"></span>
-          </Link>
-          <div class="space-y-2 text-[11px]">
-            <Link href="/admin/user-management/students" class="block p-1 -mx-1 rounded-lg hover:bg-slate-800/60 transition-colors cursor-pointer">
-              <span class="text-slate-400 block text-[10px] leading-tight">{{ currentLang === 'km' ? 'និស្សិតសកម្ម' : 'Active Students' }}</span>
-              <div class="flex items-center justify-between mt-0.5">
-                <span class="font-bold text-white text-xs">1,245 Online</span>
-                <span class="text-[10px] font-bold text-emerald-400">▲ 12%</span>
-              </div>
-            </Link>
-            <Link href="/admin/enrollment/courses" class="block p-1 -mx-1 rounded-lg hover:bg-slate-800/60 transition-colors cursor-pointer">
-              <span class="text-slate-400 block text-[10px] leading-tight">{{ currentLang === 'km' ? 'ការចុះឈ្មោះវគ្គសិក្សា' : 'Course Enrollments' }}</span>
-              <div class="flex items-center justify-between mt-0.5">
-                <span class="font-bold text-white text-xs">5,730 Active</span>
-                <span class="text-[10px] font-bold text-emerald-400">▲ 8%</span>
-              </div>
-            </Link>
-            <Link href="/admin/settings?tab=logs" class="block p-1 -mx-1 rounded-lg hover:bg-slate-800/60 transition-colors cursor-pointer">
-              <span class="text-slate-400 block text-[10px] leading-tight">{{ currentLang === 'km' ? 'សុខភាពប្រព័ន្ធ' : 'System Health' }}</span>
-              <div class="flex items-center justify-between mt-0.5">
-                <span class="font-bold text-white text-xs">99.9% Uptime</span>
-                <span class="text-[10px] font-bold text-emerald-400">▲ Optimal</span>
-              </div>
-            </Link>
-          </div>
-          <Link href="/admin/settings?tab=logs" class="block mt-2.5 pt-2 border-t border-slate-800/80 text-[10px] text-slate-500 hover:text-slate-300 text-center transition-colors cursor-pointer">
-            {{ currentLang === 'km' ? 'ធ្វើសមកាលកម្មចុងក្រោយ : ពេលជាក់ស្តែង' : 'Last Synced : Realtime' }}
-          </Link>
-        </div>
       </nav>
     </aside>
 
@@ -1556,19 +1507,15 @@ onUnmounted(() => {
               isSidebarCollapsed 
                 ? 'bg-blue-600/20 text-blue-400 border border-blue-500/50 shadow-xs ring-2 ring-blue-500/20' 
                 : 'text-slate-300 hover:text-white hover:bg-slate-800/80 border border-transparent',
-              'p-1.5 rounded-lg transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer shrink-0 active:scale-95 focus:outline-none group'
+              'p-2 rounded-xl transition-all duration-300 ease-out cursor-pointer shrink-0 active:scale-95 focus:outline-none group flex items-center justify-center'
             ]"
             :title="isSidebarCollapsed ? (currentLang === 'km' ? 'ពង្រីកម៉ឺនុយ' : 'Expand Sidebar') : (currentLang === 'km' ? 'បង្រួមម៉ឺនុយ' : 'Collapse Sidebar')"
           >
-            <svg
-              :class="[
-                isSidebarCollapsed ? 'rotate-180 text-blue-400' : 'rotate-0 text-slate-300 group-hover:text-white',
-                'w-5 h-5 transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]'
-              ]"
-              fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
+            <div class="w-5 h-4 flex flex-col justify-between items-center overflow-hidden">
+              <span :class="['h-0.5 bg-current rounded-full transition-all duration-300 ease-out', isSidebarCollapsed ? 'w-2.5 self-start translate-x-0.5' : 'w-4.5']"></span>
+              <span class="h-0.5 w-4.5 bg-current rounded-full transition-all duration-300 ease-out"></span>
+              <span :class="['h-0.5 bg-current rounded-full transition-all duration-300 ease-out', isSidebarCollapsed ? 'w-2.5 self-start translate-x-0.5' : 'w-4.5']"></span>
+            </div>
           </button>
 
           <!-- Long White Pill Search Input with Dual Magnifying Glass Icons & Direct Dropdown -->
@@ -2149,7 +2096,7 @@ onUnmounted(() => {
     </div>
 
     <!-- Main Content Area -->
-    <main :class="[isSidebarCollapsed ? 'md:pl-20' : 'md:pl-60', 'pt-16 sm:pt-20 pb-12 transition-[padding-left] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] will-change-[padding-left]']">
+    <main :class="[isSidebarCollapsed ? 'is-collapsed md:pl-20' : 'md:pl-60', 'elms-main-anim pt-16 sm:pt-20 pb-12']">
       <div class="px-4 sm:px-6 lg:px-8">
         <!-- Page Header (Suppressed on Admin Dashboard to Match Clean Reference UI) -->
         <header class="mb-5" v-if="($slots.header || title) && $page.url !== '/admin/dashboard'">
@@ -2190,4 +2137,52 @@ onUnmounted(() => {
     />
   </div>
 </template>
+
+<style>
+/* ==========================================================================
+   E-LMS 60FPS Ultra-Smooth Hardware-Accelerated Sidebar & Layout Animations
+   ========================================================================== */
+
+/* Desktop Sidebar Container */
+.elms-sidebar-anim {
+  width: 15rem; /* 240px */
+  transition: width 300ms cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  will-change: width;
+  contain: layout style;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.elms-sidebar-anim.is-collapsed {
+  width: 5rem !important; /* 80px */
+}
+
+/* Main Content Area */
+@media (min-width: 768px) {
+  .elms-main-anim {
+    padding-left: 15rem; /* 240px */
+    transition: padding-left 300ms cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    will-change: padding-left;
+    contain: layout style;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  .elms-main-anim.is-collapsed {
+    padding-left: 5rem !important; /* 80px */
+  }
+}
+
+/* Nav Item Buttons */
+.elms-nav-item {
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, width 300ms cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  will-change: background-color, width;
+}
+
+/* Nav Item Labels */
+.elms-nav-label-container {
+  transition: max-width 300ms cubic-bezier(0.25, 0.8, 0.25, 1), opacity 200ms cubic-bezier(0.25, 0.8, 0.25, 1), transform 300ms cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  will-change: max-width, opacity, transform;
+}
+</style>
 
