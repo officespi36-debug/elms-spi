@@ -34,7 +34,12 @@ if (typeof window !== 'undefined') {
   } catch (e) {}
 
   try {
-    registerSW({ immediate: true })
+    const updateSW = registerSW({
+      immediate: true,
+      onNeedRefresh() {
+        updateSW(true)
+      }
+    })
   } catch (e) {}
 
   window.addEventListener('vite:preloadError', () => {

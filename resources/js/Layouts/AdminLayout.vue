@@ -215,13 +215,14 @@ const isUploadingAvatar = ref(false)
 const isSidebarCollapsed = ref(false)
 
 const toggleSidebarCollapse = () => {
-  if (typeof window !== 'undefined' && window.innerWidth < 768) {
-    sidebarOpen.value = !sidebarOpen.value
-  } else {
+  const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches
+  if (isDesktop) {
     isSidebarCollapsed.value = !isSidebarCollapsed.value
     try {
       localStorage.setItem('elms_sidebar_collapsed', isSidebarCollapsed.value ? 'true' : 'false')
     } catch {}
+  } else {
+    sidebarOpen.value = !sidebarOpen.value
   }
 }
 
@@ -1004,7 +1005,7 @@ onUnmounted(() => {
   <GlobalLoadingOverlay />
   <div class="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 selection:bg-indigo-500/30 transition-colors duration-200">
     <!-- Sidebar for Desktop Matching Reference Design (Dark Navy, Starts Under Header) -->
-    <aside :class="[isSidebarCollapsed ? 'is-collapsed w-20 overflow-visible' : 'w-60 overflow-hidden', 'elms-sidebar-anim fixed top-14 bottom-0 left-0 z-40 hidden flex-col bg-[#071120] text-slate-300 border-r border-slate-800 md:flex shadow-xl']">
+    <aside :class="[isSidebarCollapsed ? 'is-collapsed overflow-visible' : 'overflow-hidden', 'elms-sidebar-anim fixed top-14 bottom-0 left-0 z-40 hidden flex-col bg-[#071120] text-slate-300 border-r border-slate-800 md:flex shadow-xl']">
       <!-- Navigation -->
       <nav
         :class="[
@@ -1501,7 +1502,7 @@ onUnmounted(() => {
 
           <!-- Hamburger Icon (Toggles Desktop Collapse & Mobile Drawer) -->
           <button
-            @click="toggleSidebarCollapse"
+            @click.stop.prevent="toggleSidebarCollapse"
             type="button"
             :class="[
               isSidebarCollapsed 
@@ -1511,7 +1512,7 @@ onUnmounted(() => {
             ]"
             :title="isSidebarCollapsed ? (currentLang === 'km' ? 'ពង្រីកម៉ឺនុយ' : 'Expand Sidebar') : (currentLang === 'km' ? 'បង្រួមម៉ឺនុយ' : 'Collapse Sidebar')"
           >
-            <div class="w-5 h-4 flex flex-col justify-between items-center overflow-hidden">
+            <div class="w-5 h-4 flex flex-col justify-between items-center overflow-hidden pointer-events-none">
               <span :class="['h-0.5 bg-current rounded-full transition-all duration-300 ease-out', isSidebarCollapsed ? 'w-2.5 self-start translate-x-0.5' : 'w-4.5']"></span>
               <span class="h-0.5 w-4.5 bg-current rounded-full transition-all duration-300 ease-out"></span>
               <span :class="['h-0.5 bg-current rounded-full transition-all duration-300 ease-out', isSidebarCollapsed ? 'w-2.5 self-start translate-x-0.5' : 'w-4.5']"></span>
@@ -2096,7 +2097,7 @@ onUnmounted(() => {
     </div>
 
     <!-- Main Content Area -->
-    <main :class="[isSidebarCollapsed ? 'is-collapsed md:pl-20' : 'md:pl-60', 'elms-main-anim pt-16 sm:pt-20 pb-12']">
+    <main :class="[isSidebarCollapsed ? 'is-collapsed' : '', 'elms-main-anim pt-16 sm:pt-20 pb-12']">
       <div class="px-4 sm:px-6 lg:px-8">
         <!-- Page Header (Suppressed on Admin Dashboard to Match Clean Reference UI) -->
         <header class="mb-5" v-if="($slots.header || title) && $page.url !== '/admin/dashboard'">
@@ -2145,12 +2146,9 @@ onUnmounted(() => {
 
 /* Desktop Sidebar Container */
 .elms-sidebar-anim {
-  width: 15rem; /* 240px */
-  transition: width 300ms cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  width: 15rem !important; /* 240px */
+  transition: width 300ms cubic-bezier(0.4, 0, 0.2, 1) !important;
   will-change: width;
-  contain: layout style;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
 }
 
 .elms-sidebar-anim.is-collapsed {
@@ -2160,12 +2158,9 @@ onUnmounted(() => {
 /* Main Content Area */
 @media (min-width: 768px) {
   .elms-main-anim {
-    padding-left: 15rem; /* 240px */
-    transition: padding-left 300ms cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    padding-left: 15rem !important; /* 240px */
+    transition: padding-left 300ms cubic-bezier(0.4, 0, 0.2, 1) !important;
     will-change: padding-left;
-    contain: layout style;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
   }
 
   .elms-main-anim.is-collapsed {
@@ -2175,14 +2170,14 @@ onUnmounted(() => {
 
 /* Nav Item Buttons */
 .elms-nav-item {
-  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, width 300ms cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, width 300ms cubic-bezier(0.4, 0, 0.2, 1) !important;
   will-change: background-color, width;
 }
 
 /* Nav Item Labels */
 .elms-nav-label-container {
-  transition: max-width 300ms cubic-bezier(0.25, 0.8, 0.25, 1), opacity 200ms cubic-bezier(0.25, 0.8, 0.25, 1), transform 300ms cubic-bezier(0.25, 0.8, 0.25, 1) !important;
-  will-change: max-width, opacity, transform;
+  transition: max-width 300ms cubic-bezier(0.4, 0, 0.2, 1), opacity 200ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+  will-change: max-width, opacity;
 }
 </style>
 

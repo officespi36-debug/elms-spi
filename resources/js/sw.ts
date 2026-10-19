@@ -56,7 +56,11 @@ registerRoute(
   'POST'
 )
 
-// Skip Waiting on update
+// Skip Waiting on install & message
+self.addEventListener('install', () => {
+  self.skipWaiting()
+})
+
 self.addEventListener('message', (event) => {
   if (event.data === 'SKIP_WAITING') {
     self.skipWaiting()
