@@ -1081,9 +1081,9 @@ onUnmounted(() => {
               :title="isSidebarCollapsed ? item.name : undefined"
               :class="[
                 $page.url.startsWith(item.href!) 
-                  ? 'bg-slate-800/90 text-white font-medium border border-slate-700/60 shadow-xs relative before:absolute before:left-0 before:top-2 before:bottom-2 before:w-1 before:bg-blue-500 before:rounded-r' 
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/50 border border-transparent font-normal',
-                'elms-nav-item group flex items-center w-full h-10 px-2 rounded-xl text-xs transition-colors'
+                  ? 'bg-blue-500/15 text-blue-400 border-blue-500/30 shadow-xs shadow-blue-500/15 font-semibold' 
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/50 border-transparent font-normal',
+                'elms-nav-item group flex items-center w-full h-10 px-2 rounded-xl text-xs border transition-all duration-200'
               ]"
             >
               <div class="relative flex items-center justify-center shrink-0 w-10 h-10 rounded-lg">
@@ -1166,9 +1166,9 @@ onUnmounted(() => {
                 :title="isSidebarCollapsed ? item.name : undefined"
                 :class="[
                   isChildActive(item.children) 
-                    ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30 font-semibold' 
-                    : 'text-slate-300 hover:text-white hover:bg-slate-800/60 border border-transparent font-normal',
-                  'elms-nav-item group flex items-center justify-between w-full h-10 px-2 rounded-xl text-xs cursor-pointer'
+                    ? 'bg-blue-500/15 text-blue-400 border-blue-500/30 shadow-xs shadow-blue-500/15 font-semibold' 
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/50 border-transparent font-normal',
+                  'elms-nav-item group flex items-center justify-between w-full h-10 px-2 rounded-xl text-xs cursor-pointer border transition-all duration-200'
                 ]"
               >
                 <div class="flex items-center min-w-0 flex-1">
@@ -1377,9 +1377,9 @@ onUnmounted(() => {
             @click="sidebarOpen = false"
             :class="[
               $page.url.startsWith(item.href!) 
-                ? 'bg-slate-800/90 text-white font-medium border border-slate-700/60 shadow-xs relative before:absolute before:left-0 before:top-2 before:bottom-2 before:w-1 before:bg-blue-500 before:rounded-r' 
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/60 border border-transparent font-normal',
-              'flex items-center justify-between px-3 py-2.5 rounded-xl text-xs transition-colors'
+                ? 'bg-blue-500/15 text-blue-400 border-blue-500/30 shadow-xs shadow-blue-500/15 font-semibold' 
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/60 border-transparent font-normal',
+              'flex items-center justify-between px-3 py-2.5 rounded-xl text-xs border transition-all duration-200'
             ]"
           >
             <div class="flex items-center gap-3 truncate">
