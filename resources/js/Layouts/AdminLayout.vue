@@ -1494,10 +1494,10 @@ onUnmounted(() => {
             </div>
             <div class="hidden sm:block leading-tight">
               <h1 class="text-xs sm:text-sm font-bold text-white tracking-wide truncate">
-                {{ currentLang === 'km' ? 'E-LMS ផតថលអ្នកគ្រប់គ្រង' : 'E-LMS Admin Portal' }}
+                {{ currentLang === 'km' ? 'ផ្ទាំងអ្នកគ្រប់គ្រង E-LMS' : 'E-LMS Admin Portal' }}
               </h1>
               <p class="text-[9px] text-blue-400 font-semibold tracking-wider">
-                {{ currentLang === 'km' ? 'ប្រព័ន្ធគ្រប់គ្រងការអប់រំ' : 'Education Management System' }}
+                {{ currentLang === 'km' ? 'ប្រព័ន្ធគ្រប់គ្រងការសិក្សា' : 'Learning Management System' }}
               </p>
             </div>
           </Link>
