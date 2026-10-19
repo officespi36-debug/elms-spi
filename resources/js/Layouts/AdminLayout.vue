@@ -1570,16 +1570,6 @@ onUnmounted(() => {
                 <rect x="3" y="3.5" width="18" height="17" rx="3" class="transition-colors duration-300" />
                 <!-- Sidebar indicator line -->
                 <path d="M9 3.5v17" class="transition-colors duration-300" />
-                <!-- Tinted collapsed sidebar mini-indicator -->
-                <rect
-                  x="3.5"
-                  y="4"
-                  width="5"
-                  height="16"
-                  rx="2"
-                  class="transition-all duration-300 pointer-events-none"
-                  :class="isSidebarCollapsed ? 'fill-blue-400/20 stroke-none' : 'fill-transparent stroke-none'"
-                />
                 <!-- Chevron that smoothly rotates 180deg: Points Left (<) when expanded, Points Right (>) when collapsed -->
                 <path
                   stroke-linecap="round"
