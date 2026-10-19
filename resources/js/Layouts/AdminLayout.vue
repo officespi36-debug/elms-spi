@@ -213,14 +213,27 @@ const isChildActive = (children?: NavSubItem[]) => {
 const avatarInput = ref<HTMLInputElement | null>(null)
 const isUploadingAvatar = ref(false)
 const isSidebarCollapsed = ref(false)
+const isDesktop = ref(typeof window !== 'undefined' ? window.matchMedia('(min-width: 768px)').matches : true)
+const isSidebarAnimating = ref(false)
+let sidebarAnimTimeout: any = null
 
 const toggleSidebarCollapse = () => {
-  const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches
-  if (isDesktop) {
+  try { playClickSound() } catch {}
+  const matchesDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches
+  if (matchesDesktop) {
+    isSidebarAnimating.value = true
     isSidebarCollapsed.value = !isSidebarCollapsed.value
     try {
       localStorage.setItem('elms_sidebar_collapsed', isSidebarCollapsed.value ? 'true' : 'false')
     } catch {}
+
+    clearTimeout(sidebarAnimTimeout)
+    sidebarAnimTimeout = setTimeout(() => {
+      isSidebarAnimating.value = false
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('resize'))
+      }
+    }, 320)
   } else {
     sidebarOpen.value = !sidebarOpen.value
   }
@@ -974,6 +987,12 @@ watch(
   { immediate: true }
 )
 
+const updateDesktopMatch = () => {
+  if (typeof window !== 'undefined') {
+    isDesktop.value = window.matchMedia('(min-width: 768px)').matches
+  }
+}
+
 onMounted(() => {
   try {
     const saved = localStorage.getItem('elms_sidebar_collapsed')
@@ -981,8 +1000,10 @@ onMounted(() => {
       isSidebarCollapsed.value = saved === 'true'
     }
   } catch {}
+  updateDesktopMatch()
   loadPersistedNotifications()
   initTheme()
+  window.addEventListener('resize', updateDesktopMatch)
   window.addEventListener('keydown', handleKeydown)
   window.addEventListener('online', updateOnlineStatus)
   window.addEventListener('offline', updateOnlineStatus)
@@ -991,6 +1012,8 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  clearTimeout(sidebarAnimTimeout)
+  window.removeEventListener('resize', updateDesktopMatch)
   window.removeEventListener('keydown', handleKeydown)
   window.removeEventListener('online', updateOnlineStatus)
   window.removeEventListener('offline', updateOnlineStatus)
@@ -1005,11 +1028,18 @@ onUnmounted(() => {
   <GlobalLoadingOverlay />
   <div class="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 selection:bg-indigo-500/30 transition-colors duration-200">
     <!-- Sidebar for Desktop Matching Reference Design (Dark Navy, Starts Under Header) -->
-    <aside :class="[isSidebarCollapsed ? 'is-collapsed overflow-visible' : 'overflow-hidden', 'elms-sidebar-anim fixed top-14 bottom-0 left-0 z-40 hidden flex-col bg-[#071120] text-slate-300 border-r border-slate-800 md:flex shadow-xl']">
+    <aside
+      :class="[
+        isSidebarCollapsed ? 'is-collapsed' : '',
+        (isSidebarCollapsed && !isSidebarAnimating) ? 'overflow-visible' : 'overflow-hidden',
+        'elms-sidebar-anim fixed top-14 bottom-0 left-0 z-40 hidden flex-col bg-[#071120] text-slate-300 border-r border-slate-800 md:flex shadow-xl'
+      ]"
+    >
       <!-- Navigation -->
       <nav
         :class="[
-          isSidebarCollapsed ? 'overflow-visible' : 'custom-scrollbar overflow-y-auto',
+          (isSidebarCollapsed && !isSidebarAnimating) ? 'overflow-visible' : 'overflow-hidden',
+          (!isSidebarCollapsed && !isSidebarAnimating) ? 'custom-scrollbar overflow-y-auto' : '',
           'flex flex-1 flex-col py-4 px-3'
         ]"
         :style="isSidebarCollapsed ? { scrollbarWidth: 'none', msOverflowStyle: 'none' } : {}"
@@ -1037,7 +1067,7 @@ onUnmounted(() => {
               <div
                 :class="[
                   'elms-nav-label-container flex items-center min-w-0 overflow-hidden whitespace-nowrap',
-                  isSidebarCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[200px] opacity-100 ml-2 flex-1'
+                  isSidebarCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[200px] opacity-100 ml-2.5 flex-1'
                 ]"
               >
                 <span class="truncate text-left font-medium">{{ getNavTitle(item.name) }}</span>
@@ -1114,7 +1144,7 @@ onUnmounted(() => {
               <div
                 :class="[
                   'elms-nav-label-container flex items-center justify-between min-w-0 overflow-hidden whitespace-nowrap',
-                  isSidebarCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[200px] opacity-100 ml-2 flex-1'
+                  isSidebarCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[200px] opacity-100 ml-2.5 flex-1'
                 ]"
               >
                 <span class="truncate">{{ getNavTitle(item.name) }}</span>
@@ -1129,7 +1159,7 @@ onUnmounted(() => {
             </Link>
 
             <!-- 3. Collapsible Module with Submenu (Settings) -->
-            <div v-else class="space-y-1 w-full flex flex-col items-center">
+            <div v-else class="space-y-1 w-full flex flex-col">
               <button
                 @click="toggleModule(item.key!)"
                 type="button"
@@ -1141,7 +1171,7 @@ onUnmounted(() => {
                   'elms-nav-item group flex items-center justify-between w-full h-10 px-2 rounded-xl text-xs cursor-pointer'
                 ]"
               >
-                <div class="flex items-center min-w-0">
+                <div class="flex items-center min-w-0 flex-1">
                   <div class="relative flex items-center justify-center shrink-0 w-10 h-10 rounded-lg">
                     <svg v-if="item.iconType === 'auth'" class="h-4.5 w-4.5 shrink-0 text-amber-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
@@ -1177,7 +1207,7 @@ onUnmounted(() => {
                   <div
                     :class="[
                       'elms-nav-label-container flex items-center min-w-0 overflow-hidden whitespace-nowrap',
-                      isSidebarCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[150px] opacity-100 ml-2'
+                      isSidebarCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[150px] opacity-100 ml-2.5 flex-1'
                     ]"
                   >
                     <span class="truncate">{{ getNavTitle(item.name) }}</span>
@@ -1186,14 +1216,14 @@ onUnmounted(() => {
 
                 <div
                   :class="[
-                    'elms-nav-label-container flex items-center overflow-hidden',
-                    isSidebarCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[30px] opacity-100'
+                    'elms-nav-label-container flex items-center overflow-hidden shrink-0',
+                    isSidebarCollapsed ? 'max-w-0 opacity-0 pointer-events-none' : 'max-w-[30px] opacity-100 ml-1'
                   ]"
                 >
                   <svg
                     :class="[
                       expandedModules[item.key!] ? 'rotate-180 text-blue-400' : 'text-slate-500 group-hover:text-slate-300',
-                      'w-3.5 h-3.5 transition-transform duration-200 shrink-0 ml-1'
+                      'w-3.5 h-3.5 transition-transform duration-200 shrink-0'
                     ]"
                     fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                   >
@@ -1246,7 +1276,7 @@ onUnmounted(() => {
 
             <!-- Flyout Popover for Collapsed Sidebar Mode (Has Children) -->
             <div
-              v-if="isSidebarCollapsed && item.children && item.children.length > 0"
+              v-if="isSidebarCollapsed && !isSidebarAnimating && item.children && item.children.length > 0"
               class="absolute left-full top-0 ml-2 w-64 opacity-0 pointer-events-none group-hover/flyout:opacity-100 group-hover/flyout:pointer-events-auto transition-all duration-200 ease-out translate-x-1 group-hover/flyout:translate-x-0 z-50"
             >
               <div class="absolute -left-3 top-0 bottom-0 w-3"></div>
@@ -1275,7 +1305,7 @@ onUnmounted(() => {
 
             <!-- Sleek Tooltip Popover for Collapsed Sidebar Mode (No Children) -->
             <div
-              v-else-if="isSidebarCollapsed && (!item.children || item.children.length === 0)"
+              v-else-if="isSidebarCollapsed && !isSidebarAnimating && (!item.children || item.children.length === 0)"
               class="absolute left-full top-1/2 -translate-y-1/2 ml-2 opacity-0 pointer-events-none group-hover/flyout:opacity-100 transition-all duration-200 ease-out translate-x-1 group-hover/flyout:translate-x-0 z-50 whitespace-nowrap"
             >
               <div class="relative bg-[#0c1a2e] border border-slate-800 text-white text-xs font-semibold px-3 py-1.5 rounded-xl shadow-xl flex items-center gap-2 ring-1 ring-slate-800">
@@ -1507,32 +1537,18 @@ onUnmounted(() => {
             @click.stop.prevent="toggleSidebarCollapse"
             type="button"
             :class="[
-              'p-2 rounded-xl transition-all duration-200 cursor-pointer shrink-0 active:scale-95 focus:outline-none flex items-center justify-center border',
+              'p-2 rounded-xl transition-all duration-300 cursor-pointer shrink-0 active:scale-90 focus:outline-none flex items-center justify-center border',
               isSidebarCollapsed
-                ? 'bg-blue-500/10 text-blue-400 border-blue-500/20 hover:bg-blue-500/20'
-                : 'text-slate-300 hover:text-white hover:bg-slate-800/60 border-transparent'
+                ? 'bg-blue-500/15 text-blue-400 border-blue-500/30 shadow-xs shadow-blue-500/15 hover:bg-blue-500/25 hover:border-blue-500/50 hover:text-blue-300'
+                : 'text-slate-300 hover:text-white hover:bg-slate-800/80 border-slate-700/60 hover:border-slate-600'
             ]"
             :title="isSidebarCollapsed ? (currentLang === 'km' ? 'ពង្រីកម៉ឺនុយ' : 'Expand Sidebar') : (currentLang === 'km' ? 'បង្រួមម៉ឺនុយ' : 'Collapse Sidebar')"
           >
             <div class="w-5 h-5 flex items-center justify-center pointer-events-none">
-              <!-- Collapsed on Desktop: PanelLeftOpen (Window with Right Chevron to Expand) -->
+              <!-- Mobile Open Drawer: Cross X Icon with transition -->
               <svg
-                v-if="isSidebarCollapsed"
-                class="w-5 h-5 transition-transform duration-200"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="1.8"
-              >
-                <rect x="3" y="3.5" width="18" height="17" rx="3" />
-                <path d="M9 3.5v17" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="m14 9.5 2.5 2.5-2.5 2.5" />
-              </svg>
-
-              <!-- Drawer open on Mobile: Close X Icon -->
-              <svg
-                v-else-if="sidebarOpen"
-                class="w-5 h-5 text-rose-400 transition-transform duration-200"
+                v-if="!isDesktop && sidebarOpen"
+                class="w-5 h-5 text-rose-400 transition-transform duration-300"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -1541,18 +1557,40 @@ onUnmounted(() => {
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
 
-              <!-- Expanded on Desktop: PanelLeftClose (Window with Left Chevron to Collapse) -->
+              <!-- Desktop & Default: Smooth Animated PanelLeft Window with 180° Rotating Chevron -->
               <svg
                 v-else
-                class="w-5 h-5 transition-transform duration-200"
+                class="w-5 h-5 transition-colors duration-300"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
                 stroke-width="1.8"
               >
-                <rect x="3" y="3.5" width="18" height="17" rx="3" />
-                <path d="M9 3.5v17" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="m15.5 14.5-2.5-2.5 2.5-2.5" />
+                <!-- Window frame -->
+                <rect x="3" y="3.5" width="18" height="17" rx="3" class="transition-colors duration-300" />
+                <!-- Sidebar indicator line -->
+                <path d="M9 3.5v17" class="transition-colors duration-300" />
+                <!-- Tinted collapsed sidebar mini-indicator -->
+                <rect
+                  x="3.5"
+                  y="4"
+                  width="5"
+                  height="16"
+                  rx="2"
+                  class="transition-all duration-300 pointer-events-none"
+                  :class="isSidebarCollapsed ? 'fill-blue-400/20 stroke-none' : 'fill-transparent stroke-none'"
+                />
+                <!-- Chevron that smoothly rotates 180deg: Points Left (<) when expanded, Points Right (>) when collapsed -->
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="m15.5 14.5-2.5-2.5 2.5-2.5"
+                  :style="{
+                    transform: isSidebarCollapsed ? 'rotate(180deg)' : 'rotate(0deg)',
+                    transformOrigin: '14.25px 12px',
+                    transition: 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1)'
+                  }"
+                />
               </svg>
             </div>
           </button>
@@ -2187,6 +2225,7 @@ onUnmounted(() => {
   width: 15rem !important; /* 240px */
   transition: width 300ms cubic-bezier(0.4, 0, 0.2, 1) !important;
   will-change: width;
+  contain: layout style;
 }
 
 .elms-sidebar-anim.is-collapsed {
@@ -2214,8 +2253,10 @@ onUnmounted(() => {
 
 /* Nav Item Labels */
 .elms-nav-label-container {
-  transition: max-width 300ms cubic-bezier(0.4, 0, 0.2, 1), opacity 200ms cubic-bezier(0.4, 0, 0.2, 1) !important;
-  will-change: max-width, opacity;
+  transition: max-width 300ms cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 200ms cubic-bezier(0.4, 0, 0.2, 1),
+              margin 300ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+  will-change: max-width, opacity, margin;
 }
 </style>
 

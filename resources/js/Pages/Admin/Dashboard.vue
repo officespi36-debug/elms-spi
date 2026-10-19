@@ -310,6 +310,12 @@ const enrollmentChartOptions = computed<any>(() => ({
     toolbar: { show: false },
     background: 'transparent',
     parentHeightOffset: 0,
+    animations: {
+      enabled: true,
+      dynamicAnimation: {
+        enabled: false,
+      },
+    },
   },
   colors: ['#2563eb', '#10b981'],
   stroke: { curve: 'smooth', width: 2.5 },
@@ -357,7 +363,16 @@ const majorDonutSeries = computed(() => {
 })
 
 const majorDonutOptions = computed<any>(() => ({
-  chart: { type: 'donut', background: 'transparent' },
+  chart: {
+    type: 'donut',
+    background: 'transparent',
+    animations: {
+      enabled: true,
+      dynamicAnimation: {
+        enabled: false,
+      },
+    },
+  },
   labels: props.studentsByMajor?.map(m => m.display_name || m.code || m.name) || ['Info Tech (IT)', 'Social Work (SW)', 'Agriculture (AGR)', 'Tourism (TRM)', 'English Lit (ENG)'],
   colors: ['#f59e0b', '#2563eb', '#10b981', '#8b5cf6', '#ef4444'],
   legend: { show: false },
