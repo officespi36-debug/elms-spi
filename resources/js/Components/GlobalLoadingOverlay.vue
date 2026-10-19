@@ -8,16 +8,16 @@ const { isLoading, loadingText } = useLoading()
 <template>
   <Teleport to="body">
     <Transition
-      enter-active-class="transition-opacity duration-200 ease-out"
+      enter-active-class="transition-opacity duration-150 ease-out"
       enter-from-class="opacity-0"
       enter-to-class="opacity-100"
-      leave-active-class="transition-opacity duration-250 ease-in"
+      leave-active-class="transition-opacity duration-150 ease-in"
       leave-from-class="opacity-100"
       leave-to-class="opacity-0"
     >
       <div
         v-if="isLoading"
-        class="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[#0b132b]/95 backdrop-blur-sm select-none p-4"
+        class="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-slate-950/75 backdrop-blur-sm select-none p-4"
         role="status"
         aria-live="polite"
       >

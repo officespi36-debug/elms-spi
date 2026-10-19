@@ -90,11 +90,11 @@ const toggleLanguage = () => {
   i18n.setLanguage(nextLang)
   try {
     router.reload({
-      onFinish: () => hideLoading(750),
-      onError: () => hideLoading(750)
+      onFinish: () => hideLoading(150),
+      onError: () => hideLoading(150)
     })
   } catch {
-    hideLoading(750)
+    hideLoading(150)
   }
 }
 

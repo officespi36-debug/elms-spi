@@ -63,33 +63,34 @@ const dotGapClass = computed(() => {
 </template>
 
 <style scoped>
-/* 4 Dots Travelling Animation - Exact 1:1 match to user screenshot */
+/* 4 Dots Travelling Animation - High-speed, 60fps ultra-smooth */
 .dot-item {
   display: inline-block;
   border-radius: 9999px;
   background-color: #334155;
   flex-shrink: 0;
-  transition: transform 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
-  animation: dotTravel 1.6s infinite ease-in-out;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease, box-shadow 0.2s ease;
+  animation: dotTravel 0.95s infinite cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, background-color, box-shadow;
 }
 
 .dot-1 { animation-delay: 0s; }
-.dot-2 { animation-delay: 0.35s; }
-.dot-3 { animation-delay: 0.70s; }
-.dot-4 { animation-delay: 1.05s; }
+.dot-2 { animation-delay: 0.22s; }
+.dot-3 { animation-delay: 0.44s; }
+.dot-4 { animation-delay: 0.66s; }
 
 @keyframes dotTravel {
-  0%, 35%, 100% {
+  0%, 40%, 100% {
     background-color: #334155;
     transform: scale(0.9);
-    opacity: 0.65;
+    opacity: 0.6;
     box-shadow: none;
   }
-  15% {
+  20% {
     background-color: #f97316; /* Glowing warm vibrant orange */
-    transform: scale(1.22);
+    transform: scale(1.24);
     opacity: 1;
-    box-shadow: 0 0 16px rgba(249, 115, 22, 0.8);
+    box-shadow: 0 0 16px rgba(249, 115, 22, 0.85);
   }
 }
 </style>
