@@ -1504,18 +1504,13 @@ onUnmounted(() => {
           <button
             @click.stop.prevent="toggleSidebarCollapse"
             type="button"
-            :class="[
-              isSidebarCollapsed 
-                ? 'bg-blue-600/20 text-blue-400 border border-blue-500/50 shadow-xs ring-2 ring-blue-500/20' 
-                : 'text-slate-300 hover:text-white hover:bg-slate-800/80 border border-transparent',
-              'p-2 rounded-xl transition-all duration-300 ease-out cursor-pointer shrink-0 active:scale-95 focus:outline-none group flex items-center justify-center'
-            ]"
+            class="p-2 rounded-xl text-slate-200 hover:text-white hover:bg-slate-800/60 transition-colors duration-200 cursor-pointer shrink-0 active:scale-95 focus:outline-none flex items-center justify-center border border-transparent"
             :title="isSidebarCollapsed ? (currentLang === 'km' ? 'ពង្រីកម៉ឺនុយ' : 'Expand Sidebar') : (currentLang === 'km' ? 'បង្រួមម៉ឺនុយ' : 'Collapse Sidebar')"
           >
-            <div class="w-5 h-4 flex flex-col justify-between items-center overflow-hidden pointer-events-none">
-              <span :class="['h-0.5 bg-current rounded-full transition-all duration-300 ease-out', isSidebarCollapsed ? 'w-2.5 self-start translate-x-0.5' : 'w-4.5']"></span>
-              <span class="h-0.5 w-4.5 bg-current rounded-full transition-all duration-300 ease-out"></span>
-              <span :class="['h-0.5 bg-current rounded-full transition-all duration-300 ease-out', isSidebarCollapsed ? 'w-2.5 self-start translate-x-0.5' : 'w-4.5']"></span>
+            <div class="w-5 h-4 flex flex-col justify-between items-center pointer-events-none">
+              <span class="h-0.5 w-4.5 bg-current rounded-full"></span>
+              <span class="h-0.5 w-4.5 bg-current rounded-full"></span>
+              <span class="h-0.5 w-4.5 bg-current rounded-full"></span>
             </div>
           </button>
 
