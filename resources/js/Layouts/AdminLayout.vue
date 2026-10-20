@@ -2163,8 +2163,8 @@ onUnmounted(() => {
     <!-- Main Content Area -->
     <main :class="[isSidebarCollapsed ? 'is-collapsed' : '', 'elms-main-anim pt-16 sm:pt-20 pb-12']">
       <div class="px-4 sm:px-6 lg:px-8">
-        <!-- Page Header (Suppressed on Admin Dashboard to Match Clean Reference UI) -->
-        <header class="mb-5" v-if="($slots.header || title) && $page.url !== '/admin/dashboard'">
+        <!-- Page Header (Suppressed on Admin Dashboard and Auth Module to Match Clean Reference UI) -->
+        <header class="mb-5" v-if="($slots.header || title) && $page.url !== '/admin/dashboard' && !$page.url.startsWith('/admin/auth')">
           <slot name="header">
             <h2 class="text-2xl font-black leading-relaxed bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-800 dark:from-white dark:via-slate-100 dark:to-slate-300 bg-clip-text text-transparent sm:truncate sm:text-3xl tracking-normal font-sans">{{ title }}</h2>
           </slot>
