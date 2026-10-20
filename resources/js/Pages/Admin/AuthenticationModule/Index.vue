@@ -34,16 +34,19 @@ const stats = props.overview || {
       <!-- Shared Navigation Header & Top Metrics -->
       <AuthModuleHeader activeTab="overview" :summaryStats="props.summaryStats" />
 
-      <!-- Main Overview 5 Cards Grid (Balanced equal-height card layouts with Dashboard aesthetics) -->
+      <!-- Main Overview Cards Grid (All cards are fully clickable Link components with hover elevation) -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- 1. Roles & Permissions Card -->
-        <div class="relative overflow-hidden bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group shadow-sm backdrop-blur-xl h-full">
+        <Link
+          href="/admin/auth/roles"
+          class="relative overflow-hidden bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between group shadow-sm backdrop-blur-xl h-full cursor-pointer"
+        >
           <!-- Card Top Accent Bar -->
           <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#7c3aed] to-[#6366f1]"></div>
 
           <div>
             <div class="flex items-center justify-between">
-              <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7c3aed] to-[#6366f1] text-white flex items-center justify-center shrink-0 shadow-md shadow-indigo-500/25 group-hover:scale-105 transition-transform duration-200">
+              <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7c3aed] to-[#6366f1] text-white flex items-center justify-center shrink-0 shadow-md shadow-indigo-500/25 group-hover:scale-110 transition-transform duration-200">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                   <path d="m9 12 2 2 4-4"/>
@@ -54,7 +57,7 @@ const stats = props.overview || {
               </span>
             </div>
 
-            <h3 class="text-lg font-black text-slate-900 dark:text-white mt-4 tracking-tight">{{ i18n.t('auth_card1_title', 'Roles & Permissions') }}</h3>
+            <h3 class="text-lg font-black text-slate-900 dark:text-white mt-4 tracking-tight group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{{ i18n.t('auth_card1_title', 'Roles & Permissions') }}</h3>
             <p class="text-sm font-medium text-slate-600 dark:text-slate-300 mt-1.5 leading-snug">
               {{ i18n.t('auth_card1_desc', 'Manage roles and access permissions matrix for Admin, Teacher, and Student') }}
             </p>
@@ -72,24 +75,26 @@ const stats = props.overview || {
           </div>
 
           <div class="pt-5">
-            <Link
-              href="/admin/auth/roles"
-              class="w-full py-2.5 px-4 rounded-xl font-bold text-xs bg-gradient-to-r from-indigo-50 to-indigo-100/80 hover:from-indigo-600 hover:to-indigo-500 text-indigo-700 hover:text-white dark:from-indigo-950/60 dark:to-indigo-900/60 dark:hover:from-indigo-600 dark:hover:to-indigo-500 dark:text-indigo-300 dark:hover:text-white border border-indigo-200/80 dark:border-indigo-500/30 hover:border-transparent shadow-xs hover:shadow-md hover:shadow-indigo-500/20 transition-all duration-200 flex items-center justify-center gap-2 group/btn"
+            <div
+              class="w-full py-2.5 px-4 rounded-xl font-bold text-xs bg-gradient-to-r from-indigo-50 to-indigo-100/80 group-hover:from-indigo-600 group-hover:to-indigo-500 text-indigo-700 group-hover:text-white dark:from-indigo-950/60 dark:to-indigo-900/60 dark:group-hover:from-indigo-600 dark:group-hover:to-indigo-500 dark:text-indigo-300 dark:group-hover:text-white border border-indigo-200/80 dark:border-indigo-500/30 group-hover:border-transparent shadow-xs group-hover:shadow-md group-hover:shadow-indigo-500/20 transition-all duration-200 flex items-center justify-center gap-2"
             >
               <span>{{ i18n.t('auth_card1_btn', 'Manage Roles & Permissions') }}</span>
-              <span class="transition-transform group-hover/btn:translate-x-1 font-mono">→</span>
-            </Link>
+              <span class="transition-transform group-hover:translate-x-1 font-mono">→</span>
+            </div>
           </div>
-        </div>
+        </Link>
 
         <!-- 2. Active Sessions Card -->
-        <div class="relative overflow-hidden bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group shadow-sm backdrop-blur-xl h-full">
+        <Link
+          href="/admin/auth/sessions"
+          class="relative overflow-hidden bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between group shadow-sm backdrop-blur-xl h-full cursor-pointer"
+        >
           <!-- Card Top Accent Bar -->
           <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#10b981] to-[#059669]"></div>
 
           <div>
             <div class="flex items-center justify-between">
-              <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#10b981] to-[#059669] text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/25 group-hover:scale-105 transition-transform duration-200">
+              <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#10b981] to-[#059669] text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/25 group-hover:scale-110 transition-transform duration-200">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <rect width="20" height="14" x="2" y="3" rx="2"/>
                   <line x1="8" x2="16" y1="21" y2="21"/>
@@ -102,7 +107,7 @@ const stats = props.overview || {
               </span>
             </div>
 
-            <h3 class="text-lg font-black text-slate-900 dark:text-white mt-4 tracking-tight">{{ i18n.t('auth_card2_title', 'Active Sessions') }}</h3>
+            <h3 class="text-lg font-black text-slate-900 dark:text-white mt-4 tracking-tight group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{{ i18n.t('auth_card2_title', 'Active Sessions') }}</h3>
             <p class="text-sm font-medium text-slate-600 dark:text-slate-300 mt-1.5 leading-snug">
               {{ i18n.t('auth_card2_desc', 'Track live users and revoke active JWT session tokens') }}
             </p>
@@ -130,24 +135,26 @@ const stats = props.overview || {
           </div>
 
           <div class="pt-5">
-            <Link
-              href="/admin/auth/sessions"
-              class="w-full py-2.5 px-4 rounded-xl font-bold text-xs bg-gradient-to-r from-emerald-50 to-emerald-100/80 hover:from-emerald-600 hover:to-emerald-500 text-emerald-700 hover:text-white dark:from-emerald-950/60 dark:to-emerald-900/60 dark:hover:from-emerald-600 dark:hover:to-emerald-500 dark:text-emerald-300 dark:hover:text-white border border-emerald-200/80 dark:border-emerald-500/30 hover:border-transparent shadow-xs hover:shadow-md hover:shadow-emerald-500/20 transition-all duration-200 flex items-center justify-center gap-2 group/btn"
+            <div
+              class="w-full py-2.5 px-4 rounded-xl font-bold text-xs bg-gradient-to-r from-emerald-50 to-emerald-100/80 group-hover:from-emerald-600 group-hover:to-emerald-500 text-emerald-700 group-hover:text-white dark:from-emerald-950/60 dark:to-emerald-900/60 dark:group-hover:from-emerald-600 dark:group-hover:to-emerald-500 dark:text-emerald-300 dark:group-hover:text-white border border-emerald-200/80 dark:border-emerald-500/30 group-hover:border-transparent shadow-xs group-hover:shadow-md group-hover:shadow-emerald-500/20 transition-all duration-200 flex items-center justify-center gap-2"
             >
               <span>{{ i18n.t('auth_card2_btn', 'Monitor Active Sessions') }}</span>
-              <span class="transition-transform group-hover/btn:translate-x-1 font-mono">→</span>
-            </Link>
+              <span class="transition-transform group-hover:translate-x-1 font-mono">→</span>
+            </div>
           </div>
-        </div>
+        </Link>
 
         <!-- 3. Login History Card -->
-        <div class="relative overflow-hidden bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group shadow-sm backdrop-blur-xl h-full">
+        <Link
+          href="/admin/auth/history"
+          class="relative overflow-hidden bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between group shadow-sm backdrop-blur-xl h-full cursor-pointer"
+        >
           <!-- Card Top Accent Bar -->
           <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#0284c7] to-[#2563eb]"></div>
 
           <div>
             <div class="flex items-center justify-between">
-              <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#0284c7] to-[#2563eb] text-white flex items-center justify-center shrink-0 shadow-md shadow-blue-500/25 group-hover:scale-105 transition-transform duration-200">
+              <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#0284c7] to-[#2563eb] text-white flex items-center justify-center shrink-0 shadow-md shadow-blue-500/25 group-hover:scale-110 transition-transform duration-200">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="10"/>
                   <polyline points="12 6 12 12 16 14"/>
@@ -158,7 +165,7 @@ const stats = props.overview || {
               </span>
             </div>
 
-            <h3 class="text-lg font-black text-slate-900 dark:text-white mt-4 tracking-tight">{{ i18n.t('auth_card3_title', 'Login History') }}</h3>
+            <h3 class="text-lg font-black text-slate-900 dark:text-white mt-4 tracking-tight group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">{{ i18n.t('auth_card3_title', 'Login History') }}</h3>
             <p class="text-sm font-medium text-slate-600 dark:text-slate-300 mt-1.5 leading-snug">
               {{ i18n.t('auth_card3_desc', 'Review login logs, device info, IP addresses, and export reports') }}
             </p>
@@ -176,24 +183,26 @@ const stats = props.overview || {
           </div>
 
           <div class="pt-5">
-            <Link
-              href="/admin/auth/history"
-              class="w-full py-2.5 px-4 rounded-xl font-bold text-xs bg-gradient-to-r from-sky-50 to-blue-100/80 hover:from-sky-600 hover:to-blue-600 text-sky-700 hover:text-white dark:from-sky-950/60 dark:to-blue-900/60 dark:hover:from-sky-600 dark:hover:to-blue-600 dark:text-sky-300 dark:hover:text-white border border-sky-200/80 dark:border-sky-500/30 hover:border-transparent shadow-xs hover:shadow-md hover:shadow-sky-500/20 transition-all duration-200 flex items-center justify-center gap-2 group/btn"
+            <div
+              class="w-full py-2.5 px-4 rounded-xl font-bold text-xs bg-gradient-to-r from-sky-50 to-blue-100/80 group-hover:from-sky-600 group-hover:to-blue-600 text-sky-700 group-hover:text-white dark:from-sky-950/60 dark:to-blue-900/60 dark:group-hover:from-sky-600 dark:group-hover:to-blue-600 dark:text-sky-300 dark:group-hover:text-white border border-sky-200/80 dark:border-sky-500/30 group-hover:border-transparent shadow-xs group-hover:shadow-md group-hover:shadow-sky-500/20 transition-all duration-200 flex items-center justify-center gap-2"
             >
               <span>{{ i18n.t('auth_card3_btn', 'View Login Logs') }}</span>
-              <span class="transition-transform group-hover/btn:translate-x-1 font-mono">→</span>
-            </Link>
+              <span class="transition-transform group-hover:translate-x-1 font-mono">→</span>
+            </div>
           </div>
-        </div>
+        </Link>
 
         <!-- 4. Failed Login Attempts Card -->
-        <div class="relative overflow-hidden bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group shadow-sm backdrop-blur-xl h-full">
+        <Link
+          href="/admin/auth/failed"
+          class="relative overflow-hidden bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between group shadow-sm backdrop-blur-xl h-full cursor-pointer"
+        >
           <!-- Card Top Accent Bar -->
           <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#f43f5e] to-[#e11d48]"></div>
 
           <div>
             <div class="flex items-center justify-between">
-              <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#f43f5e] to-[#e11d48] text-white flex items-center justify-center shrink-0 shadow-md shadow-rose-500/25 group-hover:scale-105 transition-transform duration-200">
+              <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#f43f5e] to-[#e11d48] text-white flex items-center justify-center shrink-0 shadow-md shadow-rose-500/25 group-hover:scale-110 transition-transform duration-200">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
                   <line x1="12" y1="9" x2="12" y2="13"/>
@@ -208,7 +217,7 @@ const stats = props.overview || {
               </span>
             </div>
 
-            <h3 class="text-lg font-black text-slate-900 dark:text-white mt-4 tracking-tight">{{ i18n.t('auth_card4_title', 'Failed Login Attempts') }}</h3>
+            <h3 class="text-lg font-black text-slate-900 dark:text-white mt-4 tracking-tight group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">{{ i18n.t('auth_card4_title', 'Failed Login Attempts') }}</h3>
             <p class="text-sm font-medium text-slate-600 dark:text-slate-300 mt-1.5 leading-snug">
               {{ i18n.t('auth_card4_desc', 'Detect brute-force attempts and manage firewall blacklisted IPs') }}
             </p>
@@ -226,32 +235,34 @@ const stats = props.overview || {
           </div>
 
           <div class="pt-5">
-            <Link
-              href="/admin/auth/failed"
-              class="w-full py-2.5 px-4 rounded-xl font-bold text-xs bg-gradient-to-r from-rose-50 to-red-100/80 hover:from-rose-600 hover:to-red-600 text-rose-700 hover:text-white dark:from-rose-950/60 dark:to-red-900/60 dark:hover:from-rose-600 dark:hover:to-red-600 dark:text-rose-300 dark:hover:text-white border border-rose-200/80 dark:border-rose-500/30 hover:border-transparent shadow-xs hover:shadow-md hover:shadow-rose-500/20 transition-all duration-200 flex items-center justify-center gap-2 group/btn"
+            <div
+              class="w-full py-2.5 px-4 rounded-xl font-bold text-xs bg-gradient-to-r from-rose-50 to-red-100/80 group-hover:from-rose-600 group-hover:to-red-600 text-rose-700 group-hover:text-white dark:from-rose-950/60 dark:to-red-900/60 dark:group-hover:from-rose-600 dark:group-hover:to-red-600 dark:text-rose-300 dark:group-hover:text-white border border-rose-200/80 dark:border-rose-500/30 group-hover:border-transparent shadow-xs group-hover:shadow-md group-hover:shadow-rose-500/20 transition-all duration-200 flex items-center justify-center gap-2"
             >
               <span>{{ i18n.t('auth_card4_btn', 'Investigate Threat Logs') }}</span>
-              <span class="transition-transform group-hover/btn:translate-x-1 font-mono">→</span>
-            </Link>
+              <span class="transition-transform group-hover:translate-x-1 font-mono">→</span>
+            </div>
           </div>
-        </div>
+        </Link>
 
         <!-- 5. Security Policies Card (Spans 2 columns on large screens for balanced grid) -->
-        <div class="lg:col-span-2 relative overflow-hidden bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group shadow-sm backdrop-blur-xl h-full">
+        <Link
+          href="/admin/auth/policies"
+          class="lg:col-span-2 relative overflow-hidden bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between group shadow-sm backdrop-blur-xl h-full cursor-pointer"
+        >
           <!-- Card Top Accent Bar -->
           <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#8b5cf6] via-[#a855f7] to-[#ec4899]"></div>
 
           <div>
             <div class="flex items-center justify-between flex-wrap gap-3">
               <div class="flex items-center gap-3.5">
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#8b5cf6] to-[#6366f1] text-white flex items-center justify-center shrink-0 shadow-md shadow-purple-500/25 group-hover:scale-105 transition-transform duration-200">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#8b5cf6] to-[#6366f1] text-white flex items-center justify-center shrink-0 shadow-md shadow-purple-500/25 group-hover:scale-110 transition-transform duration-200">
                   <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                   </svg>
                 </div>
                 <div>
-                  <h3 class="text-lg font-black text-slate-900 dark:text-white tracking-tight">{{ i18n.t('auth_card5_title', 'System Security Policies') }}</h3>
+                  <h3 class="text-lg font-black text-slate-900 dark:text-white tracking-tight group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">{{ i18n.t('auth_card5_title', 'System Security Policies') }}</h3>
                   <p class="text-sm font-medium text-slate-600 dark:text-slate-300 mt-1 leading-snug">{{ i18n.t('auth_card5_desc', 'Global password policy, token expiration, lockout rules & SSL configuration') }}</p>
                 </div>
               </div>
@@ -305,15 +316,14 @@ const stats = props.overview || {
           </div>
 
           <div class="pt-5">
-            <Link
-              href="/admin/auth/policies"
-              class="w-full py-2.5 px-4 rounded-xl font-bold text-xs bg-gradient-to-r from-purple-50 to-indigo-100/80 hover:from-purple-600 hover:to-indigo-600 text-purple-700 hover:text-white dark:from-purple-950/60 dark:to-indigo-900/60 dark:hover:from-purple-600 dark:hover:to-indigo-600 dark:text-purple-300 dark:hover:text-white border border-purple-200/80 dark:border-purple-500/30 hover:border-transparent shadow-xs hover:shadow-md hover:shadow-purple-500/20 transition-all duration-200 flex items-center justify-center gap-2 group/btn"
+            <div
+              class="w-full py-2.5 px-4 rounded-xl font-bold text-xs bg-gradient-to-r from-purple-50 to-indigo-100/80 group-hover:from-purple-600 group-hover:to-indigo-600 text-purple-700 group-hover:text-white dark:from-purple-950/60 dark:to-indigo-900/60 dark:group-hover:from-purple-600 dark:group-hover:to-indigo-600 dark:text-purple-300 dark:group-hover:text-white border border-purple-200/80 dark:border-purple-500/30 group-hover:border-transparent shadow-xs group-hover:shadow-md group-hover:shadow-purple-500/20 transition-all duration-200 flex items-center justify-center gap-2"
             >
               <span>{{ i18n.t('auth_card5_btn', 'Configure Security Policies') }}</span>
-              <span class="transition-transform group-hover/btn:translate-x-1 font-mono">→</span>
-            </Link>
+              <span class="transition-transform group-hover:translate-x-1 font-mono">→</span>
+            </div>
           </div>
-        </div>
+        </Link>
       </div>
     </div>
   </AdminLayout>

@@ -309,14 +309,32 @@ const getRoleCategorySummary = (role: string, items: string[]) => {
   }
 }
 
+const isSavingMatrix = ref(false)
 const saveAllMatrixPermissions = () => {
-  props.rolesPermissions.forEach(r => {
-    router.post('/admin/auth-logs/permissions', {
-      role: r.role,
-      permissions: activePermissions.value[r.role] || []
-    }, {
-      preserveScroll: true
-    })
+  isSavingMatrix.value = true
+  router.post('/admin/auth-logs/permissions', {
+    matrix: activePermissions.value
+  }, {
+    preserveScroll: true,
+    onSuccess: () => {
+      isSavingMatrix.value = false
+      originalPermissions.value = JSON.parse(JSON.stringify(activePermissions.value))
+      triggerToast(
+        'រក្សាទុកបានជោគជ័យ',
+        'ម៉ាទ្រីសសិទ្ធិប្រើប្រាស់ Role & Permissions ត្រូវបានធ្វើបច្ចុប្បន្នភាពរួចរាល់'
+      )
+    },
+    onError: () => {
+      isSavingMatrix.value = false
+      triggerToast(
+        'មានបញ្ហាក្នុងការរក្សាទុក',
+        'សូមព្យាយាមរក្សាទុកម្តងទៀត',
+        'warning'
+      )
+    },
+    onFinish: () => {
+      isSavingMatrix.value = false
+    }
   })
 }
 
@@ -331,7 +349,10 @@ const resetPermissions = () => {
 const deleteRole = (roleName: string) => {
   if (confirm(`Are you sure you want to delete the custom role '${roleName}'?`)) {
     router.post('/admin/auth-logs/roles/delete', { name: roleName }, {
-      preserveScroll: true
+      preserveScroll: true,
+      onSuccess: () => {
+        triggerToast('លុបតួនាទីជោគជ័យ', `តួនាទី '${roleName}' ត្រូវបានលុបចេញពីប្រព័ន្ធ`)
+      }
     })
   }
 }

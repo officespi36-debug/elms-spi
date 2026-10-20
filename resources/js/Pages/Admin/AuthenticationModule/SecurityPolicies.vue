@@ -15,7 +15,27 @@ const props = withDefaults(defineProps<{
 
 const activeSubTab = ref<'password' | 'jwt' | 'session' | 'lockout' | 'security'>('password')
 const newWhitelistIp = ref('')
-const ipWhitelist = ref<string[]>(['192.168.1.0/24', '10.0.0.0/16'])
+const ipWhitelist = ref<string[]>(
+  Array.isArray(props.securityPolicies?.ip_whitelist)
+    ? [...props.securityPolicies.ip_whitelist]
+    : ['192.168.1.0/24', '10.0.0.0/16']
+)
+
+const toast = ref<{ show: boolean; type: 'success' | 'info' | 'warning'; title: string; message: string }>({
+  show: false,
+  type: 'success',
+  title: '',
+  message: ''
+})
+let toastTimer: any = null
+
+const triggerToast = (title: string, message: string, type: 'success' | 'info' | 'warning' = 'success') => {
+  if (toastTimer) clearTimeout(toastTimer)
+  toast.value = { show: true, type, title, message }
+  toastTimer = setTimeout(() => {
+    toast.value.show = false
+  }, 4500)
+}
 
 interface SecurityPoliciesForm {
   min_password_length: number
@@ -108,8 +128,24 @@ const removeWhitelistIp = (ip: string) => {
 }
 
 const saveAllPolicies = () => {
-  form.post('/admin/auth-logs/policies', {
-    preserveScroll: true
+  form.transform((data) => ({
+    ...data,
+    ip_whitelist: ipWhitelist.value
+  })).post('/admin/auth-logs/policies', {
+    preserveScroll: true,
+    onSuccess: () => {
+      triggerToast(
+        'បានរក្សាទុកជោគជ័យ',
+        'គោលការណ៍សុវត្ថិភាពប្រព័ន្ធ (Security Policies) ទាំងអស់ត្រូវបានធ្វើបច្ចុប្បន្នភាពរួចរាល់'
+      )
+    },
+    onError: () => {
+      triggerToast(
+        'មានបញ្ហាក្នុងការរក្សាទុក',
+        'សូមពិនិត្យមើលទិន្នន័យបញ្ចូល ហើយព្យាយាមម្តងទៀត',
+        'warning'
+      )
+    }
   })
 }
 
@@ -522,5 +558,44 @@ const resetToDefault = () => {
         </div>
       </div>
     </div>
+
+    <!-- Toast Notification Teleport -->
+    <Teleport to="body">
+      <Transition
+        enter-active-class="transform ease-out duration-300 transition"
+        enter-from-class="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
+        enter-to-class="translate-y-0 opacity-100 sm:translate-x-0"
+        leave-active-class="transition ease-in duration-200"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
+        <div
+          v-if="toast.show"
+          class="fixed bottom-5 right-5 z-50 max-w-sm w-full bg-slate-900/95 text-white p-4 rounded-2xl shadow-2xl border border-slate-700/80 backdrop-blur-xl pointer-events-auto"
+        >
+          <div class="flex items-start gap-3">
+            <span class="text-xl">
+              {{ toast.type === 'success' ? '✅' : toast.type === 'warning' ? '⚠️' : 'ℹ️' }}
+            </span>
+            <div class="flex-1 min-w-0">
+              <h4 class="text-xs font-bold text-white tracking-wide">
+                {{ toast.title }}
+              </h4>
+              <p class="text-[11px] text-slate-300 mt-0.5 leading-normal">
+                {{ toast.message }}
+              </p>
+            </div>
+            <button
+              @click="toast.show = false"
+              class="text-slate-400 hover:text-white p-1 rounded-md hover:bg-slate-700/60 transition-colors shrink-0 cursor-pointer"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </AdminLayout>
 </template>
