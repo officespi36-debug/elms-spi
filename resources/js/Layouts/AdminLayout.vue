@@ -189,6 +189,12 @@ const navigation: NavItem[] = [
 const isSubActive = (subHref: string) => {
   const currentUrl = page.url
 
+  // Special handling for Authentication -> Login & Security subitem
+  if (subHref === '/admin/auth-logs') {
+    return currentUrl.startsWith('/admin/auth-logs') || 
+      (currentUrl.startsWith('/admin/auth/') && !currentUrl.startsWith('/admin/auth/roles'))
+  }
+
   // If subHref has query param (e.g. ?status=draft or ?tab=assignments)
   if (subHref.includes('?')) {
     const [path, query] = subHref.split('?')
@@ -1166,15 +1172,17 @@ onUnmounted(() => {
                 :title="isSidebarCollapsed ? item.name : undefined"
                 :class="[
                   isChildActive(item.children) 
-                    ? 'bg-blue-500/15 text-blue-400 border-blue-500/30 shadow-xs shadow-blue-500/15 font-semibold' 
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/50 border-transparent font-normal',
-                  'elms-nav-item group flex items-center justify-between w-full h-10 px-2 rounded-xl text-xs cursor-pointer border transition-all duration-200'
+                    ? 'bg-[#0c234b]/90 text-blue-400 border-blue-500/40 shadow-sm font-bold rounded-2xl' 
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/50 border-transparent font-normal rounded-xl',
+                  'elms-nav-item group flex items-center justify-between w-full h-11 px-2.5 text-xs sm:text-[13px] cursor-pointer border transition-all duration-200'
                 ]"
               >
                 <div class="flex items-center min-w-0 flex-1">
                   <div class="relative flex items-center justify-center shrink-0 w-10 h-10 rounded-lg">
-                    <svg v-if="item.iconType === 'auth'" class="h-4.5 w-4.5 shrink-0 text-amber-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    <svg v-if="item.iconType === 'auth'" class="h-5 w-5 shrink-0 text-amber-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" fill="none">
+                      <rect x="5" y="11" width="14" height="10" rx="3" stroke-width="2.2"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 0 1 8 0v4"/>
+                      <circle cx="12" cy="16" r="1" fill="currentColor"/>
                     </svg>
                     <svg v-else-if="item.iconType === 'users'" class="h-4.5 w-4.5 shrink-0 text-rose-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
@@ -1223,9 +1231,9 @@ onUnmounted(() => {
                   <svg
                     :class="[
                       expandedModules[item.key!] ? 'rotate-180 text-blue-400' : 'text-slate-500 group-hover:text-slate-300',
-                      'w-3.5 h-3.5 transition-transform duration-200 shrink-0'
+                      'w-4 h-4 transition-transform duration-200 shrink-0'
                     ]"
-                    fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"
                   >
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
                   </svg>
@@ -1237,34 +1245,40 @@ onUnmounted(() => {
                 :class="[
                   'overflow-hidden transition-all duration-300 ease-in-out w-full',
                   (!isSidebarCollapsed && expandedModules[item.key!])
-                    ? 'max-h-96 opacity-100 my-1.5'
+                    ? 'max-h-96 opacity-100 my-2'
                     : 'max-h-0 opacity-0 my-0 pointer-events-none'
                 ]"
               >
-                <div class="relative ml-6 pl-4 space-y-1 pr-3">
+                <div class="relative ml-5 pl-5 space-y-2 pr-1">
                   <div
                     v-for="(sub, idx) in item.children"
                     :key="sub.name"
-                    class="group relative flex items-center"
+                    class="group relative flex items-center min-h-[40px]"
                   >
+                    <!-- Vertical Trunk Line connecting to subsequent subitems -->
                     <div
                       v-if="idx < item.children.length - 1"
-                      class="absolute -left-4 top-0 bottom-0 w-[2px] bg-slate-800"
+                      class="absolute -left-5 top-0 bottom-0 w-[2px] bg-slate-800"
                     ></div>
+
+                    <!-- Elbow Curve (Bright Blue when Active, Dark Slate when Inactive) -->
                     <div
                       :class="[
-                        isSubActive(sub.href) ? 'border-blue-500' : 'border-slate-800 group-hover:border-slate-600',
-                        'absolute -left-4 top-0 h-1/2 w-3.5 border-l-2 border-b-2 rounded-bl-xl transition-colors duration-200 pointer-events-none'
+                        isSubActive(sub.href)
+                          ? 'border-blue-500'
+                          : 'border-slate-800 group-hover:border-slate-600',
+                        'absolute -left-5 top-0 h-1/2 w-4 border-l-2 border-b-2 rounded-bl-2xl transition-colors duration-200 pointer-events-none'
                       ]"
                     ></div>
 
+                    <!-- Submenu Link / Pill Container -->
                     <Link
                       :href="sub.href"
                       :class="[
                         isSubActive(sub.href) 
-                          ? 'text-white font-medium bg-blue-500/15 border border-blue-500/30' 
-                          : 'text-slate-400 hover:text-white hover:bg-slate-800/50 border border-transparent',
-                        'flex-1 flex items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs transition-all duration-200 ml-1'
+                          ? 'bg-[#0c1f3d] border border-blue-500/50 text-white font-bold shadow-md shadow-blue-950/40 rounded-2xl' 
+                          : 'text-slate-400 hover:text-white hover:bg-slate-800/40 border border-transparent font-medium rounded-xl',
+                        'flex-1 flex items-center px-4 py-2 text-xs sm:text-[13px] transition-all duration-200 ml-0.5'
                       ]"
                     >
                       <span class="truncate">{{ getNavTitle(sub.name) }}</span>
@@ -1476,15 +1490,17 @@ onUnmounted(() => {
               </div>
               <svg :class="[expandedModules[item.key!] ? 'rotate-180 text-blue-400' : '', 'w-4 h-4 transition-transform text-slate-400']" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
-            <div v-show="expandedModules[item.key!]" class="pl-4 ml-4 space-y-1 my-1 border-l border-slate-800">
+            <div v-show="expandedModules[item.key!]" class="pl-4 ml-4 space-y-1.5 my-1.5 border-l-2 border-slate-800">
               <Link
                 v-for="sub in item.children"
                 :key="sub.href"
                 :href="sub.href"
                 @click="sidebarOpen = false"
                 :class="[
-                  $page.url.startsWith(sub.href) ? 'bg-blue-600/25 text-blue-300 font-bold border border-blue-500/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60',
-                  'flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs transition-all'
+                  isSubActive(sub.href) 
+                    ? 'bg-[#0c1f3d] text-white font-bold border border-blue-500/50 shadow-sm rounded-xl' 
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60 border border-transparent font-medium rounded-lg',
+                  'flex items-center gap-2.5 px-3 py-2 text-xs transition-all'
                 ]"
               >
                 <span class="truncate">{{ getNavTitle(sub.name) }}</span>

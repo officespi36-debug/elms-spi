@@ -270,6 +270,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('auth/failed', [Admin\AuthLogController::class, 'failedAttempts'])->name('auth.failed');
         Route::get('auth/policies', [Admin\AuthLogController::class, 'securityPolicies'])->name('auth.policies');
         Route::get('auth/cyber-security', [Admin\AuthLogController::class, 'cyberSecurity'])->name('auth.cyber-security');
+        Route::get('auth/audit', [Admin\AuthLogController::class, 'cyberSecurity'])->name('auth.audit');
 
         Route::post('auth-logs/ban-telegram-user', [Admin\AuthLogController::class, 'banTelegramUser'])->name('auth-logs.ban-telegram-user');
         Route::post('auth-logs/clear-forensics', [Admin\AuthLogController::class, 'clearForensics'])->name('auth-logs.clear-forensics');

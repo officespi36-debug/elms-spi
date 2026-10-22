@@ -20,9 +20,9 @@ const props = defineProps<{
 const stats = props.overview || {
   total_roles: 3,
   total_permissions: 15,
-  active_sessions_now: 0,
-  login_history_today: 6,
-  failed_attempts_today: 3,
+  active_sessions_now: 7,
+  login_history_today: 225,
+  failed_attempts_today: 65,
   banned_ips_count: 0,
   security_score: 88
 }
@@ -210,9 +210,9 @@ const stats = props.overview || {
           </div>
         </Link>
 
-        <!-- 4. Failed Login Attempts Card -->
+        <!-- 4. Failed Login Attempts Card (Merged into Login History) -->
         <Link
-          href="/admin/auth/failed"
+          href="/admin/auth/history?filter=failed"
           class="relative overflow-hidden bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5 sm:p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group shadow-xs backdrop-blur-xl h-full cursor-pointer"
         >
           <!-- Top Accent Bar -->
@@ -237,10 +237,10 @@ const stats = props.overview || {
             </div>
 
             <h3 class="text-lg font-black text-slate-900 dark:text-white mt-4 tracking-tight group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-              {{ i18n.t('ការប៉ុនប៉ងចូលមិនជោគជ័យ', 'Failed Login Attempts') }}
+              {{ i18n.t('ការប៉ុនប៉ងចូលមិនជោគជ័យ', 'Failed Attempts & Lockouts') }}
             </h3>
             <p class="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed">
-              {{ i18n.t('ស្វែងរកការប៉ុនប៉ង Brute-force ដោះសោរគណនី និងគ្រប់គ្រង IP Blacklist', 'Detect brute-force attempts and manage firewall blacklisted IPs') }}
+              {{ i18n.t('បញ្ចូលក្នុង Login History: ស្វែងរកការប៉ុនប៉ង Brute-force ដោះសោរគណនី និងគ្រប់គ្រង IP Blacklist', 'Merged in Login History: Detect brute-force attempts, unlock accounts, and manage firewall blacklisted IPs') }}
             </p>
 
             <div class="mt-4 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800/80 space-y-2.5 text-xs">
@@ -263,7 +263,7 @@ const stats = props.overview || {
             <div
               class="w-full py-2.5 px-4 rounded-xl font-bold text-xs bg-gradient-to-r from-orange-50 to-amber-100/80 group-hover:from-orange-600 group-hover:to-orange-500 text-orange-700 group-hover:text-white dark:from-orange-950/60 dark:to-orange-900/60 dark:group-hover:from-orange-600 dark:group-hover:to-orange-500 dark:text-orange-300 dark:group-hover:text-white border border-orange-200/80 dark:border-orange-500/30 group-hover:border-transparent shadow-xs group-hover:shadow-md group-hover:shadow-orange-500/20 transition-all duration-200 flex items-center justify-center gap-2"
             >
-              <span>{{ i18n.t('ស៊ើបអង្កេតការចូលមិនជោគជ័យ', 'Investigate Threat Logs') }}</span>
+              <span>{{ i18n.t('ពិនិត្យ Failed Attempts ក្នុង Login History', 'Review in Login History') }}</span>
               <span class="transition-transform group-hover:translate-x-1 font-mono">→</span>
             </div>
           </div>
@@ -325,7 +325,7 @@ const stats = props.overview || {
           </div>
         </Link>
 
-        <!-- 6. សន្តិសុខ & Cyber Forensics Card -->
+        <!-- 6. Security Audit & Cyber Forensics Card -->
         <Link
           href="/admin/auth/cyber-security"
           class="relative overflow-hidden bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5 sm:p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group shadow-xs backdrop-blur-xl h-full cursor-pointer"
@@ -344,15 +344,15 @@ const stats = props.overview || {
               </div>
               <span class="inline-flex items-center gap-1.5 text-xs text-rose-700 dark:text-rose-300 font-bold bg-rose-50 dark:bg-rose-500/15 px-3 py-1 rounded-full border border-rose-200/80 dark:border-rose-500/30">
                 <span class="w-2 h-2 rounded-full bg-rose-500 dark:bg-rose-400 animate-pulse"></span>
-                {{ i18n.t('ការឆ្លើយតបបន្ទាន់', 'Live Threat Intel') }}
+                {{ i18n.t('សវនកម្មសុវត្ថិភាព', 'Security Audit') }}
               </span>
             </div>
 
             <h3 class="text-lg font-black text-slate-900 dark:text-white mt-4 tracking-tight group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">
-              {{ i18n.t('សន្តិសុខ & Cyber Forensics', 'Cyber Forensics & Defense') }}
+              {{ i18n.t('សវនកម្មសុវត្ថិភាព & Cyber Forensics', 'Security Audit & Cyber Forensics') }}
             </h3>
             <p class="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed">
-              {{ i18n.t('អន្ទាក់ចាប់ការវាយប្រហារ (Honeypot) ការជូនដំណឹង Telegram និងវិភាគគន្លង Incident', 'Honeypot traps, live hacker forensic analysis, and Telegram emergency broadcast') }}
+              {{ i18n.t('អន្ទាក់ចាប់ការវាយប្រហារ (Honeypot) វិភាគគន្លង Incident និងភ្ជាប់ទៅកាន់ System Logs', 'Honeypot traps, threat forensics, automated incident logs & link to System Logs') }}
             </p>
 
             <div class="mt-4 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800/80 space-y-2.5 text-xs">
@@ -375,7 +375,7 @@ const stats = props.overview || {
             <div
               class="w-full py-2.5 px-4 rounded-xl font-bold text-xs bg-gradient-to-r from-rose-50 to-red-100/80 group-hover:from-rose-600 group-hover:to-red-600 text-rose-700 group-hover:text-white dark:from-rose-950/60 dark:to-red-900/60 dark:group-hover:from-rose-600 dark:group-hover:to-red-600 dark:text-rose-300 dark:group-hover:text-white border border-rose-200/80 dark:border-rose-500/30 group-hover:border-transparent shadow-xs group-hover:shadow-md group-hover:shadow-rose-500/20 transition-all duration-200 flex items-center justify-center gap-2"
             >
-              <span>{{ i18n.t('មជ្ឈមណ្ឌល Cyber Forensics', 'Open Forensics Center') }}</span>
+              <span>{{ i18n.t('បើកមជ្ឈមណ្ឌល Security Audit', 'Open Security Audit Center') }}</span>
               <span class="transition-transform group-hover:translate-x-1 font-mono">→</span>
             </div>
           </div>

@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { router, useForm } from '@inertiajs/vue3'
+import { router, useForm, Link } from '@inertiajs/vue3'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import AuthModuleHeader from '@/Components/Admin/AuthModuleHeader.vue'
+import { i18n } from '@/Services/i18n'
 
 interface ForensicIncident {
   timestamp: string
@@ -210,7 +211,7 @@ const getSeverityClass = (sev?: string) => {
 </script>
 
 <template>
-  <AdminLayout title="Cyber Security & Emergency Defense Center">
+  <AdminLayout :title="i18n.t('security_audit_title', 'Security Audit & Cyber Forensics')">
     <div class="space-y-6 font-sans">
       <!-- Shared Header Navigation -->
       <AuthModuleHeader activeTab="cyber-security" :summaryStats="props.summaryStats" />
@@ -287,6 +288,17 @@ const getSeverityClass = (sev?: string) => {
             >
               <span>🧹 សម្អាត Log</span>
             </button>
+
+            <!-- Link to System Logs (Instruction 3.3) -->
+            <Link
+              href="/admin/settings?tab=logs&module=Authentication"
+              class="px-3.5 py-2.5 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+              title="ពិនិត្យមើល System Audit Logs ពេញលេញ"
+            >
+              <span>📑</span>
+              <span>{{ i18n.t('view_system_logs', 'ភ្ជាប់ទៅ System Logs') }}</span>
+              <span class="text-[10px]">↗</span>
+            </Link>
           </div>
         </div>
       </div>

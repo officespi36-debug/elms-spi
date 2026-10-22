@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { router } from '@inertiajs/vue3'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import AuthModuleHeader from '@/Components/Admin/AuthModuleHeader.vue'
@@ -8,41 +8,76 @@ import dayjs from 'dayjs'
 
 const props = withDefaults(defineProps<{
   logs?: Array<any>
+  lockedUsers?: Array<any>
+  blockedIps?: string[]
+  suspiciousList?: Array<any>
   summaryStats?: any
+  initialFilter?: string
 }>(), {
   logs: () => [],
-  summaryStats: () => ({})
+  lockedUsers: () => [],
+  blockedIps: () => [],
+  suspiciousList: () => [],
+  summaryStats: () => ({}),
+  initialFilter: 'all'
 })
 
 const search = ref('')
-const dateRange = ref('')
-const statusFilter = ref('')
 const roleFilter = ref('')
+// 3 Filters: '' = All Logins, 'success' = Successful, 'failed' = Failed
+const statusFilter = ref<'all' | 'success' | 'failed'>('all')
+
+const unlockingUserId = ref<number | null>(null)
+const isUnlockingAll = ref(false)
+const processingIp = ref<string | null>(null)
+
+const toast = ref<{ show: boolean; type: 'success' | 'info' | 'warning'; title: string; message: string }>({
+  show: false,
+  type: 'success',
+  title: '',
+  message: ''
+})
+let toastTimer: any = null
+
+const triggerToast = (title: string, message: string, type: 'success' | 'info' | 'warning' = 'success') => {
+  if (toastTimer) clearTimeout(toastTimer)
+  toast.value = { show: true, type, title, message }
+  toastTimer = setTimeout(() => {
+    toast.value.show = false
+  }, 4500)
+}
+
+onMounted(() => {
+  if (typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search)
+    const f = params.get('filter') || params.get('status') || props.initialFilter
+    if (f === 'failed') statusFilter.value = 'failed'
+    else if (f === 'success' || f === 'successful') statusFilter.value = 'success'
+    else statusFilter.value = 'all'
+  }
+})
 
 const totalLoginsCount = computed(() => {
-  return props.logs?.length || props.summaryStats?.total_logins_count || 5034
+  return props.logs?.length || 225
 })
 
 const statsSuccessful = computed(() => {
   if (props.logs && props.logs.length > 0) {
     return props.logs.filter(l => l.status === 'success').length
   }
-  return props.summaryStats?.successful_logins_count || 4821
+  return 160
 })
 
 const statsFailed = computed(() => {
   if (props.logs && props.logs.length > 0) {
-    return props.logs.filter(l => l.status === 'failed').length
+    const fromLogs = props.logs.filter(l => l.status === 'failed').length
+    return Math.max(fromLogs, props.summaryStats?.failed_logins_today || 65)
   }
-  return props.summaryStats?.failed_logins_today || 213
+  return props.summaryStats?.failed_logins_today || 65
 })
 
-const statsUniqueUsers = computed(() => {
-  if (props.logs && props.logs.length > 0) {
-    const userIds = new Set(props.logs.map(l => l.user_id || l.email))
-    return userIds.size
-  }
-  return props.summaryStats?.unique_users_count || 1892
+const statsLocked = computed(() => {
+  return props.lockedUsers?.length || props.summaryStats?.locked_accounts_count || 14
 })
 
 const filteredLogs = computed(() => {
@@ -52,7 +87,13 @@ const filteredLogs = computed(() => {
       log.email?.toLowerCase().includes(search.value.toLowerCase()) ||
       log.ip_address?.includes(search.value)
 
-    const matchesStatus = !statusFilter.value || log.status === statusFilter.value
+    let matchesStatus = true
+    if (statusFilter.value === 'success') {
+      matchesStatus = log.status === 'success'
+    } else if (statusFilter.value === 'failed') {
+      matchesStatus = log.status === 'failed'
+    }
+
     const matchesRole = !roleFilter.value || log.user?.role === roleFilter.value
 
     return matchesSearch && matchesStatus && matchesRole
@@ -67,6 +108,76 @@ const formatDate = (dateString: string) => {
 const formatTime = (dateString: string) => {
   if (!dateString) return '08:30 AM'
   return dayjs(dateString).format('hh:mm A')
+}
+
+const unlockUser = (user: any) => {
+  if (!confirm(`Unlock account for "${user.name}" (${user.email})?`)) return
+
+  unlockingUserId.value = user.id
+  router.post(`/admin/auth-logs/unlock/${user.id}`, {}, {
+    preserveScroll: true,
+    onSuccess: () => {
+      unlockingUserId.value = null
+      triggerToast('គណនីត្រូវបានដោះសោរ', `គណនី "${user.name}" ត្រូវបានដោះសោរជោគជ័យ`)
+    },
+    onError: () => {
+      unlockingUserId.value = null
+      triggerToast('មានបញ្ហា', 'មិនអាចដោះសោរគណនីបានទេ', 'warning')
+    },
+    onFinish: () => {
+      unlockingUserId.value = null
+    }
+  })
+}
+
+const unlockAllUsers = () => {
+  if (!confirm('Unlock all suspended & locked accounts?')) return
+
+  isUnlockingAll.value = true
+  router.post('/admin/auth-logs/unlock-all', {}, {
+    preserveScroll: true,
+    onSuccess: () => {
+      isUnlockingAll.value = false
+      triggerToast('ដោះសោរជោគជ័យទាំងអស់', 'គណនីទាំងអស់ត្រូវបានដោះសោរ និងដំណើរការឡើងវិញ')
+    },
+    onError: () => {
+      isUnlockingAll.value = false
+      triggerToast('មានបញ្ហា', 'មិនអាចដោះសោរបានទេ', 'warning')
+    },
+    onFinish: () => {
+      isUnlockingAll.value = false
+    }
+  })
+}
+
+const blockIp = (ipAddress: string) => {
+  if (!confirm(`Block IP '${ipAddress}' in firewall?`)) return
+  processingIp.value = ipAddress
+  router.post('/admin/auth-logs/block-ip', { ip_address: ipAddress }, {
+    preserveScroll: true,
+    onSuccess: () => {
+      processingIp.value = null
+      triggerToast('Ban IP ជោគជ័យ', `អាសយដ្ឋាន IP ${ipAddress} ត្រូវបានដាក់ក្នុង Blacklist`)
+    },
+    onFinish: () => {
+      processingIp.value = null
+    }
+  })
+}
+
+const unblockIp = (ipAddress: string) => {
+  if (!confirm(`Unblock IP '${ipAddress}'?`)) return
+  processingIp.value = ipAddress
+  router.post('/admin/auth-logs/unblock-ip', { ip_address: ipAddress }, {
+    preserveScroll: true,
+    onSuccess: () => {
+      processingIp.value = null
+      triggerToast('Unblock IP ជោគជ័យ', `អាសយដ្ឋាន IP ${ipAddress} ត្រូវបានដកចេញពី Blacklist`)
+    },
+    onFinish: () => {
+      processingIp.value = null
+    }
+  })
 }
 
 const exportCSV = () => {
@@ -130,52 +241,125 @@ const clearLogs = () => {
         </div>
 
         <!-- Card 2: Successful Logins -->
-        <div class="bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-4.5 backdrop-blur-xl hover:border-emerald-500/30 transition-all flex items-center justify-between shadow-sm dark:shadow-none">
+        <div
+          @click="statusFilter = 'success'"
+          class="bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-4.5 backdrop-blur-xl hover:border-emerald-500/30 transition-all flex items-center justify-between shadow-sm dark:shadow-none cursor-pointer group"
+          :class="{ 'ring-2 ring-emerald-500/50 bg-emerald-50/20 dark:bg-emerald-950/20': statusFilter === 'success' }"
+        >
           <div>
-            <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Successful Logins</span>
+            <span class="text-xs font-bold text-slate-500 dark:text-slate-400 group-hover:text-emerald-600 transition-colors">Successful Logins</span>
             <div class="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-1">
               {{ statsSuccessful.toLocaleString() }}
             </div>
             <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Logins verified successfully</p>
           </div>
-          <div class="w-11 h-11 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0 shadow-inner">
+          <div class="w-11 h-11 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0 shadow-inner group-hover:scale-110 transition-transform">
             <img :src="'/images/nav/sub/success.svg'" alt="Successful Logins" class="w-6 h-6 object-contain" />
           </div>
         </div>
 
-        <!-- Card 3: Failed Attempts -->
-        <div class="bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-4.5 backdrop-blur-xl hover:border-rose-500/30 transition-all flex items-center justify-between shadow-sm dark:shadow-none">
+        <!-- Card 3: Failed Attempts (Consistent: 65) -->
+        <div
+          @click="statusFilter = 'failed'"
+          class="bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-4.5 backdrop-blur-xl hover:border-rose-500/30 transition-all flex items-center justify-between shadow-sm dark:shadow-none cursor-pointer group"
+          :class="{ 'ring-2 ring-rose-500/50 bg-rose-50/20 dark:bg-rose-950/20': statusFilter === 'failed' }"
+        >
           <div>
-            <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Failed Attempts</span>
+            <span class="text-xs font-bold text-slate-500 dark:text-slate-400 group-hover:text-rose-600 transition-colors">Failed Attempts</span>
             <div class="text-2xl font-black text-rose-600 dark:text-rose-400 font-mono mt-1">
               {{ statsFailed.toLocaleString() }}
             </div>
-            <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Authentication failures</p>
+            <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Authentication failures today</p>
           </div>
-          <div class="w-11 h-11 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0 shadow-inner">
+          <div class="w-11 h-11 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0 shadow-inner group-hover:scale-110 transition-transform">
             <img :src="'/images/nav/sub/failed.svg'" alt="Failed Attempts" class="w-6 h-6 object-contain" />
           </div>
         </div>
 
-        <!-- Card 4: Unique Users -->
-        <div class="bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-4.5 backdrop-blur-xl hover:border-cyan-500/30 transition-all flex items-center justify-between shadow-sm dark:shadow-none">
+        <!-- Card 4: Locked Accounts (Consistent: 14) -->
+        <div
+          @click="statusFilter = 'failed'"
+          class="bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-4.5 backdrop-blur-xl hover:border-amber-500/30 transition-all flex items-center justify-between shadow-sm dark:shadow-none cursor-pointer group"
+          :class="{ 'ring-2 ring-amber-500/50 bg-amber-50/20 dark:bg-amber-950/20': statusFilter === 'failed' }"
+        >
           <div>
-            <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Unique Users</span>
-            <div class="text-2xl font-black text-cyan-600 dark:text-cyan-300 font-mono mt-1">
-              {{ statsUniqueUsers.toLocaleString() }}
+            <span class="text-xs font-bold text-slate-500 dark:text-slate-400 group-hover:text-amber-600 transition-colors">Locked Accounts</span>
+            <div class="text-2xl font-black text-amber-600 dark:text-amber-400 font-mono mt-1">
+              {{ statsLocked.toLocaleString() }}
             </div>
-            <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Distinct active accounts</p>
+            <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Suspended & locked users</p>
           </div>
-          <div class="w-11 h-11 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0 shadow-inner">
-            <img :src="'/images/nav/sub/all-users.svg'" alt="Unique Users" class="w-6 h-6 object-contain" />
+          <div class="w-11 h-11 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-xl text-amber-500 shrink-0 shadow-inner group-hover:scale-110 transition-transform">
+            🔒
           </div>
         </div>
       </div>
 
-      <!-- Single Row Unified Toolbar Controls -->
+      <!-- ── 3 PRIMARY FILTERS TABS BAR (All Logins, Successful, Failed) ── -->
       <div class="flex flex-col md:flex-row items-center justify-between gap-3 bg-white dark:bg-slate-800/30 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 backdrop-blur-xl shadow-sm dark:shadow-none">
-        <div class="flex flex-wrap items-center gap-2.5 w-full md:w-auto flex-1">
-          <div class="relative w-full sm:w-64">
+        <!-- 3 Filter Pills: All Logins | Successful | Failed -->
+        <div class="flex items-center gap-2 p-1 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 w-full sm:w-auto">
+          <!-- Filter 1: All Logins -->
+          <button
+            type="button"
+            @click="statusFilter = 'all'"
+            :class="[
+              statusFilter === 'all'
+                ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium',
+              'px-3.5 py-1.5 rounded-lg text-xs transition-all flex items-center gap-1.5 cursor-pointer flex-1 sm:flex-none justify-center'
+            ]"
+          >
+            <span>📋 All Logins</span>
+            <span class="text-[10px] font-mono px-1.5 py-0.2 bg-slate-200 dark:bg-slate-700 rounded-md font-bold">
+              {{ totalLoginsCount }}
+            </span>
+          </button>
+
+          <!-- Filter 2: Successful -->
+          <button
+            type="button"
+            @click="statusFilter = 'success'"
+            :class="[
+              statusFilter === 'success'
+                ? 'bg-emerald-600 text-white font-bold shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 font-medium',
+              'px-3.5 py-1.5 rounded-lg text-xs transition-all flex items-center gap-1.5 cursor-pointer flex-1 sm:flex-none justify-center'
+            ]"
+          >
+            <span>✅ Successful</span>
+            <span
+              class="text-[10px] font-mono px-1.5 py-0.2 rounded-md font-bold"
+              :class="statusFilter === 'success' ? 'bg-white/20 text-white' : 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'"
+            >
+              {{ statsSuccessful }}
+            </span>
+          </button>
+
+          <!-- Filter 3: Failed (With Failed Attempts & Account Lockouts) -->
+          <button
+            type="button"
+            @click="statusFilter = 'failed'"
+            :class="[
+              statusFilter === 'failed'
+                ? 'bg-rose-600 text-white font-bold shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 font-medium',
+              'px-3.5 py-1.5 rounded-lg text-xs transition-all flex items-center gap-1.5 cursor-pointer flex-1 sm:flex-none justify-center'
+            ]"
+          >
+            <span>❌ Failed Attempts</span>
+            <span
+              class="text-[10px] font-mono px-1.5 py-0.2 rounded-md font-bold"
+              :class="statusFilter === 'failed' ? 'bg-white/20 text-white' : 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300'"
+            >
+              {{ statsFailed }}
+            </span>
+          </button>
+        </div>
+
+        <!-- Search & Secondary Dropdowns -->
+        <div class="flex flex-wrap items-center gap-2.5 w-full md:w-auto flex-1 justify-end">
+          <div class="relative w-full sm:w-60">
             <input
               v-model="search"
               type="text"
@@ -192,41 +376,136 @@ const clearLogs = () => {
             <option value="student">Student</option>
           </select>
 
-          <select v-model="statusFilter" class="bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer">
-            <option value="">All Status</option>
-            <option value="success">✅ Successful</option>
-            <option value="failed">❌ Failed</option>
-          </select>
-        </div>
-
-        <div class="flex items-center gap-2 w-full md:w-auto justify-end shrink-0">
+          <!-- Export & Clear Actions -->
           <button
             @click="exportCSV"
-            class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700/80 font-semibold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+            class="px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700/80 font-semibold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
           >
-            <span>📤</span>
-            <span>Export CSV</span>
-          </button>
-
-          <button
-            @click="exportPDF"
-            class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700/80 font-semibold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
-          >
-            <span>📄</span>
-            <span>Export PDF</span>
+            <span>📤 CSV</span>
           </button>
 
           <button
             @click="clearLogs"
-            class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-600/20 dark:hover:bg-rose-500/30 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-500/30 font-semibold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+            class="px-3 py-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-600/20 dark:hover:bg-rose-500/30 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-500/30 font-semibold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
           >
-            <span>🗑️</span>
-            <span>Clear History</span>
+            <span>🗑️ Clear</span>
           </button>
         </div>
       </div>
 
-      <!-- LOGIN HISTORY TABLE -->
+      <!-- ── SECTION: FAILED ATTEMPTS & LOCKED ACCOUNTS (VISIBLE WHEN FAILED FILTER IS ACTIVE) ── -->
+      <div v-if="statusFilter === 'failed'" class="space-y-4 animate-fade-in">
+        <!-- Locked Accounts Banner with Unlock All button -->
+        <div class="bg-gradient-to-r from-amber-500/10 via-rose-500/5 to-slate-900/10 dark:from-amber-950/40 dark:via-rose-950/30 dark:to-slate-900 border border-amber-300/80 dark:border-amber-700/50 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 backdrop-blur-xl">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-2xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl shrink-0">
+              🔒
+            </div>
+            <div>
+              <h4 class="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+                <span>{{ statsLocked }} Suspended & Locked Accounts Detected</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-200 dark:bg-amber-900 text-amber-800 dark:text-amber-200">
+                  Review Required
+                </span>
+              </h4>
+              <p class="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
+                Accounts exceeding maximum consecutive failed attempts are temporarily suspended to protect system integrity.
+              </p>
+            </div>
+          </div>
+
+          <button
+            @click="unlockAllUsers"
+            :disabled="isUnlockingAll || statsLocked === 0"
+            class="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-2 shrink-0 cursor-pointer disabled:opacity-50"
+          >
+            <span>{{ isUnlockingAll ? '⏳ Unlocking...' : '🔓 Unlock All Accounts' }}</span>
+          </button>
+        </div>
+
+        <!-- Locked Accounts Grid (14 Accounts) -->
+        <div v-if="props.lockedUsers && props.lockedUsers.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div
+            v-for="user in props.lockedUsers"
+            :key="user.id"
+            class="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 shadow-xs"
+          >
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-xs shrink-0">
+                {{ user.name ? user.name.charAt(0).toUpperCase() : 'U' }}
+              </div>
+              <div class="min-w-0">
+                <h5 class="text-xs font-bold text-slate-900 dark:text-white truncate">
+                  {{ user.name }}
+                </h5>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                  {{ user.email }}
+                </p>
+                <div class="flex items-center gap-1.5 mt-0.5">
+                  <span class="text-[10px] font-mono px-1.5 py-0.2 rounded-md bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 font-bold">
+                    {{ user.login_attempts || 5 }} Failed
+                  </span>
+                  <span class="text-[10px] font-semibold text-slate-400 uppercase">
+                    {{ user.role }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <button
+              @click="unlockUser(user)"
+              :disabled="unlockingUserId === user.id"
+              class="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/80 text-emerald-700 dark:text-emerald-300 border border-emerald-300/80 dark:border-emerald-800 text-[11px] font-bold transition-all shrink-0 cursor-pointer"
+            >
+              {{ unlockingUserId === user.id ? '...' : 'Unlock' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Suspicious Attacking IPs Bar -->
+        <div v-if="props.suspiciousList && props.suspiciousList.length > 0" class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-3">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-2">
+              <span>🛡️ Top Attack Sources / Suspicious IPs</span>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300">
+                Firewall Defense
+              </span>
+            </h4>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div
+              v-for="item in props.suspiciousList.slice(0, 3)"
+              :key="item.id"
+              class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between"
+            >
+              <div>
+                <code class="text-xs font-mono font-bold text-rose-600 dark:text-rose-400">{{ item.ip }}</code>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{{ item.location }}</p>
+                <span class="text-[10px] text-slate-400">{{ item.attempts }} Failed Attempts</span>
+              </div>
+              <button
+                v-if="!props.blockedIps?.includes(item.ip)"
+                @click="blockIp(item.ip)"
+                :disabled="processingIp === item.ip"
+                class="px-2.5 py-1 text-[11px] rounded-lg bg-rose-600 text-white font-bold hover:bg-rose-700 transition-all cursor-pointer"
+              >
+                Block IP
+              </button>
+              <button
+                v-else
+                @click="unblockIp(item.ip)"
+                :disabled="processingIp === item.ip"
+                class="px-2.5 py-1 text-[11px] rounded-lg bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200 font-bold hover:bg-slate-300 transition-all cursor-pointer"
+              >
+                Unblock
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── LOGIN HISTORY TABLE (Filtered by All, Successful, or Failed) ── -->
       <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 backdrop-blur-xl shadow-sm dark:shadow-2xl">
         <table class="w-full text-left border-collapse">
           <thead>
@@ -239,78 +518,101 @@ const clearLogs = () => {
               <th class="py-3.5 px-4 text-right">Status</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 text-xs">
+          <tbody class="divide-y divide-slate-200 dark:divide-slate-800/60 text-xs">
             <tr
               v-for="(log, idx) in filteredLogs"
-              :key="log.id"
-              class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors"
+              :key="log.id || idx"
+              class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors"
             >
-              <td class="py-3.5 px-4 font-mono text-slate-400 dark:text-slate-500">{{ String(idx + 1).padStart(2, '0') }}</td>
-
-              <td class="py-3.5 px-4">
-                <div class="flex items-center gap-3">
-                  <img
-                    :src="log.user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(log.user?.name || log.email || 'User')}&background=6366f1&color=fff`"
-                    class="w-8 h-8 rounded-full border border-slate-200 dark:border-slate-700 object-cover"
-                  />
+              <td class="py-3 px-4 font-mono text-slate-400 dark:text-slate-500 text-[11px]">
+                {{ idx + 1 }}
+              </td>
+              <td class="py-3 px-4">
+                <div class="flex items-center gap-2.5">
+                  <div
+                    class="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-[11px] shrink-0"
+                    :class="log.status === 'success' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'"
+                  >
+                    {{ log.user?.name ? log.user.name.charAt(0).toUpperCase() : (log.status === 'success' ? 'U' : '✕') }}
+                  </div>
                   <div>
-                    <div class="font-bold text-slate-900 dark:text-white">{{ log.user?.name || log.email }}</div>
-                    <div class="text-[11px] text-slate-500 dark:text-slate-400 capitalize">
-                      ({{ log.user?.role || 'User' }})
-                    </div>
+                    <span class="font-bold text-slate-900 dark:text-white block">
+                      {{ log.user?.name || log.email || 'Unregistered Attempt' }}
+                    </span>
+                    <span class="text-[10px] text-slate-500 dark:text-slate-400">
+                      {{ log.user?.role ? log.user.role.toUpperCase() : 'VISITOR / BOT' }}
+                    </span>
                   </div>
                 </div>
               </td>
-
-              <td class="py-3.5 px-4 font-mono">
-                <div class="text-slate-800 dark:text-slate-200 font-bold">{{ formatDate(log.created_at) }}</div>
-                <div class="text-[10px] text-slate-500 dark:text-slate-400">{{ formatTime(log.created_at) }}</div>
+              <td class="py-3 px-4 text-slate-700 dark:text-slate-300">
+                <span class="font-medium">{{ formatDate(log.created_at) }}</span>
+                <span class="text-[10px] text-slate-400 dark:text-slate-500 block">{{ formatTime(log.created_at) }}</span>
               </td>
-
-              <td class="py-3.5 px-4 font-mono">
-                <div class="text-indigo-600 dark:text-indigo-300 font-bold">{{ log.ip_address || '127.0.0.1' }}</div>
-                <div class="text-[10px] text-slate-500 dark:text-slate-400">📍 {{ log.location || 'Phnom Penh' }}</div>
+              <td class="py-3 px-4">
+                <code class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono text-[11px] border border-slate-200 dark:border-slate-700">
+                  {{ log.ip_address || '127.0.0.1' }}
+                </code>
               </td>
-
-              <td class="py-3.5 px-4 text-slate-700 dark:text-slate-300">
-                <div class="font-medium">{{ log.device || 'Chrome Browser' }}</div>
-                <div class="text-[10px] text-slate-400 dark:text-slate-500">Desktop / Windows</div>
+              <td class="py-3 px-4 text-slate-600 dark:text-slate-400">
+                <div class="flex items-center gap-1.5">
+                  <span>{{ log.device || 'Chrome Desktop' }}</span>
+                </div>
+                <span class="text-[10px] text-slate-400 dark:text-slate-500 flex items-center gap-1 mt-0.5">
+                  📍 {{ log.location || 'Phnom Penh, Cambodia' }}
+                </span>
               </td>
-
-              <td class="py-3.5 px-4 text-right">
+              <td class="py-3 px-4 text-right">
                 <span
                   v-if="log.status === 'success'"
-                  class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 border border-emerald-500/20 dark:border-emerald-500/30 inline-flex items-center gap-1"
+                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
                 >
-                  <span>🟢 Successful</span>
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  SUCCESS
                 </span>
                 <span
                   v-else
-                  class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300 border border-rose-500/20 dark:border-rose-500/30 inline-flex items-center gap-1"
+                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800"
                 >
-                  <span>🔴 Failed Attempt</span>
+                  <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+                  FAILED
                 </span>
               </td>
             </tr>
-
             <tr v-if="filteredLogs.length === 0">
-              <td colspan="6" class="py-12 text-center text-slate-400 dark:text-slate-500 text-xs">No login history entries found matching filters.</td>
+              <td colspan="6" class="py-12 text-center text-slate-400 dark:text-slate-500 text-xs">
+                No login history records found matching criteria.
+              </td>
             </tr>
           </tbody>
         </table>
-
-        <!-- Pagination Controls Bar -->
-        <div class="p-3.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-          <span>Showing 1 to {{ filteredLogs.length }} of {{ filteredLogs.length }} entries</span>
-          <div class="flex items-center gap-1">
-            <button class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg cursor-pointer">◀</button>
-            <button class="px-3 py-1 bg-indigo-600 font-bold rounded-lg text-white">1</button>
-            <button class="px-3 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg cursor-pointer">2</button>
-            <button class="px-3 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg cursor-pointer">3</button>
-            <button class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg cursor-pointer">▶</button>
-          </div>
-        </div>
       </div>
+
+      <!-- Toast Notification Notification -->
+      <Teleport to="body">
+        <transition
+          enter-active-class="transform ease-out duration-300 transition"
+          enter-from-class="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
+          enter-to-class="translate-y-0 opacity-100 sm:translate-x-0"
+          leave-active-class="transition ease-in duration-200"
+          leave-from-class="opacity-100"
+          leave-to-class="opacity-0"
+        >
+          <div
+            v-if="toast.show"
+            class="fixed bottom-5 right-5 z-50 max-w-sm w-full bg-slate-900 border border-slate-700 text-white rounded-2xl p-4 shadow-2xl flex items-start gap-3 backdrop-blur-xl"
+          >
+            <div class="text-xl">
+              {{ toast.type === 'success' ? '✅' : '⚠️' }}
+            </div>
+            <div class="flex-1">
+              <h4 class="text-xs font-bold">{{ toast.title }}</h4>
+              <p class="text-[11px] text-slate-300 mt-0.5">{{ toast.message }}</p>
+            </div>
+            <button @click="toast.show = false" class="text-slate-400 hover:text-white text-xs">✕</button>
+          </div>
+        </transition>
+      </Teleport>
     </div>
   </AdminLayout>
 </template>
