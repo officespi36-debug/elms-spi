@@ -27,13 +27,13 @@ const stats = props.summaryStats || {
 const getThreatBadgeClass = (level: string) => {
   switch (level?.toLowerCase()) {
     case 'critical':
-      return 'bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-xs'
+      return 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30'
     case 'high':
-      return 'bg-orange-500/20 text-orange-300 border-orange-500/40 shadow-xs'
+      return 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/30'
     case 'medium':
-      return 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-xs'
+      return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
     default:
-      return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-xs'
+      return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
   }
 }
 
@@ -67,16 +67,16 @@ const handleUnlockAll = () => {
 
 <template>
   <div class="space-y-4 font-sans">
-    <!-- Executive Header Banner with Sleek Command Center Aesthetic -->
-    <div class="relative overflow-hidden bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-2xl sm:rounded-3xl border border-indigo-500/30 p-5 sm:p-6 shadow-xl text-white backdrop-blur-xl">
-      <!-- Ambient Gradient Glow Effects -->
-      <div class="absolute -top-20 -right-20 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
-      <div class="absolute -bottom-20 -left-20 w-64 h-64 bg-purple-500/15 rounded-full blur-3xl pointer-events-none"></div>
+    <!-- ── 1. APPLE / TELEGRAM LIQUID GLASS HEADER ── -->
+    <div class="relative overflow-hidden bg-white/80 dark:bg-slate-900/80 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 p-5 sm:p-6 shadow-xs backdrop-blur-2xl transition-all">
+      <!-- Subtle Ambient Lighting Glow -->
+      <div class="absolute -top-16 -right-16 w-56 h-56 bg-blue-500/10 dark:bg-blue-500/15 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-16 -left-16 w-56 h-56 bg-indigo-500/10 dark:bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
         <div class="flex items-center gap-3.5 sm:gap-4">
-          <!-- Glowing Security Squircle Icon -->
-          <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 flex items-center justify-center p-1.5 shrink-0 shadow-lg shadow-indigo-500/40 border border-white/20">
+          <!-- iOS Telegram Squircle Icon -->
+          <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-[#007AFF] via-[#0A84FF] to-[#5856D6] flex items-center justify-center p-2 shrink-0 shadow-lg shadow-blue-500/25 border border-white/20">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 sm:w-7 sm:h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
               <path fill-rule="evenodd" d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z" clip-rule="evenodd" />
             </svg>
@@ -84,27 +84,27 @@ const handleUnlockAll = () => {
 
           <div>
             <div class="flex items-center gap-2 flex-wrap">
-              <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight">
+              <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
                 {{ i18n.t('auth_module_title', 'Authentication & Access') }}
               </h1>
-              <span class="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider bg-indigo-500/30 text-indigo-200 border border-indigo-400/30 rounded-full backdrop-blur-md">
+              <span class="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-600 dark:bg-blue-500/20 dark:text-blue-300 border border-blue-200/80 dark:border-blue-500/30 rounded-full">
                 {{ i18n.t('auth_security_control_only', 'Security & Access') }}
               </span>
             </div>
-            <p class="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl font-medium leading-relaxed">
+            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-2xl font-medium leading-relaxed">
               {{ i18n.t('auth_header_desc', 'Manage system security, roles & permissions (RBAC), active sessions, and access logs') }}
             </p>
           </div>
         </div>
 
-        <!-- Top Right Actions: Interactive Review Required Button & Threat Badge -->
+        <!-- Top Right Actions: Telegram/iOS Pill Badges -->
         <div class="flex items-center gap-2.5 self-start md:self-center shrink-0 flex-wrap">
-          <!-- Review Required Button (Directly opens review modal) -->
+          <!-- Review Required Pill Button -->
           <button
             v-if="(stats.failed_logins_today || 0) > 0 || (stats.locked_accounts_count || 0) > 0"
             @click="isReviewModalOpen = true"
             type="button"
-            class="px-3.5 py-1.5 rounded-full text-xs font-bold border border-rose-300/80 bg-rose-50 text-rose-600 hover:bg-rose-100 hover:shadow-md transition-all flex items-center gap-2 cursor-pointer shadow-xs"
+            class="px-3.5 py-1.5 rounded-full text-xs font-bold border border-rose-300/80 bg-rose-50 text-rose-600 hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900/60 hover:shadow-sm transition-all flex items-center gap-2 cursor-pointer"
             :title="i18n.t('auth_click_to_review', 'Click to review security incidents & locked accounts')"
           >
             <span class="relative flex h-2 w-2">
@@ -114,10 +114,10 @@ const handleUnlockAll = () => {
             <span>{{ i18n.t('auth_review_required', 'Review Required') }}</span>
           </button>
 
-          <!-- Threat Status Pill with Live Radar Ping -->
+          <!-- Threat Status Pill with Dynamic Indicator -->
           <div class="relative group/threat cursor-help">
             <div
-              class="px-3.5 py-1.5 rounded-full text-xs font-bold border flex items-center gap-2 transition-all shadow-md backdrop-blur-md"
+              class="px-3.5 py-1.5 rounded-full text-xs font-bold border flex items-center gap-2 transition-all shadow-xs backdrop-blur-md"
               :class="getThreatBadgeClass(stats.threat_level)"
             >
               <span class="relative flex h-2 w-2">
@@ -127,13 +127,12 @@ const handleUnlockAll = () => {
               <span class="tracking-wide uppercase font-extrabold">{{ stats.threat_level }}</span>
             </div>
 
-            <!-- Tooltip dropdown on hover -->
-            <div class="absolute right-0 top-full mt-2 w-72 p-3 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl text-xs text-slate-200 opacity-0 group-hover/threat:opacity-100 transition-all pointer-events-none group-hover/threat:pointer-events-auto z-50 backdrop-blur-xl">
-              <div class="absolute -top-1.5 right-6 w-3 h-3 bg-slate-900 border-l border-t border-slate-700 rotate-45 pointer-events-none"></div>
-              <div class="font-bold text-white mb-1 flex items-center gap-1.5 border-b border-slate-800 pb-1 relative z-10">
+            <!-- iOS Tooltip popup on hover -->
+            <div class="absolute right-0 top-full mt-2 w-72 p-3.5 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-700 rounded-2xl shadow-xl text-xs text-slate-700 dark:text-slate-200 opacity-0 group-hover/threat:opacity-100 transition-all pointer-events-none group-hover/threat:pointer-events-auto z-50 backdrop-blur-2xl">
+              <div class="font-bold text-slate-900 dark:text-white mb-1 flex items-center gap-1.5 border-b border-slate-100 dark:border-slate-800 pb-1.5">
                 <span>🛡️ {{ i18n.t('auth_threat_status', 'Threat Status') }}</span>
               </div>
-              <p class="text-[11px] text-slate-300 leading-normal relative z-10">
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-normal">
                 {{ getThreatExplanation(stats.threat_level) }}
               </p>
             </div>
@@ -142,207 +141,218 @@ const handleUnlockAll = () => {
       </div>
     </div>
 
-    <!-- ── 4 TOP KPI CARDS (Dashboard Aesthetic: Deep Vibrant Gradients & Micro-Waves) ── -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-      <!-- Card 1: Total Roles ➔ Royal Purple/Indigo -->
+    <!-- ── 2. TOP 4 KPI CARDS (APPLE / TELEGRAM WIDGET AESTHETIC) ── -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      
+      <!-- Card 1: Total Roles ➔ iOS Purple/Indigo Widget -->
       <Link
         href="/admin/auth/roles"
-        class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#7c3aed] to-[#6366f1] text-white p-4.5 shadow-sm hover:shadow-xl hover:scale-[1.02] active:scale-[0.99] transition-all flex flex-col justify-between group cursor-pointer"
+        class="relative overflow-hidden rounded-3xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/90 p-5 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group cursor-pointer backdrop-blur-xl"
         :title="i18n.t('auth_card1_btn', 'Manage Roles & Permissions in Sidebar')"
       >
         <div>
+          <!-- Top Bar: Squircle Icon & iOS Pill Badge -->
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">
-              {{ i18n.t('auth_total_roles', 'TOTAL ROLES') }}
-            </span>
-            <div class="text-white/95 group-hover:scale-105 transition-transform duration-200 shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#8B5CF6] to-[#6366F1] text-white flex items-center justify-center shrink-0 shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform duration-200">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5.5 h-5.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                 <path d="m9 12 2 2 4-4"/>
               </svg>
             </div>
-          </div>
-          <h4 class="text-3xl font-black tracking-tight text-white mt-1 font-mono">
-            {{ Number(stats.total_roles || 3).toLocaleString() }}
-          </h4>
-          <div class="mt-1 flex items-center justify-between">
-            <span class="text-[11px] text-white/90 font-medium">Configured System Roles</span>
-            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-md border border-white/25 shadow-xs">
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 dark:bg-purple-500/15 dark:text-purple-300 border border-purple-200/80 dark:border-purple-500/30">
               {{ i18n.t('auth_rbac_active', 'RBAC Active') }}
             </span>
           </div>
+
+          <!-- Metric Number & Label -->
+          <div class="mt-4">
+            <span class="text-[11px] font-bold tracking-wider uppercase text-slate-400 dark:text-slate-500">
+              {{ i18n.t('auth_total_roles', 'TOTAL ROLES') }}
+            </span>
+            <h4 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white mt-0.5 font-sans">
+              {{ Number(stats.total_roles || 3).toLocaleString() }}
+            </h4>
+          </div>
         </div>
-        <div class="mt-2 -mx-4.5 -mb-4.5 overflow-hidden rounded-b-2xl">
-          <svg class="w-full h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none">
-            <path d="M0 18 Q 20 4, 40 14 T 70 6 T 100 12 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.18"/>
-            <path d="M0 18 Q 20 4, 40 14 T 70 6 T 100 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
-          </svg>
+
+        <!-- Footer Context -->
+        <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+          <span class="text-slate-500 dark:text-slate-400 font-medium">Configured System Roles</span>
+          <span class="text-indigo-600 dark:text-indigo-400 font-bold group-hover:translate-x-0.5 transition-transform">→</span>
         </div>
       </Link>
 
-      <!-- Card 2: Active Sessions ➔ Emerald Green (Consistent: Exactly 7) -->
+      <!-- Card 2: Active Sessions ➔ iOS Emerald Green Widget -->
       <Link
         href="/admin/auth/sessions"
-        class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#10b981] to-[#059669] text-white p-4.5 shadow-sm hover:shadow-xl hover:scale-[1.02] active:scale-[0.99] transition-all flex flex-col justify-between group cursor-pointer"
+        class="relative overflow-hidden rounded-3xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/90 p-5 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group cursor-pointer backdrop-blur-xl"
         :title="i18n.t('auth_card2_btn', 'Monitor Active Sessions')"
       >
         <div>
+          <!-- Top Bar: Squircle Icon & iOS Live Pill Badge -->
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">
-              {{ i18n.t('auth_active_sessions', 'ACTIVE SESSIONS') }}
-            </span>
-            <div class="text-white/95 group-hover:scale-105 transition-transform duration-200 shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#10B981] to-[#059669] text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform duration-200">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5.5 h-5.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <rect width="18" height="12" x="3" y="4" rx="2.5"/>
                 <line x1="8" x2="16" y1="20" y2="20"/>
-                <line x1="12" x2="12" y1="16" y2="20"/>
+                <line x1="12" y1="12" x2="12" y2="16"/>
                 <circle cx="12" cy="10" r="1.5" fill="currentColor"/>
               </svg>
             </div>
-          </div>
-          <h4 class="text-3xl font-black tracking-tight text-white mt-1 font-mono">
-            {{ Number(stats.active_sessions_count || 7).toLocaleString() }}
-          </h4>
-          <div class="mt-1 flex items-center justify-between">
-            <span class="text-[11px] text-white/90 font-medium">Live Sessions</span>
-            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-md border border-white/25 shadow-xs flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full bg-emerald-300 animate-ping"></span>
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-500/30 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               {{ i18n.t('auth_live_sessions', 'Live Sessions') }}
             </span>
           </div>
+
+          <!-- Metric Number & Label -->
+          <div class="mt-4">
+            <span class="text-[11px] font-bold tracking-wider uppercase text-slate-400 dark:text-slate-500">
+              {{ i18n.t('auth_active_sessions', 'ACTIVE SESSIONS') }}
+            </span>
+            <h4 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white mt-0.5 font-sans">
+              {{ Number(stats.active_sessions_count || 7).toLocaleString() }}
+            </h4>
+          </div>
         </div>
-        <div class="mt-2 -mx-4.5 -mb-4.5 overflow-hidden rounded-b-2xl">
-          <svg class="w-full h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none">
-            <path d="M0 20 Q 25 8, 45 16 T 75 4 T 100 10 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.18"/>
-            <path d="M0 20 Q 25 8, 45 16 T 75 4 T 100 10" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
-          </svg>
+
+        <!-- Footer Context -->
+        <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+          <span class="text-slate-500 dark:text-slate-400 font-medium">Live Connected Tokens</span>
+          <span class="text-emerald-600 dark:text-emerald-400 font-bold group-hover:translate-x-0.5 transition-transform">→</span>
         </div>
       </Link>
 
-      <!-- Card 3: Failed Logins Today ➔ Vivid Orange (Consistent: Exactly 65) -->
+      <!-- Card 3: Failed Logins Today ➔ iOS Amber/Orange Widget -->
       <Link
         href="/admin/auth/history?filter=failed"
-        class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#f97316] to-[#ea580c] text-white p-4.5 shadow-sm hover:shadow-xl hover:scale-[1.02] active:scale-[0.99] transition-all flex flex-col justify-between group cursor-pointer"
+        class="relative overflow-hidden rounded-3xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/90 p-5 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group cursor-pointer backdrop-blur-xl"
         :title="i18n.t('auth_card4_btn', 'Investigate Threat Logs in Login History')"
       >
         <div>
+          <!-- Top Bar: Squircle Icon & iOS Pill Badge -->
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">
-              {{ i18n.t('auth_failed_logins_today', 'FAILED LOGINS (TODAY)') }}
-            </span>
-            <div class="text-white/95 group-hover:scale-105 transition-transform duration-200 shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#F59E0B] to-[#EA580C] text-white flex items-center justify-center shrink-0 shadow-md shadow-orange-500/20 group-hover:scale-105 transition-transform duration-200">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5.5 h-5.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="9"/>
                 <line x1="12" y1="8" x2="12" y2="12"/>
                 <circle cx="12" cy="16" r="0.75" fill="currentColor"/>
               </svg>
             </div>
-          </div>
-          <h4 class="text-3xl font-black tracking-tight text-white mt-1 font-mono">
-            {{ Number(stats.failed_logins_today || 65).toLocaleString() }}
-          </h4>
-          <div class="mt-1 flex items-center justify-between">
-            <span class="text-[11px] text-white/90 font-medium">Threat Log Entries</span>
-            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-md border border-white/25 shadow-xs">
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300 border border-amber-200/80 dark:border-amber-500/30">
               {{ i18n.t('auth_audit_required', 'Audit Required') }}
             </span>
           </div>
+
+          <!-- Metric Number & Label -->
+          <div class="mt-4">
+            <span class="text-[11px] font-bold tracking-wider uppercase text-slate-400 dark:text-slate-500">
+              {{ i18n.t('auth_failed_logins_today', 'FAILED LOGINS') }}
+            </span>
+            <h4 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white mt-0.5 font-sans">
+              {{ Number(stats.failed_logins_today || 65).toLocaleString() }}
+            </h4>
+          </div>
         </div>
-        <div class="mt-2 -mx-4.5 -mb-4.5 overflow-hidden rounded-b-2xl">
-          <svg class="w-full h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none">
-            <path d="M0 16 Q 20 22, 45 8 T 75 14 T 100 4 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.18"/>
-            <path d="M0 16 Q 20 22, 45 8 T 75 14 T 100 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
-          </svg>
+
+        <!-- Footer Context -->
+        <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+          <span class="text-slate-500 dark:text-slate-400 font-medium">Threat Log Entries Today</span>
+          <span class="text-amber-600 dark:text-amber-400 font-bold group-hover:translate-x-0.5 transition-transform">→</span>
         </div>
       </Link>
 
-      <!-- Card 4: Locked Accounts / Risk ➔ Rose/Crimson (Consistent: Exactly 14) -->
+      <!-- Card 4: Locked Accounts / Risk ➔ iOS Rose/Coral Widget -->
       <button
         type="button"
         @click="isReviewModalOpen = true"
-        class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#e11d48] to-[#be123c] text-white p-4.5 shadow-sm hover:shadow-xl hover:scale-[1.02] active:scale-[0.99] transition-all flex flex-col justify-between group cursor-pointer text-left"
+        class="relative overflow-hidden rounded-3xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/90 p-5 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group cursor-pointer backdrop-blur-xl text-left"
         :title="i18n.t('auth_locked_accounts_btn', 'Click to Review & Unlock Accounts')"
       >
         <div>
+          <!-- Top Bar: Squircle Icon & iOS Pill Badge -->
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">
-              {{ i18n.t('auth_locked_accounts', 'LOCKED ACCOUNTS') }}
-            </span>
-            <div class="text-white/95 group-hover:scale-105 transition-transform duration-200 shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
+            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#F43F5E] to-[#E11D48] text-white flex items-center justify-center shrink-0 shadow-md shadow-rose-500/20 group-hover:scale-105 transition-transform duration-200">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5.5 h-5.5" viewBox="0 0 24 24" fill="currentColor">
                 <path fill-rule="evenodd" d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z" clip-rule="evenodd" />
               </svg>
             </div>
-          </div>
-          <h4 class="text-3xl font-black tracking-tight text-white mt-1 font-mono">
-            {{ Number(stats.locked_accounts_count || 14).toLocaleString() }}
-          </h4>
-          <div class="mt-1 flex items-center justify-between">
-            <span class="text-[11px] text-white/90 font-medium">Suspended Accounts</span>
-            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-md border border-white/25 shadow-xs">
-              {{ i18n.t('auth_suspended_accounts', 'Suspended Accounts') }}
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300 border border-rose-200/80 dark:border-rose-500/30">
+              {{ i18n.t('auth_suspended_accounts', 'Suspended') }}
             </span>
           </div>
+
+          <!-- Metric Number & Label -->
+          <div class="mt-4">
+            <span class="text-[11px] font-bold tracking-wider uppercase text-slate-400 dark:text-slate-500">
+              {{ i18n.t('auth_locked_accounts', 'LOCKED ACCOUNTS') }}
+            </span>
+            <h4 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white mt-0.5 font-sans">
+              {{ Number(stats.locked_accounts_count || 14).toLocaleString() }}
+            </h4>
+          </div>
         </div>
-        <div class="mt-2 -mx-4.5 -mb-4.5 overflow-hidden rounded-b-2xl">
-          <svg class="w-full h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none">
-            <path d="M0 18 Q 20 6, 45 16 T 70 8 T 100 14 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.18"/>
-            <path d="M0 18 Q 20 6, 45 16 T 70 8 T 100 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
-          </svg>
+
+        <!-- Footer Context -->
+        <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+          <span class="text-slate-500 dark:text-slate-400 font-medium">Review & Unlock Accounts</span>
+          <span class="text-rose-600 dark:text-rose-400 font-bold group-hover:translate-x-0.5 transition-transform">→</span>
         </div>
       </button>
     </div>
 
-    <!-- ── 5 TABS FOR LOGIN & SECURITY (Roles & Permissions moved to Sidebar, Failed Attempts merged into Login History) ── -->
-    <div class="p-1.5 bg-white/90 dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 rounded-2xl flex items-center gap-1.5 overflow-x-auto scrollbar-none shadow-sm backdrop-blur-md">
+    <!-- ── 3. TELEGRAM / APPLE SEGMENTED PILL FILTER BAR ── -->
+    <div class="p-1.5 bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800/90 rounded-full flex items-center gap-1.5 overflow-x-auto scrollbar-none shadow-xs backdrop-blur-2xl">
+      
       <!-- Tab 1: Overview Hub -->
       <Link
         href="/admin/auth-logs"
         :class="[
           activeTab === 'overview'
-            ? 'bg-slate-900 dark:bg-indigo-600 text-white shadow-md font-bold'
-            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 font-semibold',
-          'px-3.5 py-2 text-xs rounded-xl transition-all duration-200 whitespace-nowrap flex items-center gap-2 shrink-0 group'
+            ? 'bg-white text-slate-900 dark:bg-[#007AFF] dark:text-white shadow-sm font-bold'
+            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-800/60 font-semibold',
+          'px-4 py-2 text-xs rounded-full transition-all duration-200 whitespace-nowrap flex items-center gap-2 shrink-0 group'
         ]"
       >
         <img :src="'/images/nav/sub/overview.svg'" alt="Overview" class="w-4 h-4 object-contain group-hover:scale-110 transition-transform" />
         <span>{{ i18n.t('auth_tab_overview', 'Overview Hub') }}</span>
-        <span v-if="activeTab === 'overview'" class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+        <span v-if="activeTab === 'overview'" class="w-1.5 h-1.5 rounded-full bg-[#007AFF] dark:bg-white animate-pulse"></span>
       </Link>
 
-      <!-- Tab 2: Active Sessions (Shows exact count 7) -->
+      <!-- Tab 2: Active Sessions (With Telegram Vibrant Blue Badge) -->
       <Link
         href="/admin/auth/sessions"
         :class="[
           activeTab === 'sessions'
-            ? 'bg-slate-900 dark:bg-emerald-600 text-white shadow-md font-bold'
-            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 font-semibold',
-          'px-3.5 py-2 text-xs rounded-xl transition-all duration-200 whitespace-nowrap flex items-center gap-2 shrink-0 group'
+            ? 'bg-white text-slate-900 dark:bg-[#007AFF] dark:text-white shadow-sm font-bold'
+            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-800/60 font-semibold',
+          'px-4 py-2 text-xs rounded-full transition-all duration-200 whitespace-nowrap flex items-center gap-2 shrink-0 group'
         ]"
       >
         <img :src="'/images/nav/sub/sessions.svg'" alt="Sessions" class="w-4 h-4 object-contain group-hover:scale-110 transition-transform" />
         <span>{{ i18n.t('auth_tab_sessions', 'Active Sessions') }}</span>
+        <!-- Telegram-style unread counter badge -->
         <span
-          class="px-1.5 py-0.5 text-[10px] font-mono rounded-md font-bold"
-          :class="activeTab === 'sessions' ? 'bg-white/20 text-white' : 'bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-400'"
+          class="px-2 py-0.5 text-[11px] font-sans font-bold rounded-full min-w-[20px] text-center shadow-xs"
+          :class="activeTab === 'sessions' ? 'bg-[#007AFF] text-white dark:bg-white dark:text-[#007AFF]' : 'bg-[#2AABEE] text-white'"
         >
           {{ stats.active_sessions_count || 7 }}
         </span>
       </Link>
 
-      <!-- Tab 3: Login History (Merged with Failed Attempts filter) -->
+      <!-- Tab 3: Login History -->
       <Link
         href="/admin/auth/history"
         :class="[
           activeTab === 'history' || activeTab === 'failed'
-            ? 'bg-slate-900 dark:bg-sky-600 text-white shadow-md font-bold'
-            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 font-semibold',
-          'px-3.5 py-2 text-xs rounded-xl transition-all duration-200 whitespace-nowrap flex items-center gap-2 shrink-0 group'
+            ? 'bg-white text-slate-900 dark:bg-[#007AFF] dark:text-white shadow-sm font-bold'
+            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-800/60 font-semibold',
+          'px-4 py-2 text-xs rounded-full transition-all duration-200 whitespace-nowrap flex items-center gap-2 shrink-0 group'
         ]"
       >
         <img :src="'/images/nav/sub/history.svg'" alt="History" class="w-4 h-4 object-contain group-hover:scale-110 transition-transform" />
         <span>{{ i18n.t('auth_tab_history', 'Login History') }}</span>
-        <span v-if="activeTab === 'history' || activeTab === 'failed'" class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+        <span v-if="activeTab === 'history' || activeTab === 'failed'" class="w-1.5 h-1.5 rounded-full bg-[#007AFF] dark:bg-white animate-pulse"></span>
       </Link>
 
       <!-- Tab 4: Security Policies -->
@@ -350,14 +360,14 @@ const handleUnlockAll = () => {
         href="/admin/auth/policies"
         :class="[
           activeTab === 'policies'
-            ? 'bg-slate-900 dark:bg-purple-600 text-white shadow-md font-bold'
-            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 font-semibold',
-          'px-3.5 py-2 text-xs rounded-xl transition-all duration-200 whitespace-nowrap flex items-center gap-2 shrink-0 group'
+            ? 'bg-white text-slate-900 dark:bg-[#007AFF] dark:text-white shadow-sm font-bold'
+            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-800/60 font-semibold',
+          'px-4 py-2 text-xs rounded-full transition-all duration-200 whitespace-nowrap flex items-center gap-2 shrink-0 group'
         ]"
       >
         <img :src="'/images/nav/sub/policies.svg'" alt="Policies" class="w-4 h-4 object-contain group-hover:scale-110 transition-transform" />
         <span>{{ i18n.t('auth_tab_policies', 'Security Policies') }}</span>
-        <span v-if="activeTab === 'policies'" class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+        <span v-if="activeTab === 'policies'" class="w-1.5 h-1.5 rounded-full bg-[#007AFF] dark:bg-white animate-pulse"></span>
       </Link>
 
       <!-- Tab 5: Security Audit -->
@@ -365,9 +375,9 @@ const handleUnlockAll = () => {
         href="/admin/auth/cyber-security"
         :class="[
           activeTab === 'cyber-security' || activeTab === 'audit'
-            ? 'bg-slate-900 dark:bg-rose-600 text-white shadow-md font-bold'
-            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 font-semibold',
-          'px-3.5 py-2 text-xs rounded-xl transition-all duration-200 whitespace-nowrap flex items-center gap-2 shrink-0 group'
+            ? 'bg-white text-slate-900 dark:bg-[#007AFF] dark:text-white shadow-sm font-bold'
+            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-800/60 font-semibold',
+          'px-4 py-2 text-xs rounded-full transition-all duration-200 whitespace-nowrap flex items-center gap-2 shrink-0 group'
         ]"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -375,19 +385,19 @@ const handleUnlockAll = () => {
           <path d="m9 12 2 2 4-4"/>
         </svg>
         <span>{{ i18n.t('auth_tab_security_audit', 'Security Audit') }}</span>
-        <span v-if="activeTab === 'cyber-security' || activeTab === 'audit'" class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+        <span v-if="activeTab === 'cyber-security' || activeTab === 'audit'" class="w-1.5 h-1.5 rounded-full bg-[#007AFF] dark:bg-white animate-pulse"></span>
       </Link>
     </div>
 
-    <!-- ── REVIEW REQUIRED SECURITY MODAL ── -->
+    <!-- ── 4. REVIEW REQUIRED SECURITY MODAL (APPLE DIALOG STYLE) ── -->
     <Teleport to="body">
       <div
         v-if="isReviewModalOpen"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-fade-in"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md animate-fade-in"
       >
-        <div class="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl border border-rose-200 dark:border-rose-900/60 shadow-2xl p-6 overflow-hidden space-y-5 max-h-[90vh] flex flex-col">
+        <div class="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 overflow-hidden space-y-5 max-h-[90vh] flex flex-col">
           <!-- Ambient Glow -->
-          <div class="absolute -top-12 -right-12 w-48 h-48 bg-rose-500/15 rounded-full blur-2xl pointer-events-none"></div>
+          <div class="absolute -top-12 -right-12 w-48 h-48 bg-rose-500/10 rounded-full blur-2xl pointer-events-none"></div>
 
           <!-- Modal Header -->
           <div class="flex items-start justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
@@ -400,7 +410,7 @@ const handleUnlockAll = () => {
                   <h3 class="text-lg font-black text-slate-900 dark:text-white">
                     {{ i18n.t('review_modal_title', 'Security Incidents Requiring Review') }}
                   </h3>
-                  <span class="px-2 py-0.5 text-[10px] font-black uppercase rounded-full bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800">
+                  <span class="px-2.5 py-0.5 text-[10px] font-black uppercase rounded-full bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800">
                     {{ stats.threat_level }} Risk
                   </span>
                 </div>
@@ -419,21 +429,21 @@ const handleUnlockAll = () => {
 
           <!-- Stats Summary Badges -->
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            <div class="p-3.5 rounded-2xl bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200/70 dark:border-rose-900/40">
+            <div class="p-4 rounded-2xl bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200/70 dark:border-rose-900/40">
               <span class="text-[11px] font-bold text-rose-700 dark:text-rose-300 uppercase">Failed Logins</span>
-              <div class="text-2xl font-black text-rose-600 dark:text-rose-400 font-mono mt-0.5">
+              <div class="text-2xl font-black text-rose-600 dark:text-rose-400 font-sans mt-0.5">
                 {{ Number(stats.failed_logins_today || 65).toLocaleString() }}
               </div>
               <span class="text-[10px] text-slate-500 dark:text-slate-400">Suspicious bot attempts</span>
             </div>
-            <div class="p-3.5 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/70 dark:border-amber-900/40">
+            <div class="p-4 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/70 dark:border-amber-900/40">
               <span class="text-[11px] font-bold text-amber-700 dark:text-amber-300 uppercase">Locked Accounts</span>
-              <div class="text-2xl font-black text-amber-600 dark:text-amber-400 font-mono mt-0.5">
+              <div class="text-2xl font-black text-amber-600 dark:text-amber-400 font-sans mt-0.5">
                 {{ Number(stats.locked_accounts_count || 14).toLocaleString() }}
               </div>
               <span class="text-[10px] text-slate-500 dark:text-slate-400">Exceeded password threshold</span>
             </div>
-            <div class="p-3.5 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200/70 dark:border-indigo-900/40 col-span-2 sm:col-span-1">
+            <div class="p-4 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200/70 dark:border-indigo-900/40 col-span-2 sm:col-span-1">
               <span class="text-[11px] font-bold text-indigo-700 dark:text-indigo-300 uppercase">Action Needed</span>
               <div class="text-sm font-black text-indigo-600 dark:text-indigo-400 mt-1">
                 Audit & Unlock
@@ -534,7 +544,7 @@ const handleUnlockAll = () => {
             </span>
             <button
               @click="isReviewModalOpen = false"
-              class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 text-white font-bold transition-all cursor-pointer"
+              class="px-5 py-2 rounded-full bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold transition-all cursor-pointer"
             >
               {{ i18n.t('close', 'Close') }}
             </button>
