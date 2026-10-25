@@ -373,7 +373,7 @@ const stats = props.overview || {
 
           <div class="pt-5">
             <div
-              class="w-full py-2.5 px-4 rounded-xl font-bold text-xs bg-gradient-to-r from-rose-50 to-red-100/80 group-hover:from-rose-600 group-hover:to-red-600 text-rose-700 group-hover:text-white dark:from-rose-950/60 dark:to-red-900/60 dark:group-hover:from-rose-600 dark:group-hover:to-red-600 dark:text-rose-300 dark:group-hover:text-white border border-rose-200/80 dark:border-rose-500/30 group-hover:border-transparent shadow-xs group-hover:shadow-md group-hover:shadow-rose-500/20 transition-all duration-200 flex items-center justify-center gap-2"
+              class="w-full py-2.5 px-4 rounded-xl font-bold text-xs bg-gradient-to-r from-rose-100 to-rose-200/90 group-hover:from-rose-600 group-hover:to-rose-500 text-rose-900 dark:text-rose-200 group-hover:text-white dark:from-rose-950/80 dark:to-rose-900/80 dark:group-hover:from-rose-600 dark:group-hover:to-rose-500 border border-rose-300 dark:border-rose-700/60 group-hover:border-transparent shadow-xs group-hover:shadow-md group-hover:shadow-rose-500/20 transition-all duration-200 flex items-center justify-center gap-2"
             >
               <span>{{ i18n.t('បើកមជ្ឈមណ្ឌល Security Audit', 'Open Security Audit Center') }}</span>
               <span class="transition-transform group-hover:translate-x-1 font-mono">→</span>
