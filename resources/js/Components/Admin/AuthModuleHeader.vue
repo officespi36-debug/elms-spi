@@ -68,27 +68,35 @@ const handleUnlockAll = () => {
 <template>
   <div class="space-y-4 font-sans">
     <!-- ── 1. APPLE / TELEGRAM LIQUID GLASS HEADER ── -->
-    <div class="relative overflow-hidden bg-white/80 dark:bg-slate-900/80 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 p-5 sm:p-6 shadow-xs backdrop-blur-2xl transition-all">
+    <div class="relative overflow-hidden bg-white/80 dark:bg-slate-900/80 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 p-5 sm:p-6 shadow-sm backdrop-blur-2xl transition-all">
       <!-- Subtle Ambient Lighting Glow -->
-      <div class="absolute -top-16 -right-16 w-56 h-56 bg-blue-500/10 dark:bg-blue-500/15 rounded-full blur-3xl pointer-events-none"></div>
-      <div class="absolute -bottom-16 -left-16 w-56 h-56 bg-indigo-500/10 dark:bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -top-16 -right-16 w-64 h-64 bg-gradient-to-br from-[#007AFF]/15 to-[#5856D6]/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-16 -left-16 w-64 h-64 bg-gradient-to-tr from-[#34C759]/10 to-[#007AFF]/10 rounded-full blur-3xl pointer-events-none"></div>
 
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
         <div class="flex items-center gap-3.5 sm:gap-4">
           <!-- iOS Telegram Squircle Icon -->
-          <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-[#007AFF] via-[#0A84FF] to-[#5856D6] flex items-center justify-center p-2 shrink-0 shadow-lg shadow-blue-500/25 border border-white/20">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 sm:w-7 sm:h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
+          <div class="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-[#007AFF] via-[#0A84FF] to-[#5856D6] flex items-center justify-center p-2.5 shrink-0 shadow-lg shadow-blue-500/25 border border-white/30 group">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
               <path fill-rule="evenodd" d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z" clip-rule="evenodd" />
             </svg>
+            <!-- Telegram subtle verified shine badge -->
+            <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-900 flex items-center justify-center text-white text-[9px] font-bold shadow-xs">
+              ✓
+            </span>
           </div>
 
           <div>
             <div class="flex items-center gap-2 flex-wrap">
-              <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                {{ i18n.t('auth_module_title', 'Authentication & Access') }}
+              <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5">
+                <span>{{ i18n.t('auth_module_title', 'Authentication & Access') }}</span>
+                <!-- Telegram-style verified badge -->
+                <svg class="w-5 h-5 text-[#007AFF] shrink-0" viewBox="0 0 24 24" fill="currentColor" title="Verified Security Module">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1.5 14.5l-4-4 1.41-1.41L10.5 13.67l6.59-6.59L18.5 8.5l-8 8z"/>
+                </svg>
               </h1>
-              <span class="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-600 dark:bg-blue-500/20 dark:text-blue-300 border border-blue-200/80 dark:border-blue-500/30 rounded-full">
-                {{ i18n.t('auth_security_control_only', 'Security & Access') }}
+              <span class="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider bg-blue-50 text-[#007AFF] dark:bg-blue-500/20 dark:text-blue-300 border border-blue-200/80 dark:border-blue-500/30 rounded-full">
+                {{ i18n.t('auth_security_control_only', 'Security & Access Control') }}
               </span>
             </div>
             <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-2xl font-medium leading-relaxed">
@@ -97,14 +105,23 @@ const handleUnlockAll = () => {
           </div>
         </div>
 
-        <!-- Top Right Actions: Telegram/iOS Pill Badges -->
+        <!-- Top Right Actions: Telegram / iOS Pill Badges -->
         <div class="flex items-center gap-2.5 self-start md:self-center shrink-0 flex-wrap">
+          <!-- Telegram-style Network / Live Connection Pill -->
+          <div class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/70 dark:border-slate-700/60 shadow-xs">
+            <span class="relative flex h-2 w-2">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span class="text-[11px] font-medium">{{ i18n.t('live_synced', 'RBAC Guard Active') }}</span>
+          </div>
+
           <!-- Review Required Pill Button -->
           <button
             v-if="(stats.failed_logins_today || 0) > 0 || (stats.locked_accounts_count || 0) > 0"
             @click="isReviewModalOpen = true"
             type="button"
-            class="px-3.5 py-1.5 rounded-full text-xs font-bold border border-rose-300/80 bg-rose-50 text-rose-600 hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900/60 hover:shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+            class="px-3.5 py-1.5 rounded-full text-xs font-bold border border-rose-300/80 bg-rose-50 text-rose-600 hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900/60 hover:shadow-sm transition-all flex items-center gap-2 cursor-pointer shadow-xs"
             :title="i18n.t('auth_click_to_review', 'Click to review security incidents & locked accounts')"
           >
             <span class="relative flex h-2 w-2">
@@ -124,7 +141,7 @@ const handleUnlockAll = () => {
                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" :class="stats.threat_level === 'Low' ? 'bg-emerald-400' : 'bg-red-400'"></span>
                 <span class="relative inline-flex rounded-full h-2 w-2" :class="stats.threat_level === 'Low' ? 'bg-emerald-500' : 'bg-red-500'"></span>
               </span>
-              <span class="tracking-wide uppercase font-extrabold">{{ stats.threat_level }}</span>
+              <span class="tracking-wide uppercase font-black">{{ stats.threat_level }} RISK</span>
             </div>
 
             <!-- iOS Tooltip popup on hover -->
@@ -150,35 +167,37 @@ const handleUnlockAll = () => {
         class="relative overflow-hidden rounded-3xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/90 p-5 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group cursor-pointer backdrop-blur-xl"
         :title="i18n.t('auth_card1_btn', 'Manage Roles & Permissions in Sidebar')"
       >
+        <div class="absolute -top-10 -right-10 w-28 h-28 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
         <div>
           <!-- Top Bar: Squircle Icon & iOS Pill Badge -->
           <div class="flex items-center justify-between">
-            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#8B5CF6] to-[#6366F1] text-white flex items-center justify-center shrink-0 shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform duration-200">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5.5 h-5.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7C3AED] via-[#6366F1] to-[#4F46E5] text-white flex items-center justify-center shrink-0 shadow-md shadow-indigo-500/25 border border-white/20 group-hover:scale-105 transition-transform duration-200">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                 <path d="m9 12 2 2 4-4"/>
               </svg>
             </div>
-            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 dark:bg-purple-500/15 dark:text-purple-300 border border-purple-200/80 dark:border-purple-500/30">
+            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-100/80 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300 border border-purple-200/80 dark:border-purple-500/30 flex items-center gap-1 shadow-2xs">
+              <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
               {{ i18n.t('auth_rbac_active', 'RBAC Active') }}
             </span>
           </div>
 
           <!-- Metric Number & Label -->
           <div class="mt-4">
-            <span class="text-[11px] font-bold tracking-wider uppercase text-slate-400 dark:text-slate-500">
+            <span class="text-[11px] font-extrabold tracking-wider uppercase text-slate-400 dark:text-slate-500">
               {{ i18n.t('auth_total_roles', 'TOTAL ROLES') }}
             </span>
-            <h4 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white mt-0.5 font-sans">
+            <h4 class="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white mt-0.5 font-sans">
               {{ Number(stats.total_roles || 3).toLocaleString() }}
             </h4>
           </div>
         </div>
 
         <!-- Footer Context -->
-        <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+        <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
           <span class="text-slate-500 dark:text-slate-400 font-medium">Configured System Roles</span>
-          <span class="text-indigo-600 dark:text-indigo-400 font-bold group-hover:translate-x-0.5 transition-transform">→</span>
+          <span class="text-indigo-600 dark:text-indigo-400 font-bold group-hover:translate-x-1 transition-transform">→</span>
         </div>
       </Link>
 
@@ -188,38 +207,39 @@ const handleUnlockAll = () => {
         class="relative overflow-hidden rounded-3xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/90 p-5 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group cursor-pointer backdrop-blur-xl"
         :title="i18n.t('auth_card2_btn', 'Monitor Active Sessions')"
       >
+        <div class="absolute -top-10 -right-10 w-28 h-28 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
         <div>
           <!-- Top Bar: Squircle Icon & iOS Live Pill Badge -->
           <div class="flex items-center justify-between">
-            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#10B981] to-[#059669] text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform duration-200">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5.5 h-5.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#10B981] via-[#059669] to-[#047857] text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/25 border border-white/20 group-hover:scale-105 transition-transform duration-200">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <rect width="18" height="12" x="3" y="4" rx="2.5"/>
                 <line x1="8" x2="16" y1="20" y2="20"/>
                 <line x1="12" y1="12" x2="12" y2="16"/>
                 <circle cx="12" cy="10" r="1.5" fill="currentColor"/>
               </svg>
             </div>
-            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-500/30 flex items-center gap-1.5">
+            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100/80 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-500/30 flex items-center gap-1.5 shadow-2xs">
               <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              {{ i18n.t('auth_live_sessions', 'Live Sessions') }}
+              {{ i18n.t('auth_live_sessions', '7 Live Online') }}
             </span>
           </div>
 
           <!-- Metric Number & Label -->
           <div class="mt-4">
-            <span class="text-[11px] font-bold tracking-wider uppercase text-slate-400 dark:text-slate-500">
+            <span class="text-[11px] font-extrabold tracking-wider uppercase text-slate-400 dark:text-slate-500">
               {{ i18n.t('auth_active_sessions', 'ACTIVE SESSIONS') }}
             </span>
-            <h4 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white mt-0.5 font-sans">
+            <h4 class="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white mt-0.5 font-sans">
               {{ Number(stats.active_sessions_count || 7).toLocaleString() }}
             </h4>
           </div>
         </div>
 
         <!-- Footer Context -->
-        <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+        <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
           <span class="text-slate-500 dark:text-slate-400 font-medium">Live Connected Tokens</span>
-          <span class="text-emerald-600 dark:text-emerald-400 font-bold group-hover:translate-x-0.5 transition-transform">→</span>
+          <span class="text-emerald-600 dark:text-emerald-400 font-bold group-hover:translate-x-1 transition-transform">→</span>
         </div>
       </Link>
 
@@ -229,36 +249,38 @@ const handleUnlockAll = () => {
         class="relative overflow-hidden rounded-3xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/90 p-5 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group cursor-pointer backdrop-blur-xl"
         :title="i18n.t('auth_card4_btn', 'Investigate Threat Logs in Login History')"
       >
+        <div class="absolute -top-10 -right-10 w-28 h-28 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
         <div>
           <!-- Top Bar: Squircle Icon & iOS Pill Badge -->
           <div class="flex items-center justify-between">
-            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#F59E0B] to-[#EA580C] text-white flex items-center justify-center shrink-0 shadow-md shadow-orange-500/20 group-hover:scale-105 transition-transform duration-200">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5.5 h-5.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#F59E0B] via-[#EA580C] to-[#D97706] text-white flex items-center justify-center shrink-0 shadow-md shadow-orange-500/25 border border-white/20 group-hover:scale-105 transition-transform duration-200">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="9"/>
                 <line x1="12" y1="8" x2="12" y2="12"/>
                 <circle cx="12" cy="16" r="0.75" fill="currentColor"/>
               </svg>
             </div>
-            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300 border border-amber-200/80 dark:border-amber-500/30">
+            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100/80 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300 border border-amber-200/80 dark:border-amber-500/30 flex items-center gap-1 shadow-2xs">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
               {{ i18n.t('auth_audit_required', 'Audit Required') }}
             </span>
           </div>
 
           <!-- Metric Number & Label -->
           <div class="mt-4">
-            <span class="text-[11px] font-bold tracking-wider uppercase text-slate-400 dark:text-slate-500">
+            <span class="text-[11px] font-extrabold tracking-wider uppercase text-slate-400 dark:text-slate-500">
               {{ i18n.t('auth_failed_logins_today', 'FAILED LOGINS') }}
             </span>
-            <h4 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white mt-0.5 font-sans">
+            <h4 class="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white mt-0.5 font-sans">
               {{ Number(stats.failed_logins_today || 65).toLocaleString() }}
             </h4>
           </div>
         </div>
 
         <!-- Footer Context -->
-        <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+        <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
           <span class="text-slate-500 dark:text-slate-400 font-medium">Threat Log Entries Today</span>
-          <span class="text-amber-600 dark:text-amber-400 font-bold group-hover:translate-x-0.5 transition-transform">→</span>
+          <span class="text-amber-600 dark:text-amber-400 font-bold group-hover:translate-x-1 transition-transform">→</span>
         </div>
       </Link>
 
@@ -269,47 +291,49 @@ const handleUnlockAll = () => {
         class="relative overflow-hidden rounded-3xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/90 p-5 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group cursor-pointer backdrop-blur-xl text-left"
         :title="i18n.t('auth_locked_accounts_btn', 'Click to Review & Unlock Accounts')"
       >
+        <div class="absolute -top-10 -right-10 w-28 h-28 bg-rose-500/10 rounded-full blur-2xl pointer-events-none"></div>
         <div>
           <!-- Top Bar: Squircle Icon & iOS Pill Badge -->
           <div class="flex items-center justify-between">
-            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#F43F5E] to-[#E11D48] text-white flex items-center justify-center shrink-0 shadow-md shadow-rose-500/20 group-hover:scale-105 transition-transform duration-200">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5.5 h-5.5" viewBox="0 0 24 24" fill="currentColor">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#F43F5E] via-[#E11D48] to-[#BE123C] text-white flex items-center justify-center shrink-0 shadow-md shadow-rose-500/25 border border-white/20 group-hover:scale-105 transition-transform duration-200">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
                 <path fill-rule="evenodd" d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z" clip-rule="evenodd" />
               </svg>
             </div>
-            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300 border border-rose-200/80 dark:border-rose-500/30">
-              {{ i18n.t('auth_suspended_accounts', 'Suspended') }}
+            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100/80 text-rose-800 dark:bg-rose-500/20 dark:text-rose-300 border border-rose-200/80 dark:border-rose-500/30 flex items-center gap-1 shadow-2xs">
+              <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+              {{ i18n.t('auth_suspended_accounts', '14 Suspended') }}
             </span>
           </div>
 
           <!-- Metric Number & Label -->
           <div class="mt-4">
-            <span class="text-[11px] font-bold tracking-wider uppercase text-slate-400 dark:text-slate-500">
+            <span class="text-[11px] font-extrabold tracking-wider uppercase text-slate-400 dark:text-slate-500">
               {{ i18n.t('auth_locked_accounts', 'LOCKED ACCOUNTS') }}
             </span>
-            <h4 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white mt-0.5 font-sans">
+            <h4 class="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white mt-0.5 font-sans">
               {{ Number(stats.locked_accounts_count || 14).toLocaleString() }}
             </h4>
           </div>
         </div>
 
         <!-- Footer Context -->
-        <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
-          <span class="text-slate-500 dark:text-slate-400 font-medium">Review & Unlock Accounts</span>
-          <span class="text-rose-600 dark:text-rose-400 font-bold group-hover:translate-x-0.5 transition-transform">→</span>
+        <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
+          <span class="text-slate-500 dark:text-slate-400 font-medium">Click to Unlock All Accounts</span>
+          <span class="text-rose-600 dark:text-rose-400 font-bold group-hover:translate-x-1 transition-transform">→</span>
         </div>
       </button>
     </div>
 
-    <!-- ── 3. TELEGRAM / APPLE SEGMENTED PILL FILTER BAR ── -->
-    <div class="p-1.5 bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800/90 rounded-full flex items-center gap-1.5 overflow-x-auto scrollbar-none shadow-xs backdrop-blur-2xl">
+    <!-- ── 3. TELEGRAM / APPLE SEGMENTED PILL FILTER BAR (MATCHING IMAGE 1) ── -->
+    <div class="p-1.5 bg-slate-200/60 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800/90 rounded-full flex items-center gap-1.5 overflow-x-auto scrollbar-none shadow-xs backdrop-blur-2xl">
       
       <!-- Tab 1: Overview Hub -->
       <Link
         href="/admin/auth-logs"
         :class="[
           activeTab === 'overview'
-            ? 'bg-white text-slate-900 dark:bg-[#007AFF] dark:text-white shadow-sm font-bold'
+            ? 'bg-white text-slate-900 dark:bg-[#007AFF] dark:text-white shadow-md font-bold'
             : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-800/60 font-semibold',
           'px-4 py-2 text-xs rounded-full transition-all duration-200 whitespace-nowrap flex items-center gap-2 shrink-0 group'
         ]"
@@ -319,12 +343,12 @@ const handleUnlockAll = () => {
         <span v-if="activeTab === 'overview'" class="w-1.5 h-1.5 rounded-full bg-[#007AFF] dark:bg-white animate-pulse"></span>
       </Link>
 
-      <!-- Tab 2: Active Sessions (With Telegram Vibrant Blue Badge) -->
+      <!-- Tab 2: Active Sessions (With Telegram Vibrant Blue Unread Pill Badge) -->
       <Link
         href="/admin/auth/sessions"
         :class="[
           activeTab === 'sessions'
-            ? 'bg-white text-slate-900 dark:bg-[#007AFF] dark:text-white shadow-sm font-bold'
+            ? 'bg-white text-slate-900 dark:bg-[#007AFF] dark:text-white shadow-md font-bold'
             : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-800/60 font-semibold',
           'px-4 py-2 text-xs rounded-full transition-all duration-200 whitespace-nowrap flex items-center gap-2 shrink-0 group'
         ]"
@@ -333,8 +357,8 @@ const handleUnlockAll = () => {
         <span>{{ i18n.t('auth_tab_sessions', 'Active Sessions') }}</span>
         <!-- Telegram-style unread counter badge -->
         <span
-          class="px-2 py-0.5 text-[11px] font-sans font-bold rounded-full min-w-[20px] text-center shadow-xs"
-          :class="activeTab === 'sessions' ? 'bg-[#007AFF] text-white dark:bg-white dark:text-[#007AFF]' : 'bg-[#2AABEE] text-white'"
+          class="px-2 py-0.5 text-[11px] font-sans font-bold rounded-full min-w-[20px] text-center shadow-xs transition-colors"
+          :class="activeTab === 'sessions' ? 'bg-[#007AFF] text-white dark:bg-white dark:text-[#007AFF]' : 'bg-[#007AFF] text-white'"
         >
           {{ stats.active_sessions_count || 7 }}
         </span>
@@ -345,14 +369,19 @@ const handleUnlockAll = () => {
         href="/admin/auth/history"
         :class="[
           activeTab === 'history' || activeTab === 'failed'
-            ? 'bg-white text-slate-900 dark:bg-[#007AFF] dark:text-white shadow-sm font-bold'
+            ? 'bg-white text-slate-900 dark:bg-[#007AFF] dark:text-white shadow-md font-bold'
             : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-800/60 font-semibold',
           'px-4 py-2 text-xs rounded-full transition-all duration-200 whitespace-nowrap flex items-center gap-2 shrink-0 group'
         ]"
       >
         <img :src="'/images/nav/sub/history.svg'" alt="History" class="w-4 h-4 object-contain group-hover:scale-110 transition-transform" />
         <span>{{ i18n.t('auth_tab_history', 'Login History') }}</span>
-        <span v-if="activeTab === 'history' || activeTab === 'failed'" class="w-1.5 h-1.5 rounded-full bg-[#007AFF] dark:bg-white animate-pulse"></span>
+        <span
+          class="px-2 py-0.5 text-[11px] font-sans font-bold rounded-full min-w-[20px] text-center shadow-xs"
+          :class="activeTab === 'history' || activeTab === 'failed' ? 'bg-[#007AFF]/20 text-[#007AFF] dark:bg-white/20 dark:text-white' : 'bg-slate-300/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300'"
+        >
+          225
+        </span>
       </Link>
 
       <!-- Tab 4: Security Policies -->
@@ -360,7 +389,7 @@ const handleUnlockAll = () => {
         href="/admin/auth/policies"
         :class="[
           activeTab === 'policies'
-            ? 'bg-white text-slate-900 dark:bg-[#007AFF] dark:text-white shadow-sm font-bold'
+            ? 'bg-white text-slate-900 dark:bg-[#007AFF] dark:text-white shadow-md font-bold'
             : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-800/60 font-semibold',
           'px-4 py-2 text-xs rounded-full transition-all duration-200 whitespace-nowrap flex items-center gap-2 shrink-0 group'
         ]"
@@ -375,7 +404,7 @@ const handleUnlockAll = () => {
         href="/admin/auth/cyber-security"
         :class="[
           activeTab === 'cyber-security' || activeTab === 'audit'
-            ? 'bg-white text-slate-900 dark:bg-[#007AFF] dark:text-white shadow-sm font-bold'
+            ? 'bg-white text-slate-900 dark:bg-[#007AFF] dark:text-white shadow-md font-bold'
             : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-800/60 font-semibold',
           'px-4 py-2 text-xs rounded-full transition-all duration-200 whitespace-nowrap flex items-center gap-2 shrink-0 group'
         ]"
@@ -385,7 +414,9 @@ const handleUnlockAll = () => {
           <path d="m9 12 2 2 4-4"/>
         </svg>
         <span>{{ i18n.t('auth_tab_security_audit', 'Security Audit') }}</span>
-        <span v-if="activeTab === 'cyber-security' || activeTab === 'audit'" class="w-1.5 h-1.5 rounded-full bg-[#007AFF] dark:bg-white animate-pulse"></span>
+        <span class="px-2 py-0.5 text-[10px] font-black uppercase rounded-full bg-rose-500 text-white animate-pulse shadow-xs">
+          LIVE
+        </span>
       </Link>
     </div>
 
