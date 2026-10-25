@@ -421,12 +421,12 @@ const getRoleAccentBar = (role: string) => {
 
 <template>
   <AdminLayout title="Roles & Permissions Management">
-    <div class="space-y-6 font-sans pb-16">
+    <div class="-mx-4 sm:-mx-6 lg:-mx-8 -mt-6 sm:-mt-8 -mb-12 px-4 sm:px-6 lg:px-8 py-6 sm:py-8 min-h-screen bg-[#0A0D14] text-[#F1F5F9] space-y-6 font-sans pb-16">
       <!-- Shared Header -->
       <AuthModuleHeader activeTab="roles" :summaryStats="props.summaryStats" />
 
       <!-- Section Actions Bar (Clean, with Flaticon vector icon) -->
-      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#111622] p-3.5 sm:p-4 rounded-2xl border border-[#1E2638] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]">
         <div class="flex items-center gap-3">
           <div class="w-9 h-9 rounded-xl bg-indigo-500/15 border border-indigo-500/30 p-1.5 flex items-center justify-center shrink-0 shadow-inner">
             <img :src="'/images/nav/sub/roles.svg'" alt="Roles" class="w-5 h-5 object-contain" />

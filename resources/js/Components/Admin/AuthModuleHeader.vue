@@ -67,12 +67,12 @@ const handleUnlockAll = () => {
 
 <template>
   <div class="space-y-4 font-sans">
-    <!-- ── 1. EXECUTIVE COMMAND HEADER (ENTERPRISE MONOCHROMATIC PALETTE) ── -->
-    <div class="relative overflow-hidden bg-[#111827] rounded-2xl border border-[#1F2937] p-5 sm:p-6 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] text-white">
+    <!-- ── 1. EXECUTIVE COMMAND HEADER (REFINED SECURITY DARK MODE) ── -->
+    <div class="relative overflow-hidden bg-[#111622] rounded-2xl border border-[#1E2638] p-5 sm:p-6 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] text-[#F1F5F9]">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
         <div class="flex items-center gap-3.5 sm:gap-4">
           <!-- Subtle Security Icon Container -->
-          <div class="w-11 h-11 rounded-xl bg-slate-800/80 border border-slate-700/70 flex items-center justify-center p-2 shrink-0 text-slate-200">
+          <div class="w-11 h-11 rounded-xl bg-[#0E131E] border border-[#1E2638] flex items-center justify-center p-2 shrink-0 text-slate-200">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-indigo-400" viewBox="0 0 24 24" fill="currentColor">
               <path fill-rule="evenodd" d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z" clip-rule="evenodd" />
             </svg>
@@ -80,165 +80,149 @@ const handleUnlockAll = () => {
 
           <div>
             <div class="flex items-center gap-2 flex-wrap">
-              <h1 class="text-xl font-semibold text-[#F9FAFB] tracking-tight">
+              <h1 class="text-xl font-semibold text-[#F1F5F9] tracking-tight">
                 {{ i18n.t('auth_module_title', 'Authentication & Access') }}
               </h1>
-              <span class="px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider bg-slate-800 text-slate-300 border border-slate-700/70 rounded-md">
+              <span class="px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider bg-[#0E131E] text-[#94A3B8] border border-[#1E2638] rounded-md font-mono">
                 {{ i18n.t('auth_security_control_only', 'Security Control Only') }}
               </span>
             </div>
-            <p class="text-sm text-[#9CA3AF] mt-1 font-normal leading-relaxed">
+            <p class="text-sm text-[#94A3B8] mt-1 font-normal leading-relaxed">
               {{ i18n.t('auth_header_desc', 'Manage system security, role access matrix (RBAC), active sessions, login history, and security policies') }}
             </p>
           </div>
         </div>
 
-        <!-- Top Right Actions: Interactive Review Required Button & Threat Badge -->
-        <div class="flex items-center gap-2.5 self-start md:self-center shrink-0 flex-wrap">
-          <!-- Review Required Button -->
+        <!-- Top Right Actions: Single Unified Cohesive Status Indicator (No Alert Fatigue) -->
+        <div class="flex items-center gap-2.5 self-start md:self-center shrink-0">
           <button
-            v-if="(stats.failed_logins_today || 0) > 0 || (stats.locked_accounts_count || 0) > 0"
-            @click="isReviewModalOpen = true"
             type="button"
-            class="px-3 py-1.5 rounded-lg text-xs font-medium border border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 transition-colors flex items-center gap-2 cursor-pointer"
+            @click="isReviewModalOpen = true"
+            class="px-3.5 py-1.5 rounded-lg text-xs font-medium border flex items-center gap-2.5 transition-all cursor-pointer shadow-xs"
+            :class="(stats.failed_logins_today || 0) > 0 || (stats.locked_accounts_count || 0) > 0
+              ? 'bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/25 hover:bg-[#EF4444]/20'
+              : 'bg-[#10B981]/10 text-[#10B981] border-[#10B981]/25 hover:bg-[#10B981]/20'"
             :title="i18n.t('auth_click_to_review', 'Click to review security incidents & locked accounts')"
           >
             <span class="relative flex h-2 w-2">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+              <span
+                class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                :class="(stats.failed_logins_today || 0) > 0 ? 'bg-[#EF4444]' : 'bg-[#10B981]'"
+              ></span>
+              <span
+                class="relative inline-flex rounded-full h-2 w-2"
+                :class="(stats.failed_logins_today || 0) > 0 ? 'bg-[#EF4444]' : 'bg-[#10B981]'"
+              ></span>
             </span>
-            <span>{{ i18n.t('auth_review_required', 'Review Required') }}</span>
+            <span class="font-semibold uppercase tracking-wider font-mono">{{ stats.threat_level || 'CRITICAL' }}</span>
+            <span class="text-[#1E2638]">|</span>
+            <span class="text-[11px] text-[#94A3B8]">
+              {{ (stats.failed_logins_today || 0) > 0 ? i18n.t('auth_review_required', 'Review Incidents') : 'Normal Guard' }}
+            </span>
           </button>
-
-          <!-- Threat Status Pill -->
-          <div class="relative group/threat cursor-help">
-            <div
-              class="px-3 py-1.5 rounded-lg text-xs font-medium border flex items-center gap-2 transition-colors"
-              :class="getThreatBadgeClass(stats.threat_level)"
-            >
-              <span class="relative flex h-2 w-2">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" :class="stats.threat_level === 'Low' ? 'bg-emerald-400' : 'bg-rose-400'"></span>
-                <span class="relative inline-flex rounded-full h-2 w-2" :class="stats.threat_level === 'Low' ? 'bg-emerald-500' : 'bg-rose-500'"></span>
-              </span>
-              <span class="tracking-wide uppercase font-semibold">{{ stats.threat_level }}</span>
-            </div>
-
-            <!-- Tooltip dropdown on hover -->
-            <div class="absolute right-0 top-full mt-2 w-72 p-3 bg-slate-900 border border-slate-800 rounded-xl shadow-xl text-xs text-slate-200 opacity-0 group-hover/threat:opacity-100 transition-all pointer-events-none group-hover/threat:pointer-events-auto z-50">
-              <div class="font-bold text-white mb-1 flex items-center gap-1.5 border-b border-slate-800 pb-1">
-                <span>🛡️ {{ i18n.t('auth_threat_status', 'Threat Status') }}</span>
-              </div>
-              <p class="text-[11px] text-slate-300 leading-normal">
-                {{ getThreatExplanation(stats.threat_level) }}
-              </p>
-            </div>
-          </div>
         </div>
       </div>
     </div>
 
-    <!-- ── 2. TOP 4 KPI CARDS (CLEAN MINIMAL ENTERPRISE SURFACE CARDS) ── -->
+    <!-- ── 2. TOP 4 KPI CARDS (REFINED SECURITY DARK SURFACE CARDS) ── -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       
       <!-- Card 1: Total Roles -->
       <Link
         href="/admin/auth/roles"
-        class="bg-[#111827] border border-[#1F2937] hover:border-[#374151] rounded-2xl p-5 transition-all duration-150 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] group cursor-pointer flex flex-col justify-between"
+        class="bg-[#111622] border border-[#1E2638] hover:border-slate-600 rounded-2xl p-5 transition-all duration-150 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] group cursor-pointer flex flex-col justify-between"
         :title="i18n.t('auth_card1_btn', 'Manage Roles & Permissions Matrix')"
       >
         <div>
           <!-- Top Row: Label + Status Pill -->
           <div class="flex items-center justify-between">
-            <span class="text-xs font-medium tracking-wide uppercase text-[#9CA3AF]">
+            <span class="text-xs font-medium tracking-wide uppercase text-[#94A3B8]">
               {{ i18n.t('auth_total_roles', 'TOTAL ROLES') }}
             </span>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#10B981]/12 text-[#10B981] border border-[#10B981]/25 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
               {{ i18n.t('auth_rbac_active', 'RBAC Active') }}
             </span>
           </div>
 
           <!-- Middle Row: Large Value + Context -->
           <div class="my-3 flex items-baseline gap-2.5">
-            <h4 class="text-2xl font-bold font-mono tracking-tight text-[#F9FAFB]">
+            <h4 class="text-2xl font-bold font-mono tracking-tight text-[#F1F5F9]">
               {{ Number(stats.total_roles || 3).toLocaleString() }}
             </h4>
-            <span class="text-xs font-normal text-[#9CA3AF]">System Roles</span>
+            <span class="text-xs font-normal text-[#94A3B8]">System Roles</span>
           </div>
         </div>
 
-        <!-- Bottom Row: Contextual Micro-copy -->
-        <div class="pt-2.5 border-t border-[#1F2937] text-xs text-[#9CA3AF] flex items-center justify-between">
+        <!-- Bottom Row: Contextual Micro-copy (No Arrow) -->
+        <div class="pt-2.5 border-t border-[#1E2638] text-xs text-[#94A3B8]">
           <span class="truncate">Admin, Teacher, and Student access</span>
-          <span class="group-hover:translate-x-0.5 transition-transform text-slate-500 group-hover:text-blue-400 font-mono">→</span>
         </div>
       </Link>
 
       <!-- Card 2: Active Sessions -->
       <Link
         href="/admin/auth/sessions"
-        class="bg-[#111827] border border-[#1F2937] hover:border-[#374151] rounded-2xl p-5 transition-all duration-150 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] group cursor-pointer flex flex-col justify-between"
+        class="bg-[#111622] border border-[#1E2638] hover:border-slate-600 rounded-2xl p-5 transition-all duration-150 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] group cursor-pointer flex flex-col justify-between"
         :title="i18n.t('auth_card2_btn', 'Monitor Active Sessions')"
       >
         <div>
           <!-- Top Row: Label + Status Pill -->
           <div class="flex items-center justify-between">
-            <span class="text-xs font-medium tracking-wide uppercase text-[#9CA3AF]">
+            <span class="text-xs font-medium tracking-wide uppercase text-[#94A3B8]">
               {{ i18n.t('auth_active_sessions', 'ACTIVE SESSIONS') }}
             </span>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#10B981]/12 text-[#10B981] border border-[#10B981]/25 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse"></span>
               {{ i18n.t('auth_live_sessions', 'Live Monitor') }}
             </span>
           </div>
 
           <!-- Middle Row: Large Value + Context -->
           <div class="my-3 flex items-baseline gap-2.5">
-            <h4 class="text-2xl font-bold font-mono tracking-tight text-[#F9FAFB]">
-              {{ Number(stats.active_sessions_count || 8).toLocaleString() }}
+            <h4 class="text-2xl font-bold font-mono tracking-tight text-[#F1F5F9]">
+              {{ Number(stats.active_sessions_count || 7).toLocaleString() }}
             </h4>
-            <span class="text-xs font-normal text-[#9CA3AF]">Online Now</span>
+            <span class="text-xs font-normal text-[#94A3B8]">Online Now</span>
           </div>
         </div>
 
-        <!-- Bottom Row: Contextual Micro-copy -->
-        <div class="pt-2.5 border-t border-[#1F2937] text-xs text-[#9CA3AF] flex items-center justify-between">
+        <!-- Bottom Row: Contextual Micro-copy (No Arrow) -->
+        <div class="pt-2.5 border-t border-[#1E2638] text-xs text-[#94A3B8]">
           <span class="truncate">Across desktop & mobile JWT tokens</span>
-          <span class="group-hover:translate-x-0.5 transition-transform text-slate-500 group-hover:text-emerald-400 font-mono">→</span>
         </div>
       </Link>
 
       <!-- Card 3: Failed Logins Today -->
       <Link
         href="/admin/auth/history?filter=failed"
-        class="bg-[#111827] border border-[#1F2937] hover:border-[#374151] rounded-2xl p-5 transition-all duration-150 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] group cursor-pointer flex flex-col justify-between"
+        class="bg-[#111622] border border-[#1E2638] hover:border-slate-600 rounded-2xl p-5 transition-all duration-150 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] group cursor-pointer flex flex-col justify-between"
         :title="i18n.t('auth_card4_btn', 'Investigate Threat Logs in Login History')"
       >
         <div>
           <!-- Top Row: Label + Status Pill -->
           <div class="flex items-center justify-between">
-            <span class="text-xs font-medium tracking-wide uppercase text-[#9CA3AF]">
+            <span class="text-xs font-medium tracking-wide uppercase text-[#94A3B8]">
               {{ i18n.t('auth_failed_logins_today', 'FAILED LOGINS TODAY') }}
             </span>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center gap-1.5">
-              <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#F59E0B]/12 text-[#F59E0B] border border-[#F59E0B]/25 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#F59E0B]"></span>
               {{ i18n.t('auth_audit_required', 'Audit Required') }}
             </span>
           </div>
 
-          <!-- Middle Row: Large Value + Trend -->
+          <!-- Middle Row: Large Value + Trend (Subtle regular text) -->
           <div class="my-3 flex items-baseline gap-2.5">
-            <h4 class="text-2xl font-bold font-mono tracking-tight text-[#F9FAFB]">
+            <h4 class="text-2xl font-bold font-mono tracking-tight text-[#F1F5F9]">
               {{ Number(stats.failed_logins_today || 65).toLocaleString() }}
             </h4>
-            <span class="text-xs font-medium text-amber-400 font-mono">+12% vs yesterday</span>
+            <span class="text-xs font-normal text-[#94A3B8]">+12% vs yesterday</span>
           </div>
         </div>
 
-        <!-- Bottom Row: Contextual Micro-copy -->
-        <div class="pt-2.5 border-t border-[#1F2937] text-xs text-[#9CA3AF] flex items-center justify-between">
+        <!-- Bottom Row: Contextual Micro-copy (No Arrow) -->
+        <div class="pt-2.5 border-t border-[#1E2638] text-xs text-[#94A3B8]">
           <span class="truncate">Across 3 distinct IP addresses</span>
-          <span class="group-hover:translate-x-0.5 transition-transform text-slate-500 group-hover:text-amber-400 font-mono">→</span>
         </div>
       </Link>
 
@@ -246,48 +230,47 @@ const handleUnlockAll = () => {
       <button
         type="button"
         @click="isReviewModalOpen = true"
-        class="bg-[#111827] border border-[#1F2937] hover:border-[#374151] rounded-2xl p-5 transition-all duration-150 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] group cursor-pointer flex flex-col justify-between text-left"
+        class="bg-[#111622] border border-[#1E2638] hover:border-slate-600 rounded-2xl p-5 transition-all duration-150 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] group cursor-pointer flex flex-col justify-between text-left"
         :title="i18n.t('auth_locked_accounts_btn', 'Click to Review & Unlock Accounts')"
       >
         <div>
           <!-- Top Row: Label + Status Pill -->
           <div class="flex items-center justify-between">
-            <span class="text-xs font-medium tracking-wide uppercase text-[#9CA3AF]">
+            <span class="text-xs font-medium tracking-wide uppercase text-[#94A3B8]">
               {{ i18n.t('auth_locked_accounts', 'LOCKED ACCOUNTS') }}
             </span>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20 flex items-center gap-1.5">
-              <span class="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></span>
-              {{ i18n.t('auth_suspended_accounts', 'Threat Alert') }}
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#EF4444]/12 text-[#EF4444] border border-[#EF4444]/25 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#EF4444] animate-pulse"></span>
+              {{ i18n.t('auth_suspended_accounts', 'Immediate Audit') }}
             </span>
           </div>
 
           <!-- Middle Row: Large Value + Context -->
           <div class="my-3 flex items-baseline gap-2.5">
-            <h4 class="text-2xl font-bold font-mono tracking-tight text-[#F9FAFB]">
+            <h4 class="text-2xl font-bold font-mono tracking-tight text-[#F1F5F9]">
               {{ Number(stats.locked_accounts_count || 14).toLocaleString() }}
             </h4>
-            <span class="text-xs font-medium text-rose-400 font-mono">Immediate Audit</span>
+            <span class="text-xs font-normal text-[#94A3B8]">Suspended</span>
           </div>
         </div>
 
-        <!-- Bottom Row: Contextual Micro-copy -->
-        <div class="pt-2.5 border-t border-[#1F2937] text-xs text-[#9CA3AF] flex items-center justify-between">
+        <!-- Bottom Row: Contextual Micro-copy (No Arrow) -->
+        <div class="pt-2.5 border-t border-[#1E2638] text-xs text-[#94A3B8]">
           <span class="truncate">Exceeded password threshold limit</span>
-          <span class="group-hover:translate-x-0.5 transition-transform text-slate-500 group-hover:text-rose-400 font-mono">→</span>
         </div>
       </button>
     </div>
 
     <!-- ── 3. SUB-NAVIGATION TABS (MONOCHROMATIC ENTERPRISE STYLE) ── -->
-    <div class="p-1 bg-[#111827] border border-[#1F2937] rounded-xl flex items-center gap-1 overflow-x-auto scrollbar-none shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
+    <div class="p-1 bg-[#111622] border border-[#1E2638] rounded-xl flex items-center gap-1 overflow-x-auto scrollbar-none shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]">
       
       <!-- Tab 1: Overview Hub -->
       <Link
         href="/admin/auth-logs"
         :class="[
           activeTab === 'overview'
-            ? 'bg-[#1E293B] text-white border border-slate-700/80 font-medium'
-            : 'text-[#9CA3AF] hover:text-[#F1F5F9] hover:bg-slate-800/40 border border-transparent font-normal',
+            ? 'bg-[#1E2638] text-[#F1F5F9] border border-slate-700/80 font-medium'
+            : 'text-[#94A3B8] hover:text-[#F1F5F9] hover:bg-[#1E2638]/40 border border-transparent font-normal',
           'px-3.5 py-1.5 text-xs rounded-lg transition-colors whitespace-nowrap flex items-center gap-2 shrink-0'
         ]"
       >
@@ -300,8 +283,8 @@ const handleUnlockAll = () => {
         href="/admin/auth/sessions"
         :class="[
           activeTab === 'sessions'
-            ? 'bg-[#1E293B] text-white border border-slate-700/80 font-medium'
-            : 'text-[#9CA3AF] hover:text-[#F1F5F9] hover:bg-slate-800/40 border border-transparent font-normal',
+            ? 'bg-[#1E2638] text-[#F1F5F9] border border-slate-700/80 font-medium'
+            : 'text-[#94A3B8] hover:text-[#F1F5F9] hover:bg-[#1E2638]/40 border border-transparent font-normal',
           'px-3.5 py-1.5 text-xs rounded-lg transition-colors whitespace-nowrap flex items-center gap-2 shrink-0'
         ]"
       >
@@ -311,7 +294,7 @@ const handleUnlockAll = () => {
           class="px-1.5 py-0.2 text-[10px] font-mono rounded font-medium"
           :class="activeTab === 'sessions' ? 'bg-slate-700 text-white' : 'bg-slate-800 text-slate-400'"
         >
-          {{ stats.active_sessions_count || 8 }}
+          {{ stats.active_sessions_count || 7 }}
         </span>
       </Link>
 
@@ -320,8 +303,8 @@ const handleUnlockAll = () => {
         href="/admin/auth/roles"
         :class="[
           activeTab === 'roles'
-            ? 'bg-[#1E293B] text-white border border-slate-700/80 font-medium'
-            : 'text-[#9CA3AF] hover:text-[#F1F5F9] hover:bg-slate-800/40 border border-transparent font-normal',
+            ? 'bg-[#1E2638] text-[#F1F5F9] border border-slate-700/80 font-medium'
+            : 'text-[#94A3B8] hover:text-[#F1F5F9] hover:bg-[#1E2638]/40 border border-transparent font-normal',
           'px-3.5 py-1.5 text-xs rounded-lg transition-colors whitespace-nowrap flex items-center gap-2 shrink-0'
         ]"
       >
@@ -334,8 +317,8 @@ const handleUnlockAll = () => {
         href="/admin/auth/history"
         :class="[
           activeTab === 'history' || activeTab === 'failed'
-            ? 'bg-[#1E293B] text-white border border-slate-700/80 font-medium'
-            : 'text-[#9CA3AF] hover:text-[#F1F5F9] hover:bg-slate-800/40 border border-transparent font-normal',
+            ? 'bg-[#1E2638] text-[#F1F5F9] border border-slate-700/80 font-medium'
+            : 'text-[#94A3B8] hover:text-[#F1F5F9] hover:bg-[#1E2638]/40 border border-transparent font-normal',
           'px-3.5 py-1.5 text-xs rounded-lg transition-colors whitespace-nowrap flex items-center gap-2 shrink-0'
         ]"
       >
@@ -348,8 +331,8 @@ const handleUnlockAll = () => {
         href="/admin/auth/policies"
         :class="[
           activeTab === 'policies'
-            ? 'bg-[#1E293B] text-white border border-slate-700/80 font-medium'
-            : 'text-[#9CA3AF] hover:text-[#F1F5F9] hover:bg-slate-800/40 border border-transparent font-normal',
+            ? 'bg-[#1E2638] text-[#F1F5F9] border border-slate-700/80 font-medium'
+            : 'text-[#94A3B8] hover:text-[#F1F5F9] hover:bg-[#1E2638]/40 border border-transparent font-normal',
           'px-3.5 py-1.5 text-xs rounded-lg transition-colors whitespace-nowrap flex items-center gap-2 shrink-0'
         ]"
       >
@@ -362,8 +345,8 @@ const handleUnlockAll = () => {
         href="/admin/auth/cyber-security"
         :class="[
           activeTab === 'cyber-security' || activeTab === 'audit'
-            ? 'bg-[#1E293B] text-white border border-slate-700/80 font-medium'
-            : 'text-[#9CA3AF] hover:text-[#F1F5F9] hover:bg-slate-800/40 border border-transparent font-normal',
+            ? 'bg-[#1E2638] text-[#F1F5F9] border border-slate-700/80 font-medium'
+            : 'text-[#94A3B8] hover:text-[#F1F5F9] hover:bg-[#1E2638]/40 border border-transparent font-normal',
           'px-3.5 py-1.5 text-xs rounded-lg transition-colors whitespace-nowrap flex items-center gap-2 shrink-0'
         ]"
       >
