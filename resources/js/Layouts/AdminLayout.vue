@@ -1249,42 +1249,27 @@ onUnmounted(() => {
                     : 'max-h-0 opacity-0 my-0 pointer-events-none'
                 ]"
               >
-                <div class="relative ml-5 pl-5 space-y-2 pr-1">
-                  <div
-                    v-for="(sub, idx) in item.children"
+                <!-- Straight 1px vertical border tree line -->
+                <div class="ml-6 pl-3.5 my-1 space-y-0.5 border-l border-slate-700/60">
+                  <Link
+                    v-for="sub in item.children"
                     :key="sub.name"
-                    class="group relative flex items-center min-h-[40px]"
+                    :href="sub.href"
+                    prefetch
+                    :class="[
+                      isSubActive(sub.href)
+                        ? 'bg-[#1E293B] text-white font-medium'
+                        : 'text-[#94A3B8] hover:text-[#F1F5F9] hover:bg-slate-800/40 font-normal',
+                      'relative flex items-center px-3 py-2 text-xs rounded-lg transition-colors duration-150'
+                    ]"
                   >
-                    <!-- Vertical Trunk Line connecting to subsequent subitems -->
-                    <div
-                      v-if="idx < item.children.length - 1"
-                      class="absolute -left-5 top-0 bottom-0 w-[2px] bg-slate-800"
-                    ></div>
-
-                    <!-- Elbow Curve (Bright Blue when Active, Dark Slate when Inactive) -->
-                    <div
-                      :class="[
-                        isSubActive(sub.href)
-                          ? 'border-blue-500'
-                          : 'border-slate-800 group-hover:border-slate-600',
-                        'absolute -left-5 top-0 h-1/2 w-4 border-l-2 border-b-2 rounded-bl-2xl transition-colors duration-200 pointer-events-none'
-                      ]"
-                    ></div>
-
-                    <!-- Submenu Link / Pill Container -->
-                    <Link
-                      :href="sub.href"
-                      prefetch
-                      :class="[
-                        isSubActive(sub.href) 
-                          ? 'bg-[#0c1f3d] border border-blue-500/50 text-white font-bold shadow-md shadow-blue-950/40 rounded-2xl' 
-                          : 'text-slate-400 hover:text-white hover:bg-slate-800/40 border border-transparent font-medium rounded-xl',
-                        'flex-1 flex items-center px-4 py-2 text-xs sm:text-[13px] transition-all duration-200 ml-0.5'
-                      ]"
-                    >
-                      <span class="truncate">{{ getNavTitle(sub.name) }}</span>
-                    </Link>
-                  </div>
+                    <!-- Left Accent Indicator Bar for Active Item -->
+                    <span
+                      v-if="isSubActive(sub.href)"
+                      class="absolute -left-[15px] top-1/2 -translate-y-1/2 w-[2.5px] h-4 bg-blue-500 rounded-r"
+                    ></span>
+                    <span class="truncate">{{ getNavTitle(sub.name) }}</span>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -1491,7 +1476,7 @@ onUnmounted(() => {
               </div>
               <svg :class="[expandedModules[item.key!] ? 'rotate-180 text-blue-400' : '', 'w-4 h-4 transition-transform text-slate-400']" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
-            <div v-show="expandedModules[item.key!]" class="pl-4 ml-4 space-y-1.5 my-1.5 border-l-2 border-slate-800">
+            <div v-show="expandedModules[item.key!]" class="ml-6 pl-3.5 my-1 space-y-0.5 border-l border-slate-700/60">
               <Link
                 v-for="sub in item.children"
                 :key="sub.href"
@@ -1499,11 +1484,15 @@ onUnmounted(() => {
                 @click="sidebarOpen = false"
                 :class="[
                   isSubActive(sub.href) 
-                    ? 'bg-[#0c1f3d] text-white font-bold border border-blue-500/50 shadow-sm rounded-xl' 
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60 border border-transparent font-medium rounded-lg',
-                  'flex items-center gap-2.5 px-3 py-2 text-xs transition-all'
+                    ? 'bg-[#1E293B] text-white font-medium' 
+                    : 'text-[#94A3B8] hover:text-[#F1F5F9] hover:bg-slate-800/40 font-normal',
+                  'relative flex items-center px-3 py-2 text-xs rounded-lg transition-colors'
                 ]"
               >
+                <span
+                  v-if="isSubActive(sub.href)"
+                  class="absolute -left-[15px] top-1/2 -translate-y-1/2 w-[2.5px] h-4 bg-blue-500 rounded-r"
+                ></span>
                 <span class="truncate">{{ getNavTitle(sub.name) }}</span>
               </Link>
             </div>

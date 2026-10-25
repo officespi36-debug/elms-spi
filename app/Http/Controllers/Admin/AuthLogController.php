@@ -280,6 +280,17 @@ class AuthLogController extends Controller
         $blockedIps = Setting::get('blocked_ips', []);
         $loginHistoryCount = AuthLog::count();
 
+        $recentFailedLogs = AuthLog::where('status', 'failed')
+            ->latest()
+            ->limit(5)
+            ->get();
+
+        $lockedAccounts = User::where(function ($q) {
+            $q->where('login_attempts', '>=', Setting::get('max_failed_attempts', 5))
+              ->orWhere('locked_until', '>', now())
+              ->orWhere('status', 'suspended');
+        })->select('id', 'name', 'email', 'role', 'login_attempts', 'locked_until', 'status')->limit(6)->get();
+
         return Inertia::render('Admin/AuthenticationModule/Index', [
             'summaryStats' => $this->getSummaryStats(),
             'overview' => [
@@ -290,7 +301,9 @@ class AuthLogController extends Controller
                 'failed_attempts_today' => $failedTodayCount,
                 'banned_ips_count'      => count($blockedIps),
                 'security_score'        => Setting::get('security_score', 88),
-            ]
+            ],
+            'recentFailedLogs' => $recentFailedLogs,
+            'lockedAccounts'   => $lockedAccounts,
         ]);
     }
 
