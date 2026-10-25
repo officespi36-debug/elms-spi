@@ -405,6 +405,18 @@ const submitCreateRole = () => {
     }
   })
 }
+const getRoleAccentBar = (role: string) => {
+  switch (role?.toLowerCase()) {
+    case 'admin':
+      return 'from-[#7c3aed] to-[#6366f1]'
+    case 'teacher':
+      return 'from-[#10b981] to-[#059669]'
+    case 'student':
+      return 'from-[#0284c7] to-[#2563eb]'
+    default:
+      return 'from-[#f97316] to-[#ea580c]'
+  }
+}
 </script>
 
 <template>
@@ -414,7 +426,7 @@ const submitCreateRole = () => {
       <AuthModuleHeader activeTab="roles" :summaryStats="props.summaryStats" />
 
       <!-- Section Actions Bar (Clean, with Flaticon vector icon) -->
-      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white dark:bg-slate-900/60 p-3.5 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-md">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
         <div class="flex items-center gap-3">
           <div class="w-9 h-9 rounded-xl bg-indigo-500/15 border border-indigo-500/30 p-1.5 flex items-center justify-center shrink-0 shadow-inner">
             <img :src="'/images/nav/sub/roles.svg'" alt="Roles" class="w-5 h-5 object-contain" />
@@ -451,8 +463,10 @@ const submitCreateRole = () => {
         <div
           v-for="item in props.rolesPermissions"
           :key="item.role"
-          class="bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800/90 rounded-2xl p-4 space-y-3 flex flex-col justify-between backdrop-blur-xl hover:border-indigo-500/40 transition-all group shadow-sm dark:shadow-md"
+          class="relative overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-3 flex flex-col justify-between shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all group cursor-pointer"
         >
+          <!-- Top Accent Bar Matching Dashboard -->
+          <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r" :class="getRoleAccentBar(item.role)"></div>
           <div>
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
@@ -527,7 +541,7 @@ const submitCreateRole = () => {
       </div>
 
       <!-- ULTRA-PREMIUM PERMISSION MATRIX SECTION WITH FLATICON VECTORS -->
-      <div class="bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 backdrop-blur-xl shadow-sm dark:shadow-2xl">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 shadow-xs">
         <!-- Matrix Top Controls: Search Filter & Global Actions -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800/80 pb-4">
           <div class="space-y-1">
@@ -591,7 +605,7 @@ const submitCreateRole = () => {
         </div>
 
         <!-- Sticky Header Matrix Table with Flaticon Vectors -->
-        <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800/90 bg-white dark:bg-slate-950/70 max-h-[620px] custom-scrollbar shadow-sm dark:shadow-inner">
+        <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 max-h-[620px] custom-scrollbar shadow-xs">
           <table class="w-full text-left border-collapse">
             <!-- STICKY TABLE HEADER WITH ROLE THEME ACCENTS -->
             <thead class="sticky top-0 z-30 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200 dark:border-slate-700/80 shadow-md">
