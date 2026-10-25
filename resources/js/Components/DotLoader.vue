@@ -69,15 +69,15 @@ const dotGapClass = computed(() => {
   border-radius: 9999px;
   background-color: #334155;
   flex-shrink: 0;
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease, box-shadow 0.2s ease;
-  animation: dotTravel 0.95s infinite cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.15s ease, box-shadow 0.15s ease;
+  animation: dotTravel 0.52s infinite cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform, background-color, box-shadow;
 }
 
 .dot-1 { animation-delay: 0s; }
-.dot-2 { animation-delay: 0.22s; }
-.dot-3 { animation-delay: 0.44s; }
-.dot-4 { animation-delay: 0.66s; }
+.dot-2 { animation-delay: 0.12s; }
+.dot-3 { animation-delay: 0.24s; }
+.dot-4 { animation-delay: 0.36s; }
 
 @keyframes dotTravel {
   0%, 40%, 100% {

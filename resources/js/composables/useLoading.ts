@@ -16,14 +16,18 @@ export function useLoading() {
     isLoading.value = true
   }
 
-  const hideLoading = (minDisplayMs: number = 100) => {
+  const hideLoading = (minDisplayMs: number = 0) => {
     clearTimeout(showTimer)
     const elapsed = Date.now() - showStartTime
     const remaining = Math.max(0, minDisplayMs - elapsed)
     clearTimeout(finishTimer)
-    finishTimer = setTimeout(() => {
+    if (remaining === 0) {
       isLoading.value = false
-    }, remaining)
+    } else {
+      finishTimer = setTimeout(() => {
+        isLoading.value = false
+      }, remaining)
+    }
   }
 
   return {
@@ -41,25 +45,16 @@ if (typeof window !== 'undefined') {
     clearTimeout(finishTimer)
     showStartTime = Date.now()
     loadingText.value = ''
-    // Only display full overlay if transition takes more than 100ms (prevents jarring flash on quick local/cached visits)
+    // Only display full overlay if transition takes more than 220ms (prevents jarring flash on quick local/cached visits)
     showTimer = setTimeout(() => {
       isLoading.value = true
-    }, 100)
+    }, 220)
   })
 
   const endLoading = () => {
     clearTimeout(showTimer)
-    if (isLoading.value) {
-      // If already shown, close smoothly with tiny buffer so it does not flicker
-      const elapsed = Date.now() - showStartTime
-      const remaining = Math.max(0, 120 - elapsed)
-      clearTimeout(finishTimer)
-      finishTimer = setTimeout(() => {
-        isLoading.value = false
-      }, remaining)
-    } else {
-      isLoading.value = false
-    }
+    clearTimeout(finishTimer)
+    isLoading.value = false
   }
 
   router.on('finish', endLoading)

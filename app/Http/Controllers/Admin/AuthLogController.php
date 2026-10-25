@@ -10,11 +10,23 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Services\EmergencyAlertService;
+use Illuminate\Support\Facades\Cache;
 
 class AuthLogController extends Controller
 {
+    private static bool $sampleDataEnsured = false;
+
     private function ensureSampleDataExists()
     {
+        if (self::$sampleDataEnsured) {
+            return;
+        }
+        self::$sampleDataEnsured = true;
+
+        if (Cache::has('auth_sample_data_ensured')) {
+            return;
+        }
+
         if (AuthLog::count() < 5) {
             $admin = User::where('role', 'admin')->first();
             $teacher = User::where('role', 'teacher')->first();
@@ -164,9 +176,10 @@ class AuthLogController extends Controller
                 'Mozilla/5.0 (X11; Linux x86_64) hydra/9.1',
                 'Nikto/2.1.6 Vulnerability Scanner'
             ];
+            $bulkFailed = [];
             for ($i = 0; $i < $neededFailed; $i++) {
                 $idx = $i % count($botIps);
-                AuthLog::create([
+                $bulkFailed[] = [
                     'user_id'    => null,
                     'email'      => 'admin_' . $i . '@elms.edu.kh',
                     'ip_address' => $botIps[$idx],
@@ -176,7 +189,11 @@ class AuthLogController extends Controller
                     'status'     => 'failed',
                     'location'   => $locations[$idx],
                     'created_at' => now()->subMinutes(rand(5, 720)),
-                ]);
+                    'updated_at' => now(),
+                ];
+            }
+            if (!empty($bulkFailed)) {
+                AuthLog::insert($bulkFailed);
             }
         }
 
@@ -210,43 +227,47 @@ class AuthLogController extends Controller
                 ]);
             }
         }
+
+        Cache::put('auth_sample_data_ensured', true, now()->addMinutes(10));
     }
 
     private function getSummaryStats()
     {
         $this->ensureSampleDataExists();
 
-        $customRoles = Setting::get('custom_roles', []);
-        $totalRoles = 3 + count($customRoles);
+        return Cache::remember('auth_module_summary_stats', 30, function () {
+            $customRoles = Setting::get('custom_roles', []);
+            $totalRoles = 3 + count($customRoles);
 
-        $activeSessionsCount = JwtSession::where('is_revoked', false)
-            ->where('expires_at', '>', now())
-            ->count();
+            $activeSessionsCount = JwtSession::where('is_revoked', false)
+                ->where('expires_at', '>', now())
+                ->count();
 
-        $failedTodayCount = AuthLog::where('status', 'failed')->count();
+            $failedTodayCount = AuthLog::where('status', 'failed')->count();
 
-        $lockedUsersCount = User::where(function ($q) {
-            $q->where('login_attempts', '>=', Setting::get('max_failed_attempts', 5))
-              ->orWhere('locked_until', '>', now())
-              ->orWhere('status', 'suspended');
-        })->count();
+            $lockedUsersCount = User::where(function ($q) {
+                $q->where('login_attempts', '>=', Setting::get('max_failed_attempts', 5))
+                  ->orWhere('locked_until', '>', now())
+                  ->orWhere('status', 'suspended');
+            })->count();
 
-        $threatLevel = 'Low';
-        if ($failedTodayCount > 10 || $lockedUsersCount > 5) {
-            $threatLevel = 'Critical';
-        } elseif ($failedTodayCount > 5 || $lockedUsersCount > 2) {
-            $threatLevel = 'High';
-        } elseif ($failedTodayCount > 0 || $lockedUsersCount > 0) {
-            $threatLevel = 'Medium';
-        }
+            $threatLevel = 'Low';
+            if ($failedTodayCount > 10 || $lockedUsersCount > 5) {
+                $threatLevel = 'Critical';
+            } elseif ($failedTodayCount > 5 || $lockedUsersCount > 2) {
+                $threatLevel = 'High';
+            } elseif ($failedTodayCount > 0 || $lockedUsersCount > 0) {
+                $threatLevel = 'Medium';
+            }
 
-        return [
-            'total_roles'           => $totalRoles,
-            'active_sessions_count' => $activeSessionsCount,
-            'failed_logins_today'   => $failedTodayCount,
-            'locked_accounts_count' => $lockedUsersCount,
-            'threat_level'          => $threatLevel,
-        ];
+            return [
+                'total_roles'           => $totalRoles,
+                'active_sessions_count' => $activeSessionsCount,
+                'failed_logins_today'   => $failedTodayCount,
+                'locked_accounts_count' => $lockedUsersCount,
+                'threat_level'          => $threatLevel,
+            ];
+        });
     }
 
     public function index(Request $request)
@@ -503,12 +524,19 @@ class AuthLogController extends Controller
         ]);
     }
 
+    private function invalidateAuthCache(): void
+    {
+        Cache::forget('auth_module_summary_stats');
+    }
+
     public function revokeSession($id)
     {
         $session = JwtSession::find($id);
         if ($session) {
             $session->update(['is_revoked' => true]);
         }
+
+        $this->invalidateAuthCache();
 
         AuthLog::create([
             'user_id'    => auth()->id(),
@@ -525,6 +553,8 @@ class AuthLogController extends Controller
     public function revokeAllSessions()
     {
         JwtSession::where('is_revoked', false)->update(['is_revoked' => true]);
+
+        $this->invalidateAuthCache();
 
         AuthLog::create([
             'user_id'    => auth()->id(),
@@ -545,6 +575,8 @@ class AuthLogController extends Controller
             'locked_until'   => null,
             'status'         => 'active',
         ]);
+
+        $this->invalidateAuthCache();
 
         AuthLog::create([
             'user_id'    => auth()->id(),
@@ -568,6 +600,8 @@ class AuthLogController extends Controller
                 'locked_until'   => null,
                 'status'         => 'active',
             ]);
+
+        $this->invalidateAuthCache();
 
         AuthLog::create([
             'user_id'    => auth()->id(),

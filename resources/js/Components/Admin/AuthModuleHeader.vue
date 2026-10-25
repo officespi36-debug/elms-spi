@@ -147,6 +147,7 @@ const handleUnlockAll = () => {
       <!-- Card 1: Total Roles ➔ iOS Purple/Indigo Widget -->
       <Link
         href="/admin/auth/roles"
+        prefetch
         class="relative overflow-hidden rounded-3xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/90 p-5 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group cursor-pointer backdrop-blur-xl"
         :title="i18n.t('auth_card1_btn', 'Manage Roles & Permissions in Sidebar')"
       >
@@ -185,6 +186,7 @@ const handleUnlockAll = () => {
       <!-- Card 2: Active Sessions ➔ iOS Emerald Green Widget -->
       <Link
         href="/admin/auth/sessions"
+        prefetch
         class="relative overflow-hidden rounded-3xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/90 p-5 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group cursor-pointer backdrop-blur-xl"
         :title="i18n.t('auth_card2_btn', 'Monitor Active Sessions')"
       >
@@ -226,6 +228,7 @@ const handleUnlockAll = () => {
       <!-- Card 3: Failed Logins Today ➔ iOS Amber/Orange Widget -->
       <Link
         href="/admin/auth/history?filter=failed"
+        prefetch
         class="relative overflow-hidden rounded-3xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/90 p-5 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group cursor-pointer backdrop-blur-xl"
         :title="i18n.t('auth_card4_btn', 'Investigate Threat Logs in Login History')"
       >
@@ -307,6 +310,7 @@ const handleUnlockAll = () => {
       <!-- Tab 1: Overview Hub -->
       <Link
         href="/admin/auth-logs"
+        prefetch
         :class="[
           activeTab === 'overview'
             ? 'bg-white text-slate-900 dark:bg-[#007AFF] dark:text-white shadow-sm font-bold'
@@ -322,6 +326,7 @@ const handleUnlockAll = () => {
       <!-- Tab 2: Active Sessions (With Telegram Vibrant Blue Badge) -->
       <Link
         href="/admin/auth/sessions"
+        prefetch
         :class="[
           activeTab === 'sessions'
             ? 'bg-white text-slate-900 dark:bg-[#007AFF] dark:text-white shadow-sm font-bold'
@@ -343,6 +348,7 @@ const handleUnlockAll = () => {
       <!-- Tab 3: Login History -->
       <Link
         href="/admin/auth/history"
+        prefetch
         :class="[
           activeTab === 'history' || activeTab === 'failed'
             ? 'bg-white text-slate-900 dark:bg-[#007AFF] dark:text-white shadow-sm font-bold'
@@ -358,6 +364,7 @@ const handleUnlockAll = () => {
       <!-- Tab 4: Security Policies -->
       <Link
         href="/admin/auth/policies"
+        prefetch
         :class="[
           activeTab === 'policies'
             ? 'bg-white text-slate-900 dark:bg-[#007AFF] dark:text-white shadow-sm font-bold'
@@ -373,6 +380,7 @@ const handleUnlockAll = () => {
       <!-- Tab 5: Security Audit -->
       <Link
         href="/admin/auth/cyber-security"
+        prefetch
         :class="[
           activeTab === 'cyber-security' || activeTab === 'audit'
             ? 'bg-white text-slate-900 dark:bg-[#007AFF] dark:text-white shadow-sm font-bold'

@@ -40,6 +40,7 @@ const stats = props.overview || {
         <!-- 1. Roles & Permissions Card -->
         <Link
           href="/admin/auth/roles"
+          prefetch
           class="relative overflow-hidden bg-white/90 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/90 rounded-3xl p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group shadow-xs backdrop-blur-xl h-full cursor-pointer"
         >
           <div>
@@ -92,6 +93,7 @@ const stats = props.overview || {
         <!-- 2. Active Sessions Card -->
         <Link
           href="/admin/auth/sessions"
+          prefetch
           class="relative overflow-hidden bg-white/90 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/90 rounded-3xl p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group shadow-xs backdrop-blur-xl h-full cursor-pointer"
         >
           <div>
@@ -152,6 +154,7 @@ const stats = props.overview || {
         <!-- 3. Login History Card -->
         <Link
           href="/admin/auth/history"
+          prefetch
           class="relative overflow-hidden bg-white/90 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/90 rounded-3xl p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group shadow-xs backdrop-blur-xl h-full cursor-pointer"
         >
           <div>
@@ -204,6 +207,7 @@ const stats = props.overview || {
         <!-- 4. Failed Login Attempts Card -->
         <Link
           href="/admin/auth/history?filter=failed"
+          prefetch
           class="relative overflow-hidden bg-white/90 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/90 rounded-3xl p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group shadow-xs backdrop-blur-xl h-full cursor-pointer"
         >
           <div>
@@ -260,6 +264,7 @@ const stats = props.overview || {
         <!-- 5. Security Policies Card -->
         <Link
           href="/admin/auth/policies"
+          prefetch
           class="relative overflow-hidden bg-white/90 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/90 rounded-3xl p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group shadow-xs backdrop-blur-xl h-full cursor-pointer"
         >
           <div>
@@ -313,6 +318,7 @@ const stats = props.overview || {
         <!-- 6. Security Audit & Cyber Forensics Card -->
         <Link
           href="/admin/auth/cyber-security"
+          prefetch
           class="relative overflow-hidden bg-white/90 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/90 rounded-3xl p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group shadow-xs backdrop-blur-xl h-full cursor-pointer"
         >
           <div>

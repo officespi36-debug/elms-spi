@@ -1274,6 +1274,7 @@ onUnmounted(() => {
                     <!-- Submenu Link / Pill Container -->
                     <Link
                       :href="sub.href"
+                      prefetch
                       :class="[
                         isSubActive(sub.href) 
                           ? 'bg-[#0c1f3d] border border-blue-500/50 text-white font-bold shadow-md shadow-blue-950/40 rounded-2xl' 

@@ -8,10 +8,10 @@ const { isLoading, loadingText } = useLoading()
 <template>
   <Teleport to="body">
     <Transition
-      enter-active-class="transition-opacity duration-150 ease-out"
+      enter-active-class="transition-opacity duration-100 ease-out"
       enter-from-class="opacity-0"
       enter-to-class="opacity-100"
-      leave-active-class="transition-opacity duration-150 ease-in"
+      leave-active-class="transition-opacity duration-75 ease-in"
       leave-from-class="opacity-100"
       leave-to-class="opacity-0"
     >
