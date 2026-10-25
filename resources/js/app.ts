@@ -119,14 +119,13 @@ createInertiaApp({
     if (typeof window !== 'undefined') {
       const preloader = document.getElementById('initial-page-preloader')
       if (preloader) {
-        // Keep visible for at least 800ms so user can comfortably see the 4-dot animation
         setTimeout(() => {
-          preloader.style.transition = 'opacity 0.45s ease-out'
+          preloader.style.transition = 'opacity 0.25s ease-out'
           preloader.style.opacity = '0'
           setTimeout(() => {
             try { preloader.remove() } catch (e) {}
-          }, 450)
-        }, 800)
+          }, 250)
+        }, 100)
       }
     }
   },

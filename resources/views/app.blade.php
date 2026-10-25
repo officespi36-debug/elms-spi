@@ -212,10 +212,10 @@
     <div id="initial-page-preloader"
         style="position: fixed; inset: 0; z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #0b132b; transition: opacity 0.45s ease-out; pointer-events: none;">
         <div style="display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 16px;">
-            <span class="init-dot init-dot-1" style="width: 18px; height: 18px; border-radius: 50%; background: #334155; animation: initDotTravel 1.6s infinite ease-in-out; animation-delay: 0s; display: inline-block;"></span>
-            <span class="init-dot init-dot-2" style="width: 18px; height: 18px; border-radius: 50%; background: #334155; animation: initDotTravel 1.6s infinite ease-in-out; animation-delay: 0.35s; display: inline-block;"></span>
-            <span class="init-dot init-dot-3" style="width: 18px; height: 18px; border-radius: 50%; background: #334155; animation: initDotTravel 1.6s infinite ease-in-out; animation-delay: 0.70s; display: inline-block;"></span>
-            <span class="init-dot init-dot-4" style="width: 18px; height: 18px; border-radius: 50%; background: #334155; animation: initDotTravel 1.6s infinite ease-in-out; animation-delay: 1.05s; display: inline-block;"></span>
+            <span class="init-dot init-dot-1" style="width: 18px; height: 18px; border-radius: 50%; background: #334155; animation: initDotTravel 0.52s infinite ease-in-out; animation-delay: 0s; display: inline-block;"></span>
+            <span class="init-dot init-dot-2" style="width: 18px; height: 18px; border-radius: 50%; background: #334155; animation: initDotTravel 0.52s infinite ease-in-out; animation-delay: 0.12s; display: inline-block;"></span>
+            <span class="init-dot init-dot-3" style="width: 18px; height: 18px; border-radius: 50%; background: #334155; animation: initDotTravel 0.52s infinite ease-in-out; animation-delay: 0.24s; display: inline-block;"></span>
+            <span class="init-dot init-dot-4" style="width: 18px; height: 18px; border-radius: 50%; background: #334155; animation: initDotTravel 0.52s infinite ease-in-out; animation-delay: 0.36s; display: inline-block;"></span>
         </div>
         <p id="initial-preloader-text" style="margin: 0; font-family: 'Plus Jakarta Sans', 'Kantumruy Pro', system-ui, -apple-system, sans-serif; font-size: 14px; font-weight: 600; color: #cbd5e1; letter-spacing: 0.4px;">
             សូមរង់ចាំ កំពុងដំណើរការ...
@@ -234,17 +234,17 @@
     </script>
     <style>
         @keyframes initDotTravel {
-            0%, 35%, 100% {
+            0%, 40%, 100% {
                 background-color: #334155;
                 transform: scale(0.9);
-                opacity: 0.65;
+                opacity: 0.6;
                 box-shadow: none;
             }
-            15% {
+            20% {
                 background-color: #f97316;
-                transform: scale(1.22);
+                transform: scale(1.24);
                 opacity: 1;
-                box-shadow: 0 0 16px rgba(249, 115, 22, 0.8);
+                box-shadow: 0 0 16px rgba(249, 115, 22, 0.85);
             }
         }
     </style>

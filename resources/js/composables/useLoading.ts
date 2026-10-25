@@ -1,5 +1,4 @@
 import { ref } from 'vue'
-import { router } from '@inertiajs/vue3'
 
 const isLoading = ref(false)
 const loadingText = ref<string>('')
@@ -38,30 +37,3 @@ export function useLoading() {
   }
 }
 
-// Hook into Inertia visit lifecycle for fast, responsive and ultra-smooth page transitions
-if (typeof window !== 'undefined') {
-  router.on('start', () => {
-    clearTimeout(showTimer)
-    clearTimeout(finishTimer)
-    showStartTime = Date.now()
-    loadingText.value = ''
-    // Only display full overlay if transition takes more than 220ms (prevents jarring flash on quick local/cached visits)
-    showTimer = setTimeout(() => {
-      isLoading.value = true
-    }, 220)
-  })
-
-  const endLoading = () => {
-    clearTimeout(showTimer)
-    clearTimeout(finishTimer)
-    isLoading.value = false
-  }
-
-  router.on('finish', endLoading)
-  router.on('error', endLoading)
-  router.on('cancel', () => {
-    clearTimeout(showTimer)
-    clearTimeout(finishTimer)
-    isLoading.value = false
-  })
-}
