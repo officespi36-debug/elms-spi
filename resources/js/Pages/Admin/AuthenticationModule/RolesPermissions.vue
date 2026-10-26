@@ -729,7 +729,7 @@ const getRoleAccentBar = (role: string) => {
                           <span
                             :class="[
                               isPermActive(r.role, perm) ? 'translate-x-5 bg-white' : 'translate-x-0.5 bg-white dark:bg-slate-400 shadow-sm',
-                              'pointer-events-none inline-block h-4 w-4 transform rounded-full shadow transition duration-200 ease-in-out my-auto font-bold text-[10px] flex items-center justify-center'
+                              'pointer-events-none inline-flex h-4 w-4 transform rounded-full shadow transition duration-200 ease-in-out my-auto font-bold text-[10px] items-center justify-center'
                             ]"
                           >
                             <svg v-if="isPermActive(r.role, perm)" class="w-2.5 h-2.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">

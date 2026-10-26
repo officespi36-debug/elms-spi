@@ -542,7 +542,10 @@ class AuthLogController extends Controller
         Cache::forget('auth_module_summary_stats');
     }
 
-    public function revokeSession($id)
+    /**
+     * @param int|string $id
+     */
+    public function revokeSession(int|string $id)
     {
         $session = JwtSession::find($id);
         if ($session) {
