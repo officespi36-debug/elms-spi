@@ -68,11 +68,11 @@ const handleUnlockAll = () => {
 <template>
   <div class="space-y-4 font-sans">
     <!-- ── 1. EXECUTIVE COMMAND HEADER (DUAL LIGHT & DARK MODE) ── -->
-    <div class="relative overflow-hidden bg-white dark:bg-[#111622] rounded-2xl border border-slate-200/80 dark:border-[#1E2638] p-5 sm:p-6 shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] text-slate-900 dark:text-[#F1F5F9] transition-colors">
+    <div class="relative overflow-hidden bg-white dark:bg-[#0E1524] rounded-xl border border-slate-200/80 dark:border-[#1E293B] p-5 sm:p-6 shadow-[0_1px_3px_0_rgba(15,23,42,0.05)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)] text-slate-900 dark:text-[#F8FAFC] transition-colors">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
         <div class="flex items-center gap-3.5 sm:gap-4">
           <!-- Subtle Security Icon Container -->
-          <div class="w-11 h-11 rounded-xl bg-slate-100 dark:bg-[#0E131E] border border-slate-200 dark:border-[#1E2638] flex items-center justify-center p-2 shrink-0 text-slate-700 dark:text-slate-200 transition-colors">
+          <div class="w-11 h-11 rounded-lg bg-slate-100 dark:bg-[#080C14] border border-slate-200 dark:border-[#1E293B] flex items-center justify-center p-2 shrink-0 text-slate-700 dark:text-slate-200 transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-indigo-600 dark:text-indigo-400" viewBox="0 0 24 24" fill="currentColor">
               <path fill-rule="evenodd" d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z" clip-rule="evenodd" />
             </svg>
@@ -80,14 +80,14 @@ const handleUnlockAll = () => {
 
           <div>
             <div class="flex items-center gap-2 flex-wrap">
-              <h1 class="text-xl font-semibold text-slate-900 dark:text-[#F1F5F9] tracking-tight">
+              <h1 class="text-lg font-semibold text-slate-900 dark:text-[#F8FAFC] tracking-tight leading-6">
                 {{ i18n.t('auth_module_title', 'Authentication & Access') }}
               </h1>
-              <span class="px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider bg-slate-100 dark:bg-[#0E131E] text-slate-600 dark:text-[#94A3B8] border border-slate-200 dark:border-[#1E2638] rounded-md font-mono">
+              <span class="px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider bg-slate-100 dark:bg-[#080C14] text-slate-600 dark:text-[#94A3B8] border border-slate-200 dark:border-[#1E293B] rounded-md font-mono">
                 {{ i18n.t('auth_security_control_only', 'Security Control Only') }}
               </span>
             </div>
-            <p class="text-sm text-slate-500 dark:text-[#94A3B8] mt-1 font-normal leading-relaxed">
+            <p class="text-xs text-slate-500 dark:text-[#94A3B8] mt-1 font-normal leading-relaxed">
               {{ i18n.t('auth_header_desc', 'Manage system security, role access matrix (RBAC), active sessions, login history, and security policies') }}
             </p>
           </div>
@@ -98,7 +98,7 @@ const handleUnlockAll = () => {
           <button
             type="button"
             @click="isReviewModalOpen = true"
-            class="px-3.5 py-1.5 rounded-lg text-xs font-medium border flex items-center gap-2.5 transition-all cursor-pointer shadow-xs"
+            class="px-3.5 py-1.5 rounded-md text-xs font-medium border flex items-center gap-2.5 transition-all cursor-pointer shadow-xs"
             :class="(stats.failed_logins_today || 0) > 0 || (stats.locked_accounts_count || 0) > 0
               ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100 dark:bg-[#EF4444]/10 dark:text-[#EF4444] dark:border-[#EF4444]/25 dark:hover:bg-[#EF4444]/20'
               : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 dark:bg-[#10B981]/10 dark:text-[#10B981] dark:border-[#10B981]/25 dark:hover:bg-[#10B981]/20'"
@@ -115,7 +115,7 @@ const handleUnlockAll = () => {
               ></span>
             </span>
             <span class="font-semibold uppercase tracking-wider font-mono">{{ stats.threat_level || 'CRITICAL' }}</span>
-            <span class="text-slate-300 dark:text-[#1E2638]">|</span>
+            <span class="text-slate-300 dark:text-[#1E293B]">|</span>
             <span class="text-[11px] text-slate-600 dark:text-[#94A3B8]">
               {{ (stats.failed_logins_today || 0) > 0 ? i18n.t('auth_review_required', 'Review Incidents') : 'Normal Guard' }}
             </span>
@@ -124,13 +124,13 @@ const handleUnlockAll = () => {
       </div>
     </div>
 
-    <!-- ── 2. TOP 4 KPI CARDS (DUAL LIGHT & DARK SURFACE CARDS) ── -->
+    <!-- ── 2. TOP 4 KPI CARDS (8PX CORNERS, DUAL LIGHT & DARK TOKENS) ── -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       
       <!-- Card 1: Total Roles -->
       <Link
         href="/admin/auth/roles"
-        class="bg-white dark:bg-[#111622] border border-slate-200/80 dark:border-[#1E2638] hover:border-slate-300 dark:hover:border-slate-600 rounded-2xl p-5 transition-all duration-150 shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] group cursor-pointer flex flex-col justify-between"
+        class="bg-white dark:bg-[#0E1524] border border-slate-200/80 dark:border-[#1E293B] hover:border-slate-300 dark:hover:border-slate-700 rounded-lg p-5 transition-all duration-150 shadow-[0_1px_3px_0_rgba(15,23,42,0.05)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)] group cursor-pointer flex flex-col justify-between"
         :title="i18n.t('auth_card1_btn', 'Manage Roles & Permissions Matrix')"
       >
         <div>
@@ -139,7 +139,7 @@ const handleUnlockAll = () => {
             <span class="text-xs font-medium tracking-wide uppercase text-slate-500 dark:text-[#94A3B8]">
               {{ i18n.t('auth_total_roles', 'TOTAL ROLES') }}
             </span>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-[#10B981]/12 dark:text-[#10B981] dark:border-[#10B981]/25 flex items-center gap-1.5">
+            <span class="px-2 py-0.5 rounded-md text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-[#10B981]/12 dark:text-[#10B981] dark:border-[#10B981]/25 flex items-center gap-1.5">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-[#10B981]"></span>
               {{ i18n.t('auth_rbac_active', 'RBAC Active') }}
             </span>
@@ -147,7 +147,7 @@ const handleUnlockAll = () => {
 
           <!-- Middle Row: Large Value + Context -->
           <div class="my-3 flex items-baseline gap-2.5">
-            <h4 class="text-2xl font-bold font-mono tracking-tight text-slate-900 dark:text-[#F1F5F9]">
+            <h4 class="text-2xl font-bold font-mono tracking-tight text-slate-900 dark:text-[#F8FAFC]">
               {{ Number(stats.total_roles || 3).toLocaleString() }}
             </h4>
             <span class="text-xs font-normal text-slate-500 dark:text-[#94A3B8]">System Roles</span>
@@ -155,7 +155,7 @@ const handleUnlockAll = () => {
         </div>
 
         <!-- Bottom Row: Contextual Micro-copy (Interactive Micro-link) -->
-        <div class="pt-2.5 border-t border-slate-100 dark:border-[#1E2638] text-xs">
+        <div class="pt-2.5 border-t border-slate-100 dark:border-[#1E293B] text-xs">
           <span class="truncate text-slate-500 dark:text-[#94A3B8] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 group-hover:underline transition-colors flex items-center justify-between">
             <span>Admin, Teacher, and Student access</span>
             <span class="font-mono text-[11px] opacity-70">→</span>
@@ -166,7 +166,7 @@ const handleUnlockAll = () => {
       <!-- Card 2: Active Sessions -->
       <Link
         href="/admin/auth/sessions"
-        class="bg-white dark:bg-[#111622] border border-slate-200/80 dark:border-[#1E2638] hover:border-slate-300 dark:hover:border-slate-600 rounded-2xl p-5 transition-all duration-150 shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] group cursor-pointer flex flex-col justify-between"
+        class="bg-white dark:bg-[#0E1524] border border-slate-200/80 dark:border-[#1E293B] hover:border-slate-300 dark:hover:border-slate-700 rounded-lg p-5 transition-all duration-150 shadow-[0_1px_3px_0_rgba(15,23,42,0.05)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)] group cursor-pointer flex flex-col justify-between"
         :title="i18n.t('auth_card2_btn', 'Monitor Active Sessions')"
       >
         <div>
@@ -175,7 +175,7 @@ const handleUnlockAll = () => {
             <span class="text-xs font-medium tracking-wide uppercase text-slate-500 dark:text-[#94A3B8]">
               {{ i18n.t('auth_active_sessions', 'ACTIVE SESSIONS') }}
             </span>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-[#10B981]/12 dark:text-[#10B981] dark:border-[#10B981]/25 flex items-center gap-1.5">
+            <span class="px-2 py-0.5 rounded-md text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-[#10B981]/12 dark:text-[#10B981] dark:border-[#10B981]/25 flex items-center gap-1.5">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-[#10B981] animate-pulse"></span>
               {{ i18n.t('auth_live_sessions', 'Live Monitor') }}
             </span>
@@ -183,7 +183,7 @@ const handleUnlockAll = () => {
 
           <!-- Middle Row: Large Value + Context -->
           <div class="my-3 flex items-baseline gap-2.5">
-            <h4 class="text-2xl font-bold font-mono tracking-tight text-slate-900 dark:text-[#F1F5F9]">
+            <h4 class="text-2xl font-bold font-mono tracking-tight text-slate-900 dark:text-[#F8FAFC]">
               {{ Number(stats.active_sessions_count || 7).toLocaleString() }}
             </h4>
             <span class="text-xs font-normal text-slate-500 dark:text-[#94A3B8]">Online Now</span>
@@ -191,7 +191,7 @@ const handleUnlockAll = () => {
         </div>
 
         <!-- Bottom Row: Contextual Micro-copy (Interactive Micro-link) -->
-        <div class="pt-2.5 border-t border-slate-100 dark:border-[#1E2638] text-xs">
+        <div class="pt-2.5 border-t border-slate-100 dark:border-[#1E293B] text-xs">
           <span class="truncate text-slate-500 dark:text-[#94A3B8] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 group-hover:underline transition-colors flex items-center justify-between">
             <span>Across desktop & mobile JWT tokens</span>
             <span class="font-mono text-[11px] opacity-70">→</span>
@@ -202,7 +202,7 @@ const handleUnlockAll = () => {
       <!-- Card 3: Failed Logins Today -->
       <Link
         href="/admin/auth/history?filter=failed"
-        class="bg-white dark:bg-[#111622] border border-slate-200/80 dark:border-[#1E2638] hover:border-slate-300 dark:hover:border-slate-600 rounded-2xl p-5 transition-all duration-150 shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] group cursor-pointer flex flex-col justify-between"
+        class="bg-white dark:bg-[#0E1524] border border-slate-200/80 dark:border-[#1E293B] hover:border-slate-300 dark:hover:border-slate-700 rounded-lg p-5 transition-all duration-150 shadow-[0_1px_3px_0_rgba(15,23,42,0.05)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)] group cursor-pointer flex flex-col justify-between"
         :title="i18n.t('auth_card4_btn', 'Investigate Threat Logs in Login History')"
       >
         <div>
@@ -211,7 +211,7 @@ const handleUnlockAll = () => {
             <span class="text-xs font-medium tracking-wide uppercase text-slate-500 dark:text-[#94A3B8]">
               {{ i18n.t('auth_failed_logins_today', 'FAILED LOGINS TODAY') }}
             </span>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200 dark:bg-[#F59E0B]/12 dark:text-[#F59E0B] dark:border-[#F59E0B]/25 flex items-center gap-1.5">
+            <span class="px-2 py-0.5 rounded-md text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200 dark:bg-[#F59E0B]/12 dark:text-[#F59E0B] dark:border-[#F59E0B]/25 flex items-center gap-1.5">
               <span class="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-[#F59E0B]"></span>
               {{ i18n.t('auth_audit_required', 'Audit Required') }}
             </span>
@@ -219,7 +219,7 @@ const handleUnlockAll = () => {
 
           <!-- Middle Row: Large Value + Trend -->
           <div class="my-3 flex items-baseline gap-2.5">
-            <h4 class="text-2xl font-bold font-mono tracking-tight text-slate-900 dark:text-[#F1F5F9]">
+            <h4 class="text-2xl font-bold font-mono tracking-tight text-slate-900 dark:text-[#F8FAFC]">
               {{ Number(stats.failed_logins_today || 65).toLocaleString() }}
             </h4>
             <span class="text-xs font-normal text-slate-500 dark:text-[#94A3B8]">+12% vs yesterday</span>
@@ -227,7 +227,7 @@ const handleUnlockAll = () => {
         </div>
 
         <!-- Bottom Row: Contextual Micro-copy (Interactive Micro-link) -->
-        <div class="pt-2.5 border-t border-slate-100 dark:border-[#1E2638] text-xs">
+        <div class="pt-2.5 border-t border-slate-100 dark:border-[#1E293B] text-xs">
           <span class="truncate text-slate-500 dark:text-[#94A3B8] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 group-hover:underline transition-colors flex items-center justify-between">
             <span>Across 3 distinct IP addresses</span>
             <span class="font-mono text-[11px] opacity-70">→</span>
@@ -239,7 +239,7 @@ const handleUnlockAll = () => {
       <button
         type="button"
         @click="isReviewModalOpen = true"
-        class="bg-white dark:bg-[#111622] border border-slate-200/80 dark:border-[#1E2638] hover:border-slate-300 dark:hover:border-slate-600 rounded-2xl p-5 transition-all duration-150 shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] group cursor-pointer flex flex-col justify-between text-left"
+        class="bg-white dark:bg-[#0E1524] border border-slate-200/80 dark:border-[#1E293B] hover:border-slate-300 dark:hover:border-slate-700 rounded-lg p-5 transition-all duration-150 shadow-[0_1px_3px_0_rgba(15,23,42,0.05)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)] group cursor-pointer flex flex-col justify-between text-left"
         :title="i18n.t('auth_locked_accounts_btn', 'Click to Review & Unlock Accounts')"
       >
         <div>
@@ -248,7 +248,7 @@ const handleUnlockAll = () => {
             <span class="text-xs font-medium tracking-wide uppercase text-slate-500 dark:text-[#94A3B8]">
               {{ i18n.t('auth_locked_accounts', 'LOCKED ACCOUNTS') }}
             </span>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-800/80 dark:text-slate-300 dark:border-slate-700 flex items-center gap-1.5">
+            <span class="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-800/80 dark:text-slate-300 dark:border-slate-700 flex items-center gap-1.5">
               <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
               <span>Policy Lockout</span>
             </span>
@@ -257,7 +257,7 @@ const handleUnlockAll = () => {
           <!-- Middle Row: Large Value + Context -->
           <div class="my-3">
             <div class="flex items-baseline gap-2.5">
-              <h4 class="text-2xl font-bold font-mono tracking-tight text-slate-900 dark:text-[#F1F5F9]">
+              <h4 class="text-2xl font-bold font-mono tracking-tight text-slate-900 dark:text-[#F8FAFC]">
                 {{ Number(stats.locked_accounts_count || 14).toLocaleString() }}
               </h4>
               <span class="text-xs font-normal text-slate-500 dark:text-[#94A3B8]">Suspended</span>
@@ -269,7 +269,7 @@ const handleUnlockAll = () => {
         </div>
 
         <!-- Bottom Row: Contextual Micro-copy (Interactive Micro-link) -->
-        <div class="pt-2.5 border-t border-slate-100 dark:border-[#1E2638] text-xs">
+        <div class="pt-2.5 border-t border-slate-100 dark:border-[#1E293B] text-xs">
           <span class="truncate text-slate-500 dark:text-[#94A3B8] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 group-hover:underline transition-colors flex items-center justify-between">
             <span>Exceeded password threshold limit</span>
             <span class="font-mono text-[11px] opacity-70">→</span>
@@ -278,17 +278,17 @@ const handleUnlockAll = () => {
       </button>
     </div>
 
-    <!-- ── 3. SUB-NAVIGATION TABS (DUAL LIGHT & DARK ENTERPRISE STYLE) ── -->
-    <div class="p-1 bg-slate-100/80 dark:bg-[#111622] border border-slate-200/80 dark:border-[#1E2638] rounded-xl flex items-center gap-1 overflow-x-auto scrollbar-none shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]">
+    <!-- ── 3. SUB-NAVIGATION TABS (UNDERLINE INDICATOR STYLE - HIGH CLARITY) ── -->
+    <div class="border-b border-slate-200 dark:border-[#1E293B] flex items-center gap-1 sm:gap-4 overflow-x-auto scrollbar-none px-1 pt-1">
       
       <!-- Tab 1: Overview Hub -->
       <Link
         href="/admin/auth-logs"
         :class="[
           activeTab === 'overview'
-            ? 'bg-white dark:bg-[#1E2638] text-slate-900 dark:text-[#F1F5F9] border border-slate-200 dark:border-slate-700/80 font-medium shadow-xs'
-            : 'text-slate-600 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F1F5F9] hover:bg-white/60 dark:hover:bg-[#1E2638]/40 border border-transparent font-normal',
-          'px-3.5 py-1.5 text-xs rounded-lg transition-colors whitespace-nowrap flex items-center gap-2 shrink-0'
+            ? 'border-indigo-600 dark:border-indigo-400 text-slate-900 dark:text-[#F8FAFC] font-semibold'
+            : 'border-transparent text-slate-500 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F8FAFC] hover:border-slate-300 dark:hover:border-slate-700',
+          'border-b-2 px-3 py-2.5 text-xs transition-colors whitespace-nowrap flex items-center gap-2 shrink-0 -mb-[1px]'
         ]"
       >
         <img :src="'/images/nav/sub/overview.svg'" alt="Overview" class="w-3.5 h-3.5 object-contain opacity-80" />
@@ -300,16 +300,16 @@ const handleUnlockAll = () => {
         href="/admin/auth/sessions"
         :class="[
           activeTab === 'sessions'
-            ? 'bg-white dark:bg-[#1E2638] text-slate-900 dark:text-[#F1F5F9] border border-slate-200 dark:border-slate-700/80 font-medium shadow-xs'
-            : 'text-slate-600 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F1F5F9] hover:bg-white/60 dark:hover:bg-[#1E2638]/40 border border-transparent font-normal',
-          'px-3.5 py-1.5 text-xs rounded-lg transition-colors whitespace-nowrap flex items-center gap-2 shrink-0'
+            ? 'border-indigo-600 dark:border-indigo-400 text-slate-900 dark:text-[#F8FAFC] font-semibold'
+            : 'border-transparent text-slate-500 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F8FAFC] hover:border-slate-300 dark:hover:border-slate-700',
+          'border-b-2 px-3 py-2.5 text-xs transition-colors whitespace-nowrap flex items-center gap-2 shrink-0 -mb-[1px]'
         ]"
       >
         <img :src="'/images/nav/sub/sessions.svg'" alt="Sessions" class="w-3.5 h-3.5 object-contain opacity-80" />
         <span>{{ i18n.t('auth_tab_sessions', 'Active Sessions') }}</span>
         <span
-          class="px-1.5 py-0.2 text-[10px] font-mono rounded font-medium"
-          :class="activeTab === 'sessions' ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white' : 'bg-slate-200/80 dark:bg-slate-800 text-slate-600 dark:text-slate-400'"
+          class="px-1.5 py-0.2 text-[10px] font-mono rounded-md font-medium"
+          :class="activeTab === 'sessions' ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'"
         >
           {{ stats.active_sessions_count || 7 }}
         </span>
@@ -320,9 +320,9 @@ const handleUnlockAll = () => {
         href="/admin/auth/roles"
         :class="[
           activeTab === 'roles'
-            ? 'bg-white dark:bg-[#1E2638] text-slate-900 dark:text-[#F1F5F9] border border-slate-200 dark:border-slate-700/80 font-medium shadow-xs'
-            : 'text-slate-600 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F1F5F9] hover:bg-white/60 dark:hover:bg-[#1E2638]/40 border border-transparent font-normal',
-          'px-3.5 py-1.5 text-xs rounded-lg transition-colors whitespace-nowrap flex items-center gap-2 shrink-0'
+            ? 'border-indigo-600 dark:border-indigo-400 text-slate-900 dark:text-[#F8FAFC] font-semibold'
+            : 'border-transparent text-slate-500 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F8FAFC] hover:border-slate-300 dark:hover:border-slate-700',
+          'border-b-2 px-3 py-2.5 text-xs transition-colors whitespace-nowrap flex items-center gap-2 shrink-0 -mb-[1px]'
         ]"
       >
         <img :src="'/images/nav/sub/roles.svg'" alt="Roles" class="w-3.5 h-3.5 object-contain opacity-80" />
@@ -334,9 +334,9 @@ const handleUnlockAll = () => {
         href="/admin/auth/history"
         :class="[
           activeTab === 'history' || activeTab === 'failed'
-            ? 'bg-white dark:bg-[#1E2638] text-slate-900 dark:text-[#F1F5F9] border border-slate-200 dark:border-slate-700/80 font-medium shadow-xs'
-            : 'text-slate-600 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F1F5F9] hover:bg-white/60 dark:hover:bg-[#1E2638]/40 border border-transparent font-normal',
-          'px-3.5 py-1.5 text-xs rounded-lg transition-colors whitespace-nowrap flex items-center gap-2 shrink-0'
+            ? 'border-indigo-600 dark:border-indigo-400 text-slate-900 dark:text-[#F8FAFC] font-semibold'
+            : 'border-transparent text-slate-500 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F8FAFC] hover:border-slate-300 dark:hover:border-slate-700',
+          'border-b-2 px-3 py-2.5 text-xs transition-colors whitespace-nowrap flex items-center gap-2 shrink-0 -mb-[1px]'
         ]"
       >
         <img :src="'/images/nav/sub/history.svg'" alt="History" class="w-3.5 h-3.5 object-contain opacity-80" />
@@ -348,9 +348,9 @@ const handleUnlockAll = () => {
         href="/admin/auth/policies"
         :class="[
           activeTab === 'policies'
-            ? 'bg-white dark:bg-[#1E2638] text-slate-900 dark:text-[#F1F5F9] border border-slate-200 dark:border-slate-700/80 font-medium shadow-xs'
-            : 'text-slate-600 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F1F5F9] hover:bg-white/60 dark:hover:bg-[#1E2638]/40 border border-transparent font-normal',
-          'px-3.5 py-1.5 text-xs rounded-lg transition-colors whitespace-nowrap flex items-center gap-2 shrink-0'
+            ? 'border-indigo-600 dark:border-indigo-400 text-slate-900 dark:text-[#F8FAFC] font-semibold'
+            : 'border-transparent text-slate-500 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F8FAFC] hover:border-slate-300 dark:hover:border-slate-700',
+          'border-b-2 px-3 py-2.5 text-xs transition-colors whitespace-nowrap flex items-center gap-2 shrink-0 -mb-[1px]'
         ]"
       >
         <img :src="'/images/nav/sub/policies.svg'" alt="Policies" class="w-3.5 h-3.5 object-contain opacity-80" />
@@ -362,9 +362,9 @@ const handleUnlockAll = () => {
         href="/admin/auth/cyber-security"
         :class="[
           activeTab === 'cyber-security' || activeTab === 'audit'
-            ? 'bg-white dark:bg-[#1E2638] text-slate-900 dark:text-[#F1F5F9] border border-slate-200 dark:border-slate-700/80 font-medium shadow-xs'
-            : 'text-slate-600 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F1F5F9] hover:bg-white/60 dark:hover:bg-[#1E2638]/40 border border-transparent font-normal',
-          'px-3.5 py-1.5 text-xs rounded-lg transition-colors whitespace-nowrap flex items-center gap-2 shrink-0'
+            ? 'border-indigo-600 dark:border-indigo-400 text-slate-900 dark:text-[#F8FAFC] font-semibold'
+            : 'border-transparent text-slate-500 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F8FAFC] hover:border-slate-300 dark:hover:border-slate-700',
+          'border-b-2 px-3 py-2.5 text-xs transition-colors whitespace-nowrap flex items-center gap-2 shrink-0 -mb-[1px]'
         ]"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
