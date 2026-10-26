@@ -633,25 +633,41 @@ class AuthLogController extends Controller
 
     public function blockIp(Request $request)
     {
-        $ip = $request->input('ip_address');
-        if ($ip) {
-            $blocked = Setting::get('blocked_ips', []);
-            if (!in_array($ip, $blocked)) {
-                $blocked[] = $ip;
-                Setting::set('blocked_ips', $blocked);
+        $inputIps = $request->input('ip_addresses') ?: $request->input('ip_address');
+        $ips = is_array($inputIps) ? $inputIps : [$inputIps];
+        $blocked = Setting::get('blocked_ips', []);
+        $added = [];
+
+        foreach ($ips as $ip) {
+            $cleanIp = trim((string) $ip);
+            if (empty($cleanIp) || in_array($cleanIp, ['127.0.0.1', '::1', 'localhost', '0.0.0.0'])) {
+                continue;
+            }
+            if (!in_array($cleanIp, $blocked)) {
+                $blocked[] = $cleanIp;
+                $added[] = $cleanIp;
             }
         }
 
-        AuthLog::create([
-            'user_id'    => auth()->id(),
-            'email'      => auth()->user()->email ?? 'admin',
-            'ip_address' => request()->ip(),
-            'status'     => 'audit',
-            'device'     => 'Security Firewall',
-            'browser'    => "Added IP address to blacklist: {$ip}",
-        ]);
+        if (!empty($added)) {
+            Setting::set('blocked_ips', $blocked);
 
-        return redirect()->back()->with('success', "IP address {$ip} has been added to blacklist.");
+            AuthLog::create([
+                'user_id'    => auth()->id(),
+                'email'      => auth()->user()->email ?? 'admin',
+                'ip_address' => request()->ip(),
+                'status'     => 'audit',
+                'device'     => 'Security Firewall',
+                'browser'    => 'Added IP(s) to blacklist: ' . implode(', ', $added),
+            ]);
+        }
+
+        $count = count($added);
+        $message = $count > 1
+            ? "{$count} IP addresses have been added to blacklist."
+            : ($count === 1 ? "IP address {$added[0]} has been added to blacklist." : "IP address is already blocked or protected internal network.");
+
+        return redirect()->back()->with('success', $message);
     }
 
     public function createRole(Request $request)

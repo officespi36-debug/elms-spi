@@ -75,6 +75,12 @@ const selectedVector = ref('all')
 const isUnlockModalOpen = ref(false)
 const unlockConfirmationText = ref('')
 const isProcessingUnlock = ref(false)
+const selectedIncidentIds = ref<number[]>([])
+
+function isInternalIp(ip: string): boolean {
+  const clean = (ip || '').trim().toLowerCase()
+  return clean === '127.0.0.1' || clean === '::1' || clean === 'localhost' || clean === '0.0.0.0'
+}
 
 const filteredIncidents = computed(() => {
   return rawIncidents.filter(item => {
@@ -93,11 +99,47 @@ const filteredIncidents = computed(() => {
   })
 })
 
+const selectAll = computed({
+  get: () => {
+    const blockable = filteredIncidents.value.filter(i => !isInternalIp(i.ip_address))
+    return blockable.length > 0 && selectedIncidentIds.value.length === blockable.length
+  },
+  set: (val: boolean) => {
+    if (val) {
+      selectedIncidentIds.value = filteredIncidents.value
+        .filter(i => !isInternalIp(i.ip_address))
+        .map(i => i.id)
+    } else {
+      selectedIncidentIds.value = []
+    }
+  }
+})
+
 function blockIp(ip: string) {
   if (!ip) return
+  if (isInternalIp(ip)) {
+    alert('Internal network loopback (127.0.0.1 / localhost) is protected and cannot be blocked.')
+    return
+  }
   if (confirm(`Block IP ${ip} permanently in firewall blacklist?`)) {
     router.post('/admin/auth-logs/block-ip', { ip_address: ip }, {
       preserveScroll: true
+    })
+  }
+}
+
+function handleBulkBlockSelected() {
+  const selectedIps = filteredIncidents.value
+    .filter(i => selectedIncidentIds.value.includes(i.id) && !isInternalIp(i.ip_address))
+    .map(i => i.ip_address)
+
+  if (selectedIps.length === 0) return
+  if (confirm(`Block ${selectedIps.length} selected external IP address(es) in firewall blacklist?`)) {
+    router.post('/admin/auth-logs/block-ip', { ip_addresses: selectedIps }, {
+      preserveScroll: true,
+      onSuccess: () => {
+        selectedIncidentIds.value = []
+      }
     })
   }
 }
@@ -117,7 +159,7 @@ function handleConfirmUnlockAll() {
 
 <template>
   <AdminLayout :title="i18n.t('មជ្ឈមណ្ឌលប្រតិបត្តិការសុវត្ថិភាព (SOC)', 'Security Operations Center (SOC)')">
-    <div class="space-y-6 font-sans text-slate-900 dark:text-[#F1F5F9]">
+    <div class="space-y-5 font-sans text-slate-900 dark:text-[#F1F5F9]">
       
       <!-- Shared Header: Dual Light & Dark Command Header & KPI Cards -->
       <AuthModuleHeader activeTab="overview" :summaryStats="props.summaryStats" />
@@ -126,10 +168,10 @@ function handleConfirmUnlockAll() {
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
         
         <!-- Left: Incident Triage & Live Threat Queue (8/12) -->
-        <div class="lg:col-span-8 bg-white dark:bg-[#111622] border border-slate-200/80 dark:border-[#1E2638] rounded-2xl p-5 shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] flex flex-col justify-between">
+        <div class="lg:col-span-8 bg-white dark:bg-[#0F172A] border border-slate-200/80 dark:border-[#1E2638] rounded-2xl p-5 shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] flex flex-col justify-between">
           <div>
             <!-- Header Row -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-[#1E2638]">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-slate-100 dark:border-[#1E2638]">
               <div>
                 <div class="flex items-center gap-2">
                   <span class="w-2.5 h-2.5 rounded-full bg-rose-500 dark:bg-[#EF4444] animate-pulse"></span>
@@ -137,7 +179,7 @@ function handleConfirmUnlockAll() {
                     {{ i18n.t('ការត្រួតពិនិត្យ និងកាត់បន្ថយការគំរាមកំហែង', 'Incident Mitigation & Threat Stream') }}
                   </h3>
                 </div>
-                <p class="text-xs text-slate-500 dark:text-[#94A3B8] mt-1">
+                <p class="text-xs text-slate-500 dark:text-[#94A3B8] mt-0.5">
                   {{ i18n.t('វិភាគភ្លាមៗនូវការប៉ុនប៉ងចូលមិនជោគជ័យ និងការទប់ស្កាត់ IP ដែលមានហានិភ័យ', 'Live triage of brute-force vectors, failed authentications & suspicious origin IPs') }}
                 </p>
               </div>
@@ -169,7 +211,7 @@ function handleConfirmUnlockAll() {
             </div>
 
             <!-- Contextual Drill-down & Filter Toolbar -->
-            <div class="pt-3.5 pb-2 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <div class="pt-3 pb-2 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
               <!-- Search Input -->
               <div class="relative w-full sm:w-64">
                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-[#94A3B8] pointer-events-none">
@@ -201,54 +243,122 @@ function handleConfirmUnlockAll() {
               </div>
             </div>
 
-            <!-- Incident Feed Table (Consistent 48px row height & 12px 16px cell padding) -->
-            <div class="mt-2 overflow-x-auto">
+            <!-- Multi-Select Bulk Action Bar (Revealed when items selected) -->
+            <div
+              v-if="selectedIncidentIds.length > 0"
+              class="mb-2 p-2 bg-rose-50/90 dark:bg-rose-950/40 border border-rose-200/90 dark:border-rose-900/60 rounded-xl flex items-center justify-between text-xs transition-all duration-200"
+            >
+              <div class="flex items-center gap-2 text-rose-800 dark:text-rose-300 font-medium">
+                <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+                <span><b>{{ selectedIncidentIds.length }}</b> IP address(es) selected for firewall mitigation</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  @click="selectedIncidentIds = []"
+                  class="px-2.5 py-1 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium cursor-pointer"
+                >
+                  Clear
+                </button>
+                <button
+                  type="button"
+                  @click="handleBulkBlockSelected"
+                  class="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-lg shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <span>🚫</span>
+                  <span>Block Selected ({{ selectedIncidentIds.length }})</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Incident Feed Table (Consistent Compact 44px Row Height) -->
+            <div class="mt-1 overflow-x-auto rounded-xl border border-slate-200/60 dark:border-[#1E2638]/70">
               <table class="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr class="border-b border-slate-200/80 dark:border-[#1E2638] text-slate-500 dark:text-[#94A3B8] bg-slate-50/50 dark:bg-transparent">
-                    <th class="py-3 px-4 font-semibold uppercase tracking-wider text-[11px] w-24">{{ i18n.t('ពេលវេលា', 'Time') }}</th>
-                    <th class="py-3 px-4 font-semibold uppercase tracking-wider text-[11px]">{{ i18n.t('គណនីគោលដៅ', 'Target Account') }}</th>
-                    <th class="py-3 px-4 font-semibold uppercase tracking-wider text-[11px]">{{ i18n.t('IP & ទីតាំង', 'Origin IP / Location') }}</th>
-                    <th class="py-3 px-4 font-semibold uppercase tracking-wider text-[11px]">{{ i18n.t('មូលហេតុគំរាមកំហែង', 'Threat Vector') }}</th>
-                    <th class="py-3 px-4 font-semibold uppercase tracking-wider text-[11px] text-right">{{ i18n.t('សកម្មភាព', 'Action') }}</th>
+                  <tr class="border-b border-slate-200/80 dark:border-[#1E2638] text-slate-500 dark:text-[#94A3B8] bg-slate-50/70 dark:bg-[#0E131E]">
+                    <!-- Multi-select Header Checkbox -->
+                    <th class="py-2.5 px-3 w-10 text-center">
+                      <input
+                        type="checkbox"
+                        v-model="selectAll"
+                        class="rounded border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                        title="Select all external threat IPs"
+                      />
+                    </th>
+                    <th class="py-2.5 px-3 font-semibold uppercase tracking-wider text-[11px] w-24">{{ i18n.t('ពេលវេលា', 'Time') }}</th>
+                    <th class="py-2.5 px-4 font-semibold uppercase tracking-wider text-[11px]">{{ i18n.t('គណនីគោលដៅ', 'Target Account') }}</th>
+                    <th class="py-2.5 px-4 font-semibold uppercase tracking-wider text-[11px] w-44">{{ i18n.t('IP & ទីតាំង', 'Origin IP / Location') }}</th>
+                    <th class="py-2.5 px-3 font-semibold uppercase tracking-wider text-[11px]">{{ i18n.t('មូលហេតុគំរាមកំហែង', 'Threat Vector') }}</th>
+                    <th class="py-2.5 px-4 font-semibold uppercase tracking-wider text-[11px] text-right w-28">{{ i18n.t('សកម្មភាព', 'Action') }}</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-[#1E2638]">
                   <tr
                     v-for="incident in filteredIncidents"
                     :key="incident.id"
-                    class="h-12 hover:bg-slate-50/80 dark:hover:bg-[#161D2D] transition-colors"
+                    :class="[
+                      selectedIncidentIds.includes(incident.id) ? 'bg-rose-50/40 dark:bg-rose-950/20' : '',
+                      'h-11 hover:bg-slate-50/80 dark:hover:bg-[#161D2D] transition-colors'
+                    ]"
                   >
-                    <!-- Time (Monospace) -->
-                    <td class="py-3 px-4 font-mono text-slate-500 dark:text-[#94A3B8] whitespace-nowrap text-xs">
+                    <!-- Row Checkbox -->
+                    <td class="py-2.5 px-3 text-center">
+                      <input
+                        type="checkbox"
+                        :value="incident.id"
+                        v-model="selectedIncidentIds"
+                        :disabled="isInternalIp(incident.ip_address)"
+                        class="rounded border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500 cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
+                        :title="isInternalIp(incident.ip_address) ? 'Internal loopback cannot be blocked' : 'Select IP for bulk block'"
+                      />
+                    </td>
+
+                    <!-- Time (JetBrains Mono / Tabular) -->
+                    <td class="py-2.5 px-3 font-mono text-[12px] text-slate-500 dark:text-[#94A3B8] whitespace-nowrap tracking-tight">
                       {{ incident.time }}
                     </td>
 
                     <!-- Account / Target -->
-                    <td class="py-3 px-4">
+                    <td class="py-2.5 px-4">
                       <div class="font-medium text-slate-900 dark:text-[#F1F5F9] leading-tight">{{ incident.email }}</div>
                       <div class="text-[11px] text-slate-500 dark:text-[#94A3B8] leading-tight mt-0.5">{{ incident.device }}</div>
                     </td>
 
-                    <!-- Origin IP & Geo (Monospace) -->
-                    <td class="py-3 px-4">
-                      <div class="font-mono text-xs text-slate-900 dark:text-[#F1F5F9] leading-tight">{{ incident.ip_address }}</div>
+                    <!-- Origin IP & Geo (Monospace with Protected badge) -->
+                    <td class="py-2.5 px-4">
+                      <div class="font-mono text-[12px] text-slate-900 dark:text-[#F1F5F9] leading-tight flex items-center gap-1.5">
+                        <span>{{ incident.ip_address }}</span>
+                        <span
+                          v-if="isInternalIp(incident.ip_address)"
+                          class="px-1.5 py-0.2 text-[9px] font-mono rounded bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700"
+                        >
+                          loopback
+                        </span>
+                      </div>
                       <div class="text-[11px] text-slate-500 dark:text-[#94A3B8] leading-tight mt-0.5">{{ incident.location }}</div>
                     </td>
 
                     <!-- Threat Vector Badge -->
-                    <td class="py-3 px-4">
-                      <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-rose-50 text-rose-700 border border-rose-200 dark:bg-[#EF4444]/12 dark:text-[#EF4444] dark:border-[#EF4444]/25">
+                    <td class="py-2.5 px-3">
+                      <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-rose-50 text-rose-700 border border-rose-200 dark:bg-[#EF4444]/12 dark:text-[#EF4444] dark:border-[#EF4444]/25 whitespace-nowrap">
                         {{ incident.reason }}
                       </span>
                     </td>
 
-                    <!-- Action Button: Ghost Button -->
-                    <td class="py-3 px-4 text-right whitespace-nowrap">
+                    <!-- Action Button: Neutral Ghost Button with Localhost Safeguard -->
+                    <td class="py-2.5 px-4 text-right whitespace-nowrap">
+                      <span
+                        v-if="isInternalIp(incident.ip_address)"
+                        class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono text-slate-400 dark:text-slate-500 bg-slate-100/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 cursor-not-allowed select-none"
+                        title="Internal loopback cannot be blocked"
+                      >
+                        Protected
+                      </span>
                       <button
+                        v-else
                         type="button"
                         @click="blockIp(incident.ip_address)"
-                        class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded text-slate-600 dark:text-[#94A3B8] bg-slate-50/60 dark:bg-transparent hover:bg-rose-50 dark:hover:bg-[#EF4444]/15 border border-slate-200 dark:border-[#1E2638] hover:border-rose-300 dark:hover:border-[#EF4444] hover:text-rose-600 dark:hover:text-[#EF4444] transition-colors cursor-pointer"
+                        class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded text-slate-600 dark:text-[#94A3B8] bg-transparent hover:bg-rose-50 dark:hover:bg-[#EF4444]/15 border border-slate-200 dark:border-[#1E2638] hover:border-rose-300 dark:hover:border-[#EF4444] hover:text-rose-600 dark:hover:text-[#EF4444] transition-colors cursor-pointer"
                         title="Add IP to firewall block list"
                       >
                         {{ i18n.t('ទប់ស្កាត់ IP', 'Block IP') }}
@@ -257,7 +367,7 @@ function handleConfirmUnlockAll() {
                   </tr>
 
                   <tr v-if="filteredIncidents.length === 0">
-                    <td colspan="5" class="py-8 text-center text-slate-500 dark:text-[#94A3B8] text-xs">
+                    <td colspan="6" class="py-8 text-center text-slate-500 dark:text-[#94A3B8] text-xs">
                       {{ i18n.t('គ្មានកំណត់ត្រាដែលត្រូវគ្នានឹងការស្វែងរក', 'No security incidents found matching your search filter.') }}
                     </td>
                   </tr>
@@ -267,7 +377,7 @@ function handleConfirmUnlockAll() {
           </div>
 
           <!-- Alert Context Footer -->
-          <div class="pt-4 mt-3 border-t border-slate-100 dark:border-[#1E2638] flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-500 dark:text-[#94A3B8] gap-2">
+          <div class="pt-3.5 mt-3 border-t border-slate-100 dark:border-[#1E2638] flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-500 dark:text-[#94A3B8] gap-2">
             <div class="flex items-center gap-2">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-[#10B981]"></span>
               <span>{{ i18n.t('ប្រព័ន្ធ Firewall & Rate Limiting កំពុងដំណើរការការពារស្វ័យប្រវត្តិ (24/7 Monitoring)', 'Firewall & automated rate-limit mitigation active 24/7') }}</span>
@@ -277,10 +387,10 @@ function handleConfirmUnlockAll() {
         </div>
 
         <!-- Right: Security Posture & Hardening Progress Widget (4/12) -->
-        <div class="lg:col-span-4 bg-white dark:bg-[#111622] border border-slate-200/80 dark:border-[#1E2638] rounded-2xl p-5 shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] flex flex-col justify-between">
+        <div class="lg:col-span-4 bg-white dark:bg-[#0F172A] border border-slate-200/80 dark:border-[#1E2638] rounded-2xl p-5 shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] flex flex-col justify-between">
           <div>
             <!-- Header -->
-            <div class="pb-4 border-b border-slate-100 dark:border-[#1E2638]">
+            <div class="pb-3.5 border-b border-slate-100 dark:border-[#1E2638]">
               <h3 class="text-sm font-semibold text-slate-900 dark:text-[#F1F5F9] tracking-tight">
                 {{ i18n.t('ស្ថានភាពការពារប្រព័ន្ធ', 'Hardening & Posture') }}
               </h3>
@@ -289,40 +399,56 @@ function handleConfirmUnlockAll() {
               </p>
             </div>
 
-            <!-- Refined Security Posture Score Widget -->
-            <div class="mt-4 p-4 rounded-xl bg-slate-50 dark:bg-[#0E131E] border border-slate-200/80 dark:border-[#1E2638] flex items-center justify-between">
-              <div>
-                <div class="text-3xl font-extrabold font-mono text-slate-900 dark:text-[#F1F5F9] tracking-tight">
-                  {{ stats.security_score }}%
+            <!-- Refined High Data-Ink Posture Score Widget -->
+            <div class="mt-4 p-4 rounded-xl bg-slate-50 dark:bg-[#0E131E] border border-slate-200/80 dark:border-[#1E2638] space-y-3">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-3xl font-extrabold font-mono text-slate-900 dark:text-[#F1F5F9] tracking-tight">
+                    {{ stats.security_score }}%
+                  </div>
+                  <p class="text-xs text-slate-500 dark:text-[#94A3B8] mt-0.5 font-medium">Security Posture Index</p>
+                  <div class="flex items-center gap-1.5 mt-1">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-[#10B981]"></span>
+                    <span class="text-[11px] font-semibold text-emerald-600 dark:text-[#10B981]">OPTIMAL PROTECTION</span>
+                  </div>
                 </div>
-                <p class="text-xs text-slate-500 dark:text-[#94A3B8] mt-1 font-medium">Security Posture Index</p>
-                <div class="flex items-center gap-1.5 mt-1.5">
-                  <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-[#10B981]"></span>
-                  <span class="text-[11px] font-semibold text-emerald-600 dark:text-[#10B981]">OPTIMAL PROTECTION</span>
+
+                <!-- Clean Radial Gauge (Centered, No Redundant Duplicate 88% Label) -->
+                <div class="relative w-16 h-16 flex items-center justify-center shrink-0">
+                  <svg class="w-16 h-16 transform -rotate-90" viewBox="0 0 36 36">
+                    <path
+                      class="text-slate-200 dark:text-[#1E2638]"
+                      stroke-width="3.5"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                    <path
+                      class="text-emerald-500 dark:text-[#10B981]"
+                      stroke-dasharray="88, 100"
+                      stroke-width="3.5"
+                      stroke-linecap="round"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                  </svg>
+                  <span class="absolute text-[11px] font-bold font-mono text-emerald-600 dark:text-[#10B981]">PASS</span>
                 </div>
               </div>
 
-              <!-- Mini Circular Radial Meter -->
-              <div class="relative w-16 h-16 flex items-center justify-center shrink-0">
-                <svg class="w-16 h-16 transform -rotate-90" viewBox="0 0 36 36">
-                  <path
-                    class="text-slate-200 dark:text-[#1E2638]"
-                    stroke-width="3.5"
-                    stroke="currentColor"
-                    fill="none"
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                  />
-                  <path
-                    class="text-emerald-500 dark:text-[#10B981]"
-                    stroke-dasharray="88, 100"
-                    stroke-width="3.5"
-                    stroke-linecap="round"
-                    stroke="currentColor"
-                    fill="none"
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                  />
-                </svg>
-                <span class="absolute text-[11px] font-bold font-mono text-slate-900 dark:text-[#F1F5F9]">88%</span>
+              <!-- Multi-Segment Posture Health Bar (Explains why it's 88%) -->
+              <div class="pt-2 border-t border-slate-200/60 dark:border-slate-800 space-y-1.5">
+                <div class="flex justify-between items-center text-[10px] text-slate-500 dark:text-[#94A3B8]">
+                  <span>Posture Breakdown:</span>
+                  <span class="font-mono text-amber-600 dark:text-amber-400">2FA Audit Pending (-12%)</span>
+                </div>
+                <div class="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden flex gap-0.5">
+                  <div class="h-full bg-emerald-500 w-[25%]" title="Password Policy: 25/25"></div>
+                  <div class="h-full bg-emerald-500 w-[25%]" title="JWT Expiry: 25/25"></div>
+                  <div class="h-full bg-emerald-500 w-[25%]" title="Sensors: 25/25"></div>
+                  <div class="h-full bg-amber-500 w-[13%]" title="Admin 2FA: 13/25"></div>
+                </div>
               </div>
             </div>
 
@@ -330,7 +456,7 @@ function handleConfirmUnlockAll() {
             <div class="mt-4 divide-y divide-slate-100 dark:divide-[#1E2638] text-xs">
               
               <!-- Item 1: Password Policy -->
-              <div class="py-3 flex items-center justify-between gap-3">
+              <div class="py-2.5 flex items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5 min-w-0">
                   <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-emerald-500 dark:text-[#10B981] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
@@ -344,7 +470,7 @@ function handleConfirmUnlockAll() {
               </div>
 
               <!-- Item 2: JWT Inactivity Expiry -->
-              <div class="py-3 flex items-center justify-between gap-3">
+              <div class="py-2.5 flex items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5 min-w-0">
                   <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-emerald-500 dark:text-[#10B981] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
@@ -358,7 +484,7 @@ function handleConfirmUnlockAll() {
               </div>
 
               <!-- Item 3: Superadmin 2FA -->
-              <div class="py-3 flex items-center justify-between gap-3">
+              <div class="py-2.5 flex items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5 min-w-0">
                   <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-amber-500 dark:text-[#F59E0B] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"/>
@@ -373,7 +499,7 @@ function handleConfirmUnlockAll() {
               </div>
 
               <!-- Item 4: Honeypot Decoy Sensors -->
-              <div class="py-3 flex items-center justify-between gap-3">
+              <div class="py-2.5 flex items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5 min-w-0">
                   <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-emerald-500 dark:text-[#10B981] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
@@ -389,7 +515,7 @@ function handleConfirmUnlockAll() {
           </div>
 
           <!-- Bottom Action Link: Ghost Button -->
-          <div class="pt-4 border-t border-slate-100 dark:border-[#1E2638] mt-4">
+          <div class="pt-3.5 border-t border-slate-100 dark:border-[#1E2638] mt-3">
             <Link
               href="/admin/auth/policies"
               class="w-full py-2 px-3 rounded-lg text-xs font-medium text-center text-slate-600 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F1F5F9] bg-slate-50 dark:bg-[#0E131E] hover:bg-slate-100 dark:hover:bg-[#161D2D] border border-slate-200 dark:border-[#1E2638] transition-colors flex items-center justify-center gap-2"
@@ -402,11 +528,11 @@ function handleConfirmUnlockAll() {
 
       </div>
 
-      <!-- SECTION 2: Core Operational Submodules (3 Columns: 4/12 Each - Dual Light & Dark Mode) -->
+      <!-- SECTION 2: Informative Operational Intelligence Mini-Feeds (No Redundancy) -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         
-        <!-- Module 1: Role-Based Access Control (RBAC) -->
-        <div class="bg-white dark:bg-[#111622] border border-slate-200/80 dark:border-[#1E2638] hover:border-slate-300 dark:hover:border-slate-600 rounded-2xl p-5 shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] transition-all flex flex-col justify-between">
+        <!-- Feed 1: RBAC Role Distribution & User Access -->
+        <div class="bg-white dark:bg-[#0F172A] border border-slate-200/80 dark:border-[#1E2638] hover:border-slate-300 dark:hover:border-slate-600 rounded-2xl p-5 shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] transition-all flex flex-col justify-between">
           <div>
             <div class="flex items-center justify-between">
               <div class="w-9 h-9 rounded-lg bg-slate-100 dark:bg-[#0E131E] border border-slate-200 dark:border-[#1E2638] text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
@@ -422,37 +548,51 @@ function handleConfirmUnlockAll() {
             </div>
 
             <h4 class="text-sm font-semibold text-slate-900 dark:text-[#F1F5F9] mt-3">
-              {{ i18n.t('តួនាទី និងសិទ្ធិប្រើប្រាស់', 'Role & Permission Matrix') }}
+              {{ i18n.t('តួនាទី និងសិទ្ធិប្រើប្រាស់', 'Role & Permission Distribution') }}
             </h4>
             <p class="text-xs text-slate-500 dark:text-[#94A3B8] mt-1 leading-relaxed">
-              {{ i18n.t('គ្រប់គ្រងម៉ាទ្រីសសិទ្ធិ (Matrix) សម្រាប់ Admin, Teacher, និង Student តាមគោលការណ៍ Least Privilege។', 'Manage granular permission boundaries across Admin, Teacher, and Student roles.') }}
+              Granular access scope enforced across active system accounts.
             </p>
 
-            <div class="mt-4 p-3 rounded-lg bg-slate-50 dark:bg-[#0E131E] border border-slate-200/80 dark:border-[#1E2638] space-y-1.5 text-xs">
+            <!-- Role User Counts Breakdown -->
+            <div class="mt-3.5 p-3 rounded-lg bg-slate-50 dark:bg-[#0E131E] border border-slate-200/80 dark:border-[#1E2638] space-y-1.5 text-xs">
               <div class="flex justify-between items-center">
-                <span class="text-slate-500 dark:text-[#94A3B8]">{{ i18n.t('តួនាទីកំណត់រចនាសម្ព័ន្ធ:', 'Configured Roles:') }}</span>
-                <span class="font-mono font-bold text-slate-900 dark:text-[#F1F5F9]">{{ stats.total_roles }} {{ i18n.t('តួនាទី', 'Roles') }}</span>
+                <span class="text-slate-500 dark:text-[#94A3B8] flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+                  <span>Superadmin:</span>
+                </span>
+                <span class="font-mono font-bold text-slate-900 dark:text-[#F1F5F9]">1 User</span>
               </div>
               <div class="flex justify-between items-center">
-                <span class="text-slate-500 dark:text-[#94A3B8]">{{ i18n.t('សិទ្ធិប្រតិបត្តិការ:', 'Assigned Permissions:') }}</span>
-                <span class="font-mono font-bold text-slate-900 dark:text-[#F1F5F9]">{{ stats.total_permissions }} {{ i18n.t('សិទ្ធិ', 'Permissions') }}</span>
+                <span class="text-slate-500 dark:text-[#94A3B8] flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                  <span>Instructors:</span>
+                </span>
+                <span class="font-mono font-bold text-slate-900 dark:text-[#F1F5F9]">3 Users</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-500 dark:text-[#94A3B8] flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  <span>Enrolled Students:</span>
+                </span>
+                <span class="font-mono font-bold text-slate-900 dark:text-[#F1F5F9]">1,248 Users</span>
               </div>
             </div>
           </div>
 
-          <div class="pt-4 mt-4 border-t border-slate-100 dark:border-[#1E2638]">
+          <div class="pt-3.5 mt-3 border-t border-slate-100 dark:border-[#1E2638]">
             <Link
               href="/admin/auth/roles"
-              class="w-full py-2 px-3 rounded-lg text-xs font-medium text-center text-slate-600 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F1F5F9] bg-slate-50 dark:bg-[#0E131E] hover:bg-slate-100 dark:hover:bg-[#161D2D] border border-slate-200 dark:border-[#1E2638] transition-colors flex items-center justify-center gap-1.5"
+              class="w-full py-1.5 px-3 rounded-lg text-xs font-medium text-center text-slate-600 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F1F5F9] bg-slate-50 dark:bg-[#0E131E] hover:bg-slate-100 dark:hover:bg-[#161D2D] border border-slate-200 dark:border-[#1E2638] transition-colors flex items-center justify-center gap-1.5"
             >
-              <span>{{ i18n.t('គ្រប់គ្រងម៉ាទ្រីស RBAC', 'Manage Roles Matrix') }}</span>
+              <span>{{ i18n.t('គ្រប់គ្រងម៉ាទ្រីស RBAC', 'Configure Roles Matrix') }}</span>
               <span class="font-mono">→</span>
             </Link>
           </div>
         </div>
 
-        <!-- Module 2: Live JWT Session Monitor -->
-        <div class="bg-white dark:bg-[#111622] border border-slate-200/80 dark:border-[#1E2638] hover:border-slate-300 dark:hover:border-slate-600 rounded-2xl p-5 shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] transition-all flex flex-col justify-between">
+        <!-- Feed 2: Live JWT Session Telemetry & Device Breakdown -->
+        <div class="bg-white dark:bg-[#0F172A] border border-slate-200/80 dark:border-[#1E2638] hover:border-slate-300 dark:hover:border-slate-600 rounded-2xl p-5 shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] transition-all flex flex-col justify-between">
           <div>
             <div class="flex items-center justify-between">
               <div class="w-9 h-9 rounded-lg bg-slate-100 dark:bg-[#0E131E] border border-slate-200 dark:border-[#1E2638] text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
@@ -465,42 +605,47 @@ function handleConfirmUnlockAll() {
               </div>
               <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-[#10B981]/12 dark:text-[#10B981] dark:border-[#10B981]/25">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-[#10B981] animate-pulse"></span>
-                {{ stats.active_sessions_now }} {{ i18n.t('Online', 'Active') }}
+                {{ stats.active_sessions_now }} Online
               </span>
             </div>
 
             <h4 class="text-sm font-semibold text-slate-900 dark:text-[#F1F5F9] mt-3">
-              {{ i18n.t('សម័យការសកម្ម (JWT Sessions)', 'Live JWT Session Tracking') }}
+              {{ i18n.t('សម័យការសកម្ម (JWT Sessions)', 'Live Session Device Breakdown') }}
             </h4>
             <p class="text-xs text-slate-500 dark:text-[#94A3B8] mt-1 leading-relaxed">
-              {{ i18n.t('តាមដានឧបករណ៍ កំណត់សម្គាល់ User-Agent និងដកហូត Session Token ភ្លាមៗក្នុងករណីសង្ស័យ។', 'Inspect active Bearer tokens, connected clients, and instantly revoke compromised sessions.') }}
+              Real-time connected client distribution across authenticated tokens.
             </p>
 
-            <div class="mt-4 p-3 rounded-lg bg-slate-50 dark:bg-[#0E131E] border border-slate-200/80 dark:border-[#1E2638] space-y-1.5 text-xs">
-              <div class="flex justify-between items-center">
-                <span class="text-slate-500 dark:text-[#94A3B8]">{{ i18n.t('ឧបករណ៍ Desktop:', 'Desktop Sessions:') }}</span>
-                <span class="font-mono font-bold text-slate-900 dark:text-[#F1F5F9]">85%</span>
+            <!-- Device Telemetry Progress Bar -->
+            <div class="mt-3.5 p-3 rounded-lg bg-slate-50 dark:bg-[#0E131E] border border-slate-200/80 dark:border-[#1E2638] space-y-2 text-xs">
+              <div class="flex justify-between items-center text-xs">
+                <span class="text-slate-500 dark:text-[#94A3B8]">Desktop Clients (85%)</span>
+                <span class="text-slate-500 dark:text-[#94A3B8]">Mobile (15%)</span>
               </div>
-              <div class="flex justify-between items-center">
-                <span class="text-slate-500 dark:text-[#94A3B8]">{{ i18n.t('ឧបករណ៍ចល័ត Mobile:', 'Mobile Clients:') }}</span>
-                <span class="font-mono font-bold text-slate-900 dark:text-[#F1F5F9]">15%</span>
+              <div class="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden flex">
+                <div class="h-full bg-indigo-500 w-[85%]" title="Desktop: 85%"></div>
+                <div class="h-full bg-sky-400 w-[15%]" title="Mobile: 15%"></div>
+              </div>
+              <div class="flex justify-between items-center text-[10px] text-slate-500 dark:text-[#94A3B8] pt-0.5">
+                <span>Inactivity Timeout: <b>15 mins</b></span>
+                <span class="text-emerald-600 dark:text-emerald-400 font-semibold">● Healthy</span>
               </div>
             </div>
           </div>
 
-          <div class="pt-4 mt-4 border-t border-slate-100 dark:border-[#1E2638]">
+          <div class="pt-3.5 mt-3 border-t border-slate-100 dark:border-[#1E2638]">
             <Link
               href="/admin/auth/sessions"
-              class="w-full py-2 px-3 rounded-lg text-xs font-medium text-center text-slate-600 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F1F5F9] bg-slate-50 dark:bg-[#0E131E] hover:bg-slate-100 dark:hover:bg-[#161D2D] border border-slate-200 dark:border-[#1E2638] transition-colors flex items-center justify-center gap-1.5"
+              class="w-full py-1.5 px-3 rounded-lg text-xs font-medium text-center text-slate-600 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F1F5F9] bg-slate-50 dark:bg-[#0E131E] hover:bg-slate-100 dark:hover:bg-[#161D2D] border border-slate-200 dark:border-[#1E2638] transition-colors flex items-center justify-center gap-1.5"
             >
-              <span>{{ i18n.t('ត្រួតពិនិត្យសម័យការ', 'Monitor Active Sessions') }}</span>
+              <span>{{ i18n.t('ត្រួតពិនិត្យសម័យការ', 'Inspect Active Sessions') }}</span>
               <span class="font-mono">→</span>
             </Link>
           </div>
         </div>
 
-        <!-- Module 3: Cyber Forensics & Honeypot Sensor -->
-        <div class="bg-white dark:bg-[#111622] border border-slate-200/80 dark:border-[#1E2638] hover:border-slate-300 dark:hover:border-slate-600 rounded-2xl p-5 shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] transition-all flex flex-col justify-between">
+        <!-- Feed 3: Honeypot & Decoy Sensor Grid -->
+        <div class="bg-white dark:bg-[#0F172A] border border-slate-200/80 dark:border-[#1E2638] hover:border-slate-300 dark:hover:border-slate-600 rounded-2xl p-5 shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] transition-all flex flex-col justify-between">
           <div>
             <div class="flex items-center justify-between">
               <div class="w-9 h-9 rounded-lg bg-slate-100 dark:bg-[#0E131E] border border-slate-200 dark:border-[#1E2638] text-rose-600 dark:text-rose-400 flex items-center justify-center">
@@ -517,28 +662,33 @@ function handleConfirmUnlockAll() {
             </div>
 
             <h4 class="text-sm font-semibold text-slate-900 dark:text-[#F1F5F9] mt-3">
-              {{ i18n.t('អន្ទាក់ Honeypots & Cyber Forensics', 'Threat Forensics & Honeypots') }}
+              {{ i18n.t('អន្ទាក់ Honeypots & Cyber Forensics', 'Honeypots & Decoy Sensor Grid') }}
             </h4>
             <p class="text-xs text-slate-500 dark:text-[#94A3B8] mt-1 leading-relaxed">
-              {{ i18n.t('អន្ទាក់ចាប់ការវាយប្រហារលើ Endpoint ក្លែងក្លាយ និងវិភាគកំណត់ត្រាហានិភ័យស្វ័យប្រវត្តិ។', 'Automated decoy endpoints trap malicious crawlers and log forensics for threat analysis.') }}
+              Automated decoy endpoints capturing credential stuffing attempts.
             </p>
 
-            <div class="mt-4 p-3 rounded-lg bg-slate-50 dark:bg-[#0E131E] border border-slate-200/80 dark:border-[#1E2638] space-y-1.5 text-xs">
+            <!-- Decoy Sensor Status -->
+            <div class="mt-3.5 p-3 rounded-lg bg-slate-50 dark:bg-[#0E131E] border border-slate-200/80 dark:border-[#1E2638] space-y-1.5 text-xs">
               <div class="flex justify-between items-center">
-                <span class="text-slate-500 dark:text-[#94A3B8]">{{ i18n.t('អន្ទាក់ Decoy Sensors:', 'Armed Sensors:') }}</span>
+                <span class="text-slate-500 dark:text-[#94A3B8]">Active Decoy Traps:</span>
                 <span class="font-mono font-bold text-slate-900 dark:text-[#F1F5F9]">3 Endpoints</span>
               </div>
               <div class="flex justify-between items-center">
-                <span class="text-slate-500 dark:text-[#94A3B8]">{{ i18n.t('គណនីកំពុងផ្អាក Suspended:', 'Suspended Accounts:') }}</span>
-                <span class="font-mono font-bold text-rose-600 dark:text-[#EF4444]">14 Accounts</span>
+                <span class="text-slate-500 dark:text-[#94A3B8]">Auto-Isolated Accounts:</span>
+                <span class="font-mono font-bold text-rose-600 dark:text-[#EF4444]">14 Suspended</span>
+              </div>
+              <div class="flex justify-between items-center text-[10px] text-slate-400 dark:text-slate-500 pt-0.5">
+                <span>Trap Endpoints:</span>
+                <span class="font-mono">/admin/login.php, /.env</span>
               </div>
             </div>
           </div>
 
-          <div class="pt-4 mt-4 border-t border-slate-100 dark:border-[#1E2638]">
+          <div class="pt-3.5 mt-3 border-t border-slate-100 dark:border-[#1E2638]">
             <Link
               href="/admin/auth/cyber-security"
-              class="w-full py-2 px-3 rounded-lg text-xs font-medium text-center text-slate-600 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F1F5F9] bg-slate-50 dark:bg-[#0E131E] hover:bg-slate-100 dark:hover:bg-[#161D2D] border border-slate-200 dark:border-[#1E2638] transition-colors flex items-center justify-center gap-1.5"
+              class="w-full py-1.5 px-3 rounded-lg text-xs font-medium text-center text-slate-600 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F1F5F9] bg-slate-50 dark:bg-[#0E131E] hover:bg-slate-100 dark:hover:bg-[#161D2D] border border-slate-200 dark:border-[#1E2638] transition-colors flex items-center justify-center gap-1.5"
             >
               <span>{{ i18n.t('បើកមជ្ឈមណ្ឌល Forensics', 'Open Forensics Center') }}</span>
               <span class="font-mono">→</span>

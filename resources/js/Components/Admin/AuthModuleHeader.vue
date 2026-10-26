@@ -154,9 +154,12 @@ const handleUnlockAll = () => {
           </div>
         </div>
 
-        <!-- Bottom Row: Contextual Micro-copy (No Arrow) -->
-        <div class="pt-2.5 border-t border-slate-100 dark:border-[#1E2638] text-xs text-slate-500 dark:text-[#94A3B8]">
-          <span class="truncate">Admin, Teacher, and Student access</span>
+        <!-- Bottom Row: Contextual Micro-copy (Interactive Micro-link) -->
+        <div class="pt-2.5 border-t border-slate-100 dark:border-[#1E2638] text-xs">
+          <span class="truncate text-slate-500 dark:text-[#94A3B8] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 group-hover:underline transition-colors flex items-center justify-between">
+            <span>Admin, Teacher, and Student access</span>
+            <span class="font-mono text-[11px] opacity-70">→</span>
+          </span>
         </div>
       </Link>
 
@@ -187,9 +190,12 @@ const handleUnlockAll = () => {
           </div>
         </div>
 
-        <!-- Bottom Row: Contextual Micro-copy (No Arrow) -->
-        <div class="pt-2.5 border-t border-slate-100 dark:border-[#1E2638] text-xs text-slate-500 dark:text-[#94A3B8]">
-          <span class="truncate">Across desktop & mobile JWT tokens</span>
+        <!-- Bottom Row: Contextual Micro-copy (Interactive Micro-link) -->
+        <div class="pt-2.5 border-t border-slate-100 dark:border-[#1E2638] text-xs">
+          <span class="truncate text-slate-500 dark:text-[#94A3B8] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 group-hover:underline transition-colors flex items-center justify-between">
+            <span>Across desktop & mobile JWT tokens</span>
+            <span class="font-mono text-[11px] opacity-70">→</span>
+          </span>
         </div>
       </Link>
 
@@ -220,9 +226,12 @@ const handleUnlockAll = () => {
           </div>
         </div>
 
-        <!-- Bottom Row: Contextual Micro-copy (No Arrow) -->
-        <div class="pt-2.5 border-t border-slate-100 dark:border-[#1E2638] text-xs text-slate-500 dark:text-[#94A3B8]">
-          <span class="truncate">Across 3 distinct IP addresses</span>
+        <!-- Bottom Row: Contextual Micro-copy (Interactive Micro-link) -->
+        <div class="pt-2.5 border-t border-slate-100 dark:border-[#1E2638] text-xs">
+          <span class="truncate text-slate-500 dark:text-[#94A3B8] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 group-hover:underline transition-colors flex items-center justify-between">
+            <span>Across 3 distinct IP addresses</span>
+            <span class="font-mono text-[11px] opacity-70">→</span>
+          </span>
         </div>
       </Link>
 
@@ -234,29 +243,37 @@ const handleUnlockAll = () => {
         :title="i18n.t('auth_locked_accounts_btn', 'Click to Review & Unlock Accounts')"
       >
         <div>
-          <!-- Top Row: Label + Status Pill -->
+          <!-- Top Row: Label + Subtle Status Pill (No Redundant Immediate Audit) -->
           <div class="flex items-center justify-between">
             <span class="text-xs font-medium tracking-wide uppercase text-slate-500 dark:text-[#94A3B8]">
               {{ i18n.t('auth_locked_accounts', 'LOCKED ACCOUNTS') }}
             </span>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-rose-50 text-rose-700 border border-rose-200 dark:bg-[#EF4444]/12 dark:text-[#EF4444] dark:border-[#EF4444]/25 flex items-center gap-1.5">
-              <span class="w-1.5 h-1.5 rounded-full bg-rose-500 dark:bg-[#EF4444] animate-pulse"></span>
-              {{ i18n.t('auth_suspended_accounts', 'Immediate Audit') }}
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-800/80 dark:text-slate-300 dark:border-slate-700 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+              <span>Policy Lockout</span>
             </span>
           </div>
 
           <!-- Middle Row: Large Value + Context -->
-          <div class="my-3 flex items-baseline gap-2.5">
-            <h4 class="text-2xl font-bold font-mono tracking-tight text-slate-900 dark:text-[#F1F5F9]">
-              {{ Number(stats.locked_accounts_count || 14).toLocaleString() }}
-            </h4>
-            <span class="text-xs font-normal text-slate-500 dark:text-[#94A3B8]">Suspended</span>
+          <div class="my-3">
+            <div class="flex items-baseline gap-2.5">
+              <h4 class="text-2xl font-bold font-mono tracking-tight text-slate-900 dark:text-[#F1F5F9]">
+                {{ Number(stats.locked_accounts_count || 14).toLocaleString() }}
+              </h4>
+              <span class="text-xs font-normal text-slate-500 dark:text-[#94A3B8]">Suspended</span>
+            </div>
+            <p class="text-[10px] text-rose-600 dark:text-rose-400 font-medium mt-1">
+              ⚠️ Exceeded threshold • Review required
+            </p>
           </div>
         </div>
 
-        <!-- Bottom Row: Contextual Micro-copy (No Arrow) -->
-        <div class="pt-2.5 border-t border-slate-100 dark:border-[#1E2638] text-xs text-slate-500 dark:text-[#94A3B8]">
-          <span class="truncate">Exceeded password threshold limit</span>
+        <!-- Bottom Row: Contextual Micro-copy (Interactive Micro-link) -->
+        <div class="pt-2.5 border-t border-slate-100 dark:border-[#1E2638] text-xs">
+          <span class="truncate text-slate-500 dark:text-[#94A3B8] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 group-hover:underline transition-colors flex items-center justify-between">
+            <span>Exceeded password threshold limit</span>
+            <span class="font-mono text-[11px] opacity-70">→</span>
+          </span>
         </div>
       </button>
     </div>
