@@ -220,17 +220,17 @@ const clearLogs = () => {
 
 <template>
   <AdminLayout :title="i18n.t('history_page_title', 'Login History')">
-    <div class="-mx-4 sm:-mx-6 lg:-mx-8 -mt-6 sm:-mt-8 -mb-12 px-4 sm:px-6 lg:px-8 py-6 sm:py-8 min-h-screen bg-[#0A0D14] text-[#F1F5F9] space-y-5 font-sans">
+    <div class="space-y-5 font-sans text-slate-900 dark:text-[#F1F5F9]">
       <!-- Shared Header with Sync'd Global Metrics -->
       <AuthModuleHeader activeTab="history" :summaryStats="props.summaryStats" />
 
       <!-- Single Row Consolidated 4-Card KPI Overview -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Card 1: Total Logins -->
-        <div class="bg-[#111622] border border-[#1E2638] rounded-2xl p-4.5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] flex items-center justify-between">
+        <div class="bg-white dark:bg-[#111622] border border-slate-200/80 dark:border-[#1E2638] rounded-2xl p-4.5 shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] flex items-center justify-between">
           <div>
-            <span class="text-xs font-medium text-[#94A3B8]">Total Logins</span>
-            <div class="text-2xl font-bold text-[#F1F5F9] font-mono mt-1">
+            <span class="text-xs font-medium text-slate-500 dark:text-[#94A3B8]">Total Logins</span>
+            <div class="text-2xl font-bold text-slate-900 dark:text-[#F1F5F9] font-mono mt-1">
               {{ totalLoginsCount.toLocaleString() }}
             </div>
             <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Audit log entries recorded</p>
@@ -243,15 +243,15 @@ const clearLogs = () => {
         <!-- Card 2: Successful Logins -->
         <div
           @click="statusFilter = 'success'"
-          class="bg-[#111622] border border-[#1E2638] rounded-2xl p-4.5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] hover:border-emerald-500/30 transition-all flex items-center justify-between cursor-pointer group"
-          :class="{ 'ring-1 ring-emerald-500/50 bg-[#10B981]/10': statusFilter === 'success' }"
+          class="bg-white dark:bg-[#111622] border border-slate-200/80 dark:border-[#1E2638] rounded-2xl p-4.5 shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] hover:border-emerald-500/40 transition-all flex items-center justify-between cursor-pointer group"
+          :class="{ 'ring-1 ring-emerald-500/50 bg-emerald-50/50 dark:bg-[#10B981]/10': statusFilter === 'success' }"
         >
           <div>
-            <span class="text-xs font-medium text-[#94A3B8] group-hover:text-emerald-400 transition-colors">Successful Logins</span>
-            <div class="text-2xl font-bold text-[#10B981] font-mono mt-1">
+            <span class="text-xs font-medium text-slate-500 dark:text-[#94A3B8] group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Successful Logins</span>
+            <div class="text-2xl font-bold text-emerald-600 dark:text-[#10B981] font-mono mt-1">
               {{ statsSuccessful.toLocaleString() }}
             </div>
-            <p class="text-[10px] text-[#94A3B8] mt-1">Logins verified successfully</p>
+            <p class="text-[10px] text-slate-400 dark:text-[#94A3B8] mt-1">Logins verified successfully</p>
           </div>
           <div class="w-11 h-11 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0 shadow-inner group-hover:scale-105 transition-transform">
             <img :src="'/images/nav/sub/success.svg'" alt="Successful Logins" class="w-6 h-6 object-contain" />
@@ -261,15 +261,15 @@ const clearLogs = () => {
         <!-- Card 3: Failed Attempts (Consistent: 65) -->
         <div
           @click="statusFilter = 'failed'"
-          class="bg-[#111622] border border-[#1E2638] rounded-2xl p-4.5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] hover:border-rose-500/30 transition-all flex items-center justify-between cursor-pointer group"
-          :class="{ 'ring-1 ring-rose-500/50 bg-[#EF4444]/10': statusFilter === 'failed' }"
+          class="bg-white dark:bg-[#111622] border border-slate-200/80 dark:border-[#1E2638] rounded-2xl p-4.5 shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] hover:border-rose-500/40 transition-all flex items-center justify-between cursor-pointer group"
+          :class="{ 'ring-1 ring-rose-500/50 bg-rose-50/50 dark:bg-[#EF4444]/10': statusFilter === 'failed' }"
         >
           <div>
-            <span class="text-xs font-medium text-[#94A3B8] group-hover:text-rose-400 transition-colors">Failed Attempts</span>
-            <div class="text-2xl font-bold text-[#EF4444] font-mono mt-1">
+            <span class="text-xs font-medium text-slate-500 dark:text-[#94A3B8] group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">Failed Attempts</span>
+            <div class="text-2xl font-bold text-rose-600 dark:text-[#EF4444] font-mono mt-1">
               {{ statsFailed.toLocaleString() }}
             </div>
-            <p class="text-[10px] text-[#94A3B8] mt-1">Authentication failures today</p>
+            <p class="text-[10px] text-slate-400 dark:text-[#94A3B8] mt-1">Authentication failures today</p>
           </div>
           <div class="w-11 h-11 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0 shadow-inner group-hover:scale-105 transition-transform">
             <img :src="'/images/nav/sub/failed.svg'" alt="Failed Attempts" class="w-6 h-6 object-contain" />
@@ -279,15 +279,15 @@ const clearLogs = () => {
         <!-- Card 4: Locked Accounts (Consistent: 14) -->
         <div
           @click="statusFilter = 'failed'"
-          class="bg-[#111622] border border-[#1E2638] rounded-2xl p-4.5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] hover:border-amber-500/30 transition-all flex items-center justify-between cursor-pointer group"
-          :class="{ 'ring-1 ring-amber-500/50 bg-[#F59E0B]/10': statusFilter === 'failed' }"
+          class="bg-white dark:bg-[#111622] border border-slate-200/80 dark:border-[#1E2638] rounded-2xl p-4.5 shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] hover:border-amber-500/40 transition-all flex items-center justify-between cursor-pointer group"
+          :class="{ 'ring-1 ring-amber-500/50 bg-amber-50/50 dark:bg-[#F59E0B]/10': statusFilter === 'failed' }"
         >
           <div>
-            <span class="text-xs font-medium text-[#94A3B8] group-hover:text-amber-400 transition-colors">Locked Accounts</span>
-            <div class="text-2xl font-bold text-[#F59E0B] font-mono mt-1">
+            <span class="text-xs font-medium text-slate-500 dark:text-[#94A3B8] group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Locked Accounts</span>
+            <div class="text-2xl font-bold text-amber-600 dark:text-[#F59E0B] font-mono mt-1">
               {{ statsLocked.toLocaleString() }}
             </div>
-            <p class="text-[10px] text-[#94A3B8] mt-1">Suspended & locked users</p>
+            <p class="text-[10px] text-slate-400 dark:text-[#94A3B8] mt-1">Suspended & locked users</p>
           </div>
           <div class="w-11 h-11 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-xl text-amber-500 shrink-0 shadow-inner group-hover:scale-105 transition-transform">
             🔒
@@ -296,9 +296,9 @@ const clearLogs = () => {
       </div>
 
       <!-- ── 3 PRIMARY FILTERS TABS BAR (All Logins, Successful, Failed) ── -->
-      <div class="flex flex-col md:flex-row items-center justify-between gap-3 bg-[#111622] p-3.5 rounded-2xl border border-[#1E2638] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-3 bg-white dark:bg-[#111622] p-3.5 rounded-2xl border border-slate-200/80 dark:border-[#1E2638] shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]">
         <!-- 3 Filter Pills: All Logins | Successful | Failed -->
-        <div class="flex items-center gap-2 p-1 bg-[#0E131E] rounded-xl border border-[#1E2638] w-full sm:w-auto">
+        <div class="flex items-center gap-2 p-1 bg-slate-100 dark:bg-[#0E131E] rounded-xl border border-slate-200 dark:border-[#1E2638] w-full sm:w-auto">
           <!-- Filter 1: All Logins -->
           <button
             type="button"
@@ -506,10 +506,10 @@ const clearLogs = () => {
       </div>
 
       <!-- ── LOGIN HISTORY TABLE (Filtered by All, Successful, or Failed) ── -->
-      <div class="overflow-x-auto rounded-2xl border border-[#1E2638] bg-[#111622] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]">
+      <div class="overflow-x-auto rounded-2xl border border-slate-200/80 dark:border-[#1E2638] bg-white dark:bg-[#111622] shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]">
         <table class="w-full text-left border-collapse">
           <thead>
-            <tr class="border-b border-[#1E2638] bg-[#0E131E] text-[11px] font-semibold text-[#94A3B8] uppercase tracking-wider">
+            <tr class="border-b border-slate-200/80 dark:border-[#1E2638] bg-slate-50/80 dark:bg-[#0E131E] text-[11px] font-semibold text-slate-500 dark:text-[#94A3B8] uppercase tracking-wider">
               <th class="py-3.5 px-4 w-12">#</th>
               <th class="py-3.5 px-4">User (Role)</th>
               <th class="py-3.5 px-4">Date & Time</th>
@@ -518,11 +518,11 @@ const clearLogs = () => {
               <th class="py-3.5 px-4 text-right">Status</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-[#1E2638] text-xs">
+          <tbody class="divide-y divide-slate-100 dark:divide-[#1E2638] text-xs">
             <tr
               v-for="(log, idx) in filteredLogs"
               :key="log.id || idx"
-              class="hover:bg-[#161D2D] transition-colors"
+              class="hover:bg-slate-50/80 dark:hover:bg-[#161D2D] transition-colors"
             >
               <td class="py-3 px-4 font-mono text-slate-400 dark:text-slate-500 text-[11px]">
                 {{ idx + 1 }}
