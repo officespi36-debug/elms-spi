@@ -196,7 +196,7 @@ function handleConfirmUnlockAll() {
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
         
         <!-- Left: Incident Triage & Live Threat Queue (8/12) -->
-        <div class="lg:col-span-8 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-xl p-5 shadow-[0_1px_2px_0_rgba(15,23,42,0.05)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)] flex flex-col justify-between">
+        <div class="lg:col-span-8 bg-white dark:bg-[#0E1524] border border-slate-200 dark:border-[#1E293B] rounded-xl p-5 shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] flex flex-col justify-between">
           <div>
             <!-- Header Row -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-slate-100 dark:border-[#1E293B]">
@@ -217,7 +217,7 @@ function handleConfirmUnlockAll() {
                 <!-- Primary Action: Full Audit Link -->
                 <Link
                   href="/admin/auth/history?filter=failed"
-                  class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F8FAFC] bg-white dark:bg-[#090D16] hover:bg-slate-50 dark:hover:bg-[#1E293B] border border-slate-300 dark:border-[#1E293B] rounded-md transition-colors"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F8FAFC] bg-white dark:bg-[#0E1524] hover:bg-slate-50 dark:hover:bg-[#162035] border border-slate-300 dark:border-[#1E293B] rounded-md transition-colors"
                 >
                   <span>{{ i18n.t('កំណត់ត្រាពេញលេញ', 'Full Audit') }}</span>
                   <span class="font-mono">→</span>
@@ -228,7 +228,7 @@ function handleConfirmUnlockAll() {
                   <button
                     type="button"
                     @click="isOverflowMenuOpen = !isOverflowMenuOpen"
-                    class="p-1.5 text-slate-500 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F8FAFC] bg-white dark:bg-[#090D16] hover:bg-slate-50 dark:hover:bg-[#1E293B] border border-slate-300 dark:border-[#1E293B] rounded-md transition-colors cursor-pointer"
+                    class="p-1.5 text-slate-500 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F8FAFC] bg-white dark:bg-[#0E1524] hover:bg-slate-50 dark:hover:bg-[#162035] border border-slate-300 dark:border-[#1E293B] rounded-md transition-colors cursor-pointer"
                     title="More Security Actions"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
@@ -241,7 +241,7 @@ function handleConfirmUnlockAll() {
                   <!-- Overflow Dropdown Menu -->
                   <div
                     v-if="isOverflowMenuOpen"
-                    class="absolute right-0 mt-1.5 w-64 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-lg shadow-xl py-1 z-30 animate-in fade-in zoom-in-95"
+                    class="absolute right-0 mt-1.5 w-64 bg-white dark:bg-[#0E1524] border border-slate-200 dark:border-[#1E293B] rounded-lg shadow-xl py-1 z-30 animate-in fade-in zoom-in-95"
                   >
                     <button
                       type="button"
@@ -277,7 +277,7 @@ function handleConfirmUnlockAll() {
                   v-model="searchQuery"
                   type="text"
                   placeholder="Filter by IP, Account, or Location..."
-                  class="w-full pl-8 pr-3 py-1.5 bg-[#F1F5F9] dark:bg-[#090D16] border border-slate-300 dark:border-[#334155] rounded-md text-xs text-slate-900 dark:text-[#F8FAFC] placeholder-slate-400 dark:placeholder-[#94A3B8]/60 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500 focus:bg-white dark:focus:bg-[#090D16] transition-colors"
+                  class="w-full pl-8 pr-3 py-1.5 bg-[#F8FAFC] dark:bg-[#162035] border border-slate-300 dark:border-[#334155] rounded-md text-xs text-slate-900 dark:text-[#F8FAFC] placeholder-slate-400 dark:placeholder-[#94A3B8]/60 focus:outline-none focus:border-slate-400 dark:focus:border-slate-500 focus:bg-white dark:focus:bg-[#0E1524] transition-colors"
                 />
               </div>
 
@@ -286,7 +286,7 @@ function handleConfirmUnlockAll() {
                 <span class="text-[11px] text-slate-500 dark:text-[#94A3B8] hidden sm:inline">Threat Vector:</span>
                 <select
                   v-model="selectedVector"
-                  class="px-2.5 py-1.5 bg-[#F1F5F9] dark:bg-[#090D16] border border-slate-300 dark:border-[#334155] rounded-md text-xs text-slate-900 dark:text-[#F8FAFC] focus:outline-none focus:border-slate-400 dark:focus:border-slate-500 cursor-pointer"
+                  class="px-2.5 py-1.5 bg-[#F8FAFC] dark:bg-[#162035] border border-slate-300 dark:border-[#334155] rounded-md text-xs text-slate-900 dark:text-[#F8FAFC] focus:outline-none focus:border-slate-400 dark:focus:border-slate-500 cursor-pointer"
                 >
                   <option value="all">All Vectors</option>
                   <option value="failed">Failed Auth Attempt</option>
@@ -300,7 +300,7 @@ function handleConfirmUnlockAll() {
             <div class="mt-1 overflow-x-auto rounded-[10px] border border-slate-200 dark:border-[#1E293B]">
               <table class="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr class="h-9 border-b border-slate-200 dark:border-[#1E293B] text-slate-500 dark:text-[#94A3B8] bg-[#F1F5F9] dark:bg-[#090D16]">
+                  <tr class="h-9 border-b border-slate-200 dark:border-[#1E293B] text-slate-500 dark:text-[#94A3B8] bg-[#F8FAFC] dark:bg-[#162035]">
                     <!-- Multi-select Header Checkbox (32px Fixed) -->
                     <th class="py-2 px-2 w-8 text-center">
                       <input
@@ -310,11 +310,11 @@ function handleConfirmUnlockAll() {
                         title="Select all external threat IPs"
                       />
                     </th>
-                    <th class="py-2 px-3 font-medium uppercase tracking-[0.05em] text-[11px] w-20">{{ i18n.t('ពេលវេលា', 'Time') }}</th>
-                    <th class="py-2 px-4 font-medium uppercase tracking-[0.05em] text-[11px]">{{ i18n.t('គណនីគោលដៅ', 'Target Account') }}</th>
-                    <th class="py-2 px-4 font-medium uppercase tracking-[0.05em] text-[11px] w-40">{{ i18n.t('IP & ទីតាំង', 'Origin IP / Location') }}</th>
-                    <th class="py-2 px-3 font-medium uppercase tracking-[0.05em] text-[11px] w-36">{{ i18n.t('មូលហេតុគំរាមកំហែង', 'Threat Vector') }}</th>
-                    <th class="py-2 px-4 font-medium uppercase tracking-[0.05em] text-[11px] text-right w-[90px]">{{ i18n.t('សកម្មភាព', 'Action') }}</th>
+                    <th class="py-2 px-3 font-medium uppercase tracking-[0.05em] text-[11px] leading-4 w-20">{{ i18n.t('ពេលវេលា', 'Time') }}</th>
+                    <th class="py-2 px-4 font-medium uppercase tracking-[0.05em] text-[11px] leading-4">{{ i18n.t('គណនីគោលដៅ', 'Target Account') }}</th>
+                    <th class="py-2 px-4 font-medium uppercase tracking-[0.05em] text-[11px] leading-4 w-44">{{ i18n.t('IP & ទីតាំង', 'Origin IP / Location') }}</th>
+                    <th class="py-2 px-3 font-medium uppercase tracking-[0.05em] text-[11px] leading-4 w-36">{{ i18n.t('មូលហេតុគំរាមកំហែង', 'Threat Vector') }}</th>
+                    <th class="py-2 px-4 font-medium uppercase tracking-[0.05em] text-[11px] leading-4 text-right w-[95px]">{{ i18n.t('សកម្មភាព', 'Action') }}</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-[#1E293B]">
@@ -322,12 +322,12 @@ function handleConfirmUnlockAll() {
                     v-for="incident in filteredIncidents"
                     :key="incident.id"
                     :class="[
-                      selectedIncidentIds.includes(incident.id) ? 'bg-red-50/50 dark:bg-red-950/20' : '',
-                      'h-12 hover:bg-slate-50 dark:hover:bg-[#1E293B]/50 transition-colors'
+                      selectedIncidentIds.includes(incident.id) ? 'bg-indigo-50/60 dark:bg-indigo-950/30' : 'bg-transparent',
+                      'h-11 hover:bg-[#F8FAFC] dark:hover:bg-[#162035] transition-colors'
                     ]"
                   >
                     <!-- Row Checkbox (Fixed 32px) -->
-                    <td class="py-2.5 px-2 text-center w-8">
+                    <td class="py-2 px-2 text-center w-8">
                       <input
                         type="checkbox"
                         :value="incident.id"
@@ -338,20 +338,20 @@ function handleConfirmUnlockAll() {
                       />
                     </td>
 
-                    <!-- Time (Fixed 80px, JetBrains Mono Tabular 13px) -->
-                    <td class="py-2.5 px-3 font-mono text-[13px] text-slate-500 dark:text-[#94A3B8] whitespace-nowrap tracking-tight w-20">
+                    <!-- Time (Fixed 80px, Geist Mono Tabular 12px) -->
+                    <td class="py-2.5 px-3 font-mono text-[12px] leading-[18px] text-slate-500 dark:text-[#94A3B8] whitespace-nowrap tracking-tight w-20">
                       {{ incident.time }}
                     </td>
 
-                    <!-- Target Account (Fill Container) -->
+                    <!-- Target Account -->
                     <td class="py-2.5 px-4">
                       <div class="text-[13px] font-medium text-slate-900 dark:text-[#F8FAFC] leading-tight">{{ incident.email }}</div>
                       <div class="text-[11px] text-slate-500 dark:text-[#94A3B8] leading-tight mt-0.5">{{ incident.device }}</div>
                     </td>
 
-                    <!-- Origin IP & Location (Fixed 170px, Auto-layout Horizontal Center with Country Flag) -->
+                    <!-- Origin IP & Location: Row 1 = IP in Geist Mono (text-[12px]), Row 2 = location in Sans (text-[11px]) -->
                     <td class="py-2.5 px-4 w-44">
-                      <div class="flex items-center gap-1.5 font-mono text-[13px] text-slate-900 dark:text-[#F8FAFC] leading-tight">
+                      <div class="flex items-center gap-1.5 font-mono text-[12px] leading-[18px] text-slate-900 dark:text-[#F8FAFC]">
                         <span class="text-sm select-none shrink-0">{{ getIpGeo(incident.ip_address, incident.location).flag }}</span>
                         <span>{{ incident.ip_address }}</span>
                         <span
@@ -361,7 +361,7 @@ function handleConfirmUnlockAll() {
                           loopback
                         </span>
                       </div>
-                      <div class="text-[11px] text-slate-500 dark:text-[#94A3B8] leading-tight mt-0.5">
+                      <div class="font-sans text-[11px] leading-[16px] text-slate-500 dark:text-[#94A3B8] mt-0.5">
                         {{ getIpGeo(incident.ip_address, incident.location).label }}
                       </div>
                     </td>
@@ -386,7 +386,7 @@ function handleConfirmUnlockAll() {
                         v-else
                         type="button"
                         @click="blockIp(incident.ip_address)"
-                        class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-md text-slate-700 dark:text-slate-200 bg-white dark:bg-[#090D16] border border-slate-300 dark:border-[#334155] hover:border-red-500 dark:hover:border-red-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
+                        class="inline-flex items-center px-3 py-1 text-xs font-medium rounded-md text-slate-700 dark:text-slate-200 bg-white dark:bg-[#0E1524] border border-slate-300 dark:border-[#334155] hover:border-red-500 dark:hover:border-red-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
                         title="Add IP to firewall block list"
                       >
                         {{ i18n.t('ទប់ស្កាត់ IP', 'Block IP') }}
@@ -414,108 +414,97 @@ function handleConfirmUnlockAll() {
           </div>
         </div>
 
-        <!-- Right: Security Posture & Hardening Progress Widget (4/12) - High Data-Ink Ratio, Radial Donut Gauge -->
-        <div class="lg:col-span-4 bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] rounded-xl p-5 shadow-[0_1px_2px_0_rgba(15,23,42,0.05)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)] flex flex-col justify-between">
+        <!-- Right: Security Posture & Hardening Progress Widget (4/12) - High Data Density, Inline Mini Gauge (48px x 48px) -->
+        <div class="lg:col-span-4 bg-white dark:bg-[#0E1524] border border-slate-200 dark:border-[#1E293B] rounded-xl p-5 shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] flex flex-col justify-between">
           <div>
-            <!-- Header -->
-            <div class="pb-3.5 border-b border-slate-100 dark:border-[#1E293B]">
-              <h3 class="text-sm font-semibold text-slate-900 dark:text-[#F8FAFC] tracking-tight">
-                {{ i18n.t('ស្ថានភាពការពារប្រព័ន្ធ', 'Hardening & Posture') }}
-              </h3>
-              <p class="text-xs text-slate-500 dark:text-[#94A3B8] mt-0.5">
-                {{ i18n.t('ពិន្ទុសវនកម្មសុវត្ថិភាពសរុប', 'Overall security posture index') }}
-              </p>
-            </div>
-
-            <!-- Radial Ring Gauge (Donut Chart Style Inspired by Reference Dashboard) -->
-            <div class="mt-4 p-4 rounded-xl bg-slate-50/70 dark:bg-[#090D16] border border-slate-200 dark:border-[#1E293B] space-y-3.5">
-              <!-- Ring Gauge + Meta Flex Row -->
-              <div class="flex items-center gap-4 justify-between">
-                <!-- SVG Ring Gauge (Center Aligned 88%) -->
-                <div class="relative w-24 h-24 shrink-0 flex items-center justify-center">
-                  <svg class="w-24 h-24 -rotate-90" viewBox="0 0 100 100">
+            <!-- Header with Inline Mini Gauge (48px x 48px) -->
+            <div class="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-[#1E293B]">
+              <div class="flex items-center gap-3">
+                <!-- Inline Mini Gauge (48px x 48px) with 88% -->
+                <div class="relative w-12 h-12 shrink-0 flex items-center justify-center">
+                  <svg class="w-12 h-12 -rotate-90" viewBox="0 0 48 48">
                     <!-- Background Track Ring -->
                     <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
+                      cx="24"
+                      cy="24"
+                      r="19"
                       stroke="currentColor"
                       class="text-slate-200 dark:text-[#1E293B]"
-                      stroke-width="8"
+                      stroke-width="4.5"
                       fill="none"
                     />
                     <!-- Pending Audit Segment (12%) -->
                     <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
+                      cx="24"
+                      cy="24"
+                      r="19"
                       stroke="#F59E0B"
-                      stroke-width="8"
+                      stroke-width="4.5"
                       fill="none"
-                      stroke-dasharray="251.32"
-                      :stroke-dashoffset="251.32 * (1 - 1.0)"
-                      class="opacity-75 transition-all duration-700"
+                      stroke-dasharray="119.38"
+                      :stroke-dashoffset="119.38 * (1 - 1.0)"
+                      class="opacity-60 transition-all duration-700"
                     />
                     <!-- Enforced Compliant Segment (88%) -->
                     <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
+                      cx="24"
+                      cy="24"
+                      r="19"
                       stroke="#10B981"
-                      stroke-width="8"
+                      stroke-width="4.5"
                       stroke-linecap="round"
                       fill="none"
-                      stroke-dasharray="251.32"
-                      :stroke-dashoffset="251.32 * (1 - (stats.security_score || 88) / 100)"
+                      stroke-dasharray="119.38"
+                      :stroke-dashoffset="119.38 * (1 - (stats.security_score || 88) / 100)"
                       class="transition-all duration-1000 ease-out"
                     />
                   </svg>
                   <!-- Center 88% Display -->
-                  <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span class="text-xl font-bold font-mono text-slate-900 dark:text-[#F8FAFC] tracking-tight leading-none">
+                  <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <span class="text-xs font-bold font-mono text-slate-900 dark:text-[#F8FAFC]">
                       {{ stats.security_score || 88 }}%
-                    </span>
-                    <span class="text-[8px] font-bold uppercase tracking-wider text-slate-400 dark:text-[#94A3B8] mt-0.5">
-                      INDEX
                     </span>
                   </div>
                 </div>
 
-                <!-- Meta & Status -->
-                <div class="flex-1 min-w-0 space-y-1.5">
-                  <div class="flex items-center gap-1.5 flex-wrap">
-                    <span class="px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0] dark:bg-[rgba(16,185,129,0.12)] dark:text-[#10B981] dark:border-[rgba(16,185,129,0.25)] flex items-center gap-1">
-                      <span class="w-1.5 h-1.5 rounded-full bg-[#059669] dark:bg-[#10B981]"></span>
-                      <span>OPTIMAL (10/12)</span>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h3 class="text-sm font-semibold text-slate-900 dark:text-[#F8FAFC] tracking-tight">
+                      {{ i18n.t('ស្ថានភាពការពារប្រព័ន្ធ', 'Security Posture Index') }}
+                    </h3>
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0] dark:bg-[rgba(16,185,129,0.12)] dark:text-[#10B981] dark:border-[rgba(16,185,129,0.25)]">
+                      OPTIMAL
                     </span>
                   </div>
-                  <h4 class="text-[13px] font-semibold text-slate-900 dark:text-[#F8FAFC] leading-snug">
-                    Security Posture Index
-                  </h4>
-                  <p class="text-[11px] font-medium text-[#D97706] dark:text-[#F59E0B] leading-tight">
-                    2FA Audit Pending (-12%)
+                  <p class="text-xs text-slate-500 dark:text-[#94A3B8] mt-0.5">
+                    {{ i18n.t('10 ច្បាប់អនុវត្ត / 2 កំពុងត្រួតពិនិត្យ', '10 Enforced / 2 Pending Audit') }}
                   </p>
                 </div>
               </div>
 
-              <!-- Multi-Segment Mini Progress Breakdown -->
-              <div class="w-full space-y-1 pt-2 border-t border-slate-200/70 dark:border-[#1E293B]">
-                <div class="flex justify-between items-center text-[11px] text-slate-500 dark:text-[#94A3B8]">
-                  <span>Hardening Coverage:</span>
-                  <span class="font-mono text-emerald-600 dark:text-emerald-400 font-semibold text-[10px]">10 Enforced / 2 Pending</span>
-                </div>
-                <div class="w-full h-1.5 rounded-full bg-slate-200 dark:bg-[#1E293B] overflow-hidden flex gap-0.5">
-                  <div class="h-full bg-[#10B981] w-[88%]" title="Enforced: 88%"></div>
-                  <div class="h-full bg-[#F59E0B] w-[12%]" title="Pending 2FA: 12%"></div>
-                </div>
+              <!-- Micro Trend Badge -->
+              <span class="hidden sm:inline-flex px-2 py-0.5 rounded-md text-[10px] font-mono font-medium text-[#D97706] dark:text-[#F59E0B] bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40">
+                -12% 2FA Audit
+              </span>
+            </div>
+
+            <!-- Multi-Segment Mini Progress Breakdown -->
+            <div class="pt-3 pb-2 space-y-1">
+              <div class="flex justify-between items-center text-[11px] text-slate-500 dark:text-[#94A3B8]">
+                <span>Hardening Coverage Breakdown:</span>
+                <span class="font-mono text-emerald-600 dark:text-emerald-400 font-semibold text-[10px]">88% Compliant</span>
+              </div>
+              <div class="w-full h-1.5 rounded-full bg-slate-200 dark:bg-[#1E293B] overflow-hidden flex gap-0.5">
+                <div class="h-full bg-[#10B981] w-[88%]" title="Enforced: 88%"></div>
+                <div class="h-full bg-[#F59E0B] w-[12%]" title="Pending 2FA: 12%"></div>
               </div>
             </div>
 
-            <!-- Hardening Checklist -->
-            <div class="mt-4 divide-y divide-slate-100 dark:divide-[#1E293B] text-xs">
+            <!-- Hardening Checklist (Expanded 6 Security Policies for Balanced Weight) -->
+            <div class="mt-2 divide-y divide-slate-100 dark:divide-[#1E293B] text-xs">
               
               <!-- Item 1: Password Policy -->
-              <div class="py-2.5 flex items-center justify-between gap-3">
+              <div class="py-2 flex items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5 min-w-0">
                   <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-[#059669] dark:text-[#10B981] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
@@ -529,7 +518,7 @@ function handleConfirmUnlockAll() {
               </div>
 
               <!-- Item 2: JWT Inactivity Expiry -->
-              <div class="py-2.5 flex items-center justify-between gap-3">
+              <div class="py-2 flex items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5 min-w-0">
                   <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-[#059669] dark:text-[#10B981] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
@@ -543,7 +532,7 @@ function handleConfirmUnlockAll() {
               </div>
 
               <!-- Item 3: Superadmin 2FA -->
-              <div class="py-2.5 flex items-center justify-between gap-3">
+              <div class="py-2 flex items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5 min-w-0">
                   <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-[#D97706] dark:text-[#F59E0B] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"/>
@@ -558,7 +547,7 @@ function handleConfirmUnlockAll() {
               </div>
 
               <!-- Item 4: Honeypot Decoy Sensors -->
-              <div class="py-2.5 flex items-center justify-between gap-3">
+              <div class="py-2 flex items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5 min-w-0">
                   <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-[#059669] dark:text-[#10B981] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
@@ -570,6 +559,35 @@ function handleConfirmUnlockAll() {
                   ARMED
                 </span>
               </div>
+
+              <!-- Item 5: Brute-Force Rate Limiting -->
+              <div class="py-2 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-[#059669] dark:text-[#10B981] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                  </svg>
+                  <span class="text-slate-800 dark:text-[#F8FAFC] truncate">{{ i18n.t('កំណត់អត្រា Brute-force (5 ដង)', 'Brute-Force Rate Limiting (5 Attempts)') }}</span>
+                </div>
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0] dark:bg-[rgba(16,185,129,0.12)] dark:text-[#10B981] dark:border-[rgba(16,185,129,0.25)] shrink-0">
+                  ENFORCED
+                </span>
+              </div>
+
+              <!-- Item 6: Session Hijacking & IP Pinning -->
+              <div class="py-2 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-[#059669] dark:text-[#10B981] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                  </svg>
+                  <span class="text-slate-800 dark:text-[#F8FAFC] truncate">{{ i18n.t('ការពារ Session & IP Pinning', 'Session Hijacking & IP Pinning') }}</span>
+                </div>
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0] dark:bg-[rgba(16,185,129,0.12)] dark:text-[#10B981] dark:border-[rgba(16,185,129,0.25)] shrink-0">
+                  ENFORCED
+                </span>
+              </div>
+
             </div>
           </div>
 
@@ -577,7 +595,7 @@ function handleConfirmUnlockAll() {
           <div class="pt-3.5 border-t border-slate-100 dark:border-[#1E293B] mt-3">
             <Link
               href="/admin/auth/policies"
-              class="w-full py-2 px-3 rounded-md text-xs font-medium text-center text-slate-700 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F8FAFC] bg-white dark:bg-[#090D16] hover:bg-slate-50 dark:hover:bg-[#1E293B] border border-slate-300 dark:border-[#1E293B] transition-colors flex items-center justify-center gap-2"
+              class="w-full py-2 px-3 rounded-md text-xs font-medium text-center text-slate-700 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F8FAFC] bg-white dark:bg-[#0E1524] hover:bg-slate-50 dark:hover:bg-[#162035] border border-slate-300 dark:border-[#1E293B] transition-colors flex items-center justify-center gap-2"
             >
               <span>{{ i18n.t('កែប្រែគោលការណ៍សុវត្ថិភាព', 'Configure Security Policies') }}</span>
               <span class="font-mono">→</span>
@@ -592,10 +610,10 @@ function handleConfirmUnlockAll() {
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         
         <!-- Feed 1: RBAC Role Distribution & User Access -->
-        <div class="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] hover:border-slate-300 dark:hover:border-slate-700 rounded-xl p-5 shadow-[0_1px_2px_0_rgba(15,23,42,0.05)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)] transition-all flex flex-col justify-between">
+        <div class="bg-white dark:bg-[#0E1524] border border-slate-200 dark:border-[#1E293B] hover:border-slate-300 dark:hover:border-slate-700 rounded-xl p-5 shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] transition-all flex flex-col justify-between">
           <div>
             <div class="flex items-center justify-between">
-              <div class="w-9 h-9 rounded-lg bg-slate-100 dark:bg-[#080C14] border border-slate-200 dark:border-[#1E293B] text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+              <div class="w-9 h-9 rounded-lg bg-slate-100 dark:bg-[#162035] border border-slate-200 dark:border-[#1E293B] text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                   <path d="m9 12 2 2 4-4"/>
@@ -615,7 +633,7 @@ function handleConfirmUnlockAll() {
             </p>
 
             <!-- Role User Counts Breakdown -->
-            <div class="mt-3.5 p-3 rounded-lg bg-[#F1F5F9]/60 dark:bg-[#080C14] border border-slate-200 dark:border-[#1E293B] space-y-1.5 text-xs">
+            <div class="mt-3.5 p-3 rounded-lg bg-[#F8FAFC] dark:bg-[#162035] border border-slate-200 dark:border-[#1E293B] space-y-1.5 text-xs">
               <div class="flex justify-between items-center">
                 <span class="text-slate-500 dark:text-[#94A3B8] flex items-center gap-1.5">
                   <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
@@ -643,7 +661,7 @@ function handleConfirmUnlockAll() {
           <div class="pt-3.5 mt-3 border-t border-slate-100 dark:border-[#1E293B]">
             <Link
               href="/admin/auth/roles"
-              class="w-full py-1.5 px-3 rounded-md text-xs font-medium text-center text-slate-700 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F8FAFC] bg-white dark:bg-[#090D16] hover:bg-slate-50 dark:hover:bg-[#1E293B] border border-slate-300 dark:border-[#1E293B] transition-colors flex items-center justify-center gap-1.5"
+              class="w-full py-1.5 px-3 rounded-md text-xs font-medium text-center text-slate-700 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F8FAFC] bg-white dark:bg-[#0E1524] hover:bg-slate-50 dark:hover:bg-[#162035] border border-slate-300 dark:border-[#1E293B] transition-colors flex items-center justify-center gap-1.5"
             >
               <span>{{ i18n.t('គ្រប់គ្រងម៉ាទ្រីស RBAC', 'Configure Roles Matrix') }}</span>
               <span class="font-mono">→</span>
@@ -652,10 +670,10 @@ function handleConfirmUnlockAll() {
         </div>
 
         <!-- Feed 2: Live JWT Session Telemetry & Device Breakdown -->
-        <div class="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] hover:border-slate-300 dark:hover:border-slate-700 rounded-xl p-5 shadow-[0_1px_2px_0_rgba(15,23,42,0.05)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)] transition-all flex flex-col justify-between">
+        <div class="bg-white dark:bg-[#0E1524] border border-slate-200 dark:border-[#1E293B] hover:border-slate-300 dark:hover:border-slate-700 rounded-xl p-5 shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] transition-all flex flex-col justify-between">
           <div>
             <div class="flex items-center justify-between">
-              <div class="w-9 h-9 rounded-lg bg-slate-100 dark:bg-[#080C14] border border-slate-200 dark:border-[#1E293B] text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+              <div class="w-9 h-9 rounded-lg bg-slate-100 dark:bg-[#162035] border border-slate-200 dark:border-[#1E293B] text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <rect width="20" height="14" x="2" y="3" rx="2"/>
                   <line x1="8" x2="16" y1="21" y2="21"/>
@@ -677,7 +695,7 @@ function handleConfirmUnlockAll() {
             </p>
 
             <!-- Device Telemetry Progress Bar -->
-            <div class="mt-3.5 p-3 rounded-lg bg-[#F1F5F9]/60 dark:bg-[#080C14] border border-slate-200 dark:border-[#1E293B] space-y-2 text-xs">
+            <div class="mt-3.5 p-3 rounded-lg bg-[#F8FAFC] dark:bg-[#162035] border border-slate-200 dark:border-[#1E293B] space-y-2 text-xs">
               <div class="flex justify-between items-center text-xs">
                 <span class="text-slate-500 dark:text-[#94A3B8]">Desktop Clients (85%)</span>
                 <span class="text-slate-500 dark:text-[#94A3B8]">Mobile (15%)</span>
@@ -696,7 +714,7 @@ function handleConfirmUnlockAll() {
           <div class="pt-3.5 mt-3 border-t border-slate-100 dark:border-[#1E293B]">
             <Link
               href="/admin/auth/sessions"
-              class="w-full py-1.5 px-3 rounded-md text-xs font-medium text-center text-slate-700 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F8FAFC] bg-white dark:bg-[#090D16] hover:bg-slate-50 dark:hover:bg-[#1E293B] border border-slate-300 dark:border-[#1E293B] transition-colors flex items-center justify-center gap-1.5"
+              class="w-full py-1.5 px-3 rounded-md text-xs font-medium text-center text-slate-700 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F8FAFC] bg-white dark:bg-[#0E1524] hover:bg-slate-50 dark:hover:bg-[#162035] border border-slate-300 dark:border-[#1E293B] transition-colors flex items-center justify-center gap-1.5"
             >
               <span>{{ i18n.t('ត្រួតពិនិត្យសម័យការ', 'Inspect Active Sessions') }}</span>
               <span class="font-mono">→</span>
@@ -705,10 +723,10 @@ function handleConfirmUnlockAll() {
         </div>
 
         <!-- Feed 3: Honeypot & Decoy Sensor Grid -->
-        <div class="bg-white dark:bg-[#0F172A] border border-slate-200 dark:border-[#1E293B] hover:border-slate-300 dark:hover:border-slate-700 rounded-xl p-5 shadow-[0_1px_2px_0_rgba(15,23,42,0.05)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)] transition-all flex flex-col justify-between">
+        <div class="bg-white dark:bg-[#0E1524] border border-slate-200 dark:border-[#1E293B] hover:border-slate-300 dark:hover:border-slate-700 rounded-xl p-5 shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] transition-all flex flex-col justify-between">
           <div>
             <div class="flex items-center justify-between">
-              <div class="w-9 h-9 rounded-lg bg-slate-100 dark:bg-[#080C14] border border-slate-200 dark:border-[#1E293B] text-rose-600 dark:text-rose-400 flex items-center justify-center">
+              <div class="w-9 h-9 rounded-lg bg-slate-100 dark:bg-[#162035] border border-slate-200 dark:border-[#1E293B] text-rose-600 dark:text-rose-400 flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                   <path d="m14.5 9-5 5"/>
@@ -729,7 +747,7 @@ function handleConfirmUnlockAll() {
             </p>
 
             <!-- Decoy Sensor Status -->
-            <div class="mt-3.5 p-3 rounded-lg bg-[#F1F5F9]/60 dark:bg-[#080C14] border border-slate-200 dark:border-[#1E293B] space-y-1.5 text-xs">
+            <div class="mt-3.5 p-3 rounded-lg bg-[#F8FAFC] dark:bg-[#162035] border border-slate-200 dark:border-[#1E293B] space-y-1.5 text-xs">
               <div class="flex justify-between items-center">
                 <span class="text-slate-500 dark:text-[#94A3B8]">Active Decoy Traps:</span>
                 <span class="font-mono font-bold text-slate-900 dark:text-[#F8FAFC]">3 Endpoints</span>
@@ -748,7 +766,7 @@ function handleConfirmUnlockAll() {
           <div class="pt-3.5 mt-3 border-t border-slate-100 dark:border-[#1E293B]">
             <Link
               href="/admin/auth/cyber-security"
-              class="w-full py-1.5 px-3 rounded-md text-xs font-medium text-center text-slate-700 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F8FAFC] bg-white dark:bg-[#090D16] hover:bg-slate-50 dark:hover:bg-[#1E293B] border border-slate-300 dark:border-[#1E293B] transition-colors flex items-center justify-center gap-1.5"
+              class="w-full py-1.5 px-3 rounded-md text-xs font-medium text-center text-slate-700 dark:text-[#94A3B8] hover:text-slate-900 dark:hover:text-[#F8FAFC] bg-white dark:bg-[#0E1524] hover:bg-slate-50 dark:hover:bg-[#162035] border border-slate-300 dark:border-[#1E293B] transition-colors flex items-center justify-center gap-1.5"
             >
               <span>{{ i18n.t('បើកមជ្ឈមណ្ឌល Forensics', 'Open Forensics Center') }}</span>
               <span class="font-mono">→</span>

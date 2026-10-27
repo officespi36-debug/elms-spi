@@ -124,26 +124,23 @@ const handleUnlockAll = () => {
       </div>
     </div>
 
-    <!-- ── 2. TOP 4 KPI CARDS (TONAL ACCENT CARD STRIP • 3PX TOP BORDER • 12PX CORNERS) ── -->
+    <!-- ── 2. TOP 4 KPI CARDS (TRUE DUAL-THEME • 2PX TOP ACCENT BORDER • 12PX CORNERS) ── -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       
       <!-- Card 1: Total Roles (Indigo Accent) -->
       <Link
         href="/admin/auth/roles"
-        class="relative overflow-hidden bg-gradient-to-br from-[#EEF2FF] to-white dark:bg-[#111827] border border-[#C7D2FE] dark:border-[#1F2937] border-t-[3px] border-t-[#4F46E5] dark:border-t-indigo-500 rounded-xl p-5 shadow-[0_1px_3px_0_rgba(15,23,42,0.06)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)] group cursor-pointer flex flex-col justify-between hover:shadow-md transition-all duration-200"
+        class="bg-white dark:bg-[#0E1524] border border-slate-200 dark:border-[#1E293B] border-t-2 border-t-[#4F46E5] dark:border-t-[#818CF8] rounded-xl p-4 sm:p-5 shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] hover:shadow-md transition-all duration-200 flex flex-col justify-between group cursor-pointer"
         :title="i18n.t('auth_card1_btn', 'Manage Roles & Permissions Matrix')"
       >
-        <!-- Subtle Ambient Glow -->
-        <div class="absolute -top-10 -right-10 w-28 h-28 rounded-full bg-indigo-500/10 dark:bg-indigo-500/15 blur-xl pointer-events-none"></div>
-
         <div>
-          <!-- Top Row: Label + Circular Icon Container (36px x 36px) -->
+          <!-- Header Row: Label + Square Icon Container (32px x 32px, Radius 8px) -->
           <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold tracking-wider uppercase text-slate-600 dark:text-slate-400">
+            <span class="text-xs font-semibold tracking-wider uppercase text-slate-500 dark:text-[#94A3B8]">
               {{ i18n.t('auth_total_roles', 'TOTAL ROLES') }}
             </span>
-            <div class="w-9 h-9 rounded-xl bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-200/60 dark:border-indigo-500/30">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <div class="w-8 h-8 rounded-lg bg-[#EEF2FF] dark:bg-[rgba(99,102,241,0.12)] text-[#4F46E5] dark:text-[#818CF8] flex items-center justify-center shrink-0 border border-indigo-100 dark:border-indigo-500/20">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
                 <circle cx="9" cy="7" r="4"/>
                 <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
@@ -152,22 +149,22 @@ const handleUnlockAll = () => {
             </div>
           </div>
 
-          <!-- Middle Row: Hero Metric (3xl) + Label -->
+          <!-- Middle Row: Hero Metric (28px/34px Tabular) + Context Label -->
           <div class="my-3 flex items-baseline gap-2.5">
-            <h4 class="text-3xl font-bold font-mono tracking-tight text-[#4338CA] dark:text-[#F8FAFC]">
+            <h4 class="text-[28px] leading-[34px] font-bold font-mono tracking-tight text-slate-900 dark:text-[#F8FAFC]">
               {{ Number(stats.total_roles || 3).toLocaleString() }}
             </h4>
-            <span class="text-xs font-medium text-slate-500 dark:text-[#94A3B8]">System Roles</span>
+            <span class="text-xs font-normal text-slate-500 dark:text-[#94A3B8]">System Roles</span>
           </div>
         </div>
 
-        <!-- Bottom Row: Trend Delta & Micro-link -->
-        <div class="pt-2.5 border-t border-indigo-100 dark:border-[#1F2937] text-xs flex items-center justify-between">
-          <span class="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
+        <!-- Footer Row: Trend Delta Pill + Micro-link -->
+        <div class="pt-2.5 border-t border-slate-100 dark:border-[#1E293B] text-xs flex items-center justify-between">
+          <span class="inline-flex items-center gap-1 font-mono text-[11px] font-semibold text-[#059669] dark:text-[#34D399]">
             <span>▲</span>
             <span>100% RBAC Active</span>
           </span>
-          <span class="text-slate-500 dark:text-[#94A3B8] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 font-medium transition-colors flex items-center gap-1">
+          <span class="text-slate-500 dark:text-[#94A3B8] group-hover:text-[#4F46E5] dark:group-hover:text-[#818CF8] font-medium transition-colors flex items-center gap-1">
             <span>Roles Matrix</span>
             <span class="font-mono text-[11px]">→</span>
           </span>
@@ -177,20 +174,17 @@ const handleUnlockAll = () => {
       <!-- Card 2: Active Sessions (Emerald Accent) -->
       <Link
         href="/admin/auth/sessions"
-        class="relative overflow-hidden bg-gradient-to-br from-[#ECFDF5] to-white dark:bg-[#111827] border border-[#A7F3D0] dark:border-[#1F2937] border-t-[3px] border-t-[#059669] dark:border-t-emerald-500 rounded-xl p-5 shadow-[0_1px_3px_0_rgba(15,23,42,0.06)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)] group cursor-pointer flex flex-col justify-between hover:shadow-md transition-all duration-200"
+        class="bg-white dark:bg-[#0E1524] border border-slate-200 dark:border-[#1E293B] border-t-2 border-t-[#059669] dark:border-t-[#34D399] rounded-xl p-4 sm:p-5 shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] hover:shadow-md transition-all duration-200 flex flex-col justify-between group cursor-pointer"
         :title="i18n.t('auth_card2_btn', 'Monitor Active Sessions')"
       >
-        <!-- Subtle Ambient Glow -->
-        <div class="absolute -top-10 -right-10 w-28 h-28 rounded-full bg-emerald-500/10 dark:bg-emerald-500/15 blur-xl pointer-events-none"></div>
-
         <div>
-          <!-- Top Row: Label + Circular Icon Container (36px x 36px) -->
+          <!-- Header Row: Label + Square Icon Container (32px x 32px, Radius 8px) -->
           <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold tracking-wider uppercase text-slate-600 dark:text-slate-400">
+            <span class="text-xs font-semibold tracking-wider uppercase text-slate-500 dark:text-[#94A3B8]">
               {{ i18n.t('auth_active_sessions', 'ACTIVE SESSIONS') }}
             </span>
-            <div class="w-9 h-9 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-200/60 dark:border-emerald-500/30">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <div class="w-8 h-8 rounded-lg bg-[#ECFDF5] dark:bg-[rgba(16,185,129,0.12)] text-[#059669] dark:text-[#34D399] flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-500/20">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect width="18" height="12" x="3" y="4" rx="2"/>
                 <line x1="2" x2="22" y1="20" y2="20"/>
                 <path d="M8 20v-4"/>
@@ -199,22 +193,22 @@ const handleUnlockAll = () => {
             </div>
           </div>
 
-          <!-- Middle Row: Hero Metric (3xl) + Label -->
+          <!-- Middle Row: Hero Metric (28px/34px Tabular) + Context Label -->
           <div class="my-3 flex items-baseline gap-2.5">
-            <h4 class="text-3xl font-bold font-mono tracking-tight text-[#047857] dark:text-[#F8FAFC]">
+            <h4 class="text-[28px] leading-[34px] font-bold font-mono tracking-tight text-slate-900 dark:text-[#F8FAFC]">
               {{ Number(stats.active_sessions_count || 7).toLocaleString() }}
             </h4>
-            <span class="text-xs font-medium text-slate-500 dark:text-[#94A3B8]">Online Now</span>
+            <span class="text-xs font-normal text-slate-500 dark:text-[#94A3B8]">Online Now</span>
           </div>
         </div>
 
-        <!-- Bottom Row: Trend Delta & Micro-link -->
-        <div class="pt-2.5 border-t border-emerald-100 dark:border-[#1F2937] text-xs flex items-center justify-between">
-          <span class="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
+        <!-- Footer Row: Trend Delta Pill + Micro-link -->
+        <div class="pt-2.5 border-t border-slate-100 dark:border-[#1E293B] text-xs flex items-center justify-between">
+          <span class="inline-flex items-center gap-1 font-mono text-[11px] font-semibold text-[#059669] dark:text-[#34D399]">
             <span>▲</span>
             <span>97.2% Health</span>
           </span>
-          <span class="text-slate-500 dark:text-[#94A3B8] group-hover:text-emerald-600 dark:group-hover:text-emerald-400 font-medium transition-colors flex items-center gap-1">
+          <span class="text-slate-500 dark:text-[#94A3B8] group-hover:text-[#059669] dark:group-hover:text-[#34D399] font-medium transition-colors flex items-center gap-1">
             <span>Live Sessions</span>
             <span class="font-mono text-[11px]">→</span>
           </span>
@@ -224,20 +218,17 @@ const handleUnlockAll = () => {
       <!-- Card 3: Failed Logins Today (Amber Accent) -->
       <Link
         href="/admin/auth/history?filter=failed"
-        class="relative overflow-hidden bg-gradient-to-br from-[#FFFBEB] to-white dark:bg-[#111827] border border-[#FDE68A] dark:border-[#1F2937] border-t-[3px] border-t-[#D97706] dark:border-t-amber-500 rounded-xl p-5 shadow-[0_1px_3px_0_rgba(15,23,42,0.06)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)] group cursor-pointer flex flex-col justify-between hover:shadow-md transition-all duration-200"
+        class="bg-white dark:bg-[#0E1524] border border-slate-200 dark:border-[#1E293B] border-t-2 border-t-[#D97706] dark:border-t-[#FBBF24] rounded-xl p-4 sm:p-5 shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] hover:shadow-md transition-all duration-200 flex flex-col justify-between group cursor-pointer"
         :title="i18n.t('auth_card4_btn', 'Investigate Threat Logs in Login History')"
       >
-        <!-- Subtle Ambient Glow -->
-        <div class="absolute -top-10 -right-10 w-28 h-28 rounded-full bg-amber-500/10 dark:bg-amber-500/15 blur-xl pointer-events-none"></div>
-
         <div>
-          <!-- Top Row: Label + Circular Icon Container (36px x 36px) -->
+          <!-- Header Row: Label + Square Icon Container (32px x 32px, Radius 8px) -->
           <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold tracking-wider uppercase text-slate-600 dark:text-slate-400">
+            <span class="text-xs font-semibold tracking-wider uppercase text-slate-500 dark:text-[#94A3B8]">
               {{ i18n.t('auth_failed_logins_today', 'FAILED LOGINS TODAY') }}
             </span>
-            <div class="w-9 h-9 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-200/60 dark:border-amber-500/30">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <div class="w-8 h-8 rounded-lg bg-[#FFFBEB] dark:bg-[rgba(245,158,11,0.12)] text-[#D97706] dark:text-[#FBBF24] flex items-center justify-center shrink-0 border border-amber-100 dark:border-amber-500/20">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
                 <line x1="12" y1="9" x2="12" y2="13"/>
                 <line x1="12" y1="17" x2="12.01" y2="17"/>
@@ -245,22 +236,22 @@ const handleUnlockAll = () => {
             </div>
           </div>
 
-          <!-- Middle Row: Hero Metric (3xl) + Label -->
+          <!-- Middle Row: Hero Metric (28px/34px Tabular) + Context Label -->
           <div class="my-3 flex items-baseline gap-2.5">
-            <h4 class="text-3xl font-bold font-mono tracking-tight text-[#B45309] dark:text-[#F8FAFC]">
+            <h4 class="text-[28px] leading-[34px] font-bold font-mono tracking-tight text-slate-900 dark:text-[#F8FAFC]">
               {{ Number(stats.failed_logins_today || 65).toLocaleString() }}
             </h4>
-            <span class="text-xs font-medium text-amber-600 dark:text-amber-400">Audit Required</span>
+            <span class="text-xs font-medium text-[#D97706] dark:text-[#FBBF24]">Audit Required</span>
           </div>
         </div>
 
-        <!-- Bottom Row: Trend Delta & Micro-link -->
-        <div class="pt-2.5 border-t border-amber-100 dark:border-[#1F2937] text-xs flex items-center justify-between">
-          <span class="inline-flex items-center gap-1 font-semibold text-[#D97706] dark:text-[#F59E0B]">
+        <!-- Footer Row: Trend Delta Pill + Micro-link -->
+        <div class="pt-2.5 border-t border-slate-100 dark:border-[#1E293B] text-xs flex items-center justify-between">
+          <span class="inline-flex items-center gap-1 font-mono text-[11px] font-semibold text-[#D97706] dark:text-[#FBBF24]">
             <span>▲</span>
-            <span>+12% Spike Today</span>
+            <span>+12% Today</span>
           </span>
-          <span class="text-slate-500 dark:text-[#94A3B8] group-hover:text-amber-600 dark:group-hover:text-amber-400 font-medium transition-colors flex items-center gap-1">
+          <span class="text-slate-500 dark:text-[#94A3B8] group-hover:text-[#D97706] dark:group-hover:text-[#FBBF24] font-medium transition-colors flex items-center gap-1">
             <span>Triage Stream</span>
             <span class="font-mono text-[11px]">→</span>
           </span>
@@ -271,42 +262,39 @@ const handleUnlockAll = () => {
       <button
         type="button"
         @click="isReviewModalOpen = true"
-        class="relative overflow-hidden bg-gradient-to-br from-[#FFF1F2] to-white dark:bg-[#111827] border border-[#FECDD3] dark:border-[#1F2937] border-t-[3px] border-t-[#DC2626] dark:border-t-rose-500 rounded-xl p-5 shadow-[0_1px_3px_0_rgba(15,23,42,0.06)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)] group cursor-pointer flex flex-col justify-between hover:shadow-md transition-all duration-200 text-left"
+        class="bg-white dark:bg-[#0E1524] border border-slate-200 dark:border-[#1E293B] border-t-2 border-t-[#E11D48] dark:border-t-[#FB7185] rounded-xl p-4 sm:p-5 shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] hover:shadow-md transition-all duration-200 flex flex-col justify-between group cursor-pointer text-left"
         :title="i18n.t('auth_locked_accounts_btn', 'Click to Review & Unlock Accounts')"
       >
-        <!-- Subtle Ambient Glow -->
-        <div class="absolute -top-10 -right-10 w-28 h-28 rounded-full bg-rose-500/10 dark:bg-rose-500/15 blur-xl pointer-events-none"></div>
-
         <div>
-          <!-- Top Row: Label + Circular Icon Container (36px x 36px) -->
+          <!-- Header Row: Label + Square Icon Container (32px x 32px, Radius 8px) -->
           <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold tracking-wider uppercase text-slate-600 dark:text-slate-400">
+            <span class="text-xs font-semibold tracking-wider uppercase text-slate-500 dark:text-[#94A3B8]">
               {{ i18n.t('auth_locked_accounts', 'LOCKED ACCOUNTS / RISK') }}
             </span>
-            <div class="w-9 h-9 rounded-xl bg-rose-500/10 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 border border-rose-200/60 dark:border-rose-500/30">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <div class="w-8 h-8 rounded-lg bg-[#FFF1F2] dark:bg-[rgba(225,29,72,0.12)] text-[#E11D48] dark:text-[#FB7185] flex items-center justify-center shrink-0 border border-rose-100 dark:border-rose-500/20">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
                 <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
               </svg>
             </div>
           </div>
 
-          <!-- Middle Row: Hero Metric (3xl) + Label -->
+          <!-- Middle Row: Hero Metric (28px/34px Tabular) + Context Label -->
           <div class="my-3 flex items-baseline gap-2.5">
-            <h4 class="text-3xl font-bold font-mono tracking-tight text-[#BE123C] dark:text-[#F8FAFC]">
+            <h4 class="text-[28px] leading-[34px] font-bold font-mono tracking-tight text-slate-900 dark:text-[#F8FAFC]">
               {{ Number(stats.locked_accounts_count || 14).toLocaleString() }}
             </h4>
-            <span class="text-xs font-medium text-rose-600 dark:text-rose-400">Suspended</span>
+            <span class="text-xs font-medium text-[#E11D48] dark:text-[#FB7185]">Suspended</span>
           </div>
         </div>
 
-        <!-- Bottom Row: Trend Delta & Micro-link -->
-        <div class="pt-2.5 border-t border-rose-100 dark:border-[#1F2937] text-xs flex items-center justify-between">
-          <span class="inline-flex items-center gap-1 font-semibold text-[#DC2626] dark:text-[#EF4444]">
+        <!-- Footer Row: Trend Delta Pill + Micro-link -->
+        <div class="pt-2.5 border-t border-slate-100 dark:border-[#1E293B] text-xs flex items-center justify-between">
+          <span class="inline-flex items-center gap-1 font-mono text-[11px] font-semibold text-[#E11D48] dark:text-[#FB7185]">
             <span>▼</span>
             <span>4 Need Review</span>
           </span>
-          <span class="text-slate-500 dark:text-[#94A3B8] group-hover:text-rose-600 dark:group-hover:text-rose-400 font-medium transition-colors flex items-center gap-1">
+          <span class="text-slate-500 dark:text-[#94A3B8] group-hover:text-[#E11D48] dark:group-hover:text-[#FB7185] font-medium transition-colors flex items-center gap-1">
             <span>Review Queue</span>
             <span class="font-mono text-[11px]">→</span>
           </span>
@@ -417,7 +405,7 @@ const handleUnlockAll = () => {
         v-if="isReviewModalOpen"
         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-fade-in"
       >
-        <div class="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-2xl border border-rose-200 dark:border-rose-900/60 shadow-2xl p-6 overflow-hidden space-y-5 max-h-[90vh] flex flex-col">
+        <div class="relative w-full max-w-2xl bg-white dark:bg-[#0E1524] rounded-2xl border border-slate-200 dark:border-[#1E293B] shadow-2xl p-6 overflow-hidden space-y-5 max-h-[90vh] flex flex-col">
           <!-- Ambient Glow -->
           <div class="absolute -top-12 -right-12 w-48 h-48 bg-rose-500/15 rounded-full blur-2xl pointer-events-none"></div>
 
