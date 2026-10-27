@@ -124,67 +124,51 @@ const handleUnlockAll = () => {
       </div>
     </div>
 
-    <!-- ── 2. TOP 4 KPI CARDS (TRUE DUAL-THEME • 2PX TOP ACCENT BORDER • 12PX CORNERS) ── -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- ── 2. TOP 6 VIBRANT KPI CARDS (HIGH-ENERGY WAVE CARDS MATCHING ADMIN DASHBOARD) ── -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
       
-      <!-- Card 1: Total Roles (Indigo Accent) -->
+      <!-- Card 1: Total Roles ➔ Royal Purple/Violet -->
       <Link
         href="/admin/auth/roles"
-        class="bg-white dark:bg-[#0E1524] border border-slate-200 dark:border-[#1E293B] border-t-2 border-t-[#4F46E5] dark:border-t-[#818CF8] rounded-xl p-4 sm:p-5 shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] hover:shadow-md transition-all duration-200 flex flex-col justify-between group cursor-pointer"
+        class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#7c3aed] to-[#6366f1] text-white p-4 shadow-sm hover:shadow-lg hover:scale-[1.02] active:scale-[0.99] transition-all flex flex-col justify-between group cursor-pointer"
         :title="i18n.t('auth_card1_btn', 'Manage Roles & Permissions Matrix')"
       >
         <div>
-          <!-- Header Row: Label + Square Icon Container (32px x 32px, Radius 8px) -->
           <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold tracking-wider uppercase text-slate-500 dark:text-[#94A3B8]">
-              {{ i18n.t('auth_total_roles', 'TOTAL ROLES') }}
-            </span>
-            <div class="w-8 h-8 rounded-lg bg-[#EEF2FF] dark:bg-[rgba(99,102,241,0.12)] text-[#4F46E5] dark:text-[#818CF8] flex items-center justify-center shrink-0 border border-indigo-100 dark:border-indigo-500/20">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ i18n.t('auth_total_roles', 'TOTAL ROLES') }}</span>
+            <div class="text-white/95 group-hover:text-white group-hover:scale-105 transition-transform duration-200 shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <path d="m9 12 2 2 4-4"/>
               </svg>
             </div>
           </div>
-
-          <!-- Middle Row: Hero Metric (28px/34px Tabular) + Context Label -->
-          <div class="my-3 flex items-baseline gap-2.5">
-            <h4 class="text-[28px] leading-[34px] font-bold font-mono tracking-tight text-slate-900 dark:text-[#F8FAFC]">
-              {{ Number(stats.total_roles || 3).toLocaleString() }}
-            </h4>
-            <span class="text-xs font-normal text-slate-500 dark:text-[#94A3B8]">System Roles</span>
-          </div>
+          <h4 class="text-2xl font-black tracking-tight text-white mt-1">
+            {{ Number(stats.total_roles || 3).toLocaleString() }}
+          </h4>
+          <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
+            <span>▲ 100% RBAC Active</span>
+          </p>
         </div>
-
-        <!-- Footer Row: Trend Delta Pill + Micro-link -->
-        <div class="pt-2.5 border-t border-slate-100 dark:border-[#1E293B] text-xs flex items-center justify-between">
-          <span class="inline-flex items-center gap-1 font-mono text-[11px] font-semibold text-[#059669] dark:text-[#34D399]">
-            <span>▲</span>
-            <span>100% RBAC Active</span>
-          </span>
-          <span class="text-slate-500 dark:text-[#94A3B8] group-hover:text-[#4F46E5] dark:group-hover:text-[#818CF8] font-medium transition-colors flex items-center gap-1">
-            <span>Roles Matrix</span>
-            <span class="font-mono text-[11px]">→</span>
-          </span>
+        <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
+          <svg class="w-full h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none">
+            <path d="M0 18 Q 20 4, 40 14 T 70 6 T 100 12 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.18"/>
+            <path d="M0 18 Q 20 4, 40 14 T 70 6 T 100 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
+          </svg>
         </div>
       </Link>
 
-      <!-- Card 2: Active Sessions (Emerald Accent) -->
+      <!-- Card 2: Active Sessions ➔ Emerald Green -->
       <Link
         href="/admin/auth/sessions"
-        class="bg-white dark:bg-[#0E1524] border border-slate-200 dark:border-[#1E293B] border-t-2 border-t-[#059669] dark:border-t-[#34D399] rounded-xl p-4 sm:p-5 shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] hover:shadow-md transition-all duration-200 flex flex-col justify-between group cursor-pointer"
+        class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#10b981] to-[#059669] text-white p-4 shadow-sm hover:shadow-lg hover:scale-[1.02] active:scale-[0.99] transition-all flex flex-col justify-between group cursor-pointer"
         :title="i18n.t('auth_card2_btn', 'Monitor Active Sessions')"
       >
         <div>
-          <!-- Header Row: Label + Square Icon Container (32px x 32px, Radius 8px) -->
           <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold tracking-wider uppercase text-slate-500 dark:text-[#94A3B8]">
-              {{ i18n.t('auth_active_sessions', 'ACTIVE SESSIONS') }}
-            </span>
-            <div class="w-8 h-8 rounded-lg bg-[#ECFDF5] dark:bg-[rgba(16,185,129,0.12)] text-[#059669] dark:text-[#34D399] flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-500/20">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ i18n.t('auth_active_sessions', 'ACTIVE SESSIONS') }}</span>
+            <div class="text-white/95 group-hover:text-white group-hover:scale-105 transition-transform duration-200 shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <rect width="18" height="12" x="3" y="4" rx="2"/>
                 <line x1="2" x2="22" y1="20" y2="20"/>
                 <path d="M8 20v-4"/>
@@ -192,114 +176,150 @@ const handleUnlockAll = () => {
               </svg>
             </div>
           </div>
-
-          <!-- Middle Row: Hero Metric (28px/34px Tabular) + Context Label -->
-          <div class="my-3 flex items-baseline gap-2.5">
-            <h4 class="text-[28px] leading-[34px] font-bold font-mono tracking-tight text-slate-900 dark:text-[#F8FAFC]">
-              {{ Number(stats.active_sessions_count || 7).toLocaleString() }}
-            </h4>
-            <span class="text-xs font-normal text-slate-500 dark:text-[#94A3B8]">Online Now</span>
-          </div>
+          <h4 class="text-2xl font-black tracking-tight text-white mt-1">
+            {{ Number(stats.active_sessions_count || 7).toLocaleString() }}
+          </h4>
+          <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
+            <span>▲ 97.2% Session Health</span>
+          </p>
         </div>
-
-        <!-- Footer Row: Trend Delta Pill + Micro-link -->
-        <div class="pt-2.5 border-t border-slate-100 dark:border-[#1E293B] text-xs flex items-center justify-between">
-          <span class="inline-flex items-center gap-1 font-mono text-[11px] font-semibold text-[#059669] dark:text-[#34D399]">
-            <span>▲</span>
-            <span>97.2% Health</span>
-          </span>
-          <span class="text-slate-500 dark:text-[#94A3B8] group-hover:text-[#059669] dark:group-hover:text-[#34D399] font-medium transition-colors flex items-center gap-1">
-            <span>Live Sessions</span>
-            <span class="font-mono text-[11px]">→</span>
-          </span>
+        <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
+          <svg class="w-full h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none">
+            <path d="M0 20 Q 25 8, 45 16 T 75 4 T 100 10 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.18"/>
+            <path d="M0 20 Q 25 8, 45 16 T 75 4 T 100 10" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
+          </svg>
         </div>
       </Link>
 
-      <!-- Card 3: Failed Logins Today (Amber Accent) -->
+      <!-- Card 3: Failed Logins ➔ Vivid Orange -->
       <Link
         href="/admin/auth/history?filter=failed"
-        class="bg-white dark:bg-[#0E1524] border border-slate-200 dark:border-[#1E293B] border-t-2 border-t-[#D97706] dark:border-t-[#FBBF24] rounded-xl p-4 sm:p-5 shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] hover:shadow-md transition-all duration-200 flex flex-col justify-between group cursor-pointer"
+        class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#f97316] to-[#ea580c] text-white p-4 shadow-sm hover:shadow-lg hover:scale-[1.02] active:scale-[0.99] transition-all flex flex-col justify-between group cursor-pointer"
         :title="i18n.t('auth_card4_btn', 'Investigate Threat Logs in Login History')"
       >
         <div>
-          <!-- Header Row: Label + Square Icon Container (32px x 32px, Radius 8px) -->
           <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold tracking-wider uppercase text-slate-500 dark:text-[#94A3B8]">
-              {{ i18n.t('auth_failed_logins_today', 'FAILED LOGINS TODAY') }}
-            </span>
-            <div class="w-8 h-8 rounded-lg bg-[#FFFBEB] dark:bg-[rgba(245,158,11,0.12)] text-[#D97706] dark:text-[#FBBF24] flex items-center justify-center shrink-0 border border-amber-100 dark:border-amber-500/20">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ i18n.t('auth_failed_logins_today', 'FAILED LOGINS') }}</span>
+            <div class="text-white/95 group-hover:text-white group-hover:scale-105 transition-transform duration-200 shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
                 <line x1="12" y1="9" x2="12" y2="13"/>
                 <line x1="12" y1="17" x2="12.01" y2="17"/>
               </svg>
             </div>
           </div>
-
-          <!-- Middle Row: Hero Metric (28px/34px Tabular) + Context Label -->
-          <div class="my-3 flex items-baseline gap-2.5">
-            <h4 class="text-[28px] leading-[34px] font-bold font-mono tracking-tight text-slate-900 dark:text-[#F8FAFC]">
-              {{ Number(stats.failed_logins_today || 65).toLocaleString() }}
-            </h4>
-            <span class="text-xs font-medium text-[#D97706] dark:text-[#FBBF24]">Audit Required</span>
-          </div>
+          <h4 class="text-2xl font-black tracking-tight text-white mt-1">
+            {{ Number(stats.failed_logins_today || 65).toLocaleString() }}
+          </h4>
+          <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
+            <span>▲ +12% Bot Probing</span>
+          </p>
         </div>
-
-        <!-- Footer Row: Trend Delta Pill + Micro-link -->
-        <div class="pt-2.5 border-t border-slate-100 dark:border-[#1E293B] text-xs flex items-center justify-between">
-          <span class="inline-flex items-center gap-1 font-mono text-[11px] font-semibold text-[#D97706] dark:text-[#FBBF24]">
-            <span>▲</span>
-            <span>+12% Today</span>
-          </span>
-          <span class="text-slate-500 dark:text-[#94A3B8] group-hover:text-[#D97706] dark:group-hover:text-[#FBBF24] font-medium transition-colors flex items-center gap-1">
-            <span>Triage Stream</span>
-            <span class="font-mono text-[11px]">→</span>
-          </span>
+        <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
+          <svg class="w-full h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none">
+            <path d="M0 16 Q 20 22, 45 8 T 75 14 T 100 4 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.18"/>
+            <path d="M0 16 Q 20 22, 45 8 T 75 14 T 100 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
+          </svg>
         </div>
       </Link>
 
-      <!-- Card 4: Locked Accounts / Risk (Rose Accent) -->
+      <!-- Card 4: Live JWT Tokens ➔ Royal Blue -->
+      <Link
+        href="/admin/auth/sessions"
+        class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0284c7] to-[#2563eb] text-white p-4 shadow-sm hover:shadow-lg hover:scale-[1.02] active:scale-[0.99] transition-all flex flex-col justify-between group cursor-pointer"
+        :title="i18n.t('auth_active_tokens_btn', 'Click to inspect active JWT session tokens')"
+      >
+        <div>
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ i18n.t('auth_live_tokens', 'LIVE JWT TOKENS') }}</span>
+            <div class="text-white/95 group-hover:text-white group-hover:scale-105 transition-transform duration-200 shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+              </svg>
+            </div>
+          </div>
+          <h4 class="text-2xl font-black tracking-tight text-white mt-1">
+            {{ Number(stats.active_sessions_count || 7).toLocaleString() }}
+          </h4>
+          <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
+            <span>▲ 15-min Idle Expiry</span>
+          </p>
+        </div>
+        <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
+          <svg class="w-full h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none">
+            <path d="M0 18 Q 20 6, 45 16 T 75 8 T 100 14 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.18"/>
+            <path d="M0 18 Q 20 6, 45 16 T 75 8 T 100 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
+          </svg>
+        </div>
+      </Link>
+
+      <!-- Card 5: Posture Index ➔ Bright Rose/Pink -->
+      <Link
+        href="/admin/auth/policies"
+        class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#ec4899] to-[#e11d48] text-white p-4 shadow-sm hover:shadow-lg hover:scale-[1.02] active:scale-[0.99] transition-all flex flex-col justify-between group cursor-pointer"
+        :title="i18n.t('auth_posture_btn', 'Click to view security policies and hardening index')"
+      >
+        <div>
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ i18n.t('auth_posture_index', 'POSTURE INDEX') }}</span>
+            <div class="text-white/95 group-hover:text-white group-hover:scale-105 transition-transform duration-200 shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+                <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+                <path d="M4 22h16" />
+                <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+                <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+                <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+              </svg>
+            </div>
+          </div>
+          <h4 class="text-2xl font-black tracking-tight text-white mt-1">
+            88%
+          </h4>
+          <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
+            <span>▲ 10/12 Rules Enforced</span>
+          </p>
+        </div>
+        <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
+          <svg class="w-full h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none">
+            <path d="M0 19 Q 25 10, 50 18 T 80 8 T 100 12 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.18"/>
+            <path d="M0 19 Q 25 10, 50 18 T 80 8 T 100 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
+          </svg>
+        </div>
+      </Link>
+
+      <!-- Card 6: Locked Accounts ➔ Teal/Cyan -->
       <button
         type="button"
         @click="isReviewModalOpen = true"
-        class="bg-white dark:bg-[#0E1524] border border-slate-200 dark:border-[#1E293B] border-t-2 border-t-[#E11D48] dark:border-t-[#FB7185] rounded-xl p-4 sm:p-5 shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] hover:shadow-md transition-all duration-200 flex flex-col justify-between group cursor-pointer text-left"
-        :title="i18n.t('auth_locked_accounts_btn', 'Click to Review & Unlock Accounts')"
+        class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#06b6d4] to-[#0d9488] text-white p-4 shadow-sm hover:shadow-lg hover:scale-[1.02] active:scale-[0.99] transition-all flex flex-col justify-between group cursor-pointer text-left"
+        :title="i18n.t('auth_locked_accounts_btn', 'Click to review isolated accounts & incidents')"
       >
         <div>
-          <!-- Header Row: Label + Square Icon Container (32px x 32px, Radius 8px) -->
           <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold tracking-wider uppercase text-slate-500 dark:text-[#94A3B8]">
-              {{ i18n.t('auth_locked_accounts', 'LOCKED ACCOUNTS / RISK') }}
-            </span>
-            <div class="w-8 h-8 rounded-lg bg-[#FFF1F2] dark:bg-[rgba(225,29,72,0.12)] text-[#E11D48] dark:text-[#FB7185] flex items-center justify-center shrink-0 border border-rose-100 dark:border-rose-500/20">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ i18n.t('auth_locked_accounts', 'LOCKED ACCOUNTS') }}</span>
+            <div class="text-white/95 group-hover:text-white group-hover:scale-105 transition-transform duration-200 shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
                 <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
               </svg>
             </div>
           </div>
-
-          <!-- Middle Row: Hero Metric (28px/34px Tabular) + Context Label -->
-          <div class="my-3 flex items-baseline gap-2.5">
-            <h4 class="text-[28px] leading-[34px] font-bold font-mono tracking-tight text-slate-900 dark:text-[#F8FAFC]">
-              {{ Number(stats.locked_accounts_count || 14).toLocaleString() }}
-            </h4>
-            <span class="text-xs font-medium text-[#E11D48] dark:text-[#FB7185]">Suspended</span>
-          </div>
+          <h4 class="text-2xl font-black tracking-tight text-white mt-1">
+            {{ Number(stats.locked_accounts_count || 14).toLocaleString() }}
+          </h4>
+          <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
+            <span>▼ 14 Needs Review</span>
+          </p>
         </div>
-
-        <!-- Footer Row: Trend Delta Pill + Micro-link -->
-        <div class="pt-2.5 border-t border-slate-100 dark:border-[#1E293B] text-xs flex items-center justify-between">
-          <span class="inline-flex items-center gap-1 font-mono text-[11px] font-semibold text-[#E11D48] dark:text-[#FB7185]">
-            <span>▼</span>
-            <span>4 Need Review</span>
-          </span>
-          <span class="text-slate-500 dark:text-[#94A3B8] group-hover:text-[#E11D48] dark:group-hover:text-[#FB7185] font-medium transition-colors flex items-center gap-1">
-            <span>Review Queue</span>
-            <span class="font-mono text-[11px]">→</span>
-          </span>
+        <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
+          <svg class="w-full h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none">
+            <path d="M0 12 Q 25 20, 50 10 T 75 16 T 100 6 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.18"/>
+            <path d="M0 12 Q 25 20, 50 10 T 75 16 T 100 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
+          </svg>
         </div>
       </button>
+
     </div>
 
     <!-- ── 3. SUB-NAVIGATION TABS (SUBTLE SLATE-900 UNDERLINE INDICATOR - BALANCED) ── -->
