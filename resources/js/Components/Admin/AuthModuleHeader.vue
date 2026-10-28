@@ -123,7 +123,7 @@ const handleUnlockAll = () => {
             <span class="font-semibold uppercase tracking-wider font-mono">{{ stats.threat_level || 'CRITICAL' }}</span>
             <span class="text-slate-300 dark:text-[#1E293B]">|</span>
             <span class="text-[11px] text-slate-600 dark:text-[#94A3B8]">
-              {{ (stats.failed_logins_today || 0) > 0 ? i18n.t('auth_review_required', 'Review Required') : 'Normal Guard' }}
+              {{ (stats.failed_logins_today || 0) > 0 ? i18n.t('auth_review_required', 'Review Required') : i18n.t('auth_normal_guard', 'Normal Guard') }}
             </span>
           </button>
         </div>
@@ -153,7 +153,7 @@ const handleUnlockAll = () => {
             {{ Number(stats.total_roles || 3).toLocaleString() }}
           </h4>
           <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
-            <span>▲ 100% RBAC Active</span>
+            <span>▲ 100% {{ i18n.t('auth_rbac_active', 'RBAC Active') }}</span>
           </p>
         </div>
         <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
@@ -186,7 +186,7 @@ const handleUnlockAll = () => {
             {{ Number(stats.active_sessions_count ?? 6).toLocaleString() }}
           </h4>
           <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
-            <span>▲ 97.2% Session Health</span>
+            <span>▲ 97.2% {{ i18n.t('auth_session_health', 'Session Health') }}</span>
           </p>
         </div>
         <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
@@ -220,7 +220,7 @@ const handleUnlockAll = () => {
             {{ Number(stats.failed_logins_today ?? 65).toLocaleString() }}
           </h4>
           <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
-            <span>▲ +12% Bot Probing</span>
+            <span>▲ {{ i18n.t('auth_bot_probing_trend', '+12% Bot Probing') }}</span>
           </p>
         </div>
         <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
@@ -250,7 +250,7 @@ const handleUnlockAll = () => {
             {{ Number(stats.active_sessions_count ?? 6).toLocaleString() }}
           </h4>
           <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
-            <span>▲ 15-min Idle Expiry</span>
+            <span>▲ {{ i18n.t('auth_idle_expiry', '15-min Idle Expiry') }}</span>
           </p>
         </div>
         <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
@@ -285,7 +285,7 @@ const handleUnlockAll = () => {
             {{ stats.posture_score || 88 }}%
           </h4>
           <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
-            <span>▲ {{ stats.rules_enforced || 10 }}/{{ stats.total_rules || 12 }} Rules Enforced</span>
+            <span>▲ {{ stats.rules_enforced || 10 }}/{{ stats.total_rules || 12 }} {{ i18n.t('auth_rules_enforced', 'Rules Enforced') }}</span>
           </p>
         </div>
         <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
@@ -319,7 +319,7 @@ const handleUnlockAll = () => {
             {{ Number(stats.locked_accounts_count ?? 14).toLocaleString() }}
           </h4>
           <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
-            <span>▼ {{ Number(stats.locked_accounts_count ?? 14) }} Needs Review</span>
+            <span>▼ {{ Number(stats.locked_accounts_count ?? 14) }} {{ i18n.t('auth_needs_review', 'Needs Review') }}</span>
           </p>
         </div>
         <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
@@ -467,25 +467,25 @@ const handleUnlockAll = () => {
           <!-- Stats Summary Badges -->
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <div class="p-3.5 rounded-2xl bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200/70 dark:border-rose-900/40">
-              <span class="text-[11px] font-bold text-rose-700 dark:text-rose-300 uppercase">Failed Logins</span>
+              <span class="text-[11px] font-bold text-rose-700 dark:text-rose-300 uppercase">{{ i18n.t('auth_failed_logins', 'Failed Logins') }}</span>
               <div class="text-2xl font-black text-rose-600 dark:text-rose-400 font-mono mt-0.5">
                 {{ Number(stats.failed_logins_today || 65).toLocaleString() }}
               </div>
-              <span class="text-[10px] text-slate-500 dark:text-slate-400">Suspicious bot attempts</span>
+              <span class="text-[10px] text-slate-500 dark:text-slate-400">{{ i18n.t('suspicious_bot_attempts', 'Suspicious bot attempts') }}</span>
             </div>
             <div class="p-3.5 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/70 dark:border-amber-900/40">
-              <span class="text-[11px] font-bold text-amber-700 dark:text-amber-300 uppercase">Locked Accounts</span>
+              <span class="text-[11px] font-bold text-amber-700 dark:text-amber-300 uppercase">{{ i18n.t('auth_locked_accounts_label', 'Locked Accounts') }}</span>
               <div class="text-2xl font-black text-amber-600 dark:text-amber-400 font-mono mt-0.5">
                 {{ Number(stats.locked_accounts_count || 14).toLocaleString() }}
               </div>
-              <span class="text-[10px] text-slate-500 dark:text-slate-400">Exceeded password threshold</span>
+              <span class="text-[10px] text-slate-500 dark:text-slate-400">{{ i18n.t('exceeded_password_threshold', 'Exceeded password threshold') }}</span>
             </div>
             <div class="p-3.5 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200/70 dark:border-indigo-900/40 col-span-2 sm:col-span-1">
-              <span class="text-[11px] font-bold text-indigo-700 dark:text-indigo-300 uppercase">Action Needed</span>
+              <span class="text-[11px] font-bold text-indigo-700 dark:text-indigo-300 uppercase">{{ i18n.t('action_needed', 'Action Needed') }}</span>
               <div class="text-sm font-black text-indigo-600 dark:text-indigo-400 mt-1">
-                Audit & Unlock
+                {{ i18n.t('audit_and_unlock', 'Audit & Unlock') }}
               </div>
-              <span class="text-[10px] text-slate-500 dark:text-slate-400">Immediate action advised</span>
+              <span class="text-[10px] text-slate-500 dark:text-slate-400">{{ i18n.t('immediate_action_advised', 'Immediate action advised') }}</span>
             </div>
           </div>
 
