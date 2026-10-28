@@ -247,6 +247,20 @@ const getRoleUserBtnLabel = (roleName: string) => {
   }
 }
 
+const getRoleUserLink = (roleName: string) => {
+  switch (roleName?.toLowerCase()) {
+    case 'admin':
+      return '/admin/user-management/administrators'
+    case 'teacher':
+    case 'instructor':
+      return '/admin/user-management/teachers'
+    case 'student':
+      return '/admin/user-management/students'
+    default:
+      return `/admin/user-management/all?role=${encodeURIComponent(roleName)}`
+  }
+}
+
 const getRoleHeaderColor = (roleName: string) => {
   switch (roleName.toLowerCase()) {
     case 'admin': return 'border-t-2 border-indigo-500 text-indigo-600 dark:text-indigo-300'
@@ -359,9 +373,9 @@ const deleteRole = (roleName: string) => {
 
 const cloneRole = (role: any) => {
   createRoleForm.name = `${role.role} Copy`
-  createRoleForm.code = `${role.role_code}_COPY`
-  createRoleForm.description = `Cloned from ${role.role}`
-  createRoleForm.permissions = [...(role.permissions || [])]
+  createRoleForm.code = `${role.role_code || 'ROLE'}_COPY`
+  createRoleForm.description = `Cloned from ${role.role}: ${role.description || ''}`
+  createRoleForm.permissions = [...(activePermissions.value[role.role] || role.permissions || [])]
   isCreateModalOpen.value = true
 }
 
@@ -519,7 +533,7 @@ const getRoleAccentBar = (role: string) => {
 
             <div class="flex items-center gap-1.5">
               <Link
-                :href="`/admin/user-management/all?role=${encodeURIComponent(item.role)}`"
+                :href="getRoleUserLink(item.role)"
                 :title="i18n.t('role_users_tooltip', 'Click to view full user list assigned to this role')"
                 class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/20 text-xs font-medium rounded-lg transition-all flex items-center gap-1.5"
               >
@@ -597,9 +611,12 @@ const getRoleAccentBar = (role: string) => {
 
             <button
               @click="saveAllMatrixPermissions"
-              class="px-4 py-1.5 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 hover:from-indigo-500 hover:to-purple-500 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-1.5 cursor-pointer"
+              :disabled="isSavingMatrix"
+              class="px-4 py-1.5 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 hover:from-indigo-500 hover:to-purple-500 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
-              <span>💾 Save Matrix</span>
+              <span v-if="isSavingMatrix" class="animate-spin text-sm">⏳</span>
+              <span v-else>💾</span>
+              <span>{{ isSavingMatrix ? 'Saving...' : 'Save Matrix' }}</span>
             </button>
           </div>
         </div>
@@ -794,9 +811,12 @@ const getRoleAccentBar = (role: string) => {
 
             <button
               @click="saveAllMatrixPermissions"
-              class="px-4 py-1.5 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 hover:from-indigo-500 hover:to-purple-500 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-1.5 cursor-pointer"
+              :disabled="isSavingMatrix"
+              class="px-4 py-1.5 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 hover:from-indigo-500 hover:to-purple-500 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
-              <span>💾 Save Matrix Permissions</span>
+              <span v-if="isSavingMatrix" class="animate-spin text-sm">⏳</span>
+              <span v-else>💾</span>
+              <span>{{ isSavingMatrix ? 'Saving...' : 'Save Matrix Permissions' }}</span>
             </button>
           </div>
         </div>

@@ -361,26 +361,26 @@ class AuthLogController extends Controller
         $rolesPermissions = [
             [
                 'role'        => 'Admin',
-                'role_code'   => 'ROLE_ADMIN',
-                'description' => 'Full security control over system settings, user access, payment verification, audit logs, and security policies.',
-                'user_count'  => User::where('role', 'admin')->count() ?: 3,
-                'status'      => 'Active',
+                'role_code'   => Setting::get('role_code_Admin', 'ROLE_ADMIN'),
+                'description' => Setting::get('role_desc_Admin', 'Full security control over system settings, user access, payment verification, audit logs, and security policies.'),
+                'user_count'  => User::where('role', 'admin')->count() ?: 4,
+                'status'      => Setting::get('role_status_Admin', 'Active'),
                 'permissions' => is_array($savedAdminPerms) ? $savedAdminPerms : (json_decode($savedAdminPerms, true) ?? $defaultAdminPerms)
             ],
             [
                 'role'        => 'Teacher',
-                'role_code'   => 'ROLE_TEACHER',
-                'description' => 'Instructor access to manage assigned courses, structure modules/lessons, grade quizzes, and view analytics.',
-                'user_count'  => User::where('role', 'teacher')->count() ?: 145,
-                'status'      => 'Active',
+                'role_code'   => Setting::get('role_code_Teacher', 'ROLE_TEACHER'),
+                'description' => Setting::get('role_desc_Teacher', 'Instructor access to manage assigned courses, structure modules/lessons, grade quizzes, and view analytics.'),
+                'user_count'  => User::where('role', 'teacher')->count() ?: 13,
+                'status'      => Setting::get('role_status_Teacher', 'Active'),
                 'permissions' => is_array($savedTeacherPerms) ? $savedTeacherPerms : (json_decode($savedTeacherPerms, true) ?? $defaultTeacherPerms)
             ],
             [
                 'role'        => 'Student',
-                'role_code'   => 'ROLE_STUDENT',
-                'description' => 'Learner access to browse catalog, enroll in courses, attempt quizzes, submit payments, and claim certificates.',
-                'user_count'  => User::where('role', 'student')->count() ?: 2458,
-                'status'      => 'Active',
+                'role_code'   => Setting::get('role_code_Student', 'ROLE_STUDENT'),
+                'description' => Setting::get('role_desc_Student', 'Learner access to browse catalog, enroll in courses, attempt quizzes, submit payments, and claim certificates.'),
+                'user_count'  => User::where('role', 'student')->count() ?: 40,
+                'status'      => Setting::get('role_status_Student', 'Active'),
                 'permissions' => is_array($savedStudentPerms) ? $savedStudentPerms : (json_decode($savedStudentPerms, true) ?? $defaultStudentPerms)
             ]
         ];
@@ -776,6 +776,7 @@ class AuthLogController extends Controller
 
         Setting::set('custom_roles', $customRoles);
         Setting::set("role_permissions_{$validated['name']}", json_encode($validated['permissions'] ?? []));
+        $this->invalidateAuthCache();
 
         AuthLog::create([
             'user_id'    => auth()->id(),
@@ -797,6 +798,8 @@ class AuthLogController extends Controller
             Setting::set($key, $val);
         }
 
+        $this->invalidateAuthCache();
+
         AuthLog::create([
             'user_id'    => auth()->id(),
             'email'      => auth()->user()->email ?? 'admin',
@@ -817,6 +820,8 @@ class AuthLogController extends Controller
                 Setting::set("role_permissions_{$roleName}", json_encode($perms));
             }
 
+            $this->invalidateAuthCache();
+
             AuthLog::create([
                 'user_id'    => auth()->id(),
                 'email'      => auth()->user()->email ?? 'admin',
@@ -833,6 +838,7 @@ class AuthLogController extends Controller
         $permissions = $request->input('permissions', []);
 
         Setting::set("role_permissions_{$role}", json_encode($permissions));
+        $this->invalidateAuthCache();
 
         AuthLog::create([
             'user_id'    => auth()->id(),
@@ -855,6 +861,8 @@ class AuthLogController extends Controller
                 return ($r['name'] ?? '') !== $roleName;
             }));
             Setting::set('custom_roles', $customRoles);
+            Setting::forget("role_permissions_{$roleName}");
+            $this->invalidateAuthCache();
 
             AuthLog::create([
                 'user_id'    => auth()->id(),
@@ -880,19 +888,34 @@ class AuthLogController extends Controller
         ]);
 
         $origName = $validated['original_name'] ?? $validated['name'];
-        $customRoles = Setting::get('custom_roles', []);
 
-        foreach ($customRoles as &$r) {
-            if (($r['name'] ?? '') === $origName) {
-                $r['name'] = $validated['name'];
-                $r['code'] = $validated['code'];
-                $r['description'] = $validated['description'] ?? '';
-                $r['status'] = $validated['status'];
+        if (in_array($origName, ['Admin', 'Teacher', 'Student'])) {
+            Setting::set("role_code_{$origName}", $validated['code']);
+            Setting::set("role_desc_{$origName}", $validated['description'] ?? '');
+            Setting::set("role_status_{$origName}", $validated['status']);
+        } else {
+            $customRoles = Setting::get('custom_roles', []);
+            foreach ($customRoles as &$r) {
+                if (($r['name'] ?? '') === $origName) {
+                    $r['name'] = $validated['name'];
+                    $r['code'] = $validated['code'];
+                    $r['description'] = $validated['description'] ?? '';
+                    $r['status'] = $validated['status'];
+                }
+            }
+            unset($r);
+            Setting::set('custom_roles', $customRoles);
+
+            if ($origName !== $validated['name']) {
+                $perms = Setting::get("role_permissions_{$origName}");
+                if ($perms !== null) {
+                    Setting::set("role_permissions_{$validated['name']}", $perms);
+                    Setting::forget("role_permissions_{$origName}");
+                }
             }
         }
-        unset($r);
 
-        Setting::set('custom_roles', $customRoles);
+        $this->invalidateAuthCache();
 
         AuthLog::create([
             'user_id'    => auth()->id(),
