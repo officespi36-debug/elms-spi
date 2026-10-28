@@ -24,8 +24,8 @@ const props = withDefaults(defineProps<{
 
 const search = ref('')
 const roleFilter = ref('')
-// 3 Filters: '' = All Logins, 'success' = Successful, 'failed' = Failed
-const statusFilter = ref<'all' | 'success' | 'failed'>('all')
+// Filters: 'all' = All Logins, 'success' = Successful, 'failed' = Failed, 'audit' = Audit Actions
+const statusFilter = ref<'all' | 'success' | 'failed' | 'audit'>('all')
 
 const unlockingUserId = ref<number | null>(null)
 const isUnlockingAll = ref(false)
@@ -57,25 +57,20 @@ onMounted(() => {
   }
 })
 
-const statsFailed = computed(() => {
-  if (props.logs && props.logs.length > 0) {
-    return props.logs.filter(l => l.status === 'failed').length
-  }
-  return props.summaryStats?.failed_logins_today ?? 65
+const statsSuccessful = computed(() => {
+  return (props.logs || []).filter(l => l.status === 'success').length
 })
 
-const statsSuccessful = computed(() => {
-  if (props.logs && props.logs.length > 0) {
-    return props.logs.filter(l => l.status === 'success').length
-  }
-  return 117
+const statsFailed = computed(() => {
+  return (props.logs || []).filter(l => l.status === 'failed').length
+})
+
+const statsAudit = computed(() => {
+  return (props.logs || []).filter(l => l.status === 'audit').length
 })
 
 const totalLoginsCount = computed(() => {
-  if (props.logs && props.logs.length > 0) {
-    return props.logs.length
-  }
-  return (statsSuccessful.value + statsFailed.value) || 182
+  return (props.logs || []).length
 })
 
 const statsLocked = computed(() => {
@@ -94,6 +89,8 @@ const filteredLogs = computed(() => {
       matchesStatus = log.status === 'success'
     } else if (statusFilter.value === 'failed') {
       matchesStatus = log.status === 'failed'
+    } else if (statusFilter.value === 'audit') {
+      matchesStatus = log.status === 'audit'
     }
 
     const matchesRole = !roleFilter.value || log.user?.role === roleFilter.value
@@ -110,6 +107,38 @@ const formatDate = (dateString: string) => {
 const formatTime = (dateString: string) => {
   if (!dateString) return '08:30 AM'
   return dayjs(dateString).format('hh:mm A')
+}
+
+const defaultPortraits = [
+  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1525130413817-d45c1d127c42?w=150&auto=format&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1517365830460-955ce3ccd263?w=150&auto=format&fit=crop&q=80',
+]
+
+const getUserAvatar = (user: any, fallbackSeed: string | number = 0) => {
+  if (user?.avatar && typeof user.avatar === 'string' && user.avatar.trim() !== '' && !user.avatar.includes('ui-avatars.com')) {
+    return user.avatar
+  }
+  const seed = String(user?.email || user?.name || fallbackSeed || 'user')
+  let hash = 0
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash << 5) - hash + seed.charCodeAt(i)
+    hash |= 0
+  }
+  const idx = Math.abs(hash) % defaultPortraits.length
+  return defaultPortraits[idx]
 }
 
 const unlockUser = (user: any) => {
@@ -357,6 +386,27 @@ const clearLogs = () => {
               {{ statsFailed }}
             </span>
           </button>
+
+          <!-- Filter 4: Audit Actions (Security Audits & Parameter Changes) -->
+          <button
+            v-if="statsAudit > 0"
+            type="button"
+            @click="statusFilter = 'audit'"
+            :class="[
+              statusFilter === 'audit'
+                ? 'bg-indigo-600 text-white font-bold shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 font-medium',
+              'px-3.5 py-1.5 rounded-lg text-xs transition-all flex items-center gap-1.5 cursor-pointer flex-1 sm:flex-none justify-center'
+            ]"
+          >
+            <span>🛡️ Audit Actions</span>
+            <span
+              class="text-[10px] font-mono px-1.5 py-0.2 rounded-md font-bold"
+              :class="statusFilter === 'audit' ? 'bg-white/20 text-white' : 'bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300'"
+            >
+              {{ statsAudit }}
+            </span>
+          </button>
         </div>
 
         <!-- Search & Secondary Dropdowns -->
@@ -428,24 +478,17 @@ const clearLogs = () => {
         <!-- Locked Accounts Grid (14 Accounts) -->
         <div v-if="props.lockedUsers && props.lockedUsers.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           <div
-            v-for="user in props.lockedUsers"
+            v-for="(user, uIdx) in props.lockedUsers"
             :key="user.id"
             class="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 shadow-xs"
           >
             <div class="flex items-center gap-3 min-w-0">
               <div class="relative shrink-0">
                 <img
-                  v-if="user.avatar"
-                  :src="user.avatar"
+                  :src="getUserAvatar(user, user.id || uIdx)"
                   :alt="user.name"
-                  class="w-9 h-9 rounded-full border border-slate-200 dark:border-slate-700 object-cover shrink-0 shadow-xs"
+                  class="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-700 object-cover shrink-0 shadow-xs"
                   @error="(e: any) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=f59e0b&color=fff` }"
-                />
-                <img
-                  v-else
-                  :src="`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=f59e0b&color=fff`"
-                  :alt="user.name"
-                  class="w-9 h-9 rounded-full border border-slate-200 dark:border-slate-700 object-cover shrink-0 shadow-xs"
                 />
                 <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-rose-500 ring-2 ring-white dark:ring-slate-900"></span>
               </div>
@@ -545,28 +588,28 @@ const clearLogs = () => {
               <td class="py-3 px-4">
                 <div class="flex items-center gap-3">
                   <div class="relative shrink-0">
-                    <img
-                      v-if="log.user?.avatar"
-                      :src="log.user.avatar"
-                      :alt="log.user?.name || 'User'"
-                      class="w-9 h-9 rounded-full border border-slate-200 dark:border-slate-700 object-cover shadow-xs"
-                      @error="(e: any) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(log.user?.name || log.email || 'User')}&background=${log.status === 'success' ? '10b981' : 'ef4444'}&color=fff` }"
-                    />
-                    <img
-                      v-else-if="log.user?.name || log.email"
-                      :src="`https://ui-avatars.com/api/?name=${encodeURIComponent(log.user?.name || log.email || 'User')}&background=${log.status === 'success' ? '10b981' : 'ef4444'}&color=fff`"
-                      :alt="log.user?.name || 'User'"
-                      class="w-9 h-9 rounded-full border border-slate-200 dark:border-slate-700 object-cover shadow-xs"
-                    />
+                    <template v-if="log.user?.avatar || log.user?.name || log.status === 'success' || (log.email && !log.email.includes('admin_'))">
+                      <img
+                        :src="getUserAvatar(log.user || { name: log.email }, log.id || idx)"
+                        :alt="log.user?.name || log.email || 'User'"
+                        class="w-9 h-9 rounded-full border border-slate-200 dark:border-slate-700 object-cover shadow-xs"
+                        @error="(e: any) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(log.user?.name || log.email || 'User')}&background=${log.status === 'success' ? '10b981' : (log.status === 'audit' ? '6366f1' : 'ef4444')}&color=fff` }"
+                      />
+                    </template>
+                    <div
+                      v-else-if="log.status === 'audit'"
+                      class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shrink-0 shadow-xs bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20"
+                    >
+                      🛡️
+                    </div>
                     <div
                       v-else
-                      class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shrink-0 shadow-xs"
-                      :class="log.status === 'success' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'"
+                      class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shrink-0 shadow-xs bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
                     >
                       ✕
                     </div>
                     <span
-                      :class="log.status === 'success' ? 'bg-emerald-500' : 'bg-rose-500'"
+                      :class="log.status === 'success' ? 'bg-emerald-500' : (log.status === 'audit' ? 'bg-indigo-500' : 'bg-rose-500')"
                       class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full ring-2 ring-white dark:ring-slate-900"
                     ></span>
                   </div>
@@ -575,7 +618,7 @@ const clearLogs = () => {
                       {{ log.user?.name || log.email || 'Unregistered Attempt' }}
                     </span>
                     <span class="text-[10px] text-slate-500 dark:text-slate-400 uppercase">
-                      {{ log.user?.role ? log.user.role.toUpperCase() : 'VISITOR / BOT' }}
+                      {{ log.user?.role ? log.user.role.toUpperCase() : (log.status === 'audit' ? 'AUDIT ACTION' : 'VISITOR / BOT') }}
                     </span>
                   </div>
                 </div>
@@ -604,6 +647,13 @@ const clearLogs = () => {
                 >
                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                   SUCCESS
+                </span>
+                <span
+                  v-else-if="log.status === 'audit'"
+                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                  AUDIT
                 </span>
                 <span
                   v-else
