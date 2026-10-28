@@ -39,6 +39,7 @@ const props = defineProps<{
     locked_until?: string
     status?: string
   }>
+  blockedIps?: string[]
 }>()
 
 const stats = props.overview || {
@@ -290,6 +291,19 @@ function exportIncidentsCsv() {
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
+}
+
+function isIpBlocked(ip: string): boolean {
+  return Array.isArray(props.blockedIps) && props.blockedIps.includes(ip)
+}
+
+function unblockIp(ip: string) {
+  if (!ip) return
+  if (confirm(`Remove IP ${ip} from firewall blocklist?`)) {
+    router.post('/admin/auth-logs/unblock-ip', { ip_address: ip }, {
+      preserveScroll: true
+    })
+  }
 }
 
 function blockIp(ip: string) {
@@ -628,6 +642,18 @@ function handleConfirmUnlockAll() {
                       >
                         Protected
                       </span>
+                      <div v-else-if="isIpBlocked(incident.ip_address)" class="inline-flex items-center gap-1.5">
+                        <span class="px-2 py-0.5 text-[10px] font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/40 rounded select-none">
+                          Blocked
+                        </span>
+                        <button
+                          type="button"
+                          @click="unblockIp(incident.ip_address)"
+                          class="px-2 py-0.5 text-[10px] font-semibold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded transition-colors cursor-pointer"
+                        >
+                          Unblock
+                        </button>
+                      </div>
                       <button
                         v-else
                         type="button"
@@ -758,11 +784,14 @@ function handleConfirmUnlockAll() {
             </div>
 
             <div class="space-y-3 mt-2">
-              <!-- Alert Card 1: 14 Locked Accounts -->
-              <div class="p-3.5 rounded-xl bg-rose-50/70 dark:bg-rose-950/25 border border-rose-200/70 dark:border-rose-900/40 flex items-center justify-between gap-3">
+              <!-- Alert Card 1: Locked Accounts -->
+              <div
+                v-if="(props.summaryStats?.locked_accounts_count ?? (props.lockedAccounts?.length ?? 14)) > 0"
+                class="p-3.5 rounded-xl bg-rose-50/70 dark:bg-rose-950/25 border border-rose-200/70 dark:border-rose-900/40 flex items-center justify-between gap-3"
+              >
                 <div class="min-w-0">
                   <h4 class="font-bold text-xs text-slate-900 dark:text-white leading-tight">
-                    14 Locked Accounts
+                    {{ props.summaryStats?.locked_accounts_count ?? (props.lockedAccounts?.length ?? 14) }} Locked Accounts
                   </h4>
                   <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
                     Exceeded password threshold
@@ -775,6 +804,22 @@ function handleConfirmUnlockAll() {
                 >
                   Action
                 </button>
+              </div>
+              <div
+                v-else
+                class="p-3.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/25 border border-emerald-200/70 dark:border-emerald-900/40 flex items-center justify-between gap-3"
+              >
+                <div class="min-w-0">
+                  <h4 class="font-bold text-xs text-emerald-800 dark:text-emerald-300 leading-tight">
+                    0 Locked Accounts
+                  </h4>
+                  <p class="text-[10px] text-emerald-600 dark:text-emerald-400 mt-0.5">
+                    All accounts in healthy active state
+                  </p>
+                </div>
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">
+                  Healthy
+                </span>
               </div>
 
               <!-- Alert Card 2: 3 Decoy Scans -->

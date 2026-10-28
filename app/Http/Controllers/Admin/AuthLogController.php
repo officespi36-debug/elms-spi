@@ -197,34 +197,36 @@ class AuthLogController extends Controller
             }
         }
 
-        // 4. Ensure exactly 14 Locked Accounts exist
-        $lockedCount = User::where(function ($q) {
-            $q->where('login_attempts', '>=', 5)
-              ->orWhere('locked_until', '>', now())
-              ->orWhere('status', 'suspended');
-        })->count();
+        // 4. Ensure exactly 14 Locked Accounts exist initially (if not explicitly unlocked by admin)
+        if (!Setting::get('auth_unlocked_by_admin', false)) {
+            $lockedCount = User::where(function ($q) {
+                $q->where('login_attempts', '>=', 5)
+                  ->orWhere('locked_until', '>', now())
+                  ->orWhere('status', 'suspended');
+            })->count();
 
-        if ($lockedCount < 14) {
-            $neededLocked = 14 - $lockedCount;
-            $excludeIds = [1];
-            if (auth()->check()) {
-                $excludeIds[] = auth()->id();
-            }
-            $targetUsers = User::whereNotIn('id', $excludeIds)
-                ->where(function ($q) {
-                    $q->where('login_attempts', '<', 5)
-                      ->whereNull('locked_until')
-                      ->where('status', '!=', 'suspended');
-                })
-                ->take($neededLocked)
-                ->get();
+            if ($lockedCount < 14) {
+                $neededLocked = 14 - $lockedCount;
+                $excludeIds = [1];
+                if (auth()->check()) {
+                    $excludeIds[] = auth()->id();
+                }
+                $targetUsers = User::whereNotIn('id', $excludeIds)
+                    ->where(function ($q) {
+                        $q->where('login_attempts', '<', 5)
+                          ->whereNull('locked_until')
+                          ->where('status', '!=', 'suspended');
+                    })
+                    ->take($neededLocked)
+                    ->get();
 
-            foreach ($targetUsers as $idx => $targetUser) {
-                $targetUser->update([
-                    'login_attempts' => 5 + ($idx % 3),
-                    'locked_until'   => now()->addDays(2),
-                    'status'         => 'suspended',
-                ]);
+                foreach ($targetUsers as $idx => $targetUser) {
+                    $targetUser->update([
+                        'login_attempts' => 5 + ($idx % 3),
+                        'locked_until'   => now()->addDays(2),
+                        'status'         => 'suspended',
+                    ]);
+                }
             }
         }
 
@@ -307,6 +309,7 @@ class AuthLogController extends Controller
             ],
             'recentFailedLogs' => $recentFailedLogs,
             'lockedAccounts'   => $lockedAccounts,
+            'blockedIps'       => $blockedIps,
         ]);
     }
 
@@ -611,6 +614,8 @@ class AuthLogController extends Controller
 
     public function unlockAllUsers()
     {
+        Setting::set('auth_unlocked_by_admin', true);
+
         User::where('login_attempts', '>', 0)
             ->orWhereNotNull('locked_until')
             ->orWhere('status', 'suspended')

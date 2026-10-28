@@ -306,7 +306,7 @@ const handleUnlockAll = () => {
         <div>
           <div class="flex items-center justify-between">
             <span class="text-[11px] font-bold tracking-wide uppercase text-white/90 leading-tight block">
-              {{ i18n.t('auth_locked_accounts', 'LOCKED ACCOUNTS') }}<br/>/ RISK
+              {{ i18n.t('auth_locked_accounts_label', 'LOCKED ACCOUNTS') }}<br/>{{ i18n.t('auth_risk_slash', '/ RISK') }}
             </span>
             <div class="text-white/95 group-hover:text-white group-hover:scale-105 transition-transform duration-200 shrink-0">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
