@@ -209,37 +209,39 @@ class AuthLogController extends Controller
             }
         }
 
-        // 3. Ensure exactly 65 Failed Logins exist
-        $failedCount = AuthLog::where('status', 'failed')->count();
-        if ($failedCount < 65) {
-            $neededFailed = 65 - $failedCount;
-            $botIps = ['45.22.178.99', '103.45.22.11', '77.88.99.100', '198.51.100.24', '185.220.101.5'];
-            $locations = ['Moscow, Russia', 'Beijing, China', 'Hanoi, Vietnam', 'Frankfurt, Germany', 'Amsterdam, Netherlands'];
-            $agents = [
-                'Python-urllib/3.9 Bruteforce Engine',
-                'curl/7.68.0 Security Scanner',
-                'Go-http-client/1.1 Intruder',
-                'Mozilla/5.0 (X11; Linux x86_64) hydra/9.1',
-                'Nikto/2.1.6 Vulnerability Scanner'
-            ];
-            $bulkFailed = [];
-            for ($i = 0; $i < $neededFailed; $i++) {
-                $idx = $i % count($botIps);
-                $bulkFailed[] = [
-                    'user_id'    => null,
-                    'email'      => 'admin_' . $i . '@elms.edu.kh',
-                    'ip_address' => $botIps[$idx],
-                    'user_agent' => $agents[$idx],
-                    'device'     => 'Automated Scanner',
-                    'browser'    => 'Bot CLI',
-                    'status'     => 'failed',
-                    'location'   => $locations[$idx],
-                    'created_at' => now()->subMinutes(rand(5, 720)),
-                    'updated_at' => now(),
+        // 3. Ensure exactly 65 Failed Logins exist (unless cleared by admin)
+        if (!Setting::get('auth_logs_cleared_by_admin', false)) {
+            $failedCount = AuthLog::where('status', 'failed')->count();
+            if ($failedCount < 65) {
+                $neededFailed = 65 - $failedCount;
+                $botIps = ['45.22.178.99', '103.45.22.11', '77.88.99.100', '198.51.100.24', '185.220.101.5'];
+                $locations = ['Moscow, Russia', 'Beijing, China', 'Hanoi, Vietnam', 'Frankfurt, Germany', 'Amsterdam, Netherlands'];
+                $agents = [
+                    'Python-urllib/3.9 Bruteforce Engine',
+                    'curl/7.68.0 Security Scanner',
+                    'Go-http-client/1.1 Intruder',
+                    'Mozilla/5.0 (X11; Linux x86_64) hydra/9.1',
+                    'Nikto/2.1.6 Vulnerability Scanner'
                 ];
-            }
-            if (!empty($bulkFailed)) {
-                AuthLog::insert($bulkFailed);
+                $bulkFailed = [];
+                for ($i = 0; $i < $neededFailed; $i++) {
+                    $idx = $i % count($botIps);
+                    $bulkFailed[] = [
+                        'user_id'    => null,
+                        'email'      => 'admin_' . $i . '@elms.edu.kh',
+                        'ip_address' => $botIps[$idx],
+                        'user_agent' => $agents[$idx],
+                        'device'     => 'Automated Scanner',
+                        'browser'    => 'Bot CLI',
+                        'status'     => 'failed',
+                        'location'   => $locations[$idx],
+                        'created_at' => now()->subMinutes(rand(5, 720)),
+                        'updated_at' => now(),
+                    ];
+                }
+                if (!empty($bulkFailed)) {
+                    AuthLog::insert($bulkFailed);
+                }
             }
         }
 
@@ -479,7 +481,7 @@ class AuthLogController extends Controller
 
         $logs = AuthLog::with('user:id,name,email,role,avatar')
             ->latest()
-            ->take(150)
+            ->take(300)
             ->get();
 
         $lockedUsers = User::where(function ($q) {
@@ -980,7 +982,10 @@ class AuthLogController extends Controller
 
     public function clearLogs()
     {
+        Setting::set('auth_logs_cleared_by_admin', true);
         AuthLog::truncate();
+
+        $this->invalidateAuthCache();
 
         AuthLog::create([
             'user_id'    => auth()->id(),

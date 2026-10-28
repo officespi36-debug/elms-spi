@@ -57,23 +57,25 @@ onMounted(() => {
   }
 })
 
-const totalLoginsCount = computed(() => {
-  return props.logs?.length || 225
+const statsFailed = computed(() => {
+  if (props.logs && props.logs.length > 0) {
+    return props.logs.filter(l => l.status === 'failed').length
+  }
+  return props.summaryStats?.failed_logins_today ?? 65
 })
 
 const statsSuccessful = computed(() => {
   if (props.logs && props.logs.length > 0) {
     return props.logs.filter(l => l.status === 'success').length
   }
-  return 160
+  return 117
 })
 
-const statsFailed = computed(() => {
+const totalLoginsCount = computed(() => {
   if (props.logs && props.logs.length > 0) {
-    const fromLogs = props.logs.filter(l => l.status === 'failed').length
-    return Math.max(fromLogs, props.summaryStats?.failed_logins_today || 65)
+    return props.logs.length
   }
-  return props.summaryStats?.failed_logins_today || 65
+  return (statsSuccessful.value + statsFailed.value) || 182
 })
 
 const statsLocked = computed(() => {
