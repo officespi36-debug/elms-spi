@@ -484,6 +484,14 @@ class AuthLogController extends Controller
             ->take(300)
             ->get();
 
+        // Ensure user relationship with avatar is present even if user_id was null but email matches
+        $usersMap = User::select('id', 'name', 'email', 'role', 'avatar')->get()->keyBy('email');
+        foreach ($logs as $log) {
+            if (!$log->user && $log->email && isset($usersMap[$log->email])) {
+                $log->setRelation('user', $usersMap[$log->email]);
+            }
+        }
+
         $lockedUsers = User::where(function ($q) {
             $q->where('login_attempts', '>=', Setting::get('max_failed_attempts', 5))
               ->orWhereNotNull('locked_until')

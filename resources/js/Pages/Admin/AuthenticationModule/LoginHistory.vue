@@ -433,8 +433,21 @@ const clearLogs = () => {
             class="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 shadow-xs"
           >
             <div class="flex items-center gap-3 min-w-0">
-              <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-xs shrink-0">
-                {{ user.name ? user.name.charAt(0).toUpperCase() : 'U' }}
+              <div class="relative shrink-0">
+                <img
+                  v-if="user.avatar"
+                  :src="user.avatar"
+                  :alt="user.name"
+                  class="w-9 h-9 rounded-full border border-slate-200 dark:border-slate-700 object-cover shrink-0 shadow-xs"
+                  @error="(e: any) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=f59e0b&color=fff` }"
+                />
+                <img
+                  v-else
+                  :src="`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=f59e0b&color=fff`"
+                  :alt="user.name"
+                  class="w-9 h-9 rounded-full border border-slate-200 dark:border-slate-700 object-cover shrink-0 shadow-xs"
+                />
+                <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-rose-500 ring-2 ring-white dark:ring-slate-900"></span>
               </div>
               <div class="min-w-0">
                 <h5 class="text-xs font-bold text-slate-900 dark:text-white truncate">
@@ -530,18 +543,38 @@ const clearLogs = () => {
                 {{ idx + 1 }}
               </td>
               <td class="py-3 px-4">
-                <div class="flex items-center gap-2.5">
-                  <div
-                    class="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-[11px] shrink-0"
-                    :class="log.status === 'success' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'"
-                  >
-                    {{ log.user?.name ? log.user.name.charAt(0).toUpperCase() : (log.status === 'success' ? 'U' : '✕') }}
+                <div class="flex items-center gap-3">
+                  <div class="relative shrink-0">
+                    <img
+                      v-if="log.user?.avatar"
+                      :src="log.user.avatar"
+                      :alt="log.user?.name || 'User'"
+                      class="w-9 h-9 rounded-full border border-slate-200 dark:border-slate-700 object-cover shadow-xs"
+                      @error="(e: any) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(log.user?.name || log.email || 'User')}&background=${log.status === 'success' ? '10b981' : 'ef4444'}&color=fff` }"
+                    />
+                    <img
+                      v-else-if="log.user?.name || log.email"
+                      :src="`https://ui-avatars.com/api/?name=${encodeURIComponent(log.user?.name || log.email || 'User')}&background=${log.status === 'success' ? '10b981' : 'ef4444'}&color=fff`"
+                      :alt="log.user?.name || 'User'"
+                      class="w-9 h-9 rounded-full border border-slate-200 dark:border-slate-700 object-cover shadow-xs"
+                    />
+                    <div
+                      v-else
+                      class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shrink-0 shadow-xs"
+                      :class="log.status === 'success' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'"
+                    >
+                      ✕
+                    </div>
+                    <span
+                      :class="log.status === 'success' ? 'bg-emerald-500' : 'bg-rose-500'"
+                      class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full ring-2 ring-white dark:ring-slate-900"
+                    ></span>
                   </div>
                   <div>
                     <span class="font-bold text-slate-900 dark:text-white block">
                       {{ log.user?.name || log.email || 'Unregistered Attempt' }}
                     </span>
-                    <span class="text-[10px] text-slate-500 dark:text-slate-400">
+                    <span class="text-[10px] text-slate-500 dark:text-slate-400 uppercase">
                       {{ log.user?.role ? log.user.role.toUpperCase() : 'VISITOR / BOT' }}
                     </span>
                   </div>
