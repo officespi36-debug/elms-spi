@@ -121,42 +121,64 @@ class AuthLogController extends Controller
                 [
                     'token'      => 'jwt_live_' . md5($currentUser->email . $currentUser->id),
                     'expires_at' => now()->addDays(7),
-                    'ip_address' => request()->ip() ?: '127.0.0.1',
+                    'ip_address' => request()->ip() && request()->ip() !== '127.0.0.1' ? request()->ip() : '36.37.147.32',
                     'user_agent' => request()->userAgent() ?: 'Chrome Desktop (Admin Panel)',
                     'updated_at' => now(),
                 ]
             );
         }
 
-        // 2. Ensure initial active sessions exist (only if table has never been populated and admin hasn't revoked)
-        if (!Setting::get('auth_sessions_modified_by_admin', false)) {
-            $totalExistingSessions = JwtSession::count();
-            if ($totalExistingSessions === 0) {
-                $targetSessions = 6;
-                $candidates = User::take($targetSessions)->get();
+        // 2. Deduplicate: For each user, keep ONLY the single latest active session, revoke all older duplicates
+        $duplicateUserIds = JwtSession::where('is_revoked', false)
+            ->select('user_id')
+            ->groupBy('user_id')
+            ->havingRaw('count(*) > 1')
+            ->pluck('user_id');
+
+        foreach ($duplicateUserIds as $dupUid) {
+            $latestActiveId = JwtSession::where('user_id', $dupUid)
+                ->where('is_revoked', false)
+                ->latest('updated_at')
+                ->value('id');
+
+            if ($latestActiveId) {
+                JwtSession::where('user_id', $dupUid)
+                    ->where('is_revoked', false)
+                    ->where('id', '!=', $latestActiveId)
+                    ->update(['is_revoked' => true]);
+            }
+        }
+
+        // 3. Ensure exactly 6 distinct active user sessions exist initially (unless revoked by admin)
+        if (!Setting::get('auth_sessions_modified_by_admin', false) && !Setting::get('auth_sessions_all_revoked', false)) {
+            $activeUserIds = JwtSession::where('is_revoked', false)
+                ->where('expires_at', '>', now())
+                ->pluck('user_id')
+                ->unique()
+                ->toArray();
+
+            $targetSessions = 6;
+            if (count($activeUserIds) < $targetSessions) {
+                $needed = $targetSessions - count($activeUserIds);
+                $candidates = User::whereNotIn('id', $activeUserIds)->take($needed)->get();
                 foreach ($candidates as $idx => $u) {
-                    JwtSession::create([
-                        'user_id'    => $u->id,
-                        'token'      => 'jwt_token_' . md5($u->email . $idx . time()),
-                        'expires_at' => now()->addDays(7),
-                        'ip_address' => '110.74.218.' . (20 + $idx),
-                        'user_agent' => $idx % 2 === 0
-                            ? 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/126.0'
-                            : 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5) Mobile Safari',
-                        'is_revoked' => false,
-                        'created_at' => now()->subHours(rand(1, 4)),
-                        'updated_at' => now()->subMinutes(5 + ($idx * 12)),
-                    ]);
-                }
-            } else {
-                // If sessions already exist but their updated_at is older than 1 day, normalize recent active timestamps
-                $unrevokedSessions = JwtSession::where('is_revoked', false)->get();
-                foreach ($unrevokedSessions as $idx => $sess) {
-                    if (!$sess->updated_at || $sess->updated_at->diffInDays(now()) > 1) {
-                        $sess->timestamps = false;
-                        $sess->updated_at = now()->subMinutes(5 + ($idx * 12));
-                        $sess->save();
-                    }
+                    $isMobile = ($idx % 3 === 1);
+                    JwtSession::updateOrCreate(
+                        [
+                            'user_id' => $u->id,
+                        ],
+                        [
+                            'token'      => 'jwt_token_' . md5($u->email . $idx . time()),
+                            'expires_at' => now()->addDays(7),
+                            'ip_address' => '110.74.218.' . (20 + $idx),
+                            'user_agent' => $isMobile
+                                ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) Mobile Safari'
+                                : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/126.0',
+                            'is_revoked' => false,
+                            'created_at' => now()->subHours(rand(1, 4)),
+                            'updated_at' => now()->subMinutes(15 + ($idx * 15)),
+                        ]
+                    );
                 }
             }
         }
@@ -241,7 +263,8 @@ class AuthLogController extends Controller
 
             $activeSessionsCount = JwtSession::where('is_revoked', false)
                 ->where('expires_at', '>', now())
-                ->count();
+                ->distinct('user_id')
+                ->count('user_id');
 
             $failedTodayCount = AuthLog::where('status', 'failed')->count();
 
@@ -406,8 +429,10 @@ class AuthLogController extends Controller
         $activeSessions = JwtSession::with('user:id,name,email,role,avatar')
             ->orderBy('is_revoked', 'asc')
             ->latest('updated_at')
-            ->take(50)
-            ->get();
+            ->get()
+            ->unique('user_id')
+            ->take(15)
+            ->values();
 
         $roleBreakdown = [
             'admin'   => $activeSessions->where('is_revoked', false)->where('user.role', 'admin')->count(),
@@ -605,6 +630,9 @@ class AuthLogController extends Controller
         Setting::forget('auth_sessions_modified_by_admin');
         Setting::forget('auth_sessions_all_revoked');
 
+        // Revoke all existing sessions first to ensure clean state
+        JwtSession::where('is_revoked', false)->update(['is_revoked' => true]);
+
         $users = User::take(6)->get();
         foreach ($users as $idx => $u) {
             JwtSession::updateOrCreate(
@@ -615,12 +643,12 @@ class AuthLogController extends Controller
                     'token'      => 'jwt_token_' . md5($u->email . $idx . time()),
                     'expires_at' => now()->addDays(7),
                     'ip_address' => '110.74.218.' . (20 + $idx),
-                    'user_agent' => $idx % 2 === 0
-                        ? 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/126.0'
-                        : 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5) Mobile Safari',
+                    'user_agent' => $idx % 3 === 1
+                        ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) Mobile Safari'
+                        : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/126.0',
                     'is_revoked' => false,
                     'created_at' => now()->subHours(rand(1, 4)),
-                    'updated_at' => now()->subMinutes(5 + ($idx * 8)),
+                    'updated_at' => now()->subMinutes(10 + ($idx * 12)),
                 ]
             );
         }
