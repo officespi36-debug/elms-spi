@@ -208,6 +208,20 @@ const getSeverityClass = (sev?: string) => {
       return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
   }
 }
+
+const formatTrapName = (name: string) => {
+  if (name.includes('Admin Login')) return i18n.t('cyber_trap_admin_name', 'ច្រកក្លែងក្លាយ Fake Admin Login Portal')
+  if (name.includes('Security Honeypot')) return i18n.t('cyber_trap_security_name', 'អន្ទាក់ Security Honeypot Endpoint')
+  if (name.includes('Credentials Decoy')) return i18n.t('cyber_trap_creds_name', 'ឯកសារសម្ងាត់ Confidential Credentials Decoy')
+  return name
+}
+
+const formatTrapDesc = (desc: string) => {
+  if (desc.includes('mimicking')) return i18n.t('cyber_trap_admin_desc', 'គេហទំព័រក្លែងក្លាយផ្ទាំង Login សម្រាប់ស្ទាក់ចាប់ Hacker')
+  if (desc.includes('crawler')) return i18n.t('cyber_trap_security_desc', 'ច្រកអន្ទាក់ស្វ័យប្រវត្តសម្រាប់ចាប់ Bots និង Web Crawlers')
+  if (desc.includes('directory traversal')) return i18n.t('cyber_trap_creds_desc', 'ឯកសារបញ្ឆោតដើម្បីស្ទាក់ចាប់ការលួចចូល Directory Traversal')
+  return desc
+}
 </script>
 
 <template>
@@ -230,7 +244,7 @@ const getSeverityClass = (sev?: string) => {
                 <h2 class="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
                   មជ្ឈមណ្ឌលសន្តិសុខឌីជីថល & ប្រព័ន្ធទូរស័ព្ទរោទ៍ប្រកាសអាសន្នបន្ទាន់
                   <span class="px-2.5 py-0.5 text-[10px] font-bold bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 border border-emerald-500/20 dark:border-emerald-500/30 rounded-full animate-pulse">
-                    🟢 ONLINE & ARMED
+                    🟢 {{ i18n.t('cyber_online_armed', 'ONLINE & ARMED') }}
                   </span>
                 </h2>
                 <p class="text-xs text-slate-600 dark:text-slate-300">
@@ -242,16 +256,16 @@ const getSeverityClass = (sev?: string) => {
             <!-- Bot & Group Details Badges -->
             <div class="flex flex-wrap items-center gap-2 pt-2 text-xs">
               <span class="px-3 py-1 bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 flex items-center gap-1.5 shadow-sm dark:shadow-none">
-                🤖 <b>Bot:</b> <code class="text-sky-600 dark:text-sky-300">@{{ securityStatus.bot_username }}</code>
+                🤖 <b>{{ i18n.t('cyber_bot_label', 'Bot:') }}</b> <code class="text-sky-600 dark:text-sky-300">@{{ securityStatus.bot_username }}</code>
               </span>
               <span class="px-3 py-1 bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 flex items-center gap-1.5 shadow-sm dark:shadow-none">
-                👥 <b>Admin Group ID:</b> <code class="text-emerald-600 dark:text-emerald-300">{{ securityStatus.admin_chat_id }}</code>
+                👥 <b>{{ i18n.t('cyber_admin_group_id', 'Admin Group ID:') }}</b> <code class="text-emerald-600 dark:text-emerald-300">{{ securityStatus.admin_chat_id }}</code>
               </span>
               <span class="px-3 py-1 bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 flex items-center gap-1.5 shadow-sm dark:shadow-none">
-                📞 <b>Emergency Phone:</b> <span class="text-rose-600 dark:text-rose-400 font-mono font-bold">{{ emergencyForm.phone }}</span>
+                📞 <b>{{ i18n.t('cyber_emergency_phone', 'Emergency Phone:') }}</b> <span class="text-rose-600 dark:text-rose-400 font-mono font-bold">{{ emergencyForm.phone }}</span>
               </span>
               <span class="px-3 py-1 bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 flex items-center gap-1.5 shadow-sm dark:shadow-none">
-                🛡️ <b>Auto-Defense:</b> <span class="text-emerald-600 dark:text-emerald-400 font-bold">Enabled ✅</span>
+                🛡️ <b>{{ i18n.t('cyber_auto_defense', 'Auto-Defense:') }}</b> <span class="text-emerald-600 dark:text-emerald-400 font-bold">{{ i18n.t('cyber_enabled_check', 'Enabled ✅') }}</span>
               </span>
             </div>
           </div>
@@ -263,7 +277,7 @@ const getSeverityClass = (sev?: string) => {
               :disabled="isCalling"
               class="px-3.5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
             >
-              <span>{{ isCalling ? '⏳ កំពុង Call...' : '📞 តេស្ត Voice Call' }}</span>
+              <span>{{ isCalling ? i18n.t('cyber_calling_wait', '⏳ កំពុង Call...') : ('📞 ' + i18n.t('cyber_test_call', 'តេស្ត Voice Call')) }}</span>
             </button>
 
             <button
@@ -271,7 +285,7 @@ const getSeverityClass = (sev?: string) => {
               :disabled="isSendingSms"
               class="px-3.5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
             >
-              <span>{{ isSendingSms ? '⏳ កំពុងផ្ញើ...' : '📱 តេស្ត SMS' }}</span>
+              <span>{{ isSendingSms ? i18n.t('cyber_sending_sms_wait', '⏳ កំពុងផ្ញើ...') : ('📱 ' + i18n.t('cyber_test_sms', 'តេស្ត SMS')) }}</span>
             </button>
 
             <button
@@ -279,14 +293,14 @@ const getSeverityClass = (sev?: string) => {
               :disabled="isSimulating"
               class="px-3.5 py-2.5 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
             >
-              <span>{{ isSimulating ? '⏳ កំពុងផ្ញើ...' : '🧪 តេស្ត Telegram Alert' }}</span>
+              <span>{{ isSimulating ? i18n.t('cyber_sending_alert_wait', '⏳ កំពុងផ្ញើ...') : ('🧪 ' + i18n.t('cyber_test_telegram', 'តេស្ត Telegram Alert')) }}</span>
             </button>
 
             <button
               @click="handleClearForensics"
               class="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 font-semibold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
             >
-              <span>🧹 សម្អាត Log</span>
+              <span>🧹 {{ i18n.t('cyber_clear_log', 'សម្អាត Log') }}</span>
             </button>
 
             <!-- Link to System Logs (Instruction 3.3) -->
@@ -308,10 +322,10 @@ const getSeverityClass = (sev?: string) => {
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-700/60 pb-4">
           <div>
             <h3 class="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
-              <span>🚨 ការកំណត់បណ្តាញដាស់តឿនបន្ទាន់ (Emergency Alert Channels) & Active Defense</span>
+              <span>🚨 {{ i18n.t('cyber_alert_channels_title', 'ការកំណត់បណ្តាញដាស់តឿនបន្ទាន់ (Emergency Alert Channels) & Active Defense') }}</span>
             </h3>
             <p class="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
-              កំណត់លេខទូរស័ព្ទ និងបើកបិទមុខងាររោទ៍ទូរស័ព្ទ ផ្ញើសារ SMS ឬបញ្ជាឱ្យកាត់ផ្តាច់ Session Hacker ដោយស្វ័យប្រវត្តិ។
+              {{ i18n.t('cyber_alert_channels_sub', 'កំណត់លេខទូរស័ព្ទ និងបើកបិទមុខងាររោទ៍ទូរស័ព្ទ ផ្ញើសារ SMS ឬបញ្ជាឱ្យកាត់ផ្តាច់ Session Hacker ដោយស្វ័យប្រវត្តិ។') }}
             </p>
           </div>
           <button
@@ -319,7 +333,7 @@ const getSeverityClass = (sev?: string) => {
             :disabled="isSavingEmergency"
             class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
           >
-            <span>{{ isSavingEmergency ? '⏳ កំពុងរក្សាទុក...' : '💾 រក្សាទុកការកំណត់' }}</span>
+            <span>{{ isSavingEmergency ? i18n.t('cyber_saving_wait', '⏳ កំពុងរក្សាទុក...') : ('💾 ' + i18n.t('cyber_save_settings', 'រក្សាទុកការកំណត់')) }}</span>
           </button>
         </div>
 
@@ -327,7 +341,7 @@ const getSeverityClass = (sev?: string) => {
           <!-- Emergency Phone Input -->
           <div class="lg:col-span-2 space-y-1.5">
             <label class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-              <span>📱 លេខទូរស័ព្ទទទួលការ Call & SMS បន្ទាន់៖</span>
+              <span>📱 {{ i18n.t('cyber_emergency_phone_label', 'លេខទូរស័ព្ទទទួលការ Call & SMS បន្ទាន់៖') }}</span>
             </label>
             <div class="relative">
               <input
@@ -339,7 +353,7 @@ const getSeverityClass = (sev?: string) => {
               <span class="absolute right-3 top-2.5 text-xs text-slate-400 dark:text-slate-500">Cambodia (+855)</span>
             </div>
             <p class="text-[11px] text-slate-500 dark:text-slate-400">
-              លេខនេះនឹងរោទ៍ពេលប្រព័ន្ធជួប Threat កម្រិត Critical/High (គាំទ្រ Smart, Cellcard, Metfone)
+              {{ i18n.t('cyber_phone_subtext', 'លេខនេះនឹងរោទ៍ពេលប្រព័ន្ធជួប Threat កម្រិត Critical/High (គាំទ្រ Smart, Cellcard, Metfone)') }}
             </p>
           </div>
 
@@ -349,9 +363,9 @@ const getSeverityClass = (sev?: string) => {
             <label class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-purple-500/50 transition-all">
               <div class="space-y-0.5">
                 <span class="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
-                  <span>📞 Automated Voice Call</span>
+                  <span>📞 {{ i18n.t('cyber_channel_call', 'Automated Voice Call') }}</span>
                 </span>
-                <p class="text-[10px] text-slate-500 dark:text-slate-400">ទូរស័ព្ទរោទ៍ដូចគេ Call មកផ្ទាល់</p>
+                <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ i18n.t('cyber_channel_call_sub', 'ទូរស័ព្ទរោទ៍ដូចគេ Call មកផ្ទាល់') }}</p>
               </div>
               <input
                 v-model="emergencyForm.call_enabled"
@@ -364,9 +378,9 @@ const getSeverityClass = (sev?: string) => {
             <label class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-emerald-500/50 transition-all">
               <div class="space-y-0.5">
                 <span class="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
-                  <span>💬 Emergency SMS Alert</span>
+                  <span>💬 {{ i18n.t('cyber_channel_sms', 'Emergency SMS Alert') }}</span>
                 </span>
-                <p class="text-[10px] text-slate-500 dark:text-slate-400">ផ្ញើ SMS បន្ទាន់ (មិនបាច់មាន Internet)</p>
+                <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ i18n.t('cyber_channel_sms_sub', 'ផ្ញើ SMS បន្ទាន់ (មិនបាច់មាន Internet)') }}</p>
               </div>
               <input
                 v-model="emergencyForm.sms_enabled"
@@ -379,9 +393,9 @@ const getSeverityClass = (sev?: string) => {
             <label class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-amber-500/50 transition-all">
               <div class="space-y-0.5">
                 <span class="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
-                  <span>🚨 Pushover Siren Push</span>
+                  <span>🚨 {{ i18n.t('cyber_channel_pushover', 'Pushover Siren Push') }}</span>
                 </span>
-                <p class="text-[10px] text-slate-500 dark:text-slate-400">បន្លឺសំឡេងទម្លុះ Silent/DND Mode</p>
+                <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ i18n.t('cyber_channel_pushover_sub', 'បន្លឺសំឡេងទម្លុះ Silent/DND Mode') }}</p>
               </div>
               <input
                 v-model="emergencyForm.pushover_enabled"
@@ -394,9 +408,9 @@ const getSeverityClass = (sev?: string) => {
             <label class="flex items-center justify-between p-3 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-500/30 rounded-xl cursor-pointer hover:border-rose-500 transition-all">
               <div class="space-y-0.5">
                 <span class="text-xs font-bold text-rose-700 dark:text-rose-300 flex items-center gap-1.5">
-                  <span>🛡️ Auto-Defense Isolation</span>
+                  <span>🛡️ {{ i18n.t('cyber_channel_defense', 'Auto-Defense Isolation') }}</span>
                 </span>
-                <p class="text-[10px] text-rose-600/80 dark:text-slate-300">កាត់ផ្តាច់ Session & Block IP ស្វ័យប្រវត្តិ</p>
+                <p class="text-[10px] text-rose-600/80 dark:text-slate-300">{{ i18n.t('cyber_channel_defense_sub', 'កាត់ផ្តាច់ Session & Block IP ស្វ័យប្រវត្តិ') }}</p>
               </div>
               <input
                 v-model="emergencyForm.auto_defense"
@@ -413,9 +427,9 @@ const getSeverityClass = (sev?: string) => {
         <!-- Metric 1: Total Threats -->
         <div class="bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 backdrop-blur-xl shadow-sm dark:shadow-lg flex items-center justify-between">
           <div>
-            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">ការប៉ុនប៉ងដែលបានស្ទាក់ចាប់</p>
+            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">{{ i18n.t('cyber_metric1_title', 'ការប៉ុនប៉ងដែលបានស្ទាក់ចាប់') }}</p>
             <h3 class="text-2xl font-black text-slate-900 dark:text-white font-mono mt-1">{{ securityStatus.total_threats }}</h3>
-            <p class="text-[11px] text-rose-600 dark:text-rose-400 font-medium mt-0.5">Threat Footprints Logged</p>
+            <p class="text-[11px] text-rose-600 dark:text-rose-400 font-medium mt-0.5">{{ i18n.t('cyber_metric1_sub', 'Threat Footprints Logged') }}</p>
           </div>
           <div class="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/25 flex items-center justify-center text-xl">
             🚨
@@ -425,9 +439,9 @@ const getSeverityClass = (sev?: string) => {
         <!-- Metric 2: Critical Threats -->
         <div class="bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 backdrop-blur-xl shadow-sm dark:shadow-lg flex items-center justify-between">
           <div>
-            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">ការវាយប្រហារកម្រិតខ្ពស់</p>
+            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">{{ i18n.t('cyber_metric2_title', 'ការវាយប្រហារកម្រិតខ្ពស់') }}</p>
             <h3 class="text-2xl font-black text-rose-600 dark:text-rose-400 font-mono mt-1">{{ securityStatus.critical_threats }}</h3>
-            <p class="text-[11px] text-slate-400 font-medium mt-0.5">Critical SQLi / RCE / Trap</p>
+            <p class="text-[11px] text-slate-400 font-medium mt-0.5">{{ i18n.t('cyber_metric2_sub', 'Critical SQLi / RCE / Trap') }}</p>
           </div>
           <div class="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/25 flex items-center justify-center text-xl">
             🔥
@@ -437,9 +451,9 @@ const getSeverityClass = (sev?: string) => {
         <!-- Metric 3: Honeypot Traps Triggered -->
         <div class="bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 backdrop-blur-xl shadow-sm dark:shadow-lg flex items-center justify-between">
           <div>
-            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">Honeypot Bait Traps Hit</p>
+            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">{{ i18n.t('cyber_metric3_title', 'Honeypot Bait Traps Hit') }}</p>
             <h3 class="text-2xl font-black text-amber-600 dark:text-amber-300 font-mono mt-1">{{ honeypotTraps.reduce((acc, cur) => acc + cur.hits, 0) }}</h3>
-            <p class="text-[11px] text-amber-600 dark:text-amber-400 font-medium mt-0.5">Decoy Exploits Intercepted</p>
+            <p class="text-[11px] text-amber-600 dark:text-amber-400 font-medium mt-0.5">{{ i18n.t('cyber_metric3_sub', 'Decoy Exploits Intercepted') }}</p>
           </div>
           <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-xl">
             🪤
@@ -449,9 +463,9 @@ const getSeverityClass = (sev?: string) => {
         <!-- Metric 4: Firewall Blacklisted IPs -->
         <div class="bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 backdrop-blur-xl shadow-sm dark:shadow-lg flex items-center justify-between">
           <div>
-            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">IP ក្នុង Firewall Blacklist</p>
+            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">{{ i18n.t('cyber_metric4_title', 'IP ក្នុង Firewall Blacklist') }}</p>
             <h3 class="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-1">{{ blockedIps.length }}</h3>
-            <p class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">Blocked Threat Sources</p>
+            <p class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">{{ i18n.t('cyber_metric4_sub', 'Blocked Threat Sources') }}</p>
           </div>
           <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-xl">
             🛡️
@@ -464,12 +478,12 @@ const getSeverityClass = (sev?: string) => {
         <div class="flex items-center justify-between">
           <div>
             <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <span>🪤 គេហទំព័រអន្ទាក់ Honeypot Decoys (Bait Traps)</span>
-              <span class="text-xs font-normal text-slate-500 dark:text-slate-400">(ប្រើសម្រាប់ទាក់ទាញ Hacker ឱ្យចុចដើម្បីទាញយក IP & ទីតាំង)</span>
+              <span>🪤 {{ i18n.t('cyber_honeypots_title', 'គេហទំព័រអន្ទាក់ Honeypot Decoys (Bait Traps)') }}</span>
+              <span class="text-xs font-normal text-slate-500 dark:text-slate-400">({{ i18n.t('cyber_honeypots_sub', 'ប្រើសម្រាប់ទាក់ទាញ Hacker ឱ្យចុចដើម្បីទាញយក IP & ទីតាំង') }})</span>
             </h3>
           </div>
           <span class="text-xs text-rose-600 dark:text-rose-300 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 px-3 py-1 rounded-full font-semibold">
-            Armed & Trigger-Ready
+            {{ i18n.t('cyber_armed_ready', 'Armed & Trigger-Ready') }}
           </span>
         </div>
 
@@ -477,8 +491,8 @@ const getSeverityClass = (sev?: string) => {
           <div v-for="trap in honeypotTraps" :key="trap.name" class="bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700/60 rounded-xl p-4 space-y-3 relative group hover:border-rose-500/40 transition-all">
             <div class="flex items-start justify-between">
               <div>
-                <h4 class="font-bold text-slate-900 dark:text-white text-sm">{{ trap.name }}</h4>
-                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{{ trap.description }}</p>
+                <h4 class="font-bold text-slate-900 dark:text-white text-sm">{{ formatTrapName(trap.name) }}</h4>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{{ formatTrapDesc(trap.description) }}</p>
               </div>
               <span class="px-2 py-0.5 text-[10px] font-mono font-bold rounded" :class="getSeverityClass(trap.risk_level)">
                 {{ trap.risk_level }}
@@ -488,13 +502,13 @@ const getSeverityClass = (sev?: string) => {
             <div class="bg-white dark:bg-slate-950/80 p-2 rounded-lg border border-slate-200 dark:border-slate-800/80 flex items-center justify-between text-xs">
               <code class="text-rose-600 dark:text-rose-300 font-mono truncate max-w-[200px]">{{ trap.url }}</code>
               <a :href="trap.url" target="_blank" class="text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-semibold shrink-0 ml-2">
-                បើកមើល ↗
+                {{ i18n.t('cyber_trap_open', 'បើកមើល') }} ↗
               </a>
             </div>
 
             <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-200 dark:border-slate-800">
-              <span>ចំនួនអ្នកធ្លាក់អន្ទាក់ (Hits):</span>
-              <span class="font-bold font-mono text-slate-900 dark:text-white bg-slate-200 dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-300 dark:border-slate-700">{{ trap.hits }} នាក់</span>
+              <span>{{ i18n.t('cyber_trap_hits', 'ចំនួនអ្នកធ្លាក់អន្ទាក់ (Hits):') }}</span>
+              <span class="font-bold font-mono text-slate-900 dark:text-white bg-slate-200 dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-300 dark:border-slate-700">{{ trap.hits }} {{ i18n.t('cyber_hits_unit', 'នាក់') }}</span>
             </div>
           </div>
         </div>
@@ -506,10 +520,10 @@ const getSeverityClass = (sev?: string) => {
         <div class="p-5 border-b border-slate-100 dark:border-slate-800/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <span>📡 បញ្ជីរាយនាម Footprints & ការវាយប្រហារដែលបានស្ទាក់ចាប់ (Live Forensics)</span>
+              <span>📡 {{ i18n.t('cyber_forensics_title', 'បញ្ជីរាយនាម Footprints & ការវាយប្រហារដែលបានស្ទាក់ចាប់ (Live Forensics)') }}</span>
             </h3>
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              បង្ហាញទិន្នន័យ IP Address, ទីតាំង Geo-IP, ISP, គណនី Telegram, Payload និងប៊ូតុងចុចមើលផែនទី Google Maps
+              {{ i18n.t('cyber_forensics_sub', 'បង្ហាញទិន្នន័យ IP Address, ទីតាំង Geo-IP, ISP, គណនី Telegram, Payload និងប៊ូតុងចុចមើលផែនទី Google Maps') }}
             </p>
           </div>
 
@@ -519,7 +533,7 @@ const getSeverityClass = (sev?: string) => {
               <input
                 v-model="searchQuery"
                 type="text"
-                placeholder="ស្វែងរក IP, User ID, ទីតាំង..."
+                :placeholder="i18n.t('cyber_search_placeholder', 'ស្វែងរក IP, User ID, ទីតាំង...')"
                 class="w-56 bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white rounded-xl px-3.5 py-2 pl-9 focus:outline-none focus:border-rose-500 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
               />
               <span class="absolute left-3 top-2.5 text-xs text-slate-400">🔍</span>
@@ -529,7 +543,7 @@ const getSeverityClass = (sev?: string) => {
               v-model="severityFilter"
               class="bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white rounded-xl px-3 py-2 focus:outline-none focus:border-rose-500 cursor-pointer"
             >
-              <option value="all">គ្រប់ Severity</option>
+              <option value="all">{{ i18n.t('cyber_severity_all', 'គ្រប់កម្រិត (All Severity)') }}</option>
               <option value="CRITICAL">Critical</option>
               <option value="HIGH">High</option>
               <option value="LOW">Low</option>
@@ -542,13 +556,13 @@ const getSeverityClass = (sev?: string) => {
           <table class="w-full text-left text-xs text-slate-700 dark:text-slate-300">
             <thead class="bg-slate-50 dark:bg-slate-900/70 border-b border-slate-200 dark:border-slate-800 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">
               <tr>
-                <th class="py-3.5 px-4">កាលបរិច្ឆេទ & ម៉ោង</th>
-                <th class="py-3.5 px-4">ប្រភេទ Threat</th>
-                <th class="py-3.5 px-4">អត្តសញ្ញាណ Attacker</th>
-                <th class="py-3.5 px-4">IP & ទីតាំង (Geo-IP)</th>
-                <th class="py-3.5 px-4">ISP / Network</th>
-                <th class="py-3.5 px-4">Intercepted Payload</th>
-                <th class="py-3.5 px-4 text-right">សកម្មភាព (Actions)</th>
+                <th class="py-3.5 px-4">{{ i18n.t('cyber_th_datetime', 'កាលបរិច្ឆេទ & ម៉ោង') }}</th>
+                <th class="py-3.5 px-4">{{ i18n.t('cyber_th_threat', 'ប្រភេទ Threat') }}</th>
+                <th class="py-3.5 px-4">{{ i18n.t('cyber_th_attacker', 'អត្តសញ្ញាណ Attacker') }}</th>
+                <th class="py-3.5 px-4">{{ i18n.t('cyber_th_geoip', 'IP & ទីតាំង (Geo-IP)') }}</th>
+                <th class="py-3.5 px-4">{{ i18n.t('cyber_th_network', 'ISP / Network') }}</th>
+                <th class="py-3.5 px-4">{{ i18n.t('cyber_th_payload', 'Intercepted Payload') }}</th>
+                <th class="py-3.5 px-4 text-right">{{ i18n.t('cyber_th_actions', 'សកម្មភាព (Actions)') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
@@ -605,7 +619,7 @@ const getSeverityClass = (sev?: string) => {
                         target="_blank"
                         class="inline-flex items-center gap-1 text-[10px] text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-semibold bg-sky-50 dark:bg-sky-500/10 px-2 py-0.5 rounded border border-sky-200 dark:border-sky-500/20"
                       >
-                        <span>📍 មើលលើ Google Maps</span> ↗
+                        <span>📍 {{ i18n.t('cyber_view_gmaps', 'មើលលើ Google Maps') }}</span> ↗
                       </a>
                     </div>
                   </div>
@@ -634,14 +648,14 @@ const getSeverityClass = (sev?: string) => {
                       class="px-2.5 py-1 bg-red-50 hover:bg-red-100 dark:bg-red-500/15 dark:hover:bg-red-500/30 text-red-600 dark:text-red-300 border border-red-200 dark:border-red-500/30 rounded-lg text-[11px] font-bold transition-all cursor-pointer"
                       title="Block & Ban User ID"
                     >
-                      ⛔ Ban User
+                      ⛔ {{ i18n.t('cyber_ban_user', 'Ban User') }}
                     </button>
                     <button
                       @click="handleBlockIp(inc.ip)"
                       class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 dark:bg-amber-500/15 dark:hover:bg-amber-500/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/30 rounded-lg text-[11px] font-bold transition-all cursor-pointer"
                       title="Blacklist IP on Firewall"
                     >
-                      🛡️ Blacklist IP
+                      🛡️ {{ i18n.t('cyber_blacklist_ip', 'Blacklist IP') }}
                     </button>
                   </div>
                 </td>
@@ -649,7 +663,7 @@ const getSeverityClass = (sev?: string) => {
 
               <tr v-if="filteredIncidents.length === 0">
                 <td colspan="7" class="py-8 text-center text-slate-400 dark:text-slate-500">
-                  <p class="text-sm">✨ ពុំមានការវាយប្រហារ ឬទិន្នន័យសង្ស័យដែលត្រូវបង្ហាញឡើយ។</p>
+                  <p class="text-sm">{{ i18n.t('cyber_no_incidents', '✨ ពុំមានការវាយប្រហារ ឬទិន្នន័យសង្ស័យដែលត្រូវបង្ហាញឡើយ។') }}</p>
                 </td>
               </tr>
             </tbody>
@@ -664,7 +678,7 @@ const getSeverityClass = (sev?: string) => {
             <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span>
             <span>storage/logs/emergency_defense.log (Active Defense & Emergency Calls Stream)</span>
           </div>
-          <span class="text-[10px] text-slate-500">Live Auto-Mitigation Stream</span>
+          <span class="text-[10px] text-slate-500">{{ i18n.t('cyber_live_defense_stream', 'Live Auto-Mitigation Stream') }}</span>
         </div>
 
         <div class="max-h-48 overflow-y-auto space-y-1.5 text-xs text-slate-300 font-mono leading-relaxed bg-black/40 p-4 rounded-xl border border-slate-900 scrollbar-thin">
@@ -683,7 +697,7 @@ const getSeverityClass = (sev?: string) => {
             <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
             <span class="ml-2 text-slate-400">storage/logs/attacker_log.txt (Raw Terminal Stream)</span>
           </div>
-          <span class="text-[10px] text-slate-500">Live Structured Log Stream</span>
+          <span class="text-[10px] text-slate-500">{{ i18n.t('cyber_live_terminal_stream', 'Live Structured Log Stream') }}</span>
         </div>
 
         <div class="max-h-60 overflow-y-auto space-y-1.5 text-xs text-slate-300 font-mono leading-relaxed bg-black/40 p-4 rounded-xl border border-slate-900 scrollbar-thin">
@@ -699,7 +713,7 @@ const getSeverityClass = (sev?: string) => {
       <!-- Blacklisted IP Management Drawer -->
       <div class="bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 backdrop-blur-xl shadow-sm dark:shadow-xl space-y-4">
         <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <span>🛡️ បញ្ជីរាយនាម IP ដែលត្រូវបាន Blacklist លើ Firewall ({{ blockedIps.length }})</span>
+          <span>🛡️ {{ i18n.t('cyber_blacklist_title', 'បញ្ជីរាយនាម IP ដែលត្រូវបាន Blacklist លើ Firewall') }} ({{ blockedIps.length }})</span>
         </h3>
 
         <div class="flex flex-wrap gap-2">
@@ -718,7 +732,7 @@ const getSeverityClass = (sev?: string) => {
             </button>
           </div>
           <div v-if="blockedIps.length === 0" class="text-xs text-slate-400 italic">
-            ពុំមាន IP ណាមួយត្រូវបាន Blacklist នៅឡើយទេ។
+            {{ i18n.t('cyber_empty_blacklist', 'ពុំមាន IP ណាមួយត្រូវបាន Blacklist នៅឡើយទេ។') }}
           </div>
         </div>
       </div>

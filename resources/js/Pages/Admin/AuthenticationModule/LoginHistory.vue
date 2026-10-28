@@ -260,11 +260,11 @@ const clearLogs = () => {
         <!-- Card 1: Total Logins -->
         <div class="bg-white dark:bg-[#111622] border border-slate-200/80 dark:border-[#1E2638] rounded-2xl p-4.5 shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] flex items-center justify-between">
           <div>
-            <span class="text-xs font-medium text-slate-500 dark:text-[#94A3B8]">Total Logins</span>
+            <span class="text-xs font-medium text-slate-500 dark:text-[#94A3B8]">{{ i18n.t('history_total_logins', 'Total Logins') }}</span>
             <div class="text-2xl font-bold text-slate-900 dark:text-[#F1F5F9] font-mono mt-1">
               {{ totalLoginsCount.toLocaleString() }}
             </div>
-            <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Audit log entries recorded</p>
+            <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">{{ i18n.t('history_total_sub', 'Audit log entries recorded') }}</p>
           </div>
           <div class="w-11 h-11 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0 shadow-inner">
             <img :src="'/images/nav/sub/history.svg'" alt="History" class="w-6 h-6 object-contain" />
@@ -278,11 +278,11 @@ const clearLogs = () => {
           :class="{ 'ring-1 ring-emerald-500/50 bg-emerald-50/50 dark:bg-[#10B981]/10': statusFilter === 'success' }"
         >
           <div>
-            <span class="text-xs font-medium text-slate-500 dark:text-[#94A3B8] group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Successful Logins</span>
+            <span class="text-xs font-medium text-slate-500 dark:text-[#94A3B8] group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{{ i18n.t('history_successful_logins', 'Successful Logins') }}</span>
             <div class="text-2xl font-bold text-emerald-600 dark:text-[#10B981] font-mono mt-1">
               {{ statsSuccessful.toLocaleString() }}
             </div>
-            <p class="text-[10px] text-slate-400 dark:text-[#94A3B8] mt-1">Logins verified successfully</p>
+            <p class="text-[10px] text-slate-400 dark:text-[#94A3B8] mt-1">{{ i18n.t('history_successful_sub', 'Logins verified successfully') }}</p>
           </div>
           <div class="w-11 h-11 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0 shadow-inner group-hover:scale-105 transition-transform">
             <img :src="'/images/nav/sub/success.svg'" alt="Successful Logins" class="w-6 h-6 object-contain" />
@@ -296,11 +296,11 @@ const clearLogs = () => {
           :class="{ 'ring-1 ring-rose-500/50 bg-rose-50/50 dark:bg-[#EF4444]/10': statusFilter === 'failed' }"
         >
           <div>
-            <span class="text-xs font-medium text-slate-500 dark:text-[#94A3B8] group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">Failed Attempts</span>
+            <span class="text-xs font-medium text-slate-500 dark:text-[#94A3B8] group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">{{ i18n.t('history_failed_attempts', 'Failed Attempts') }}</span>
             <div class="text-2xl font-bold text-rose-600 dark:text-[#EF4444] font-mono mt-1">
               {{ statsFailed.toLocaleString() }}
             </div>
-            <p class="text-[10px] text-slate-400 dark:text-[#94A3B8] mt-1">Authentication failures today</p>
+            <p class="text-[10px] text-slate-400 dark:text-[#94A3B8] mt-1">{{ i18n.t('history_failed_sub', 'Authentication failures today') }}</p>
           </div>
           <div class="w-11 h-11 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0 shadow-inner group-hover:scale-105 transition-transform">
             <img :src="'/images/nav/sub/failed.svg'" alt="Failed Attempts" class="w-6 h-6 object-contain" />
@@ -314,11 +314,11 @@ const clearLogs = () => {
           :class="{ 'ring-1 ring-amber-500/50 bg-amber-50/50 dark:bg-[#F59E0B]/10': statusFilter === 'failed' }"
         >
           <div>
-            <span class="text-xs font-medium text-slate-500 dark:text-[#94A3B8] group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Locked Accounts</span>
+            <span class="text-xs font-medium text-slate-500 dark:text-[#94A3B8] group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">{{ i18n.t('history_locked_accounts', 'Locked Accounts') }}</span>
             <div class="text-2xl font-bold text-amber-600 dark:text-[#F59E0B] font-mono mt-1">
               {{ statsLocked.toLocaleString() }}
             </div>
-            <p class="text-[10px] text-slate-400 dark:text-[#94A3B8] mt-1">Suspended & locked users</p>
+            <p class="text-[10px] text-slate-400 dark:text-[#94A3B8] mt-1">{{ i18n.t('history_locked_sub', 'Suspended & locked users') }}</p>
           </div>
           <div class="w-11 h-11 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-xl text-amber-500 shrink-0 shadow-inner group-hover:scale-105 transition-transform">
             🔒
@@ -341,7 +341,7 @@ const clearLogs = () => {
               'px-3.5 py-1.5 rounded-lg text-xs transition-all flex items-center gap-1.5 cursor-pointer flex-1 sm:flex-none justify-center'
             ]"
           >
-            <span>📋 All Logins</span>
+            <span>📋 {{ i18n.t('history_all_logins', 'All Logins') }}</span>
             <span class="text-[10px] font-mono px-1.5 py-0.2 bg-slate-200 dark:bg-slate-700 rounded-md font-bold">
               {{ totalLoginsCount }}
             </span>
@@ -358,7 +358,7 @@ const clearLogs = () => {
               'px-3.5 py-1.5 rounded-lg text-xs transition-all flex items-center gap-1.5 cursor-pointer flex-1 sm:flex-none justify-center'
             ]"
           >
-            <span>✅ Successful</span>
+            <span>✅ {{ i18n.t('history_successful', 'Successful') }}</span>
             <span
               class="text-[10px] font-mono px-1.5 py-0.2 rounded-md font-bold"
               :class="statusFilter === 'success' ? 'bg-white/20 text-white' : 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'"
@@ -378,7 +378,7 @@ const clearLogs = () => {
               'px-3.5 py-1.5 rounded-lg text-xs transition-all flex items-center gap-1.5 cursor-pointer flex-1 sm:flex-none justify-center'
             ]"
           >
-            <span>❌ Failed Attempts</span>
+            <span>❌ {{ i18n.t('history_failed', 'Failed Attempts') }}</span>
             <span
               class="text-[10px] font-mono px-1.5 py-0.2 rounded-md font-bold"
               :class="statusFilter === 'failed' ? 'bg-white/20 text-white' : 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300'"
@@ -399,7 +399,7 @@ const clearLogs = () => {
               'px-3.5 py-1.5 rounded-lg text-xs transition-all flex items-center gap-1.5 cursor-pointer flex-1 sm:flex-none justify-center'
             ]"
           >
-            <span>🛡️ Audit Actions</span>
+            <span>🛡️ {{ i18n.t('history_audit', 'Audit Actions') }}</span>
             <span
               class="text-[10px] font-mono px-1.5 py-0.2 rounded-md font-bold"
               :class="statusFilter === 'audit' ? 'bg-white/20 text-white' : 'bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300'"
@@ -569,11 +569,11 @@ const clearLogs = () => {
           <thead>
             <tr class="border-b border-slate-200/80 dark:border-[#1E2638] bg-slate-50/80 dark:bg-[#0E131E] text-[11px] font-semibold text-slate-500 dark:text-[#94A3B8] uppercase tracking-wider">
               <th class="py-3.5 px-4 w-12">#</th>
-              <th class="py-3.5 px-4">User (Role)</th>
-              <th class="py-3.5 px-4">Date & Time</th>
-              <th class="py-3.5 px-4">IP Address</th>
-              <th class="py-3.5 px-4">Device & Location</th>
-              <th class="py-3.5 px-4 text-right">Status</th>
+              <th class="py-3.5 px-4">{{ i18n.t('history_th_user_role', 'User (Role)') }}</th>
+              <th class="py-3.5 px-4">{{ i18n.t('history_th_datetime', 'Date & Time') }}</th>
+              <th class="py-3.5 px-4">{{ i18n.t('history_th_ip', 'IP Address') }}</th>
+              <th class="py-3.5 px-4">{{ i18n.t('history_th_device_location', 'Device & Location') }}</th>
+              <th class="py-3.5 px-4 text-right">{{ i18n.t('history_th_status', 'Status') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 dark:divide-[#1E2638] text-xs">
@@ -632,27 +632,27 @@ const clearLogs = () => {
                   class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
                 >
                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                  SUCCESS
+                  {{ i18n.t('history_status_success', 'SUCCESS') }}
                 </span>
                 <span
                   v-else-if="log.status === 'audit'"
                   class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800"
                 >
                   <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
-                  AUDIT
+                  {{ i18n.t('history_status_audit', 'AUDIT') }}
                 </span>
                 <span
                   v-else
                   class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800"
                 >
                   <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
-                  FAILED
+                  {{ i18n.t('history_status_failed', 'FAILED') }}
                 </span>
               </td>
             </tr>
             <tr v-if="filteredLogs.length === 0">
               <td colspan="6" class="py-12 text-center text-slate-400 dark:text-slate-500 text-xs">
-                No login history records found matching criteria.
+                {{ i18n.t('history_no_records', 'No login history records found matching criteria.') }}
               </td>
             </tr>
           </tbody>

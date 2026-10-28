@@ -273,11 +273,11 @@ const getRoleHeaderColor = (roleName: string) => {
 
 const getRoleAccessLabel = (roleName: string) => {
   switch (roleName.toLowerCase()) {
-    case 'admin': return 'Full System Access'
+    case 'admin': return i18n.t('role_scope_admin', 'Full System Access')
     case 'teacher':
-    case 'instructor': return 'Course Management'
-    case 'student': return 'Student Portal Access'
-    default: return 'Custom Security Scope'
+    case 'instructor': return i18n.t('role_scope_teacher', 'Course Management')
+    case 'student': return i18n.t('role_scope_student', 'Student Portal Access')
+    default: return i18n.t('role_scope_custom', 'Custom Security Scope')
   }
 }
 
@@ -505,7 +505,7 @@ const getRoleAccentBar = (role: string) => {
 
             <div class="mt-1.5 p-2 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 text-xs flex justify-between items-center font-mono">
               <span class="text-slate-500 dark:text-slate-400">{{ i18n.t('role_active_users', 'Active Users') }}:</span>
-              <span class="font-bold text-indigo-600 dark:text-indigo-300">{{ item.user_count.toLocaleString() }} Users</span>
+              <span class="font-bold text-indigo-600 dark:text-indigo-300">{{ item.user_count.toLocaleString() }} {{ i18n.t('role_users_suffix', 'Users') }}</span>
             </div>
           </div>
 

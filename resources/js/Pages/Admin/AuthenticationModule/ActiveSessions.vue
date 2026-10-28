@@ -127,7 +127,7 @@ const exportSessionsCSV = () => {
             <span class="text-xs font-bold text-slate-500 dark:text-slate-400">{{ i18n.t('sessions_total_active', 'Total Active Now') }}</span>
             <div class="text-2xl font-black text-slate-900 dark:text-white font-mono mt-1 flex items-baseline gap-2">
               <span>{{ totalActiveNow.toLocaleString() }}</span>
-              <span class="text-xs text-emerald-600 dark:text-emerald-400 font-sans font-semibold">Sessions</span>
+              <span class="text-xs text-emerald-600 dark:text-emerald-400 font-sans font-semibold">{{ i18n.t('sessions_unit_sessions', 'Sessions') }}</span>
             </div>
           </div>
           <div class="w-11 h-11 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0 shadow-inner">
@@ -141,7 +141,7 @@ const exportSessionsCSV = () => {
             <span class="text-xs font-bold text-slate-500 dark:text-slate-400">{{ i18n.t('sessions_mobile_users', 'Mobile Users') }}</span>
             <div class="text-2xl font-black text-slate-900 dark:text-white font-mono mt-1 flex items-baseline gap-2">
               <span>{{ mobileUsersCount.toLocaleString() }}</span>
-              <span class="text-xs text-indigo-600 dark:text-indigo-300 font-sans font-semibold">Users</span>
+              <span class="text-xs text-indigo-600 dark:text-indigo-300 font-sans font-semibold">{{ i18n.t('sessions_unit_users', 'Users') }}</span>
             </div>
           </div>
           <div class="w-11 h-11 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-xl text-indigo-500 dark:text-indigo-400 shrink-0">
@@ -155,7 +155,7 @@ const exportSessionsCSV = () => {
             <span class="text-xs font-bold text-slate-500 dark:text-slate-400">{{ i18n.t('sessions_desktop_users', 'Desktop Users') }}</span>
             <div class="text-2xl font-black text-slate-900 dark:text-white font-mono mt-1 flex items-baseline gap-2">
               <span>{{ desktopUsersCount.toLocaleString() }}</span>
-              <span class="text-xs text-cyan-600 dark:text-cyan-300 font-sans font-semibold">Users</span>
+              <span class="text-xs text-cyan-600 dark:text-cyan-300 font-sans font-semibold">{{ i18n.t('sessions_unit_users', 'Users') }}</span>
             </div>
           </div>
           <div class="w-11 h-11 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-xl text-cyan-500 dark:text-cyan-400 shrink-0">
