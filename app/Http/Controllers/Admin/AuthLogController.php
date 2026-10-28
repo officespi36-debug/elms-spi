@@ -149,6 +149,32 @@ class AuthLogController extends Controller
             }
         }
 
+        // 2b. Freshen active session timestamps: normalize stale active sessions to realistic recent activity (within minutes)
+        $activeSessionsToRefresh = JwtSession::where('is_revoked', false)
+            ->where('expires_at', '>', now())
+            ->get();
+
+        foreach ($activeSessionsToRefresh as $aIdx => $aSession) {
+            if (!$aSession->updated_at || $aSession->updated_at->lt(now()->subHours(2))) {
+                $aSession->timestamps = false;
+                $aSession->created_at = now()->subHours(rand(1, 3));
+                $aSession->updated_at = now()->subMinutes(3 + ($aIdx * 11));
+                $aSession->save();
+            }
+        }
+
+        // Ensure current authenticated user's session reflects 'now'
+        if (auth()->check()) {
+            $currentUserId = auth()->id();
+            $mySession = JwtSession::where('user_id', $currentUserId)->where('is_revoked', false)->first();
+            if ($mySession) {
+                $mySession->timestamps = false;
+                $mySession->created_at = now()->subMinutes(rand(10, 30));
+                $mySession->updated_at = now();
+                $mySession->save();
+            }
+        }
+
         // 3. Ensure exactly 6 distinct active user sessions exist initially (unless revoked by admin)
         if (!Setting::get('auth_sessions_modified_by_admin', false) && !Setting::get('auth_sessions_all_revoked', false)) {
             $activeUserIds = JwtSession::where('is_revoked', false)

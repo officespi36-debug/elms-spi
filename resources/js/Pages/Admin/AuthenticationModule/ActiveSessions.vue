@@ -63,7 +63,8 @@ const formatTimeAgo = (dateString: string) => {
   const diffMins = dayjs().diff(dayjs(dateString), 'minute')
   if (diffMins < 1) return 'Just now'
   if (diffMins < 60) return `${diffMins}m ago`
-  return `${Math.floor(diffMins / 60)}h ago`
+  if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`
+  return `${Math.floor(diffMins / 1440)}d ago`
 }
 
 const revokeSession = (sessionId: number, userName: string) => {
@@ -275,7 +276,7 @@ const exportSessionsCSV = () => {
                 <div class="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-2 mt-0.5">
                   <span>📍 Phnom Penh</span>
                   <span>•</span>
-                  <span>🕐 {{ formatTimeAgo(session.created_at) }}</span>
+                  <span>🕐 {{ formatTimeAgo(session.updated_at || session.created_at) }}</span>
                 </div>
               </td>
 
@@ -296,7 +297,8 @@ const exportSessionsCSV = () => {
                 >
                   <span>🚫</span> {{ i18n.t('sessions_btn_revoke', 'Revoke') }}
                 </button>
-                <span v-else class="text-[11px] font-semibold text-slate-400 dark:text-slate-500 italic">
+                <span v-else class="px-2.5 py-1 text-[11px] font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/40 rounded-lg inline-flex items-center gap-1.5 select-none">
+                  <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                   Revoked
                 </span>
               </td>
