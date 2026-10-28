@@ -207,11 +207,31 @@ class AuthLogController extends Controller
 
         // 3. Ensure exactly 65 Failed Logins exist (unless cleared by admin)
         if (!Setting::get('auth_logs_cleared_by_admin', false)) {
-            // Normalize any legacy 127.0.0.1 failed logs to realistic threat vectors with timestamps from today
+            $targetAccounts = [
+                ['name' => 'Chan Dara', 'email' => 'chan.dara.risk@spilms.tech', 'role' => 'student'],
+                ['name' => 'Long Vichida', 'email' => 'long.vichida.risk@spilms.tech', 'role' => 'student'],
+                ['name' => 'Pov Sreynich', 'email' => 'pov.sreynich.risk@spilms.tech', 'role' => 'student'],
+                ['name' => 'Sok Chanra', 'email' => 'sok.chanra.risk@spilms.tech', 'role' => 'student'],
+                ['name' => 'Mao Sreynich', 'email' => 'mao.sreynich.risk@spilms.tech', 'role' => 'student'],
+                ['name' => 'Borey Kem', 'email' => 'borey.kem.risk@spilms.tech', 'role' => 'student'],
+                ['name' => 'Sothea Rim', 'email' => 'sothea.rim.risk@spilms.tech', 'role' => 'student'],
+                ['name' => 'Chanthy Net', 'email' => 'chanthy.net.risk@spilms.tech', 'role' => 'student'],
+                ['name' => 'Keo Bopha', 'email' => 'keo.bopha.risk@spilms.tech', 'role' => 'student'],
+                ['name' => 'Vannak Tep', 'email' => 'vannak.tep.risk@spilms.tech', 'role' => 'student'],
+                ['name' => 'Phanna Long', 'email' => 'phanna.long.risk@spilms.tech', 'role' => 'student'],
+                ['name' => 'Piseth Ouk', 'email' => 'piseth.ouk.risk@spilms.tech', 'role' => 'student'],
+                ['name' => 'Sophea Teacher', 'email' => 'teacher@gmail.com', 'role' => 'teacher'],
+                ['name' => 'System Admin', 'email' => 'admin@elms.com', 'role' => 'admin'],
+            ];
+
+            // Normalize any legacy 127.0.0.1 failed logs or admin_ generated emails to realistic target user accounts
             AuthLog::where('status', 'failed')
-                ->whereIn('ip_address', ['127.0.0.1', '::1', 'localhost', '0.0.0.0'])
+                ->where(function ($q) {
+                    $q->whereIn('ip_address', ['127.0.0.1', '::1', 'localhost', '0.0.0.0'])
+                      ->orWhere('email', 'like', 'admin_%@elms.edu.kh');
+                })
                 ->get()
-                ->each(function ($log, $i) {
+                ->each(function ($log, $i) use ($targetAccounts) {
                     $botIps = ['45.22.178.99', '103.45.22.11', '77.88.99.100', '198.51.100.24', '185.220.101.5'];
                     $locs = ['Moscow, Russia', 'Beijing, China', 'Hanoi, Vietnam', 'Frankfurt, Germany', 'Amsterdam, Netherlands'];
                     $agents = [
@@ -222,9 +242,10 @@ class AuthLogController extends Controller
                         'Nikto/2.1.6 Vulnerability Scanner'
                     ];
                     $idx = $i % count($botIps);
+                    $acc = $targetAccounts[$i % count($targetAccounts)];
                     $log->timestamps = false;
                     $log->user_id = null;
-                    $log->email = 'admin_' . $i . '@elms.edu.kh';
+                    $log->email = $acc['email'];
                     $log->ip_address = $botIps[$idx];
                     $log->location = $locs[$idx];
                     $log->user_agent = $agents[$idx];
@@ -250,9 +271,10 @@ class AuthLogController extends Controller
                 $bulkFailed = [];
                 for ($i = 0; $i < $neededFailed; $i++) {
                     $idx = $i % count($botIps);
+                    $acc = $targetAccounts[$i % count($targetAccounts)];
                     $bulkFailed[] = [
                         'user_id'    => null,
-                        'email'      => 'admin_' . $i . '@elms.edu.kh',
+                        'email'      => $acc['email'],
                         'ip_address' => $botIps[$idx],
                         'user_agent' => $agents[$idx],
                         'device'     => 'Automated Scanner',
@@ -570,6 +592,16 @@ class AuthLogController extends Controller
             }
             if ($log->user && empty($log->user->avatar)) {
                 $log->user->avatar = $portraits[$idx % count($portraits)];
+            }
+            if (!$log->user) {
+                $cleanName = ucwords(str_replace(['.', '_', '-'], ' ', explode('@', $log->email ?? 'User')[0]));
+                $log->setRelation('user', (object)[
+                    'id'     => null,
+                    'name'   => $cleanName,
+                    'email'  => $log->email,
+                    'role'   => 'student',
+                    'avatar' => $portraits[$idx % count($portraits)],
+                ]);
             }
         }
 

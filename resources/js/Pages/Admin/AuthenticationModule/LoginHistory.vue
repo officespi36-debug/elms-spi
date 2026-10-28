@@ -588,26 +588,12 @@ const clearLogs = () => {
               <td class="py-3 px-4">
                 <div class="flex items-center gap-3">
                   <div class="relative shrink-0">
-                    <template v-if="log.user?.avatar || log.user?.name || log.status === 'success' || (log.email && !log.email.includes('admin_'))">
-                      <img
-                        :src="getUserAvatar(log.user || { name: log.email }, log.id || idx)"
-                        :alt="log.user?.name || log.email || 'User'"
-                        class="w-9 h-9 rounded-full border border-slate-200 dark:border-slate-700 object-cover shadow-xs"
-                        @error="(e: any) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(log.user?.name || log.email || 'User')}&background=${log.status === 'success' ? '10b981' : (log.status === 'audit' ? '6366f1' : 'ef4444')}&color=fff` }"
-                      />
-                    </template>
-                    <div
-                      v-else-if="log.status === 'audit'"
-                      class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shrink-0 shadow-xs bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20"
-                    >
-                      🛡️
-                    </div>
-                    <div
-                      v-else
-                      class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shrink-0 shadow-xs bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
-                    >
-                      ✕
-                    </div>
+                    <img
+                      :src="getUserAvatar(log.user || { name: log.email, email: log.email }, log.id || idx)"
+                      :alt="log.user?.name || log.email || 'User'"
+                      class="w-9 h-9 rounded-full border border-slate-200 dark:border-slate-700 object-cover shadow-xs shrink-0"
+                      @error="(e: any) => { e.target.src = defaultPortraits[(log.id || idx) % defaultPortraits.length] }"
+                    />
                     <span
                       :class="log.status === 'success' ? 'bg-emerald-500' : (log.status === 'audit' ? 'bg-indigo-500' : 'bg-rose-500')"
                       class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full ring-2 ring-white dark:ring-slate-900"
