@@ -89,7 +89,7 @@ const handleUnlockAll = () => {
               <h1 class="text-[18px] leading-[26px] font-semibold text-slate-900 dark:text-[#F8FAFC] tracking-tight">
                 {{ i18n.t('auth_module_title', 'Authentication Module') }}
               </h1>
-              <span class="px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider bg-slate-100 dark:bg-[#080C14] text-slate-600 dark:text-[#94A3B8] border border-slate-200 dark:border-[#1E293B] rounded-md font-mono">
+              <span class="px-2.5 py-0.5 text-[11px] font-medium bg-slate-100 dark:bg-[#080C14] text-slate-600 dark:text-[#94A3B8] border border-slate-200 dark:border-[#1E293B] rounded-md">
                 {{ i18n.t('auth_security_control_only', 'Security Control Only') }}
               </span>
             </div>
@@ -120,7 +120,9 @@ const handleUnlockAll = () => {
                 :class="(stats.failed_logins_today || 0) > 0 ? 'bg-[#DC2626] dark:bg-[#EF4444]' : 'bg-[#059669] dark:bg-[#10B981]'"
               ></span>
             </span>
-            <span class="font-semibold uppercase tracking-wider font-mono">{{ stats.threat_level || 'CRITICAL' }}</span>
+            <span class="font-bold tracking-wide">
+              {{ i18n.t('threat_' + (stats.threat_level?.toLowerCase() || 'critical'), stats.threat_level?.toUpperCase() || 'CRITICAL') }}
+            </span>
             <span class="text-slate-300 dark:text-[#1E293B]">|</span>
             <span class="text-[11px] text-slate-600 dark:text-[#94A3B8]">
               {{ (stats.failed_logins_today || 0) > 0 ? i18n.t('auth_review_required', 'Review Required') : i18n.t('auth_normal_guard', 'Normal Guard') }}
@@ -141,7 +143,7 @@ const handleUnlockAll = () => {
       >
         <div>
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ i18n.t('auth_total_roles', 'TOTAL ROLES') }}</span>
+            <span class="text-[11px] font-bold tracking-wide text-white/90 truncate">{{ i18n.t('auth_total_roles', 'TOTAL ROLES') }}</span>
             <div class="text-white/95 group-hover:text-white group-hover:scale-105 transition-transform duration-200 shrink-0">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
@@ -172,7 +174,7 @@ const handleUnlockAll = () => {
       >
         <div>
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ i18n.t('auth_active_sessions', 'ACTIVE SESSIONS') }}</span>
+            <span class="text-[11px] font-bold tracking-wide text-white/90 truncate">{{ i18n.t('auth_active_sessions', 'ACTIVE SESSIONS') }}</span>
             <div class="text-white/95 group-hover:text-white group-hover:scale-105 transition-transform duration-200 shrink-0">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <rect width="18" height="12" x="3" y="4" rx="2"/>
@@ -205,8 +207,8 @@ const handleUnlockAll = () => {
       >
         <div>
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold tracking-wide uppercase text-white/90 leading-tight block">
-              {{ i18n.t('auth_failed_logins', 'FAILED LOGINS') }}<br/>{{ i18n.t('auth_today', 'TODAY') }}
+            <span class="text-[11px] font-bold tracking-wide text-white/90 truncate">
+              {{ i18n.t('auth_failed_logins_today', 'FAILED LOGINS TODAY') }}
             </span>
             <div class="text-white/95 group-hover:text-white group-hover:scale-105 transition-transform duration-200 shrink-0">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -239,7 +241,7 @@ const handleUnlockAll = () => {
       >
         <div>
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ i18n.t('auth_live_tokens', 'LIVE JWT TOKENS') }}</span>
+            <span class="text-[11px] font-bold tracking-wide text-white/90 truncate">{{ i18n.t('auth_live_tokens', 'LIVE JWT TOKENS') }}</span>
             <div class="text-white/95 group-hover:text-white group-hover:scale-105 transition-transform duration-200 shrink-0">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
@@ -269,7 +271,7 @@ const handleUnlockAll = () => {
       >
         <div>
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ i18n.t('auth_posture_index', 'POSTURE INDEX') }}</span>
+            <span class="text-[11px] font-bold tracking-wide text-white/90 truncate">{{ i18n.t('auth_posture_index', 'POSTURE INDEX') }}</span>
             <div class="text-white/95 group-hover:text-white group-hover:scale-105 transition-transform duration-200 shrink-0">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
@@ -305,8 +307,8 @@ const handleUnlockAll = () => {
       >
         <div>
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold tracking-wide uppercase text-white/90 leading-tight block">
-              {{ i18n.t('auth_locked_accounts_label', 'LOCKED ACCOUNTS') }}<br/>{{ i18n.t('auth_risk_slash', '/ RISK') }}
+            <span class="text-[11px] font-bold tracking-wide text-white/90 truncate">
+              {{ i18n.t('auth_locked_accounts', 'LOCKED ACCOUNTS / RISK') }}
             </span>
             <div class="text-white/95 group-hover:text-white group-hover:scale-105 transition-transform duration-200 shrink-0">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">

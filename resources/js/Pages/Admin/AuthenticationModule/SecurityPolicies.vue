@@ -190,7 +190,7 @@ const resetToDefault = () => {
             <div class="flex items-center gap-2">
               <span class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">{{ i18n.t('policies_score_label', 'Security Health') }}:</span>
               <span class="px-2.5 py-0.5 text-xs font-mono font-bold bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 border border-emerald-500/20 dark:border-emerald-500/30 rounded-full">
-                {{ props.summaryStats?.security_score || 88 }}/100 GOOD
+                {{ props.summaryStats?.security_score || 88 }}/100 {{ i18n.t('policies_score_status_good', 'GOOD') }}
               </span>
             </div>
             <div class="w-48 bg-slate-100 dark:bg-slate-950 h-2 rounded-full overflow-hidden mt-1.5 border border-slate-200 dark:border-slate-800">
@@ -322,44 +322,44 @@ const resetToDefault = () => {
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">Minimum Password Length</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">{{ i18n.t('policies_min_password_length', 'Minimum Password Length') }}</label>
                   <select v-model.number="form.min_password_length" class="w-full bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white font-mono text-xs focus:outline-none focus:border-indigo-500">
-                    <option :value="6">6 characters</option>
-                    <option :value="8">8 characters (Recommended)</option>
-                    <option :value="12">12 characters (Strong)</option>
-                    <option :value="16">16 characters (Enterprise)</option>
+                    <option :value="6">6 {{ i18n.t('policies_char_count', 'characters') }}</option>
+                    <option :value="8">8 {{ i18n.t('policies_char_count', 'characters') }} ({{ i18n.t('policies_recommended_tag', 'Recommended') }})</option>
+                    <option :value="12">12 {{ i18n.t('policies_char_count', 'characters') }} ({{ i18n.t('policies_strong_tag', 'Strong') }})</option>
+                    <option :value="16">16 {{ i18n.t('policies_char_count', 'characters') }} ({{ i18n.t('policies_enterprise_tag', 'Enterprise') }})</option>
                   </select>
                 </div>
 
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">Password Expiration Days</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">{{ i18n.t('policies_password_expiry_days', 'Password Expiration Days') }}</label>
                   <select v-model.number="form.password_expiry_days" class="w-full bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white font-mono text-xs focus:outline-none focus:border-indigo-500">
-                    <option :value="30">30 days</option>
-                    <option :value="60">60 days</option>
-                    <option :value="90">90 days (Recommended)</option>
-                    <option :value="180">180 days</option>
+                    <option :value="30">30 {{ i18n.t('policies_days_count', 'days') }}</option>
+                    <option :value="60">60 {{ i18n.t('policies_days_count', 'days') }}</option>
+                    <option :value="90">90 {{ i18n.t('policies_days_count', 'days') }} ({{ i18n.t('policies_recommended_tag', 'Recommended') }})</option>
+                    <option :value="180">180 {{ i18n.t('policies_days_count', 'days') }}</option>
                   </select>
                 </div>
               </div>
 
               <div class="pt-2">
-                <label class="block font-bold text-slate-700 dark:text-slate-300 mb-2">Complexity Requirements:</label>
+                <label class="block font-bold text-slate-700 dark:text-slate-300 mb-2">{{ i18n.t('policies_complexity_req', 'Complexity Requirements:') }}</label>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <label class="flex items-center gap-2.5 cursor-pointer bg-slate-50 dark:bg-slate-950/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800/80">
                     <input v-model="form.require_uppercase" type="checkbox" class="w-4 h-4 rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-0" />
-                    <span class="text-slate-700 dark:text-slate-200 font-medium">Require Uppercase (A-Z)</span>
+                    <span class="text-slate-700 dark:text-slate-200 font-medium">{{ i18n.t('policies_req_uppercase', 'Require Uppercase (A-Z)') }}</span>
                   </label>
                   <label class="flex items-center gap-2.5 cursor-pointer bg-slate-50 dark:bg-slate-950/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800/80">
                     <input v-model="form.require_lowercase" type="checkbox" class="w-4 h-4 rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-0" />
-                    <span class="text-slate-700 dark:text-slate-200 font-medium">Require Lowercase (a-z)</span>
+                    <span class="text-slate-700 dark:text-slate-200 font-medium">{{ i18n.t('policies_req_lowercase', 'Require Lowercase (a-z)') }}</span>
                   </label>
                   <label class="flex items-center gap-2.5 cursor-pointer bg-slate-50 dark:bg-slate-950/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800/80">
                     <input v-model="form.require_number" type="checkbox" class="w-4 h-4 rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-0" />
-                    <span class="text-slate-700 dark:text-slate-200 font-medium">Require Numbers (0-9)</span>
+                    <span class="text-slate-700 dark:text-slate-200 font-medium">{{ i18n.t('policies_req_number', 'Require Numbers (0-9)') }}</span>
                   </label>
                   <label class="flex items-center gap-2.5 cursor-pointer bg-slate-50 dark:bg-slate-950/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800/80">
                     <input v-model="form.require_special_char" type="checkbox" class="w-4 h-4 rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-0" />
-                    <span class="text-slate-700 dark:text-slate-200 font-medium">Require Special Symbols (!@#$)</span>
+                    <span class="text-slate-700 dark:text-slate-200 font-medium">{{ i18n.t('policies_req_special', 'Require Special Symbols (!@#$)') }}</span>
                   </label>
                 </div>
               </div>
@@ -375,20 +375,20 @@ const resetToDefault = () => {
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">Access Token Lifetime</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">{{ i18n.t('policies_access_token_lifetime', 'Access Token Lifetime') }}</label>
                   <select v-model.number="form.access_token_expiry_mins" class="w-full bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white font-mono text-xs focus:outline-none focus:border-indigo-500">
-                    <option :value="15">15 minutes (High Security)</option>
-                    <option :value="30">30 minutes</option>
-                    <option :value="60">60 minutes (1 Hour)</option>
+                    <option :value="15">15 {{ i18n.t('policies_minutes_count', 'minutes') }} ({{ i18n.t('policies_high_security_tag', 'High Security') }})</option>
+                    <option :value="30">30 {{ i18n.t('policies_minutes_count', 'minutes') }}</option>
+                    <option :value="60">60 {{ i18n.t('policies_minutes_count', 'minutes') }}</option>
                   </select>
                 </div>
 
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">Refresh Token Lifetime</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">{{ i18n.t('policies_refresh_token_lifetime', 'Refresh Token Lifetime') }}</label>
                   <select v-model.number="form.refresh_token_expiry_days" class="w-full bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white font-mono text-xs focus:outline-none focus:border-indigo-500">
-                    <option :value="1">1 day</option>
-                    <option :value="7">7 days (Recommended)</option>
-                    <option :value="30">30 days</option>
+                    <option :value="1">1 {{ i18n.t('policies_days_count', 'day') }}</option>
+                    <option :value="7">7 {{ i18n.t('policies_days_count', 'days') }} ({{ i18n.t('policies_recommended_tag', 'Recommended') }})</option>
+                    <option :value="30">30 {{ i18n.t('policies_days_count', 'days') }}</option>
                   </select>
                 </div>
               </div>
@@ -397,16 +397,16 @@ const resetToDefault = () => {
                 <label class="flex items-center gap-2.5 cursor-pointer bg-slate-50 dark:bg-slate-950/50 p-3 rounded-xl border border-slate-200 dark:border-slate-800/80">
                   <input v-model="form.auto_refresh_token" type="checkbox" class="w-4 h-4 rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-0" />
                   <div>
-                    <div class="text-slate-800 dark:text-slate-200 font-medium">Automatic Silent Token Refresh</div>
-                    <div class="text-[11px] text-slate-500 dark:text-slate-400">Seamlessly refresh access tokens without interrupting user workflow</div>
+                    <div class="text-slate-800 dark:text-slate-200 font-medium">{{ i18n.t('policies_auto_refresh_token', 'Automatic Silent Token Refresh') }}</div>
+                    <div class="text-[11px] text-slate-500 dark:text-slate-400">{{ i18n.t('policies_auto_refresh_desc', 'Seamlessly refresh access tokens without interrupting user workflow') }}</div>
                   </div>
                 </label>
 
                 <label class="flex items-center gap-2.5 cursor-pointer bg-slate-50 dark:bg-slate-950/50 p-3 rounded-xl border border-slate-200 dark:border-slate-800/80">
                   <input v-model="form.revoke_on_logout" type="checkbox" class="w-4 h-4 rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-0" />
                   <div>
-                    <div class="text-slate-800 dark:text-slate-200 font-medium">Revoke All Tokens on Logout</div>
-                    <div class="text-[11px] text-slate-500 dark:text-slate-400">Blacklist tokens immediately when user signs out</div>
+                    <div class="text-slate-800 dark:text-slate-200 font-medium">{{ i18n.t('policies_revoke_on_logout', 'Revoke All Tokens on Logout') }}</div>
+                    <div class="text-[11px] text-slate-500 dark:text-slate-400">{{ i18n.t('policies_revoke_desc', 'Blacklist tokens immediately when user signs out') }}</div>
                   </div>
                 </label>
               </div>
@@ -422,20 +422,20 @@ const resetToDefault = () => {
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">Max Concurrent Sessions per User</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">{{ i18n.t('policies_max_sessions', 'Max Concurrent Sessions per User') }}</label>
                   <select v-model.number="form.max_concurrent_sessions" class="w-full bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white font-mono text-xs focus:outline-none focus:border-indigo-500">
-                    <option :value="1">1 Session (Strict Single-Device)</option>
-                    <option :value="3">3 Sessions (Recommended)</option>
-                    <option :value="5">5 Sessions</option>
+                    <option :value="1">1 {{ i18n.t('policies_sessions_count', 'Session') }} ({{ i18n.t('policies_single_device_tag', 'Strict Single-Device') }})</option>
+                    <option :value="3">3 {{ i18n.t('policies_sessions_count', 'Sessions') }} ({{ i18n.t('policies_recommended_tag', 'Recommended') }})</option>
+                    <option :value="5">5 {{ i18n.t('policies_sessions_count', 'Sessions') }}</option>
                   </select>
                 </div>
 
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">Remember Me Extended Days</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">{{ i18n.t('policies_remember_me_days', 'Remember Me Extended Days') }}</label>
                   <select v-model.number="form.remember_me_days" class="w-full bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white font-mono text-xs focus:outline-none focus:border-indigo-500">
-                    <option :value="7">7 days</option>
-                    <option :value="14">14 days</option>
-                    <option :value="30">30 days</option>
+                    <option :value="7">7 {{ i18n.t('policies_days_count', 'days') }}</option>
+                    <option :value="14">14 {{ i18n.t('policies_days_count', 'days') }}</option>
+                    <option :value="30">30 {{ i18n.t('policies_days_count', 'days') }}</option>
                   </select>
                 </div>
               </div>
@@ -444,8 +444,8 @@ const resetToDefault = () => {
                 <label class="flex items-center gap-2.5 cursor-pointer bg-slate-50 dark:bg-slate-950/50 p-3 rounded-xl border border-slate-200 dark:border-slate-800/80">
                   <input v-model="form.auto_logout_inactivity" type="checkbox" class="w-4 h-4 rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-0" />
                   <div>
-                    <div class="text-slate-800 dark:text-slate-200 font-medium">Auto Logout on 15m Idle Inactivity</div>
-                    <div class="text-[11px] text-slate-500 dark:text-slate-400">Lock session automatically if user leaves workstation unattended</div>
+                    <div class="text-slate-800 dark:text-slate-200 font-medium">{{ i18n.t('policies_auto_logout_idle', 'Auto Logout on 15m Idle Inactivity') }}</div>
+                    <div class="text-[11px] text-slate-500 dark:text-slate-400">{{ i18n.t('policies_auto_logout_desc', 'Lock session automatically if user leaves workstation unattended') }}</div>
                   </div>
                 </label>
               </div>
@@ -461,38 +461,38 @@ const resetToDefault = () => {
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">Max Failed Login Attempts</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">{{ i18n.t('policies_max_failed_attempts', 'Max Failed Login Attempts') }}</label>
                   <select v-model.number="form.max_failed_attempts" class="w-full bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white font-mono text-xs focus:outline-none focus:border-indigo-500">
-                    <option :value="3">3 Attempts</option>
-                    <option :value="5">5 Attempts (Recommended)</option>
-                    <option :value="10">10 Attempts</option>
+                    <option :value="3">3 {{ i18n.t('policies_attempts_count', 'Attempts') }}</option>
+                    <option :value="5">5 {{ i18n.t('policies_attempts_count', 'Attempts') }} ({{ i18n.t('policies_recommended_tag', 'Recommended') }})</option>
+                    <option :value="10">10 {{ i18n.t('policies_attempts_count', 'Attempts') }}</option>
                   </select>
                 </div>
 
                 <div>
-                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">Lockout Duration Minutes</label>
+                  <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">{{ i18n.t('policies_lockout_duration', 'Lockout Duration Minutes') }}</label>
                   <select v-model.number="form.lockout_duration_mins" class="w-full bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-white font-mono text-xs focus:outline-none focus:border-indigo-500">
-                    <option :value="15">15 minutes</option>
-                    <option :value="30">30 minutes</option>
-                    <option :value="60">60 minutes (1 Hour)</option>
+                    <option :value="15">15 {{ i18n.t('policies_minutes_count', 'minutes') }}</option>
+                    <option :value="30">30 {{ i18n.t('policies_minutes_count', 'minutes') }}</option>
+                    <option :value="60">60 {{ i18n.t('policies_minutes_count', 'minutes') }}</option>
                   </select>
                 </div>
               </div>
 
               <div class="pt-2">
-                <label class="block font-bold text-slate-700 dark:text-slate-300 mb-2">Mandatory 2FA Enforcement by Role:</label>
+                <label class="block font-bold text-slate-700 dark:text-slate-300 mb-2">{{ i18n.t('policies_2fa_enforcement', 'Mandatory 2FA Enforcement by Role:') }}</label>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <label class="flex items-center gap-2 cursor-pointer bg-slate-50 dark:bg-slate-950/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800/80">
                     <input v-model="form.require_2fa_admin" type="checkbox" class="w-4 h-4 rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-0" />
-                    <span class="text-slate-700 dark:text-slate-200 font-medium">Admin 2FA</span>
+                    <span class="text-slate-700 dark:text-slate-200 font-medium">{{ i18n.t('policies_admin_2fa', 'Admin 2FA') }}</span>
                   </label>
                   <label class="flex items-center gap-2 cursor-pointer bg-slate-50 dark:bg-slate-950/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800/80">
                     <input v-model="form.require_2fa_teacher" type="checkbox" class="w-4 h-4 rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-0" />
-                    <span class="text-slate-700 dark:text-slate-200 font-medium">Teacher 2FA</span>
+                    <span class="text-slate-700 dark:text-slate-200 font-medium">{{ i18n.t('policies_teacher_2fa', 'Teacher 2FA') }}</span>
                   </label>
                   <label class="flex items-center gap-2 cursor-pointer bg-slate-50 dark:bg-slate-950/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800/80">
                     <input v-model="form.require_2fa_student" type="checkbox" class="w-4 h-4 rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-0" />
-                    <span class="text-slate-700 dark:text-slate-200 font-medium">Student 2FA</span>
+                    <span class="text-slate-700 dark:text-slate-200 font-medium">{{ i18n.t('policies_student_2fa', 'Student 2FA') }}</span>
                   </label>
                 </div>
               </div>
@@ -509,24 +509,24 @@ const resetToDefault = () => {
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <label class="flex items-center gap-2.5 cursor-pointer bg-slate-50 dark:bg-slate-950/50 p-3 rounded-xl border border-slate-200 dark:border-slate-800/80">
                   <input v-model="form.https_ssl_enforced" type="checkbox" class="w-4 h-4 rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-0" />
-                  <span class="text-slate-700 dark:text-slate-200 font-medium">Enforce HTTPS / TLS 1.3</span>
+                  <span class="text-slate-700 dark:text-slate-200 font-medium">{{ i18n.t('policies_enforce_https', 'Enforce HTTPS / TLS 1.3') }}</span>
                 </label>
                 <label class="flex items-center gap-2.5 cursor-pointer bg-slate-50 dark:bg-slate-950/50 p-3 rounded-xl border border-slate-200 dark:border-slate-800/80">
                   <input v-model="form.csrf_protection" type="checkbox" class="w-4 h-4 rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-0" />
-                  <span class="text-slate-700 dark:text-slate-200 font-medium">CSRF Token Guard</span>
+                  <span class="text-slate-700 dark:text-slate-200 font-medium">{{ i18n.t('policies_csrf_protection', 'CSRF Token Guard') }}</span>
                 </label>
                 <label class="flex items-center gap-2.5 cursor-pointer bg-slate-50 dark:bg-slate-950/50 p-3 rounded-xl border border-slate-200 dark:border-slate-800/80">
                   <input v-model="form.xss_protection" type="checkbox" class="w-4 h-4 rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-0" />
-                  <span class="text-slate-700 dark:text-slate-200 font-medium">XSS Input Sanitizer</span>
+                  <span class="text-slate-700 dark:text-slate-200 font-medium">{{ i18n.t('policies_xss_protection', 'XSS Input Sanitizer') }}</span>
                 </label>
                 <label class="flex items-center gap-2.5 cursor-pointer bg-slate-50 dark:bg-slate-950/50 p-3 rounded-xl border border-slate-200 dark:border-slate-800/80">
                   <input v-model="form.sql_injection_guard" type="checkbox" class="w-4 h-4 rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-0" />
-                  <span class="text-slate-700 dark:text-slate-200 font-medium">SQL Injection Guard</span>
+                  <span class="text-slate-700 dark:text-slate-200 font-medium">{{ i18n.t('policies_sql_guard', 'SQL Injection Guard') }}</span>
                 </label>
               </div>
 
               <div class="pt-2">
-                <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">Trusted IP Whitelist Subnets</label>
+                <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1.5">{{ i18n.t('policies_trusted_ip_whitelist', 'Trusted IP Whitelist Subnets') }}</label>
                 <div class="flex gap-2 mb-2">
                   <input
                     v-model="newWhitelistIp"
@@ -539,7 +539,7 @@ const resetToDefault = () => {
                     @click="addWhitelistIp"
                     class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs cursor-pointer"
                   >
-                    + Add IP
+                    {{ i18n.t('policies_btn_add_ip', '+ Add IP') }}
                   </button>
                 </div>
                 <div class="flex flex-wrap gap-2">
