@@ -281,6 +281,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::post('auth-logs/revoke/{id}', [Admin\AuthLogController::class, 'revokeSession'])->name('auth-logs.revoke');
         Route::post('auth-logs/revoke-all', [Admin\AuthLogController::class, 'revokeAllSessions'])->name('auth-logs.revoke-all');
+        Route::post('auth-logs/reset-sessions', [Admin\AuthLogController::class, 'resetSessions'])->name('auth-logs.reset-sessions');
         Route::post('auth-logs/unlock/{user}', [Admin\AuthLogController::class, 'unlockUser'])->name('auth-logs.unlock');
         Route::post('auth-logs/unlock-all', [Admin\AuthLogController::class, 'unlockAllUsers'])->name('auth-logs.unlock-all');
         Route::post('auth-logs/block-ip', [Admin\AuthLogController::class, 'blockIp'])->name('auth-logs.block-ip');

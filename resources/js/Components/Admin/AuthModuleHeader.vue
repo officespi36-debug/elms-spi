@@ -183,7 +183,7 @@ const handleUnlockAll = () => {
             </div>
           </div>
           <h4 class="text-2xl font-black tracking-tight text-white mt-1">
-            {{ Number(stats.active_sessions_count || 6).toLocaleString() }}
+            {{ Number(stats.active_sessions_count ?? 6).toLocaleString() }}
           </h4>
           <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
             <span>▲ 97.2% Session Health</span>
@@ -217,7 +217,7 @@ const handleUnlockAll = () => {
             </div>
           </div>
           <h4 class="text-2xl font-black tracking-tight text-white mt-1">
-            {{ Number(stats.failed_logins_today || 65).toLocaleString() }}
+            {{ Number(stats.failed_logins_today ?? 65).toLocaleString() }}
           </h4>
           <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
             <span>▲ +12% Bot Probing</span>
@@ -247,7 +247,7 @@ const handleUnlockAll = () => {
             </div>
           </div>
           <h4 class="text-2xl font-black tracking-tight text-white mt-1">
-            {{ Number(stats.active_sessions_count || 6).toLocaleString() }}
+            {{ Number(stats.active_sessions_count ?? 6).toLocaleString() }}
           </h4>
           <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
             <span>▲ 15-min Idle Expiry</span>
@@ -316,10 +316,10 @@ const handleUnlockAll = () => {
             </div>
           </div>
           <h4 class="text-2xl font-black tracking-tight text-white mt-1">
-            {{ Number(stats.locked_accounts_count || 14).toLocaleString() }}
+            {{ Number(stats.locked_accounts_count ?? 14).toLocaleString() }}
           </h4>
           <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
-            <span>▼ 14 Needs Review</span>
+            <span>▼ {{ Number(stats.locked_accounts_count ?? 14) }} Needs Review</span>
           </p>
         </div>
         <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
@@ -362,7 +362,7 @@ const handleUnlockAll = () => {
         <img :src="'/images/nav/sub/sessions.svg'" alt="Sessions" class="w-3.5 h-3.5 object-contain" :class="activeTab === 'sessions' ? 'opacity-100' : 'opacity-60'" />
         <span>{{ i18n.t('auth_tab_sessions', 'Active Sessions') }}</span>
         <span class="text-xs text-slate-500 dark:text-slate-400 font-medium ml-0.5">
-          {{ stats.active_sessions_count || 6 }}
+          {{ stats.active_sessions_count ?? 6 }}
         </span>
       </Link>
 

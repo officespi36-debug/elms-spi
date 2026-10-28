@@ -20,6 +20,20 @@ const search = ref('')
 const selectedRole = ref('')
 const selectedStatus = ref('')
 const isRevokeAllModalOpen = ref(false)
+const revokingId = ref<number | null>(null)
+const isRevokingAll = ref(false)
+const isResetting = ref(false)
+const isRefreshing = ref(false)
+const toastMessage = ref<{ type: 'success' | 'error', text: string } | null>(null)
+
+const triggerToast = (text: string, type: 'success' | 'error' = 'success') => {
+  toastMessage.value = { type, text }
+  setTimeout(() => {
+    if (toastMessage.value?.text === text) {
+      toastMessage.value = null
+    }
+  }, 4000)
+}
 
 const totalActiveNow = computed(() => {
   if (props.activeSessions && props.activeSessions.length > 0) {
@@ -45,7 +59,7 @@ const filteredSessions = computed(() => {
       session.ip_address?.includes(search.value)
 
     const matchesRole = !selectedRole.value || session.user?.role === selectedRole.value
-    const isRevoked = session.is_revoked
+    const isRevoked = Boolean(session.is_revoked)
     const matchesStatus = !selectedStatus.value ||
       (selectedStatus.value === 'active' ? !isRevoked : isRevoked)
 
@@ -60,15 +74,35 @@ const formatDate = (dateString: string) => {
 
 const formatTimeAgo = (dateString: string) => {
   if (!dateString) return 'Just now'
-  const diffMins = dayjs().diff(dayjs(dateString), 'minute')
-  if (diffMins < 1) return 'Just now'
+  const now = dayjs()
+  const d = dayjs(dateString)
+  if (!d.isValid()) return 'Just now'
+  const diffSecs = Math.max(0, now.diff(d, 'second'))
+  if (diffSecs < 60) return 'Just now'
+  const diffMins = Math.floor(diffSecs / 60)
   if (diffMins < 60) return `${diffMins}m ago`
-  return `${Math.floor(diffMins / 60)}h ago`
+  const diffHours = Math.floor(diffMins / 60)
+  if (diffHours < 24) return `${diffHours}h ago`
+  const diffDays = Math.floor(diffHours / 24)
+  if (diffDays < 7) return `${diffDays}d ago`
+  return d.format('DD MMM, HH:mm')
 }
 
 const revokeSession = (sessionId: number, userName: string) => {
   if (confirm(`Are you sure you want to force revoke session for '${userName}'?`)) {
-    router.post(`/admin/auth-logs/revoke/${sessionId}`)
+    revokingId.value = sessionId
+    router.post(`/admin/auth-logs/revoke/${sessionId}`, {}, {
+      preserveScroll: true,
+      onSuccess: () => {
+        triggerToast(`Session for '${userName}' has been revoked successfully.`, 'success')
+      },
+      onError: () => {
+        triggerToast(`Failed to revoke session for '${userName}'.`, 'error')
+      },
+      onFinish: () => {
+        revokingId.value = null
+      }
+    })
   }
 }
 
@@ -78,11 +112,48 @@ const triggerRevokeAll = () => {
 
 const confirmRevokeAllSessions = () => {
   isRevokeAllModalOpen.value = false
-  router.post('/admin/auth-logs/revoke-all')
+  isRevokingAll.value = true
+  router.post('/admin/auth-logs/revoke-all', {}, {
+    preserveScroll: true,
+    onSuccess: () => {
+      triggerToast('All active sessions have been terminated system-wide.', 'success')
+    },
+    onError: () => {
+      triggerToast('Failed to revoke all sessions.', 'error')
+    },
+    onFinish: () => {
+      isRevokingAll.value = false
+    }
+  })
+}
+
+const handleResetSessions = () => {
+  if (confirm('Do you want to reset and restore sample active sessions?')) {
+    isResetting.value = true
+    router.post('/admin/auth-logs/reset-sessions', {}, {
+      preserveScroll: true,
+      onSuccess: () => {
+        triggerToast('Active sessions have been restored.', 'success')
+      },
+      onError: () => {
+        triggerToast('Failed to reset active sessions.', 'error')
+      },
+      onFinish: () => {
+        isResetting.value = false
+      }
+    })
+  }
 }
 
 const refreshSessions = () => {
-  router.reload({ preserveScroll: true } as any)
+  isRefreshing.value = true
+  router.reload({
+    preserveScroll: true,
+    onFinish: () => {
+      isRefreshing.value = false
+      triggerToast('Sessions refreshed.', 'success')
+    }
+  } as any)
 }
 
 const exportSessionsCSV = () => {
@@ -114,7 +185,34 @@ const exportSessionsCSV = () => {
 
 <template>
   <AdminLayout :title="i18n.t('sessions_page_title', 'Active Sessions Monitor')">
-    <div class="space-y-5 font-sans">
+    <div class="space-y-5 font-sans relative">
+      <!-- Floating Toast Notifications -->
+      <Transition
+        enter-active-class="transition duration-300 ease-out"
+        enter-from-class="transform -translate-y-4 opacity-0"
+        enter-to-class="transform translate-y-0 opacity-100"
+        leave-active-class="transition duration-200 ease-in"
+        leave-from-class="transform translate-y-0 opacity-100"
+        leave-to-class="transform -translate-y-4 opacity-0"
+      >
+        <div
+          v-if="toastMessage"
+          class="fixed top-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl border text-xs font-semibold backdrop-blur-xl"
+          :class="toastMessage.type === 'success'
+            ? 'bg-emerald-50 dark:bg-emerald-950/80 border-emerald-500/30 text-emerald-800 dark:text-emerald-300 shadow-emerald-500/10'
+            : 'bg-rose-50 dark:bg-rose-950/80 border-rose-500/30 text-rose-800 dark:text-rose-300 shadow-rose-500/10'"
+        >
+          <span class="text-base">{{ toastMessage.type === 'success' ? '✅' : '⚠️' }}</span>
+          <span>{{ toastMessage.text }}</span>
+          <button
+            @click="toastMessage = null"
+            class="ml-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm font-bold leading-none cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+      </Transition>
+
       <!-- Shared Header with Sync'd Global Metrics -->
       <AuthModuleHeader activeTab="sessions" :summaryStats="props.summaryStats" />
 
@@ -191,11 +289,24 @@ const exportSessionsCSV = () => {
 
           <button
             @click="refreshSessions"
-            class="px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700/80 font-semibold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+            :disabled="isRefreshing"
+            class="px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700/80 font-semibold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             title="Refresh Sessions"
           >
-            <span>🔄</span>
-            <span>{{ i18n.t('sessions_btn_refresh', 'Refresh') }}</span>
+            <span :class="{ 'animate-spin': isRefreshing }">🔄</span>
+            <span>{{ isRefreshing ? 'Refreshing...' : i18n.t('sessions_btn_refresh', 'Refresh') }}</span>
+          </button>
+
+          <!-- Quick Restore Button for Demo/Testing -->
+          <button
+            v-if="totalActiveNow === 0"
+            @click="handleResetSessions"
+            :disabled="isResetting"
+            class="px-3 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-semibold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            title="Restore Active Sessions"
+          >
+            <span :class="{ 'animate-spin': isResetting }">⚡</span>
+            <span>{{ isResetting ? 'Restoring...' : 'Restore Sessions' }}</span>
           </button>
         </div>
 
@@ -211,10 +322,11 @@ const exportSessionsCSV = () => {
           <!-- Danger Action: Requires Security Confirmation Modal -->
           <button
             @click="triggerRevokeAll"
-            class="px-3.5 py-2 bg-red-600/90 hover:bg-red-500 text-white font-bold text-xs rounded-xl shadow-md shadow-red-600/20 transition-all flex items-center gap-1.5 cursor-pointer"
+            :disabled="isRevokingAll || totalActiveNow === 0"
+            class="px-3.5 py-2 bg-red-600/90 hover:bg-red-500 text-white font-bold text-xs rounded-xl shadow-md shadow-red-600/20 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span>🚫</span>
-            <span>{{ i18n.t('sessions_btn_revoke_all', 'Revoke All Sessions') }}</span>
+            <span :class="{ 'animate-spin': isRevokingAll }">🚫</span>
+            <span>{{ isRevokingAll ? 'Revoking All...' : i18n.t('sessions_btn_revoke_all', 'Revoke All Sessions') }}</span>
           </button>
         </div>
       </div>
@@ -275,7 +387,7 @@ const exportSessionsCSV = () => {
                 <div class="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-2 mt-0.5">
                   <span>📍 Phnom Penh</span>
                   <span>•</span>
-                  <span>🕐 {{ formatTimeAgo(session.created_at) }}</span>
+                  <span>🕐 {{ formatTimeAgo(session.updated_at || session.created_at) }}</span>
                 </div>
               </td>
 
@@ -292,11 +404,17 @@ const exportSessionsCSV = () => {
                 <button
                   v-if="!session.is_revoked"
                   @click="revokeSession(session.id, session.user?.name || 'User')"
-                  class="px-3 py-1.5 text-xs font-bold text-red-500 hover:text-red-600 dark:text-red-400 bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 border border-red-200 dark:border-red-500/20 rounded-xl transition-all flex items-center gap-1.5 ml-auto cursor-pointer"
+                  :disabled="revokingId === session.id"
+                  class="px-3 py-1.5 text-xs font-bold text-red-500 hover:text-red-600 dark:text-red-400 bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 border border-red-200 dark:border-red-500/20 rounded-xl transition-all flex items-center gap-1.5 ml-auto cursor-pointer disabled:opacity-50"
                 >
-                  <span>🚫</span> {{ i18n.t('sessions_btn_revoke', 'Revoke') }}
+                  <span :class="{ 'animate-spin': revokingId === session.id }">🚫</span>
+                  <span>{{ revokingId === session.id ? 'Revoking...' : i18n.t('sessions_btn_revoke', 'Revoke') }}</span>
                 </button>
-                <span v-else class="text-[11px] font-semibold text-slate-400 dark:text-slate-500 italic">
+                <span
+                  v-else
+                  class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold text-rose-600 dark:text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-xl"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                   Revoked
                 </span>
               </td>
