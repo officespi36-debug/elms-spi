@@ -44,7 +44,7 @@ const props = defineProps<{
 const stats = props.overview || {
   total_roles: 3,
   total_permissions: 15,
-  active_sessions_now: 7,
+  active_sessions_now: 6,
   login_history_today: 225,
   failed_attempts_today: 65,
   banned_ips_count: 0,

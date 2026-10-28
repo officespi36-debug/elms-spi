@@ -128,8 +128,8 @@ class AuthLogController extends Controller
             );
         }
 
-        // 2. Ensure exactly 7 active sessions exist for live monitoring
-        $targetSessions = 7;
+        // 2. Ensure exactly 6 active sessions exist for live monitoring
+        $targetSessions = 6;
         $activeSessions = JwtSession::where('is_revoked', false)
             ->where('expires_at', '>', now())
             ->get();
@@ -266,6 +266,9 @@ class AuthLogController extends Controller
                 'failed_logins_today'   => $failedTodayCount,
                 'locked_accounts_count' => $lockedUsersCount,
                 'threat_level'          => $threatLevel,
+                'posture_score'         => (int) Setting::get('security_score', 88),
+                'rules_enforced'        => 10,
+                'total_rules'           => 12,
             ];
         });
     }

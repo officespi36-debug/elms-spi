@@ -11,6 +11,9 @@ const props = defineProps<{
     failed_logins_today: number
     locked_accounts_count: number
     threat_level: string
+    posture_score?: number
+    rules_enforced?: number
+    total_rules?: number
   }
 }>()
 
@@ -18,10 +21,13 @@ const isReviewModalOpen = ref(false)
 
 const stats = props.summaryStats || {
   total_roles: 3,
-  active_sessions_count: 7,
+  active_sessions_count: 6,
   failed_logins_today: 65,
   locked_accounts_count: 14,
-  threat_level: 'Critical'
+  threat_level: 'Critical',
+  posture_score: 88,
+  rules_enforced: 10,
+  total_rules: 12
 }
 
 const getThreatBadgeClass = (level: string) => {
@@ -81,7 +87,7 @@ const handleUnlockAll = () => {
           <div>
             <div class="flex items-center gap-2 flex-wrap">
               <h1 class="text-[18px] leading-[26px] font-semibold text-slate-900 dark:text-[#F8FAFC] tracking-tight">
-                {{ i18n.t('auth_module_title', 'Authentication & Access') }}
+                {{ i18n.t('auth_module_title', 'Authentication Module') }}
               </h1>
               <span class="px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider bg-slate-100 dark:bg-[#080C14] text-slate-600 dark:text-[#94A3B8] border border-slate-200 dark:border-[#1E293B] rounded-md font-mono">
                 {{ i18n.t('auth_security_control_only', 'Security Control Only') }}
@@ -117,7 +123,7 @@ const handleUnlockAll = () => {
             <span class="font-semibold uppercase tracking-wider font-mono">{{ stats.threat_level || 'CRITICAL' }}</span>
             <span class="text-slate-300 dark:text-[#1E293B]">|</span>
             <span class="text-[11px] text-slate-600 dark:text-[#94A3B8]">
-              {{ (stats.failed_logins_today || 0) > 0 ? i18n.t('auth_review_required', 'Review Incidents') : 'Normal Guard' }}
+              {{ (stats.failed_logins_today || 0) > 0 ? i18n.t('auth_review_required', 'Review Required') : 'Normal Guard' }}
             </span>
           </button>
         </div>
@@ -177,7 +183,7 @@ const handleUnlockAll = () => {
             </div>
           </div>
           <h4 class="text-2xl font-black tracking-tight text-white mt-1">
-            {{ Number(stats.active_sessions_count || 7).toLocaleString() }}
+            {{ Number(stats.active_sessions_count || 6).toLocaleString() }}
           </h4>
           <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
             <span>▲ 97.2% Session Health</span>
@@ -199,7 +205,9 @@ const handleUnlockAll = () => {
       >
         <div>
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ i18n.t('auth_failed_logins_today', 'FAILED LOGINS') }}</span>
+            <span class="text-[11px] font-bold tracking-wide uppercase text-white/90 leading-tight block">
+              {{ i18n.t('auth_failed_logins', 'FAILED LOGINS') }}<br/>{{ i18n.t('auth_today', 'TODAY') }}
+            </span>
             <div class="text-white/95 group-hover:text-white group-hover:scale-105 transition-transform duration-200 shrink-0">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
@@ -239,7 +247,7 @@ const handleUnlockAll = () => {
             </div>
           </div>
           <h4 class="text-2xl font-black tracking-tight text-white mt-1">
-            {{ Number(stats.active_sessions_count || 7).toLocaleString() }}
+            {{ Number(stats.active_sessions_count || 6).toLocaleString() }}
           </h4>
           <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
             <span>▲ 15-min Idle Expiry</span>
@@ -274,10 +282,10 @@ const handleUnlockAll = () => {
             </div>
           </div>
           <h4 class="text-2xl font-black tracking-tight text-white mt-1">
-            88%
+            {{ stats.posture_score || 88 }}%
           </h4>
           <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
-            <span>▲ 10/12 Rules Enforced</span>
+            <span>▲ {{ stats.rules_enforced || 10 }}/{{ stats.total_rules || 12 }} Rules Enforced</span>
           </p>
         </div>
         <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
@@ -297,7 +305,9 @@ const handleUnlockAll = () => {
       >
         <div>
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ i18n.t('auth_locked_accounts', 'LOCKED ACCOUNTS') }}</span>
+            <span class="text-[11px] font-bold tracking-wide uppercase text-white/90 leading-tight block">
+              {{ i18n.t('auth_locked_accounts', 'LOCKED ACCOUNTS') }}<br/>/ RISK
+            </span>
             <div class="text-white/95 group-hover:text-white group-hover:scale-105 transition-transform duration-200 shrink-0">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
@@ -351,11 +361,8 @@ const handleUnlockAll = () => {
       >
         <img :src="'/images/nav/sub/sessions.svg'" alt="Sessions" class="w-3.5 h-3.5 object-contain" :class="activeTab === 'sessions' ? 'opacity-100' : 'opacity-60'" />
         <span>{{ i18n.t('auth_tab_sessions', 'Active Sessions') }}</span>
-        <span
-          class="px-1.5 py-0.2 text-[10px] font-mono rounded-md font-medium"
-          :class="activeTab === 'sessions' ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-700' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'"
-        >
-          {{ stats.active_sessions_count || 7 }}
+        <span class="text-xs text-slate-500 dark:text-slate-400 font-medium ml-0.5">
+          {{ stats.active_sessions_count || 6 }}
         </span>
       </Link>
 
