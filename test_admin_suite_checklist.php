@@ -172,7 +172,9 @@ $tempAdmin = User::create([
 ]);
 
 // Temporarily set all other admins to inactive
-$otherAdminIds = User::where('role', 'admin')->where('id', '!=', $tempAdmin->id)->where('status', 'active')->pluck('id')->toArray();
+$otherAdminIds = User::where('role', 'admin')->where('id', '!=', $tempAdmin->id)->where(function ($q) {
+    $q->where('status', 'active')->orWhere('is_active', true);
+})->pluck('id')->toArray();
 User::whereIn('id', $otherAdminIds)->update(['status' => 'inactive', 'is_active' => false]);
 
 // Now attempt to disable the sole active admin
