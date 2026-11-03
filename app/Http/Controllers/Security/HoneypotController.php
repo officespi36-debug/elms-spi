@@ -38,11 +38,21 @@ class HoneypotController extends Controller
             'language_code' => 'EN',
         ];
 
+        $threatType = 'Security Honeypot Endpoint Hit';
+        $severity = 'HIGH';
+        if (str_contains($path, 'admin-login-portal')) {
+            $threatType = 'Fake Admin Login Decoy Trap Hit';
+            $severity = 'CRITICAL';
+        } elseif (str_contains($path, 'confidential')) {
+            $threatType = 'Confidential Credentials Traversal Intercepted';
+            $severity = 'HIGH';
+        }
+
         // Trigger forensic alert with Geo-IP and interactive buttons
         TelegramSecurityPipeline::triggerForensicAlert(
             $fakeUser,
-            'Honeypot Trap Hit (Decoy Exploit Attempt)',
-            'HIGH',
+            $threatType,
+            $severity,
             $payloadSummary,
             $ip,
             $userAgent

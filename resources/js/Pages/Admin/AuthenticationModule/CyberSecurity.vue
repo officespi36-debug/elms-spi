@@ -137,7 +137,8 @@ const banUserForm = useForm({
 const handleBanUser = (userId?: string | number) => {
   const targetId = userId || banUserForm.user_id
   if (!targetId) return
-  if (confirm(`តើអ្នកប្រាកដជាចង់ Block និង Ban User ID: ${targetId} ចេញពី Telegram Group ដែរឬទេ?`)) {
+  const msg = i18n.t('cyber_confirm_ban_user', 'តើអ្នកប្រាកដជាចង់ Block និង Ban User ID: {id} ចេញពី Telegram Group ដែរឬទេ?').replace('{id}', String(targetId))
+  if (confirm(msg)) {
     router.post('/admin/auth-logs/ban-telegram-user', { user_id: targetId }, {
       preserveScroll: true,
       onSuccess: () => {
@@ -156,7 +157,8 @@ const blockIpForm = useForm({
 const handleBlockIp = (ip?: string) => {
   const targetIp = ip || blockIpForm.ip_address
   if (!targetIp) return
-  if (confirm(`តើអ្នកពិតជាចង់ Blacklist IP: ${targetIp} លើ Firewall ដែរឬទេ?`)) {
+  const msg = i18n.t('cyber_confirm_block_ip', 'តើអ្នកពិតជាចង់ Blacklist IP: {ip} លើ Firewall ដែរឬទេ?').replace('{ip}', targetIp)
+  if (confirm(msg)) {
     router.post('/admin/auth-logs/block-ip', { ip_address: targetIp, reason: 'Manual Cyber Security Blacklist' }, {
       preserveScroll: true,
       onSuccess: () => {
@@ -168,7 +170,8 @@ const handleBlockIp = (ip?: string) => {
 
 // Unblock IP
 const handleUnblockIp = (ip: string) => {
-  if (confirm(`តើអ្នកចង់ដក IP: ${ip} ចេញពី Blacklist វិញដែរឬទេ?`)) {
+  const msg = i18n.t('cyber_confirm_unblock_ip', 'តើអ្នកចង់ដក IP: {ip} ចេញពី Blacklist វិញដែរឬទេ?').replace('{ip}', ip)
+  if (confirm(msg)) {
     router.post('/admin/auth-logs/unblock-ip', { ip_address: ip }, {
       preserveScroll: true
     })
@@ -189,7 +192,8 @@ const handleSimulateAlert = () => {
 
 // Clear Logs
 const handleClearForensics = () => {
-  if (confirm('តើអ្នកពិតជាចង់សម្អាតកំណត់ត្រា Cyber Threat Logs និង Honeypot Forensics ទាំងអស់មែនទេ?')) {
+  const msg = i18n.t('cyber_confirm_clear_logs', 'តើអ្នកពិតជាចង់សម្អាតកំណត់ត្រា Cyber Threat Logs និង Honeypot Forensics ទាំងអស់មែនទេ?')
+  if (confirm(msg)) {
     router.post('/admin/auth-logs/clear-forensics', {}, {
       preserveScroll: true
     })
@@ -234,85 +238,127 @@ const formatTrapDesc = (desc: string) => {
       <div class="bg-gradient-to-r from-rose-50 via-slate-50 to-rose-50/50 dark:from-slate-900 dark:via-rose-950/40 dark:to-slate-900 border border-rose-200 dark:border-rose-500/30 rounded-2xl p-6 shadow-sm dark:shadow-2xl relative overflow-hidden">
         <div class="absolute -top-16 -right-16 w-60 h-60 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
-          <div class="space-y-2">
-            <div class="flex items-center gap-3">
-              <div class="w-12 h-12 rounded-2xl bg-rose-500/10 dark:bg-rose-500/20 border border-rose-500/20 dark:border-rose-500/40 flex items-center justify-center text-2xl shadow-inner">
-                🛡️
-              </div>
-              <div>
-                <h2 class="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
-                  មជ្ឈមណ្ឌលសន្តិសុខឌីជីថល & ប្រព័ន្ធទូរស័ព្ទរោទ៍ប្រកាសអាសន្នបន្ទាន់
-                  <span class="px-2.5 py-0.5 text-[10px] font-bold bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 border border-emerald-500/20 dark:border-emerald-500/30 rounded-full animate-pulse">
-                    🟢 {{ i18n.t('cyber_online_armed', 'ONLINE & ARMED') }}
-                  </span>
-                </h2>
-                <p class="text-xs text-slate-600 dark:text-slate-300">
-                  ដាស់តឿនល្បឿនលឿនបំផុត (Voice Call, SMS, Emergency Push, & Auto-Defense Session Isolation) មិនបាច់បើក Telegram ក៏ដឹងភ្លាមៗ!
-                </p>
-              </div>
+        <!-- Upper Row: Title & Action Toolbar -->
+        <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-5 relative z-10">
+          <div class="flex items-start sm:items-center gap-3.5">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500/20 to-red-500/10 dark:from-rose-500/30 dark:to-red-500/20 border border-rose-500/30 flex items-center justify-center text-2xl shadow-sm shrink-0">
+              🛡️
             </div>
-
-            <!-- Bot & Group Details Badges -->
-            <div class="flex flex-wrap items-center gap-2 pt-2 text-xs">
-              <span class="px-3 py-1 bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 flex items-center gap-1.5 shadow-sm dark:shadow-none">
-                🤖 <b>{{ i18n.t('cyber_bot_label', 'Bot:') }}</b> <code class="text-sky-600 dark:text-sky-300">@{{ securityStatus.bot_username }}</code>
-              </span>
-              <span class="px-3 py-1 bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 flex items-center gap-1.5 shadow-sm dark:shadow-none">
-                👥 <b>{{ i18n.t('cyber_admin_group_id', 'Admin Group ID:') }}</b> <code class="text-emerald-600 dark:text-emerald-300">{{ securityStatus.admin_chat_id }}</code>
-              </span>
-              <span class="px-3 py-1 bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 flex items-center gap-1.5 shadow-sm dark:shadow-none">
-                📞 <b>{{ i18n.t('cyber_emergency_phone', 'Emergency Phone:') }}</b> <span class="text-rose-600 dark:text-rose-400 font-mono font-bold">{{ emergencyForm.phone }}</span>
-              </span>
-              <span class="px-3 py-1 bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 flex items-center gap-1.5 shadow-sm dark:shadow-none">
-                🛡️ <b>{{ i18n.t('cyber_auto_defense', 'Auto-Defense:') }}</b> <span class="text-emerald-600 dark:text-emerald-400 font-bold">{{ i18n.t('cyber_enabled_check', 'Enabled ✅') }}</span>
-              </span>
+            <div>
+              <div class="flex items-center gap-2.5 flex-wrap">
+                <h2 class="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">
+                  {{ i18n.t('cyber_banner_title', 'មជ្ឈមណ្ឌលសន្តិសុខឌីជីថល & ប្រព័ន្ធទូរស័ព្ទរោទ៍ប្រកាសអាសន្នបន្ទាន់') }}
+                </h2>
+                <span class="px-2.5 py-0.5 text-[10px] font-bold bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 border border-emerald-500/25 rounded-full inline-flex items-center gap-1.5 shrink-0 shadow-xs">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  {{ i18n.t('cyber_online_armed', 'ONLINE & ARMED') }}
+                </span>
+              </div>
+              <p class="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                {{ i18n.t('cyber_banner_desc', 'ដាស់តឿនល្បឿនលឿនបំផុត (Voice Call, SMS, Emergency Push, & Auto-Defense Session Isolation) មិនបាច់បើក Telegram ក៏ដឹងភ្លាមៗ!') }}
+              </p>
             </div>
           </div>
 
-          <!-- Quick Test Action Buttons -->
-          <div class="flex flex-wrap items-center gap-2.5 shrink-0">
-            <button
-              @click="handleTestEmergencyCall"
-              :disabled="isCalling"
-              class="px-3.5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
-            >
-              <span>{{ isCalling ? i18n.t('cyber_calling_wait', '⏳ កំពុង Call...') : ('📞 ' + i18n.t('cyber_test_call', 'តេស្ត Voice Call')) }}</span>
-            </button>
-
-            <button
-              @click="handleTestEmergencySms"
-              :disabled="isSendingSms"
-              class="px-3.5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
-            >
-              <span>{{ isSendingSms ? i18n.t('cyber_sending_sms_wait', '⏳ កំពុងផ្ញើ...') : ('📱 ' + i18n.t('cyber_test_sms', 'តេស្ត SMS')) }}</span>
-            </button>
-
+          <!-- Quick Actions Toolbar (Structured & Cohesive, No Overflow) -->
+          <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 shrink-0">
+            <!-- Simulated Threat Trigger (Primary Action) -->
             <button
               @click="handleSimulateAlert"
               :disabled="isSimulating"
-              class="px-3.5 py-2.5 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+              class="px-3.5 py-2 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-bold text-xs rounded-xl shadow-sm hover:shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+              :title="i18n.t('cyber_test_telegram', 'តេស្ត Telegram Alert')"
             >
-              <span>{{ isSimulating ? i18n.t('cyber_sending_alert_wait', '⏳ កំពុងផ្ញើ...') : ('🧪 ' + i18n.t('cyber_test_telegram', 'តេស្ត Telegram Alert')) }}</span>
+              <span>🧪</span>
+              <span>{{ isSimulating ? i18n.t('cyber_sending_alert_wait', '⏳ កំពុងផ្ញើ...') : i18n.t('cyber_test_telegram', 'តេស្ត Telegram Alert') }}</span>
             </button>
 
-            <button
-              @click="handleClearForensics"
-              class="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 font-semibold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
-            >
-              <span>🧹 {{ i18n.t('cyber_clear_log', 'សម្អាត Log') }}</span>
-            </button>
+            <!-- Test Drills (Voice & SMS Group) -->
+            <div class="inline-flex rounded-xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/80 p-0.5 shadow-xs">
+              <button
+                @click="handleTestEmergencyCall"
+                :disabled="isCalling"
+                class="px-3 py-1.5 text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/40 font-semibold text-xs rounded-lg transition-all flex items-center gap-1 disabled:opacity-50 cursor-pointer"
+                :title="i18n.t('cyber_test_call', 'តេស្ត Voice Call')"
+              >
+                <span>📞</span>
+                <span>{{ isCalling ? i18n.t('cyber_calling_wait', '⏳ កំពុង Call...') : i18n.t('cyber_test_call', 'Voice Call') }}</span>
+              </button>
+              <div class="w-px bg-slate-200 dark:bg-slate-700 my-1"></div>
+              <button
+                @click="handleTestEmergencySms"
+                :disabled="isSendingSms"
+                class="px-3 py-1.5 text-slate-700 dark:text-slate-200 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 font-semibold text-xs rounded-lg transition-all flex items-center gap-1 disabled:opacity-50 cursor-pointer"
+                :title="i18n.t('cyber_test_sms', 'តេស្ត SMS')"
+              >
+                <span>💬</span>
+                <span>{{ isSendingSms ? i18n.t('cyber_sending_sms_wait', '⏳ កំពុងផ្ញើ...') : i18n.t('cyber_test_sms', 'SMS') }}</span>
+              </button>
+            </div>
 
-            <!-- Link to System Logs (Instruction 3.3) -->
-            <Link
-              href="/admin/settings?tab=logs&module=Authentication"
-              class="px-3.5 py-2.5 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
-              title="ពិនិត្យមើល System Audit Logs ពេញលេញ"
-            >
-              <span>📑</span>
-              <span>{{ i18n.t('view_system_logs', 'ភ្ជាប់ទៅ System Logs') }}</span>
-              <span class="text-[10px]">↗</span>
-            </Link>
+            <!-- Maintenance & Navigation Group -->
+            <div class="inline-flex rounded-xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/80 p-0.5 shadow-xs">
+              <button
+                @click="handleClearForensics"
+                class="px-3 py-1.5 text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 font-semibold text-xs rounded-lg transition-all flex items-center gap-1 cursor-pointer"
+                :title="i18n.t('cyber_clear_log', 'សម្អាត Log')"
+              >
+                <span>🧹</span>
+                <span>{{ i18n.t('cyber_clear_log', 'សម្អាត Log') }}</span>
+              </button>
+              <div class="w-px bg-slate-200 dark:bg-slate-700 my-1"></div>
+              <Link
+                href="/admin/settings?tab=logs&module=Authentication"
+                class="px-3 py-1.5 text-slate-700 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/40 font-semibold text-xs rounded-lg transition-all flex items-center gap-1 cursor-pointer"
+                :title="i18n.t('cyber_view_logs_tooltip', 'ពិនិត្យមើល System Audit Logs ពេញលេញ')"
+              >
+                <span>📑</span>
+                <span>{{ i18n.t('view_system_logs', 'System Logs') }}</span>
+                <span class="text-[10px]">↗</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lower Row: 4-Column Balanced Meta Strip -->
+        <div class="mt-5 pt-4 border-t border-rose-200/60 dark:border-rose-900/40 grid grid-cols-2 md:grid-cols-4 gap-3 relative z-10">
+          <!-- 1. Bot Identity -->
+          <div class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-white/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
+            <span class="text-xl shrink-0">🤖</span>
+            <div class="min-w-0">
+              <p class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">{{ i18n.t('cyber_bot_label', 'Bot Identity') }}</p>
+              <p class="text-xs font-mono font-bold text-sky-600 dark:text-sky-400 truncate">@{{ securityStatus.bot_username }}</p>
+            </div>
+          </div>
+
+          <!-- 2. Admin Group -->
+          <div class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-white/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
+            <span class="text-xl shrink-0">👥</span>
+            <div class="min-w-0">
+              <p class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">{{ i18n.t('cyber_admin_group_id', 'Admin Group ID') }}</p>
+              <p class="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 truncate">{{ securityStatus.admin_chat_id }}</p>
+            </div>
+          </div>
+
+          <!-- 3. Emergency Phone -->
+          <div class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-white/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
+            <span class="text-xl shrink-0">📞</span>
+            <div class="min-w-0">
+              <p class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">{{ i18n.t('cyber_emergency_phone', 'Emergency Phone') }}</p>
+              <p class="text-xs font-mono font-bold text-rose-600 dark:text-rose-400 truncate">{{ emergencyForm.phone }}</p>
+            </div>
+          </div>
+
+          <!-- 4. Auto-Defense Status -->
+          <div class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-white/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
+            <span class="text-xl shrink-0">🛡️</span>
+            <div class="min-w-0">
+              <p class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">{{ i18n.t('cyber_auto_defense', 'Auto-Defense') }}</p>
+              <p class="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                <span>{{ i18n.t('cyber_active_armed', 'Active & Armed') }}</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -705,7 +751,7 @@ const formatTrapDesc = (desc: string) => {
             <span class="text-slate-500">{{ idx + 1 }}.</span> {{ log }}
           </div>
           <div v-if="rawAttackerLogs.length === 0" class="text-slate-500 italic">
-            // កំណត់ត្រាទទេស្អាត (Log file is currently empty).
+            {{ i18n.t('cyber_empty_log_msg', '// កំណត់ត្រាទទេស្អាត (Log file is currently empty).') }}
           </div>
         </div>
       </div>
@@ -726,7 +772,7 @@ const formatTrapDesc = (desc: string) => {
             <button
               @click="handleUnblockIp(ip)"
               class="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-bold ml-1 cursor-pointer"
-              title="ដក IP នេះចេញពី Blacklist"
+              :title="i18n.t('cyber_unblock_ip_tooltip', 'ដក IP នេះចេញពី Blacklist')"
             >
               ✕
             </button>
