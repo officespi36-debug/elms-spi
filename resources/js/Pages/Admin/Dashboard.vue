@@ -429,8 +429,11 @@ const announcementsAlert = computed(() => props.adminAlerts?.find(a => a.type ==
             </p>
           </div>
           <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
-            <svg class="w-full h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none">
-              <path d="M0 18 Q 20 4, 40 14 T 70 6 T 100 12 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.18"/>
+            <svg class="w-full h-10 text-white" viewBox="0 0 100 25" preserveAspectRatio="none" aria-hidden="true">
+              <g transform="translate(0 4)" opacity="0.10">
+                <path d="M0 18 Q 20 4, 40 14 T 70 6 T 100 12 L 100 25 L 0 25 Z" fill="currentColor"/>
+              </g>
+              <path d="M0 18 Q 20 4, 40 14 T 70 6 T 100 12 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.20"/>
               <path d="M0 18 Q 20 4, 40 14 T 70 6 T 100 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" opacity="0.9"/>
             </svg>
           </div>
@@ -460,8 +463,11 @@ const announcementsAlert = computed(() => props.adminAlerts?.find(a => a.type ==
             </p>
           </div>
           <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
-            <svg class="w-full h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none">
-              <path d="M0 20 Q 25 8, 45 16 T 75 4 T 100 10 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.18"/>
+            <svg class="w-full h-10 text-white" viewBox="0 0 100 25" preserveAspectRatio="none" aria-hidden="true">
+              <g transform="translate(0 4)" opacity="0.10">
+                <path d="M0 20 Q 25 8, 45 16 T 75 4 T 100 10 L 100 25 L 0 25 Z" fill="currentColor"/>
+              </g>
+              <path d="M0 20 Q 25 8, 45 16 T 75 4 T 100 10 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.20"/>
               <path d="M0 20 Q 25 8, 45 16 T 75 4 T 100 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" opacity="0.9"/>
             </svg>
           </div>
@@ -493,8 +499,11 @@ const announcementsAlert = computed(() => props.adminAlerts?.find(a => a.type ==
             </p>
           </div>
           <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
-            <svg class="w-full h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none">
-              <path d="M0 16 Q 20 22, 45 8 T 75 14 T 100 4 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.18"/>
+            <svg class="w-full h-10 text-white" viewBox="0 0 100 25" preserveAspectRatio="none" aria-hidden="true">
+              <g transform="translate(0 4)" opacity="0.10">
+                <path d="M0 16 Q 20 22, 45 8 T 75 14 T 100 4 L 100 25 L 0 25 Z" fill="currentColor"/>
+              </g>
+              <path d="M0 16 Q 20 22, 45 8 T 75 14 T 100 4 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.20"/>
               <path d="M0 16 Q 20 22, 45 8 T 75 14 T 100 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" opacity="0.9"/>
             </svg>
           </div>
@@ -523,8 +532,11 @@ const announcementsAlert = computed(() => props.adminAlerts?.find(a => a.type ==
             </p>
           </div>
           <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
-            <svg class="w-full h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none">
-              <path d="M0 18 Q 20 6, 45 16 T 75 8 T 100 14 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.18"/>
+            <svg class="w-full h-10 text-white" viewBox="0 0 100 25" preserveAspectRatio="none" aria-hidden="true">
+              <g transform="translate(0 4)" opacity="0.10">
+                <path d="M0 18 Q 20 6, 45 16 T 75 8 T 100 14 L 100 25 L 0 25 Z" fill="currentColor"/>
+              </g>
+              <path d="M0 18 Q 20 6, 45 16 T 75 8 T 100 14 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.20"/>
               <path d="M0 18 Q 20 6, 45 16 T 75 8 T 100 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" opacity="0.9"/>
             </svg>
           </div>
@@ -558,8 +570,11 @@ const announcementsAlert = computed(() => props.adminAlerts?.find(a => a.type ==
             </p>
           </div>
           <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
-            <svg class="w-full h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none">
-              <path d="M0 19 Q 25 10, 50 18 T 80 8 T 100 12 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.18"/>
+            <svg class="w-full h-10 text-white" viewBox="0 0 100 25" preserveAspectRatio="none" aria-hidden="true">
+              <g transform="translate(0 4)" opacity="0.10">
+                <path d="M0 19 Q 25 10, 50 18 T 80 8 T 100 12 L 100 25 L 0 25 Z" fill="currentColor"/>
+              </g>
+              <path d="M0 19 Q 25 10, 50 18 T 80 8 T 100 12 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.20"/>
               <path d="M0 19 Q 25 10, 50 18 T 80 8 T 100 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" opacity="0.9"/>
             </svg>
           </div>
@@ -590,8 +605,11 @@ const announcementsAlert = computed(() => props.adminAlerts?.find(a => a.type ==
             </p>
           </div>
           <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
-            <svg class="w-full h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none">
-              <path d="M0 12 Q 25 20, 50 10 T 75 16 T 100 6 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.18"/>
+            <svg class="w-full h-10 text-white" viewBox="0 0 100 25" preserveAspectRatio="none" aria-hidden="true">
+              <g transform="translate(0 4)" opacity="0.10">
+                <path d="M0 12 Q 25 20, 50 10 T 75 16 T 100 6 L 100 25 L 0 25 Z" fill="currentColor"/>
+              </g>
+              <path d="M0 12 Q 25 20, 50 10 T 75 16 T 100 6 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.20"/>
               <path d="M0 12 Q 25 20, 50 10 T 75 16 T 100 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" opacity="0.9"/>
             </svg>
           </div>
