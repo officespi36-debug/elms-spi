@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
 import { i18n } from '@/Services/i18n'
 
@@ -19,16 +19,16 @@ const props = defineProps<{
 
 const isReviewModalOpen = ref(false)
 
-const stats = props.summaryStats || {
-  total_roles: 3,
-  active_sessions_count: 6,
-  failed_logins_today: 65,
-  locked_accounts_count: 14,
-  threat_level: 'Critical',
-  posture_score: 88,
-  rules_enforced: 10,
-  total_rules: 12
-}
+const stats = computed(() => ({
+  total_roles: props.summaryStats?.total_roles ?? 3,
+  active_sessions_count: props.summaryStats?.active_sessions_count ?? 6,
+  failed_logins_today: props.summaryStats?.failed_logins_today ?? 65,
+  locked_accounts_count: props.summaryStats?.locked_accounts_count ?? 14,
+  threat_level: props.summaryStats?.threat_level || 'Critical',
+  posture_score: props.summaryStats?.posture_score ?? 88,
+  rules_enforced: props.summaryStats?.rules_enforced ?? 10,
+  total_rules: props.summaryStats?.total_rules ?? 12
+}))
 
 const getThreatBadgeClass = (level: string) => {
   switch (level?.toLowerCase()) {
@@ -44,8 +44,8 @@ const getThreatBadgeClass = (level: string) => {
 }
 
 const getThreatExplanation = (level: string) => {
-  const failed = stats.failed_logins_today || 0
-  const locked = stats.locked_accounts_count || 0
+  const failed = stats.value.failed_logins_today ?? 0
+  const locked = stats.value.locked_accounts_count ?? 0
 
   switch (level?.toLowerCase()) {
     case 'critical':
@@ -89,7 +89,7 @@ const handleUnlockAll = () => {
               <h1 class="text-[18px] leading-[26px] font-semibold text-slate-900 dark:text-[#F8FAFC] tracking-tight">
                 {{ i18n.t('auth_module_title', 'Authentication Module') }}
               </h1>
-              <span class="px-2.5 py-0.5 text-[11px] font-medium bg-slate-100 dark:bg-[#080C14] text-slate-600 dark:text-[#94A3B8] border border-slate-200 dark:border-[#1E293B] rounded-md">
+              <span class="px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider bg-slate-100 dark:bg-[#080C14] text-slate-600 dark:text-[#94A3B8] border border-slate-200 dark:border-[#1E293B] rounded-md font-mono">
                 {{ i18n.t('auth_security_control_only', 'Security Control Only') }}
               </span>
             </div>
@@ -105,27 +105,25 @@ const handleUnlockAll = () => {
             type="button"
             @click="isReviewModalOpen = true"
             class="px-3.5 py-1.5 rounded-md text-xs font-medium border flex items-center gap-2.5 transition-all cursor-pointer shadow-xs"
-            :class="(stats.failed_logins_today || 0) > 0 || (stats.locked_accounts_count || 0) > 0
+            :class="(stats.failed_logins_today ?? 0) > 0 || (stats.locked_accounts_count ?? 0) > 0
               ? 'bg-[#FEF2F2] text-[#DC2626] border-[#FCA5A5] hover:bg-red-100 dark:bg-[rgba(239,68,68,0.12)] dark:text-[#EF4444] dark:border-[rgba(239,68,68,0.25)] dark:hover:bg-[rgba(239,68,68,0.2)]'
               : 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0] hover:bg-emerald-100 dark:bg-[rgba(16,185,129,0.12)] dark:text-[#10B981] dark:border-[rgba(16,185,129,0.25)] dark:hover:bg-[rgba(16,185,129,0.2)]'"
-            :title="i18n.t('auth_click_to_review', 'Click to review security incidents & locked accounts')"
+            :title="getThreatExplanation(stats.threat_level)"
           >
             <span class="relative flex h-2 w-2">
               <span
                 class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
-                :class="(stats.failed_logins_today || 0) > 0 ? 'bg-[#DC2626] dark:bg-[#EF4444]' : 'bg-[#059669] dark:bg-[#10B981]'"
+                :class="(stats.failed_logins_today ?? 0) > 0 ? 'bg-[#DC2626] dark:bg-[#EF4444]' : 'bg-[#059669] dark:bg-[#10B981]'"
               ></span>
               <span
                 class="relative inline-flex rounded-full h-2 w-2"
-                :class="(stats.failed_logins_today || 0) > 0 ? 'bg-[#DC2626] dark:bg-[#EF4444]' : 'bg-[#059669] dark:bg-[#10B981]'"
+                :class="(stats.failed_logins_today ?? 0) > 0 ? 'bg-[#DC2626] dark:bg-[#EF4444]' : 'bg-[#059669] dark:bg-[#10B981]'"
               ></span>
             </span>
-            <span class="font-bold tracking-wide">
-              {{ i18n.t('threat_' + (stats.threat_level?.toLowerCase() || 'critical'), stats.threat_level?.toUpperCase() || 'CRITICAL') }}
-            </span>
+            <span class="font-semibold uppercase tracking-wider font-mono">{{ stats.threat_level || 'CRITICAL' }}</span>
             <span class="text-slate-300 dark:text-[#1E293B]">|</span>
             <span class="text-[11px] text-slate-600 dark:text-[#94A3B8]">
-              {{ (stats.failed_logins_today || 0) > 0 ? i18n.t('auth_review_required', 'Review Required') : i18n.t('auth_normal_guard', 'Normal Guard') }}
+              {{ (stats.failed_logins_today ?? 0) > 0 ? i18n.t('auth_review_required', 'Review Required') : i18n.t('auth_normal_guard', 'Normal Guard') }}
             </span>
           </button>
         </div>
@@ -134,7 +132,7 @@ const handleUnlockAll = () => {
 
     <!-- ── 2. TOP 6 VIBRANT KPI CARDS (HIGH-ENERGY WAVE CARDS MATCHING ADMIN DASHBOARD) ── -->
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
-      
+
       <!-- Card 1: Total Roles ➔ Royal Purple/Violet -->
       <Link
         href="/admin/auth/roles"
@@ -143,7 +141,7 @@ const handleUnlockAll = () => {
       >
         <div>
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold tracking-wide text-white/90 truncate">{{ i18n.t('auth_total_roles', 'TOTAL ROLES') }}</span>
+            <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ i18n.t('auth_total_roles', 'TOTAL ROLES') }}</span>
             <div class="text-white/95 group-hover:text-white group-hover:scale-105 transition-transform duration-200 shrink-0">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
@@ -152,10 +150,10 @@ const handleUnlockAll = () => {
             </div>
           </div>
           <h4 class="text-2xl font-black tracking-tight text-white mt-1">
-            {{ Number(stats.total_roles || 3).toLocaleString() }}
+            {{ Number(stats.total_roles ?? 3).toLocaleString() }}
           </h4>
           <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
-            <span>▲ 100% {{ i18n.t('auth_rbac_active', 'RBAC Active') }}</span>
+            <span>▲ 100% RBAC Active</span>
           </p>
         </div>
         <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
@@ -174,7 +172,7 @@ const handleUnlockAll = () => {
       >
         <div>
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold tracking-wide text-white/90 truncate">{{ i18n.t('auth_active_sessions', 'ACTIVE SESSIONS') }}</span>
+            <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ i18n.t('auth_active_sessions', 'ACTIVE SESSIONS') }}</span>
             <div class="text-white/95 group-hover:text-white group-hover:scale-105 transition-transform duration-200 shrink-0">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <rect width="18" height="12" x="3" y="4" rx="2"/>
@@ -185,10 +183,10 @@ const handleUnlockAll = () => {
             </div>
           </div>
           <h4 class="text-2xl font-black tracking-tight text-white mt-1">
-            {{ Number(stats.active_sessions_count ?? 6).toLocaleString() }}
+            {{ Number(stats.active_sessions_count || 6).toLocaleString() }}
           </h4>
           <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
-            <span>▲ 97.2% {{ i18n.t('auth_session_health', 'Session Health') }}</span>
+            <span>▲ 97.2% Session Health</span>
           </p>
         </div>
         <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
@@ -207,8 +205,8 @@ const handleUnlockAll = () => {
       >
         <div>
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold tracking-wide text-white/90 truncate">
-              {{ i18n.t('auth_failed_logins_today', 'FAILED LOGINS TODAY') }}
+            <span class="text-[11px] font-bold tracking-wide uppercase text-white/90 leading-tight block">
+              {{ i18n.t('auth_failed_logins', 'FAILED LOGINS') }}<br/>{{ i18n.t('auth_today', 'TODAY') }}
             </span>
             <div class="text-white/95 group-hover:text-white group-hover:scale-105 transition-transform duration-200 shrink-0">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -219,10 +217,10 @@ const handleUnlockAll = () => {
             </div>
           </div>
           <h4 class="text-2xl font-black tracking-tight text-white mt-1">
-            {{ Number(stats.failed_logins_today ?? 65).toLocaleString() }}
+            {{ Number(stats.failed_logins_today || 65).toLocaleString() }}
           </h4>
           <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
-            <span>▲ {{ i18n.t('auth_bot_probing_trend', '+12% Bot Probing') }}</span>
+            <span>▲ +12% Bot Probing</span>
           </p>
         </div>
         <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
@@ -241,7 +239,7 @@ const handleUnlockAll = () => {
       >
         <div>
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold tracking-wide text-white/90 truncate">{{ i18n.t('auth_live_tokens', 'LIVE JWT TOKENS') }}</span>
+            <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ i18n.t('auth_live_tokens', 'LIVE JWT TOKENS') }}</span>
             <div class="text-white/95 group-hover:text-white group-hover:scale-105 transition-transform duration-200 shrink-0">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
@@ -249,10 +247,10 @@ const handleUnlockAll = () => {
             </div>
           </div>
           <h4 class="text-2xl font-black tracking-tight text-white mt-1">
-            {{ Number(stats.active_sessions_count ?? 6).toLocaleString() }}
+            {{ Number(stats.active_sessions_count || 6).toLocaleString() }}
           </h4>
           <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
-            <span>▲ {{ i18n.t('auth_idle_expiry', '15-min Idle Expiry') }}</span>
+            <span>▲ 15-min Idle Expiry</span>
           </p>
         </div>
         <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
@@ -271,7 +269,7 @@ const handleUnlockAll = () => {
       >
         <div>
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold tracking-wide text-white/90 truncate">{{ i18n.t('auth_posture_index', 'POSTURE INDEX') }}</span>
+            <span class="text-[11px] font-bold tracking-wide uppercase text-white/90">{{ i18n.t('auth_posture_index', 'POSTURE INDEX') }}</span>
             <div class="text-white/95 group-hover:text-white group-hover:scale-105 transition-transform duration-200 shrink-0">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
@@ -284,10 +282,10 @@ const handleUnlockAll = () => {
             </div>
           </div>
           <h4 class="text-2xl font-black tracking-tight text-white mt-1">
-            {{ stats.posture_score || 88 }}%
+            {{ stats.posture_score ?? 88 }}%
           </h4>
           <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
-            <span>▲ {{ stats.rules_enforced || 10 }}/{{ stats.total_rules || 12 }} {{ i18n.t('auth_rules_enforced', 'Rules Enforced') }}</span>
+            <span>▲ {{ stats.rules_enforced ?? 10 }}/{{ stats.total_rules ?? 12 }} {{ i18n.t('auth_rules_enforced', 'Rules Enforced') }}</span>
           </p>
         </div>
         <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
@@ -307,8 +305,8 @@ const handleUnlockAll = () => {
       >
         <div>
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold tracking-wide text-white/90 truncate">
-              {{ i18n.t('auth_locked_accounts', 'LOCKED ACCOUNTS') }}
+            <span class="text-[11px] font-bold tracking-wide uppercase text-white/90 leading-tight block">
+              {{ i18n.t('auth_locked_accounts', 'LOCKED ACCOUNTS') }}<br/>/ RISK
             </span>
             <div class="text-white/95 group-hover:text-white group-hover:scale-105 transition-transform duration-200 shrink-0">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-11 h-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -318,10 +316,10 @@ const handleUnlockAll = () => {
             </div>
           </div>
           <h4 class="text-2xl font-black tracking-tight text-white mt-1">
-            {{ Number(stats.locked_accounts_count ?? 14).toLocaleString() }}
+            {{ Number(stats.locked_accounts_count || 14).toLocaleString() }}
           </h4>
           <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
-            <span>▼ {{ Number(stats.locked_accounts_count ?? 14) }} {{ i18n.t('auth_needs_review', 'Needs Review') }}</span>
+            <span>▼ 14 Needs Review</span>
           </p>
         </div>
         <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
@@ -336,7 +334,7 @@ const handleUnlockAll = () => {
 
     <!-- ── 3. SUB-NAVIGATION TABS (SUBTLE SLATE-900 UNDERLINE INDICATOR - BALANCED) ── -->
     <div class="border-b border-slate-200 dark:border-[#1E293B] flex items-center gap-1 sm:gap-4 overflow-x-auto scrollbar-none px-1 pt-1">
-      
+
       <!-- Tab 1: Overview Hub -->
       <Link
         href="/admin/auth-logs"
@@ -364,7 +362,7 @@ const handleUnlockAll = () => {
         <img :src="'/images/nav/sub/sessions.svg'" alt="Sessions" class="w-3.5 h-3.5 object-contain" :class="activeTab === 'sessions' ? 'opacity-100' : 'opacity-60'" />
         <span>{{ i18n.t('auth_tab_sessions', 'Active Sessions') }}</span>
         <span class="text-xs text-slate-500 dark:text-slate-400 font-medium ml-0.5">
-          {{ stats.active_sessions_count ?? 6 }}
+          {{ stats.active_sessions_count || 6 }}
         </span>
       </Link>
 
@@ -449,7 +447,10 @@ const handleUnlockAll = () => {
                   <h3 class="text-lg font-black text-slate-900 dark:text-white">
                     {{ i18n.t('review_modal_title', 'Security Incidents Requiring Review') }}
                   </h3>
-                  <span class="px-2 py-0.5 text-[10px] font-black uppercase rounded-full bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800">
+                  <span
+                    class="px-2 py-0.5 text-[10px] font-black uppercase rounded-full border"
+                    :class="getThreatBadgeClass(stats.threat_level)"
+                  >
                     {{ stats.threat_level }} Risk
                   </span>
                 </div>
@@ -469,25 +470,25 @@ const handleUnlockAll = () => {
           <!-- Stats Summary Badges -->
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <div class="p-3.5 rounded-2xl bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200/70 dark:border-rose-900/40">
-              <span class="text-[11px] font-bold text-rose-700 dark:text-rose-300 uppercase">{{ i18n.t('auth_failed_logins', 'Failed Logins') }}</span>
+              <span class="text-[11px] font-bold text-rose-700 dark:text-rose-300 uppercase">Failed Logins</span>
               <div class="text-2xl font-black text-rose-600 dark:text-rose-400 font-mono mt-0.5">
-                {{ Number(stats.failed_logins_today || 65).toLocaleString() }}
+                {{ Number(stats.failed_logins_today ?? 0).toLocaleString() }}
               </div>
-              <span class="text-[10px] text-slate-500 dark:text-slate-400">{{ i18n.t('suspicious_bot_attempts', 'Suspicious bot attempts') }}</span>
+              <span class="text-[10px] text-slate-500 dark:text-slate-400">Suspicious bot attempts</span>
             </div>
             <div class="p-3.5 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/70 dark:border-amber-900/40">
-              <span class="text-[11px] font-bold text-amber-700 dark:text-amber-300 uppercase">{{ i18n.t('auth_locked_accounts_label', 'Locked Accounts') }}</span>
+              <span class="text-[11px] font-bold text-amber-700 dark:text-amber-300 uppercase">Locked Accounts</span>
               <div class="text-2xl font-black text-amber-600 dark:text-amber-400 font-mono mt-0.5">
-                {{ Number(stats.locked_accounts_count || 14).toLocaleString() }}
+                {{ Number(stats.locked_accounts_count ?? 0).toLocaleString() }}
               </div>
-              <span class="text-[10px] text-slate-500 dark:text-slate-400">{{ i18n.t('exceeded_password_threshold', 'Exceeded password threshold') }}</span>
+              <span class="text-[10px] text-slate-500 dark:text-slate-400">Exceeded password threshold</span>
             </div>
             <div class="p-3.5 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200/70 dark:border-indigo-900/40 col-span-2 sm:col-span-1">
-              <span class="text-[11px] font-bold text-indigo-700 dark:text-indigo-300 uppercase">{{ i18n.t('action_needed', 'Action Needed') }}</span>
+              <span class="text-[11px] font-bold text-indigo-700 dark:text-indigo-300 uppercase">Action Needed</span>
               <div class="text-sm font-black text-indigo-600 dark:text-indigo-400 mt-1">
-                {{ i18n.t('audit_and_unlock', 'Audit & Unlock') }}
+                Audit & Unlock
               </div>
-              <span class="text-[10px] text-slate-500 dark:text-slate-400">{{ i18n.t('immediate_action_advised', 'Immediate action advised') }}</span>
+              <span class="text-[10px] text-slate-500 dark:text-slate-400">Immediate action advised</span>
             </div>
           </div>
 
@@ -496,7 +497,7 @@ const handleUnlockAll = () => {
             <h4 class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
               {{ i18n.t('quick_security_actions', 'Quick Review & Mitigation Actions') }}
             </h4>
-            
+
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <!-- Link to Login History (Failed Filter) -->
               <Link
@@ -512,7 +513,7 @@ const handleUnlockAll = () => {
                     {{ i18n.t('open_failed_logins', 'Open Failed Logins in Login History') }}
                   </h5>
                   <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                    Filter and inspect all 65 failed login attempts with IP traces and user agents.
+                    {{ i18n.t('open_failed_logins_desc', `Filter and inspect all ${stats.failed_logins_today ?? 0} failed login attempts with IP traces and user agents.`) }}
                   </p>
                 </div>
               </Link>
@@ -528,10 +529,10 @@ const handleUnlockAll = () => {
                 </div>
                 <div>
                   <h5 class="text-xs font-bold text-amber-900 dark:text-amber-200 group-hover:text-amber-700 transition-colors">
-                    {{ i18n.t('unlock_all_accounts', 'Unlock All 14 Locked Accounts') }}
+                    {{ i18n.t('unlock_all_accounts', `Unlock All ${stats.locked_accounts_count ?? 0} Locked Accounts`) }}
                   </h5>
                   <p class="text-[11px] text-amber-800/80 dark:text-amber-300/80 mt-0.5">
-                    Instantly clear login attempt penalties and restore user access.
+                    {{ i18n.t('unlock_all_accounts_desc', 'Instantly clear login attempt penalties and restore user access.') }}
                   </p>
                 </div>
               </button>
@@ -550,7 +551,7 @@ const handleUnlockAll = () => {
                     {{ i18n.t('open_security_audit', 'Security Audit & Cyber Forensics') }}
                   </h5>
                   <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                    View Honeypot attack traps, automated attacker logs, and threat forensics.
+                    {{ i18n.t('open_security_audit_desc', 'View Honeypot attack traps, automated attacker logs, and threat forensics.') }}
                   </p>
                 </div>
               </Link>
@@ -569,7 +570,7 @@ const handleUnlockAll = () => {
                     {{ i18n.t('view_in_system_logs', 'Inspect System Logs') }}
                   </h5>
                   <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                    Review raw system security events filtered by Authentication module.
+                    {{ i18n.t('view_in_system_logs_desc', 'Review raw system security events filtered by Authentication module.') }}
                   </p>
                 </div>
               </Link>

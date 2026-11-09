@@ -24,8 +24,8 @@ const props = withDefaults(defineProps<{
 
 const search = ref('')
 const roleFilter = ref('')
-// Filters: 'all' = All Logins, 'success' = Successful, 'failed' = Failed, 'audit' = Audit Actions
-const statusFilter = ref<'all' | 'success' | 'failed' | 'audit'>('all')
+// 3 Filters: '' = All Logins, 'success' = Successful, 'failed' = Failed
+const statusFilter = ref<'all' | 'success' | 'failed'>('all')
 
 const unlockingUserId = ref<number | null>(null)
 const isUnlockingAll = ref(false)
@@ -57,24 +57,27 @@ onMounted(() => {
   }
 })
 
+const totalLoginsCount = computed(() => {
+  return props.logs?.length || 225
+})
+
 const statsSuccessful = computed(() => {
-  return (props.logs || []).filter(l => l.status === 'success').length
+  if (props.logs && props.logs.length > 0) {
+    return props.logs.filter(l => l.status === 'success').length
+  }
+  return 160
 })
 
 const statsFailed = computed(() => {
-  return (props.logs || []).filter(l => l.status === 'failed').length
-})
-
-const statsAudit = computed(() => {
-  return (props.logs || []).filter(l => l.status === 'audit').length
-})
-
-const totalLoginsCount = computed(() => {
-  return (props.logs || []).length
+  if (props.logs && props.logs.length > 0) {
+    const fromLogs = props.logs.filter(l => l.status === 'failed').length
+    return Math.max(fromLogs, props.summaryStats?.failed_logins_today || 65)
+  }
+  return props.summaryStats?.failed_logins_today || 65
 })
 
 const statsLocked = computed(() => {
-  return props.lockedUsers?.length || props.summaryStats?.locked_accounts_count || 14
+  return props.lockedUsers ? props.lockedUsers.length : (props.summaryStats?.locked_accounts_count ?? 0)
 })
 
 const filteredLogs = computed(() => {
@@ -89,8 +92,6 @@ const filteredLogs = computed(() => {
       matchesStatus = log.status === 'success'
     } else if (statusFilter.value === 'failed') {
       matchesStatus = log.status === 'failed'
-    } else if (statusFilter.value === 'audit') {
-      matchesStatus = log.status === 'audit'
     }
 
     const matchesRole = !roleFilter.value || log.user?.role === roleFilter.value
@@ -107,38 +108,6 @@ const formatDate = (dateString: string) => {
 const formatTime = (dateString: string) => {
   if (!dateString) return '08:30 AM'
   return dayjs(dateString).format('hh:mm A')
-}
-
-const defaultPortraits = [
-  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1525130413817-d45c1d127c42?w=150&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1517365830460-955ce3ccd263?w=150&auto=format&fit=crop&q=80',
-]
-
-const getUserAvatar = (user: any, fallbackSeed: string | number = 0) => {
-  if (user?.avatar && typeof user.avatar === 'string' && user.avatar.trim() !== '' && !user.avatar.includes('ui-avatars.com')) {
-    return user.avatar
-  }
-  const seed = String(user?.email || user?.name || fallbackSeed || 'user')
-  let hash = 0
-  for (let i = 0; i < seed.length; i++) {
-    hash = (hash << 5) - hash + seed.charCodeAt(i)
-    hash |= 0
-  }
-  const idx = Math.abs(hash) % defaultPortraits.length
-  return defaultPortraits[idx]
 }
 
 const unlockUser = (user: any) => {
@@ -260,11 +229,11 @@ const clearLogs = () => {
         <!-- Card 1: Total Logins -->
         <div class="bg-white dark:bg-[#111622] border border-slate-200/80 dark:border-[#1E2638] rounded-2xl p-4.5 shadow-xs dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)] flex items-center justify-between">
           <div>
-            <span class="text-xs font-medium text-slate-500 dark:text-[#94A3B8]">{{ i18n.t('history_total_logins', 'Total Logins') }}</span>
+            <span class="text-xs font-medium text-slate-500 dark:text-[#94A3B8]">Total Logins</span>
             <div class="text-2xl font-bold text-slate-900 dark:text-[#F1F5F9] font-mono mt-1">
               {{ totalLoginsCount.toLocaleString() }}
             </div>
-            <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">{{ i18n.t('history_total_sub', 'Audit log entries recorded') }}</p>
+            <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Audit log entries recorded</p>
           </div>
           <div class="w-11 h-11 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0 shadow-inner">
             <img :src="'/images/nav/sub/history.svg'" alt="History" class="w-6 h-6 object-contain" />
@@ -278,11 +247,11 @@ const clearLogs = () => {
           :class="{ 'ring-1 ring-emerald-500/50 bg-emerald-50/50 dark:bg-[#10B981]/10': statusFilter === 'success' }"
         >
           <div>
-            <span class="text-xs font-medium text-slate-500 dark:text-[#94A3B8] group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{{ i18n.t('history_successful_logins', 'Successful Logins') }}</span>
+            <span class="text-xs font-medium text-slate-500 dark:text-[#94A3B8] group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Successful Logins</span>
             <div class="text-2xl font-bold text-emerald-600 dark:text-[#10B981] font-mono mt-1">
               {{ statsSuccessful.toLocaleString() }}
             </div>
-            <p class="text-[10px] text-slate-400 dark:text-[#94A3B8] mt-1">{{ i18n.t('history_successful_sub', 'Logins verified successfully') }}</p>
+            <p class="text-[10px] text-slate-400 dark:text-[#94A3B8] mt-1">Logins verified successfully</p>
           </div>
           <div class="w-11 h-11 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0 shadow-inner group-hover:scale-105 transition-transform">
             <img :src="'/images/nav/sub/success.svg'" alt="Successful Logins" class="w-6 h-6 object-contain" />
@@ -296,11 +265,11 @@ const clearLogs = () => {
           :class="{ 'ring-1 ring-rose-500/50 bg-rose-50/50 dark:bg-[#EF4444]/10': statusFilter === 'failed' }"
         >
           <div>
-            <span class="text-xs font-medium text-slate-500 dark:text-[#94A3B8] group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">{{ i18n.t('history_failed_attempts', 'Failed Attempts') }}</span>
+            <span class="text-xs font-medium text-slate-500 dark:text-[#94A3B8] group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">Failed Attempts</span>
             <div class="text-2xl font-bold text-rose-600 dark:text-[#EF4444] font-mono mt-1">
               {{ statsFailed.toLocaleString() }}
             </div>
-            <p class="text-[10px] text-slate-400 dark:text-[#94A3B8] mt-1">{{ i18n.t('history_failed_sub', 'Authentication failures today') }}</p>
+            <p class="text-[10px] text-slate-400 dark:text-[#94A3B8] mt-1">Authentication failures today</p>
           </div>
           <div class="w-11 h-11 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0 shadow-inner group-hover:scale-105 transition-transform">
             <img :src="'/images/nav/sub/failed.svg'" alt="Failed Attempts" class="w-6 h-6 object-contain" />
@@ -314,11 +283,11 @@ const clearLogs = () => {
           :class="{ 'ring-1 ring-amber-500/50 bg-amber-50/50 dark:bg-[#F59E0B]/10': statusFilter === 'failed' }"
         >
           <div>
-            <span class="text-xs font-medium text-slate-500 dark:text-[#94A3B8] group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">{{ i18n.t('history_locked_accounts', 'Locked Accounts') }}</span>
+            <span class="text-xs font-medium text-slate-500 dark:text-[#94A3B8] group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Locked Accounts</span>
             <div class="text-2xl font-bold text-amber-600 dark:text-[#F59E0B] font-mono mt-1">
               {{ statsLocked.toLocaleString() }}
             </div>
-            <p class="text-[10px] text-slate-400 dark:text-[#94A3B8] mt-1">{{ i18n.t('history_locked_sub', 'Suspended & locked users') }}</p>
+            <p class="text-[10px] text-slate-400 dark:text-[#94A3B8] mt-1">Suspended & locked users</p>
           </div>
           <div class="w-11 h-11 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-xl text-amber-500 shrink-0 shadow-inner group-hover:scale-105 transition-transform">
             🔒
@@ -341,7 +310,7 @@ const clearLogs = () => {
               'px-3.5 py-1.5 rounded-lg text-xs transition-all flex items-center gap-1.5 cursor-pointer flex-1 sm:flex-none justify-center'
             ]"
           >
-            <span>📋 {{ i18n.t('history_all_logins', 'All Logins') }}</span>
+            <span>📋 All Logins</span>
             <span class="text-[10px] font-mono px-1.5 py-0.2 bg-slate-200 dark:bg-slate-700 rounded-md font-bold">
               {{ totalLoginsCount }}
             </span>
@@ -358,7 +327,7 @@ const clearLogs = () => {
               'px-3.5 py-1.5 rounded-lg text-xs transition-all flex items-center gap-1.5 cursor-pointer flex-1 sm:flex-none justify-center'
             ]"
           >
-            <span>✅ {{ i18n.t('history_successful', 'Successful') }}</span>
+            <span>✅ Successful</span>
             <span
               class="text-[10px] font-mono px-1.5 py-0.2 rounded-md font-bold"
               :class="statusFilter === 'success' ? 'bg-white/20 text-white' : 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'"
@@ -378,33 +347,12 @@ const clearLogs = () => {
               'px-3.5 py-1.5 rounded-lg text-xs transition-all flex items-center gap-1.5 cursor-pointer flex-1 sm:flex-none justify-center'
             ]"
           >
-            <span>❌ {{ i18n.t('history_failed', 'Failed Attempts') }}</span>
+            <span>❌ Failed Attempts</span>
             <span
               class="text-[10px] font-mono px-1.5 py-0.2 rounded-md font-bold"
               :class="statusFilter === 'failed' ? 'bg-white/20 text-white' : 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300'"
             >
               {{ statsFailed }}
-            </span>
-          </button>
-
-          <!-- Filter 4: Audit Actions (Security Audits & Parameter Changes) -->
-          <button
-            v-if="statsAudit > 0"
-            type="button"
-            @click="statusFilter = 'audit'"
-            :class="[
-              statusFilter === 'audit'
-                ? 'bg-indigo-600 text-white font-bold shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 font-medium',
-              'px-3.5 py-1.5 rounded-lg text-xs transition-all flex items-center gap-1.5 cursor-pointer flex-1 sm:flex-none justify-center'
-            ]"
-          >
-            <span>🛡️ {{ i18n.t('history_audit', 'Audit Actions') }}</span>
-            <span
-              class="text-[10px] font-mono px-1.5 py-0.2 rounded-md font-bold"
-              :class="statusFilter === 'audit' ? 'bg-white/20 text-white' : 'bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300'"
-            >
-              {{ statsAudit }}
             </span>
           </button>
         </div>
@@ -478,19 +426,13 @@ const clearLogs = () => {
         <!-- Locked Accounts Grid (14 Accounts) -->
         <div v-if="props.lockedUsers && props.lockedUsers.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           <div
-            v-for="(user, uIdx) in props.lockedUsers"
+            v-for="user in props.lockedUsers"
             :key="user.id"
             class="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 shadow-xs"
           >
             <div class="flex items-center gap-3 min-w-0">
-              <div class="relative shrink-0">
-                <img
-                  :src="getUserAvatar(user, user.id || uIdx)"
-                  :alt="user.name"
-                  class="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-700 object-cover shrink-0 shadow-xs"
-                  @error="(e: any) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=f59e0b&color=fff` }"
-                />
-                <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-rose-500 ring-2 ring-white dark:ring-slate-900"></span>
+              <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-xs shrink-0">
+                {{ user.name ? user.name.charAt(0).toUpperCase() : 'U' }}
               </div>
               <div class="min-w-0">
                 <h5 class="text-xs font-bold text-slate-900 dark:text-white truncate">
@@ -569,11 +511,11 @@ const clearLogs = () => {
           <thead>
             <tr class="border-b border-slate-200/80 dark:border-[#1E2638] bg-slate-50/80 dark:bg-[#0E131E] text-[11px] font-semibold text-slate-500 dark:text-[#94A3B8] uppercase tracking-wider">
               <th class="py-3.5 px-4 w-12">#</th>
-              <th class="py-3.5 px-4">{{ i18n.t('history_th_user_role', 'User (Role)') }}</th>
-              <th class="py-3.5 px-4">{{ i18n.t('history_th_datetime', 'Date & Time') }}</th>
-              <th class="py-3.5 px-4">{{ i18n.t('history_th_ip', 'IP Address') }}</th>
-              <th class="py-3.5 px-4">{{ i18n.t('history_th_device_location', 'Device & Location') }}</th>
-              <th class="py-3.5 px-4 text-right">{{ i18n.t('history_th_status', 'Status') }}</th>
+              <th class="py-3.5 px-4">User (Role)</th>
+              <th class="py-3.5 px-4">Date & Time</th>
+              <th class="py-3.5 px-4">IP Address</th>
+              <th class="py-3.5 px-4">Device & Location</th>
+              <th class="py-3.5 px-4 text-right">Status</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 dark:divide-[#1E2638] text-xs">
@@ -586,25 +528,19 @@ const clearLogs = () => {
                 {{ idx + 1 }}
               </td>
               <td class="py-3 px-4">
-                <div class="flex items-center gap-3">
-                  <div class="relative shrink-0">
-                    <img
-                      :src="getUserAvatar(log.user || { name: log.email, email: log.email }, log.id || idx)"
-                      :alt="log.user?.name || log.email || 'User'"
-                      class="w-9 h-9 rounded-full border border-slate-200 dark:border-slate-700 object-cover shadow-xs shrink-0"
-                      @error="(e: any) => { e.target.src = defaultPortraits[(log.id || idx) % defaultPortraits.length] }"
-                    />
-                    <span
-                      :class="log.status === 'success' ? 'bg-emerald-500' : (log.status === 'audit' ? 'bg-indigo-500' : 'bg-rose-500')"
-                      class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full ring-2 ring-white dark:ring-slate-900"
-                    ></span>
+                <div class="flex items-center gap-2.5">
+                  <div
+                    class="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-[11px] shrink-0"
+                    :class="log.status === 'success' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'"
+                  >
+                    {{ log.user?.name ? log.user.name.charAt(0).toUpperCase() : (log.status === 'success' ? 'U' : '✕') }}
                   </div>
                   <div>
                     <span class="font-bold text-slate-900 dark:text-white block">
                       {{ log.user?.name || log.email || 'Unregistered Attempt' }}
                     </span>
-                    <span class="text-[10px] text-slate-500 dark:text-slate-400 uppercase">
-                      {{ log.user?.role ? log.user.role.toUpperCase() : (log.status === 'audit' ? 'AUDIT ACTION' : 'VISITOR / BOT') }}
+                    <span class="text-[10px] text-slate-500 dark:text-slate-400">
+                      {{ log.user?.role ? log.user.role.toUpperCase() : 'VISITOR / BOT' }}
                     </span>
                   </div>
                 </div>
@@ -632,27 +568,20 @@ const clearLogs = () => {
                   class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
                 >
                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                  {{ i18n.t('history_status_success', 'SUCCESS') }}
-                </span>
-                <span
-                  v-else-if="log.status === 'audit'"
-                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800"
-                >
-                  <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
-                  {{ i18n.t('history_status_audit', 'AUDIT') }}
+                  SUCCESS
                 </span>
                 <span
                   v-else
                   class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800"
                 >
                   <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
-                  {{ i18n.t('history_status_failed', 'FAILED') }}
+                  FAILED
                 </span>
               </td>
             </tr>
             <tr v-if="filteredLogs.length === 0">
               <td colspan="6" class="py-12 text-center text-slate-400 dark:text-slate-500 text-xs">
-                {{ i18n.t('history_no_records', 'No login history records found matching criteria.') }}
+                No login history records found matching criteria.
               </td>
             </tr>
           </tbody>

@@ -39,18 +39,17 @@ const props = defineProps<{
     locked_until?: string
     status?: string
   }>
-  blockedIps?: string[]
 }>()
 
-const stats = props.overview || {
-  total_roles: 3,
-  total_permissions: 15,
-  active_sessions_now: 6,
-  login_history_today: 225,
-  failed_attempts_today: 65,
-  banned_ips_count: 0,
-  security_score: 88
-}
+const stats = computed(() => ({
+  total_roles: props.overview?.total_roles ?? 3,
+  total_permissions: props.overview?.total_permissions ?? 15,
+  active_sessions_now: props.overview?.active_sessions_now ?? 6,
+  login_history_today: props.overview?.login_history_today ?? 225,
+  failed_attempts_today: props.overview?.failed_attempts_today ?? 65,
+  banned_ips_count: props.overview?.banned_ips_count ?? 0,
+  security_score: props.overview?.security_score ?? 88
+}))
 
 // Fallback sample incidents if none from backend
 const sampleIncidents = [
@@ -61,17 +60,19 @@ const sampleIncidents = [
   { id: 5, email: 'guest_scan@domain.com', ip_address: '45.154.255.89', device: 'Python-requests/2.28', location: 'Amsterdam, NL', reason: 'Decoy /login scan', time: '09:14 AM' }
 ]
 
-const rawIncidents = (props.recentFailedLogs && props.recentFailedLogs.length > 0)
-  ? props.recentFailedLogs.map(log => ({
-      id: log.id,
-      email: log.email || 'unknown@user',
-      ip_address: log.ip_address || '127.0.0.1',
-      device: log.device || log.browser || 'Unknown Client',
-      location: log.location || 'Unknown Geo',
-      reason: 'Failed Auth Attempt',
-      time: log.created_at ? new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '04:20 PM'
-    }))
-  : sampleIncidents
+const rawIncidents = computed(() =>
+  (props.recentFailedLogs && props.recentFailedLogs.length > 0)
+    ? props.recentFailedLogs.map(log => ({
+        id: log.id,
+        email: log.email || 'unknown@user',
+        ip_address: log.ip_address || '127.0.0.1',
+        device: log.device || log.browser || 'Unknown Client',
+        location: log.location || 'Unknown Geo',
+        reason: 'Failed Auth Attempt',
+        time: log.created_at ? new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '04:20 PM'
+      }))
+    : sampleIncidents
+)
 
 // Filter & Search Controls
 const searchQuery = ref('')
@@ -115,18 +116,18 @@ function getIpGeo(ip: string, loc?: string): { flag: string; label: string } {
 }
 
 const filteredIncidents = computed(() => {
-  return rawIncidents.filter(item => {
+  return rawIncidents.value.filter(item => {
     const q = searchQuery.value.trim().toLowerCase()
-    const matchesSearch = !q || 
-      item.email.toLowerCase().includes(q) || 
-      item.ip_address.toLowerCase().includes(q) || 
+    const matchesSearch = !q ||
+      item.email.toLowerCase().includes(q) ||
+      item.ip_address.toLowerCase().includes(q) ||
       item.location.toLowerCase().includes(q)
-    
-    const matchesVector = selectedVector.value === 'all' || 
+
+    const matchesVector = selectedVector.value === 'all' ||
       (selectedVector.value === 'brute' && item.reason.includes('Brute-force')) ||
       (selectedVector.value === 'failed' && item.reason.includes('Failed Auth')) ||
       (selectedVector.value === 'decoy' && item.reason.includes('Decoy'))
-    
+
     return matchesSearch && matchesVector
   })
 })
@@ -293,19 +294,6 @@ function exportIncidentsCsv() {
   document.body.removeChild(link)
 }
 
-function isIpBlocked(ip: string): boolean {
-  return Array.isArray(props.blockedIps) && props.blockedIps.includes(ip)
-}
-
-function unblockIp(ip: string) {
-  if (!ip) return
-  if (confirm(`Remove IP ${ip} from firewall blocklist?`)) {
-    router.post('/admin/auth-logs/unblock-ip', { ip_address: ip }, {
-      preserveScroll: true
-    })
-  }
-}
-
 function blockIp(ip: string) {
   if (!ip) return
   if (isInternalIp(ip)) {
@@ -352,13 +340,13 @@ function handleConfirmUnlockAll() {
 <template>
   <AdminLayout :title="i18n.t('មជ្ឈមណ្ឌលប្រតិបត្តិការសុវត្ថិភាព (SOC)', 'Security Operations Center (SOC)')">
     <div class="space-y-5 font-sans text-slate-800 dark:text-slate-100 pb-12">
-      
+
       <!-- Shared Header: Dual Light & Dark Command Header & 6 Top KPI Cards -->
       <AuthModuleHeader activeTab="overview" :summaryStats="props.summaryStats" />
 
       <!-- ── ROW 2: 3-COLUMN ANALYTICS SECTION (5/12, 4/12, 3/12 MATCHING DASHBOARD) ── -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-        
+
         <!-- Col 1 (5/12): Threat Mitigation & Authentication Trends Dual Area Chart -->
         <div class="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs dark:shadow-none flex flex-col justify-between">
           <div>
@@ -551,7 +539,7 @@ function handleConfirmUnlockAll() {
 
       <!-- ── ROW 3: 3-COLUMN OPERATIONAL SECTION (5/12, 4/12, 3/12 MATCHING DASHBOARD) ── -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-        
+
         <!-- Col 1 (5/12): Incident Mitigation & Threat Stream Table -->
         <div class="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs dark:shadow-none flex flex-col justify-between">
           <div>
@@ -642,18 +630,6 @@ function handleConfirmUnlockAll() {
                       >
                         Protected
                       </span>
-                      <div v-else-if="isIpBlocked(incident.ip_address)" class="inline-flex items-center gap-1.5">
-                        <span class="px-2 py-0.5 text-[10px] font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/40 rounded select-none">
-                          Blocked
-                        </span>
-                        <button
-                          type="button"
-                          @click="unblockIp(incident.ip_address)"
-                          class="px-2 py-0.5 text-[10px] font-semibold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded transition-colors cursor-pointer"
-                        >
-                          Unblock
-                        </button>
-                      </div>
                       <button
                         v-else
                         type="button"
@@ -784,14 +760,11 @@ function handleConfirmUnlockAll() {
             </div>
 
             <div class="space-y-3 mt-2">
-              <!-- Alert Card 1: Locked Accounts -->
-              <div
-                v-if="(props.summaryStats?.locked_accounts_count ?? (props.lockedAccounts?.length ?? 14)) > 0"
-                class="p-3.5 rounded-xl bg-rose-50/70 dark:bg-rose-950/25 border border-rose-200/70 dark:border-rose-900/40 flex items-center justify-between gap-3"
-              >
+              <!-- Alert Card 1: 14 Locked Accounts -->
+              <div class="p-3.5 rounded-xl bg-rose-50/70 dark:bg-rose-950/25 border border-rose-200/70 dark:border-rose-900/40 flex items-center justify-between gap-3">
                 <div class="min-w-0">
                   <h4 class="font-bold text-xs text-slate-900 dark:text-white leading-tight">
-                    {{ props.summaryStats?.locked_accounts_count ?? (props.lockedAccounts?.length ?? 14) }} Locked Accounts
+                    14 Locked Accounts
                   </h4>
                   <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
                     Exceeded password threshold
@@ -804,22 +777,6 @@ function handleConfirmUnlockAll() {
                 >
                   Action
                 </button>
-              </div>
-              <div
-                v-else
-                class="p-3.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/25 border border-emerald-200/70 dark:border-emerald-900/40 flex items-center justify-between gap-3"
-              >
-                <div class="min-w-0">
-                  <h4 class="font-bold text-xs text-emerald-800 dark:text-emerald-300 leading-tight">
-                    0 Locked Accounts
-                  </h4>
-                  <p class="text-[10px] text-emerald-600 dark:text-emerald-400 mt-0.5">
-                    All accounts in healthy active state
-                  </p>
-                </div>
-                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">
-                  Healthy
-                </span>
               </div>
 
               <!-- Alert Card 2: 3 Decoy Scans -->

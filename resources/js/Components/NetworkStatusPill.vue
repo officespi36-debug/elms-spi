@@ -67,16 +67,18 @@ const handleOfflineEvent = () => {
   isOnline.value = false
 }
 
+const handleVisibilityChange = () => {
+  if (document.visibilityState === 'visible') {
+    checkRealConnectivity()
+  }
+}
+
 onMounted(() => {
   if (typeof window !== 'undefined') {
     window.addEventListener('online', handleOnlineEvent)
     window.addEventListener('offline', handleOfflineEvent)
     window.addEventListener('focus', checkRealConnectivity)
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') {
-        checkRealConnectivity()
-      }
-    })
+    document.addEventListener('visibilitychange', handleVisibilityChange)
 
     // Initial check
     checkRealConnectivity()
@@ -91,6 +93,7 @@ onUnmounted(() => {
     window.removeEventListener('online', handleOnlineEvent)
     window.removeEventListener('offline', handleOfflineEvent)
     window.removeEventListener('focus', checkRealConnectivity)
+    document.removeEventListener('visibilitychange', handleVisibilityChange)
     if (checkTimer) clearInterval(checkTimer)
   }
 })
