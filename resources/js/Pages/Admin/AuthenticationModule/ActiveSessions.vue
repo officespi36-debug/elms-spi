@@ -63,8 +63,7 @@ const formatTimeAgo = (dateString: string) => {
   const diffMins = dayjs().diff(dayjs(dateString), 'minute')
   if (diffMins < 1) return 'Just now'
   if (diffMins < 60) return `${diffMins}m ago`
-  if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`
-  return `${Math.floor(diffMins / 1440)}d ago`
+  return `${Math.floor(diffMins / 60)}h ago`
 }
 
 const revokeSession = (sessionId: number, userName: string) => {
@@ -127,7 +126,7 @@ const exportSessionsCSV = () => {
             <span class="text-xs font-bold text-slate-500 dark:text-slate-400">{{ i18n.t('sessions_total_active', 'Total Active Now') }}</span>
             <div class="text-2xl font-black text-slate-900 dark:text-white font-mono mt-1 flex items-baseline gap-2">
               <span>{{ totalActiveNow.toLocaleString() }}</span>
-              <span class="text-xs text-emerald-600 dark:text-emerald-400 font-sans font-semibold">{{ i18n.t('sessions_unit_sessions', 'Sessions') }}</span>
+              <span class="text-xs text-emerald-600 dark:text-emerald-400 font-sans font-semibold">Sessions</span>
             </div>
           </div>
           <div class="w-11 h-11 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0 shadow-inner">
@@ -141,7 +140,7 @@ const exportSessionsCSV = () => {
             <span class="text-xs font-bold text-slate-500 dark:text-slate-400">{{ i18n.t('sessions_mobile_users', 'Mobile Users') }}</span>
             <div class="text-2xl font-black text-slate-900 dark:text-white font-mono mt-1 flex items-baseline gap-2">
               <span>{{ mobileUsersCount.toLocaleString() }}</span>
-              <span class="text-xs text-indigo-600 dark:text-indigo-300 font-sans font-semibold">{{ i18n.t('sessions_unit_users', 'Users') }}</span>
+              <span class="text-xs text-indigo-600 dark:text-indigo-300 font-sans font-semibold">Users</span>
             </div>
           </div>
           <div class="w-11 h-11 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-xl text-indigo-500 dark:text-indigo-400 shrink-0">
@@ -155,7 +154,7 @@ const exportSessionsCSV = () => {
             <span class="text-xs font-bold text-slate-500 dark:text-slate-400">{{ i18n.t('sessions_desktop_users', 'Desktop Users') }}</span>
             <div class="text-2xl font-black text-slate-900 dark:text-white font-mono mt-1 flex items-baseline gap-2">
               <span>{{ desktopUsersCount.toLocaleString() }}</span>
-              <span class="text-xs text-cyan-600 dark:text-cyan-300 font-sans font-semibold">{{ i18n.t('sessions_unit_users', 'Users') }}</span>
+              <span class="text-xs text-cyan-600 dark:text-cyan-300 font-sans font-semibold">Users</span>
             </div>
           </div>
           <div class="w-11 h-11 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-xl text-cyan-500 dark:text-cyan-400 shrink-0">
@@ -276,7 +275,7 @@ const exportSessionsCSV = () => {
                 <div class="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-2 mt-0.5">
                   <span>📍 Phnom Penh</span>
                   <span>•</span>
-                  <span>🕐 {{ formatTimeAgo(session.updated_at || session.created_at) }}</span>
+                  <span>🕐 {{ formatTimeAgo(session.created_at) }}</span>
                 </div>
               </td>
 
@@ -297,8 +296,7 @@ const exportSessionsCSV = () => {
                 >
                   <span>🚫</span> {{ i18n.t('sessions_btn_revoke', 'Revoke') }}
                 </button>
-                <span v-else class="px-2.5 py-1 text-[11px] font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/40 rounded-lg inline-flex items-center gap-1.5 select-none">
-                  <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                <span v-else class="text-[11px] font-semibold text-slate-400 dark:text-slate-500 italic">
                   Revoked
                 </span>
               </td>

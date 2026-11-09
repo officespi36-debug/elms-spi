@@ -77,7 +77,7 @@ const statsFailed = computed(() => {
 })
 
 const statsLocked = computed(() => {
-  return props.lockedUsers ? props.lockedUsers.length : (props.summaryStats?.locked_accounts_count ?? 0)
+  return props.lockedUsers?.length || props.summaryStats?.locked_accounts_count || 14
 })
 
 const filteredLogs = computed(() => {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
 import { i18n } from '@/Services/i18n'
 
@@ -19,16 +19,16 @@ const props = defineProps<{
 
 const isReviewModalOpen = ref(false)
 
-const stats = computed(() => ({
-  total_roles: props.summaryStats?.total_roles ?? 3,
-  active_sessions_count: props.summaryStats?.active_sessions_count ?? 6,
-  failed_logins_today: props.summaryStats?.failed_logins_today ?? 65,
-  locked_accounts_count: props.summaryStats?.locked_accounts_count ?? 14,
-  threat_level: props.summaryStats?.threat_level || 'Critical',
-  posture_score: props.summaryStats?.posture_score ?? 88,
-  rules_enforced: props.summaryStats?.rules_enforced ?? 10,
-  total_rules: props.summaryStats?.total_rules ?? 12
-}))
+const stats = props.summaryStats || {
+  total_roles: 3,
+  active_sessions_count: 6,
+  failed_logins_today: 65,
+  locked_accounts_count: 14,
+  threat_level: 'Critical',
+  posture_score: 88,
+  rules_enforced: 10,
+  total_rules: 12
+}
 
 const getThreatBadgeClass = (level: string) => {
   switch (level?.toLowerCase()) {
@@ -44,8 +44,8 @@ const getThreatBadgeClass = (level: string) => {
 }
 
 const getThreatExplanation = (level: string) => {
-  const failed = stats.value.failed_logins_today ?? 0
-  const locked = stats.value.locked_accounts_count ?? 0
+  const failed = stats.failed_logins_today || 0
+  const locked = stats.locked_accounts_count || 0
 
   switch (level?.toLowerCase()) {
     case 'critical':
@@ -105,25 +105,25 @@ const handleUnlockAll = () => {
             type="button"
             @click="isReviewModalOpen = true"
             class="px-3.5 py-1.5 rounded-md text-xs font-medium border flex items-center gap-2.5 transition-all cursor-pointer shadow-xs"
-            :class="(stats.failed_logins_today ?? 0) > 0 || (stats.locked_accounts_count ?? 0) > 0
+            :class="(stats.failed_logins_today || 0) > 0 || (stats.locked_accounts_count || 0) > 0
               ? 'bg-[#FEF2F2] text-[#DC2626] border-[#FCA5A5] hover:bg-red-100 dark:bg-[rgba(239,68,68,0.12)] dark:text-[#EF4444] dark:border-[rgba(239,68,68,0.25)] dark:hover:bg-[rgba(239,68,68,0.2)]'
               : 'bg-[#ECFDF5] text-[#059669] border-[#A7F3D0] hover:bg-emerald-100 dark:bg-[rgba(16,185,129,0.12)] dark:text-[#10B981] dark:border-[rgba(16,185,129,0.25)] dark:hover:bg-[rgba(16,185,129,0.2)]'"
-            :title="getThreatExplanation(stats.threat_level)"
+            :title="i18n.t('auth_click_to_review', 'Click to review security incidents & locked accounts')"
           >
             <span class="relative flex h-2 w-2">
               <span
                 class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
-                :class="(stats.failed_logins_today ?? 0) > 0 ? 'bg-[#DC2626] dark:bg-[#EF4444]' : 'bg-[#059669] dark:bg-[#10B981]'"
+                :class="(stats.failed_logins_today || 0) > 0 ? 'bg-[#DC2626] dark:bg-[#EF4444]' : 'bg-[#059669] dark:bg-[#10B981]'"
               ></span>
               <span
                 class="relative inline-flex rounded-full h-2 w-2"
-                :class="(stats.failed_logins_today ?? 0) > 0 ? 'bg-[#DC2626] dark:bg-[#EF4444]' : 'bg-[#059669] dark:bg-[#10B981]'"
+                :class="(stats.failed_logins_today || 0) > 0 ? 'bg-[#DC2626] dark:bg-[#EF4444]' : 'bg-[#059669] dark:bg-[#10B981]'"
               ></span>
             </span>
             <span class="font-semibold uppercase tracking-wider font-mono">{{ stats.threat_level || 'CRITICAL' }}</span>
             <span class="text-slate-300 dark:text-[#1E293B]">|</span>
             <span class="text-[11px] text-slate-600 dark:text-[#94A3B8]">
-              {{ (stats.failed_logins_today ?? 0) > 0 ? i18n.t('auth_review_required', 'Review Required') : i18n.t('auth_normal_guard', 'Normal Guard') }}
+              {{ (stats.failed_logins_today || 0) > 0 ? i18n.t('auth_review_required', 'Review Required') : 'Normal Guard' }}
             </span>
           </button>
         </div>
@@ -150,19 +150,16 @@ const handleUnlockAll = () => {
             </div>
           </div>
           <h4 class="text-2xl font-black tracking-tight text-white mt-1">
-            {{ Number(stats.total_roles ?? 3).toLocaleString() }}
+            {{ Number(stats.total_roles || 3).toLocaleString() }}
           </h4>
           <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
             <span>▲ 100% RBAC Active</span>
           </p>
         </div>
         <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
-          <svg class="w-full h-10 text-white" viewBox="0 0 100 25" preserveAspectRatio="none" aria-hidden="true">
-            <g transform="translate(0 4)" opacity="0.10">
-              <path d="M0 18 Q 20 4, 40 14 T 70 6 T 100 12 L 100 25 L 0 25 Z" fill="currentColor"/>
-            </g>
-            <path d="M0 18 Q 20 4, 40 14 T 70 6 T 100 12 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.20"/>
-            <path d="M0 18 Q 20 4, 40 14 T 70 6 T 100 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" opacity="0.9"/>
+          <svg class="w-full h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none">
+            <path d="M0 18 Q 20 4, 40 14 T 70 6 T 100 12 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.18"/>
+            <path d="M0 18 Q 20 4, 40 14 T 70 6 T 100 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
           </svg>
         </div>
       </Link>
@@ -193,12 +190,9 @@ const handleUnlockAll = () => {
           </p>
         </div>
         <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
-          <svg class="w-full h-10 text-white" viewBox="0 0 100 25" preserveAspectRatio="none" aria-hidden="true">
-            <g transform="translate(0 4)" opacity="0.10">
-              <path d="M0 20 Q 25 8, 45 16 T 75 4 T 100 10 L 100 25 L 0 25 Z" fill="currentColor"/>
-            </g>
-            <path d="M0 20 Q 25 8, 45 16 T 75 4 T 100 10 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.20"/>
-            <path d="M0 20 Q 25 8, 45 16 T 75 4 T 100 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" opacity="0.9"/>
+          <svg class="w-full h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none">
+            <path d="M0 20 Q 25 8, 45 16 T 75 4 T 100 10 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.18"/>
+            <path d="M0 20 Q 25 8, 45 16 T 75 4 T 100 10" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
           </svg>
         </div>
       </Link>
@@ -230,12 +224,9 @@ const handleUnlockAll = () => {
           </p>
         </div>
         <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
-          <svg class="w-full h-10 text-white" viewBox="0 0 100 25" preserveAspectRatio="none" aria-hidden="true">
-            <g transform="translate(0 4)" opacity="0.10">
-              <path d="M0 16 Q 20 22, 45 8 T 75 14 T 100 4 L 100 25 L 0 25 Z" fill="currentColor"/>
-            </g>
-            <path d="M0 16 Q 20 22, 45 8 T 75 14 T 100 4 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.20"/>
-            <path d="M0 16 Q 20 22, 45 8 T 75 14 T 100 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" opacity="0.9"/>
+          <svg class="w-full h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none">
+            <path d="M0 16 Q 20 22, 45 8 T 75 14 T 100 4 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.18"/>
+            <path d="M0 16 Q 20 22, 45 8 T 75 14 T 100 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
           </svg>
         </div>
       </Link>
@@ -263,12 +254,9 @@ const handleUnlockAll = () => {
           </p>
         </div>
         <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
-          <svg class="w-full h-10 text-white" viewBox="0 0 100 25" preserveAspectRatio="none" aria-hidden="true">
-            <g transform="translate(0 4)" opacity="0.10">
-              <path d="M0 18 Q 20 6, 45 16 T 75 8 T 100 14 L 100 25 L 0 25 Z" fill="currentColor"/>
-            </g>
-            <path d="M0 18 Q 20 6, 45 16 T 75 8 T 100 14 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.20"/>
-            <path d="M0 18 Q 20 6, 45 16 T 75 8 T 100 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" opacity="0.9"/>
+          <svg class="w-full h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none">
+            <path d="M0 18 Q 20 6, 45 16 T 75 8 T 100 14 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.18"/>
+            <path d="M0 18 Q 20 6, 45 16 T 75 8 T 100 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
           </svg>
         </div>
       </Link>
@@ -294,19 +282,16 @@ const handleUnlockAll = () => {
             </div>
           </div>
           <h4 class="text-2xl font-black tracking-tight text-white mt-1">
-            {{ stats.posture_score ?? 88 }}%
+            {{ stats.posture_score || 88 }}%
           </h4>
           <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1">
-            <span>▲ {{ stats.rules_enforced ?? 10 }}/{{ stats.total_rules ?? 12 }} {{ i18n.t('auth_rules_enforced', 'Rules Enforced') }}</span>
+            <span>▲ {{ stats.rules_enforced || 10 }}/{{ stats.total_rules || 12 }} Rules Enforced</span>
           </p>
         </div>
         <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
-          <svg class="w-full h-10 text-white" viewBox="0 0 100 25" preserveAspectRatio="none" aria-hidden="true">
-            <g transform="translate(0 4)" opacity="0.10">
-              <path d="M0 19 Q 25 10, 50 18 T 80 8 T 100 12 L 100 25 L 0 25 Z" fill="currentColor"/>
-            </g>
-            <path d="M0 19 Q 25 10, 50 18 T 80 8 T 100 12 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.20"/>
-            <path d="M0 19 Q 25 10, 50 18 T 80 8 T 100 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" opacity="0.9"/>
+          <svg class="w-full h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none">
+            <path d="M0 19 Q 25 10, 50 18 T 80 8 T 100 12 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.18"/>
+            <path d="M0 19 Q 25 10, 50 18 T 80 8 T 100 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
           </svg>
         </div>
       </Link>
@@ -338,12 +323,9 @@ const handleUnlockAll = () => {
           </p>
         </div>
         <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
-          <svg class="w-full h-10 text-white" viewBox="0 0 100 25" preserveAspectRatio="none" aria-hidden="true">
-            <g transform="translate(0 4)" opacity="0.10">
-              <path d="M0 12 Q 25 20, 50 10 T 75 16 T 100 6 L 100 25 L 0 25 Z" fill="currentColor"/>
-            </g>
-            <path d="M0 12 Q 25 20, 50 10 T 75 16 T 100 6 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.20"/>
-            <path d="M0 12 Q 25 20, 50 10 T 75 16 T 100 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" opacity="0.9"/>
+          <svg class="w-full h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none">
+            <path d="M0 12 Q 25 20, 50 10 T 75 16 T 100 6 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.18"/>
+            <path d="M0 12 Q 25 20, 50 10 T 75 16 T 100 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.9"/>
           </svg>
         </div>
       </button>
@@ -465,10 +447,7 @@ const handleUnlockAll = () => {
                   <h3 class="text-lg font-black text-slate-900 dark:text-white">
                     {{ i18n.t('review_modal_title', 'Security Incidents Requiring Review') }}
                   </h3>
-                  <span
-                    class="px-2 py-0.5 text-[10px] font-black uppercase rounded-full border"
-                    :class="getThreatBadgeClass(stats.threat_level)"
-                  >
+                  <span class="px-2 py-0.5 text-[10px] font-black uppercase rounded-full bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800">
                     {{ stats.threat_level }} Risk
                   </span>
                 </div>
@@ -490,14 +469,14 @@ const handleUnlockAll = () => {
             <div class="p-3.5 rounded-2xl bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200/70 dark:border-rose-900/40">
               <span class="text-[11px] font-bold text-rose-700 dark:text-rose-300 uppercase">Failed Logins</span>
               <div class="text-2xl font-black text-rose-600 dark:text-rose-400 font-mono mt-0.5">
-                {{ Number(stats.failed_logins_today ?? 0).toLocaleString() }}
+                {{ Number(stats.failed_logins_today || 65).toLocaleString() }}
               </div>
               <span class="text-[10px] text-slate-500 dark:text-slate-400">Suspicious bot attempts</span>
             </div>
             <div class="p-3.5 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/70 dark:border-amber-900/40">
               <span class="text-[11px] font-bold text-amber-700 dark:text-amber-300 uppercase">Locked Accounts</span>
               <div class="text-2xl font-black text-amber-600 dark:text-amber-400 font-mono mt-0.5">
-                {{ Number(stats.locked_accounts_count ?? 0).toLocaleString() }}
+                {{ Number(stats.locked_accounts_count || 14).toLocaleString() }}
               </div>
               <span class="text-[10px] text-slate-500 dark:text-slate-400">Exceeded password threshold</span>
             </div>
@@ -531,7 +510,7 @@ const handleUnlockAll = () => {
                     {{ i18n.t('open_failed_logins', 'Open Failed Logins in Login History') }}
                   </h5>
                   <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                    {{ i18n.t('open_failed_logins_desc', `Filter and inspect all ${stats.failed_logins_today ?? 0} failed login attempts with IP traces and user agents.`) }}
+                    Filter and inspect all 65 failed login attempts with IP traces and user agents.
                   </p>
                 </div>
               </Link>
@@ -547,10 +526,10 @@ const handleUnlockAll = () => {
                 </div>
                 <div>
                   <h5 class="text-xs font-bold text-amber-900 dark:text-amber-200 group-hover:text-amber-700 transition-colors">
-                    {{ i18n.t('unlock_all_accounts', `Unlock All ${stats.locked_accounts_count ?? 0} Locked Accounts`) }}
+                    {{ i18n.t('unlock_all_accounts', 'Unlock All 14 Locked Accounts') }}
                   </h5>
                   <p class="text-[11px] text-amber-800/80 dark:text-amber-300/80 mt-0.5">
-                    {{ i18n.t('unlock_all_accounts_desc', 'Instantly clear login attempt penalties and restore user access.') }}
+                    Instantly clear login attempt penalties and restore user access.
                   </p>
                 </div>
               </button>
@@ -569,7 +548,7 @@ const handleUnlockAll = () => {
                     {{ i18n.t('open_security_audit', 'Security Audit & Cyber Forensics') }}
                   </h5>
                   <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                    {{ i18n.t('open_security_audit_desc', 'View Honeypot attack traps, automated attacker logs, and threat forensics.') }}
+                    View Honeypot attack traps, automated attacker logs, and threat forensics.
                   </p>
                 </div>
               </Link>
@@ -588,7 +567,7 @@ const handleUnlockAll = () => {
                     {{ i18n.t('view_in_system_logs', 'Inspect System Logs') }}
                   </h5>
                   <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                    {{ i18n.t('view_in_system_logs_desc', 'Review raw system security events filtered by Authentication module.') }}
+                    Review raw system security events filtered by Authentication module.
                   </p>
                 </div>
               </Link>
