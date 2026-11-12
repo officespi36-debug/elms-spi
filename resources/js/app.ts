@@ -51,6 +51,11 @@ if (typeof window !== 'undefined') {
       flushQueue()
     } catch (e) {}
   })
+
+  // Purge any legacy demo multi-account cache to maintain strict official production isolation
+  try {
+    localStorage.removeItem('elms_saved_accounts')
+  } catch (e) {}
 }
 
 createInertiaApp({

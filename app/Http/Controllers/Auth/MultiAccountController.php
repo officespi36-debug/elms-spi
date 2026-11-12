@@ -35,40 +35,13 @@ class MultiAccountController extends Controller
     }
 
     /**
-     * Return current authenticated user's switch token so frontend can keep saved accounts list updated.
+     * Return current authenticated user's token. Never expose other accounts.
      */
     public function currentToken(Request $request): JsonResponse
     {
         $user = $request->user();
         if (!$user) {
             return response()->json(['success' => false, 'message' => 'Unauthenticated'], 401);
-        }
-
-        $suggestedAccounts = [];
-        $demoEmails = ['teacher@elms.com', 'student@elms.com', 'admin@elms.com'];
-        $demoUsers = User::whereIn('email', $demoEmails)
-            ->where('id', '!=', $user->id)
-            ->get();
-
-        // Fallback: if those specific emails not found, grab first available teacher, student, admin
-        if ($demoUsers->isEmpty()) {
-            $teacher = User::where('role', 'teacher')->where('id', '!=', $user->id)->first();
-            $student = User::where('role', 'student')->where('id', '!=', $user->id)->first();
-            $adminUser = User::where('role', 'admin')->where('id', '!=', $user->id)->first();
-            $demoUsers = collect([$teacher, $student, $adminUser])->filter();
-        }
-
-        foreach ($demoUsers as $du) {
-            $suggestedAccounts[] = [
-                'id' => $du->id,
-                'name' => $du->name,
-                'name_kh' => $du->name_kh,
-                'email' => $du->email,
-                'role' => $du->role,
-                'avatar' => $du->avatar,
-                'switch_token' => self::generateSwitchToken($du),
-                'last_active' => now()->timestamp * 1000,
-            ];
         }
 
         return response()->json([
@@ -82,7 +55,6 @@ class MultiAccountController extends Controller
                 'avatar' => $user->avatar,
             ],
             'switch_token' => self::generateSwitchToken($user),
-            'suggested_accounts' => $suggestedAccounts,
         ]);
     }
 

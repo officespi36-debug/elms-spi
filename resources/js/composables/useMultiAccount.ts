@@ -79,7 +79,7 @@ export function useMultiAccount() {
     }
     persistStorage()
 
-    // Always fetch latest token & suggested accounts from server
+    // Fetch latest current user token from server
     try {
       const res = await fetch('/api/auth/multi-account/current-token', {
         headers: {
@@ -89,27 +89,10 @@ export function useMultiAccount() {
       })
       if (res.ok) {
         const data = await res.json()
-        if (data.success) {
-          if (data.switch_token) {
-            const idx = savedAccounts.value.findIndex(a => a.id === currentUser.id)
-            if (idx !== -1) {
-              savedAccounts.value[idx].switch_token = data.switch_token
-            }
-          }
-
-          if (data.suggested_accounts && Array.isArray(data.suggested_accounts)) {
-            for (const sug of data.suggested_accounts) {
-              const sIdx = savedAccounts.value.findIndex(a => a.id === sug.id || a.email === sug.email)
-              if (sIdx === -1) {
-                savedAccounts.value.push(sug)
-              } else {
-                savedAccounts.value[sIdx] = {
-                  ...savedAccounts.value[sIdx],
-                  ...sug,
-                  switch_token: sug.switch_token || savedAccounts.value[sIdx].switch_token,
-                }
-              }
-            }
+        if (data.success && data.switch_token) {
+          const idx = savedAccounts.value.findIndex(a => a.id === currentUser.id)
+          if (idx !== -1) {
+            savedAccounts.value[idx].switch_token = data.switch_token
           }
           persistStorage()
         }
