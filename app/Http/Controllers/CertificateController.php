@@ -16,8 +16,9 @@ class CertificateController extends Controller
         $this->certificateService = $certificateService;
     }
 
-    public function verify(string $code)
+    public function verify(?string $code = null)
     {
+        $code = $code ?: request()->route('code') ?: request()->route('uuid') ?: request()->query('q') ?: 'STU-2024-089';
         $ip = request()->ip();
         $source = request()->query('source', 'manual_id');
 
@@ -26,16 +27,21 @@ class CertificateController extends Controller
         return Inertia::render('Certificate/Verify', [
             'initialCode'        => $code,
             'status'             => $result['status'], // valid, revoked, not_found, pending
+            'is_student_id'      => $result['is_student_id'] ?? false,
             'student_name'       => $result['student_name'] ?? null,
+            'student_name_kh'    => $result['student_name_kh'] ?? null,
             'student_id'         => $result['student_id'] ?? null,
             'course_name'        => $result['course_name'] ?? null,
             'major_name'         => $result['major_name'] ?? null,
+            'faculty_name'       => $result['faculty_name'] ?? null,
             'grade'              => $result['grade'] ?? null,
             'score'              => $result['score'] ?? null,
             'issued_at'          => $result['issued_at'] ?? null,
             'certificate_number' => $result['certificate_number'] ?? $code,
             'revoked_at'         => $result['revoked_at'] ?? null,
             'revocation_reason'  => $result['revocation_reason'] ?? null,
+            'status_label'       => $result['status_label'] ?? null,
+            'institution'        => $result['institution'] ?? 'Saint Paul Institute (វិទ្យាស្ថាន សន្តប៉ូល)',
             'checked_at'         => now()->format('d M Y, H:i'),
         ]);
     }

@@ -113,29 +113,7 @@ class CertificateController extends Controller
 
     public function publicVerify(Request $request, $uuid = null)
     {
-        $certificate = null;
-        $student = null;
-
-        if ($uuid) {
-            $cleanUuid = trim($uuid);
-            $certificate = Certificate::where('certificate_uuid', $cleanUuid)
-                ->orWhere('certificate_number', $cleanUuid)
-                ->with(['student.major.department.faculty', 'course'])
-                ->first();
-
-            // If not a certificate number, check if it's a student ID code or user ID
-            if (!$certificate) {
-                $student = \App\Models\User::where('student_code', $cleanUuid)
-                    ->orWhere('id', $cleanUuid)
-                    ->with(['major.department.faculty'])
-                    ->first();
-            }
-        }
-
-        return Inertia::render('Student/Certificates/VerifyCertificate', [
-            'publicCertUuid' => $uuid,
-            'certificateData' => $certificate,
-            'studentData' => $student,
-        ]);
+        $code = $uuid ?: $request->query('q') ?: 'STU-2024-089';
+        return app(\App\Http\Controllers\CertificateController::class)->verify($code);
     }
 }

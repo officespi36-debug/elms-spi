@@ -71,7 +71,7 @@ Route::get('/robots.txt', function () {
 // ─── Public Certificate Verification ───
 Route::get('/verify/{code?}', [CertificateController::class, 'verify']);
 Route::get('/certificate/verify/{code?}', [CertificateController::class, 'verify'])->name('certificate.verify');
-Route::get('/verify-certificate/{uuid?}', [Student\CertificateController::class, 'publicVerify'])->name('verify-certificate.public');
+Route::get('/verify-certificate/{code?}', [CertificateController::class, 'verify'])->name('verify-certificate.public');
 
 // ─── Legal & Google OAuth Compliance (Privacy & Terms) ───
 Route::get('/privacy', function () {
