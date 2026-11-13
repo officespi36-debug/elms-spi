@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { router } from '@inertiajs/vue3'
 
 const logoUrl = '/images/logo.png'
+const spiLogoUrl = '/images/spi-logo.png'
 
 const props = defineProps<{
   initialCode?: string
@@ -54,18 +55,15 @@ const toggleScanner = () => {
       <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
         <a href="/" class="flex items-center gap-3 group">
           <div class="relative group shrink-0">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-cyan-500 to-emerald-400 p-[1.5px] shadow-lg shadow-indigo-500/20">
-              <div class="w-full h-full bg-slate-950 rounded-[10px] p-1 flex items-center justify-center">
-                <img
-                  :src="logoUrl"
-                  alt="E-LMS Logo"
-                  class="w-full h-full object-contain rounded-full transition-transform duration-200 group-hover:scale-110"
-                />
-              </div>
-            </div>
+            <div class="absolute -inset-1 bg-sky-500/30 rounded-full blur-xs opacity-60 group-hover:opacity-100 transition duration-300 pointer-events-none"></div>
+            <img
+              :src="logoUrl"
+              alt="E-LMS Logo"
+              class="relative w-11 h-11 rounded-full object-contain shadow-lg shadow-sky-500/20 transition-transform duration-200 group-hover:scale-105"
+            />
           </div>
           <div>
-            <h1 class="text-base font-bold text-white tracking-tight flex items-center gap-2 group-hover:text-indigo-200 transition-colors">
+            <h1 class="text-base font-bold text-white tracking-tight flex items-center gap-2 group-hover:text-sky-300 transition-colors">
               E.LMS Certification Portal
               <span class="px-2 py-0.5 text-[10px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full">
                 Official Verification
@@ -272,7 +270,7 @@ const toggleScanner = () => {
           <div class="flex items-center justify-between border-b border-indigo-800/50 pb-3">
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-2xl bg-white/10 p-1 flex items-center justify-center shadow-md shrink-0 border border-white/10">
-                <img :src="logoUrl" alt="SPI Logo" class="w-full h-full object-contain rounded-xl" />
+                <img :src="spiLogoUrl" alt="SPI Logo" class="w-full h-full object-contain rounded-xl" />
               </div>
               <div>
                 <p class="text-[11px] font-black tracking-wider text-indigo-200 uppercase">SAINT PAUL INSTITUTE</p>
@@ -308,7 +306,7 @@ const toggleScanner = () => {
         <!-- Live Render Anatomy Mockup for Certificates -->
         <div v-else class="bg-slate-950 p-6 rounded-xl border border-slate-800 text-center space-y-4 font-serif text-slate-200">
           <div class="flex justify-between items-center text-xs text-slate-400 font-sans">
-            <span class="flex items-center gap-1.5"><img :src="logoUrl" alt="SPI Logo" class="w-4 h-4 object-contain inline-block rounded-full" /> Saint Paul Institute</span>
+            <span class="flex items-center gap-1.5"><img :src="spiLogoUrl" alt="SPI Logo" class="w-4 h-4 object-contain inline-block rounded-full" /> Saint Paul Institute</span>
             <span>🏛️ Official Academic Seal</span>
           </div>
 
