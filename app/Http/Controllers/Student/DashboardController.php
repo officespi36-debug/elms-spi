@@ -20,11 +20,22 @@ class DashboardController extends Controller
             return redirect()->route('login');
         }
 
-        // Self-heal legacy test/faker names to official account identity
-        if (!empty($user->name) && (stripos($user->name, 'Hane') !== false || stripos($user->name, 'camryn') !== false)) {
+        // Self-heal legacy test/faker names or emails to official account identity
+        if (
+            (!empty($user->name) && (stripos($user->name, 'Hane') !== false || stripos($user->name, 'camryn') !== false)) ||
+            (!empty($user->email) && (stripos($user->email, 'hanecamryn') !== false || stripos($user->email, 'example.com') !== false)) ||
+            (!empty($user->avatar) && (stripos((string)$user->avatar, 'hane') !== false || stripos((string)$user->avatar, 'camryn') !== false))
+        ) {
+            $targetEmail = 'kosalsensok@gmail.com';
+            if (\App\Models\User::where('email', $targetEmail)->where('id', '!=', $user->id)->exists()) {
+                $targetEmail = 'kosalsensok582@gmail.com';
+            }
             $user->update([
-                'name'    => 'kosal sensok',
-                'name_kh' => 'កុសល សែនសុខ'
+                'name'         => 'kosal sensok',
+                'name_kh'      => 'កុសល សែនសុខ',
+                'email'        => $targetEmail,
+                'avatar'       => null,
+                'student_code' => $user->student_code ?: 'SPI-2026-001',
             ]);
             $user->refresh();
         }

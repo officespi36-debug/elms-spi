@@ -29,6 +29,39 @@ const teacherDisplayName = computed(() => {
   return raw
 })
 
+const avatarInput = ref<HTMLInputElement | null>(null)
+const isUploadingAvatar = ref(false)
+
+const triggerAvatarUpload = () => {
+  avatarInput.value?.click()
+}
+
+const handleAvatarChange = (e: Event) => {
+  const target = e.target as HTMLInputElement
+  if (!target.files || target.files.length === 0) return
+
+  const file = target.files[0]
+  const formData = new FormData()
+  formData.append('avatar', file)
+
+  isUploadingAvatar.value = true
+
+  router.post('/user/avatar', formData, {
+    forceFormData: true,
+    preserveScroll: true,
+    onSuccess: () => {
+      isUploadingAvatar.value = false
+    },
+    onError: () => {
+      isUploadingAvatar.value = false
+    },
+    onFinish: () => {
+      isUploadingAvatar.value = false
+      if (target) target.value = ''
+    }
+  })
+}
+
 const isSidebarCollapsed = ref(false)
 const sidebarOpen = ref(false)
 
@@ -1317,6 +1350,7 @@ const onIconError = (e: Event) => {
               role="teacher"
               @close="isProfileOpen = false"
               @logout="logout"
+              @trigger-avatar-upload="triggerAvatarUpload(); isProfileOpen = false"
             >
               <template #links>
                 <Link
@@ -1365,6 +1399,15 @@ const onIconError = (e: Event) => {
                 </Link>
               </template>
             </ProfileAccountDropdown>
+
+            <!-- Hidden File Input for Avatar Upload -->
+            <input
+              ref="avatarInput"
+              type="file"
+              accept="image/*"
+              class="hidden"
+              @change="handleAvatarChange"
+            />
           </div>
         </div>
       </div>

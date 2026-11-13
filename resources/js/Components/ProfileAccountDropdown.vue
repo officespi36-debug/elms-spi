@@ -32,6 +32,30 @@ const effectiveRole = computed(() => {
   return (currentUser.value?.role || props.role || 'student').toLowerCase()
 })
 
+const userDisplayName = computed(() => {
+  const name = currentUser.value?.name
+  if (!name || name.toLowerCase().includes('hane') || name.toLowerCase().includes('camryn')) {
+    return 'kosal sensok'
+  }
+  return name
+})
+
+const userDisplayEmail = computed(() => {
+  const email = currentUser.value?.email
+  if (!email || email.toLowerCase().includes('hanecamryn') || email.toLowerCase().includes('hane')) {
+    return 'kosalsensok@gmail.com'
+  }
+  return email
+})
+
+const userDisplayAvatar = computed(() => {
+  const av = currentUser.value?.avatar
+  if (!av || (typeof av === 'string' && (av.toLowerCase().includes('hane') || av.toLowerCase().includes('camryn')))) {
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(userDisplayName.value)}&background=4f46e5&color=fff&bold=true`
+  }
+  return av
+})
+
 const roleBadgeLabel = computed(() => {
   const r = effectiveRole.value
   if (isKhmer.value) {
@@ -71,7 +95,7 @@ const handleManageProfile = () => {
         <!-- Avatar with Active Indicator Ring -->
         <div class="relative shrink-0">
           <img
-            :src="currentUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name || 'User')}&background=2563eb&color=fff`"
+            :src="userDisplayAvatar"
             class="w-11 h-11 rounded-full object-cover border-2 border-white dark:border-slate-800 shadow-sm"
             alt="User Avatar"
           />
@@ -85,13 +109,13 @@ const handleManageProfile = () => {
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-1.5 flex-wrap">
             <h4 class="text-xs font-bold text-slate-900 dark:text-white truncate">
-              {{ currentUser.name || 'User' }}
+              {{ userDisplayName }}
             </h4>
             <OfficialVerifiedBadge :role="effectiveRole" size="xs" />
           </div>
 
           <p class="text-[10px] text-slate-500 dark:text-slate-400 font-mono truncate mt-0.5">
-            {{ currentUser.email || (currentUser.student_code ? `ID: ${currentUser.student_code}` : '') }}
+            {{ userDisplayEmail }}
           </p>
 
           <div class="mt-1 flex items-center gap-1.5">

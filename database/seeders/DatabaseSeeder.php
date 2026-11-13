@@ -66,9 +66,12 @@ class DatabaseSeeder extends Seeder
         // Normalize any stray Faker test users
         User::where('name', 'like', '%Hane%')
             ->orWhere('name', 'like', '%camryn%')
+            ->orWhere('email', 'like', '%hanecamryn%')
             ->update([
-                'name' => 'kosal sensok',
-                'name_kh' => 'កុសល សែនសុខ'
+                'name'    => 'kosal sensok',
+                'name_kh' => 'កុសល សែនសុខ',
+                'email'   => 'kosalsensok582@gmail.com',
+                'avatar'  => null,
             ]);
 
         $teacher = User::updateOrCreate(['email' => 'teacher@elms.com'], [

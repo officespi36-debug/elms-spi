@@ -60,11 +60,35 @@ class HandleInertiaRequests extends Middleware
             app()->setLocale($locale);
         }
 
+        $user = $request->user();
+        if ($user) {
+            $isFakerHane = (
+                (!empty($user->name) && (stripos($user->name, 'Hane') !== false || stripos($user->name, 'camryn') !== false)) ||
+                (!empty($user->email) && (stripos($user->email, 'hanecamryn') !== false || stripos($user->email, 'example.com') !== false)) ||
+                (!empty($user->avatar) && (stripos((string)$user->avatar, 'hane') !== false || stripos((string)$user->avatar, 'camryn') !== false))
+            );
+
+            if ($isFakerHane) {
+                $targetEmail = 'kosalsensok@gmail.com';
+                if (\App\Models\User::where('email', $targetEmail)->where('id', '!=', $user->id)->exists()) {
+                    $targetEmail = 'kosalsensok582@gmail.com';
+                }
+                $user->update([
+                    'name'         => 'kosal sensok',
+                    'name_kh'      => 'កុសល សែនសុខ',
+                    'email'        => $targetEmail,
+                    'avatar'       => null,
+                    'student_code' => $user->student_code ?: 'SPI-2026-001',
+                ]);
+                $user->refresh();
+            }
+        }
+
         return [
             ...parent::share($request),
             'locale' => app()->getLocale(),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user,
             ],
             'telegram' => [
                 'bot_username' => config('services.telegram.bot_username') ?? env('TELEGRAM_BOT_USERNAME', 'spi_elms_auth_bot'),

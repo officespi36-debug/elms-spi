@@ -27,8 +27,45 @@ const page = usePage<any>()
 const user = computed(() => page.props.auth?.user || {})
 
 const studentDisplayName = computed(() => {
-  return user.value?.name || 'Sok Pisey'
+  const name = user.value?.name
+  if (!name || name.toLowerCase().includes('hane') || name.toLowerCase().includes('camryn')) {
+    return 'kosal sensok'
+  }
+  return name
 })
+
+const avatarInput = ref<HTMLInputElement | null>(null)
+const isUploadingAvatar = ref(false)
+
+const triggerAvatarUpload = () => {
+  avatarInput.value?.click()
+}
+
+const handleAvatarChange = (e: Event) => {
+  const target = e.target as HTMLInputElement
+  if (!target.files || target.files.length === 0) return
+
+  const file = target.files[0]
+  const formData = new FormData()
+  formData.append('avatar', file)
+
+  isUploadingAvatar.value = true
+
+  router.post('/user/avatar', formData, {
+    forceFormData: true,
+    preserveScroll: true,
+    onSuccess: () => {
+      isUploadingAvatar.value = false
+    },
+    onError: () => {
+      isUploadingAvatar.value = false
+    },
+    onFinish: () => {
+      isUploadingAvatar.value = false
+      if (target) target.value = ''
+    }
+  })
+}
 
 const studentId = computed(() => {
   return user.value?.student_id || 'STU2024001'
@@ -1550,6 +1587,7 @@ const onIconError = (e: Event) => {
               role="student"
               @close="isProfileOpen = false"
               @logout="logout"
+              @trigger-avatar-upload="triggerAvatarUpload(); isProfileOpen = false"
             >
               <template #links>
                 <Link
@@ -1594,6 +1632,15 @@ const onIconError = (e: Event) => {
                 </Link>
               </template>
             </ProfileAccountDropdown>
+
+            <!-- Hidden File Input for Avatar Upload -->
+            <input
+              ref="avatarInput"
+              type="file"
+              accept="image/*"
+              class="hidden"
+              @change="handleAvatarChange"
+            />
           </div>
         </div>
       </div>

@@ -17,7 +17,7 @@ class ProfileController extends Controller
             'profile' => [
                 'name' => $user->name,
                 'email' => $user->email,
-                'student_id' => $user->student_id ?? 'STU-2024-089',
+                'student_id' => $user->student_code ?? $user->student_id ?? 'SPI-2026-001',
                 'faculty' => 'Faculty of Science & Information Technology',
                 'department' => 'Department of Computer Science & Networking',
                 'major' => $user->major ?? 'IT & Networking',
