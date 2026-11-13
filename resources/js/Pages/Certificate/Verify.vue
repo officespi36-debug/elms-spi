@@ -2,6 +2,8 @@
 import { ref, onMounted } from 'vue'
 import { router } from '@inertiajs/vue3'
 
+const logoUrl = '/images/logo.png'
+
 const props = defineProps<{
   initialCode?: string
   status?: string // 'valid', 'revoked', 'not_found', 'pending'
@@ -50,12 +52,20 @@ const toggleScanner = () => {
     <!-- Header Navbar -->
     <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-xl sticky top-0 z-50">
       <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-cyan-500 to-emerald-400 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-indigo-500/20">
-            🎓
+        <a href="/" class="flex items-center gap-3 group">
+          <div class="relative group shrink-0">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-cyan-500 to-emerald-400 p-[1.5px] shadow-lg shadow-indigo-500/20">
+              <div class="w-full h-full bg-slate-950 rounded-[10px] p-1 flex items-center justify-center">
+                <img
+                  :src="logoUrl"
+                  alt="E-LMS Logo"
+                  class="w-full h-full object-contain rounded-full transition-transform duration-200 group-hover:scale-110"
+                />
+              </div>
+            </div>
           </div>
           <div>
-            <h1 class="text-base font-bold text-white tracking-tight flex items-center gap-2">
+            <h1 class="text-base font-bold text-white tracking-tight flex items-center gap-2 group-hover:text-indigo-200 transition-colors">
               E.LMS Certification Portal
               <span class="px-2 py-0.5 text-[10px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full">
                 Official Verification
@@ -63,7 +73,7 @@ const toggleScanner = () => {
             </h1>
             <p class="text-xs text-slate-400">Public Verification System · No Login Required</p>
           </div>
-        </div>
+        </a>
 
         <a href="/login" class="text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg transition border border-slate-700">
           Admin Portal →
@@ -261,8 +271,8 @@ const toggleScanner = () => {
         <div v-if="is_student_id" class="max-w-md mx-auto relative rounded-3xl p-6 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 border-2 border-indigo-500/40 shadow-2xl text-white space-y-5 overflow-hidden">
           <div class="flex items-center justify-between border-b border-indigo-800/50 pb-3">
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-lg font-black shadow-md">
-                🎓
+              <div class="w-10 h-10 rounded-2xl bg-white/10 p-1 flex items-center justify-center shadow-md shrink-0 border border-white/10">
+                <img :src="logoUrl" alt="SPI Logo" class="w-full h-full object-contain rounded-xl" />
               </div>
               <div>
                 <p class="text-[11px] font-black tracking-wider text-indigo-200 uppercase">SAINT PAUL INSTITUTE</p>
@@ -298,7 +308,7 @@ const toggleScanner = () => {
         <!-- Live Render Anatomy Mockup for Certificates -->
         <div v-else class="bg-slate-950 p-6 rounded-xl border border-slate-800 text-center space-y-4 font-serif text-slate-200">
           <div class="flex justify-between items-center text-xs text-slate-400 font-sans">
-            <span>🎓 Saint Paul Institute</span>
+            <span class="flex items-center gap-1.5"><img :src="logoUrl" alt="SPI Logo" class="w-4 h-4 object-contain inline-block rounded-full" /> Saint Paul Institute</span>
             <span>🏛️ Official Academic Seal</span>
           </div>
 
