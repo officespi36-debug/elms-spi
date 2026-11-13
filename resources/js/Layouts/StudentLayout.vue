@@ -1395,17 +1395,15 @@ const onIconError = (e: Event) => {
             />
           </button>
 
-          <!-- Theme Switcher Pill (with Colorful Mode Text) -->
+          <!-- Theme Switcher Pill -->
           <button
             type="button"
             @click="toggleTheme($event)"
-            class="px-2.5 sm:px-3 h-8 rounded-full bg-white/95 dark:bg-[#182234] backdrop-blur-md hover:bg-amber-50/50 dark:hover:bg-indigo-950/40 transition-all duration-200 border border-zinc-200 dark:border-slate-700/80 shadow-xs flex items-center justify-center gap-1.5 text-xs font-bold cursor-pointer select-none active:scale-95 group focus:outline-none"
+            class="w-8 h-8 rounded-full bg-white/95 dark:bg-[#182234] backdrop-blur-md hover:bg-amber-50/50 dark:hover:bg-indigo-950/40 transition-all duration-200 border border-zinc-200 dark:border-slate-700/80 shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
             :title="isDark ? (currentLang === 'km' ? 'ប្ដូរទៅ Light Mode' : 'Switch to Light Mode') : (currentLang === 'km' ? 'ប្ដូរទៅ Dark Mode' : 'Switch to Dark Mode')"
+            aria-label="Toggle theme"
           >
-            <i :class="['pi text-xs transition-transform duration-500 group-hover:rotate-45', isDark ? 'pi-moon text-indigo-400' : 'pi-sun text-amber-500']"></i>
-            <span :class="isDark ? 'text-indigo-300 font-bold' : 'text-amber-600 font-bold'" class="text-[11px] sm:text-xs tracking-tight">
-              {{ isDark ? 'Dark Mode' : 'Light Mode' }}
-            </span>
+            <i :class="['pi text-sm transition-transform duration-500 group-hover:rotate-45', isDark ? 'pi-moon text-indigo-400' : 'pi-sun text-amber-500']"></i>
           </button>
 
           <!-- Notifications Bell & Drawer Trigger -->
