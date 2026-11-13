@@ -1380,39 +1380,6 @@ const onIconError = (e: Event) => {
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           </button>
 
-
-          <!-- Online Status Toggle Menu -->
-          <div class="relative">
-            <button
-              @click="toggleDropdown('status')"
-              type="button"
-              class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/60 hover:bg-slate-200 dark:hover:bg-slate-800 text-xs font-semibold border border-slate-200 dark:border-slate-700/60 transition-all cursor-pointer"
-            >
-              <span :class="[isOnline ? 'bg-emerald-500' : 'bg-slate-500', 'w-2 h-2 rounded-full shadow-xs']"></span>
-              <span class="hidden md:inline text-slate-700 dark:text-slate-300 text-[11px]">{{ currentLang === 'km' ? (isOnline ? 'អនឡាញ' : 'ក្រៅបណ្ដាញ') : (isOnline ? 'Online' : 'Offline') }}</span>
-            </button>
-
-            <div
-              v-show="isStatusOpen"
-              class="absolute right-0 mt-2 w-48 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-2 z-50 space-y-1"
-            >
-              <button
-                @click="setStatusMode(true)"
-                class="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-left font-medium"
-              >
-                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                <span>{{ currentLang === 'km' ? 'អនឡាញ (មានវត្តមាន)' : 'Online (Active)' }}</span>
-              </button>
-              <button
-                @click="setStatusMode(false)"
-                class="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-left font-medium"
-              >
-                <span class="w-2 h-2 rounded-full bg-slate-500"></span>
-                <span>{{ currentLang === 'km' ? 'ក្រៅបណ្តាញ (Offline)' : 'Offline (Inactive)' }}</span>
-              </button>
-            </div>
-          </div>
-
           <!-- Language Switcher Pill (Direct 1-Click Toggle: Khmer / English) -->
           <button
             type="button"
