@@ -24,8 +24,12 @@ const emit = defineEmits<{
 
 const isKhmer = computed(() => (i18n.currentLocale?.value || i18n.locale?.value || 'km') === 'km')
 
+const currentUser = computed(() => {
+  return props.user || {}
+})
+
 const effectiveRole = computed(() => {
-  return (props.user?.role || props.role || 'student').toLowerCase()
+  return (currentUser.value?.role || props.role || 'student').toLowerCase()
 })
 
 const roleBadgeLabel = computed(() => {
@@ -58,7 +62,7 @@ const handleManageProfile = () => {
 <template>
   <div
     v-if="isOpen"
-    class="absolute right-0 mt-2 w-72 sm:w-80 rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200/90 dark:border-slate-800 shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150 select-none text-slate-800 dark:text-slate-100 font-sans"
+    class="absolute right-0 top-full mt-2 w-72 sm:w-80 rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200/90 dark:border-slate-800 shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150 select-none text-slate-800 dark:text-slate-100 font-sans"
     @click.stop
   >
     <!-- ── 1. OFFICIAL USER IDENTITY PROFILE HEADER ── -->
@@ -67,7 +71,7 @@ const handleManageProfile = () => {
         <!-- Avatar with Active Indicator Ring -->
         <div class="relative shrink-0">
           <img
-            :src="user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=2563eb&color=fff`"
+            :src="currentUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name || 'User')}&background=2563eb&color=fff`"
             class="w-11 h-11 rounded-full object-cover border-2 border-white dark:border-slate-800 shadow-sm"
             alt="User Avatar"
           />
@@ -81,13 +85,13 @@ const handleManageProfile = () => {
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-1.5 flex-wrap">
             <h4 class="text-xs font-bold text-slate-900 dark:text-white truncate">
-              {{ user.name }}
+              {{ currentUser.name || 'User' }}
             </h4>
             <OfficialVerifiedBadge :role="effectiveRole" size="xs" />
           </div>
 
           <p class="text-[10px] text-slate-500 dark:text-slate-400 font-mono truncate mt-0.5">
-            {{ user.email || (user.student_code ? `ID: ${user.student_code}` : '') }}
+            {{ currentUser.email || (currentUser.student_code ? `ID: ${currentUser.student_code}` : '') }}
           </p>
 
           <div class="mt-1 flex items-center gap-1.5">

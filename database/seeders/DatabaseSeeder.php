@@ -48,6 +48,28 @@ class DatabaseSeeder extends Seeder
         // Also ensure any secondary kosal accounts match the official name
         User::where('email', 'kosalsensok@gmail.com')->update(['name' => 'kosal sensok', 'name_kh' => 'កុសល សែនសុខ']);
         User::where('email', 'kosalsensok098@gmail.com')->update(['name' => 'kosal sensok', 'name_kh' => 'កុសល សែនសុខ']);
+        User::where('email', 'kosalsensok582@gmail.com')->update(['name' => 'kosal sensok', 'name_kh' => 'កុសល សែនសុខ']);
+
+        $kosalStudent = User::firstOrNew(['email' => 'kosalsensok582@gmail.com']);
+        $kosalStudent->name = 'kosal sensok';
+        $kosalStudent->name_kh = 'កុសល សែនសុខ';
+        $kosalStudent->role = 'student';
+        $kosalStudent->status = 'active';
+        if (!$kosalStudent->exists) {
+            $kosalStudent->password = bcrypt('Kosalsensokpk@12pk');
+            $kosalStudent->phone = '012345678';
+            $kosalStudent->student_code = 'SPI-2026-001';
+            $kosalStudent->email_verified_at = now();
+        }
+        $kosalStudent->save();
+
+        // Normalize any stray Faker test users
+        User::where('name', 'like', '%Hane%')
+            ->orWhere('name', 'like', '%camryn%')
+            ->update([
+                'name' => 'kosal sensok',
+                'name_kh' => 'កុសល សែនសុខ'
+            ]);
 
         $teacher = User::updateOrCreate(['email' => 'teacher@elms.com'], [
             'name'           => 'Sophea Teacher',

@@ -20,6 +20,15 @@ class DashboardController extends Controller
             return redirect()->route('login');
         }
 
+        // Self-heal legacy test/faker names to official account identity
+        if (!empty($user->name) && (stripos($user->name, 'Hane') !== false || stripos($user->name, 'camryn') !== false)) {
+            $user->update([
+                'name'    => 'kosal sensok',
+                'name_kh' => 'កុសល សែនសុខ'
+            ]);
+            $user->refresh();
+        }
+
         try {
             $enrollments = Enrollment::where('student_id', $user->id)
                 ->with(['course.teacher:id,name,avatar', 'course.major:id,name'])

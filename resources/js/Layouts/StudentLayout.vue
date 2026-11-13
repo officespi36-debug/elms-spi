@@ -1564,6 +1564,7 @@ const onIconError = (e: Event) => {
             <button
               @click.stop="toggleDropdown('profile')"
               type="button"
+              :aria-expanded="isProfileOpen"
               class="flex items-center gap-2 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
               <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 text-white font-bold flex items-center justify-center text-xs shadow">
@@ -1572,7 +1573,7 @@ const onIconError = (e: Event) => {
               <span class="hidden lg:inline text-xs font-bold text-slate-800 dark:text-slate-200 truncate max-w-[200px]">
                 {{ studentDisplayName }}
               </span>
-              <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+              <svg :class="['w-3.5 h-3.5 text-slate-400 transition-transform duration-200', isProfileOpen ? 'rotate-180 text-indigo-500' : '']" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
 
             <!-- Profile Account Dropdown with Multi-Account Switcher -->
