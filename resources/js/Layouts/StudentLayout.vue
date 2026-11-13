@@ -1208,44 +1208,8 @@ const onIconError = (e: Event) => {
         </ul>
       </nav>
 
-      <!-- Sidebar Footer User Card & Log Out (🚪) -->
-      <div :class="[isSidebarCollapsed ? 'px-0 py-2' : 'p-3', 'mt-auto border-t border-slate-200/90 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950/70 shrink-0 space-y-2']">
-        <Link
-          href="/student/profile?tab=personal"
-          prefetch="hover"
-          :class="[
-            isSidebarCollapsed ? 'justify-center' : 'justify-between',
-            'flex items-center gap-2.5 p-2 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 hover:border-purple-500/50 shadow-xs transition-all duration-200 group'
-          ]"
-        >
-          <div class="flex items-center gap-2.5 min-w-0">
-            <div class="relative shrink-0">
-              <img
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
-                alt="Student Avatar"
-                loading="lazy"
-                decoding="async"
-                class="w-9 h-9 rounded-full object-cover border border-purple-500/40 shadow-sm"
-              />
-              <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-white dark:ring-slate-900"></span>
-            </div>
-
-            <div v-show="!isSidebarCollapsed" class="min-w-0 text-left">
-              <p class="font-bold text-slate-800 dark:text-white text-xs truncate group-hover:text-purple-400 transition-colors">
-                {{ user.name || 'Sok Pisey' }}
-              </p>
-              <p class="text-[10px] text-slate-400 truncate">
-                {{ currentLang === 'km' ? 'អត្តលេខសិស្ស:' : 'Student ID:' }} {{ user.student_id || 'STU2024001' }}
-              </p>
-            </div>
-          </div>
-
-          <div v-show="!isSidebarCollapsed" class="flex items-center gap-1 text-purple-400 group-hover:translate-x-0.5 transition-transform shrink-0">
-            <span class="text-[10px] font-semibold">{{ currentLang === 'km' ? 'មើលគណនី' : 'View Profile' }}</span>
-            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
-          </div>
-        </Link>
-
+      <!-- Sidebar Footer Log Out (🚪) -->
+      <div :class="[isSidebarCollapsed ? 'px-0 py-2' : 'p-3', 'mt-auto border-t border-slate-200/90 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950/70 shrink-0']">
         <!-- Log Out Button -->
         <button
           @click="logout"
