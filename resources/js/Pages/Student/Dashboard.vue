@@ -32,6 +32,7 @@ const props = defineProps<{
     badgeClass: string
     iconType: string
     iconColor: string
+    bgGradient?: string
     href: string
   }>
   enrollments?: any[]
@@ -649,56 +650,72 @@ const recentActivities = computed(() => [
                 v-for="c in filteredCourses"
                 :key="c.id"
                 :href="c.href"
-                class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 hover:border-purple-500/40 rounded-2xl p-4 shadow-sm dark:shadow-xl flex flex-col justify-between space-y-3 transition-all duration-200 hover:-translate-y-1 group"
+                class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 hover:border-purple-500/50 rounded-2xl p-4 shadow-xs dark:shadow-xl flex flex-col justify-between space-y-3 transition-all duration-200 hover:-translate-y-1 hover:shadow-md group"
               >
                 <!-- Illustration Box with Badge -->
-                <div class="relative w-full h-24 rounded-xl bg-slate-100 dark:bg-slate-950 flex items-center justify-center overflow-hidden">
-                  <div :class="['w-10 h-10 rounded-xl bg-gradient-to-tr', c.iconColor || 'from-purple-600 to-indigo-600', 'flex items-center justify-center text-white text-lg font-mono font-bold shadow-md']">
-                    <!-- Code </> SVG -->
-                    <svg v-if="c.iconType === 'code' || c.iconType?.includes('web')" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
+                <div :class="['relative w-full h-28 rounded-xl bg-gradient-to-br', c.bgGradient || 'from-indigo-50 to-purple-50 dark:from-slate-900 dark:to-slate-950', 'border border-slate-200/60 dark:border-slate-800/60 flex items-center justify-center overflow-hidden transition-colors']">
+                  <div :class="['w-12 h-12 rounded-2xl bg-gradient-to-tr', c.iconColor || 'from-purple-600 to-indigo-600', 'flex items-center justify-center text-white text-lg font-bold shadow-md group-hover:scale-110 transition-transform duration-300']">
+                    <!-- English / Literature SVG -->
+                    <svg v-if="c.iconType === 'english' || c.iconType?.includes('eng')" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+                    </svg>
+                    <!-- Agriculture / Plant / Agronomy SVG -->
+                    <svg v-else-if="c.iconType === 'agriculture' || c.iconType?.includes('agr') || c.iconType?.includes('plant')" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.516 0c.85.493 1.508 1.333 1.508 2.316V18" />
+                    </svg>
+                    <!-- Tourism / Hospitality SVG -->
+                    <svg v-else-if="c.iconType === 'tourism' || c.iconType?.includes('trm') || c.iconType?.includes('hotel')" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
+                    </svg>
+                    <!-- Social Work / Community SVG -->
+                    <svg v-else-if="c.iconType === 'social_work' || c.iconType?.includes('soc') || c.iconType?.includes('sw')" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
                     </svg>
                     <!-- Database SVG -->
-                    <svg v-else-if="c.iconType === 'db' || c.iconType?.includes('database')" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <svg v-else-if="c.iconType === 'db' || c.iconType?.includes('data')" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 5.625c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
                     </svg>
                     <!-- Python / Algorithm SVG -->
-                    <svg v-else-if="c.iconType === 'python' || c.iconType?.includes('program')" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" />
+                    <svg v-else-if="c.iconType === 'python' || c.iconType?.includes('program')" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
                     </svg>
-                    <!-- Design / Figma Palette SVG -->
-                    <svg v-else class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42" />
+                    <!-- Code </> SVG (Default) -->
+                    <svg v-else class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
                     </svg>
                   </div>
 
-                  <span :class="[c.badgeClass, 'absolute top-2 right-2 px-2 py-0.5 rounded-md text-[9px] font-bold border']">
+                  <!-- Status Pill Badge on Card -->
+                  <span :class="[c.badgeClass, 'absolute top-2.5 right-2.5 px-2 py-0.5 rounded-md text-[10px] font-bold border backdrop-blur-xs shadow-2xs']">
                     {{ c.status === 'in_progress' ? (currentLang === 'km' ? 'កំពុងសិក្សា' : 'In Progress') : c.status === 'completed' ? (currentLang === 'km' ? 'បានបញ្ចប់' : 'Completed') : (currentLang === 'km' ? 'មិនទាន់ចាប់ផ្ដើម' : 'Not Started') }}
                   </span>
                 </div>
 
                 <!-- Course Title & Instructor -->
                 <div class="space-y-1">
-                  <h4 class="text-xs font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors line-clamp-1">
+                  <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors line-clamp-2 min-h-[2.4rem] leading-snug" :title="c.title">
                     {{ c.title }}
                   </h4>
-                  <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ c.teacher }}</p>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                    <svg class="w-3 h-3 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
+                    <span class="truncate">{{ c.teacher }}</span>
+                  </p>
                 </div>
 
-                <!-- Progress -->
-                <div class="space-y-1 pt-1">
-                  <div class="w-full h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+                <!-- Progress Bar & Link -->
+                <div class="space-y-1.5 pt-1 border-t border-slate-100 dark:border-slate-800/80">
+                  <div class="w-full h-1.5 rounded-full bg-slate-200/90 dark:bg-slate-800 overflow-hidden">
                     <div
-                      :class="c.progress === 100 ? 'bg-emerald-500' : 'bg-purple-500'"
-                      class="h-full rounded-full transition-all"
+                      :class="c.progress === 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-purple-500 to-indigo-500'"
+                      class="h-full rounded-full transition-all duration-300"
                       :style="{ width: c.progress + '%' }"
                     ></div>
                   </div>
-                  <div class="flex items-center justify-between text-[10px]">
+                  <div class="flex items-center justify-between text-[11px]">
                     <span :class="c.progress === 100 ? 'text-emerald-600 dark:text-emerald-400' : 'text-purple-600 dark:text-purple-400'" class="font-bold font-mono">{{ c.progress }}%</span>
-                    <span class="text-slate-400 dark:text-slate-500 text-[9px] flex items-center gap-0.5">
+                    <span class="text-slate-400 dark:text-slate-500 text-[10px] font-medium flex items-center gap-0.5 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
                       <span>{{ currentLang === 'km' ? 'ទិដ្ឋភាពទូទៅ' : 'Overview' }}</span>
-                      <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </span>
                   </div>
                 </div>
@@ -1013,13 +1030,13 @@ const recentActivities = computed(() => [
                 <button
                   @click="toggleTask(item)"
                   type="button"
-                  class="flex items-center gap-2.5 text-left flex-1 cursor-pointer"
+                  class="flex items-center gap-3 text-left flex-1 cursor-pointer group"
                 >
-                  <span v-if="item.completed" class="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold">
-                    <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                  <span v-if="item.completed" class="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
                   </span>
-                  <span v-else class="w-4 h-4 rounded-full border border-slate-300 dark:border-slate-600 flex items-center justify-center text-[9px]"></span>
-                  <span :class="[item.completed ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-200 font-medium']">
+                  <span v-else class="w-5 h-5 rounded-full border-2 border-slate-300 dark:border-slate-600 group-hover:border-purple-500 transition-colors flex items-center justify-center shrink-0"></span>
+                  <span :class="[item.completed ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-200 font-medium']" class="text-xs">
                     {{ currentLang === 'km' ? (item.titleKm || item.titleEn) : (item.titleEn || item.titleKm) }}
                   </span>
                 </button>
