@@ -509,7 +509,7 @@ const quickActions = [
   { name: 'សួរសំណួរ AI Assistant 24/7', href: '/student/ai-tutor/chat', iconUrl: '/images/nav/ai.svg' },
   { name: 'អនុវត្ត Practice Lab (5 Majors)', href: '/student/practice-lab', iconUrl: '/images/nav/sub/import-export.svg' },
   { name: 'ទាញយក Certificate', href: '/student/certificates/my-certificates', iconUrl: '/images/nav/certificate.svg' },
-  { name: 'បង់ប្រាក់តាម ABA KHQR', href: '/student/payments/pending', iconUrl: '/images/nav/payment.svg' },
+  { name: 'ថ្លៃវគ្គសិក្សា & វិក្កយបត្រ (Course Fees)', href: '/student/payments/my-payments', iconUrl: '/images/nav/payment.svg' },
 ]
 
 interface NotificationItem {
@@ -657,7 +657,7 @@ const searchableLinks = computed(() => [
   { name: 'Practice Lab (IT, Tourism, English, Agronomy, Social Work)', category: 'Practice Lab', href: '/student/practice-lab', iconUrl: '/images/nav/sub/import-export.svg' },
   { name: 'Progress Tracking & Badges', category: 'Progress', href: '/student/progress/overview', iconUrl: '/images/nav/progress.svg' },
   { name: 'Certificates (View, Download, QR Verify)', category: 'Certificates', href: '/student/certificates/my-certificates', iconUrl: '/images/nav/certificate.svg' },
-  { name: 'Payment & ABA (Fees, KHQR, Receipts)', category: 'Payments', href: '/student/payments/my-payments', iconUrl: '/images/nav/payment.svg' },
+  { name: 'Payment & Billing (Fees, Receipts)', category: 'Payments', href: '/student/payments/my-payments', iconUrl: '/images/nav/payment.svg' },
   { name: 'Notifications & Alerts', category: 'Notifications', href: '/student/notifications/announcements', iconUrl: '/images/nav/notification.svg' },
   { name: 'Calendar & Schedule (Quiz dates, Deadlines)', category: 'Calendar', href: '/student/calendar/live-class', iconUrl: '/images/actions/announcement.svg' },
   { name: 'Profile Settings & Academic Info', category: 'Profile', href: '/student/profile?tab=personal', iconUrl: '/images/nav/sub/students.svg' },
@@ -815,11 +815,8 @@ const studentNav: NavItem[] = [
     khName: 'ការទូទាត់ & វិក្កយបត្រ',
     iconUrl: '/images/nav/payment.svg',
     icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
-    badge: { text: 'ABA', colorClass: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' },
     children: [
       { name: 'Course Fees & Invoices', khName: 'ថ្លៃវគ្គសិក្សា & វិក្កយបត្រ', href: '/student/payments/my-payments', iconUrl: '/images/nav/payment.svg' },
-      { name: 'Pay via ABA (KHR)', khName: 'បង់ប្រាក់តាម ABA (KHR)', href: '/student/payments/pending', iconUrl: '/images/actions/payment.svg' },
-      { name: 'Payment Methods', khName: 'វិធីសាស្ត្រទូទាត់ប្រាក់', href: '/student/payments/methods', iconUrl: '/images/actions/payment.svg' },
       { name: 'Transaction History', khName: 'ប្រវត្តិប្រតិបត្តិការ', href: '/student/payments/transactions', iconUrl: '/images/nav/sub/history.svg' },
       { name: 'Payment Settings', khName: 'ការកំណត់ការទូទាត់', href: '/student/payments/settings', iconUrl: '/images/nav/sub/roles.svg' },
     ]
@@ -1611,7 +1608,7 @@ const onIconError = (e: Event) => {
                   <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
                   </svg>
-                  <span>{{ currentLang === 'km' ? 'ការទូទាត់ & ABA' : 'Payment & ABA' }}</span>
+                  <span>{{ currentLang === 'km' ? 'ការទូទាត់ & វិក្កយបត្រ' : 'Payment & Billing' }}</span>
                 </Link>
               </template>
             </ProfileAccountDropdown>
