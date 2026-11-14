@@ -869,6 +869,19 @@ const isChildActive = (children?: NavSubItem[]) => {
   return children.some(child => isSubActive(child.href))
 }
 
+const isItemActive = (item: NavItem) => {
+  if (item.href) {
+    if (item.href === '/student/dashboard') {
+      return page.url === '/student/dashboard' || page.url === '/student'
+    }
+    return page.url.startsWith(item.href)
+  }
+  if (item.children) {
+    return isChildActive(item.children)
+  }
+  return false
+}
+
 const toggleModule = (key: string) => {
   const isCurrentOpen = !!expandedModules.value[key]
   // Only one submenu expanded at a time: reset all
@@ -927,14 +940,14 @@ const onIconError = (e: Event) => {
   <GlobalToast />
   <GlobalLoadingOverlay />
   <div class="min-h-screen bg-[#f8fafd] dark:bg-[#131314] text-[#1f1f1f] dark:text-[#e3e3e3] selection:bg-[#0b57d0]/20 transition-colors duration-200 notranslate" translate="no">
-    <!-- Desktop Sidebar (Fixed Positioning exactly like Admin & Teacher layouts) -->
-    <aside :class="[isSidebarCollapsed ? 'w-20 overflow-visible' : 'w-72', 'fixed inset-y-0 left-0 z-50 hidden flex-col bg-white/95 dark:bg-[#131314] backdrop-blur-xl border-r border-[#dfe3e7] dark:border-[#28292a] lg:flex transition-all duration-300 shadow-xs dark:shadow-none']">
+    <!-- Desktop Sidebar (Fixed 300px, 48px items, 36px icon container, 20px Lucide icons, smooth grid accordion, gradient user card) -->
+    <aside :class="[isSidebarCollapsed ? 'w-20 overflow-visible' : 'w-[300px]', 'fixed inset-y-0 left-0 z-50 hidden flex-col bg-white/95 dark:bg-[#131314] backdrop-blur-xl border-r border-[#dfe3e7] dark:border-[#28292a] lg:flex transition-all duration-300 shadow-xs dark:shadow-none select-none']">
       
       <!-- Sidebar Header & Logo -->
       <div
         :class="[
           isSidebarCollapsed ? 'justify-center px-2' : 'justify-between px-4',
-          'relative flex h-16 shrink-0 items-center border-b border-[#dfe3e7] dark:border-[#28292a] transition-all duration-300'
+          'relative flex h-20 shrink-0 items-center border-b border-[#dfe3e7] dark:border-[#28292a] transition-all duration-300'
         ]"
       >
         <!-- Logo & Title Container -->
@@ -948,25 +961,25 @@ const onIconError = (e: Event) => {
           <img
             :src="logoUrl"
             alt="E-LMS Logo"
-            class="w-9 h-9 min-w-[36px] min-h-[36px] max-w-[36px] max-h-[36px] aspect-square rounded-full object-cover shrink-0 hover:scale-105 transition-transform"
+            class="w-11 h-11 min-w-[44px] min-h-[44px] max-w-[44px] max-h-[44px] aspect-square rounded-full object-cover shrink-0 hover:scale-105 transition-transform"
           />
         </button>
 
         <Link
           v-else
           href="/student/dashboard"
-          class="flex items-center gap-3 min-w-0 shrink-0 transition-all focus:outline-none"
+          class="flex items-center gap-3.5 min-w-0 shrink-0 transition-all focus:outline-none group"
         >
           <img
             :src="logoUrl"
             alt="E-LMS Logo"
-            class="w-9 h-9 min-w-[36px] min-h-[36px] max-w-[36px] max-h-[36px] aspect-square rounded-full object-cover shrink-0"
+            class="w-11 h-11 min-w-[44px] min-h-[44px] max-w-[44px] max-h-[44px] aspect-square rounded-full object-cover shrink-0 group-hover:scale-105 transition-transform"
           />
           <div class="transition-opacity duration-200 min-w-0">
-            <h1 class="text-sm font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#0b57d0] via-indigo-600 to-purple-600 tracking-tight whitespace-nowrap">
+            <h1 class="text-[20px] font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#6366f1] via-indigo-600 to-purple-600 tracking-tight whitespace-nowrap leading-tight">
               {{ currentLang === 'km' ? 'E-LMS និស្សិត' : 'E-LMS Student' }}
             </h1>
-            <p class="text-[10px] text-[#747775] dark:text-slate-400 font-medium tracking-wide uppercase whitespace-nowrap">{{ currentLang === 'km' ? 'ផ្ទាំងសិស្ស' : 'Student Panel' }}</p>
+            <p class="text-[11px] text-[#64748b] dark:text-slate-400 font-semibold tracking-wider uppercase whitespace-nowrap mt-0.5">{{ currentLang === 'km' ? 'ផ្ទាំងសិស្ស' : 'STUDENT PANEL' }}</p>
           </div>
         </Link>
 
@@ -976,7 +989,7 @@ const onIconError = (e: Event) => {
           @click="toggleSidebarCollapse"
           type="button"
           :title="currentLang === 'km' ? 'បង្រួមម៉ឺនុយ' : 'Collapse Sidebar'"
-          class="p-2 rounded-2xl border border-[#dfe3e7] dark:border-[#28292a] bg-[#f0f4f9] dark:bg-[#1e1f20] text-[#747775] hover:text-[#1f1f1f] dark:hover:text-white shrink-0 cursor-pointer transition-colors focus:outline-none shadow-2xs"
+          class="w-9 h-9 rounded-xl border border-[#dfe3e7] dark:border-[#28292a] bg-[#f0f4f9] dark:bg-[#1e1f20] text-[#64748b] hover:text-[#1f1f1f] dark:hover:text-white shrink-0 cursor-pointer transition-all hover:bg-purple-50 dark:hover:bg-purple-950/40 flex items-center justify-center focus:outline-none shadow-2xs"
         >
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
@@ -987,83 +1000,60 @@ const onIconError = (e: Event) => {
       <!-- Navigation Tree (13 Core Modules) -->
       <nav
         :class="[
-          isSidebarCollapsed ? 'px-0 overflow-visible' : 'px-3 custom-scrollbar overflow-y-auto',
-          'flex flex-1 flex-col py-4 space-y-1'
+          isSidebarCollapsed ? 'px-0 overflow-visible' : 'px-[14px] custom-scrollbar overflow-y-auto',
+          'flex flex-1 flex-col py-4'
         ]"
       >
-        <ul role="list" class="space-y-1 w-full">
+        <ul role="list" class="w-full">
           <li
             v-for="item in studentNav"
             :key="item.key"
-            :class="isSidebarCollapsed ? 'relative group/flyout flex justify-center w-full my-0.5' : 'relative my-0.5'"
+            :class="isSidebarCollapsed ? 'relative group/flyout flex justify-center w-full my-1' : 'relative my-0.5'"
           >
-            <!-- Action Item (e.g. Log Out) -->
-            <button
-              v-if="item.isAction"
-              @click="item.onClick ? item.onClick() : logout()"
-              type="button"
-              :class="[
-                'text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 hover:bg-red-500/10 border border-transparent font-medium',
-                isSidebarCollapsed ? 'justify-center w-11 h-11 p-0 rounded-2xl mx-auto' : 'px-3 w-full justify-between py-2 rounded-xl',
-                'group flex items-center text-xs transition-all duration-200 cursor-pointer'
-              ]"
-            >
-              <div :class="[isSidebarCollapsed ? 'justify-center w-full' : '', 'flex items-center gap-x-2.5 truncate']">
-                <div class="relative flex items-center justify-center shrink-0">
-                  <svg 
-                    :class="[isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4', 'shrink-0 text-red-500 transition-transform duration-200 group-hover:scale-110']"
-                    fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-                  >
-                    <path stroke-linecap="round" stroke-linejoin="round" :d="item.icon || 'M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1'" />
-                  </svg>
-                </div>
-                <span v-show="!isSidebarCollapsed" class="truncate font-semibold">
-                  {{ currentLang === 'km' ? item.khName : item.name }}
-                </span>
-              </div>
-            </button>
-
             <!-- Direct Link (No Children) -->
-            <template v-else-if="!item.children || item.children.length === 0">
+            <template v-if="!item.children || item.children.length === 0">
               <Link
                 :href="item.href!"
                 prefetch="hover"
                 :title="currentLang === 'km' ? item.khName : item.name"
                 :class="[
-                  (item.href === '/student/dashboard' ? ($page.url === '/student/dashboard' || $page.url === '/student') : $page.url.startsWith(item.href!))
-                    ? 'bg-purple-50 text-purple-700 font-bold border border-purple-200 shadow-2xs dark:bg-purple-600/20 dark:text-purple-300 dark:border-purple-500/40' 
-                    : 'text-[#64748b] hover:text-[#1f1f1f] hover:bg-[#f0f4f9] dark:text-slate-400 dark:hover:text-[#F1F5F9] dark:hover:bg-slate-800/70 border border-transparent font-medium',
-                  isSidebarCollapsed ? 'justify-center w-11 h-11 p-0 rounded-2xl mx-auto' : 'px-3 w-full justify-between py-2 rounded-xl',
-                  'group flex items-center text-xs transition-all duration-200'
+                  'nav-item group w-full',
+                  isItemActive(item) ? 'active' : '',
+                  isSidebarCollapsed ? '!w-12 !h-12 !p-0 !justify-center mx-auto' : ''
                 ]"
               >
-                <div :class="[isSidebarCollapsed ? 'justify-center w-full' : '', 'flex items-center gap-x-2.5 truncate']">
-                  <div class="relative flex items-center justify-center shrink-0">
-                    <!-- Lucide Dashboard (LayoutDashboard) -->
-                    <svg v-if="item.key === 'dashboard'" :class="[isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4', ($page.url === '/student/dashboard' || $page.url === '/student') ? 'text-purple-600 dark:text-purple-400' : 'text-[#64748b] dark:text-slate-400 group-hover:text-[#1f1f1f] dark:group-hover:text-slate-200', 'shrink-0 transition-colors']" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>
-                    </svg>
-                    <!-- Lucide Calendar (Calendar Grid) -->
-                    <svg v-else-if="item.key === 'calendar'" :class="[isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4', $page.url.startsWith('/student/calendar') ? 'text-purple-600 dark:text-purple-400' : 'text-[#64748b] dark:text-slate-400 group-hover:text-[#1f1f1f] dark:group-hover:text-slate-200', 'shrink-0 transition-colors']" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/>
-                    </svg>
-                    <!-- Lucide Profile & Settings (User) -->
-                    <svg v-else-if="item.key === 'profile'" :class="[isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4', $page.url.startsWith('/student/profile') ? 'text-purple-600 dark:text-purple-400' : 'text-[#64748b] dark:text-slate-400 group-hover:text-[#1f1f1f] dark:group-hover:text-slate-200', 'shrink-0 transition-colors']" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-                    </svg>
-                    <!-- Fallback SVG -->
-                    <svg v-else :class="[isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4', 'shrink-0 text-[#64748b] dark:text-slate-400']" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                  </div>
-                  <span v-show="!isSidebarCollapsed" class="truncate font-medium">
-                    {{ currentLang === 'km' ? item.khName : item.name }}
-                  </span>
+                <!-- Active left indicator bar for desktop expanded -->
+                <span
+                  v-if="isItemActive(item) && !isSidebarCollapsed"
+                  class="absolute -left-[14px] top-2.5 bottom-2.5 w-1 rounded-r-md bg-[#7c3aed] dark:bg-[#a78bfa] shadow-sm shadow-purple-500/50"
+                ></span>
+
+                <div class="nav-icon">
+                  <!-- Lucide Dashboard (LayoutDashboard) -->
+                  <svg v-if="item.key === 'dashboard'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>
+                  </svg>
+                  <!-- Lucide Calendar (Calendar Grid) -->
+                  <svg v-else-if="item.key === 'calendar'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/>
+                  </svg>
+                  <!-- Lucide Profile & Settings (User) -->
+                  <svg v-else-if="item.key === 'profile'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                  </svg>
+                  <!-- Fallback SVG -->
+                  <svg v-else fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
                 </div>
+
+                <span v-show="!isSidebarCollapsed" class="truncate flex-1 font-medium">
+                  {{ currentLang === 'km' ? item.khName : item.name }}
+                </span>
 
                 <span
                   v-if="!isSidebarCollapsed && item.badge"
-                  :class="['px-1.5 py-0.5 rounded text-[10px] font-bold border ml-1 shrink-0', item.badge.colorClass]"
+                  :class="['nav-badge shrink-0 ml-auto', item.badge.colorClass]"
                 >
                   {{ item.badge.text }}
                 </span>
@@ -1079,70 +1069,75 @@ const onIconError = (e: Event) => {
             </template>
 
             <!-- Collapsible Module with Submenu -->
-            <div v-else class="space-y-0.5 w-full flex flex-col items-center">
+            <div v-else class="w-full">
               <button
                 @click="toggleModule(item.key!)"
                 type="button"
                 :title="currentLang === 'km' ? item.khName : item.name"
                 :class="[
-                  isChildActive(item.children) 
-                    ? 'bg-purple-50 text-purple-700 border border-purple-200 font-semibold dark:bg-purple-600/20 dark:text-purple-300 dark:border-purple-500/30' 
-                    : 'text-[#64748b] hover:text-[#1f1f1f] hover:bg-[#f0f4f9] dark:text-slate-400 dark:hover:text-[#F1F5F9] dark:hover:bg-slate-800/60 border border-transparent',
-                  isSidebarCollapsed ? 'justify-center w-11 h-11 p-0 rounded-2xl mx-auto' : 'px-3 w-full justify-between py-2 rounded-xl',
-                  'group flex items-center text-xs font-medium transition-all duration-200 cursor-pointer'
+                  'nav-item group w-full cursor-pointer justify-between',
+                  isItemActive(item) ? 'active' : '',
+                  isSidebarCollapsed ? '!w-12 !h-12 !p-0 !justify-center mx-auto' : ''
                 ]"
               >
-                <div :class="[isSidebarCollapsed ? 'justify-center w-full' : '', 'flex items-center gap-x-2.5 truncate']">
-                  <div class="relative flex items-center justify-center shrink-0">
+                <!-- Active left indicator bar for desktop expanded -->
+                <span
+                  v-if="isItemActive(item) && !isSidebarCollapsed"
+                  class="absolute -left-[14px] top-2.5 bottom-2.5 w-1 rounded-r-md bg-[#7c3aed] dark:bg-[#a78bfa] shadow-sm shadow-purple-500/50"
+                ></span>
+
+                <div class="flex items-center gap-[14px] truncate min-w-0">
+                  <div class="nav-icon">
                     <!-- Lucide Courses (BookOpen) -->
-                    <svg v-if="item.key === 'courses'" :class="[isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4', isChildActive(item.children) ? 'text-purple-600 dark:text-purple-400' : 'text-[#64748b] dark:text-slate-400 group-hover:text-[#1f1f1f] dark:group-hover:text-slate-200', 'shrink-0 transition-colors']" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg v-if="item.key === 'courses'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/>
                     </svg>
                     <!-- Lucide AI Learning (Sparkles) -->
-                    <svg v-else-if="item.key === 'aiPath'" :class="[isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4', isChildActive(item.children) ? 'text-purple-600 dark:text-purple-400' : 'text-[#64748b] dark:text-slate-400 group-hover:text-[#1f1f1f] dark:group-hover:text-slate-200', 'shrink-0 transition-colors']" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg v-else-if="item.key === 'aiPath'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                       <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
                     </svg>
                     <!-- Lucide Progress (TrendingUp) -->
-                    <svg v-else-if="item.key === 'progress'" :class="[isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4', isChildActive(item.children) ? 'text-purple-600 dark:text-purple-400' : 'text-[#64748b] dark:text-slate-400 group-hover:text-[#1f1f1f] dark:group-hover:text-slate-200', 'shrink-0 transition-colors']" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg v-else-if="item.key === 'progress'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                       <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>
                     </svg>
                     <!-- Lucide Quiz & Assessment (CheckSquare) -->
-                    <svg v-else-if="item.key === 'quizzes'" :class="[isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4', isChildActive(item.children) ? 'text-purple-600 dark:text-purple-400' : 'text-[#64748b] dark:text-slate-400 group-hover:text-[#1f1f1f] dark:group-hover:text-slate-200', 'shrink-0 transition-colors']" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg v-else-if="item.key === 'quizzes'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                       <rect width="18" height="18" x="3" y="3" rx="2"/><path d="m9 12 2 2 4-4"/>
                     </svg>
                     <!-- Lucide Certificates (Award) -->
-                    <svg v-else-if="item.key === 'certificates'" :class="[isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4', isChildActive(item.children) ? 'text-purple-600 dark:text-purple-400' : 'text-[#64748b] dark:text-slate-400 group-hover:text-[#1f1f1f] dark:group-hover:text-slate-200', 'shrink-0 transition-colors']" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg v-else-if="item.key === 'certificates'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                       <circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
                     </svg>
                     <!-- Lucide Payment & Billing (CreditCard) -->
-                    <svg v-else-if="item.key === 'payments'" :class="[isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4', isChildActive(item.children) ? 'text-purple-600 dark:text-purple-400' : 'text-[#64748b] dark:text-slate-400 group-hover:text-[#1f1f1f] dark:group-hover:text-slate-200', 'shrink-0 transition-colors']" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg v-else-if="item.key === 'payments'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                       <rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/>
                     </svg>
                     <!-- Lucide Notifications (Bell - NEVER Calendar or Megaphone) -->
-                    <svg v-else-if="item.key === 'notificationsModule'" :class="[isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4', isChildActive(item.children) ? 'text-purple-600 dark:text-purple-400' : 'text-[#64748b] dark:text-slate-400 group-hover:text-[#1f1f1f] dark:group-hover:text-slate-200', 'shrink-0 transition-colors']" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg v-else-if="item.key === 'notificationsModule'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
                     </svg>
                     <!-- Fallback SVG -->
-                    <svg v-else :class="[isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4', 'shrink-0 text-[#64748b] dark:text-slate-400']" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <svg v-else fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
                   </div>
+
                   <span v-show="!isSidebarCollapsed" class="truncate font-medium">
                     {{ currentLang === 'km' ? item.khName : item.name }}
                   </span>
                 </div>
 
-                <div v-show="!isSidebarCollapsed" class="flex items-center gap-1">
+                <div v-show="!isSidebarCollapsed" class="flex items-center gap-1.5 ml-auto shrink-0">
                   <span
                     v-if="item.badge"
-                    :class="['px-1.5 py-0.5 rounded text-[9px] font-bold border', item.badge.colorClass]"
+                    :class="['nav-badge shrink-0', item.badge.colorClass]"
                   >
                     {{ item.badge.text }}
                   </span>
                   <svg
                     :class="[
-                      expandedModules[item.key!] ? 'rotate-180 text-purple-600 dark:text-purple-400' : 'text-[#64748b] dark:text-slate-400',
-                      'w-3.5 h-3.5 transition-transform duration-200 shrink-0 ml-1'
+                      'nav-chevron w-4 h-4 shrink-0',
+                      expandedModules[item.key!] ? 'open text-[#7c3aed] dark:text-[#a78bfa]' : 'text-[#94a3b8] dark:text-slate-500'
                     ]"
                     fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
                   >
@@ -1151,29 +1146,21 @@ const onIconError = (e: Event) => {
                 </div>
               </button>
 
-              <!-- Submenu Items Tree -->
+              <!-- Submenu Items Tree (Smooth grid-template-rows & Dot indicators, no emojis) -->
               <div
-                v-show="!isSidebarCollapsed && expandedModules[item.key!]"
-                class="relative ml-4 pl-3.5 space-y-0.5 my-1 transition-all duration-300 border-l border-[#dfe3e7] dark:border-purple-500/30 w-[calc(100%-18px)]"
+                v-show="!isSidebarCollapsed"
+                :class="['submenu-wrapper', expandedModules[item.key!] ? 'open' : '']"
               >
-                <div
-                  v-for="sub in item.children"
-                  :key="sub.href"
-                  class="relative"
-                >
+                <div class="space-y-1 py-1">
                   <Link
+                    v-for="sub in item.children"
+                    :key="sub.href"
                     :href="sub.href"
                     prefetch="hover"
                     :title="currentLang === 'km' ? sub.khName : sub.name"
-                    :class="[
-                      isSubActive(sub.href)
-                        ? 'bg-purple-50 text-purple-700 font-bold border border-purple-200 dark:bg-purple-600/20 dark:text-purple-300 dark:border-purple-500/30'
-                        : 'text-[#64748b] hover:text-[#1f1f1f] hover:bg-[#f0f4f9] dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800/50 border border-transparent font-medium',
-                      'flex items-center gap-x-2 rounded-lg px-2 py-1.5 text-[11px] transition-all duration-200 truncate'
-                    ]"
+                    :class="['submenu-link', isSubActive(sub.href) ? 'active' : '']"
                   >
-                    <img v-if="sub.iconUrl" :src="sub.iconUrl" :alt="sub.name" class="w-3.5 h-3.5 object-contain shrink-0" @error="onIconError" />
-                    <span v-else :class="[isSubActive(sub.href) ? 'bg-purple-600 dark:bg-purple-400' : 'bg-slate-400 dark:bg-slate-600', 'w-1.5 h-1.5 rounded-full shrink-0']"></span>
+                    <span class="sub-dot"></span>
                     <span class="truncate">{{ currentLang === 'km' ? sub.khName : sub.name }}</span>
                   </Link>
                 </div>
@@ -1190,9 +1177,11 @@ const onIconError = (e: Event) => {
 
                 <div class="relative z-20 flex items-center justify-between px-2 py-1.5 mb-2 border-b border-[#dfe3e7] dark:border-[#28292a] pb-2">
                   <div class="flex items-center gap-2 min-w-0">
-                    <img v-if="item.iconUrl" :src="item.iconUrl" :alt="item.name" class="w-4 h-4 object-contain shrink-0" />
                     <span class="text-xs font-bold text-[#1f1f1f] dark:text-[#e3e3e3] truncate">{{ currentLang === 'km' ? item.khName : item.name }}</span>
                   </div>
+                  <span v-if="item.badge" :class="['nav-badge text-[10px] font-bold px-1.5 py-0.5 rounded-full border', item.badge.colorClass]">
+                    {{ item.badge.text }}
+                  </span>
                 </div>
 
                 <div class="relative z-20 space-y-1 max-h-[70vh] overflow-y-auto custom-scrollbar pr-1">
@@ -1202,13 +1191,11 @@ const onIconError = (e: Event) => {
                     :href="sub.href"
                     prefetch="hover"
                     :class="[
-                      isSubActive(sub.href)
-                        ? 'bg-[#d3e3fd] text-[#041e49] font-bold border border-[#0b57d0]/20 dark:bg-purple-600/20 dark:text-purple-300 dark:border-purple-500/30'
-                        : 'text-[#444746] hover:text-[#1f1f1f] hover:bg-[#f0f4f9] dark:text-slate-400 dark:hover:text-[#e3e3e3] dark:hover:bg-[#282a2c] border border-transparent',
-                      'flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs transition-all duration-150 truncate'
+                      'submenu-link text-xs h-9 px-2 rounded-lg',
+                      isSubActive(sub.href) ? 'active' : ''
                     ]"
                   >
-                    <img v-if="sub.iconUrl" :src="sub.iconUrl" :alt="sub.name" loading="lazy" decoding="async" class="w-3.5 h-3.5 object-contain shrink-0" />
+                    <span class="sub-dot"></span>
                     <span class="truncate">{{ currentLang === 'km' ? sub.khName : sub.name }}</span>
                   </Link>
                 </div>
@@ -1218,27 +1205,70 @@ const onIconError = (e: Event) => {
         </ul>
       </nav>
 
-      <!-- Sidebar Footer Log Out (🚪) -->
-      <div :class="[isSidebarCollapsed ? 'px-0 py-2.5 flex justify-center' : 'p-3', 'mt-auto border-t border-[#dfe3e7] dark:border-[#28292a] bg-[#f8fafd] dark:bg-[#131314] shrink-0 relative group/logout']">
+      <!-- Sidebar Footer (Gradient User Card & Log Out) -->
+      <div :class="[isSidebarCollapsed ? 'px-0 py-3 flex flex-col items-center gap-2' : 'p-3.5 space-y-2.5', 'mt-auto border-t border-[#dfe3e7] dark:border-[#28292a] bg-[#f8fafd] dark:bg-[#131314] shrink-0 relative']">
+        
+        <!-- Gradient User Profile Card (Expanded Mode) -->
+        <div
+          v-show="!isSidebarCollapsed"
+          class="sidebar-user-card group transition-transform duration-200 hover:scale-[1.02]"
+        >
+          <div class="w-10 h-10 rounded-full bg-white/20 border border-white/35 flex items-center justify-center font-bold text-base shrink-0 uppercase shadow-inner text-white">
+            {{ studentDisplayName ? studentDisplayName.charAt(0) : 'K' }}
+          </div>
+          <div class="min-w-0 flex-1">
+            <strong class="font-bold text-[14px] leading-tight truncate block capitalize text-white">{{ studentDisplayName }}</strong>
+            <small class="text-white/85 truncate font-medium mt-0.5">
+              {{ currentLang === 'km' ? '10 វគ្គ · 88% ពិន្ទុ' : '10 Courses · 88% Avg' }}
+            </small>
+          </div>
+          <Link
+            href="/student/profile?tab=personal"
+            :title="currentLang === 'km' ? 'គណនី & ការកំណត់' : 'Profile & Settings'"
+            class="p-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-white transition-colors shrink-0"
+          >
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
+        </div>
+
+        <!-- Collapsed User Avatar -->
+        <div v-if="isSidebarCollapsed" class="relative group/userflyout flex justify-center">
+          <Link
+            href="/student/profile?tab=personal"
+            class="w-10 h-10 rounded-full bg-gradient-to-br from-[#6366f1] to-[#7c3aed] text-white flex items-center justify-center font-bold text-sm shadow-md hover:scale-105 transition-transform"
+          >
+            {{ studentDisplayName ? studentDisplayName.charAt(0) : 'K' }}
+          </Link>
+          <div class="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-1.5 rounded-xl bg-slate-900/95 dark:bg-[#1e1f20] text-white text-xs font-semibold whitespace-nowrap shadow-xl border border-slate-700/60 opacity-0 pointer-events-none group-hover/userflyout:opacity-100 transition-all duration-150 z-50">
+            <div class="font-bold capitalize">{{ studentDisplayName }}</div>
+            <div class="text-[11px] text-slate-300">{{ currentLang === 'km' ? '10 វគ្គ · 88% ពិន្ទុ' : '10 Courses · 88% Avg' }}</div>
+          </div>
+        </div>
+
         <!-- Log Out Button -->
         <button
           @click="logout"
           type="button"
+          :title="currentLang === 'km' ? 'ចាកចេញ' : 'Log Out'"
           :class="[
-            isSidebarCollapsed ? 'justify-center w-11 h-11 p-0 rounded-2xl mx-auto' : 'px-3 w-full justify-start gap-2.5 py-2 rounded-xl',
-            'flex items-center text-xs font-semibold text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer'
+            isSidebarCollapsed ? 'justify-center w-11 h-11 p-0 rounded-2xl mx-auto' : 'px-3.5 w-full justify-start gap-3 h-11 rounded-[14px]',
+            'flex items-center text-[14.5px] font-semibold text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer group/logout'
           ]"
         >
-          <svg class="w-4.5 h-4.5 shrink-0 text-rose-500 transition-transform group-hover/logout:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
+          <div class="w-8 h-8 rounded-lg bg-rose-50 dark:bg-rose-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4.5 h-4.5 text-rose-500 transition-transform group-hover/logout:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+          </div>
           <span v-show="!isSidebarCollapsed">{{ currentLang === 'km' ? 'ចាកចេញ' : 'Log Out' }}</span>
         </button>
 
         <!-- Tooltip for Logout when collapsed -->
         <div
           v-if="isSidebarCollapsed"
-          class="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-1.5 rounded-xl bg-slate-900/95 dark:bg-[#1e1f20] text-rose-300 text-xs font-semibold whitespace-nowrap shadow-xl border border-rose-500/30 opacity-0 pointer-events-none group-hover/logout:opacity-100 transition-all duration-150 z-50 flex items-center gap-1.5"
+          class="absolute left-full bottom-3 ml-3 px-3 py-1.5 rounded-xl bg-slate-900/95 dark:bg-[#1e1f20] text-rose-300 text-xs font-semibold whitespace-nowrap shadow-xl border border-rose-500/30 opacity-0 pointer-events-none group-hover/logout:opacity-100 transition-all duration-150 z-50 flex items-center gap-1.5"
         >
           <span>{{ currentLang === 'km' ? 'ចាកចេញ' : 'Log Out' }}</span>
         </div>
@@ -1255,134 +1285,219 @@ const onIconError = (e: Event) => {
     <aside
       :class="[
         sidebarOpen ? 'translate-x-0' : '-translate-x-full',
-        'fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-[#131314] border-r border-slate-200 dark:border-[#28292a] flex flex-col lg:hidden transition-transform duration-300 ease-in-out shadow-2xl'
+        'fixed inset-y-0 left-0 z-50 w-[300px] bg-white dark:bg-[#131314] border-r border-slate-200 dark:border-[#28292a] flex flex-col lg:hidden transition-transform duration-300 ease-in-out shadow-2xl select-none'
       ]"
     >
-      <div class="h-16 px-4 flex items-center justify-between border-b border-slate-200 dark:border-[#28292a] shrink-0">
-        <div class="flex items-center gap-3">
-          <img :src="logoUrl" alt="E-LMS Logo" loading="lazy" decoding="async" class="w-8 h-8 rounded-full object-cover" />
-          <span class="font-bold text-sm text-slate-900 dark:text-white">E-LMS Student</span>
-        </div>
-        <button @click="sidebarOpen = false" class="p-1 text-slate-400 hover:text-slate-900 dark:hover:text-white">
-          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      <!-- Mobile Sidebar Header & Logo -->
+      <div class="h-20 px-4 flex items-center justify-between border-b border-[#dfe3e7] dark:border-[#28292a] shrink-0">
+        <Link
+          href="/student/dashboard"
+          @click="sidebarOpen = false"
+          class="flex items-center gap-3.5 min-w-0 shrink-0 focus:outline-none"
+        >
+          <img :src="logoUrl" alt="E-LMS Logo" loading="lazy" decoding="async" class="w-11 h-11 min-w-[44px] min-h-[44px] max-w-[44px] max-h-[44px] rounded-full object-cover shrink-0" />
+          <div class="min-w-0">
+            <h1 class="text-[20px] font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#6366f1] via-indigo-600 to-purple-600 tracking-tight whitespace-nowrap leading-tight">
+              {{ currentLang === 'km' ? 'E-LMS និស្សិត' : 'E-LMS Student' }}
+            </h1>
+            <p class="text-[11px] text-[#64748b] dark:text-slate-400 font-semibold tracking-wider uppercase whitespace-nowrap mt-0.5">{{ currentLang === 'km' ? 'ផ្ទាំងសិស្ស' : 'STUDENT PANEL' }}</p>
+          </div>
+        </Link>
+        <button
+          @click="sidebarOpen = false"
+          class="w-9 h-9 rounded-xl border border-[#dfe3e7] dark:border-[#28292a] bg-[#f0f4f9] dark:bg-[#1e1f20] text-[#64748b] hover:text-[#1f1f1f] dark:hover:text-white flex items-center justify-center focus:outline-none"
+        >
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
 
-      <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto custom-scrollbar">
+      <!-- Mobile Navigation Tree -->
+      <nav class="flex-1 px-[14px] py-4 space-y-1 overflow-y-auto custom-scrollbar">
         <template v-for="item in studentNav" :key="item.key">
-          <!-- Action Item (e.g. Log Out) -->
-          <button
-            v-if="item.isAction"
-            @click="sidebarOpen = false; item.onClick ? item.onClick() : logout()"
-            type="button"
-            class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
-          >
-            <svg class="w-4 h-4 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round" :d="item.icon || 'M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1'" />
-            </svg>
-            <span>{{ currentLang === 'km' ? item.khName : item.name }}</span>
-          </button>
-
           <!-- Direct Link (No Children) -->
           <Link
-            v-else-if="!item.children || item.children.length === 0"
+            v-if="!item.children || item.children.length === 0"
             :href="item.href!"
             prefetch="hover"
             @click="sidebarOpen = false"
             :title="currentLang === 'km' ? item.khName : item.name"
             :class="[
-              (item.href === '/student/dashboard' ? ($page.url === '/student/dashboard' || $page.url === '/student') : $page.url.startsWith(item.href!))
-                ? 'bg-purple-50 text-purple-700 font-bold border border-purple-200 dark:bg-purple-600/20 dark:text-purple-300 dark:border-purple-500/40' 
-                : 'text-[#64748b] dark:text-slate-400 hover:text-slate-900 dark:hover:text-white',
-              'flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium'
+              'nav-item group w-full',
+              isItemActive(item) ? 'active' : ''
             ]"
           >
-            <!-- Lucide Dashboard (LayoutDashboard) -->
-            <svg v-if="item.key === 'dashboard'" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>
-            </svg>
-            <!-- Lucide Calendar (Calendar Grid) -->
-            <svg v-else-if="item.key === 'calendar'" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/>
-            </svg>
-            <!-- Lucide Profile & Settings (User) -->
-            <svg v-else-if="item.key === 'profile'" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-            </svg>
-            <span class="truncate">{{ currentLang === 'km' ? item.khName : item.name }}</span>
+            <!-- Active indicator bar -->
+            <span
+              v-if="isItemActive(item)"
+              class="absolute -left-[14px] top-2.5 bottom-2.5 w-1 rounded-r-md bg-[#7c3aed] dark:bg-[#a78bfa] shadow-sm shadow-purple-500/50"
+            ></span>
+
+            <div class="nav-icon">
+              <!-- Lucide Dashboard (LayoutDashboard) -->
+              <svg v-if="item.key === 'dashboard'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>
+              </svg>
+              <!-- Lucide Calendar (Calendar Grid) -->
+              <svg v-else-if="item.key === 'calendar'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/>
+              </svg>
+              <!-- Lucide Profile & Settings (User) -->
+              <svg v-else-if="item.key === 'profile'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+              </svg>
+              <!-- Fallback SVG -->
+              <svg v-else fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </div>
+
+            <span class="truncate flex-1 font-medium">{{ currentLang === 'km' ? item.khName : item.name }}</span>
+
+            <span
+              v-if="item.badge"
+              :class="['nav-badge shrink-0 ml-auto', item.badge.colorClass]"
+            >
+              {{ item.badge.text }}
+            </span>
           </Link>
-          <div v-else class="space-y-0.5">
+
+          <!-- Module with Submenu -->
+          <div v-else class="w-full">
             <button
               @click="toggleModule(item.key!)"
               :class="[
-                isChildActive(item.children)
-                  ? 'bg-purple-50 text-purple-700 font-bold border border-purple-200 dark:bg-purple-600/20 dark:text-purple-300 dark:border-purple-500/40'
-                  : 'text-[#64748b] dark:text-slate-400 hover:text-slate-900 dark:hover:text-white',
-                'w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium cursor-pointer'
+                'nav-item group w-full cursor-pointer justify-between',
+                isItemActive(item) ? 'active' : ''
               ]"
             >
-              <div class="flex items-center gap-2.5 truncate">
-                <!-- Lucide Courses (BookOpen) -->
-                <svg v-if="item.key === 'courses'" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/>
-                </svg>
-                <!-- Lucide AI Learning (Sparkles) -->
-                <svg v-else-if="item.key === 'aiPath'" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
-                </svg>
-                <!-- Lucide Progress (TrendingUp) -->
-                <svg v-else-if="item.key === 'progress'" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>
-                </svg>
-                <!-- Lucide Quiz & Assessment (CheckSquare) -->
-                <svg v-else-if="item.key === 'quizzes'" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect width="18" height="18" x="3" y="3" rx="2"/><path d="m9 12 2 2 4-4"/>
-                </svg>
-                <!-- Lucide Certificates (Award) -->
-                <svg v-else-if="item.key === 'certificates'" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
-                </svg>
-                <!-- Lucide Payment & Billing (CreditCard) -->
-                <svg v-else-if="item.key === 'payments'" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/>
-                </svg>
-                <!-- Lucide Notifications (Bell - NEVER Calendar or Megaphone) -->
-                <svg v-else-if="item.key === 'notificationsModule'" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
-                </svg>
-                <span class="truncate">{{ currentLang === 'km' ? item.khName : item.name }}</span>
+              <!-- Active indicator bar -->
+              <span
+                v-if="isItemActive(item)"
+                class="absolute -left-[14px] top-2.5 bottom-2.5 w-1 rounded-r-md bg-[#7c3aed] dark:bg-[#a78bfa] shadow-sm shadow-purple-500/50"
+              ></span>
+
+              <div class="flex items-center gap-[14px] truncate min-w-0">
+                <div class="nav-icon">
+                  <!-- Lucide Courses (BookOpen) -->
+                  <svg v-if="item.key === 'courses'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/>
+                  </svg>
+                  <!-- Lucide AI Learning (Sparkles) -->
+                  <svg v-else-if="item.key === 'aiPath'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                  </svg>
+                  <!-- Lucide Progress (TrendingUp) -->
+                  <svg v-else-if="item.key === 'progress'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>
+                  </svg>
+                  <!-- Lucide Quiz & Assessment (CheckSquare) -->
+                  <svg v-else-if="item.key === 'quizzes'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="18" height="18" x="3" y="3" rx="2"/><path d="m9 12 2 2 4-4"/>
+                  </svg>
+                  <!-- Lucide Certificates (Award) -->
+                  <svg v-else-if="item.key === 'certificates'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
+                  </svg>
+                  <!-- Lucide Payment & Billing (CreditCard) -->
+                  <svg v-else-if="item.key === 'payments'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/>
+                  </svg>
+                  <!-- Lucide Notifications (Bell - NEVER Calendar or Megaphone) -->
+                  <svg v-else-if="item.key === 'notificationsModule'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+                  </svg>
+                  <!-- Fallback SVG -->
+                  <svg v-else fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </div>
+                <span class="truncate font-medium">{{ currentLang === 'km' ? item.khName : item.name }}</span>
               </div>
-              <div class="flex items-center gap-1">
+
+              <div class="flex items-center gap-1.5 ml-auto shrink-0">
                 <span
                   v-if="item.badge"
-                  :class="['px-1.5 py-0.5 rounded text-[9px] font-bold border', item.badge.colorClass]"
+                  :class="['nav-badge shrink-0', item.badge.colorClass]"
                 >
                   {{ item.badge.text }}
                 </span>
-                <svg :class="[expandedModules[item.key!] ? 'rotate-180 text-purple-600 dark:text-purple-400' : 'text-[#64748b] dark:text-slate-400', 'w-3.5 h-3.5 transition-transform']" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                <svg
+                  :class="[
+                    'nav-chevron w-4 h-4 shrink-0',
+                    expandedModules[item.key!] ? 'open text-[#7c3aed] dark:text-[#a78bfa]' : 'text-[#94a3b8] dark:text-slate-500'
+                  ]"
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
               </div>
             </button>
-            <div v-show="expandedModules[item.key!]" class="pl-6 space-y-0.5 border-l border-purple-200 dark:border-purple-500/30 ml-4">
-              <Link
-                v-for="sub in item.children"
-                :key="sub.href"
-                :href="sub.href"
-                prefetch="hover"
-                @click="sidebarOpen = false"
-                :class="[isSubActive(sub.href) ? 'text-purple-600 dark:text-purple-300 font-bold' : 'text-[#64748b] dark:text-slate-400 hover:text-slate-900 dark:hover:text-white', 'flex items-center gap-2 py-1.5 text-[11px] truncate']"
-              >
-                <img v-if="sub.iconUrl" :src="sub.iconUrl" :alt="sub.name" class="w-3.5 h-3.5 object-contain shrink-0" @error="onIconError" />
-                <span v-else :class="[isSubActive(sub.href) ? 'bg-purple-600 dark:bg-purple-400' : 'bg-slate-400 dark:bg-slate-600', 'w-1.5 h-1.5 rounded-full shrink-0']"></span>
-                <span class="truncate">{{ currentLang === 'km' ? sub.khName : sub.name }}</span>
-              </Link>
+
+            <!-- Submenu Items (Smooth grid-template-rows & Dot indicators, no emojis) -->
+            <div
+              :class="['submenu-wrapper', expandedModules[item.key!] ? 'open' : '']"
+            >
+              <div class="space-y-1 py-1">
+                <Link
+                  v-for="sub in item.children"
+                  :key="sub.href"
+                  :href="sub.href"
+                  prefetch="hover"
+                  @click="sidebarOpen = false"
+                  :title="currentLang === 'km' ? sub.khName : sub.name"
+                  :class="['submenu-link', isSubActive(sub.href) ? 'active' : '']"
+                >
+                  <span class="sub-dot"></span>
+                  <span class="truncate">{{ currentLang === 'km' ? sub.khName : sub.name }}</span>
+                </Link>
+              </div>
             </div>
           </div>
         </template>
       </nav>
+
+      <!-- Mobile Sidebar Footer (User Card & Log Out) -->
+      <div class="p-3.5 space-y-2.5 mt-auto border-t border-[#dfe3e7] dark:border-[#28292a] bg-[#f8fafd] dark:bg-[#131314] shrink-0">
+        <div class="sidebar-user-card">
+          <div class="w-10 h-10 rounded-full bg-white/20 border border-white/35 flex items-center justify-center font-bold text-base shrink-0 uppercase shadow-inner text-white">
+            {{ studentDisplayName ? studentDisplayName.charAt(0) : 'K' }}
+          </div>
+          <div class="min-w-0 flex-1">
+            <strong class="font-bold text-[14px] leading-tight truncate block capitalize text-white">{{ studentDisplayName }}</strong>
+            <small class="text-white/85 truncate font-medium mt-0.5">
+              {{ currentLang === 'km' ? '10 វគ្គ · 88% ពិន្ទុ' : '10 Courses · 88% Avg' }}
+            </small>
+          </div>
+          <Link
+            href="/student/profile?tab=personal"
+            @click="sidebarOpen = false"
+            :title="currentLang === 'km' ? 'គណនី & ការកំណត់' : 'Profile & Settings'"
+            class="p-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-white transition-colors shrink-0"
+          >
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
+        </div>
+
+        <button
+          @click="sidebarOpen = false; logout()"
+          type="button"
+          :title="currentLang === 'km' ? 'ចាកចេញ' : 'Log Out'"
+          class="px-3.5 w-full justify-start gap-3 h-11 rounded-[14px] flex items-center text-[14.5px] font-semibold text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer group/logout"
+        >
+          <div class="w-8 h-8 rounded-lg bg-rose-50 dark:bg-rose-500/10 flex items-center justify-center shrink-0">
+            <svg class="w-4.5 h-4.5 text-rose-500 transition-transform group-hover/logout:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+          </div>
+          <span>{{ currentLang === 'km' ? 'ចាកចេញ' : 'Log Out' }}</span>
+        </button>
+      </div>
     </aside>
 
     <!-- STICKY TOP NAVBAR (Dynamically padded to account for fixed sidebar) -->
-    <header :class="[isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72', 'sticky top-0 z-40 bg-white/95 dark:bg-[#131314]/95 backdrop-blur-xl border-b border-[#dfe3e7] dark:border-[#28292a] transition-all duration-300 shadow-2xs']">
+    <header :class="[isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-[300px]', 'sticky top-0 z-40 bg-white/95 dark:bg-[#131314]/95 backdrop-blur-xl border-b border-[#dfe3e7] dark:border-[#28292a] transition-all duration-300 shadow-2xs']">
       <div class="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8 xl:px-10 max-w-[1600px] mx-auto gap-4">
         
         <!-- Left Side: Mobile Sidebar Hamburger, Desktop Toggle & Multi-Segment Breadcrumbs -->
@@ -1717,7 +1832,7 @@ const onIconError = (e: Event) => {
     </div>
 
     <!-- MAIN CONTENT WRAPPER -->
-    <main :class="[isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72', 'transition-all duration-300 min-h-[calc(100vh-64px)] pb-28 sm:pb-32']">
+    <main :class="[isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-[300px]', 'transition-all duration-300 min-h-[calc(100vh-64px)] pb-28 sm:pb-32']">
       <div class="px-4 sm:px-6 lg:px-8 xl:px-10 py-6 max-w-[1600px] mx-auto space-y-6">
         <slot />
       </div>
@@ -1738,6 +1853,290 @@ const onIconError = (e: Event) => {
 </template>
 
 <style scoped>
+/* Sidebar Menu item (Height 48px, font 15.5px weight 500, #475569) */
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 48px;
+  padding: 0 14px;
+  margin-bottom: 6px;
+  border-radius: 14px;
+  font-size: 15.5px;
+  font-weight: 500;
+  color: #475569;
+  position: relative;
+  transition: background 200ms cubic-bezier(0.16, 1, 0.3, 1),
+              color 200ms cubic-bezier(0.16, 1, 0.3, 1),
+              transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+}
+
+.nav-item:hover {
+  background: rgba(124, 58, 237, 0.08);
+  color: #6d28d9;
+  transform: translateX(4px);
+}
+
+/* Icon Box (36px x 36px, Lucide 20px, light background) */
+.nav-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: #f1f5f9;
+  color: #64748b;
+  flex-shrink: 0;
+  transition: background 200ms, color 200ms, box-shadow 200ms;
+}
+
+.nav-icon svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 1.8;
+}
+
+.nav-item:hover .nav-icon {
+  background: #ede9fe;
+  color: #7c3aed;
+}
+
+/* Active State (Light purple gradient + left 4px bar + gradient purple icon) */
+.nav-item.active {
+  background: linear-gradient(90deg, rgba(124,58,237,.14), rgba(124,58,237,.04));
+  color: #6d28d9;
+  font-weight: 600;
+}
+
+.nav-item.active::before {
+  content: "";
+  position: absolute;
+  left: -14px;
+  top: 10px;
+  bottom: 10px;
+  width: 4px;
+  border-radius: 0 4px 4px 0;
+  background: #7c3aed;
+}
+
+.nav-item.active .nav-icon {
+  background: linear-gradient(135deg, #7c3aed, #6366f1);
+  color: #ffffff;
+  box-shadow: 0 6px 14px rgba(124, 58, 237, 0.35);
+}
+
+/* Clean Purple Focus Ring (replaces harsh browser default black ring) */
+.nav-item:focus {
+  outline: none;
+}
+
+.nav-item:focus-visible {
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.35);
+}
+
+/* Submenu container (Smooth 300ms grid-template-rows expansion) */
+.submenu-wrapper {
+  margin: 4px 0 8px 24px;
+  padding-left: 14px;
+  border-left: 2px solid #e2e8f0;
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.submenu-wrapper.open {
+  grid-template-rows: 1fr;
+}
+
+.submenu-wrapper > div {
+  overflow: hidden;
+}
+
+/* Submenu Link (Height 40px, font 14.5px, subtle dot indicator) */
+.submenu-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-size: 14.5px;
+  color: #64748b;
+  font-weight: 500;
+  transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+}
+
+.submenu-link .sub-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  flex-shrink: 0;
+  transition: background 200ms, transform 200ms;
+}
+
+.submenu-link:hover {
+  background: #f5f3ff;
+  color: #6d28d9;
+}
+
+.submenu-link:hover .sub-dot {
+  background: #7c3aed;
+  transform: scale(1.4);
+}
+
+.submenu-link.active {
+  background: #f5f3ff;
+  color: #6d28d9;
+  font-weight: 600;
+}
+
+.submenu-link.active .sub-dot {
+  background: #7c3aed;
+  transform: scale(1.4);
+}
+
+.submenu-link:focus-visible {
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.35);
+}
+
+/* Chevron Rotation */
+.nav-chevron {
+  transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nav-chevron.open {
+  transform: rotate(180deg);
+}
+
+/* Badges */
+.nav-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+}
+
+/* Bottom User Gradient Card */
+.sidebar-user-card {
+  margin-top: auto;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #6366f1, #7c3aed);
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(124, 58, 237, 0.25);
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar-user-card small {
+  opacity: 0.85;
+  font-size: 12.5px;
+  display: block;
+}
+
+/* Dark Mode Theme Overrides */
+:deep(.dark) .nav-item,
+:global(.dark) .nav-item,
+.dark .nav-item {
+  color: #cbd5e1;
+}
+
+:deep(.dark) .nav-icon,
+:global(.dark) .nav-icon,
+.dark .nav-icon {
+  background: rgba(255, 255, 255, 0.06);
+  color: #94a3b8;
+}
+
+:deep(.dark) .nav-item:hover,
+:global(.dark) .nav-item:hover,
+.dark .nav-item:hover {
+  background: rgba(167, 139, 250, 0.12);
+  color: #c4b5fd;
+}
+
+:deep(.dark) .nav-item:hover .nav-icon,
+:global(.dark) .nav-item:hover .nav-icon,
+.dark .nav-item:hover .nav-icon {
+  background: rgba(124, 58, 237, 0.25);
+  color: #c4b5fd;
+}
+
+:deep(.dark) .nav-item.active,
+:global(.dark) .nav-item.active,
+.dark .nav-item.active {
+  background: linear-gradient(90deg, rgba(124,58,237,.28), rgba(124,58,237,.08));
+  color: #c4b5fd;
+}
+
+:deep(.dark) .nav-item.active::before,
+:global(.dark) .nav-item.active::before,
+.dark .nav-item.active::before {
+  background: #a78bfa;
+}
+
+:deep(.dark) .submenu-wrapper,
+:global(.dark) .submenu-wrapper,
+.dark .submenu-wrapper {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:deep(.dark) .submenu-link,
+:global(.dark) .submenu-link,
+.dark .submenu-link {
+  color: #94a3b8;
+}
+
+:deep(.dark) .submenu-link .sub-dot,
+:global(.dark) .submenu-link .sub-dot,
+.dark .submenu-link .sub-dot {
+  background: #475569;
+}
+
+:deep(.dark) .submenu-link:hover,
+:global(.dark) .submenu-link:hover,
+.dark .submenu-link:hover {
+  background: rgba(124, 58, 237, 0.18);
+  color: #c4b5fd;
+}
+
+:deep(.dark) .submenu-link:hover .sub-dot,
+:global(.dark) .submenu-link:hover .sub-dot,
+.dark .submenu-link:hover .sub-dot {
+  background: #a78bfa;
+}
+
+:deep(.dark) .submenu-link.active,
+:global(.dark) .submenu-link.active,
+.dark .submenu-link.active {
+  background: rgba(124, 58, 237, 0.22);
+  color: #c4b5fd;
+}
+
+:deep(.dark) .submenu-link.active .sub-dot,
+:global(.dark) .submenu-link.active .sub-dot,
+.dark .submenu-link.active .sub-dot {
+  background: #a78bfa;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-item,
+  .nav-icon,
+  .submenu-wrapper,
+  .submenu-link,
+  .nav-chevron {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
 .custom-scrollbar::-webkit-scrollbar {
   width: 5px;
   height: 5px;
