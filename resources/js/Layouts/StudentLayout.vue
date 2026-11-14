@@ -350,41 +350,6 @@ const dynamicBreadcrumbs = computed(() => {
       { label: 'My Certificates' }
     ]
   }
-  if (url.startsWith('/student/payments/pending')) {
-    return [
-      { label: 'Dashboard', href: '/student/dashboard' },
-      { label: 'Payment & Billing', href: '/student/payments/my-payments' },
-      { label: 'Pay via ABA (KHR)' }
-    ]
-  }
-  if (url.startsWith('/student/payments/methods')) {
-    return [
-      { label: 'Dashboard', href: '/student/dashboard' },
-      { label: 'Payment & Billing', href: '/student/payments/my-payments' },
-      { label: 'Payment Methods' }
-    ]
-  }
-  if (url.startsWith('/student/payments/transactions')) {
-    return [
-      { label: 'Dashboard', href: '/student/dashboard' },
-      { label: 'Payment & Billing', href: '/student/payments/my-payments' },
-      { label: 'Transaction History' }
-    ]
-  }
-  if (url.startsWith('/student/payments/settings')) {
-    return [
-      { label: 'Dashboard', href: '/student/dashboard' },
-      { label: 'Payment & Billing', href: '/student/payments/my-payments' },
-      { label: 'Payment Settings' }
-    ]
-  }
-  if (url.startsWith('/student/payments')) {
-    return [
-      { label: 'Dashboard', href: '/student/dashboard' },
-      { label: 'Payment & Billing', href: '/student/payments/my-payments' },
-      { label: 'Course Fees & Invoices' }
-    ]
-  }
   if (url.startsWith('/student/notifications/announcements')) {
     return [
       { label: 'Dashboard', href: '/student/dashboard' },
@@ -411,13 +376,6 @@ const dynamicBreadcrumbs = computed(() => {
       { label: 'Dashboard', href: '/student/dashboard' },
       { label: 'Notifications', href: '/student/notifications/announcements' },
       { label: 'Exam & Quiz Alerts' }
-    ]
-  }
-  if (url.startsWith('/student/notifications/payments')) {
-    return [
-      { label: 'Dashboard', href: '/student/dashboard' },
-      { label: 'Notifications', href: '/student/notifications/announcements' },
-      { label: 'Payment Notifications' }
     ]
   }
   if (url.startsWith('/student/notifications')) {
@@ -471,18 +429,11 @@ const breadcrumbTranslations: Record<string, { km: string; en: string }> = {
   'My Certificates': { km: 'វិញ្ញាបនបត្ររបស់ខ្ញុំ', en: 'My Certificates' },
   'Available Certificates': { km: 'វិញ្ញាបនបត្រដែលអាចទាញយកបាន', en: 'Available Certificates' },
   'Certificate Verification': { km: 'ផ្ទៀងផ្ទាត់វិញ្ញាបនបត្រ', en: 'Certificate Verification' },
-  'Payment & Billing': { km: 'ការទូទាត់ & វិក្កយបត្រ', en: 'Payment & Billing' },
-  'Pay via ABA (KHR)': { km: 'បង់ប្រាក់តាម ABA (KHR)', en: 'Pay via ABA (KHR)' },
-  'Payment Methods': { km: 'វិធីសាស្ត្រទូទាត់ប្រាក់', en: 'Payment Methods' },
-  'Transaction History': { km: 'ប្រវត្តិប្រតិបត្តិការ', en: 'Transaction History' },
-  'Payment Settings': { km: 'ការកំណត់ការទូទាត់', en: 'Payment Settings' },
-  'Course Fees & Invoices': { km: 'ថ្លៃវគ្គសិក្សា & វិក្កយបត្រ', en: 'Course Fees & Invoices' },
   'Notifications': { km: 'ការជូនដំណឹង', en: 'Notifications' },
   'System & Teacher Announcements': { km: 'សេចក្តីប្រកាសពីប្រព័ន្ធ & គ្រូ', en: 'System & Teacher Announcements' },
   'Course Updates': { km: 'បច្ចុប្បន្នភាពវគ្គសិក្សា', en: 'Course Updates' },
   'Assignment Alerts': { km: 'ការដាស់តឿនកិច្ចការផ្ទះ', en: 'Assignment Alerts' },
   'Exam & Quiz Alerts': { km: 'ការដាស់តឿនការប្រឡង & Quiz', en: 'Exam & Quiz Alerts' },
-  'Payment Notifications': { km: 'ការជូនដំណឹងការទូទាត់', en: 'Payment Notifications' },
   'All Notifications': { km: 'ការជូនដំណឹងទាំងអស់', en: 'All Notifications' },
   'Calendar & Schedule': { km: 'កាលវិភាគ & ប្រតិទិន', en: 'Calendar & Schedule' },
   'Profile & Settings': { km: 'គណនី & ការកំណត់', en: 'Profile & Settings' },
@@ -519,7 +470,7 @@ interface NotificationItem {
   desc_en: string
   time_km: string
   time_en: string
-  type: 'payment' | 'quiz' | 'ai'
+  type: 'quiz' | 'ai'
   defaultRead: boolean
   read: boolean
   link: string
@@ -528,15 +479,15 @@ interface NotificationItem {
 const rawStudentNotifications: Omit<NotificationItem, 'read'>[] = [
   {
     id: 1,
-    title_km: 'ការរំលឹកបង់ប្រាក់ Payment Pending',
-    title_en: 'Payment Reminder: Pending Payment',
-    desc_km: 'សូមទូទាត់ប្រាក់សម្រាប់ Database Systems ដើម្បីបើកមើលមេរៀន',
-    desc_en: 'Please complete payment for Database Systems to unlock lessons',
+    title_km: 'មេរៀនថ្មីត្រូវបានបន្ថែម: Database Systems',
+    title_en: 'New Lesson Available: Database Systems',
+    desc_km: 'មេរៀនថ្មី "Database Indexing & Normalization" អាចចូលរៀនបានហើយ',
+    desc_en: 'New lesson "Database Indexing & Normalization" is now available',
     time_km: '1 ម៉ោងមុន',
     time_en: '1 hour ago',
-    type: 'payment',
+    type: 'ai',
     defaultRead: false,
-    link: '/student/payments/pending'
+    link: '/student/my-courses/current'
   },
   {
     id: 2,
@@ -644,7 +595,7 @@ const handleDocumentClick = (e: MouseEvent) => {
   }
 }
 
-// Global Command Search Links for Student (Covering 13 modules)
+// Global Command Search Links for Student (Covering 12 modules)
 const searchableLinks = computed(() => [
   { name: 'Dashboard (ផ្ទាំងគ្រប់គ្រងដើម)', category: 'Dashboard', href: '/student/dashboard', iconUrl: '/images/nav/dashboard.svg' },
   { name: 'My Courses (Enrolled & Current)', category: 'My Courses', href: '/student/my-courses/enrolled', iconUrl: '/images/nav/courses.svg' },
@@ -656,7 +607,6 @@ const searchableLinks = computed(() => [
   { name: 'Practice Lab (IT, Tourism, English, Agronomy, Social Work)', category: 'Practice Lab', href: '/student/practice-lab', iconUrl: '/images/nav/sub/import-export.svg' },
   { name: 'Progress Tracking & Badges', category: 'Progress', href: '/student/progress/overview', iconUrl: '/images/nav/progress.svg' },
   { name: 'Certificates (View, Download, QR Verify)', category: 'Certificates', href: '/student/certificates/my-certificates', iconUrl: '/images/nav/certificate.svg' },
-  { name: 'Payment & Billing (Course Fees, Invoices, ABA)', category: 'Payments', href: '/student/payments/my-payments', iconUrl: '/images/nav/payment.svg' },
   { name: 'Notifications & Alerts', category: 'Notifications', href: '/student/notifications/announcements', iconUrl: '/images/nav/notification.svg' },
   { name: 'Calendar & Schedule (Quiz dates, Deadlines)', category: 'Calendar', href: '/student/calendar/live-class', iconUrl: '/images/nav/calendar.svg' },
   { name: 'Profile Settings & Academic Info', category: 'Profile', href: '/student/profile?tab=personal', iconUrl: '/images/nav/sub/students.svg' },
@@ -696,7 +646,6 @@ const expandedModules = ref<Record<string, boolean>>({
   progress: false,
   quizzes: false,
   certificates: false,
-  payments: false,
   notificationsModule: false,
 })
 
@@ -809,18 +758,6 @@ const studentNav: NavItem[] = [
     ]
   },
   {
-    key: 'payments',
-    name: 'Payment & Billing',
-    khName: 'ការទូទាត់ & វិក្កយបត្រ',
-    iconUrl: '/images/nav/payment.svg',
-    badge: { text: 'ABA', colorClass: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30' },
-    children: [
-      { name: 'Course Fees & Invoices', khName: 'ថ្លៃវគ្គសិក្សា & វិក្កយបត្រ', href: '/student/payments/my-payments', iconUrl: '/images/nav/payment.svg' },
-      { name: 'Transaction History', khName: 'ប្រវត្តិប្រតិបត្តិការ', href: '/student/payments/transactions', iconUrl: '/images/nav/sub/history.svg' },
-      { name: 'Payment Settings', khName: 'ការកំណត់ការទូទាត់', href: '/student/payments/settings', iconUrl: '/images/nav/sub/roles.svg' },
-    ]
-  },
-  {
     key: 'notificationsModule',
     name: 'Notifications',
     khName: 'ការជូនដំណឹង',
@@ -833,7 +770,6 @@ const studentNav: NavItem[] = [
       { name: 'Course Updates', khName: 'បច្ចុប្បន្នភាពវគ្គសិក្សា', href: '/student/notifications/course-updates', iconUrl: '/images/nav/sub/semesters.svg' },
       { name: 'Assignment Alerts', khName: 'ការដាស់តឿនកិច្ចការផ្ទះ', href: '/student/notifications/assignments', iconUrl: '/images/nav/analytics.svg' },
       { name: 'Exam & Quiz Alerts', khName: 'ការដាស់តឿនការប្រឡង & Quiz', href: '/student/notifications/exams', iconUrl: '/images/nav/quiz.svg' },
-      { name: 'Payment Notifications', khName: 'ការជូនដំណឹងការទូទាត់', href: '/student/notifications/payments', iconUrl: '/images/nav/payment.svg' },
     ]
   },
   {
@@ -984,7 +920,7 @@ const onIconError = (e: Event) => {
         </button>
       </div>
 
-      <!-- Navigation Tree (13 Core Modules) -->
+      <!-- Navigation Tree (12 Core Modules) -->
       <nav
         :class="[
           isSidebarCollapsed ? 'px-0 overflow-visible' : 'px-3 custom-scrollbar overflow-y-auto',
@@ -1113,10 +1049,6 @@ const onIconError = (e: Event) => {
                     <!-- Lucide Certificates (Award) -->
                     <svg v-else-if="item.key === 'certificates'" :class="[isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4', isChildActive(item.children) ? 'text-purple-600 dark:text-purple-400' : 'text-[#64748b] dark:text-slate-400 group-hover:text-[#1f1f1f] dark:group-hover:text-slate-200', 'shrink-0 transition-colors']" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
-                    </svg>
-                    <!-- Lucide Payment & Billing (CreditCard) -->
-                    <svg v-else-if="item.key === 'payments'" :class="[isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4', isChildActive(item.children) ? 'text-purple-600 dark:text-purple-400' : 'text-[#64748b] dark:text-slate-400 group-hover:text-[#1f1f1f] dark:group-hover:text-slate-200', 'shrink-0 transition-colors']" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/>
                     </svg>
                     <!-- Lucide Notifications (Bell - NEVER Calendar or Megaphone) -->
                     <svg v-else-if="item.key === 'notificationsModule'" :class="[isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4', isChildActive(item.children) ? 'text-purple-600 dark:text-purple-400' : 'text-[#64748b] dark:text-slate-400 group-hover:text-[#1f1f1f] dark:group-hover:text-slate-200', 'shrink-0 transition-colors']" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1342,10 +1274,6 @@ const onIconError = (e: Event) => {
                 <svg v-else-if="item.key === 'certificates'" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
                 </svg>
-                <!-- Lucide Payment & Billing (CreditCard) -->
-                <svg v-else-if="item.key === 'payments'" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/>
-                </svg>
                 <!-- Lucide Notifications (Bell - NEVER Calendar or Megaphone) -->
                 <svg v-else-if="item.key === 'notificationsModule'" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
@@ -1435,7 +1363,7 @@ const onIconError = (e: Event) => {
               <div class="flex items-center gap-2 truncate min-w-0 flex-1">
                 <svg class="w-4 h-4 text-[#0b57d0] dark:text-[#8ab4f8] shrink-0 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 <span class="truncate text-[#444746] dark:text-[#c4c7c5] group-hover:text-[#1f1f1f] dark:group-hover:text-white">
-                  {{ currentLang === 'km' ? 'ស្វែងរកម៉ូឌុលទាំង ១៣...' : 'Search 13 Modules...' }}
+                  {{ currentLang === 'km' ? 'ស្វែងរកម៉ូឌុលទាំង ១២...' : 'Search 12 Modules...' }}
                 </span>
               </div>
               <kbd class="hidden lg:inline-flex items-center shrink-0 whitespace-nowrap px-2 py-0.5 text-[10px] font-mono font-semibold text-[#747775] dark:text-[#8e918f] bg-white dark:bg-[#131314] border border-[#dfe3e7] dark:border-[#2d2f31] rounded-full shadow-2xs leading-none">ctrl k</kbd>
@@ -1683,7 +1611,7 @@ const onIconError = (e: Event) => {
           <input
             v-model="searchQuery"
             type="text"
-            :placeholder="currentLang === 'km' ? 'ស្វែងរកម៉ូឌុលទាំង ១៣, កម្រងសំណួរ, វគ្គសិក្សា, ការអនុវត្ត...' : 'Search all 13 modules, quizzes, courses, labs, certificates...'"
+            :placeholder="currentLang === 'km' ? 'ស្វែងរកម៉ូឌុលទាំង ១២, កម្រងសំណួរ, វគ្គសិក្សា, ការអនុវត្ត...' : 'Search all 12 modules, quizzes, courses, labs, certificates...'"
             class="w-full bg-transparent text-sm text-[#1f1f1f] dark:text-[#e3e3e3] placeholder-[#747775] dark:placeholder-[#8e918f] focus:outline-none"
             autofocus
           />

@@ -98,7 +98,6 @@ export const studentMenu = [
   { label: 'Quiz & Assessment', icon: 'i-lucide-clipboard-check', href: '/student/quizzes' },
   { label: 'AI Learning Path', icon: 'i-lucide-brain', href: '/student/ai-path' },
   { label: 'Progress Tracking', icon: 'i-lucide-trending-up', href: '/student/progress' },
-  { label: 'Payments (ABA)', icon: 'i-lucide-credit-card', href: '/student/payments' },
   { label: 'Certificates', icon: 'i-lucide-award', href: '/student/certificates' },
   { label: 'Notifications', icon: 'i-lucide-bell', href: '/student/notifications' },
   { label: 'Calendar', icon: 'i-lucide-calendar', href: '/student/calendar' },
