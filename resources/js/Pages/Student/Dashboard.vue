@@ -42,54 +42,66 @@ const page = usePage<any>()
 const user = computed(() => page.props.auth?.user || {})
 const currentLang = computed(() => i18n.locale.value)
 
-// 6 Top Stats Metrics with real Lucide SVG icons
+// 6 Top Stats Metrics styled like the Admin Dashboard with vibrant gradients & sparklines
 const statsCards = computed(() => [
   {
     type: 'enrolled',
-    title: currentLang.value === 'km' ? 'វគ្គសិក្សាបានចុះឈ្មោះ' : 'Enrolled Courses',
-    value: props.stats?.enrolledCount?.toString() || '4',
-    subtitle: currentLang.value === 'km' ? 'វគ្គសិក្សាសរុប' : 'Total Courses',
-    iconBg: 'bg-purple-600/20 text-purple-600 dark:text-purple-400 border border-purple-500/30',
+    title: currentLang.value === 'km' ? 'វគ្គសិក្សាបានចុះឈ្មោះ' : 'ENROLLED COURSES',
+    value: props.stats?.enrolledCount?.toString() || '6',
+    subtitle: currentLang.value === 'km' ? '▲ វគ្គសិក្សាសរុប' : '▲ Total Enrolled',
+    gradient: 'from-[#7c3aed] to-[#6366f1]',
+    wavePath: 'M0 18 Q 20 4, 40 14 T 70 6 T 100 12 L 100 25 L 0 25 Z',
+    waveLine: 'M0 18 Q 20 4, 40 14 T 70 6 T 100 12',
     href: '/student/my-courses/enrolled'
   },
   {
     type: 'in_progress',
-    title: currentLang.value === 'km' ? 'កំពុងសិក្សា' : 'In Progress',
+    title: currentLang.value === 'km' ? 'កំពុងសិក្សា' : 'IN PROGRESS',
     value: props.stats?.inProgressCount?.toString() || '2',
-    subtitle: currentLang.value === 'km' ? 'វគ្គសិក្សាសកម្ម' : 'Active Courses',
-    iconBg: 'bg-blue-600/20 text-blue-600 dark:text-blue-400 border border-blue-500/30',
+    subtitle: currentLang.value === 'km' ? '▲ វគ្គសិក្សាសកម្ម' : '▲ Active Learning',
+    gradient: 'from-[#0284c7] to-[#2563eb]',
+    wavePath: 'M0 20 Q 25 8, 45 16 T 75 4 T 100 10 L 100 25 L 0 25 Z',
+    waveLine: 'M0 20 Q 25 8, 45 16 T 75 4 T 100 10',
     href: '/student/my-courses/enrolled'
   },
   {
     type: 'completed',
-    title: currentLang.value === 'km' ? 'បានបញ្ចប់' : 'Completed',
-    value: props.stats?.completedCount?.toString() || '1',
-    subtitle: currentLang.value === 'km' ? 'វគ្គសិក្សាបញ្ចប់' : 'Finished Courses',
-    iconBg: 'bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30',
+    title: currentLang.value === 'km' ? 'បានបញ្ចប់' : 'COMPLETED',
+    value: props.stats?.completedCount?.toString() || '4',
+    subtitle: currentLang.value === 'km' ? '▲ ជោគជ័យ ១០០%' : '▲ Finished Courses',
+    gradient: 'from-[#10b981] to-[#059669]',
+    wavePath: 'M0 16 Q 20 22, 45 8 T 75 14 T 100 4 L 100 25 L 0 25 Z',
+    waveLine: 'M0 16 Q 20 22, 45 8 T 75 14 T 100 4',
     href: '/student/my-courses/completed'
   },
   {
     type: 'certificates',
-    title: currentLang.value === 'km' ? 'វិញ្ញាបនបត្រ' : 'Certificates',
+    title: currentLang.value === 'km' ? 'វិញ្ញាបនបត្រ' : 'CERTIFICATES',
     value: props.stats?.certificatesCount?.toString() || '1',
-    subtitle: currentLang.value === 'km' ? 'ទទួលបាន' : 'Earned',
-    iconBg: 'bg-amber-600/20 text-amber-600 dark:text-amber-400 border border-amber-500/30',
+    subtitle: currentLang.value === 'km' ? '★ ទទួលបាន' : '★ Verified & Earned',
+    gradient: 'from-[#f59e0b] to-[#d97706]',
+    wavePath: 'M0 18 Q 20 6, 45 16 T 75 8 T 100 14 L 100 25 L 0 25 Z',
+    waveLine: 'M0 18 Q 20 6, 45 16 T 75 8 T 100 14',
     href: '/student/certificates/my-certificates'
   },
   {
     type: 'study_time',
-    title: currentLang.value === 'km' ? 'ម៉ោងសិក្សា' : 'Study Time',
+    title: currentLang.value === 'km' ? 'ម៉ោងសិក្សា' : 'STUDY TIME',
     value: props.stats?.learningTime || (currentLang.value === 'km' ? '២៨h ៤៥m' : '28h 45m'),
-    subtitle: currentLang.value === 'km' ? 'ម៉ោងសរុប' : 'Total Hours',
-    iconBg: 'bg-cyan-600/20 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30',
+    subtitle: currentLang.value === 'km' ? '⏱ ម៉ោងសរុប' : '⏱ Total Hours Spent',
+    gradient: 'from-[#06b6d4] to-[#0d9488]',
+    wavePath: 'M0 19 Q 25 10, 50 18 T 80 8 T 100 12 L 100 25 L 0 25 Z',
+    waveLine: 'M0 19 Q 25 10, 50 18 T 80 8 T 100 12',
     href: '/student/progress/learning-time'
   },
   {
     type: 'quiz_avg',
-    title: currentLang.value === 'km' ? 'មធ្យមភាគ Quiz' : 'Quiz Average',
+    title: currentLang.value === 'km' ? 'មធ្យមភាគ QUIZ' : 'QUIZ AVERAGE',
     value: props.stats?.averageScore || '78%',
-    subtitle: currentLang.value === 'km' ? 'ពិន្ទុមធ្យមរបស់អ្នក' : 'Your Average',
-    iconBg: 'bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30',
+    subtitle: currentLang.value === 'km' ? '★ ពិន្ទុមធ្យមរបស់អ្នក' : '★ Academic Score',
+    gradient: 'from-[#ec4899] to-[#8b5cf6]',
+    wavePath: 'M0 12 Q 25 20, 50 10 T 75 16 T 100 6 L 100 25 L 0 25 Z',
+    waveLine: 'M0 12 Q 25 20, 50 10 T 75 16 T 100 6',
     href: '/student/quizzes/scores'
   }
 ])
@@ -442,90 +454,130 @@ const recentActivities = computed(() => [
   >
     <div class="space-y-6 pb-12 notranslate" translate="no">
       
-      <!-- TOP GREETING & QUICK SHORTCUTS ROW -->
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 p-5 rounded-3xl shadow-xs dark:shadow-xl">
-        <div class="space-y-1">
-          <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-normal leading-relaxed font-sans flex items-center gap-2">
-            <span>{{ currentLang === 'km' ? `សូមស្វាគមន៍ការត្រឡប់មកវិញ, ${user.name || 'Sok Pisey'}!` : `Welcome back, ${user.name || 'Sok Pisey'}!` }}</span>
-            <span class="inline-block animate-pulse text-indigo-500">✨</span>
-          </h1>
-          <p class="text-xs text-slate-600 dark:text-slate-400 font-medium">
-            {{ currentLang === 'km' ? 'បន្តការសិក្សាពីកន្លែងដែលអ្នកបានឈប់ ឬស្វែងរកវគ្គសិក្សាថ្មីៗនៅថ្ងៃនេះ។ បន្តដំណើរទៅមុខជានិច្ច!' : 'Continue where you left off or explore new courses today. Keep moving forward!' }}
-          </p>
-        </div>
+      <!-- TOP GREETING & QUICK SHORTCUTS ROW (Glassmorphic Hero Header) -->
+      <div class="relative overflow-hidden rounded-3xl bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 p-5 sm:p-6 shadow-sm">
+        <!-- Ambient decorative background glow -->
+        <div class="absolute -right-16 -top-16 w-64 h-64 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-transparent rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -left-10 -bottom-10 w-48 h-48 bg-gradient-to-tr from-blue-500/10 to-transparent rounded-full blur-2xl pointer-events-none"></div>
 
-        <!-- Quick Shortcut Actions with Real SVGs -->
-        <div class="flex flex-wrap items-center gap-2">
-          <Link
-            href="/student/browse"
-            class="px-3.5 py-2 rounded-xl bg-purple-50 dark:bg-purple-950/50 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800/60 text-purple-700 dark:text-purple-300 font-bold text-xs flex items-center gap-2 transition-colors shadow-xs"
-          >
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-            </svg>
-            <span>{{ currentLang === 'km' ? 'ស្វែងរកវគ្គសិក្សា' : 'Browse Courses' }}</span>
-          </Link>
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="space-y-1.5">
+            <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-800/50 text-[11px] font-semibold text-indigo-700 dark:text-indigo-300">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>{{ currentLang === 'km' ? 'SPI Student Portal • ឆមាសសិក្សាថ្មី ២០២៦-២០២៧' : 'SPI Student Portal • Active Academic Term 2026-2027' }}</span>
+            </div>
+            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-normal leading-snug font-sans flex items-center gap-2">
+              <span>{{ currentLang === 'km' ? `សូមស្វាគមន៍ការត្រឡប់មកវិញ, ${user.name || 'Sok Pisey'}!` : `Welcome back, ${user.name || 'Sok Pisey'}!` }}</span>
+              <span class="inline-block animate-bounce text-indigo-500">✨</span>
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium max-w-2xl">
+              {{ currentLang === 'km' ? 'បន្តការសិក្សាពីកន្លែងដែលអ្នកបានឈប់ ឬស្វែងរកវគ្គសិក្សាថ្មីៗនៅថ្ងៃនេះ។ បន្តដំណើរទៅមុខជានិច្ចដើម្បីសម្រេចគោលដៅរបស់អ្នក!' : 'Continue where you left off or explore new courses today. Keep moving forward to reach your learning goals!' }}
+            </p>
+          </div>
 
-          <Link
-            href="/student/payments/my-payments"
-            class="px-3.5 py-2 rounded-xl bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 border border-blue-200 dark:border-blue-800/60 text-blue-700 dark:text-blue-300 font-bold text-xs flex items-center gap-2 transition-colors shadow-xs"
-          >
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
-            </svg>
-            <span>{{ currentLang === 'km' ? 'បង់ប្រាក់តាម ABA' : 'Pay via ABA' }}</span>
-          </Link>
+          <!-- Quick Shortcut Actions with Sleek Badges -->
+          <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+            <Link
+              href="/student/browse"
+              class="px-4 py-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/50 dark:hover:bg-purple-900/60 border border-purple-200/80 dark:border-purple-800/60 text-purple-700 dark:text-purple-300 font-bold text-xs flex items-center gap-2 transition-all hover:scale-105 shadow-xs"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+              </svg>
+              <span>{{ currentLang === 'km' ? 'ស្វែងរកវគ្គសិក្សា' : 'Browse Courses' }}</span>
+            </Link>
 
-          <Link
-            href="/student/notifications/announcements"
-            class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center gap-2 transition-colors shadow-xs"
-          >
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-            </svg>
-            <span>{{ currentLang === 'km' ? 'សេចក្តីប្រកាស' : 'Announcements' }}</span>
-          </Link>
+            <Link
+              href="/student/payments/my-payments"
+              class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs flex items-center gap-2 transition-all hover:scale-105 shadow-sm shadow-blue-500/20"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
+              </svg>
+              <span>{{ currentLang === 'km' ? 'បង់ប្រាក់តាម ABA' : 'Pay via ABA' }}</span>
+            </Link>
+
+            <Link
+              href="/student/notifications/announcements"
+              class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/90 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center gap-2 transition-all hover:scale-105 shadow-xs"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+              </svg>
+              <span>{{ currentLang === 'km' ? 'សេចក្តីប្រកាស' : 'Announcements' }}</span>
+            </Link>
+          </div>
         </div>
       </div>
 
-      <!-- 6 METRICS CARDS ROW (Real SVG Icons) -->
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+      <!-- 6 METRICS KPI CARDS (Admin Dashboard Vibrant Gradient Style with Ambient Waves) -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-3.5">
         <Link
           v-for="stat in statsCards"
-          :key="stat.title"
+          :key="stat.type"
           :href="stat.href"
-          class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 hover:border-purple-500/40 rounded-2xl p-4 shadow-sm dark:shadow-xl flex items-center gap-3.5 transition-all duration-200 hover:-translate-y-1 group"
+          :class="[
+            'relative overflow-hidden rounded-2xl bg-gradient-to-br text-white p-4 shadow-sm hover:shadow-xl hover:scale-[1.02] active:scale-[0.99] transition-all flex flex-col justify-between group cursor-pointer',
+            stat.gradient
+          ]"
         >
-          <div :class="[stat.iconBg, 'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform']">
-            <!-- Book SVG (Enrolled) -->
-            <svg v-if="stat.type === 'enrolled'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-            </svg>
-            <!-- Graduation Cap SVG (In Progress) -->
-            <svg v-else-if="stat.type === 'in_progress'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
-            </svg>
-            <!-- Check Circle SVG (Completed) -->
-            <svg v-else-if="stat.type === 'completed'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <!-- Trophy SVG (Certificates) -->
-            <svg v-else-if="stat.type === 'certificates'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.003 0H9.497m5.003 0a3 3 0 002.828-2.002l1.636-4.908A1.125 1.125 0 0017.896 6H6.104a1.125 1.125 0 00-1.068 1.465l1.636 4.908a3 3 0 002.828 2.002z" />
-            </svg>
-            <!-- Clock SVG (Study Time) -->
-            <svg v-else-if="stat.type === 'study_time'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <!-- Bar Chart SVG (Quiz Average) -->
-            <svg v-else class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
-            </svg>
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold tracking-wide uppercase text-white/90 truncate mr-1">{{ stat.title }}</span>
+              <div class="text-white/95 group-hover:text-white group-hover:scale-110 transition-transform duration-200 shrink-0">
+                <!-- Book SVG (Enrolled) -->
+                <svg v-if="stat.type === 'enrolled'" class="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                </svg>
+                <!-- Graduation Cap SVG (In Progress) -->
+                <svg v-else-if="stat.type === 'in_progress'" class="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+                  <path d="M6 12v5c3 3 9 3 12 0v-5" />
+                </svg>
+                <!-- Check Circle SVG (Completed) -->
+                <svg v-else-if="stat.type === 'completed'" class="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="m9 12 2 2 4-4" />
+                </svg>
+                <!-- Trophy SVG (Certificates) -->
+                <svg v-else-if="stat.type === 'certificates'" class="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+                  <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+                  <path d="M4 22h16" />
+                  <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+                  <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+                  <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+                </svg>
+                <!-- Clock SVG (Study Time) -->
+                <svg v-else-if="stat.type === 'study_time'" class="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+                <!-- Bar Chart SVG (Quiz Average) -->
+                <svg v-else class="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="20" x2="18" y2="10" />
+                  <line x1="12" y1="20" x2="12" y2="4" />
+                  <line x1="6" y1="20" x2="6" y2="14" />
+                </svg>
+              </div>
+            </div>
+            <h4 class="text-2xl sm:text-3xl font-black tracking-tight text-white mt-1">
+              {{ stat.value }}
+            </h4>
+            <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1 truncate">
+              <span>{{ stat.subtitle }}</span>
+            </p>
           </div>
-          <div class="min-w-0">
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium truncate">{{ stat.title }}</p>
-            <h3 class="text-base sm:text-lg font-black text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors truncate leading-tight">{{ stat.value }}</h3>
-            <p class="text-[9px] text-slate-400 dark:text-slate-500 truncate">{{ stat.subtitle }}</p>
+          <!-- Sparkline Wave at Bottom (Exact Admin Style) -->
+          <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
+            <svg class="w-full h-10 text-white" viewBox="0 0 100 25" preserveAspectRatio="none" aria-hidden="true">
+              <g transform="translate(0 4)" opacity="0.10">
+                <path :d="stat.wavePath" fill="currentColor"/>
+              </g>
+              <path :d="stat.wavePath" fill="currentColor" opacity="0.20"/>
+              <path :d="stat.waveLine" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" opacity="0.9"/>
+            </svg>
           </div>
         </Link>
       </div>
