@@ -16,7 +16,7 @@ export function initTheme() {
       isDark.value = false
       document.documentElement.classList.remove('dark')
       document.documentElement.style.colorScheme = 'light'
-      document.documentElement.style.backgroundColor = '#f8fafc'
+      document.documentElement.style.backgroundColor = '#f8fafd'
     }
   } catch (e) {
     isDark.value = true
@@ -99,7 +99,7 @@ export function useTheme() {
         } else {
           document.documentElement.classList.remove('dark')
           document.documentElement.style.colorScheme = 'light'
-          document.documentElement.style.backgroundColor = '#f8fafc'
+          document.documentElement.style.backgroundColor = '#f8fafd'
           localStorage.setItem('theme', 'light')
         }
         window.dispatchEvent(new CustomEvent('theme-changed', { detail: { isDark: nextDark } }))

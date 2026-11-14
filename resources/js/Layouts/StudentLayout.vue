@@ -913,15 +913,15 @@ const onIconError = (e: Event) => {
   <Head :title="pageTitle" />
   <GlobalToast />
   <GlobalLoadingOverlay />
-  <div class="min-h-screen bg-slate-50 dark:bg-[#131314] text-slate-800 dark:text-[#e3e3e3] selection:bg-blue-500/30 transition-colors duration-200 notranslate" translate="no">
+  <div class="min-h-screen bg-[#f8fafd] dark:bg-[#131314] text-[#1f1f1f] dark:text-[#e3e3e3] selection:bg-[#0b57d0]/20 transition-colors duration-200 notranslate" translate="no">
     <!-- Desktop Sidebar (Fixed Positioning exactly like Admin & Teacher layouts) -->
-    <aside :class="[isSidebarCollapsed ? 'w-20 overflow-visible' : 'w-72', 'fixed inset-y-0 left-0 z-50 hidden flex-col bg-white/95 dark:bg-[#131314] backdrop-blur-xl border-r border-slate-200/90 dark:border-[#28292a] lg:flex transition-all duration-300 shadow-sm dark:shadow-none']">
+    <aside :class="[isSidebarCollapsed ? 'w-20 overflow-visible' : 'w-72', 'fixed inset-y-0 left-0 z-50 hidden flex-col bg-white/95 dark:bg-[#131314] backdrop-blur-xl border-r border-[#dfe3e7] dark:border-[#28292a] lg:flex transition-all duration-300 shadow-xs dark:shadow-none']">
       
       <!-- Sidebar Header & Logo -->
       <div
         :class="[
           isSidebarCollapsed ? 'justify-center px-2' : 'justify-between px-4',
-          'relative flex h-16 shrink-0 items-center border-b border-slate-200/90 dark:border-[#28292a] transition-all duration-300'
+          'relative flex h-16 shrink-0 items-center border-b border-[#dfe3e7] dark:border-[#28292a] transition-all duration-300'
         ]"
       >
         <!-- Logo & Title Container -->
@@ -930,7 +930,7 @@ const onIconError = (e: Event) => {
           @click="toggleSidebarCollapse"
           type="button"
           :title="currentLang === 'km' ? 'ពង្រីកម៉ឺនុយ' : 'Expand Sidebar'"
-          class="flex items-center justify-center p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-[#282a2c] transition-all cursor-pointer focus:outline-none"
+          class="flex items-center justify-center p-1 rounded-xl hover:bg-[#f0f4f9] dark:hover:bg-[#282a2c] transition-all cursor-pointer focus:outline-none"
         >
           <img
             :src="logoUrl"
@@ -950,10 +950,10 @@ const onIconError = (e: Event) => {
             class="w-9 h-9 min-w-[36px] min-h-[36px] max-w-[36px] max-h-[36px] aspect-square rounded-full object-cover shrink-0"
           />
           <div class="transition-opacity duration-200 min-w-0">
-            <h1 class="text-sm font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-500 tracking-tight whitespace-nowrap">
+            <h1 class="text-sm font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#0b57d0] via-indigo-600 to-purple-600 tracking-tight whitespace-nowrap">
               {{ currentLang === 'km' ? 'E-LMS និស្សិត' : 'E-LMS Student' }}
             </h1>
-            <p class="text-[10px] text-slate-400 font-medium tracking-wide uppercase whitespace-nowrap">{{ currentLang === 'km' ? 'ផ្ទាំងសិស្ស' : 'Student Panel' }}</p>
+            <p class="text-[10px] text-[#747775] dark:text-slate-400 font-medium tracking-wide uppercase whitespace-nowrap">{{ currentLang === 'km' ? 'ផ្ទាំងសិស្ស' : 'Student Panel' }}</p>
           </div>
         </Link>
 
@@ -963,7 +963,7 @@ const onIconError = (e: Event) => {
           @click="toggleSidebarCollapse"
           type="button"
           :title="currentLang === 'km' ? 'បង្រួមម៉ឺនុយ' : 'Collapse Sidebar'"
-          class="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#282a2c] shrink-0 cursor-pointer transition-colors focus:outline-none"
+          class="p-1.5 rounded-lg text-[#747775] hover:text-[#1f1f1f] dark:hover:text-white hover:bg-[#f0f4f9] dark:hover:bg-[#282a2c] shrink-0 cursor-pointer transition-colors focus:outline-none"
         >
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
@@ -1017,8 +1017,8 @@ const onIconError = (e: Event) => {
                 prefetch="hover"
                 :class="[
                   $page.url.startsWith(item.href!) 
-                    ? 'bg-gradient-to-r from-purple-600/25 via-indigo-600/20 to-purple-600/10 text-indigo-700 dark:text-white border border-purple-500/40 font-bold shadow-xs' 
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-[#F1F5F9] hover:bg-slate-100 dark:hover:bg-slate-800/70 border border-transparent font-medium',
+                    ? 'bg-[#d3e3fd] text-[#041e49] border border-[#0b57d0]/20 font-bold shadow-2xs dark:bg-gradient-to-r dark:from-purple-600/25 dark:via-indigo-600/20 dark:to-purple-600/10 dark:text-white dark:border-purple-500/40' 
+                    : 'text-[#444746] hover:text-[#1f1f1f] hover:bg-[#f0f4f9] dark:text-slate-400 dark:hover:text-[#F1F5F9] dark:hover:bg-slate-800/70 border border-transparent font-medium',
                   isSidebarCollapsed ? 'justify-center w-11 h-11 p-0 rounded-2xl mx-auto' : 'px-3 w-full justify-between py-2 rounded-xl',
                   'group flex items-center text-xs transition-all duration-200'
                 ]"
@@ -1036,7 +1036,7 @@ const onIconError = (e: Event) => {
                     />
                     <svg 
                       :class="[
-                        $page.url.startsWith(item.href!) ? 'text-indigo-600 dark:text-purple-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300',
+                        $page.url.startsWith(item.href!) ? 'text-[#0b57d0] dark:text-purple-400' : 'text-[#747775] dark:text-slate-500 group-hover:text-[#1f1f1f] dark:group-hover:text-slate-300',
                         item.iconUrl ? 'hidden' : '',
                         isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4',
                         'shrink-0 transition-colors'
@@ -1076,8 +1076,8 @@ const onIconError = (e: Event) => {
                 type="button"
                 :class="[
                   isChildActive(item.children) 
-                    ? 'bg-gradient-to-r from-purple-600/25 via-indigo-600/20 to-purple-600/10 text-indigo-700 dark:text-white border border-purple-500/30 font-semibold' 
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-[#F1F5F9] hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-transparent',
+                    ? 'bg-[#d3e3fd] text-[#041e49] border border-[#0b57d0]/20 font-semibold dark:bg-gradient-to-r dark:from-purple-600/25 dark:via-indigo-600/20 dark:to-purple-600/10 dark:text-white dark:border-purple-500/30' 
+                    : 'text-[#444746] hover:text-[#1f1f1f] hover:bg-[#f0f4f9] dark:text-slate-400 dark:hover:text-[#F1F5F9] dark:hover:bg-slate-800/60 border border-transparent',
                   isSidebarCollapsed ? 'justify-center w-11 h-11 p-0 rounded-2xl mx-auto' : 'px-3 w-full justify-between py-2 rounded-xl',
                   'group flex items-center text-xs font-medium transition-all duration-200 cursor-pointer'
                 ]"
@@ -1095,7 +1095,7 @@ const onIconError = (e: Event) => {
                     />
                     <svg 
                       :class="[
-                        isChildActive(item.children) ? 'text-indigo-600 dark:text-purple-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300',
+                        isChildActive(item.children) ? 'text-[#0b57d0] dark:text-purple-400' : 'text-[#747775] dark:text-slate-500 group-hover:text-[#1f1f1f] dark:group-hover:text-slate-300',
                         item.iconUrl ? 'hidden' : '',
                         isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4',
                         'shrink-0 transition-colors'
@@ -1119,7 +1119,7 @@ const onIconError = (e: Event) => {
                   </span>
                   <svg
                     :class="[
-                      expandedModules[item.key!] ? 'rotate-180 text-indigo-600 dark:text-purple-400' : 'text-slate-400 dark:text-slate-500',
+                      expandedModules[item.key!] ? 'rotate-180 text-[#0b57d0] dark:text-purple-400' : 'text-[#747775] dark:text-slate-500',
                       'w-3.5 h-3.5 transition-transform duration-200 shrink-0 ml-1'
                     ]"
                     fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
@@ -1132,7 +1132,7 @@ const onIconError = (e: Event) => {
               <!-- Submenu Items Tree -->
               <div
                 v-show="!isSidebarCollapsed && expandedModules[item.key!]"
-                class="relative ml-4 pl-3.5 space-y-0.5 my-1 transition-all duration-300 border-l border-purple-500/30 w-[calc(100%-18px)]"
+                class="relative ml-4 pl-3.5 space-y-0.5 my-1 transition-all duration-300 border-l border-[#dfe3e7] dark:border-purple-500/30 w-[calc(100%-18px)]"
               >
                 <div
                   v-for="sub in item.children"
@@ -1144,8 +1144,8 @@ const onIconError = (e: Event) => {
                     prefetch="hover"
                     :class="[
                       isSubActive(sub.href)
-                        ? 'bg-purple-600/20 text-indigo-700 dark:text-purple-300 font-bold border border-purple-500/30'
-                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50 border border-transparent',
+                        ? 'bg-[#d3e3fd] text-[#041e49] font-bold border border-[#0b57d0]/20 dark:bg-purple-600/20 dark:text-purple-300 dark:border-purple-500/30'
+                        : 'text-[#444746] hover:text-[#1f1f1f] hover:bg-[#f0f4f9] dark:text-slate-500 dark:hover:text-slate-200 dark:hover:bg-slate-800/50 border border-transparent',
                       'flex items-center gap-x-2 rounded-lg px-2 py-1.5 text-[11px] transition-all duration-200 truncate'
                     ]"
                   >
@@ -1169,13 +1169,13 @@ const onIconError = (e: Event) => {
               v-if="isSidebarCollapsed && item.children && item.children.length > 0"
               class="absolute left-full top-0 ml-3.5 w-64 opacity-0 pointer-events-none group-hover/flyout:opacity-100 group-hover/flyout:pointer-events-auto transition-all duration-200 ease-out translate-x-1 group-hover/flyout:translate-x-0 z-50"
             >
-              <div class="relative bg-white/95 dark:bg-[#1e1f20]/95 backdrop-blur-xl border border-slate-200 dark:border-[#2d2f31] rounded-2xl p-3 shadow-2xl ring-1 ring-slate-800/80">
-                <div class="absolute -left-1.5 top-3.5 w-3 h-3 bg-white dark:bg-[#1e1f20] border-l border-b border-slate-200 dark:border-[#2d2f31] rotate-45 z-10 pointer-events-none"></div>
+              <div class="relative bg-white/95 dark:bg-[#1e1f20]/95 backdrop-blur-xl border border-[#dfe3e7] dark:border-[#2d2f31] rounded-2xl p-3 shadow-2xl ring-1 ring-slate-800/80">
+                <div class="absolute -left-1.5 top-3.5 w-3 h-3 bg-white dark:bg-[#1e1f20] border-l border-b border-[#dfe3e7] dark:border-[#2d2f31] rotate-45 z-10 pointer-events-none"></div>
 
-                <div class="relative z-20 flex items-center justify-between px-2 py-1.5 mb-2 border-b border-slate-200 dark:border-[#28292a] pb-2">
+                <div class="relative z-20 flex items-center justify-between px-2 py-1.5 mb-2 border-b border-[#dfe3e7] dark:border-[#28292a] pb-2">
                   <div class="flex items-center gap-2 min-w-0">
                     <img v-if="item.iconUrl" :src="item.iconUrl" :alt="item.name" class="w-4 h-4 object-contain shrink-0" />
-                    <span class="text-xs font-bold text-slate-900 dark:text-[#e3e3e3] truncate">{{ currentLang === 'km' ? item.khName : item.name }}</span>
+                    <span class="text-xs font-bold text-[#1f1f1f] dark:text-[#e3e3e3] truncate">{{ currentLang === 'km' ? item.khName : item.name }}</span>
                   </div>
                 </div>
 
@@ -1187,8 +1187,8 @@ const onIconError = (e: Event) => {
                     prefetch="hover"
                     :class="[
                       isSubActive(sub.href)
-                        ? 'bg-purple-600/20 text-indigo-700 dark:text-purple-300 font-bold border border-purple-500/30'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-[#e3e3e3] hover:bg-slate-100 dark:hover:bg-[#282a2c] border border-transparent',
+                        ? 'bg-[#d3e3fd] text-[#041e49] font-bold border border-[#0b57d0]/20 dark:bg-purple-600/20 dark:text-purple-300 dark:border-purple-500/30'
+                        : 'text-[#444746] hover:text-[#1f1f1f] hover:bg-[#f0f4f9] dark:text-slate-400 dark:hover:text-[#e3e3e3] dark:hover:bg-[#282a2c] border border-transparent',
                       'flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs transition-all duration-150 truncate'
                     ]"
                   >
@@ -1203,14 +1203,14 @@ const onIconError = (e: Event) => {
       </nav>
 
       <!-- Sidebar Footer Log Out (🚪) -->
-      <div :class="[isSidebarCollapsed ? 'px-0 py-2.5 flex justify-center' : 'p-3', 'mt-auto border-t border-slate-200/90 dark:border-[#28292a] bg-slate-50/80 dark:bg-[#131314] shrink-0 relative group/logout']">
+      <div :class="[isSidebarCollapsed ? 'px-0 py-2.5 flex justify-center' : 'p-3', 'mt-auto border-t border-[#dfe3e7] dark:border-[#28292a] bg-[#f8fafd] dark:bg-[#131314] shrink-0 relative group/logout']">
         <!-- Log Out Button -->
         <button
           @click="logout"
           type="button"
           :class="[
             isSidebarCollapsed ? 'justify-center w-11 h-11 p-0 rounded-2xl mx-auto' : 'px-3 w-full justify-start gap-2.5 py-2 rounded-xl',
-            'flex items-center text-xs font-semibold text-rose-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer'
+            'flex items-center text-xs font-semibold text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer'
           ]"
         >
           <svg class="w-4.5 h-4.5 shrink-0 text-rose-500 transition-transform group-hover/logout:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -1310,7 +1310,7 @@ const onIconError = (e: Event) => {
     </aside>
 
     <!-- STICKY TOP NAVBAR (Dynamically padded to account for fixed sidebar) -->
-    <header :class="[isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72', 'sticky top-0 z-40 bg-white/95 dark:bg-[#131314]/95 backdrop-blur-xl border-b border-slate-200/90 dark:border-[#28292a] transition-all duration-300 shadow-xs']">
+    <header :class="[isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72', 'sticky top-0 z-40 bg-white/95 dark:bg-[#131314]/95 backdrop-blur-xl border-b border-[#dfe3e7] dark:border-[#28292a] transition-all duration-300 shadow-2xs']">
       <div class="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8 xl:px-10 max-w-[1600px] mx-auto gap-4">
         
         <!-- Left Side: Mobile Sidebar Hamburger, Desktop Toggle & Multi-Segment Breadcrumbs -->
@@ -1318,7 +1318,7 @@ const onIconError = (e: Event) => {
           <button
             @click="sidebarOpen = !sidebarOpen"
             type="button"
-            class="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg focus:outline-none transition-colors cursor-pointer lg:hidden"
+            class="p-1.5 text-[#747775] dark:text-slate-400 hover:text-[#1f1f1f] dark:hover:text-white hover:bg-[#f0f4f9] dark:hover:bg-slate-800 rounded-lg focus:outline-none transition-colors cursor-pointer lg:hidden"
             title="Toggle Mobile Navigation"
           >
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -1333,19 +1333,19 @@ const onIconError = (e: Event) => {
                 v-if="crumb.href"
                 :href="crumb.href"
                 prefetch="hover"
-                class="text-slate-400 hover:text-purple-400 transition-colors truncate"
+                class="text-[#747775] hover:text-[#0b57d0] dark:hover:text-purple-400 transition-colors truncate"
               >
                 {{ getBreadcrumbLabel(crumb.label) }}
               </Link>
               <span
                 v-else
-                class="text-slate-800 dark:text-white font-semibold truncate"
+                class="text-[#1f1f1f] dark:text-white font-semibold truncate"
               >
                 {{ getBreadcrumbLabel(crumb.label) }}
               </span>
               <svg
                 v-if="idx < dynamicBreadcrumbs.length - 1"
-                class="w-3 h-3 text-slate-500 shrink-0"
+                class="w-3 h-3 text-[#747775] dark:text-slate-500 shrink-0"
                 fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
               >
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
@@ -1353,20 +1353,20 @@ const onIconError = (e: Event) => {
             </template>
           </nav>
 
-          <!-- Glassmorphic Search Bar -->
+          <!-- Google Search Bar (Soft pill) -->
           <div class="relative hidden md:block">
             <button
               @click="toggleDropdown('search')"
               type="button"
-              class="flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-[#1e1f20] hover:bg-slate-200 dark:hover:bg-[#282a2c] text-slate-500 dark:text-[#c4c7c5] hover:text-slate-900 dark:hover:text-[#e3e3e3] border border-slate-200 dark:border-[#2d2f31] hover:border-indigo-500/40 dark:hover:border-[#1a73e8] text-xs transition-all w-56 lg:w-72 justify-between shadow-inner group cursor-pointer"
+              class="flex items-center gap-2.5 px-4 py-2 rounded-full bg-[#f0f4f9] hover:bg-[#e8edf4] dark:bg-[#1e1f20] dark:hover:bg-[#282a2c] text-[#444746] hover:text-[#1f1f1f] dark:text-[#c4c7c5] dark:hover:text-[#e3e3e3] border border-[#dfe3e7] hover:border-[#0b57d0]/40 dark:border-[#2d2f31] dark:hover:border-[#1a73e8] text-xs transition-all w-56 lg:w-72 justify-between shadow-2xs group cursor-pointer"
             >
               <div class="flex items-center gap-2 truncate min-w-0 flex-1">
-                <svg class="w-3.5 h-3.5 text-indigo-500 dark:text-[#8ab4f8] shrink-0 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                <span class="truncate text-slate-500 dark:text-[#c4c7c5] group-hover:text-slate-800 dark:group-hover:text-white">
+                <svg class="w-4 h-4 text-[#0b57d0] dark:text-[#8ab4f8] shrink-0 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <span class="truncate text-[#444746] dark:text-[#c4c7c5] group-hover:text-[#1f1f1f] dark:group-hover:text-white">
                   {{ currentLang === 'km' ? 'ស្វែងរកម៉ូឌុលទាំង ១៣...' : 'Search 13 Modules...' }}
                 </span>
               </div>
-              <kbd class="hidden lg:inline-flex items-center shrink-0 whitespace-nowrap px-1.5 py-0.5 text-[10px] font-mono font-semibold text-slate-400 dark:text-[#8e918f] bg-white dark:bg-[#131314] border border-slate-300 dark:border-[#2d2f31] rounded shadow-xs leading-none">ctrl k</kbd>
+              <kbd class="hidden lg:inline-flex items-center shrink-0 whitespace-nowrap px-2 py-0.5 text-[10px] font-mono font-semibold text-[#747775] dark:text-[#8e918f] bg-white dark:bg-[#131314] border border-[#dfe3e7] dark:border-[#2d2f31] rounded-full shadow-2xs leading-none">ctrl k</kbd>
             </button>
           </div>
         </div>
@@ -1377,7 +1377,7 @@ const onIconError = (e: Event) => {
           <button
             @click="toggleDropdown('search')"
             type="button"
-            class="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#1e1f20] rounded-lg md:hidden focus:outline-none transition-colors"
+            class="p-1.5 text-[#747775] dark:text-slate-400 hover:text-[#1f1f1f] dark:hover:text-white hover:bg-[#f0f4f9] dark:hover:bg-[#1e1f20] rounded-lg md:hidden focus:outline-none transition-colors"
           >
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           </button>
@@ -1386,13 +1386,13 @@ const onIconError = (e: Event) => {
           <button
             type="button"
             @click="toggleLanguage"
-            class="p-1.5 h-8 w-8 rounded-full bg-white/90 dark:bg-[#1e1f20] backdrop-blur-md hover:bg-zinc-100 dark:hover:bg-[#282a2c] transition-all duration-150 border border-zinc-300/80 dark:border-[#2d2f31] shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
+            class="p-1.5 h-8 w-8 rounded-full bg-white hover:bg-[#f0f4f9] dark:bg-[#1e1f20] dark:hover:bg-[#282a2c] transition-all duration-150 border border-[#dfe3e7] dark:border-[#2d2f31] shadow-2xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
             :title="currentLang === 'km' ? 'ប្តូរទៅជាភាសាអង់គ្លេស (Switch to English)' : 'Switch to Khmer (ប្តូរទៅជាភាសាខ្មែរ)'"
           >
             <img
               :src="currentLang === 'km' ? '/images/flags/km.svg' : '/images/flags/en.svg'"
               :alt="currentLang"
-              class="w-5 h-3.5 object-cover rounded-[3px] shadow-xs ring-1 ring-zinc-300/60 dark:ring-zinc-700/60 transition-transform duration-200 group-hover:scale-110"
+              class="w-5 h-3.5 object-cover rounded-[3px] shadow-xs ring-1 ring-[#dfe3e7] dark:ring-zinc-700/60 transition-transform duration-200 group-hover:scale-110"
             />
           </button>
 
@@ -1400,7 +1400,7 @@ const onIconError = (e: Event) => {
           <button
             type="button"
             @click="toggleTheme($event)"
-            class="w-8 h-8 rounded-full bg-white/95 dark:bg-[#1e1f20] backdrop-blur-md hover:bg-amber-50/50 dark:hover:bg-[#282a2c] transition-all duration-200 border border-zinc-200 dark:border-[#2d2f31] shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
+            class="w-8 h-8 rounded-full bg-white hover:bg-[#f0f4f9] dark:bg-[#1e1f20] dark:hover:bg-[#282a2c] transition-all duration-200 border border-[#dfe3e7] dark:border-[#2d2f31] shadow-2xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
             :title="isDark ? (currentLang === 'km' ? 'ប្ដូរទៅ Light Mode' : 'Switch to Light Mode') : (currentLang === 'km' ? 'ប្ដូរទៅ Dark Mode' : 'Switch to Dark Mode')"
             aria-label="Toggle theme"
           >
@@ -1412,7 +1412,7 @@ const onIconError = (e: Event) => {
             <button
               @click.stop="handleNotificationToggle"
               type="button"
-              class="relative p-1.5 w-8 h-8 rounded-full sm:rounded-2xl bg-white/90 dark:bg-[#1e1f20] backdrop-blur-md hover:bg-zinc-100 dark:hover:bg-[#282a2c] text-zinc-700 dark:text-[#c4c7c5] hover:text-zinc-950 dark:hover:text-white transition-all duration-150 border border-zinc-300/80 dark:border-[#2d2f31] shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
+              class="relative p-1.5 w-8 h-8 rounded-full bg-white hover:bg-[#f0f4f9] dark:bg-[#1e1f20] dark:hover:bg-[#282a2c] text-[#444746] dark:text-[#c4c7c5] hover:text-[#1f1f1f] dark:hover:text-white transition-all duration-150 border border-[#dfe3e7] dark:border-[#2d2f31] shadow-2xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
               :title="currentLang === 'km' ? 'ការជូនដំណឹង' : 'Notifications'"
             >
               <svg class="w-4 h-4 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-105" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -1442,11 +1442,11 @@ const onIconError = (e: Event) => {
               <div
                 v-if="isNotificationOpen"
                 @click.stop
-                class="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white dark:bg-[#1e1f20] border border-slate-200/90 dark:border-[#2d2f31] shadow-2xl z-50 overflow-hidden"
+                class="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] shadow-2xl z-50 overflow-hidden"
               >
-                <div class="px-4 py-3 border-b border-slate-100 dark:border-[#28292a] flex items-center justify-between bg-slate-50/80 dark:bg-[#1e1f20] backdrop-blur-md">
+                <div class="px-4 py-3 border-b border-[#dfe3e7] dark:border-[#28292a] flex items-center justify-between bg-[#f8fafd] dark:bg-[#1e1f20] backdrop-blur-md">
                   <div class="flex items-center gap-2">
-                    <h3 class="text-xs font-bold text-slate-900 dark:text-[#e3e3e3]">{{ currentLang === 'km' ? 'ការជូនដំណឹង' : 'Notifications' }}</h3>
+                    <h3 class="text-xs font-bold text-[#1f1f1f] dark:text-[#e3e3e3]">{{ currentLang === 'km' ? 'ការជូនដំណឹង' : 'Notifications' }}</h3>
                     <span v-if="unreadNotificationsCount > 0" class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-rose-500/10 text-rose-500 border border-rose-500/20">
                       {{ unreadNotificationsCount }} {{ currentLang === 'km' ? 'ថ្មី' : 'New' }}
                     </span>
@@ -1454,54 +1454,54 @@ const onIconError = (e: Event) => {
                   <button
                     v-if="unreadNotificationsCount > 0"
                     @click="markAllAsRead"
-                    class="text-[11px] text-indigo-600 dark:text-[#8ab4f8] hover:text-indigo-500 font-medium cursor-pointer transition-colors"
+                    class="text-[11px] text-[#0b57d0] dark:text-[#8ab4f8] hover:underline font-medium cursor-pointer transition-colors"
                   >
                     {{ currentLang === 'km' ? 'អានទាំងអស់' : 'Mark all read' }}
                   </button>
                 </div>
 
                 <!-- Tabs: All vs Unread -->
-                <div class="flex items-center gap-1 px-3 py-2 bg-slate-50/50 dark:bg-[#131314] border-b border-slate-100 dark:border-[#28292a] text-xs">
+                <div class="flex items-center gap-1 px-3 py-2 bg-[#f8fafd] dark:bg-[#131314] border-b border-[#dfe3e7] dark:border-[#28292a] text-xs">
                   <button
                     type="button"
                     @click="notifTab = 'all'; playClickSound()"
-                    :class="[notifTab === 'all' ? 'bg-indigo-600 dark:bg-[#a8c7fa] text-white dark:text-[#041e49] shadow-xs' : 'text-slate-600 dark:text-[#c4c7c5] hover:bg-slate-100 dark:hover:bg-[#282a2c]', 'px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer']"
+                    :class="[notifTab === 'all' ? 'bg-[#0b57d0] dark:bg-[#a8c7fa] text-white dark:text-[#041e49] shadow-xs' : 'text-[#444746] dark:text-[#c4c7c5] hover:bg-[#f0f4f9] dark:hover:bg-[#282a2c]', 'px-2.5 py-1 rounded-full font-medium transition-all cursor-pointer']"
                   >
                     {{ currentLang === 'km' ? 'ទាំងអស់' : 'All' }} ({{ notifications.length }})
                   </button>
                   <button
                     type="button"
                     @click="notifTab = 'unread'; playClickSound()"
-                    :class="[notifTab === 'unread' ? 'bg-indigo-600 dark:bg-[#a8c7fa] text-white dark:text-[#041e49] shadow-xs' : 'text-slate-600 dark:text-[#c4c7c5] hover:bg-slate-100 dark:hover:bg-[#282a2c]', 'px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer']"
+                    :class="[notifTab === 'unread' ? 'bg-[#0b57d0] dark:bg-[#a8c7fa] text-white dark:text-[#041e49] shadow-xs' : 'text-[#444746] dark:text-[#c4c7c5] hover:bg-[#f0f4f9] dark:hover:bg-[#282a2c]', 'px-2.5 py-1 rounded-full font-medium transition-all cursor-pointer']"
                   >
                     {{ currentLang === 'km' ? 'មិនទាន់អាន' : 'Unread' }} ({{ unreadNotificationsCount }})
                   </button>
                 </div>
 
-                <div class="max-h-80 overflow-y-auto custom-scrollbar divide-y divide-slate-100 dark:divide-[#28292a]">
+                <div class="max-h-80 overflow-y-auto custom-scrollbar divide-y divide-[#dfe3e7] dark:divide-[#28292a]">
                   <div
                     v-for="item in filteredNotifications"
                     :key="item.id"
                     @click="handleNotificationItemClick(item)"
                     :class="[
-                      item.read ? 'bg-slate-50/40 dark:bg-[#1e1f20]/60 opacity-75' : 'bg-white dark:bg-[#1e1f20] hover:bg-slate-50 dark:hover:bg-[#282a2c]',
+                      item.read ? 'bg-[#f8fafd]/60 dark:bg-[#1e1f20]/60 opacity-75' : 'bg-white dark:bg-[#1e1f20] hover:bg-[#f0f4f9] dark:hover:bg-[#282a2c]',
                       'p-3.5 transition-colors cursor-pointer block select-none'
                     ]"
                   >
                     <div class="flex items-start gap-3">
-                      <div class="p-2 rounded-xl shrink-0 mt-0.5 bg-indigo-500/10 text-indigo-600 dark:text-[#8ab4f8]">
+                      <div class="p-2 rounded-xl shrink-0 mt-0.5 bg-[#e8f0fe] text-[#0b57d0] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8]">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                           <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                         </svg>
                       </div>
                       <div class="flex-1 min-w-0">
                         <div class="flex items-center justify-between">
-                          <p :class="[item.read ? 'text-slate-600 dark:text-[#c4c7c5] font-medium' : 'text-slate-900 dark:text-[#e3e3e3] font-bold', 'text-xs truncate']">{{ getNotifTitle(item) }}</p>
-                          <span class="text-[10px] text-slate-400 dark:text-[#8e918f] shrink-0 ml-1">{{ getNotifTime(item) }}</span>
+                          <p :class="[item.read ? 'text-[#444746] dark:text-[#c4c7c5] font-medium' : 'text-[#1f1f1f] dark:text-[#e3e3e3] font-bold', 'text-xs truncate']">{{ getNotifTitle(item) }}</p>
+                          <span class="text-[10px] text-[#747775] dark:text-[#8e918f] shrink-0 ml-1">{{ getNotifTime(item) }}</span>
                         </div>
-                        <p class="text-[11px] text-slate-500 dark:text-[#8e918f] line-clamp-2 mt-0.5">{{ getNotifDesc(item) }}</p>
+                        <p class="text-[11px] text-[#444746] dark:text-[#8e918f] line-clamp-2 mt-0.5">{{ getNotifDesc(item) }}</p>
                       </div>
-                      <span v-if="!item.read" class="w-2 h-2 rounded-full bg-indigo-500 dark:bg-[#8ab4f8] shrink-0 mt-1.5"></span>
+                      <span v-if="!item.read" class="w-2 h-2 rounded-full bg-[#0b57d0] dark:bg-[#8ab4f8] shrink-0 mt-1.5"></span>
                     </div>
                   </div>
 
@@ -1509,15 +1509,15 @@ const onIconError = (e: Event) => {
                     <svg class="w-8 h-8 mx-auto text-slate-300 dark:text-slate-600 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                     </svg>
-                    <p class="text-xs text-slate-500 dark:text-[#8e918f]">{{ currentLang === 'km' ? 'មិនមានការជូនដំណឹងទេ' : 'No notifications' }}</p>
+                    <p class="text-xs text-[#747775] dark:text-[#8e918f]">{{ currentLang === 'km' ? 'មិនមានការជូនដំណឹងទេ' : 'No notifications' }}</p>
                   </div>
                 </div>
 
-                <div class="p-2 border-t border-slate-100 dark:border-[#28292a] bg-slate-50/80 dark:bg-[#131314] text-center">
+                <div class="p-2 border-t border-[#dfe3e7] dark:border-[#28292a] bg-[#f8fafd] dark:bg-[#131314] text-center">
                   <Link
                     href="/student/notifications/announcements"
                     @click="isNotificationOpen = false; playClickSound()"
-                    class="text-xs font-semibold text-indigo-600 dark:text-[#8ab4f8] hover:text-indigo-500 transition-colors"
+                    class="text-xs font-semibold text-[#0b57d0] dark:text-[#8ab4f8] hover:underline transition-colors"
                   >
                     {{ currentLang === 'km' ? 'មើលការជូនដំណឹងទាំងអស់ →' : 'View All Notifications →' }}
                   </Link>
@@ -1605,17 +1605,17 @@ const onIconError = (e: Event) => {
       class="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 bg-slate-950/80 backdrop-blur-md transition-opacity"
       @click.self="isSearchOpen = false"
     >
-      <div class="w-full max-w-xl rounded-3xl bg-white dark:bg-[#1e1f20] border border-slate-200 dark:border-[#2d2f31] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-        <div class="p-4 border-b border-slate-200 dark:border-[#28292a] flex items-center gap-3">
-          <svg class="w-5 h-5 text-indigo-500 dark:text-[#8ab4f8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      <div class="w-full max-w-xl rounded-3xl bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div class="p-4 border-b border-[#dfe3e7] dark:border-[#28292a] flex items-center gap-3">
+          <svg class="w-5 h-5 text-[#0b57d0] dark:text-[#8ab4f8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           <input
             v-model="searchQuery"
             type="text"
             :placeholder="currentLang === 'km' ? 'ស្វែងរកម៉ូឌុលទាំង ១៣, កម្រងសំណួរ, វគ្គសិក្សា, ការអនុវត្ត...' : 'Search all 13 modules, quizzes, courses, labs, certificates...'"
-            class="w-full bg-transparent text-sm text-slate-900 dark:text-[#e3e3e3] placeholder-slate-400 dark:placeholder-[#8e918f] focus:outline-none"
+            class="w-full bg-transparent text-sm text-[#1f1f1f] dark:text-[#e3e3e3] placeholder-[#747775] dark:placeholder-[#8e918f] focus:outline-none"
             autofocus
           />
-          <button @click="isSearchOpen = false" class="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-white font-bold cursor-pointer">
+          <button @click="isSearchOpen = false" class="text-xs text-[#747775] hover:text-[#1f1f1f] dark:hover:text-white font-bold cursor-pointer">
             ESC
           </button>
         </div>
@@ -1626,13 +1626,13 @@ const onIconError = (e: Event) => {
             :key="link.name"
             :href="link.href"
             @click="isSearchOpen = false"
-            class="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-indigo-50 dark:hover:bg-[#282a2c] text-slate-700 dark:text-[#c4c7c5] hover:text-indigo-600 dark:hover:text-[#a8c7fa] transition-colors"
+            class="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-[#f0f4f9] dark:hover:bg-[#282a2c] text-[#444746] dark:text-[#c4c7c5] hover:text-[#0b57d0] dark:hover:text-[#a8c7fa] transition-colors"
           >
             <div class="flex items-center gap-2.5">
               <img :src="link.iconUrl" class="w-4 h-4 object-contain" />
               <span class="text-xs font-medium">{{ link.name }}</span>
             </div>
-            <span class="text-[10px] px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-[#131314] text-slate-400 dark:text-[#8e918f] border border-transparent dark:border-[#2d2f31]">
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#f0f4f9] dark:bg-[#131314] text-[#747775] dark:text-[#8e918f] border border-[#dfe3e7] dark:border-[#2d2f31]">
               {{ link.category }}
             </span>
           </Link>
