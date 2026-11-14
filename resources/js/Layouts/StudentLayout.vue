@@ -925,23 +925,31 @@ const onIconError = (e: Event) => {
         ]"
       >
         <!-- Logo & Title Container -->
-        <Link
-          href="/student/dashboard"
-          :class="[
-            isSidebarCollapsed ? 'justify-center cursor-pointer' : '',
-            'flex items-center gap-3 min-w-0 shrink-0 transition-all'
-          ]"
-          :title="isSidebarCollapsed ? (currentLang === 'km' ? 'E-LMS និស្សិត' : 'E-LMS Student') : undefined"
+        <button
+          v-if="isSidebarCollapsed"
+          @click="toggleSidebarCollapse"
+          type="button"
+          :title="currentLang === 'km' ? 'ពង្រីកម៉ឺនុយ' : 'Expand Sidebar'"
+          class="flex items-center justify-center p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-[#282a2c] transition-all cursor-pointer focus:outline-none"
         >
           <img
             :src="logoUrl"
             alt="E-LMS Logo"
-            :class="[
-              isSidebarCollapsed ? 'hover:scale-105' : '',
-              'w-9 h-9 min-w-[36px] min-h-[36px] max-w-[36px] max-h-[36px] aspect-square rounded-full object-cover shrink-0 transition-all duration-300'
-            ]"
+            class="w-9 h-9 min-w-[36px] min-h-[36px] max-w-[36px] max-h-[36px] aspect-square rounded-full object-cover shrink-0 hover:scale-105 transition-transform"
           />
-          <div v-show="!isSidebarCollapsed" class="transition-opacity duration-200 min-w-0">
+        </button>
+
+        <Link
+          v-else
+          href="/student/dashboard"
+          class="flex items-center gap-3 min-w-0 shrink-0 transition-all focus:outline-none"
+        >
+          <img
+            :src="logoUrl"
+            alt="E-LMS Logo"
+            class="w-9 h-9 min-w-[36px] min-h-[36px] max-w-[36px] max-h-[36px] aspect-square rounded-full object-cover shrink-0"
+          />
+          <div class="transition-opacity duration-200 min-w-0">
             <h1 class="text-sm font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-500 tracking-tight whitespace-nowrap">
               {{ currentLang === 'km' ? 'E-LMS និស្សិត' : 'E-LMS Student' }}
             </h1>
@@ -949,13 +957,13 @@ const onIconError = (e: Event) => {
           </div>
         </Link>
 
-        <!-- Collapse Button (When expanded) -->
+        <!-- Single Collapse Button (When expanded) -->
         <button
-          v-show="!isSidebarCollapsed"
+          v-if="!isSidebarCollapsed"
           @click="toggleSidebarCollapse"
           type="button"
           :title="currentLang === 'km' ? 'បង្រួមម៉ឺនុយ' : 'Collapse Sidebar'"
-          class="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0 cursor-pointer transition-colors focus:outline-none"
+          class="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#282a2c] shrink-0 cursor-pointer transition-colors focus:outline-none"
         >
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
@@ -1315,18 +1323,6 @@ const onIconError = (e: Event) => {
           >
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-
-          <!-- Desktop Sidebar Expand/Collapse Toggle Button (Clean in Navbar, exactly like Admin) -->
-          <button
-            @click="toggleSidebarCollapse"
-            type="button"
-            :title="isSidebarCollapsed ? (currentLang === 'km' ? 'ពង្រីកម៉ឺនុយ' : 'Expand Sidebar') : (currentLang === 'km' ? 'បង្រួមម៉ឺនុយ' : 'Collapse Sidebar')"
-            class="hidden lg:flex items-center justify-center p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all cursor-pointer border border-slate-200/60 dark:border-slate-800 shrink-0"
-          >
-            <svg :class="[isSidebarCollapsed ? 'rotate-180' : '', 'w-4 h-4 transition-transform duration-300']" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
             </svg>
           </button>
 
