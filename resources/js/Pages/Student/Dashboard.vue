@@ -216,6 +216,19 @@ async function loadDashboard() {
 
 onMounted(() => {
   loadDashboard()
+  if (typeof window !== 'undefined' && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in-view')
+        }
+      })
+    }, { threshold: 0.1 })
+
+    setTimeout(() => {
+      document.querySelectorAll('.course-card-scroll').forEach(el => observer.observe(el))
+    }, 150)
+  }
 })
 
 // 6 Top Stats Metrics styled like the Admin Dashboard with vibrant gradients & sparklines
@@ -553,10 +566,20 @@ const fallbackCoursesList = computed(() => [
 ])
 
 const coursesToDisplay = computed(() => {
-  if (props.dbCourses && props.dbCourses.length > 0) {
-    return props.dbCourses
+  if (props.dbCourses && props.dbCourses.length >= 6) {
+    return props.dbCourses.slice(0, 6)
   }
-  return fallbackCoursesList.value
+  if (props.dbCourses && props.dbCourses.length > 0) {
+    const list = [...props.dbCourses]
+    for (const fb of fallbackCoursesList.value) {
+      if (list.length >= 6) break
+      if (!list.some(c => c.id === fb.id || c.title === fb.title)) {
+        list.push(fb)
+      }
+    }
+    return list.slice(0, 6)
+  }
+  return fallbackCoursesList.value.slice(0, 6)
 })
 
 const filteredCourses = computed(() => {
@@ -1085,7 +1108,7 @@ const recentActivities = computed(() => {
                 v-for="c in filteredCourses"
                 :key="c.id"
                 :href="c.href"
-                class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-[#0b57d0] hover:dark:border-[#1a73e8]/70 hover:dark:bg-[#232426] rounded-2xl p-4.5 sm:p-5 shadow-xs dark:shadow-xl flex flex-col justify-between space-y-3.5 transition-all duration-200 hover:-translate-y-1 hover:shadow-md group"
+                class="course-card-scroll bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-[#0b57d0] hover:dark:border-[#1a73e8]/70 hover:dark:bg-[#232426] rounded-2xl p-4.5 sm:p-5 shadow-xs dark:shadow-xl flex flex-col justify-between space-y-3.5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md group"
               >
                 <!-- Real Representative Course Thumbnail Image -->
                 <div class="relative w-full h-36 rounded-2xl overflow-hidden bg-slate-900 border border-[#dfe3e7] dark:border-[#2d2f31] shadow-xs">
@@ -1162,25 +1185,25 @@ const recentActivities = computed(() => {
                   type="button"
                   @click="selectedRange = 'week'"
                   :class="selectedRange === 'week' ? 'bg-[#0b57d0] dark:bg-[#a8c7fa] text-white dark:text-[#041e49] font-bold shadow-xs' : 'text-[#444746] dark:text-[#c4c7c5] hover:text-[#1f1f1f] dark:hover:text-white'"
-                  class="px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer"
+                  class="px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer"
                 >
-                  7D ({{ currentLang === 'km' ? '៧ ថ្ងៃ' : 'Week' }})
+                  7D
                 </button>
                 <button
                   type="button"
                   @click="selectedRange = 'last_week'"
                   :class="selectedRange === 'last_week' ? 'bg-[#0b57d0] dark:bg-[#a8c7fa] text-white dark:text-[#041e49] font-bold shadow-xs' : 'text-[#444746] dark:text-[#c4c7c5] hover:text-[#1f1f1f] dark:hover:text-white'"
-                  class="px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer"
+                  class="px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer"
                 >
-                  30D ({{ currentLang === 'km' ? '៣០ ថ្ងៃ' : 'Last' }})
+                  30D
                 </button>
                 <button
                   type="button"
                   @click="selectedRange = 'month'"
                   :class="selectedRange === 'month' ? 'bg-[#0b57d0] dark:bg-[#a8c7fa] text-white dark:text-[#041e49] font-bold shadow-xs' : 'text-[#444746] dark:text-[#c4c7c5] hover:text-[#1f1f1f] dark:hover:text-white'"
-                  class="px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer"
+                  class="px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer"
                 >
-                  90D ({{ currentLang === 'km' ? '៩០ ថ្ងៃ' : 'Month' }})
+                  90D
                 </button>
               </div>
 
@@ -1207,6 +1230,7 @@ const recentActivities = computed(() => {
                     stroke="#0b57d0"
                     stroke-width="2.5"
                     stroke-linecap="round"
+                    class="line-chart-draw"
                   />
                   <circle :cx="chartDataByRange[selectedRange].dotX" :cy="chartDataByRange[selectedRange].dotY" r="4" fill="#0b57d0" stroke="#ffffff" stroke-width="2" />
                 </svg>
@@ -1220,17 +1244,19 @@ const recentActivities = computed(() => {
             <!-- Study Time Donut Ring Chart Card (Uniform border, hover blue border) -->
             <Link
               href="/student/progress/learning-time"
-              class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-[#0b57d0] hover:dark:border-[#1a73e8]/70 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-4 block transition-all hover:-translate-y-1"
+              class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-[#0b57d0] hover:dark:border-[#1a73e8]/70 rounded-3xl p-5 shadow-sm dark:shadow-xl flex flex-col justify-between space-y-3 transition-all hover:-translate-y-1"
             >
               <div class="flex items-center justify-between">
                 <h3 class="text-xs font-bold text-[#1f1f1f] dark:text-[#e3e3e3] uppercase tracking-wider flex items-center gap-1">
                   <span>{{ currentLang === 'km' ? 'ម៉ោងសិក្សា' : 'Study Time' }}</span>
                   <svg class="w-3.5 h-3.5 text-[#0b57d0] dark:text-[#8ab4f8]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                 </h3>
-                <span class="text-xs text-[#0b57d0] dark:text-[#8ab4f8] font-semibold">{{ currentLang === 'km' ? 'លម្អិត' : 'Breakdown' }}</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30">
+                  +2.5h vs last week
+                </span>
               </div>
 
-              <div class="flex items-center justify-center gap-4">
+              <div class="flex items-center justify-center gap-4 my-auto py-2">
                 <!-- SVG Circular Donut with animated drawing -->
                 <div class="relative w-24 h-24 shrink-0 flex items-center justify-center">
                   <svg viewBox="0 0 36 36" class="w-24 h-24 -rotate-90">
@@ -1288,17 +1314,19 @@ const recentActivities = computed(() => {
             <!-- Quiz Performance Radial Gauge Card -->
             <Link
               href="/student/quizzes/scores"
-              class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-[#0b57d0] hover:dark:border-[#1a73e8]/70 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-4 block transition-all hover:-translate-y-1"
+              class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-[#0b57d0] hover:dark:border-[#1a73e8]/70 rounded-3xl p-5 shadow-sm dark:shadow-xl flex flex-col justify-between space-y-3 transition-all hover:-translate-y-1"
             >
               <div class="flex items-center justify-between">
                 <h3 class="text-xs font-bold text-[#1f1f1f] dark:text-[#e3e3e3] uppercase tracking-wider flex items-center gap-1">
                   <span>{{ currentLang === 'km' ? 'លទ្ធផលកម្រងសំណួរ' : 'Quiz Performance' }}</span>
                   <svg class="w-3 h-3 text-[#0b57d0] dark:text-[#8ab4f8]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                 </h3>
-                <span class="text-[10px] text-[#137333] dark:text-emerald-400 font-semibold">{{ currentLang === 'km' ? 'ជាប់' : 'Passing' }}</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30">
+                  +4% vs last test
+                </span>
               </div>
 
-              <div class="flex items-center justify-center gap-4">
+              <div class="flex items-center justify-center gap-4 my-auto py-2">
                 <!-- Gauge Circle -->
                 <div class="relative w-24 h-24 shrink-0 flex items-center justify-center">
                   <svg viewBox="0 0 36 36" class="w-24 h-24 -rotate-90">
@@ -1310,7 +1338,7 @@ const recentActivities = computed(() => {
                       d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                     />
                     <path
-                      class="text-[#137333] dark:text-emerald-400"
+                      class="text-[#137333] dark:text-emerald-400 donut-draw"
                       stroke-dasharray="78, 100"
                       stroke-width="4"
                       stroke-linecap="round"
@@ -1326,7 +1354,7 @@ const recentActivities = computed(() => {
                 </div>
 
                 <!-- Legend -->
-                <div class="space-y-1.5 text-[10px] text-[#444746] dark:text-[#c4c7c5]">
+                <div class="space-y-1.5 text-xs text-[#444746] dark:text-[#c4c7c5] font-medium">
                   <div class="flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-[#137333] dark:bg-emerald-400"></span>
                     <span>{{ currentLang === 'km' ? 'ត្រឹមត្រូវ: 78%' : 'Correct: 78%' }}</span>
@@ -1770,6 +1798,29 @@ const recentActivities = computed(() => {
   }
 }
 
+/* Course Cards Scroll-in Animation */
+.course-card-scroll {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 500ms cubic-bezier(0.16, 1, 0.3, 1), transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.course-card-scroll.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Line Chart SVG Draw Animation */
+.line-chart-draw {
+  stroke-dasharray: 400;
+  stroke-dashoffset: 400;
+  animation: drawLine 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes drawLine {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
 /* Donut Ring Draw Animation */
 .donut-draw {
   animation: drawDonut 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -1813,9 +1864,13 @@ const recentActivities = computed(() => {
   .stat-card,
   .donut-draw,
   .goal-checkbox-bounce,
-  .shimmer-sweep {
+  .shimmer-sweep,
+  .course-card-scroll,
+  .line-chart-draw {
     animation: none !important;
     transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 }
 

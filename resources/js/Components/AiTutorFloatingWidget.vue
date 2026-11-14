@@ -8,6 +8,26 @@ const isOpen = ref(false)
 const messageInput = ref('')
 const isSending = ref(false)
 
+const formatMarkdown = (text: string) => {
+  if (!text) return ''
+  let formatted = text
+    // Escape HTML special characters
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    // Multi-line code block ```code```
+    .replace(/```([\s\S]*?)```/g, '<pre class="bg-slate-900 border border-slate-700/80 p-2 rounded-xl text-emerald-300 font-mono text-[11px] my-1.5 overflow-x-auto"><code>$1</code></pre>')
+    // Inline code `code`
+    .replace(/`([^`]+)`/g, '<code class="bg-slate-800 text-purple-300 px-1.5 py-0.5 rounded text-[11px] font-mono">$1</code>')
+    // Bold **text** -> remove raw ** and make bold
+    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-white">$1</strong>')
+    // Italic *text*
+    .replace(/\*(.*?)\*/g, '<em class="italic text-purple-200">$1</em>')
+    // Line breaks
+    .replace(/\n/g, '<br/>')
+  return formatted
+}
+
 const chatMessages = ref<{ role: 'user' | 'assistant'; text: string; textEn?: string; time: string }[]>([
   {
     role: 'assistant',
@@ -119,7 +139,7 @@ const sendMessage = async () => {
     <!-- EXPANDED AI CHAT MODAL / DRAWER -->
     <div
       v-else
-      class="w-[360px] sm:w-[420px] h-[560px] bg-slate-900/95 backdrop-blur-2xl border border-purple-500/40 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+      class="ai-chat-panel w-[360px] sm:w-[420px] h-[560px] bg-slate-900/95 backdrop-blur-2xl border border-purple-500/40 rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8),0_0_35px_rgba(147,51,234,0.3)] flex flex-col overflow-hidden"
     >
       <!-- Header -->
       <div class="px-5 py-4 bg-gradient-to-r from-purple-950 via-slate-900 to-indigo-950 border-b border-slate-800 flex items-center justify-between">
@@ -149,14 +169,14 @@ const sendMessage = async () => {
         </button>
       </div>
 
-      <!-- Messages Stream -->
+      <!-- Messages Stream with Markdown Rendering & Slide-Up -->
       <div class="flex-1 p-4 overflow-y-auto custom-scrollbar space-y-3">
         <div
           v-for="(msg, idx) in chatMessages"
           :key="idx"
           :class="[
             msg.role === 'user' ? 'justify-end' : 'justify-start',
-            'flex items-start gap-2.5'
+            'msg-slide-up flex items-start gap-2.5'
           ]"
         >
           <div
@@ -174,8 +194,12 @@ const sendMessage = async () => {
               'max-w-[85%] p-3 text-xs leading-relaxed space-y-1 shadow-md'
             ]"
           >
-            <p class="whitespace-pre-line">{{ (currentLang === 'en' && msg.textEn) ? msg.textEn : msg.text }}</p>
-            <p :class="[msg.role === 'user' ? 'text-indigo-200' : 'text-slate-500', 'text-[9px] text-right']">
+            <!-- Safely Rendered Markdown without raw ** -->
+            <div
+              class="leading-relaxed whitespace-pre-wrap select-text"
+              v-html="formatMarkdown((currentLang === 'en' && msg.textEn) ? msg.textEn : msg.text)"
+            ></div>
+            <p :class="[msg.role === 'user' ? 'text-indigo-200' : 'text-slate-500', 'text-[9px] text-right font-medium']">
               {{ msg.time === 'ឥឡូវនេះ' ? (currentLang === 'km' ? 'ឥឡូវនេះ' : 'Just now') : msg.time }}
             </p>
           </div>
@@ -187,26 +211,26 @@ const sendMessage = async () => {
         </div>
       </div>
 
-      <!-- Quick Suggestion Chips -->
-      <div class="px-3 py-1.5 bg-slate-950/70 border-t border-slate-800 flex items-center gap-1.5 overflow-x-auto custom-scrollbar">
+      <!-- Quick Suggestion Chips (Wrapped into 2 clean rows) -->
+      <div class="px-3 py-2 bg-slate-950/80 border-t border-slate-800 flex flex-wrap gap-1.5 max-h-24 overflow-y-auto custom-scrollbar">
         <button
           v-for="chip in quickChips"
           :key="chip"
           @click="sendQuick(chip)"
-          class="px-2.5 py-1 rounded-full bg-slate-800/90 hover:bg-slate-700 text-slate-300 text-[10px] border border-slate-700 shrink-0 transition-colors cursor-pointer"
+          class="px-2.5 py-1 rounded-full bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white text-[11px] border border-slate-700 shrink-0 transition-all hover:scale-105 active:scale-95 cursor-pointer leading-tight"
         >
           {{ chip }}
         </button>
       </div>
 
-      <!-- Input Box -->
+      <!-- Input Box (High Contrast Placeholder & Strong Shadow) -->
       <div class="p-3 bg-slate-950 border-t border-slate-800 flex items-center gap-2">
         <input
           v-model="messageInput"
           @keyup.enter="sendMessage"
           type="text"
           :placeholder="currentLang === 'km' ? 'សួរសំណួរមេរៀនគ្រប់មុខវិជ្ជា...' : 'Ask any study question across all majors...'"
-          class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+          class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-400 font-medium focus:outline-none focus:border-purple-500"
         />
         <button
           @click="sendMessage"
@@ -219,3 +243,53 @@ const sendMessage = async () => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.ai-chat-panel {
+  animation: aiPanelEnter 250ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes aiPanelEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.msg-slide-up {
+  animation: msgSlideUp 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes msgSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-chat-panel,
+  .msg-slide-up {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  height: 4px;
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 9999px;
+}
+</style>

@@ -1020,9 +1020,18 @@ const confirmPayment = () => {
           <!-- Action -->
           <button
             @click="confirmPayment"
-            class="w-full py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-purple-950/20 transition-all cursor-pointer active:scale-95"
+            :class="[
+              selectedPaymentMethod === 'aba'
+                ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/30'
+                : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-purple-950/20',
+              'w-full py-3 rounded-2xl text-white font-bold text-xs shadow-lg transition-all cursor-pointer active:scale-95 flex items-center justify-center gap-2'
+            ]"
           >
-            Confirm &amp; Pay {{ selectedInvoice.amount }}
+            <svg v-if="selectedPaymentMethod === 'aba'" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <rect width="20" height="14" x="2" y="5" rx="2" />
+              <line x1="2" x2="22" y1="10" />
+            </svg>
+            <span>{{ selectedPaymentMethod === 'aba' ? 'Pay via ABA' : 'Confirm & Pay' }} ({{ selectedInvoice.amount }})</span>
           </button>
         </div>
 

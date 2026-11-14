@@ -333,6 +333,20 @@ onUnmounted(() => {
                 </span>
               </div>
 
+              <!-- PAY VIA ABA ACTION BUTTON (Matches User Reference) -->
+              <button
+                @click="simulatePaymentScan"
+                type="button"
+                class="w-full py-3 px-5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-sm shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2.5 transition-all cursor-pointer active:scale-95"
+              >
+                <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <rect width="20" height="14" x="2" y="5" rx="2" />
+                  <line x1="2" x2="22" y1="10" />
+                  <line x1="6" x2="10" y1="14" stroke-linecap="round" />
+                </svg>
+                <span>Pay via ABA</span>
+              </button>
+
               <button
                 @click="refreshQrCode"
                 class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white font-bold text-xs border border-slate-200 dark:border-slate-800 flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
