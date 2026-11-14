@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { i18n } from '@/Services/i18n'
 
 const currentLang = computed(() => i18n.locale.value)
@@ -7,6 +7,27 @@ const currentLang = computed(() => i18n.locale.value)
 const isOpen = ref(false)
 const messageInput = ref('')
 const isSending = ref(false)
+
+const handleExternalOpen = (event: Event) => {
+  isOpen.value = true
+  const customEv = event as CustomEvent<{ prompt?: string }>
+  if (customEv.detail?.prompt) {
+    messageInput.value = customEv.detail.prompt
+    sendMessage()
+  }
+}
+
+onMounted(() => {
+  if (typeof window !== 'undefined') {
+    window.addEventListener('open-ai-tutor', handleExternalOpen)
+  }
+})
+
+onUnmounted(() => {
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('open-ai-tutor', handleExternalOpen)
+  }
+})
 
 const formatMarkdown = (text: string) => {
   if (!text) return ''

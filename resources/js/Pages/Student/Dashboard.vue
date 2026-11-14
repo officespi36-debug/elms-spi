@@ -720,11 +720,18 @@ const handleSendAiPrompt = (promptText: string) => {
   }, 350)
 }
 
+const openAiTutorChat = (prompt?: string) => {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('open-ai-tutor', { detail: { prompt } }))
+  }
+}
+
 const sendUserCustomAi = () => {
   if (!aiPromptInput.value.trim()) return
   const text = aiPromptInput.value.trim()
   aiPromptInput.value = ''
   handleSendAiPrompt(text)
+  openAiTutorChat(text)
 }
 
 // Achievements Badges with SVG type
@@ -1036,9 +1043,9 @@ const recentActivities = computed(() => {
                   <div class="w-full h-2 rounded-full bg-[#e1e3e1] dark:bg-[#282a2c] overflow-hidden">
                     <div class="h-full bg-[#0b57d0] dark:bg-[#a8c7fa] rounded-full transition-all duration-900 ease-out" :style="{ width: continueCourseData.progress + '%' }"></div>
                   </div>
-                  <div class="flex items-center justify-between text-xs text-[#444746] dark:text-[#c4c7c5] font-medium">
-                    <span>{{ currentLang === 'km' ? 'មេរៀនចុងក្រោយ: ' : 'Last lesson: ' }}{{ continueCourseData.lastLesson }}</span>
-                    <span class="tabular-nums font-semibold flex items-center gap-1">
+                  <div class="flex items-center justify-between text-xs text-[#444746] dark:text-[#c4c7c5] font-medium min-w-0">
+                    <span class="truncate min-w-0 flex-1 mr-3">{{ currentLang === 'km' ? 'មេរៀនចុងក្រោយ: ' : 'Last lesson: ' }}{{ continueCourseData.lastLesson }}</span>
+                    <span class="tabular-nums font-semibold flex items-center gap-1 shrink-0 whitespace-nowrap">
                       <svg class="w-3.5 h-3.5 text-[#0b57d0] dark:text-[#8ab4f8]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       {{ continueCourseData.timeLeft }}
                     </span>
@@ -1046,11 +1053,11 @@ const recentActivities = computed(() => {
                 </div>
               </div>
 
-              <!-- CTA Button (Google One Style Action Pill) -->
+              <!-- CTA Button (Gradient Purple-Blue with White Text) -->
               <div class="w-full md:w-auto shrink-0">
                 <Link
                   :href="continueCourseData.href"
-                  class="w-full md:w-auto px-6 py-3 rounded-full bg-[#0b57d0] hover:bg-[#1557bf] dark:bg-[#a8c7fa] dark:hover:bg-[#b8d2fa] text-white dark:text-[#041e49] font-medium text-xs shadow-sm flex items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all text-center cursor-pointer"
+                  class="w-full md:w-auto px-6 py-3 rounded-full bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:from-[#4f46e5] hover:to-[#6d28d9] text-white font-semibold text-xs shadow-md shadow-indigo-500/25 flex items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all text-center cursor-pointer"
                 >
                   <span>{{ currentLang === 'km' ? 'បន្តការសិក្សា' : 'Continue Learning' }}</span>
                   <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
@@ -1147,14 +1154,14 @@ const recentActivities = computed(() => {
                 <div class="space-y-1.5 pt-1 border-t border-[#dfe3e7] dark:border-[#2d2f31]">
                   <div class="w-full h-1.5 rounded-full bg-[#e1e3e1] dark:bg-[#282a2c] overflow-hidden">
                     <div
-                      :class="c.progress === 100 ? 'bg-[#137333]' : 'bg-[#0b57d0] dark:bg-[#a8c7fa]'"
+                      :class="c.progress === 100 ? 'bg-[#22c55e]' : 'bg-[#0b57d0] dark:bg-[#a8c7fa]'"
                       class="h-full rounded-full transition-all duration-900 ease-out"
                       :style="{ width: c.progress + '%' }"
                     ></div>
                   </div>
                   <div class="flex items-center justify-between text-xs">
-                    <span :class="c.progress === 100 ? 'text-[#137333]' : 'text-[#0b57d0] dark:text-[#8ab4f8]'" class="font-bold tabular-nums">{{ c.progress }}%</span>
-                    <span class="text-[#444746] dark:text-[#c4c7c5] text-xs font-semibold flex items-center gap-0.5 group-hover:text-[#0b57d0] dark:group-hover:text-[#8ab4f8] transition-colors">
+                    <span :class="c.progress === 100 ? 'text-[#16a34a] dark:text-[#4ade80]' : 'text-[#0b57d0] dark:text-[#8ab4f8]'" class="font-bold tabular-nums">{{ c.progress }}%</span>
+                    <span class="text-[#444746] dark:text-[#e2e8f0] text-xs font-semibold flex items-center gap-0.5 group-hover:text-[#0b57d0] dark:group-hover:text-[#4ade80] transition-colors">
                       <span>{{ currentLang === 'km' ? 'ទិដ្ឋភាពទូទៅ' : 'Overview' }}</span>
                       <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </span>
@@ -1277,7 +1284,7 @@ const recentActivities = computed(() => {
                       d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                     />
                     <path
-                      class="text-indigo-500 dark:text-[#8ab4f8] donut-draw"
+                      class="text-indigo-500 dark:text-[#8ab4f8] donut-draw-2"
                       stroke-dasharray="30, 100"
                       stroke-dashoffset="-55"
                       stroke-width="4"
@@ -1367,6 +1374,53 @@ const recentActivities = computed(() => {
               </div>
             </Link>
 
+          </div>
+
+          <!-- RECENT ACTIVITY SECTION (Inside Column ឆ្វេង under Analytics) -->
+          <div class="space-y-3.5">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-[#0b57d0] dark:bg-[#8ab4f8] animate-pulse"></span>
+                <h2 class="text-xs font-bold text-[#1f1f1f] dark:text-[#c4c7c5] uppercase tracking-wider">
+                  {{ currentLang === 'km' ? 'សកម្មភាពសិក្សាថ្មីៗ' : 'Recent Activity' }}
+                </h2>
+              </div>
+              <Link href="/student/progress/learning-time" class="text-xs text-[#0b57d0] dark:text-[#8ab4f8] hover:underline font-semibold flex items-center gap-1">
+                <span>{{ currentLang === 'km' ? 'មើលប្រវត្តិទាំងអស់' : 'View Full History' }}</span>
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </Link>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Link
+                v-for="act in recentActivities"
+                :key="act.id"
+                :href="act.href"
+                class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-[#0b57d0] hover:dark:border-[#1a73e8]/70 rounded-2xl p-4 shadow-sm dark:shadow-xl transition-all duration-200 hover:-translate-y-1 hover:shadow-md flex items-start gap-3.5 group cursor-pointer"
+              >
+                <div :class="[act.iconBg, 'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-200']">
+                  <!-- Play SVG -->
+                  <svg v-if="act.type === 'play'" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                  <!-- Checkmark SVG -->
+                  <svg v-else-if="act.type === 'check'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                  <!-- Document SVG -->
+                  <svg v-else class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+                </div>
+
+                <div class="flex-1 min-w-0 space-y-1">
+                  <h4 class="font-bold text-[#1f1f1f] dark:text-[#e3e3e3] text-xs leading-snug line-clamp-1 group-hover:text-[#0b57d0] dark:group-hover:text-[#8ab4f8] transition-colors" :title="act.title">
+                    {{ act.title }}
+                  </h4>
+                  <p class="text-xs text-[#444746] dark:text-[#c4c7c5] truncate font-medium">
+                    {{ act.course }}
+                  </p>
+                  <p class="text-xs text-[#444746] dark:text-[#c4c7c5] tabular-nums font-semibold flex items-center gap-1 pt-1 border-t border-[#dfe3e7] dark:border-[#2d2f31]">
+                    <svg class="w-3.5 h-3.5 text-[#0b57d0] dark:text-[#8ab4f8]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <span>{{ act.time }}</span>
+                  </p>
+                </div>
+              </Link>
+            </div>
           </div>
 
         </div>
@@ -1513,10 +1567,10 @@ const recentActivities = computed(() => {
                 <p class="text-[10px] text-[#444746] dark:text-[#c4c7c5] leading-relaxed">{{ rec.desc }}</p>
                 
                 <div class="pt-1 flex items-center justify-between">
-                  <!-- Google One Solid Blue Pill Action Button -->
+                  <!-- Action Button: purple-blue gradient (#6366f1 -> #7c3aed) + white text (WCAG AA) -->
                   <Link
                     :href="rec.actionHref"
-                    class="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-[10px] font-medium shadow-sm transition-all hover:scale-105 active:scale-95 bg-[#0b57d0] hover:bg-[#1557bf] text-white dark:bg-[#a8c7fa] dark:hover:bg-[#b8d2fa] dark:text-[#041e49]"
+                    class="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-[10px] font-semibold shadow-md shadow-indigo-500/25 transition-all hover:scale-105 active:scale-95 bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:from-[#4f46e5] hover:to-[#6d28d9] text-white"
                   >
                     <span>{{ rec.actionLabel }}</span>
                     <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
@@ -1607,12 +1661,13 @@ const recentActivities = computed(() => {
                   {{ currentLang === 'km' ? 'ជំនួយការសិក្សា AI' : 'AI Study Assistant' }}
                 </h3>
               </div>
-              <Link
-                href="/student/ai-tutor/chat"
-                class="px-3 py-1 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#0b57d0] dark:text-[#a8c7fa] text-xs font-semibold border border-[#d2e3fc] dark:border-[#1a73e8]/30 hover:bg-[#0b57d0] hover:text-white transition-colors"
+              <button
+                type="button"
+                @click="openAiTutorChat()"
+                class="px-3 py-1 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#0b57d0] dark:text-[#a8c7fa] text-xs font-semibold border border-[#d2e3fc] dark:border-[#1a73e8]/30 hover:bg-[#0b57d0] hover:text-white transition-colors cursor-pointer"
               >
                 {{ currentLang === 'km' ? 'ជជែកពេញលេញ ↗' : 'Full Chat ↗' }}
-              </Link>
+              </button>
             </div>
 
             <!-- Messages Stream -->
@@ -1727,53 +1782,6 @@ const recentActivities = computed(() => {
 
       </div>
 
-      <!-- RECENT ACTIVITY - FULL WIDTH 12-COL SECTION (Balances right column under Achievements) -->
-      <section class="space-y-3.5">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full bg-[#0b57d0] dark:bg-[#8ab4f8] animate-pulse"></span>
-            <h2 class="text-xs font-bold text-[#1f1f1f] dark:text-[#c4c7c5] uppercase tracking-wider">
-              {{ currentLang === 'km' ? 'សកម្មភាពសិក្សាថ្មីៗ' : 'Recent Activity' }}
-            </h2>
-          </div>
-          <Link href="/student/progress/learning-time" class="text-xs text-[#0b57d0] dark:text-[#8ab4f8] hover:underline font-semibold flex items-center gap-1">
-            <span>{{ currentLang === 'km' ? 'មើលប្រវត្តិទាំងអស់' : 'View Full History' }}</span>
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-          </Link>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Link
-            v-for="act in recentActivities"
-            :key="act.id"
-            :href="act.href"
-            class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-[#0b57d0] hover:dark:border-[#1a73e8]/70 rounded-2xl p-4 shadow-sm dark:shadow-xl transition-all duration-200 hover:-translate-y-1 hover:shadow-md flex items-start gap-3.5 group cursor-pointer"
-          >
-            <div :class="[act.iconBg, 'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-200']">
-              <!-- Play SVG -->
-              <svg v-if="act.type === 'play'" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-              <!-- Checkmark SVG -->
-              <svg v-else-if="act.type === 'check'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-              <!-- Document SVG -->
-              <svg v-else class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
-            </div>
-
-            <div class="flex-1 min-w-0 space-y-1">
-              <h4 class="font-bold text-[#1f1f1f] dark:text-[#e3e3e3] text-xs leading-snug line-clamp-1 group-hover:text-[#0b57d0] dark:group-hover:text-[#8ab4f8] transition-colors" :title="act.title">
-                {{ act.title }}
-              </h4>
-              <p class="text-xs text-[#444746] dark:text-[#c4c7c5] truncate font-medium">
-                {{ act.course }}
-              </p>
-              <p class="text-xs text-[#444746] dark:text-[#c4c7c5] tabular-nums font-semibold flex items-center gap-1 pt-1 border-t border-[#dfe3e7] dark:border-[#2d2f31]">
-                <svg class="w-3.5 h-3.5 text-[#0b57d0] dark:text-[#8ab4f8]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                <span>{{ act.time }}</span>
-              </p>
-            </div>
-          </Link>
-        </div>
-      </section>
-
     </div>
   </StudentLayout>
 </template>
@@ -1802,11 +1810,14 @@ const recentActivities = computed(() => {
 .course-card-scroll {
   opacity: 0;
   transform: translateY(16px);
-  transition: opacity 500ms cubic-bezier(0.16, 1, 0.3, 1), transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 500ms cubic-bezier(0.16, 1, 0.3, 1), transform 500ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 300ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 .course-card-scroll.in-view {
   opacity: 1;
   transform: translateY(0);
+}
+.course-card-scroll.in-view:hover {
+  transform: translateY(-4px);
 }
 
 /* Line Chart SVG Draw Animation */
@@ -1828,6 +1839,21 @@ const recentActivities = computed(() => {
 @keyframes drawDonut {
   from {
     stroke-dashoffset: 100;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.donut-draw-2 {
+  animation: drawDonut2 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes drawDonut2 {
+  from {
+    stroke-dashoffset: 100;
+  }
+  to {
+    stroke-dashoffset: -55;
   }
 }
 
@@ -1863,6 +1889,7 @@ const recentActivities = computed(() => {
 @media (prefers-reduced-motion: reduce) {
   .stat-card,
   .donut-draw,
+  .donut-draw-2,
   .goal-checkbox-bounce,
   .shimmer-sweep,
   .course-card-scroll,
