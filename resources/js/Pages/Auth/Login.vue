@@ -1645,6 +1645,7 @@ onUnmounted(() => {
           @click="toggleTheme($event)"
           class="w-8 h-8 rounded-full bg-white/90 dark:bg-[#121214]/80 backdrop-blur-md hover:bg-zinc-100 dark:hover:bg-[#1c1c1f] text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white transition-all duration-150 border border-zinc-300/80 dark:border-zinc-800 shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
           :title="isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+          aria-label="Toggle theme"
         >
           <i :class="['pi text-xs transition-transform duration-500 group-hover:rotate-45', isDark ? 'pi-sun text-amber-400' : 'pi-moon text-indigo-500']"></i>
         </button>

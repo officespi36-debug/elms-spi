@@ -1182,7 +1182,7 @@ const onIconError = (e: Event) => {
             />
           </button>
 
-          <!-- Theme Switcher Pill -->
+          <!-- Theme Switcher Pill (Icon Only) -->
           <button
             type="button"
             @click="toggleTheme($event)"

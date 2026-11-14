@@ -432,8 +432,9 @@ const submit = () => {
         <button
           type="button"
           @click="toggleTheme"
-          class="h-8 w-8 rounded-full bg-zinc-200/70 dark:bg-[#18181b] hover:bg-zinc-300 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 transition-all duration-150 border border-zinc-300/80 dark:border-zinc-800/80 flex items-center justify-center cursor-pointer select-none"
+          class="h-8 w-8 rounded-full bg-zinc-200/70 dark:bg-[#18181b] hover:bg-zinc-300 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 transition-all duration-150 border border-zinc-300/80 dark:border-zinc-800/80 flex items-center justify-center cursor-pointer select-none focus:outline-none active:scale-95"
           :title="isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+          aria-label="Toggle theme"
         >
           <i :class="['pi text-xs', isDark ? 'pi-sun text-amber-400' : 'pi-moon text-zinc-600 dark:text-zinc-300']"></i>
         </button>
