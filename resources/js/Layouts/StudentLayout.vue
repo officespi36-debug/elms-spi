@@ -657,7 +657,7 @@ const searchableLinks = computed(() => [
   { name: 'Progress Tracking & Badges', category: 'Progress', href: '/student/progress/overview', iconUrl: '/images/nav/progress.svg' },
   { name: 'Certificates (View, Download, QR Verify)', category: 'Certificates', href: '/student/certificates/my-certificates', iconUrl: '/images/nav/certificate.svg' },
   { name: 'Notifications & Alerts', category: 'Notifications', href: '/student/notifications/announcements', iconUrl: '/images/nav/notification.svg' },
-  { name: 'Calendar & Schedule (Quiz dates, Deadlines)', category: 'Calendar', href: '/student/calendar/live-class', iconUrl: '/images/actions/announcement.svg' },
+  { name: 'Calendar & Schedule (Quiz dates, Deadlines)', category: 'Calendar', href: '/student/calendar/live-class', iconUrl: '/images/nav/calendar.svg' },
   { name: 'Profile Settings & Academic Info', category: 'Profile', href: '/student/profile?tab=personal', iconUrl: '/images/nav/sub/students.svg' },
 ])
 
@@ -828,7 +828,7 @@ const studentNav: NavItem[] = [
     name: 'Calendar & Schedule',
     khName: 'កាលវិភាគ & ប្រតិទិន',
     href: '/student/calendar/live-class',
-    iconUrl: '/images/actions/announcement.svg',
+    iconUrl: '/images/nav/calendar.svg',
     icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'
   },
   {
@@ -1645,7 +1645,7 @@ const onIconError = (e: Event) => {
     </div>
 
     <!-- MAIN CONTENT WRAPPER -->
-    <main :class="[isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72', 'transition-all duration-300 min-h-[calc(100vh-64px)] pb-16 sm:pb-20']">
+    <main :class="[isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72', 'transition-all duration-300 min-h-[calc(100vh-64px)] pb-28 sm:pb-32']">
       <div class="px-4 sm:px-6 lg:px-8 xl:px-10 py-6 max-w-[1600px] mx-auto space-y-6">
         <slot />
       </div>

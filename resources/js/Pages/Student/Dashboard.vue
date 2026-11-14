@@ -243,8 +243,8 @@ const statsCards = computed(() => {
       type: 'enrolled',
       title: currentLang.value === 'km' ? 'វគ្គសិក្សាបានចុះឈ្មោះ' : 'ENROLLED COURSES',
       value: enrolledDisplay,
-      subtitle: currentLang.value === 'km' ? '▲ វគ្គសិក្សាសរុប' : '▲ Total Enrolled',
-      gradient: 'from-[#7c3aed] to-[#6366f1]',
+      subtitle: currentLang.value === 'km' ? 'វគ្គសិក្សាសរុប' : 'Total Enrolled',
+      gradient: 'from-indigo-600 to-blue-600',
       wavePath: 'M0 18 Q 20 4, 40 14 T 70 6 T 100 12 L 100 25 L 0 25 Z',
       waveLine: 'M0 18 Q 20 4, 40 14 T 70 6 T 100 12',
       href: '/student/my-courses/enrolled'
@@ -253,8 +253,8 @@ const statsCards = computed(() => {
       type: 'in_progress',
       title: currentLang.value === 'km' ? 'កំពុងសិក្សា' : 'IN PROGRESS',
       value: inProgressDisplay,
-      subtitle: currentLang.value === 'km' ? '▲ វគ្គសិក្សាសកម្ម' : '▲ Active Learning',
-      gradient: 'from-[#0284c7] to-[#2563eb]',
+      subtitle: currentLang.value === 'km' ? 'វគ្គសិក្សាសកម្ម' : 'Active Learning',
+      gradient: 'from-blue-600 to-indigo-600',
       wavePath: 'M0 20 Q 25 8, 45 16 T 75 4 T 100 10 L 100 25 L 0 25 Z',
       waveLine: 'M0 20 Q 25 8, 45 16 T 75 4 T 100 10',
       href: '/student/my-courses/enrolled'
@@ -263,8 +263,8 @@ const statsCards = computed(() => {
       type: 'completed',
       title: currentLang.value === 'km' ? 'បានបញ្ចប់' : 'COMPLETED',
       value: completedDisplay,
-      subtitle: currentLang.value === 'km' ? '▲ ជោគជ័យ ១០០%' : '▲ Finished Courses',
-      gradient: 'from-[#10b981] to-[#059669]',
+      subtitle: currentLang.value === 'km' ? 'បានបញ្ចប់ជោគជ័យ' : 'Finished Courses',
+      gradient: 'from-indigo-700 to-purple-700',
       wavePath: 'M0 16 Q 20 22, 45 8 T 75 14 T 100 4 L 100 25 L 0 25 Z',
       waveLine: 'M0 16 Q 20 22, 45 8 T 75 14 T 100 4',
       href: '/student/my-courses/completed'
@@ -273,8 +273,8 @@ const statsCards = computed(() => {
       type: 'certificates',
       title: currentLang.value === 'km' ? 'វិញ្ញាបនបត្រ' : 'CERTIFICATES',
       value: certsDisplay,
-      subtitle: currentLang.value === 'km' ? '★ ទទួលបាន' : '★ Verified & Earned',
-      gradient: 'from-[#f59e0b] to-[#d97706]',
+      subtitle: currentLang.value === 'km' ? 'វិញ្ញាបនបត្រផ្លូវការ' : 'Verified & Earned',
+      gradient: 'from-purple-600 to-indigo-600',
       wavePath: 'M0 18 Q 20 6, 45 16 T 75 8 T 100 14 L 100 25 L 0 25 Z',
       waveLine: 'M0 18 Q 20 6, 45 16 T 75 8 T 100 14',
       href: '/student/certificates/my-certificates'
@@ -283,8 +283,8 @@ const statsCards = computed(() => {
       type: 'study_time',
       title: currentLang.value === 'km' ? 'ម៉ោងសិក្សា' : 'STUDY TIME',
       value: studyTimeDisplay,
-      subtitle: currentLang.value === 'km' ? '⏱ ម៉ោងសរុប' : '⏱ Total Hours Spent',
-      gradient: 'from-[#06b6d4] to-[#0d9488]',
+      subtitle: currentLang.value === 'km' ? 'ម៉ោងសិក្សាសរុប' : 'Total Hours Spent',
+      gradient: 'from-blue-700 to-indigo-800',
       wavePath: 'M0 19 Q 25 10, 50 18 T 80 8 T 100 12 L 100 25 L 0 25 Z',
       waveLine: 'M0 19 Q 25 10, 50 18 T 80 8 T 100 12',
       href: '/student/progress/learning-time'
@@ -293,8 +293,8 @@ const statsCards = computed(() => {
       type: 'quiz_avg',
       title: currentLang.value === 'km' ? 'មធ្យមភាគ QUIZ' : 'QUIZ AVERAGE',
       value: quizAvgDisplay,
-      subtitle: currentLang.value === 'km' ? '★ ពិន្ទុមធ្យមរបស់អ្នក' : '★ Academic Score',
-      gradient: 'from-[#ec4899] to-[#8b5cf6]',
+      subtitle: currentLang.value === 'km' ? 'ពិន្ទុមធ្យមសិក្សា' : 'Academic Score',
+      gradient: 'from-indigo-600 to-violet-600',
       wavePath: 'M0 12 Q 25 20, 50 10 T 75 16 T 100 6 L 100 25 L 0 25 Z',
       waveLine: 'M0 12 Q 25 20, 50 10 T 75 16 T 100 6',
       href: '/student/quizzes/scores'
@@ -439,7 +439,36 @@ const getCourseFallbackImage = (course: any) => {
   return 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=600&q=80'
 }
 
-// My Courses Filter and List
+// Course status badge styling helper - Solid high contrast backgrounds (WCAG AA compliant)
+const getCourseStatusBadgeClass = (status: string) => {
+  if (status === 'completed') {
+    return 'bg-emerald-600/95 text-white border-emerald-400/40 shadow-sm'
+  }
+  if (status === 'in_progress') {
+    return 'bg-blue-600/95 text-white border-blue-400/40 shadow-sm'
+  }
+  return 'bg-slate-800/90 text-white border-white/20 shadow-sm'
+}
+
+// Structured Event Date parser for Left Calendar Badge (e.g. NOV 17 or ឧសភា ២៨)
+const getEventDateBadge = (item: { date?: string }) => {
+  const isKm = currentLang.value === 'km'
+  const dateStr = item.date || ''
+  const parts = dateStr.trim().split(/\s+/)
+  if (isKm) {
+    return {
+      month: parts[1] || 'កាលវិភាគ',
+      day: parts[0] || '២៨'
+    }
+  } else {
+    return {
+      month: (parts[0] || 'NOV').replace(/,/g, '').toUpperCase().slice(0, 3),
+      day: (parts[1] || '17').replace(/,/g, '')
+    }
+  }
+}
+
+// My Courses Filter and List - 6 Representative Courses for 2 full clean rows
 const selectedCourseFilter = ref<'all' | 'in_progress' | 'completed' | 'not_started'>('all')
 
 const fallbackCoursesList = computed(() => [
@@ -450,7 +479,7 @@ const fallbackCoursesList = computed(() => [
     progress: 53,
     status: 'in_progress' as const,
     statusLabel: currentLang.value === 'km' ? 'កំពុងសិក្សា' : 'In Progress',
-    badgeClass: 'bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/30',
+    badgeClass: 'bg-blue-600/95 text-white border-blue-400/40 shadow-sm',
     iconType: 'code',
     iconColor: 'from-blue-600 to-purple-600',
     thumbnail: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=600&q=80',
@@ -463,7 +492,7 @@ const fallbackCoursesList = computed(() => [
     progress: 35,
     status: 'in_progress' as const,
     statusLabel: currentLang.value === 'km' ? 'កំពុងសិក្សា' : 'In Progress',
-    badgeClass: 'bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/30',
+    badgeClass: 'bg-blue-600/95 text-white border-blue-400/40 shadow-sm',
     iconType: 'db',
     iconColor: 'from-purple-600 to-indigo-600',
     thumbnail: 'https://images.unsplash.com/photo-1544383835-bda2bc66a55d?auto=format&fit=crop&w=600&q=80',
@@ -476,7 +505,7 @@ const fallbackCoursesList = computed(() => [
     progress: 0,
     status: 'not_started' as const,
     statusLabel: currentLang.value === 'km' ? 'មិនទាន់ចាប់ផ្ដើម' : 'Not Started',
-    badgeClass: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700',
+    badgeClass: 'bg-slate-800/90 text-white border-white/20 shadow-sm',
     iconType: 'python',
     iconColor: 'from-amber-600 to-yellow-600',
     thumbnail: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&w=600&q=80',
@@ -489,11 +518,37 @@ const fallbackCoursesList = computed(() => [
     progress: 100,
     status: 'completed' as const,
     statusLabel: currentLang.value === 'km' ? 'បានបញ្ចប់' : 'Completed',
-    badgeClass: 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/30',
+    badgeClass: 'bg-emerald-600/95 text-white border-emerald-400/40 shadow-sm',
     iconType: 'design',
     iconColor: 'from-pink-600 to-purple-600',
     thumbnail: 'https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?auto=format&fit=crop&w=600&q=80',
     href: '/student/courses/4/overview'
+  },
+  {
+    id: 5,
+    title: currentLang.value === 'km' ? 'បច្ចេកវិទ្យា Cloud & សុវត្ថិភាពបណ្តាញ' : 'Cloud & Network Security',
+    teacher: 'Mr. Chea Sovann',
+    progress: 82,
+    status: 'in_progress' as const,
+    statusLabel: currentLang.value === 'km' ? 'កំពុងសិក្សា' : 'In Progress',
+    badgeClass: 'bg-blue-600/95 text-white border-blue-400/40 shadow-sm',
+    iconType: 'cloud',
+    iconColor: 'from-sky-600 to-indigo-600',
+    thumbnail: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=600&q=80',
+    href: '/student/courses/5/overview'
+  },
+  {
+    id: 6,
+    title: currentLang.value === 'km' ? 'ភាសាអង់គ្លេសសម្រាប់ទំនាក់ទំនងការងារ' : 'Business English Communication',
+    teacher: 'Dr. Virak Chea',
+    progress: 100,
+    status: 'completed' as const,
+    statusLabel: currentLang.value === 'km' ? 'បានបញ្ចប់' : 'Completed',
+    badgeClass: 'bg-emerald-600/95 text-white border-emerald-400/40 shadow-sm',
+    iconType: 'english',
+    iconColor: 'from-emerald-600 to-teal-600',
+    thumbnail: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=600&q=80',
+    href: '/student/courses/6/overview'
   }
 ])
 
@@ -824,17 +879,18 @@ const recentActivities = computed(() => {
           </button>
         </div>
 
-        <!-- 3. LOADED / COUNTING GRADIENT CARDS (DL-03, DL-04, DL-07, DL-08) -->
+        <!-- 3. LOADED / COUNTING GRADIENT CARDS (Staggered 70ms animation, hover translateY(-6px)) -->
         <div
           v-else
-          class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 sm:gap-4.5 animate-in fade-in duration-300"
+          class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 sm:gap-4.5"
         >
           <Link
-            v-for="stat in statsCards"
+            v-for="(stat, idx) in statsCards"
             :key="stat.type"
             :href="stat.href"
+            :style="{ animationDelay: `${idx * 70}ms` }"
             :class="[
-              'relative overflow-hidden rounded-2xl bg-gradient-to-br text-white p-4.5 sm:p-5 shadow-sm hover:shadow-xl hover:scale-[1.02] active:scale-[0.99] transition-all flex flex-col justify-between group cursor-pointer border border-white/10 min-h-[148px]',
+              'stat-card relative overflow-hidden rounded-2xl bg-gradient-to-br text-white p-4.5 sm:p-5 shadow-sm hover:shadow-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col justify-between group cursor-pointer border border-white/10 min-h-[148px]',
               stat.gradient
             ]"
           >
@@ -952,15 +1008,15 @@ const recentActivities = computed(() => {
                   </p>
                 </div>
 
-                <!-- Progress Bar -->
+                <!-- Progress Bar with 900ms smooth transition -->
                 <div class="space-y-1.5">
                   <div class="w-full h-2 rounded-full bg-[#e1e3e1] dark:bg-[#282a2c] overflow-hidden">
-                    <div class="h-full bg-[#0b57d0] dark:bg-[#a8c7fa] rounded-full" :style="{ width: continueCourseData.progress + '%' }"></div>
+                    <div class="h-full bg-[#0b57d0] dark:bg-[#a8c7fa] rounded-full transition-all duration-900 ease-out" :style="{ width: continueCourseData.progress + '%' }"></div>
                   </div>
-                  <div class="flex items-center justify-between text-[11px] text-[#747775] dark:text-[#8e918f]">
+                  <div class="flex items-center justify-between text-xs text-[#444746] dark:text-[#c4c7c5] font-medium">
                     <span>{{ currentLang === 'km' ? 'មេរៀនចុងក្រោយ: ' : 'Last lesson: ' }}{{ continueCourseData.lastLesson }}</span>
-                    <span class="font-mono flex items-center gap-1">
-                      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <span class="tabular-nums font-semibold flex items-center gap-1">
+                      <svg class="w-3.5 h-3.5 text-[#0b57d0] dark:text-[#8ab4f8]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       {{ continueCourseData.timeLeft }}
                     </span>
                   </div>
@@ -1042,8 +1098,13 @@ const recentActivities = computed(() => {
                   <!-- Vignette gradient overlay for text and badge contrast -->
                   <div class="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/20 pointer-events-none"></div>
 
-                  <!-- Status Pill Badge on Card -->
-                  <span :class="[c.badgeClass, 'absolute top-2.5 right-2.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border backdrop-blur-md shadow-xs']">
+                  <!-- Status Pill Badge on Card (Solid dark emerald/blue, WCAG AA compliant) -->
+                  <span
+                    :class="[
+                      getCourseStatusBadgeClass(c.status),
+                      'absolute top-2.5 right-2.5 px-3 py-1 rounded-full text-xs font-bold border backdrop-blur-md shadow-md'
+                    ]"
+                  >
                     {{ c.status === 'in_progress' ? (currentLang === 'km' ? 'កំពុងសិក្សា' : 'In Progress') : c.status === 'completed' ? (currentLang === 'km' ? 'បានបញ្ចប់' : 'Completed') : (currentLang === 'km' ? 'មិនទាន់ចាប់ផ្ដើម' : 'Not Started') }}
                   </span>
                 </div>
@@ -1053,26 +1114,26 @@ const recentActivities = computed(() => {
                   <h4 class="text-xs sm:text-sm font-bold text-[#1f1f1f] dark:text-[#e3e3e3] group-hover:text-[#0b57d0] dark:group-hover:text-[#8ab4f8] transition-colors line-clamp-2 min-h-[2.4rem] leading-snug" :title="c.title">
                     {{ c.title }}
                   </h4>
-                  <p class="text-[11px] text-[#747775] dark:text-[#8e918f] flex items-center gap-1">
-                    <svg class="w-3 h-3 text-[#747775] dark:text-[#8e918f] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
+                  <p class="text-xs text-[#444746] dark:text-[#c4c7c5] flex items-center gap-1 font-medium">
+                    <svg class="w-3.5 h-3.5 text-[#0b57d0] dark:text-[#8ab4f8] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
                     <span class="truncate">{{ c.teacher }}</span>
                   </p>
                 </div>
 
-                <!-- Progress Bar & Link -->
+                <!-- Progress Bar (900ms transition) & Link -->
                 <div class="space-y-1.5 pt-1 border-t border-[#dfe3e7] dark:border-[#2d2f31]">
                   <div class="w-full h-1.5 rounded-full bg-[#e1e3e1] dark:bg-[#282a2c] overflow-hidden">
                     <div
                       :class="c.progress === 100 ? 'bg-[#137333]' : 'bg-[#0b57d0] dark:bg-[#a8c7fa]'"
-                      class="h-full rounded-full transition-all duration-300"
+                      class="h-full rounded-full transition-all duration-900 ease-out"
                       :style="{ width: c.progress + '%' }"
                     ></div>
                   </div>
-                  <div class="flex items-center justify-between text-[11px]">
-                    <span :class="c.progress === 100 ? 'text-[#137333]' : 'text-[#0b57d0] dark:text-[#8ab4f8]'" class="font-bold font-mono">{{ c.progress }}%</span>
-                    <span class="text-[#747775] dark:text-[#8e918f] text-[10px] font-medium flex items-center gap-0.5 group-hover:text-[#0b57d0] dark:group-hover:text-[#8ab4f8] transition-colors">
+                  <div class="flex items-center justify-between text-xs">
+                    <span :class="c.progress === 100 ? 'text-[#137333]' : 'text-[#0b57d0] dark:text-[#8ab4f8]'" class="font-bold tabular-nums">{{ c.progress }}%</span>
+                    <span class="text-[#444746] dark:text-[#c4c7c5] text-xs font-semibold flex items-center gap-0.5 group-hover:text-[#0b57d0] dark:group-hover:text-[#8ab4f8] transition-colors">
                       <span>{{ currentLang === 'km' ? 'ទិដ្ឋភាពទូទៅ' : 'Overview' }}</span>
-                      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </span>
                   </div>
                 </div>
@@ -1083,45 +1144,49 @@ const recentActivities = computed(() => {
           <!-- ANALYTICS CHARTS ROW -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             
-            <!-- Learning Overview Line Chart Card with Range Switcher -->
+            <!-- Learning Overview Line Chart Card with Segmented Control (7D | 30D | 90D) below title -->
             <div
-              class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-4 block transition-all"
+              class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-[#0b57d0] hover:dark:border-[#1a73e8]/70 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3.5 block transition-all"
             >
+              <!-- Row 1: Title link -->
               <div class="flex items-center justify-between">
-                <Link href="/student/progress/learning-time" class="text-xs font-bold text-[#1f1f1f] dark:text-[#e3e3e3] hover:text-[#0b57d0] dark:hover:text-[#8ab4f8] uppercase tracking-wider flex items-center gap-1">
+                <Link href="/student/progress/learning-time" class="text-xs font-bold text-[#1f1f1f] dark:text-[#e3e3e3] hover:text-[#0b57d0] dark:hover:text-[#8ab4f8] uppercase tracking-wider flex items-center gap-1.5 group">
                   <span>{{ currentLang === 'km' ? 'ទិដ្ឋភាពទូទៅនៃការរៀន' : 'Learning Overview' }}</span>
-                  <svg class="w-3 h-3 text-[#0b57d0] dark:text-[#8ab4f8]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                  <svg class="w-3.5 h-3.5 text-[#0b57d0] dark:text-[#8ab4f8] group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                 </Link>
+              </div>
 
-                <!-- Range Selector (Google One Segmented Pill) -->
-                <div class="flex items-center gap-1 text-[10px] bg-[#f0f4f9] dark:bg-[#131314] p-0.5 rounded-full border border-[#dfe3e7] dark:border-[#2d2f31]">
-                  <button
-                    @click="selectedRange = 'week'"
-                    :class="selectedRange === 'week' ? 'bg-[#0b57d0] dark:bg-[#a8c7fa] text-white dark:text-[#041e49] font-medium shadow-xs' : 'text-[#444746] dark:text-[#c4c7c5] hover:text-[#1f1f1f] dark:hover:text-[#e3e3e3]'"
-                    class="px-2.5 py-0.5 rounded-full cursor-pointer transition-colors"
-                  >
-                    {{ currentLang === 'km' ? 'សប្តាហ៍' : 'Week' }}
-                  </button>
-                  <button
-                    @click="selectedRange = 'last_week'"
-                    :class="selectedRange === 'last_week' ? 'bg-[#0b57d0] dark:bg-[#a8c7fa] text-white dark:text-[#041e49] font-medium shadow-xs' : 'text-[#444746] dark:text-[#c4c7c5] hover:text-[#1f1f1f] dark:hover:text-[#e3e3e3]'"
-                    class="px-2.5 py-0.5 rounded-full cursor-pointer transition-colors"
-                  >
-                    {{ currentLang === 'km' ? 'សប្តាហ៍មុន' : 'Last' }}
-                  </button>
-                  <button
-                    @click="selectedRange = 'month'"
-                    :class="selectedRange === 'month' ? 'bg-[#0b57d0] dark:bg-[#a8c7fa] text-white dark:text-[#041e49] font-medium shadow-xs' : 'text-[#444746] dark:text-[#c4c7c5] hover:text-[#1f1f1f] dark:hover:text-[#e3e3e3]'"
-                    class="px-2.5 py-0.5 rounded-full cursor-pointer transition-colors"
-                  >
-                    {{ currentLang === 'km' ? 'ខែ' : 'Month' }}
-                  </button>
-                </div>
+              <!-- Row 2: Segmented Control (7D | 30D | 90D) in its own row below title -->
+              <div class="inline-flex items-center gap-1 p-1 bg-[#f0f4f9] dark:bg-[#131314] rounded-xl border border-[#dfe3e7] dark:border-[#2d2f31]">
+                <button
+                  type="button"
+                  @click="selectedRange = 'week'"
+                  :class="selectedRange === 'week' ? 'bg-[#0b57d0] dark:bg-[#a8c7fa] text-white dark:text-[#041e49] font-bold shadow-xs' : 'text-[#444746] dark:text-[#c4c7c5] hover:text-[#1f1f1f] dark:hover:text-white'"
+                  class="px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer"
+                >
+                  7D ({{ currentLang === 'km' ? '៧ ថ្ងៃ' : 'Week' }})
+                </button>
+                <button
+                  type="button"
+                  @click="selectedRange = 'last_week'"
+                  :class="selectedRange === 'last_week' ? 'bg-[#0b57d0] dark:bg-[#a8c7fa] text-white dark:text-[#041e49] font-bold shadow-xs' : 'text-[#444746] dark:text-[#c4c7c5] hover:text-[#1f1f1f] dark:hover:text-white'"
+                  class="px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer"
+                >
+                  30D ({{ currentLang === 'km' ? '៣០ ថ្ងៃ' : 'Last' }})
+                </button>
+                <button
+                  type="button"
+                  @click="selectedRange = 'month'"
+                  :class="selectedRange === 'month' ? 'bg-[#0b57d0] dark:bg-[#a8c7fa] text-white dark:text-[#041e49] font-bold shadow-xs' : 'text-[#444746] dark:text-[#c4c7c5] hover:text-[#1f1f1f] dark:hover:text-white'"
+                  class="px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer"
+                >
+                  90D ({{ currentLang === 'km' ? '៩០ ថ្ងៃ' : 'Month' }})
+                </button>
               </div>
 
               <!-- SVG Line Chart -->
               <div class="relative pt-2">
-                <div class="absolute top-2 left-1/2 -translate-x-1/2 px-2 py-1 rounded-full bg-[#0b57d0] dark:bg-[#1a73e8] text-white text-[10px] font-medium shadow-sm">
+                <div class="absolute top-2 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-full bg-[#0b57d0] dark:bg-[#1a73e8] text-white text-xs font-semibold shadow-sm tabular-nums">
                   {{ chartDataByRange[selectedRange].total }}
                 </div>
 
@@ -1146,13 +1211,13 @@ const recentActivities = computed(() => {
                   <circle :cx="chartDataByRange[selectedRange].dotX" :cy="chartDataByRange[selectedRange].dotY" r="4" fill="#0b57d0" stroke="#ffffff" stroke-width="2" />
                 </svg>
 
-                <div class="flex justify-between text-[9px] text-[#747775] dark:text-[#8e918f] font-mono pt-1">
+                <div class="flex justify-between text-xs text-[#444746] dark:text-[#c4c7c5] tabular-nums font-medium pt-1">
                   <span v-for="(lbl, idx) in chartDataByRange[selectedRange].labels" :key="idx">{{ lbl }}</span>
                 </div>
               </div>
             </div>
 
-            <!-- Study Time Donut Ring Chart Card -->
+            <!-- Study Time Donut Ring Chart Card (Uniform border, hover blue border) -->
             <Link
               href="/student/progress/learning-time"
               class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-[#0b57d0] hover:dark:border-[#1a73e8]/70 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-4 block transition-all hover:-translate-y-1"
@@ -1160,13 +1225,13 @@ const recentActivities = computed(() => {
               <div class="flex items-center justify-between">
                 <h3 class="text-xs font-bold text-[#1f1f1f] dark:text-[#e3e3e3] uppercase tracking-wider flex items-center gap-1">
                   <span>{{ currentLang === 'km' ? 'ម៉ោងសិក្សា' : 'Study Time' }}</span>
-                  <svg class="w-3 h-3 text-[#0b57d0] dark:text-[#8ab4f8]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                  <svg class="w-3.5 h-3.5 text-[#0b57d0] dark:text-[#8ab4f8]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                 </h3>
-                <span class="text-[10px] text-[#0b57d0] dark:text-[#8ab4f8] font-semibold">{{ currentLang === 'km' ? 'លម្អិត' : 'Breakdown' }}</span>
+                <span class="text-xs text-[#0b57d0] dark:text-[#8ab4f8] font-semibold">{{ currentLang === 'km' ? 'លម្អិត' : 'Breakdown' }}</span>
               </div>
 
               <div class="flex items-center justify-center gap-4">
-                <!-- SVG Circular Donut -->
+                <!-- SVG Circular Donut with animated drawing -->
                 <div class="relative w-24 h-24 shrink-0 flex items-center justify-center">
                   <svg viewBox="0 0 36 36" class="w-24 h-24 -rotate-90">
                     <path
@@ -1177,7 +1242,7 @@ const recentActivities = computed(() => {
                       d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                     />
                     <path
-                      class="text-[#0b57d0]"
+                      class="text-[#0b57d0] donut-draw"
                       stroke-dasharray="55, 100"
                       stroke-width="4"
                       stroke-linecap="round"
@@ -1186,7 +1251,7 @@ const recentActivities = computed(() => {
                       d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                     />
                     <path
-                      class="text-indigo-500 dark:text-[#8ab4f8]"
+                      class="text-indigo-500 dark:text-[#8ab4f8] donut-draw"
                       stroke-dasharray="30, 100"
                       stroke-dashoffset="-55"
                       stroke-width="4"
@@ -1197,13 +1262,13 @@ const recentActivities = computed(() => {
                     />
                   </svg>
                   <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-                    <span class="text-[11px] font-black text-[#1f1f1f] dark:text-[#e3e3e3] leading-none">{{ props.stats?.learningTime || (currentLang === 'km' ? '២៨h ៤៥m' : '28h 45m') }}</span>
-                    <span class="text-[8px] text-[#747775] dark:text-[#8e918f]">{{ currentLang === 'km' ? 'សរុប' : 'Total' }}</span>
+                    <span class="text-xs font-black text-[#1f1f1f] dark:text-[#e3e3e3] leading-none tabular-nums">{{ props.stats?.learningTime || (currentLang === 'km' ? '២៨h ៤៥m' : '28h 45m') }}</span>
+                    <span class="text-[10px] text-[#444746] dark:text-[#c4c7c5] mt-0.5">{{ currentLang === 'km' ? 'សរុប' : 'Total' }}</span>
                   </div>
                 </div>
 
                 <!-- Legend -->
-                <div class="space-y-1.5 text-[10px] text-[#444746] dark:text-[#c4c7c5]">
+                <div class="space-y-1.5 text-xs text-[#444746] dark:text-[#c4c7c5] font-medium">
                   <div class="flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-[#0b57d0]"></span>
                     <span>{{ currentLang === 'km' ? 'មេរៀន: 16h 30m' : 'Lessons: 16h 30m' }}</span>
@@ -1276,44 +1341,6 @@ const recentActivities = computed(() => {
 
           </div>
 
-          <!-- RECENT ACTIVITY LIST -->
-          <div class="space-y-3">
-            <div class="flex items-center justify-between">
-              <h2 class="text-xs font-bold text-[#1f1f1f] dark:text-[#c4c7c5] uppercase tracking-wider">
-                {{ currentLang === 'km' ? 'សកម្មភាពថ្មីៗ' : 'Recent Activity' }}
-              </h2>
-              <Link href="/student/progress/overview" class="text-xs text-[#0b57d0] dark:text-[#8ab4f8] hover:underline font-semibold">
-                {{ currentLang === 'km' ? 'មើលទាំងអស់' : 'View All' }}
-              </Link>
-            </div>
-
-            <div class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3">
-              <Link
-                v-for="act in recentActivities"
-                :key="act.id"
-                :href="act.href"
-                class="flex items-center justify-between p-3 rounded-2xl bg-[#f8fafd] dark:bg-[#131314] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-[#0b57d0]/40 dark:hover:border-[#3c4043] text-xs transition-all hover:bg-[#f0f4f9] dark:hover:bg-[#282a2c]"
-              >
-                <div class="flex items-center gap-3">
-                  <div :class="[act.iconBg, 'w-8 h-8 rounded-xl flex items-center justify-center shrink-0']">
-                    <!-- Play SVG -->
-                    <svg v-if="act.type === 'play'" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                    <!-- Checkmark SVG -->
-                    <svg v-else-if="act.type === 'check'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                    <!-- Document SVG -->
-                    <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
-                  </div>
-                  <div>
-                    <h4 class="font-bold text-[#1f1f1f] dark:text-[#e3e3e3]">{{ act.title }}</h4>
-                    <p class="text-[10px] text-[#747775] dark:text-[#8e918f]">{{ act.course }}</p>
-                  </div>
-                </div>
-
-                <span class="text-[10px] text-[#747775] dark:text-[#8e918f] font-mono shrink-0">{{ act.time }}</span>
-              </Link>
-            </div>
-          </div>
-
         </div>
 
         <!-- RIGHT 4 COLUMNS -->
@@ -1370,44 +1397,44 @@ const recentActivities = computed(() => {
 
             <div class="space-y-1.5">
               <div class="w-full h-1.5 rounded-full bg-[#e1e3e1] dark:bg-[#282a2c] overflow-hidden">
-                <div class="h-full bg-[#137333] dark:bg-emerald-500 rounded-full transition-all duration-300" :style="{ width: todayGoal.percentage + '%' }"></div>
+                <div class="h-full bg-[#137333] dark:bg-emerald-500 rounded-full transition-all duration-900 ease-out" :style="{ width: todayGoal.percentage + '%' }"></div>
               </div>
-              <p class="text-[10px] text-right text-[#747775] dark:text-[#8e918f]">
+              <p class="text-xs text-right text-[#444746] dark:text-[#c4c7c5] tabular-nums font-semibold">
                 {{ currentLang === 'km' ? `សម្រេចបាន ${todayGoal.percentage}%` : `${todayGoal.percentage}% completed` }}
               </p>
             </div>
 
-            <!-- Task Checklist -->
+            <!-- Task Checklist with Smooth Checkbox Bounce & Strikethrough -->
             <div class="space-y-2 pt-1">
               <div
                 v-for="item in todayGoal.items"
                 :key="item.id"
-                class="flex items-center justify-between p-2 rounded-2xl bg-[#f8fafd] dark:bg-[#131314] border border-[#dfe3e7] dark:border-[#2d2f31] text-xs hover:bg-[#f0f4f9] dark:hover:bg-[#282a2c] transition-colors"
+                class="flex items-center justify-between p-2.5 rounded-2xl bg-[#f8fafd] dark:bg-[#131314] border border-[#dfe3e7] dark:border-[#2d2f31] text-xs hover:bg-[#f0f4f9] dark:hover:bg-[#282a2c] transition-colors"
               >
                 <button
                   @click="toggleTask(item)"
                   type="button"
                   class="flex items-center gap-3 text-left flex-1 cursor-pointer group"
                 >
-                  <span v-if="item.completed" class="w-5 h-5 rounded-full bg-[#137333] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                  <span v-if="item.completed" class="w-5 h-5 rounded-full bg-[#137333] text-white flex items-center justify-center shrink-0 shadow-2xs goal-checkbox-bounce">
                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
                   </span>
                   <span v-else class="w-5 h-5 rounded-full border-2 border-[#c7c7c7] dark:border-[#3c4043] group-hover:border-[#0b57d0] dark:group-hover:border-[#8ab4f8] transition-colors flex items-center justify-center shrink-0"></span>
-                  <span :class="[item.completed ? 'line-through text-[#747775] dark:text-[#8e918f]' : 'text-[#1f1f1f] dark:text-[#e3e3e3] font-medium']" class="text-xs">
+                  <span :class="[item.completed ? 'line-through text-[#444746] dark:text-[#c4c7c5] opacity-75' : 'text-[#1f1f1f] dark:text-[#e3e3e3] font-medium']" class="text-xs transition-all duration-300">
                     {{ currentLang === 'km' ? (item.titleKm || item.titleEn) : (item.titleEn || item.titleKm) }}
                   </span>
                 </button>
                 
-                <Link :href="item.href" class="text-[#0b57d0] dark:text-[#8ab4f8] hover:underline text-[11px] font-semibold ml-2 flex items-center gap-0.5">
+                <Link :href="item.href" class="text-[#0b57d0] dark:text-[#8ab4f8] hover:underline text-xs font-semibold ml-2 flex items-center gap-0.5">
                   <span>{{ currentLang === 'km' ? 'បើក' : 'Open' }}</span>
-                  <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                  <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                 </Link>
               </div>
             </div>
           </div>
 
-          <!-- AI RECOMMENDED FOR YOU CARD (Matches Google One RECOMMENDED Card) -->
-          <div class="relative overflow-hidden bg-white dark:bg-[#1e1f20] border-2 border-[#0b57d0] dark:border-[#1a73e8] rounded-3xl p-5 shadow-[0_4px_24px_rgba(11,87,208,0.08)] dark:shadow-[0_0_25px_rgba(26,115,232,0.18)] space-y-3.5 transition-all">
+          <!-- AI RECOMMENDED FOR YOU CARD (Uniform border, hover blue border) -->
+          <div class="relative overflow-hidden bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-[#0b57d0] dark:hover:border-[#8ab4f8] rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3.5 transition-all">
             <div class="flex items-center justify-between">
               <div class="space-y-1">
                 <span class="text-[10px] font-bold text-[#0b57d0] dark:text-[#8ab4f8] tracking-widest uppercase">
@@ -1495,26 +1522,37 @@ const recentActivities = computed(() => {
                 v-for="item in upcomingEvents"
                 :key="item.id"
                 :href="item.href"
-                class="flex items-start justify-between gap-2 p-2.5 rounded-2xl bg-[#f8fafd] dark:bg-[#131314] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-[#0b57d0]/40 dark:hover:border-[#3c4043] text-xs transition-colors block hover:bg-[#f0f4f9] dark:hover:bg-[#282a2c]"
+                class="flex items-center gap-3 p-3 rounded-2xl bg-[#f8fafd] dark:bg-[#131314] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-[#0b57d0] hover:dark:border-[#1a73e8]/70 text-xs transition-all hover:bg-[#f0f4f9] dark:hover:bg-[#282a2c] group"
               >
-                <div class="flex items-start gap-2.5">
-                  <div class="w-7 h-7 rounded-full bg-[#e8f0fe] dark:bg-[#282a2c] border border-[#d2e3fc] dark:border-[#3c4043] text-[#0b57d0] dark:text-[#8ab4f8] flex items-center justify-center shrink-0 mt-0.5">
-                    <!-- Calendar SVG -->
-                    <svg v-if="item.type === 'quiz'" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>
-                    <!-- Video Camera SVG -->
-                    <svg v-else-if="item.type === 'live'" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z"/></svg>
-                    <!-- Document SVG -->
-                    <svg v-else class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
-                  </div>
-                  <div>
-                    <h4 class="font-bold text-[#1f1f1f] dark:text-[#e3e3e3] text-[11px]">{{ item.title }}</h4>
-                    <p class="text-[10px] text-[#747775] dark:text-[#8e918f]">{{ item.course }}</p>
-                  </div>
+                <!-- Calendar Date Badge on Left (NOV 17 style) -->
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-b from-[#0b57d0] to-[#1557bf] dark:from-[#1a73e8] dark:to-[#0b57d0] text-white flex flex-col items-center justify-center shrink-0 shadow-xs border border-white/10 group-hover:scale-105 transition-transform duration-200">
+                  <span class="text-[9px] font-black uppercase tracking-wider leading-none text-white/90">
+                    {{ getEventDateBadge(item).month }}
+                  </span>
+                  <span class="text-sm font-black tabular-nums leading-none mt-1">
+                    {{ getEventDateBadge(item).day }}
+                  </span>
                 </div>
 
-                <div class="text-right text-[10px] text-[#747775] dark:text-[#8e918f] shrink-0 font-mono">
-                  <p class="font-bold text-[#1f1f1f] dark:text-[#e3e3e3]">{{ item.date }}</p>
-                  <p>{{ item.time }}</p>
+                <!-- Event Title & Full Width Details -->
+                <div class="flex-1 min-w-0 space-y-0.5">
+                  <div class="flex items-center gap-2">
+                    <span
+                      :class="[
+                        item.type === 'quiz' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300' : item.type === 'live' ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+                        'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider'
+                      ]"
+                    >
+                      {{ item.type }}
+                    </span>
+                    <span class="text-xs text-[#444746] dark:text-[#c4c7c5] tabular-nums font-medium">• {{ item.time }}</span>
+                  </div>
+                  <h4 class="font-bold text-[#1f1f1f] dark:text-[#e3e3e3] text-xs leading-snug line-clamp-1 group-hover:text-[#0b57d0] dark:group-hover:text-[#8ab4f8] transition-colors" :title="item.title">
+                    {{ item.title }}
+                  </h4>
+                  <p class="text-xs text-[#444746] dark:text-[#c4c7c5] truncate font-medium">
+                    {{ item.course }}
+                  </p>
                 </div>
               </Link>
             </div>
@@ -1543,7 +1581,7 @@ const recentActivities = computed(() => {
               </div>
               <Link
                 href="/student/ai-tutor/chat"
-                class="px-3 py-1 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#0b57d0] dark:text-[#a8c7fa] text-[10px] font-semibold border border-[#d2e3fc] dark:border-[#1a73e8]/30 hover:bg-[#0b57d0] hover:text-white transition-colors"
+                class="px-3 py-1 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#0b57d0] dark:text-[#a8c7fa] text-xs font-semibold border border-[#d2e3fc] dark:border-[#1a73e8]/30 hover:bg-[#0b57d0] hover:text-white transition-colors"
               >
                 {{ currentLang === 'km' ? 'ជជែកពេញលេញ ↗' : 'Full Chat ↗' }}
               </Link>
@@ -1556,13 +1594,13 @@ const recentActivities = computed(() => {
                 :key="idx"
                 :class="[
                   msg.role === 'user' ? 'bg-[#d3e3fd] text-[#041e49] border border-[#0b57d0]/20 dark:bg-[#004a77] dark:border-[#004a77] dark:text-[#c2e7ff] ml-4' : 'bg-[#f8fafd] text-[#1f1f1f] border border-[#dfe3e7] dark:bg-[#131314] dark:border-[#2d2f31] dark:text-[#c4c7c5] mr-2',
-                  'p-3 rounded-2xl text-[11px] space-y-1'
+                  'p-3 rounded-2xl text-xs space-y-1'
                 ]"
               >
                 <p class="whitespace-pre-wrap leading-relaxed">{{ msg.text }}</p>
               </div>
 
-              <div v-if="isAiTyping" class="p-2.5 rounded-2xl bg-[#f8fafd] dark:bg-[#131314] text-[#747775] dark:text-[#8e918f] text-[10px] italic flex items-center gap-1.5">
+              <div v-if="isAiTyping" class="p-2.5 rounded-2xl bg-[#f8fafd] dark:bg-[#131314] text-[#444746] dark:text-[#c4c7c5] text-xs italic flex items-center gap-1.5">
                 <span class="w-1.5 h-1.5 rounded-full bg-[#0b57d0] animate-pulse"></span>
                 <span>{{ currentLang === 'km' ? 'AI Tutor កំពុងគិត...' : 'AI Tutor is thinking...' }}</span>
               </div>
@@ -1573,28 +1611,28 @@ const recentActivities = computed(() => {
               <button
                 @click="handleSendAiPrompt(currentLang === 'km' ? 'ពន្យល់មេរៀននេះ' : 'Explain this lesson')"
                 type="button"
-                class="p-2 rounded-full bg-white dark:bg-[#282a2c] hover:bg-[#f0f4f9] dark:hover:bg-[#333538] text-[#1f1f1f] dark:text-[#c4c7c5] text-[10px] font-medium border border-[#c7c7c7] dark:border-[#3c4043] text-center transition-colors cursor-pointer truncate shadow-2xs"
+                class="p-2 rounded-full bg-white dark:bg-[#282a2c] hover:bg-[#f0f4f9] dark:hover:bg-[#333538] text-[#1f1f1f] dark:text-[#c4c7c5] text-xs font-medium border border-[#c7c7c7] dark:border-[#3c4043] text-center transition-colors cursor-pointer truncate shadow-2xs"
               >
                 {{ currentLang === 'km' ? 'ពន្យល់មេរៀននេះ' : 'Explain this lesson' }}
               </button>
               <button
                 @click="handleSendAiPrompt(currentLang === 'km' ? 'ផ្តល់ឧទាហរណ៍' : 'Give me an example')"
                 type="button"
-                class="p-2 rounded-full bg-white dark:bg-[#282a2c] hover:bg-[#f0f4f9] dark:hover:bg-[#333538] text-[#1f1f1f] dark:text-[#c4c7c5] text-[10px] font-medium border border-[#c7c7c7] dark:border-[#3c4043] text-center transition-colors cursor-pointer truncate shadow-2xs"
+                class="p-2 rounded-full bg-white dark:bg-[#282a2c] hover:bg-[#f0f4f9] dark:hover:bg-[#333538] text-[#1f1f1f] dark:text-[#c4c7c5] text-xs font-medium border border-[#c7c7c7] dark:border-[#3c4043] text-center transition-colors cursor-pointer truncate shadow-2xs"
               >
                 {{ currentLang === 'km' ? 'ផ្តល់ឧទាហរណ៍' : 'Give me an example' }}
               </button>
               <button
                 @click="handleSendAiPrompt(currentLang === 'km' ? 'សង្ខេបប្រធានបទនេះ' : 'Summarize this topic')"
                 type="button"
-                class="p-2 rounded-full bg-white dark:bg-[#282a2c] hover:bg-[#f0f4f9] dark:hover:bg-[#333538] text-[#1f1f1f] dark:text-[#c4c7c5] text-[10px] font-medium border border-[#c7c7c7] dark:border-[#3c4043] text-center transition-colors cursor-pointer truncate shadow-2xs"
+                class="p-2 rounded-full bg-white dark:bg-[#282a2c] hover:bg-[#f0f4f9] dark:hover:bg-[#333538] text-[#1f1f1f] dark:text-[#c4c7c5] text-xs font-medium border border-[#c7c7c7] dark:border-[#3c4043] text-center transition-colors cursor-pointer truncate shadow-2xs"
               >
                 {{ currentLang === 'km' ? 'សង្ខេបប្រធានបទនេះ' : 'Summarize this topic' }}
               </button>
               <button
                 @click="handleSendAiPrompt(currentLang === 'km' ? 'តើខ្ញុំគួររៀនអ្វីថ្ងៃនេះ?' : 'What should I study today?')"
                 type="button"
-                class="p-2 rounded-full bg-white dark:bg-[#282a2c] hover:bg-[#f0f4f9] dark:hover:bg-[#333538] text-[#1f1f1f] dark:text-[#c4c7c5] text-[10px] font-medium border border-[#c7c7c7] dark:border-[#3c4043] text-center transition-colors cursor-pointer truncate shadow-2xs"
+                class="p-2 rounded-full bg-white dark:bg-[#282a2c] hover:bg-[#f0f4f9] dark:hover:bg-[#333538] text-[#1f1f1f] dark:text-[#c4c7c5] text-xs font-medium border border-[#c7c7c7] dark:border-[#3c4043] text-center transition-colors cursor-pointer truncate shadow-2xs"
               >
                 {{ currentLang === 'km' ? 'តើខ្ញុំគួររៀនអ្វី?' : 'What should I study?' }}
               </button>
@@ -1619,37 +1657,40 @@ const recentActivities = computed(() => {
             </form>
           </div>
 
-          <!-- ACHIEVEMENTS BADGES CARD with Real SVGs -->
+          <!-- ACHIEVEMENTS BADGES CARD with 2-line wrapped titles & native tooltip -->
           <div class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3">
             <div class="flex items-center justify-between">
               <h3 class="text-xs font-bold text-[#1f1f1f] dark:text-[#e3e3e3] uppercase tracking-wider">
                 {{ currentLang === 'km' ? 'សមិទ្ធផល' : 'Achievements' }}
               </h3>
-              <Link href="/student/certificates/achievements" class="text-[11px] text-[#0b57d0] dark:text-[#8ab4f8] hover:underline font-semibold">
+              <Link href="/student/certificates/achievements" class="text-xs text-[#0b57d0] dark:text-[#8ab4f8] hover:underline font-semibold">
                 {{ currentLang === 'km' ? 'មើលទាំងអស់' : 'View All' }}
               </Link>
             </div>
 
-            <div class="flex items-center justify-between gap-1 pt-1">
+            <div class="grid grid-cols-5 gap-2 pt-1">
               <Link
                 v-for="ach in achievements"
                 :key="ach.title"
                 :href="ach.href"
-                class="flex flex-col items-center gap-1 group text-center"
+                :title="ach.title"
+                class="flex flex-col items-center gap-1.5 group text-center cursor-pointer"
               >
-                <div :class="['w-9 h-9 rounded-xl bg-gradient-to-tr', ach.color, 'flex items-center justify-center text-white text-sm shadow-md group-hover:scale-110 transition-transform']">
+                <div :class="['w-10 h-10 rounded-xl bg-gradient-to-tr', ach.color, 'flex items-center justify-center text-white text-sm shadow-md group-hover:scale-110 transition-transform duration-200']">
                   <!-- Flame / Streak SVG -->
-                  <svg v-if="ach.type === 'flame'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"/></svg>
+                  <svg v-if="ach.type === 'flame'" class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"/></svg>
                   <!-- Book SVG -->
-                  <svg v-else-if="ach.type === 'book'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                  <svg v-else-if="ach.type === 'book'" class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                   <!-- Star SVG -->
-                  <svg v-else-if="ach.type === 'star'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/></svg>
+                  <svg v-else-if="ach.type === 'star'" class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/></svg>
                   <!-- Lightning Bolt SVG -->
-                  <svg v-else-if="ach.type === 'bolt'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
+                  <svg v-else-if="ach.type === 'bolt'" class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
                   <!-- Trophy SVG -->
-                  <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.003 0H9.497m5.003 0a3 3 0 002.828-2.002l1.636-4.908A1.125 1.125 0 0017.896 6H6.104a1.125 1.125 0 00-1.068 1.465l1.636 4.908a3 3 0 002.828 2.002z"/></svg>
+                  <svg v-else class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.003 0H9.497m5.003 0a3 3 0 002.828-2.002l1.636-4.908A1.125 1.125 0 0017.896 6H6.104a1.125 1.125 0 00-1.068 1.465l1.636 4.908a3 3 0 002.828 2.002z"/></svg>
                 </div>
-                <span class="text-[8px] text-[#747775] dark:text-[#8e918f] leading-tight w-12 truncate">{{ ach.title }}</span>
+                <span class="text-[11px] font-medium text-[#444746] dark:text-[#c4c7c5] leading-tight max-w-[76px] text-center line-clamp-2">
+                  {{ ach.title }}
+                </span>
               </Link>
             </div>
           </div>
@@ -1658,11 +1699,97 @@ const recentActivities = computed(() => {
 
       </div>
 
+      <!-- RECENT ACTIVITY - FULL WIDTH 12-COL SECTION (Balances right column under Achievements) -->
+      <section class="space-y-3.5">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#0b57d0] dark:bg-[#8ab4f8] animate-pulse"></span>
+            <h2 class="text-xs font-bold text-[#1f1f1f] dark:text-[#c4c7c5] uppercase tracking-wider">
+              {{ currentLang === 'km' ? 'សកម្មភាពសិក្សាថ្មីៗ' : 'Recent Activity' }}
+            </h2>
+          </div>
+          <Link href="/student/progress/learning-time" class="text-xs text-[#0b57d0] dark:text-[#8ab4f8] hover:underline font-semibold flex items-center gap-1">
+            <span>{{ currentLang === 'km' ? 'មើលប្រវត្តិទាំងអស់' : 'View Full History' }}</span>
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </Link>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Link
+            v-for="act in recentActivities"
+            :key="act.id"
+            :href="act.href"
+            class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-[#0b57d0] hover:dark:border-[#1a73e8]/70 rounded-2xl p-4 shadow-sm dark:shadow-xl transition-all duration-200 hover:-translate-y-1 hover:shadow-md flex items-start gap-3.5 group cursor-pointer"
+          >
+            <div :class="[act.iconBg, 'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-200']">
+              <!-- Play SVG -->
+              <svg v-if="act.type === 'play'" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+              <!-- Checkmark SVG -->
+              <svg v-else-if="act.type === 'check'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+              <!-- Document SVG -->
+              <svg v-else class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+            </div>
+
+            <div class="flex-1 min-w-0 space-y-1">
+              <h4 class="font-bold text-[#1f1f1f] dark:text-[#e3e3e3] text-xs leading-snug line-clamp-1 group-hover:text-[#0b57d0] dark:group-hover:text-[#8ab4f8] transition-colors" :title="act.title">
+                {{ act.title }}
+              </h4>
+              <p class="text-xs text-[#444746] dark:text-[#c4c7c5] truncate font-medium">
+                {{ act.course }}
+              </p>
+              <p class="text-xs text-[#444746] dark:text-[#c4c7c5] tabular-nums font-semibold flex items-center gap-1 pt-1 border-t border-[#dfe3e7] dark:border-[#2d2f31]">
+                <svg class="w-3.5 h-3.5 text-[#0b57d0] dark:text-[#8ab4f8]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>{{ act.time }}</span>
+              </p>
+            </div>
+          </Link>
+        </div>
+      </section>
+
     </div>
   </StudentLayout>
 </template>
 
 <style scoped>
+/* Stat Cards Staggered Animation & Hover Physics */
+.stat-card {
+  animation: statCardEnter 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.stat-card:hover {
+  transform: translateY(-6px);
+}
+@keyframes statCardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Donut Ring Draw Animation */
+.donut-draw {
+  animation: drawDonut 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes drawDonut {
+  from {
+    stroke-dashoffset: 100;
+  }
+}
+
+/* Today's Goal Checkbox Bounce */
+.goal-checkbox-bounce {
+  animation: checkBounce 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes checkBounce {
+  0% { transform: scale(0.85); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
 @keyframes shimmerSweep {
   0% {
     transform: translateX(-100%);
@@ -1683,8 +1810,12 @@ const recentActivities = computed(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .stat-card,
+  .donut-draw,
+  .goal-checkbox-bounce,
   .shimmer-sweep {
-    animation: none;
+    animation: none !important;
+    transition: none !important;
   }
 }
 
