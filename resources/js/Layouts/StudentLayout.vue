@@ -938,7 +938,7 @@ const onIconError = (e: Event) => {
       <div
         :class="[
           isSidebarCollapsed ? 'justify-center px-2' : 'justify-between px-4',
-          'relative flex h-16 shrink-0 items-center border-b border-slate-200/90 dark:border-slate-800 transition-all duration-300 group/sidebar-header'
+          'relative flex h-16 shrink-0 items-center border-b border-slate-200/90 dark:border-slate-800 transition-all duration-300'
         ]"
       >
         <!-- Logo & Title Container -->
@@ -948,12 +948,13 @@ const onIconError = (e: Event) => {
             isSidebarCollapsed ? 'justify-center cursor-pointer' : '',
             'flex items-center gap-3 min-w-0 shrink-0 transition-all'
           ]"
+          :title="isSidebarCollapsed ? (currentLang === 'km' ? 'E-LMS និស្សិត' : 'E-LMS Student') : undefined"
         >
           <img
             :src="logoUrl"
             alt="E-LMS Logo"
             :class="[
-              isSidebarCollapsed ? 'hover:scale-110' : '',
+              isSidebarCollapsed ? 'hover:scale-105' : '',
               'w-9 h-9 min-w-[36px] min-h-[36px] max-w-[36px] max-h-[36px] aspect-square rounded-full object-cover shrink-0 transition-all duration-300'
             ]"
           />
@@ -965,22 +966,15 @@ const onIconError = (e: Event) => {
           </div>
         </Link>
 
-        <!-- Collapse / Expand Toggle Button -->
+        <!-- Collapse Button (When expanded) -->
         <button
+          v-show="!isSidebarCollapsed"
           @click="toggleSidebarCollapse"
           type="button"
-          :title="isSidebarCollapsed ? (currentLang === 'km' ? 'ពង្រីកម៉ឺនុយ' : 'Expand Sidebar') : (currentLang === 'km' ? 'បង្រួមម៉ឺនុយ' : 'Collapse Sidebar')"
-          :class="[
-            isSidebarCollapsed
-              ? 'absolute -right-3 top-1/2 -translate-y-1/2 bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 border border-slate-200 dark:border-slate-700 shadow-md rounded-full p-1 hover:scale-110 hover:bg-slate-50 dark:hover:bg-slate-700 z-10'
-              : 'p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0 cursor-pointer',
-            'transition-all duration-200 focus:outline-none'
-          ]"
+          :title="currentLang === 'km' ? 'បង្រួមម៉ឺនុយ' : 'Collapse Sidebar'"
+          class="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0 cursor-pointer transition-colors focus:outline-none"
         >
-          <svg
-            :class="[isSidebarCollapsed ? 'rotate-180 w-3.5 h-3.5' : 'w-5 h-5', 'transition-transform duration-300']"
-            fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
-          >
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
           </svg>
         </button>
@@ -997,24 +991,23 @@ const onIconError = (e: Event) => {
           <li
             v-for="item in studentNav"
             :key="item.key"
-            :class="isSidebarCollapsed ? 'relative group/flyout flex justify-center w-full' : 'relative'"
+            :class="isSidebarCollapsed ? 'relative group/flyout flex justify-center w-full my-0.5' : 'relative my-0.5'"
           >
             <!-- Action Item (e.g. Log Out) -->
             <button
               v-if="item.isAction"
               @click="item.onClick ? item.onClick() : logout()"
               type="button"
-              :title="isSidebarCollapsed ? (currentLang === 'km' ? item.khName : item.name) : undefined"
               :class="[
                 'text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 hover:bg-red-500/10 border border-transparent font-medium',
-                isSidebarCollapsed ? 'justify-center px-0 w-10 h-10 mx-auto' : 'px-3 w-full justify-between',
-                'group flex items-center rounded-xl py-2 text-xs transition-all duration-200 cursor-pointer'
+                isSidebarCollapsed ? 'justify-center w-11 h-11 p-0 rounded-2xl mx-auto' : 'px-3 w-full justify-between py-2 rounded-xl',
+                'group flex items-center text-xs transition-all duration-200 cursor-pointer'
               ]"
             >
               <div :class="[isSidebarCollapsed ? 'justify-center w-full' : '', 'flex items-center gap-x-2.5 truncate']">
                 <div class="relative flex items-center justify-center shrink-0">
                   <svg 
-                    class="h-4 w-4 shrink-0 text-red-500 transition-transform duration-200 group-hover:scale-110"
+                    :class="[isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4', 'shrink-0 text-red-500 transition-transform duration-200 group-hover:scale-110']"
                     fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
                   >
                     <path stroke-linecap="round" stroke-linejoin="round" :d="item.icon || 'M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1'" />
@@ -1031,13 +1024,12 @@ const onIconError = (e: Event) => {
               v-else-if="!item.children || item.children.length === 0"
               :href="item.href!"
               prefetch="hover"
-              :title="isSidebarCollapsed ? (currentLang === 'km' ? item.khName : item.name) : undefined"
               :class="[
                 $page.url.startsWith(item.href!) 
-                  ? 'bg-gradient-to-r from-purple-600/30 via-indigo-600/25 to-purple-600/10 text-indigo-700 dark:text-white border border-purple-500/40 font-bold shadow-sm shadow-purple-500/10' 
+                  ? 'bg-gradient-to-r from-purple-600/25 via-indigo-600/20 to-purple-600/10 text-indigo-700 dark:text-white border border-purple-500/40 font-bold shadow-xs' 
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-[#F1F5F9] hover:bg-slate-100 dark:hover:bg-slate-800/70 border border-transparent font-medium',
-                isSidebarCollapsed ? 'justify-center px-0 w-10 h-10 mx-auto' : 'px-3 w-full justify-between',
-                'group flex items-center rounded-xl py-2 text-xs transition-all duration-200'
+                isSidebarCollapsed ? 'justify-center w-11 h-11 p-0 rounded-2xl mx-auto' : 'px-3 w-full justify-between py-2 rounded-xl',
+                'group flex items-center text-xs transition-all duration-200'
               ]"
             >
               <div :class="[isSidebarCollapsed ? 'justify-center w-full' : '', 'flex items-center gap-x-2.5 truncate']">
@@ -1049,20 +1041,21 @@ const onIconError = (e: Event) => {
                     loading="lazy"
                     decoding="async"
                     @error="onIconError"
-                    class="w-4 h-4 object-contain shrink-0 filter drop-shadow-sm transition-transform duration-200 group-hover:scale-110"
+                    :class="[isSidebarCollapsed ? 'w-5 h-5' : 'w-4 h-4', 'object-contain shrink-0 filter drop-shadow-sm transition-transform duration-200 group-hover:scale-110']"
                   />
                   <svg 
                     :class="[
                       $page.url.startsWith(item.href!) ? 'text-indigo-600 dark:text-purple-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300',
                       item.iconUrl ? 'hidden' : '',
-                      'h-4 w-4 shrink-0 transition-colors'
+                      isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4',
+                      'shrink-0 transition-colors'
                     ]"
                     fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
                   >
                     <path stroke-linecap="round" stroke-linejoin="round" :d="item.icon || 'M4 6h16M4 12h16M4 18h16'" />
                   </svg>
                 </div>
-                <span v-show="!isSidebarCollapsed" class="truncate">
+                <span v-show="!isSidebarCollapsed" class="truncate font-medium">
                   {{ currentLang === 'km' ? item.khName : item.name }}
                 </span>
               </div>
@@ -1075,18 +1068,26 @@ const onIconError = (e: Event) => {
               </span>
             </Link>
 
+            <!-- Flyout Tooltip for Direct Link when collapsed -->
+            <div
+              v-if="isSidebarCollapsed && (!item.children || item.children.length === 0)"
+              class="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-1.5 rounded-xl bg-slate-900/95 dark:bg-slate-800/95 text-white text-xs font-semibold whitespace-nowrap shadow-xl border border-slate-700/60 opacity-0 pointer-events-none group-hover/flyout:opacity-100 transition-all duration-150 z-50 flex items-center gap-2"
+            >
+              <img v-if="item.iconUrl" :src="item.iconUrl" class="w-4 h-4 object-contain" />
+              <span>{{ currentLang === 'km' ? item.khName : item.name }}</span>
+            </div>
+
             <!-- Collapsible Module with Submenu -->
             <div v-else class="space-y-0.5 w-full flex flex-col items-center">
               <button
                 @click="toggleModule(item.key!)"
                 type="button"
-                :title="isSidebarCollapsed ? (currentLang === 'km' ? item.khName : item.name) : undefined"
                 :class="[
                   isChildActive(item.children) 
                     ? 'bg-gradient-to-r from-purple-600/25 via-indigo-600/20 to-purple-600/10 text-indigo-700 dark:text-white border border-purple-500/30 font-semibold' 
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-[#F1F5F9] hover:bg-slate-100 dark:hover:bg-slate-800/60 border border-transparent',
-                  isSidebarCollapsed ? 'justify-center px-0 w-10 h-10 mx-auto' : 'px-3 w-full justify-between',
-                  'group flex items-center rounded-xl py-2 text-xs font-medium transition-all duration-200 cursor-pointer'
+                  isSidebarCollapsed ? 'justify-center w-11 h-11 p-0 rounded-2xl mx-auto' : 'px-3 w-full justify-between py-2 rounded-xl',
+                  'group flex items-center text-xs font-medium transition-all duration-200 cursor-pointer'
                 ]"
               >
                 <div :class="[isSidebarCollapsed ? 'justify-center w-full' : '', 'flex items-center gap-x-2.5 truncate']">
@@ -1098,20 +1099,21 @@ const onIconError = (e: Event) => {
                       loading="lazy"
                       decoding="async"
                       @error="onIconError"
-                      class="w-4 h-4 object-contain shrink-0 filter drop-shadow-sm transition-transform duration-200 group-hover:scale-110"
+                      :class="[isSidebarCollapsed ? 'w-5 h-5' : 'w-4 h-4', 'object-contain shrink-0 filter drop-shadow-sm transition-transform duration-200 group-hover:scale-110']"
                     />
                     <svg 
                       :class="[
                         isChildActive(item.children) ? 'text-indigo-600 dark:text-purple-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300',
                         item.iconUrl ? 'hidden' : '',
-                        'h-4 w-4 shrink-0 transition-colors'
+                        isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4',
+                        'shrink-0 transition-colors'
                       ]"
                       fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
                     >
                       <path stroke-linecap="round" stroke-linejoin="round" :d="item.icon || 'M4 6h16M4 12h16M4 18h16'" />
                     </svg>
                   </div>
-                  <span v-show="!isSidebarCollapsed" class="truncate">
+                  <span v-show="!isSidebarCollapsed" class="truncate font-medium">
                     {{ currentLang === 'km' ? item.khName : item.name }}
                   </span>
                 </div>
@@ -1209,22 +1211,29 @@ const onIconError = (e: Event) => {
       </nav>
 
       <!-- Sidebar Footer Log Out (🚪) -->
-      <div :class="[isSidebarCollapsed ? 'px-0 py-2' : 'p-3', 'mt-auto border-t border-slate-200/90 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950/70 shrink-0']">
+      <div :class="[isSidebarCollapsed ? 'px-0 py-2.5 flex justify-center' : 'p-3', 'mt-auto border-t border-slate-200/90 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950/70 shrink-0 relative group/logout']">
         <!-- Log Out Button -->
         <button
           @click="logout"
           type="button"
-          :title="isSidebarCollapsed ? (currentLang === 'km' ? 'ចាកចេញ' : 'Log Out') : undefined"
           :class="[
-            isSidebarCollapsed ? 'justify-center w-10 h-10 mx-auto' : 'px-3 w-full justify-start gap-2.5',
-            'flex items-center py-2 rounded-xl text-xs font-semibold text-rose-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer'
+            isSidebarCollapsed ? 'justify-center w-11 h-11 p-0 rounded-2xl mx-auto' : 'px-3 w-full justify-start gap-2.5 py-2 rounded-xl',
+            'flex items-center text-xs font-semibold text-rose-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer'
           ]"
         >
-          <svg class="w-4 h-4 shrink-0 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <svg class="w-4.5 h-4.5 shrink-0 text-rose-500 transition-transform group-hover/logout:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>
           <span v-show="!isSidebarCollapsed">{{ currentLang === 'km' ? 'ចាកចេញ' : 'Log Out' }}</span>
         </button>
+
+        <!-- Tooltip for Logout when collapsed -->
+        <div
+          v-if="isSidebarCollapsed"
+          class="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-1.5 rounded-xl bg-slate-900/95 dark:bg-slate-800/95 text-rose-300 text-xs font-semibold whitespace-nowrap shadow-xl border border-rose-500/30 opacity-0 pointer-events-none group-hover/logout:opacity-100 transition-all duration-150 z-50 flex items-center gap-1.5"
+        >
+          <span>{{ currentLang === 'km' ? 'ចាកចេញ' : 'Log Out' }}</span>
+        </div>
       </div>
     </aside>
 
@@ -1310,10 +1319,10 @@ const onIconError = (e: Event) => {
 
     <!-- STICKY TOP NAVBAR (Dynamically padded to account for fixed sidebar) -->
     <header :class="[isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72', 'sticky top-0 z-40 bg-white/95 dark:bg-[#0B0F19]/90 backdrop-blur-xl border-b border-slate-200/90 dark:border-slate-800/80 transition-all duration-300 shadow-xs']">
-      <div class="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8 gap-4">
+      <div class="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8 xl:px-10 max-w-[1600px] mx-auto gap-4">
         
-        <!-- Left Side: Mobile Sidebar Hamburger & Multi-Segment Breadcrumbs -->
-        <div class="flex items-center gap-3.5 min-w-0">
+        <!-- Left Side: Mobile Sidebar Hamburger, Desktop Toggle & Multi-Segment Breadcrumbs -->
+        <div class="flex items-center gap-3 min-w-0">
           <button
             @click="sidebarOpen = !sidebarOpen"
             type="button"
@@ -1322,6 +1331,18 @@ const onIconError = (e: Event) => {
           >
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+
+          <!-- Desktop Sidebar Expand/Collapse Toggle Button (Clean in Navbar, exactly like Admin) -->
+          <button
+            @click="toggleSidebarCollapse"
+            type="button"
+            :title="isSidebarCollapsed ? (currentLang === 'km' ? 'ពង្រីកម៉ឺនុយ' : 'Expand Sidebar') : (currentLang === 'km' ? 'បង្រួមម៉ឺនុយ' : 'Collapse Sidebar')"
+            class="hidden lg:flex items-center justify-center p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all cursor-pointer border border-slate-200/60 dark:border-slate-800 shrink-0"
+          >
+            <svg :class="[isSidebarCollapsed ? 'rotate-180' : '', 'w-4 h-4 transition-transform duration-300']" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
             </svg>
           </button>
 
@@ -1654,8 +1675,8 @@ const onIconError = (e: Event) => {
     </div>
 
     <!-- MAIN CONTENT WRAPPER -->
-    <main :class="[isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72', 'transition-all duration-300 min-h-[calc(100vh-64px)]']">
-      <div class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
+    <main :class="[isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72', 'transition-all duration-300 min-h-[calc(100vh-64px)] pb-16 sm:pb-20']">
+      <div class="px-4 sm:px-6 lg:px-8 xl:px-10 py-6 max-w-[1600px] mx-auto space-y-6">
         <slot />
       </div>
     </main>

@@ -511,13 +511,13 @@ const recentActivities = computed(() => [
       </div>
 
       <!-- 6 METRICS KPI CARDS (Admin Dashboard Vibrant Gradient Style with Ambient Waves) -->
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-3.5">
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 sm:gap-4.5">
         <Link
           v-for="stat in statsCards"
           :key="stat.type"
           :href="stat.href"
           :class="[
-            'relative overflow-hidden rounded-2xl bg-gradient-to-br text-white p-4 shadow-sm hover:shadow-xl hover:scale-[1.02] active:scale-[0.99] transition-all flex flex-col justify-between group cursor-pointer',
+            'relative overflow-hidden rounded-2xl bg-gradient-to-br text-white p-4.5 sm:p-5 shadow-sm hover:shadow-xl hover:scale-[1.02] active:scale-[0.99] transition-all flex flex-col justify-between group cursor-pointer border border-white/10',
             stat.gradient
           ]"
         >
@@ -526,22 +526,22 @@ const recentActivities = computed(() => [
               <span class="text-[11px] font-bold tracking-wide uppercase text-white/90 truncate mr-1">{{ stat.title }}</span>
               <div class="text-white/95 group-hover:text-white group-hover:scale-110 transition-transform duration-200 shrink-0">
                 <!-- Book SVG (Enrolled) -->
-                <svg v-if="stat.type === 'enrolled'" class="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <svg v-if="stat.type === 'enrolled'" class="w-9 h-9 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
                   <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
                 </svg>
                 <!-- Graduation Cap SVG (In Progress) -->
-                <svg v-else-if="stat.type === 'in_progress'" class="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <svg v-else-if="stat.type === 'in_progress'" class="w-9 h-9 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
                   <path d="M6 12v5c3 3 9 3 12 0v-5" />
                 </svg>
                 <!-- Check Circle SVG (Completed) -->
-                <svg v-else-if="stat.type === 'completed'" class="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <svg v-else-if="stat.type === 'completed'" class="w-9 h-9 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="10" />
                   <path d="m9 12 2 2 4-4" />
                 </svg>
                 <!-- Trophy SVG (Certificates) -->
-                <svg v-else-if="stat.type === 'certificates'" class="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <svg v-else-if="stat.type === 'certificates'" class="w-9 h-9 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
                   <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
                   <path d="M4 22h16" />
@@ -550,19 +550,19 @@ const recentActivities = computed(() => [
                   <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
                 </svg>
                 <!-- Clock SVG (Study Time) -->
-                <svg v-else-if="stat.type === 'study_time'" class="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <svg v-else-if="stat.type === 'study_time'" class="w-9 h-9 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="10" />
                   <polyline points="12 6 12 12 16 14" />
                 </svg>
                 <!-- Bar Chart SVG (Quiz Average) -->
-                <svg v-else class="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <svg v-else class="w-9 h-9 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <line x1="18" y1="20" x2="18" y2="10" />
                   <line x1="12" y1="20" x2="12" y2="4" />
                   <line x1="6" y1="20" x2="6" y2="14" />
                 </svg>
               </div>
             </div>
-            <h4 class="text-2xl sm:text-3xl font-black tracking-tight text-white mt-1">
+            <h4 class="text-2xl sm:text-3xl font-black tracking-tight text-white mt-1.5">
               {{ stat.value }}
             </h4>
             <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1 truncate">
@@ -570,8 +570,8 @@ const recentActivities = computed(() => [
             </p>
           </div>
           <!-- Sparkline Wave at Bottom (Exact Admin Style) -->
-          <div class="mt-2 -mx-4 -mb-4 overflow-hidden rounded-b-2xl">
-            <svg class="w-full h-10 text-white" viewBox="0 0 100 25" preserveAspectRatio="none" aria-hidden="true">
+          <div class="mt-2.5 -mx-4.5 -mb-4.5 sm:-mx-5 sm:-mb-5 overflow-hidden rounded-b-2xl">
+            <svg class="w-full h-10 sm:h-11 text-white" viewBox="0 0 100 25" preserveAspectRatio="none" aria-hidden="true">
               <g transform="translate(0 4)" opacity="0.10">
                 <path :d="stat.wavePath" fill="currentColor"/>
               </g>
@@ -696,16 +696,16 @@ const recentActivities = computed(() => [
               </Link>
             </div>
 
-            <!-- Courses Grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Courses Grid (Spacious 2-3 Column Layout with Elegant Card Ratios) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
               <Link
                 v-for="c in filteredCourses"
                 :key="c.id"
                 :href="c.href"
-                class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 hover:border-purple-500/50 rounded-2xl p-4 shadow-xs dark:shadow-xl flex flex-col justify-between space-y-3 transition-all duration-200 hover:-translate-y-1 hover:shadow-md group"
+                class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 hover:border-purple-500/50 rounded-2xl p-4.5 sm:p-5 shadow-xs dark:shadow-xl flex flex-col justify-between space-y-3.5 transition-all duration-200 hover:-translate-y-1 hover:shadow-md group"
               >
                 <!-- Illustration Box with Badge -->
-                <div :class="['relative w-full h-28 rounded-xl bg-gradient-to-br', c.bgGradient || 'from-indigo-50 to-purple-50 dark:from-slate-900 dark:to-slate-950', 'border border-slate-200/60 dark:border-slate-800/60 flex items-center justify-center overflow-hidden transition-colors']">
+                <div :class="['relative w-full h-32 rounded-2xl bg-gradient-to-br', c.bgGradient || 'from-indigo-50 to-purple-50 dark:from-slate-900 dark:to-slate-950', 'border border-slate-200/60 dark:border-slate-800/60 flex items-center justify-center overflow-hidden transition-colors']">
                   <div :class="['w-12 h-12 rounded-2xl bg-gradient-to-tr', c.iconColor || 'from-purple-600 to-indigo-600', 'flex items-center justify-center text-white text-lg font-bold shadow-md group-hover:scale-110 transition-transform duration-300']">
                     <!-- English / Literature SVG -->
                     <svg v-if="c.iconType === 'english' || c.iconType?.includes('eng')" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
