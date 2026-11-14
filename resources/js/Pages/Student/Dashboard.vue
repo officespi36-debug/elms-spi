@@ -40,6 +40,37 @@ const props = defineProps<{
     thumbnail?: string
     href: string
   }>
+  recentActivities?: Array<{
+    id: string | number
+    type: 'play' | 'check' | 'doc'
+    iconBg: string
+    title: string
+    title_km?: string
+    course: string
+    time: string
+    href: string
+  }>
+  upcomingEvents?: Array<{
+    id: number
+    type: 'quiz' | 'live' | 'assignment'
+    title: string
+    course: string
+    date: string
+    time: string
+    href: string
+  }>
+  todayGoals?: {
+    completedCount: number
+    totalCount: number
+    percentage: number
+    items: Array<{
+      id: number
+      titleEn: string
+      titleKm: string
+      completed: boolean
+      href: string
+    }>
+  }
   enrollments?: any[]
 }>()
 
@@ -287,18 +318,18 @@ const continueCourseData = computed(() => {
   }
 })
 
-// Today's Goal (Interactive tasks with local persistence)
-const todayGoal = ref({
+// Today's Goal (Interactive tasks with database & local state)
+const todayGoal = ref(props.todayGoals || {
   completedCount: 1,
   totalCount: 2,
   percentage: 50,
   items: [
     {
       id: 1,
-      titleEn: 'Chapter 3 - JavaScript Functions',
-      titleKm: 'ជំពូកទី ៣ - JavaScript Functions',
+      titleEn: 'Continue Learning Core Academic Lessons',
+      titleKm: 'បន្តការសិក្សាមេរៀនក្នុងវគ្គសិក្សាគោល',
       completed: true,
-      href: '/student/my-courses/current'
+      href: '/student/my-courses/enrolled'
     },
     {
       id: 2,
@@ -511,35 +542,40 @@ const chartDataByRange = computed(() => ({
 }))
 
 // Upcoming Schedule with real SVG icon type
-const upcomingEvents = computed(() => [
-  {
-    id: 1,
-    type: 'quiz',
-    title: currentLang.value === 'km' ? 'Quiz: Quiz ជំពូកទី ៣' : 'Quiz: Chapter 3 Quiz',
-    course: currentLang.value === 'km' ? 'មូលដ្ឋានគ្រឹះ Web Development' : 'Web Development Fundamentals',
-    date: currentLang.value === 'km' ? '២៨ ឧសភា ២០២៥' : 'May 28, 2025',
-    time: currentLang.value === 'km' ? 'ម៉ោង ១០:០០ ព្រឹក' : '10:00 AM',
-    href: '/student/quizzes/practice'
-  },
-  {
-    id: 2,
-    type: 'live',
-    title: currentLang.value === 'km' ? 'ថ្នាក់រៀនផ្ទាល់: JavaScript DOM' : 'Live Class: JavaScript DOM',
-    course: currentLang.value === 'km' ? 'មូលដ្ឋានគ្រឹះ Web Development' : 'Web Development Fundamentals',
-    date: currentLang.value === 'km' ? '៣០ ឧសភា ២០២៥' : 'May 30, 2025',
-    time: currentLang.value === 'km' ? 'ម៉ោង ០២:០០ រសៀល' : '02:00 PM',
-    href: '/student/calendar/live-class'
-  },
-  {
-    id: 3,
-    type: 'assignment',
-    title: currentLang.value === 'km' ? 'កិច្ចការ: គំរូ Relational ER' : 'Assignment: Relational ER Model',
-    course: currentLang.value === 'km' ? 'ប្រព័ន្ធមូលដ្ឋានទិន្នន័យ (Database)' : 'Database Systems',
-    date: currentLang.value === 'km' ? '០១ មិថុនា ២០២៥' : 'Jun 01, 2025',
-    time: currentLang.value === 'km' ? 'ម៉ោង ១១:៥៩ យប់' : '11:59 PM',
-    href: '/student/assignments'
+const upcomingEvents = computed(() => {
+  if (props.upcomingEvents && props.upcomingEvents.length > 0) {
+    return props.upcomingEvents
   }
-])
+  return [
+    {
+      id: 1,
+      type: 'quiz',
+      title: currentLang.value === 'km' ? 'Quiz: Quiz ជំពូកទី ៣' : 'Quiz: Chapter 3 Quiz',
+      course: currentLang.value === 'km' ? 'មូលដ្ឋានគ្រឹះ Web Development' : 'Web Development Fundamentals',
+      date: currentLang.value === 'km' ? '២៨ ឧសភា ២០២៥' : 'May 28, 2025',
+      time: currentLang.value === 'km' ? 'ម៉ោង ១០:០០ ព្រឹក' : '10:00 AM',
+      href: '/student/quizzes/practice'
+    },
+    {
+      id: 2,
+      type: 'live',
+      title: currentLang.value === 'km' ? 'ថ្នាក់រៀនផ្ទាល់: JavaScript DOM' : 'Live Class: JavaScript DOM',
+      course: currentLang.value === 'km' ? 'មូលដ្ឋានគ្រឹះ Web Development' : 'Web Development Fundamentals',
+      date: currentLang.value === 'km' ? '៣០ ឧសភា ២០២៥' : 'May 30, 2025',
+      time: currentLang.value === 'km' ? 'ម៉ោង ០២:០០ រសៀល' : '02:00 PM',
+      href: '/student/calendar/live-class'
+    },
+    {
+      id: 3,
+      type: 'assignment',
+      title: currentLang.value === 'km' ? 'កិច្ចការ: គំរូ Relational ER' : 'Assignment: Relational ER Model',
+      course: currentLang.value === 'km' ? 'ប្រព័ន្ធមូលដ្ឋានទិន្នន័យ (Database)' : 'Database Systems',
+      date: currentLang.value === 'km' ? '០១ មិថុនា ២០២៥' : 'Jun 01, 2025',
+      time: currentLang.value === 'km' ? 'ម៉ោង ១១:៥៩ យប់' : '11:59 PM',
+      href: '/student/assignments'
+    }
+  ]
+})
 
 // AI Study Assistant Widget
 const aiPromptInput = ref('')
@@ -623,35 +659,43 @@ const achievements = computed(() => [
 ])
 
 // Recent Activity with SVG type
-const recentActivities = computed(() => [
-  {
-    id: 1,
-    type: 'play',
-    iconBg: 'bg-purple-600/20 text-purple-600 dark:text-purple-400 border border-purple-500/30',
-    title: currentLang.value === 'km' ? 'បានទស្សនា: 3.2 JavaScript Functions' : 'Watched: 3.2 JavaScript Functions',
-    course: currentLang.value === 'km' ? 'មូលដ្ឋានគ្រឹះ Web Development' : 'Web Development Fundamentals',
-    time: currentLang.value === 'km' ? 'ថ្ងៃនេះ, ម៉ោង ០៩:៣០ ព្រឹក' : 'Today, 09:30 AM',
-    href: '/student/my-courses/current'
-  },
-  {
-    id: 2,
-    type: 'check',
-    iconBg: 'bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30',
-    title: currentLang.value === 'km' ? 'បានបញ្ចប់ Quiz: Quiz ជំពូកទី ២' : 'Completed Quiz: Chapter 2 Quiz',
-    course: currentLang.value === 'km' ? 'មូលដ្ឋានគ្រឹះ Web Development' : 'Web Development Fundamentals',
-    time: currentLang.value === 'km' ? 'ម្សិលមិញ, ម៉ោង ០៤:១៥ រសៀល' : 'Yesterday, 04:15 PM',
-    href: '/student/quizzes/scores'
-  },
-  {
-    id: 3,
-    type: 'doc',
-    iconBg: 'bg-amber-600/20 text-amber-600 dark:text-amber-400 border border-amber-500/30',
-    title: currentLang.value === 'km' ? 'បានទាញយក: JavaScript Cheat Sheet' : 'Downloaded: JavaScript Cheat Sheet',
-    course: currentLang.value === 'km' ? 'មូលដ្ឋានគ្រឹះ Web Development' : 'Web Development Fundamentals',
-    time: currentLang.value === 'km' ? '២៦ ឧសភា, ម៉ោង ០៣:២០ រសៀល' : 'May 26, 03:20 PM',
-    href: '/student/learning-content/resources'
+const recentActivities = computed(() => {
+  if (props.recentActivities && props.recentActivities.length > 0) {
+    return props.recentActivities.map(a => ({
+      ...a,
+      title: currentLang.value === 'km' && a.title_km ? a.title_km : a.title
+    }))
   }
-])
+  return [
+    {
+      id: 1,
+      type: 'play',
+      iconBg: 'bg-purple-600/20 text-purple-600 dark:text-purple-400 border border-purple-500/30',
+      title: currentLang.value === 'km' ? 'បានទស្សនា: 3.2 JavaScript Functions' : 'Watched: 3.2 JavaScript Functions',
+      course: currentLang.value === 'km' ? 'មូលដ្ឋានគ្រឹះ Web Development' : 'Web Development Fundamentals',
+      time: currentLang.value === 'km' ? 'ថ្ងៃនេះ, ម៉ោង ០៩:៣០ ព្រឹក' : 'Today, 09:30 AM',
+      href: '/student/my-courses/current'
+    },
+    {
+      id: 2,
+      type: 'check',
+      iconBg: 'bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30',
+      title: currentLang.value === 'km' ? 'បានបញ្ចប់ Quiz: Quiz ជំពូកទី ២' : 'Completed Quiz: Chapter 2 Quiz',
+      course: currentLang.value === 'km' ? 'មូលដ្ឋានគ្រឹះ Web Development' : 'Web Development Fundamentals',
+      time: currentLang.value === 'km' ? 'ម្សិលមិញ, ម៉ោង ០៤:១៥ រសៀល' : 'Yesterday, 04:15 PM',
+      href: '/student/quizzes/scores'
+    },
+    {
+      id: 3,
+      type: 'doc',
+      iconBg: 'bg-amber-600/20 text-amber-600 dark:text-amber-400 border border-amber-500/30',
+      title: currentLang.value === 'km' ? 'បានទាញយក: JavaScript Cheat Sheet' : 'Downloaded: JavaScript Cheat Sheet',
+      course: currentLang.value === 'km' ? 'មូលដ្ឋានគ្រឹះ Web Development' : 'Web Development Fundamentals',
+      time: currentLang.value === 'km' ? '២៦ ឧសភា, ម៉ោង ០៣:២០ រសៀល' : 'May 26, 03:20 PM',
+      href: '/student/learning-content/resources'
+    }
+  ]
+})
 </script>
 
 <template>
