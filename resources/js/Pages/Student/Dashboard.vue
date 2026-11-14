@@ -61,20 +61,20 @@ const animatedStudyMinutes = ref(0)
 const animatedQuizAvg = ref(0)
 
 const parseStudyTime = (timeStr: string) => {
-  if (!timeStr) return { hours: 12, minutes: 0 }
+  if (!timeStr) return { hours: 0, minutes: 0 }
   const hMatch = timeStr.match(/(\d+)\s*h/)
   const mMatch = timeStr.match(/(\d+)\s*m/)
   return {
-    hours: hMatch ? parseInt(hMatch[1], 10) : 12,
+    hours: hMatch ? parseInt(hMatch[1], 10) : 0,
     minutes: mMatch ? parseInt(mMatch[1], 10) : 0,
   }
 }
 
 const parseScoreNum = (scoreStr: any) => {
   if (typeof scoreStr === 'number') return scoreStr
-  if (!scoreStr) return 89
+  if (!scoreStr) return 0
   const num = parseInt(scoreStr.toString().replace(/[^0-9]/g, ''), 10)
-  return isNaN(num) ? 89 : num
+  return isNaN(num) ? 0 : num
 }
 
 function runCountUp(targets: {
@@ -102,7 +102,7 @@ function runCountUp(targets: {
   }
 
   loadingStep.value = 'counting'
-  const duration = 1200 // 1.2s smooth count-up
+  const duration = 1000 // 1s smooth count-up
   const startTime = performance.now()
 
   function step(currentTime: number) {
@@ -135,39 +135,32 @@ async function loadDashboard() {
   loadingStep.value = 'skeleton'
   error.value = ''
 
-  // Give 700ms minimum skeleton display for silky smooth UX (DL-01, DL-02)
-  const minSkeletonPromise = new Promise(resolve => setTimeout(resolve, 700))
-
-  try {
-    const response = await fetch('/api/student/dashboard', {
-      credentials: 'same-origin',
-      headers: {
-        'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
-      }
-    })
-
-    if (!response.ok) {
-      if (props.stats) {
-        liveStats.value = props.stats
-      } else {
-        throw new Error('Dashboard API request failed (' + response.status + ')')
-      }
-    } else {
-      const data = await response.json()
-      liveStats.value = data.stats || data
-    }
-  } catch (err: any) {
-    if (props.stats) {
-      liveStats.value = props.stats
-    } else {
-      error.value = err.message || (currentLang.value === 'km' ? 'មិនអាចទាញយកទិន្នន័យស្ថិតិបានទេ' : 'Unable to load dashboard data.')
-      loading.value = false
-      return
-    }
+  // Immediately use props.stats if provided directly by server-side Inertia render
+  if (props.stats) {
+    liveStats.value = props.stats
   }
 
-  await minSkeletonPromise
+  // Smooth 500ms skeleton shimmer
+  await new Promise(resolve => setTimeout(resolve, 500))
+
+  // If props.stats was not provided (e.g. client API fallback), fetch endpoint
+  if (!liveStats.value) {
+    try {
+      const response = await fetch('/api/student/dashboard', {
+        credentials: 'same-origin',
+        headers: {
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      if (response.ok) {
+        const data = await response.json()
+        liveStats.value = data.stats || data
+      }
+    } catch (err: any) {
+      console.warn('Dashboard API fallback:', err)
+    }
+  }
 
   const activeStats = liveStats.value || props.stats || {}
   const targetEnrolled = Number(activeStats.enrolledCount ?? 0)
@@ -188,35 +181,6 @@ async function loadDashboard() {
   })
 }
 
-function manualSetStep(step: 'skeleton' | 'counting' | 'ready') {
-  if (step === 'skeleton') {
-    loading.value = true
-    loadingStep.value = 'skeleton'
-  } else if (step === 'counting') {
-    loading.value = true
-    const activeStats = liveStats.value || props.stats || {}
-    const targetEnrolled = Number(activeStats.enrolledCount ?? 0)
-    const targetInProgress = Number(activeStats.inProgressCount ?? 0)
-    const targetCompleted = Number(activeStats.completedCount ?? 0)
-    const targetCerts = Number(activeStats.certificatesCount ?? 0)
-    const parsedTime = parseStudyTime(activeStats.learningTime || '0h 0m')
-    const targetQuiz = parseScoreNum(activeStats.averageScore ?? activeStats.averageScoreNum ?? 0)
-
-    runCountUp({
-      enrolled: targetEnrolled,
-      inProgress: targetInProgress,
-      completed: targetCompleted,
-      certificates: targetCerts,
-      studyHours: parsedTime.hours,
-      studyMinutes: parsedTime.minutes,
-      quizAvg: targetQuiz
-    })
-  } else if (step === 'ready') {
-    loading.value = false
-    loadingStep.value = 'ready'
-  }
-}
-
 onMounted(() => {
   loadDashboard()
 })
@@ -233,12 +197,12 @@ const statsCards = computed(() => {
   let quizAvgDisplay = activeStats.averageScore || '0%'
 
   if (loadingStep.value === 'counting') {
-    enrolledDisplay = `0 → ${animatedEnrolled.value}`
-    inProgressDisplay = `0 → ${animatedInProgress.value}`
-    completedDisplay = `0 → ${animatedCompleted.value}`
-    certsDisplay = `0 → ${animatedCertificates.value}`
-    studyTimeDisplay = `0h → ${animatedStudyHours.value}h ${animatedStudyMinutes.value}m`
-    quizAvgDisplay = `0% → ${animatedQuizAvg.value}%`
+    enrolledDisplay = animatedEnrolled.value.toString()
+    inProgressDisplay = animatedInProgress.value.toString()
+    completedDisplay = animatedCompleted.value.toString()
+    certsDisplay = animatedCertificates.value.toString()
+    studyTimeDisplay = `${animatedStudyHours.value}h ${animatedStudyMinutes.value}m`
+    quizAvgDisplay = `${animatedQuizAvg.value}%`
   }
 
   return [
@@ -710,77 +674,7 @@ const recentActivities = computed(() => [
       </div>
 
       <!-- OFFICIAL SPI DASHBOARD LOADING & KPI SYSTEM (DL-01 to DL-08) -->
-      <section aria-busy="loading" class="space-y-3">
-        <!-- Status Indicator Pill Row (Matches the 3 Official States in the Reference Design) -->
-        <div class="flex flex-wrap items-center justify-between gap-2.5">
-          <div class="flex items-center gap-1.5 sm:gap-2 overflow-x-auto py-1">
-            <!-- State 1: Skeleton + Shimmer -->
-            <button
-              @click="manualSetStep('skeleton')"
-              type="button"
-              :class="[
-                'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold transition-all shadow-xs cursor-pointer',
-                loadingStep === 'skeleton'
-                  ? 'bg-indigo-600 text-white shadow-indigo-500/20 ring-2 ring-indigo-400/30'
-                  : 'bg-indigo-50/80 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/60'
-              ]"
-            >
-              <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-              </svg>
-              <span>1. Loading (Skeleton + Shimmer)</span>
-            </button>
-
-            <!-- State 2: Data Loading (Count Up Animation) -->
-            <button
-              @click="manualSetStep('counting')"
-              type="button"
-              :class="[
-                'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold transition-all shadow-xs cursor-pointer',
-                loadingStep === 'counting'
-                  ? 'bg-blue-600 text-white shadow-blue-500/20 ring-2 ring-blue-400/30 animate-pulse'
-                  : 'bg-blue-50/80 hover:bg-blue-100 dark:bg-blue-950/40 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60'
-              ]"
-            >
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/>
-              </svg>
-              <span>2. Data Loading (Count Up Animation)</span>
-            </button>
-
-            <!-- State 3: Loaded (Final Result) -->
-            <button
-              @click="manualSetStep('ready')"
-              type="button"
-              :class="[
-                'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold transition-all shadow-xs cursor-pointer',
-                loadingStep === 'ready'
-                  ? 'bg-emerald-600 text-white shadow-emerald-500/20 ring-2 ring-emerald-400/30'
-                  : 'bg-emerald-50/80 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60'
-              ]"
-            >
-              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
-              </svg>
-              <span>3. Loaded (Final Result)</span>
-            </button>
-          </div>
-
-          <!-- Re-sync / Refresh Button for demo & live updates -->
-          <button
-            @click="loadDashboard"
-            type="button"
-            :title="currentLang === 'km' ? 'ដំណើរការលំហូរផ្ទុកទិន្នន័យឡើងវិញ' : 'Replay Full Loading Flow'"
-            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold text-slate-600 hover:text-indigo-600 dark:text-slate-300 dark:hover:text-indigo-400 bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 shadow-xs transition-all hover:scale-105 cursor-pointer shrink-0"
-          >
-            <svg class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/>
-            </svg>
-            <span>{{ currentLang === 'km' ? 'ដំណើរការឡើងវិញ' : 'Replay Flow' }}</span>
-          </button>
-        </div>
-
+      <section aria-busy="loading">
         <!-- 1. SKELETON LOADING STATE WITH SHIMMER (DL-01, DL-02, DL-06) -->
         <div
           v-if="loading && loadingStep === 'skeleton'"
