@@ -913,15 +913,15 @@ const onIconError = (e: Event) => {
   <Head :title="pageTitle" />
   <GlobalToast />
   <GlobalLoadingOverlay />
-  <div class="min-h-screen bg-slate-50 dark:bg-[#0B0F19] text-slate-800 dark:text-slate-200 selection:bg-indigo-500/30 transition-colors duration-200 notranslate" translate="no">
+  <div class="min-h-screen bg-slate-50 dark:bg-[#131314] text-slate-800 dark:text-[#e3e3e3] selection:bg-blue-500/30 transition-colors duration-200 notranslate" translate="no">
     <!-- Desktop Sidebar (Fixed Positioning exactly like Admin & Teacher layouts) -->
-    <aside :class="[isSidebarCollapsed ? 'w-20 overflow-visible' : 'w-72', 'fixed inset-y-0 left-0 z-50 hidden flex-col bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl border-r border-slate-200/90 dark:border-slate-800 lg:flex transition-all duration-300 shadow-sm dark:shadow-none']">
+    <aside :class="[isSidebarCollapsed ? 'w-20 overflow-visible' : 'w-72', 'fixed inset-y-0 left-0 z-50 hidden flex-col bg-white/95 dark:bg-[#131314] backdrop-blur-xl border-r border-slate-200/90 dark:border-[#28292a] lg:flex transition-all duration-300 shadow-sm dark:shadow-none']">
       
       <!-- Sidebar Header & Logo -->
       <div
         :class="[
           isSidebarCollapsed ? 'justify-center px-2' : 'justify-between px-4',
-          'relative flex h-16 shrink-0 items-center border-b border-slate-200/90 dark:border-slate-800 transition-all duration-300'
+          'relative flex h-16 shrink-0 items-center border-b border-slate-200/90 dark:border-[#28292a] transition-all duration-300'
         ]"
       >
         <!-- Logo & Title Container -->
@@ -1161,13 +1161,13 @@ const onIconError = (e: Event) => {
               v-if="isSidebarCollapsed && item.children && item.children.length > 0"
               class="absolute left-full top-0 ml-3.5 w-64 opacity-0 pointer-events-none group-hover/flyout:opacity-100 group-hover/flyout:pointer-events-auto transition-all duration-200 ease-out translate-x-1 group-hover/flyout:translate-x-0 z-50"
             >
-              <div class="relative bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700/80 rounded-2xl p-3 shadow-2xl ring-1 ring-slate-800/80">
-                <div class="absolute -left-1.5 top-3.5 w-3 h-3 bg-white dark:bg-slate-900 border-l border-b border-slate-200 dark:border-slate-700/80 rotate-45 z-10 pointer-events-none"></div>
+              <div class="relative bg-white/95 dark:bg-[#1e1f20]/95 backdrop-blur-xl border border-slate-200 dark:border-[#2d2f31] rounded-2xl p-3 shadow-2xl ring-1 ring-slate-800/80">
+                <div class="absolute -left-1.5 top-3.5 w-3 h-3 bg-white dark:bg-[#1e1f20] border-l border-b border-slate-200 dark:border-[#2d2f31] rotate-45 z-10 pointer-events-none"></div>
 
-                <div class="relative z-20 flex items-center justify-between px-2 py-1.5 mb-2 border-b border-slate-200 dark:border-slate-800 pb-2">
+                <div class="relative z-20 flex items-center justify-between px-2 py-1.5 mb-2 border-b border-slate-200 dark:border-[#28292a] pb-2">
                   <div class="flex items-center gap-2 min-w-0">
                     <img v-if="item.iconUrl" :src="item.iconUrl" :alt="item.name" class="w-4 h-4 object-contain shrink-0" />
-                    <span class="text-xs font-bold text-slate-900 dark:text-white truncate">{{ currentLang === 'km' ? item.khName : item.name }}</span>
+                    <span class="text-xs font-bold text-slate-900 dark:text-[#e3e3e3] truncate">{{ currentLang === 'km' ? item.khName : item.name }}</span>
                   </div>
                 </div>
 
@@ -1180,7 +1180,7 @@ const onIconError = (e: Event) => {
                     :class="[
                       isSubActive(sub.href)
                         ? 'bg-purple-600/20 text-indigo-700 dark:text-purple-300 font-bold border border-purple-500/30'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/70 border border-transparent',
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-[#e3e3e3] hover:bg-slate-100 dark:hover:bg-[#282a2c] border border-transparent',
                       'flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs transition-all duration-150 truncate'
                     ]"
                   >
@@ -1195,7 +1195,7 @@ const onIconError = (e: Event) => {
       </nav>
 
       <!-- Sidebar Footer Log Out (🚪) -->
-      <div :class="[isSidebarCollapsed ? 'px-0 py-2.5 flex justify-center' : 'p-3', 'mt-auto border-t border-slate-200/90 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950/70 shrink-0 relative group/logout']">
+      <div :class="[isSidebarCollapsed ? 'px-0 py-2.5 flex justify-center' : 'p-3', 'mt-auto border-t border-slate-200/90 dark:border-[#28292a] bg-slate-50/80 dark:bg-[#131314] shrink-0 relative group/logout']">
         <!-- Log Out Button -->
         <button
           @click="logout"
@@ -1214,7 +1214,7 @@ const onIconError = (e: Event) => {
         <!-- Tooltip for Logout when collapsed -->
         <div
           v-if="isSidebarCollapsed"
-          class="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-1.5 rounded-xl bg-slate-900/95 dark:bg-slate-800/95 text-rose-300 text-xs font-semibold whitespace-nowrap shadow-xl border border-rose-500/30 opacity-0 pointer-events-none group-hover/logout:opacity-100 transition-all duration-150 z-50 flex items-center gap-1.5"
+          class="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-1.5 rounded-xl bg-slate-900/95 dark:bg-[#1e1f20] text-rose-300 text-xs font-semibold whitespace-nowrap shadow-xl border border-rose-500/30 opacity-0 pointer-events-none group-hover/logout:opacity-100 transition-all duration-150 z-50 flex items-center gap-1.5"
         >
           <span>{{ currentLang === 'km' ? 'ចាកចេញ' : 'Log Out' }}</span>
         </div>
@@ -1231,10 +1231,10 @@ const onIconError = (e: Event) => {
     <aside
       :class="[
         sidebarOpen ? 'translate-x-0' : '-translate-x-full',
-        'fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col lg:hidden transition-transform duration-300 ease-in-out shadow-2xl'
+        'fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-[#131314] border-r border-slate-200 dark:border-[#28292a] flex flex-col lg:hidden transition-transform duration-300 ease-in-out shadow-2xl'
       ]"
     >
-      <div class="h-16 px-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 shrink-0">
+      <div class="h-16 px-4 flex items-center justify-between border-b border-slate-200 dark:border-[#28292a] shrink-0">
         <div class="flex items-center gap-3">
           <img :src="logoUrl" alt="E-LMS Logo" loading="lazy" decoding="async" class="w-8 h-8 rounded-full object-cover" />
           <span class="font-bold text-sm text-slate-900 dark:text-white">E-LMS Student</span>
@@ -1302,7 +1302,7 @@ const onIconError = (e: Event) => {
     </aside>
 
     <!-- STICKY TOP NAVBAR (Dynamically padded to account for fixed sidebar) -->
-    <header :class="[isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72', 'sticky top-0 z-40 bg-white/95 dark:bg-[#0B0F19]/90 backdrop-blur-xl border-b border-slate-200/90 dark:border-slate-800/80 transition-all duration-300 shadow-xs']">
+    <header :class="[isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72', 'sticky top-0 z-40 bg-white/95 dark:bg-[#131314]/95 backdrop-blur-xl border-b border-slate-200/90 dark:border-[#28292a] transition-all duration-300 shadow-xs']">
       <div class="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8 xl:px-10 max-w-[1600px] mx-auto gap-4">
         
         <!-- Left Side: Mobile Sidebar Hamburger, Desktop Toggle & Multi-Segment Breadcrumbs -->
@@ -1362,15 +1362,15 @@ const onIconError = (e: Event) => {
             <button
               @click="toggleDropdown('search')"
               type="button"
-              class="flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/60 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-700/60 hover:border-indigo-500/40 text-xs transition-all w-56 lg:w-72 justify-between shadow-inner group"
+              class="flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-[#1e1f20] hover:bg-slate-200 dark:hover:bg-[#282a2c] text-slate-500 dark:text-[#c4c7c5] hover:text-slate-900 dark:hover:text-[#e3e3e3] border border-slate-200 dark:border-[#2d2f31] hover:border-indigo-500/40 dark:hover:border-[#1a73e8] text-xs transition-all w-56 lg:w-72 justify-between shadow-inner group cursor-pointer"
             >
               <div class="flex items-center gap-2 truncate min-w-0 flex-1">
-                <svg class="w-3.5 h-3.5 text-indigo-500 shrink-0 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                <span class="truncate text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-300">
+                <svg class="w-3.5 h-3.5 text-indigo-500 dark:text-[#8ab4f8] shrink-0 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <span class="truncate text-slate-500 dark:text-[#c4c7c5] group-hover:text-slate-800 dark:group-hover:text-white">
                   {{ currentLang === 'km' ? 'ស្វែងរកម៉ូឌុលទាំង ១៣...' : 'Search 13 Modules...' }}
                 </span>
               </div>
-              <kbd class="hidden lg:inline-flex items-center shrink-0 whitespace-nowrap px-1.5 py-0.5 text-[10px] font-mono font-semibold text-slate-400 bg-white dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700/60 rounded shadow-xs leading-none">ctrl k</kbd>
+              <kbd class="hidden lg:inline-flex items-center shrink-0 whitespace-nowrap px-1.5 py-0.5 text-[10px] font-mono font-semibold text-slate-400 dark:text-[#8e918f] bg-white dark:bg-[#131314] border border-slate-300 dark:border-[#2d2f31] rounded shadow-xs leading-none">ctrl k</kbd>
             </button>
           </div>
         </div>
@@ -1381,7 +1381,7 @@ const onIconError = (e: Event) => {
           <button
             @click="toggleDropdown('search')"
             type="button"
-            class="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg md:hidden focus:outline-none transition-colors"
+            class="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#1e1f20] rounded-lg md:hidden focus:outline-none transition-colors"
           >
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           </button>
@@ -1390,7 +1390,7 @@ const onIconError = (e: Event) => {
           <button
             type="button"
             @click="toggleLanguage"
-            class="p-1.5 h-8 w-8 rounded-full bg-white/90 dark:bg-[#121214]/80 backdrop-blur-md hover:bg-zinc-100 dark:hover:bg-[#1c1c1f] transition-all duration-150 border border-zinc-300/80 dark:border-zinc-800 shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
+            class="p-1.5 h-8 w-8 rounded-full bg-white/90 dark:bg-[#1e1f20] backdrop-blur-md hover:bg-zinc-100 dark:hover:bg-[#282a2c] transition-all duration-150 border border-zinc-300/80 dark:border-[#2d2f31] shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
             :title="currentLang === 'km' ? 'ប្តូរទៅជាភាសាអង់គ្លេស (Switch to English)' : 'Switch to Khmer (ប្តូរទៅជាភាសាខ្មែរ)'"
           >
             <img
@@ -1404,7 +1404,7 @@ const onIconError = (e: Event) => {
           <button
             type="button"
             @click="toggleTheme($event)"
-            class="w-8 h-8 rounded-full bg-white/95 dark:bg-[#182234] backdrop-blur-md hover:bg-amber-50/50 dark:hover:bg-indigo-950/40 transition-all duration-200 border border-zinc-200 dark:border-slate-700/80 shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
+            class="w-8 h-8 rounded-full bg-white/95 dark:bg-[#1e1f20] backdrop-blur-md hover:bg-amber-50/50 dark:hover:bg-[#282a2c] transition-all duration-200 border border-zinc-200 dark:border-[#2d2f31] shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
             :title="isDark ? (currentLang === 'km' ? 'ប្ដូរទៅ Light Mode' : 'Switch to Light Mode') : (currentLang === 'km' ? 'ប្ដូរទៅ Dark Mode' : 'Switch to Dark Mode')"
             aria-label="Toggle theme"
           >
@@ -1416,7 +1416,7 @@ const onIconError = (e: Event) => {
             <button
               @click.stop="handleNotificationToggle"
               type="button"
-              class="relative p-1.5 w-8 h-8 rounded-full sm:rounded-2xl bg-white/90 dark:bg-[#121214]/80 backdrop-blur-md hover:bg-zinc-100 dark:hover:bg-[#1c1c1f] text-zinc-700 dark:text-zinc-200 hover:text-zinc-950 dark:hover:text-white transition-all duration-150 border border-zinc-300/80 dark:border-zinc-800 shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
+              class="relative p-1.5 w-8 h-8 rounded-full sm:rounded-2xl bg-white/90 dark:bg-[#1e1f20] backdrop-blur-md hover:bg-zinc-100 dark:hover:bg-[#282a2c] text-zinc-700 dark:text-[#c4c7c5] hover:text-zinc-950 dark:hover:text-white transition-all duration-150 border border-zinc-300/80 dark:border-[#2d2f31] shadow-xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
               :title="currentLang === 'km' ? 'ការជូនដំណឹង' : 'Notifications'"
             >
               <svg class="w-4 h-4 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-105" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -1428,7 +1428,7 @@ const onIconError = (e: Event) => {
                 class="absolute -top-1.5 -right-1.5 flex items-center justify-center pointer-events-none z-10"
               >
                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-50"></span>
-                <span class="relative min-w-[17px] h-[17px] px-1 flex items-center justify-center rounded-full bg-[#f43f5e] text-white text-[9.5px] font-black leading-none ring-2 ring-white dark:ring-[#121214] shadow-sm select-none">
+                <span class="relative min-w-[17px] h-[17px] px-1 flex items-center justify-center rounded-full bg-[#f43f5e] text-white text-[9.5px] font-black leading-none ring-2 ring-white dark:ring-[#1e1f20] shadow-sm select-none">
                   {{ unreadNotificationsCount > 99 ? '99+' : unreadNotificationsCount }}
                 </span>
               </span>
@@ -1446,11 +1446,11 @@ const onIconError = (e: Event) => {
               <div
                 v-if="isNotificationOpen"
                 @click.stop
-                class="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xl z-50 overflow-hidden"
+                class="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white dark:bg-[#1e1f20] border border-slate-200/90 dark:border-[#2d2f31] shadow-2xl z-50 overflow-hidden"
               >
-                <div class="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-md">
+                <div class="px-4 py-3 border-b border-slate-100 dark:border-[#28292a] flex items-center justify-between bg-slate-50/80 dark:bg-[#1e1f20] backdrop-blur-md">
                   <div class="flex items-center gap-2">
-                    <h3 class="text-xs font-bold text-slate-900 dark:text-white">{{ currentLang === 'km' ? 'ការជូនដំណឹង' : 'Notifications' }}</h3>
+                    <h3 class="text-xs font-bold text-slate-900 dark:text-[#e3e3e3]">{{ currentLang === 'km' ? 'ការជូនដំណឹង' : 'Notifications' }}</h3>
                     <span v-if="unreadNotificationsCount > 0" class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-rose-500/10 text-rose-500 border border-rose-500/20">
                       {{ unreadNotificationsCount }} {{ currentLang === 'km' ? 'ថ្មី' : 'New' }}
                     </span>
@@ -1458,54 +1458,54 @@ const onIconError = (e: Event) => {
                   <button
                     v-if="unreadNotificationsCount > 0"
                     @click="markAllAsRead"
-                    class="text-[11px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 font-medium cursor-pointer transition-colors"
+                    class="text-[11px] text-indigo-600 dark:text-[#8ab4f8] hover:text-indigo-500 font-medium cursor-pointer transition-colors"
                   >
                     {{ currentLang === 'km' ? 'អានទាំងអស់' : 'Mark all read' }}
                   </button>
                 </div>
 
                 <!-- Tabs: All vs Unread -->
-                <div class="flex items-center gap-1 px-3 py-2 bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800 text-xs">
+                <div class="flex items-center gap-1 px-3 py-2 bg-slate-50/50 dark:bg-[#131314] border-b border-slate-100 dark:border-[#28292a] text-xs">
                   <button
                     type="button"
                     @click="notifTab = 'all'; playClickSound()"
-                    :class="[notifTab === 'all' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800', 'px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer']"
+                    :class="[notifTab === 'all' ? 'bg-indigo-600 dark:bg-[#a8c7fa] text-white dark:text-[#041e49] shadow-xs' : 'text-slate-600 dark:text-[#c4c7c5] hover:bg-slate-100 dark:hover:bg-[#282a2c]', 'px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer']"
                   >
                     {{ currentLang === 'km' ? 'ទាំងអស់' : 'All' }} ({{ notifications.length }})
                   </button>
                   <button
                     type="button"
                     @click="notifTab = 'unread'; playClickSound()"
-                    :class="[notifTab === 'unread' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800', 'px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer']"
+                    :class="[notifTab === 'unread' ? 'bg-indigo-600 dark:bg-[#a8c7fa] text-white dark:text-[#041e49] shadow-xs' : 'text-slate-600 dark:text-[#c4c7c5] hover:bg-slate-100 dark:hover:bg-[#282a2c]', 'px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer']"
                   >
                     {{ currentLang === 'km' ? 'មិនទាន់អាន' : 'Unread' }} ({{ unreadNotificationsCount }})
                   </button>
                 </div>
 
-                <div class="max-h-80 overflow-y-auto custom-scrollbar divide-y divide-slate-100 dark:divide-slate-800">
+                <div class="max-h-80 overflow-y-auto custom-scrollbar divide-y divide-slate-100 dark:divide-[#28292a]">
                   <div
                     v-for="item in filteredNotifications"
                     :key="item.id"
                     @click="handleNotificationItemClick(item)"
                     :class="[
-                      item.read ? 'bg-slate-50/40 dark:bg-slate-900/40 opacity-75' : 'bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/60',
+                      item.read ? 'bg-slate-50/40 dark:bg-[#1e1f20]/60 opacity-75' : 'bg-white dark:bg-[#1e1f20] hover:bg-slate-50 dark:hover:bg-[#282a2c]',
                       'p-3.5 transition-colors cursor-pointer block select-none'
                     ]"
                   >
                     <div class="flex items-start gap-3">
-                      <div class="p-2 rounded-xl shrink-0 mt-0.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                      <div class="p-2 rounded-xl shrink-0 mt-0.5 bg-indigo-500/10 text-indigo-600 dark:text-[#8ab4f8]">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                           <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                         </svg>
                       </div>
                       <div class="flex-1 min-w-0">
                         <div class="flex items-center justify-between">
-                          <p :class="[item.read ? 'text-slate-600 dark:text-slate-400 font-medium' : 'text-slate-900 dark:text-slate-100 font-bold', 'text-xs truncate']">{{ getNotifTitle(item) }}</p>
-                          <span class="text-[10px] text-slate-400 dark:text-slate-500 shrink-0 ml-1">{{ getNotifTime(item) }}</span>
+                          <p :class="[item.read ? 'text-slate-600 dark:text-[#c4c7c5] font-medium' : 'text-slate-900 dark:text-[#e3e3e3] font-bold', 'text-xs truncate']">{{ getNotifTitle(item) }}</p>
+                          <span class="text-[10px] text-slate-400 dark:text-[#8e918f] shrink-0 ml-1">{{ getNotifTime(item) }}</span>
                         </div>
-                        <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5">{{ getNotifDesc(item) }}</p>
+                        <p class="text-[11px] text-slate-500 dark:text-[#8e918f] line-clamp-2 mt-0.5">{{ getNotifDesc(item) }}</p>
                       </div>
-                      <span v-if="!item.read" class="w-2 h-2 rounded-full bg-indigo-500 shrink-0 mt-1.5"></span>
+                      <span v-if="!item.read" class="w-2 h-2 rounded-full bg-indigo-500 dark:bg-[#8ab4f8] shrink-0 mt-1.5"></span>
                     </div>
                   </div>
 
@@ -1513,15 +1513,15 @@ const onIconError = (e: Event) => {
                     <svg class="w-8 h-8 mx-auto text-slate-300 dark:text-slate-600 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                     </svg>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">{{ currentLang === 'km' ? 'មិនមានការជូនដំណឹងទេ' : 'No notifications' }}</p>
+                    <p class="text-xs text-slate-500 dark:text-[#8e918f]">{{ currentLang === 'km' ? 'មិនមានការជូនដំណឹងទេ' : 'No notifications' }}</p>
                   </div>
                 </div>
 
-                <div class="p-2 border-t border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 text-center">
+                <div class="p-2 border-t border-slate-100 dark:border-[#28292a] bg-slate-50/80 dark:bg-[#131314] text-center">
                   <Link
                     href="/student/notifications/announcements"
                     @click="isNotificationOpen = false; playClickSound()"
-                    class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 transition-colors"
+                    class="text-xs font-semibold text-indigo-600 dark:text-[#8ab4f8] hover:text-indigo-500 transition-colors"
                   >
                     {{ currentLang === 'km' ? 'មើលការជូនដំណឹងទាំងអស់ →' : 'View All Notifications →' }}
                   </Link>
@@ -1609,17 +1609,17 @@ const onIconError = (e: Event) => {
       class="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 bg-slate-950/80 backdrop-blur-md transition-opacity"
       @click.self="isSearchOpen = false"
     >
-      <div class="w-full max-w-xl rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-        <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center gap-3">
-          <svg class="w-5 h-5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      <div class="w-full max-w-xl rounded-3xl bg-white dark:bg-[#1e1f20] border border-slate-200 dark:border-[#2d2f31] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div class="p-4 border-b border-slate-200 dark:border-[#28292a] flex items-center gap-3">
+          <svg class="w-5 h-5 text-indigo-500 dark:text-[#8ab4f8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           <input
             v-model="searchQuery"
             type="text"
             :placeholder="currentLang === 'km' ? 'ស្វែងរកម៉ូឌុលទាំង ១៣, កម្រងសំណួរ, វគ្គសិក្សា, ការអនុវត្ត...' : 'Search all 13 modules, quizzes, courses, labs, certificates...'"
-            class="w-full bg-transparent text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none"
+            class="w-full bg-transparent text-sm text-slate-900 dark:text-[#e3e3e3] placeholder-slate-400 dark:placeholder-[#8e918f] focus:outline-none"
             autofocus
           />
-          <button @click="isSearchOpen = false" class="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-white font-bold">
+          <button @click="isSearchOpen = false" class="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-white font-bold cursor-pointer">
             ESC
           </button>
         </div>
@@ -1630,18 +1630,18 @@ const onIconError = (e: Event) => {
             :key="link.name"
             :href="link.href"
             @click="isSearchOpen = false"
-            class="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-indigo-50 dark:hover:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors"
+            class="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-indigo-50 dark:hover:bg-[#282a2c] text-slate-700 dark:text-[#c4c7c5] hover:text-indigo-600 dark:hover:text-[#a8c7fa] transition-colors"
           >
             <div class="flex items-center gap-2.5">
               <img :src="link.iconUrl" class="w-4 h-4 object-contain" />
               <span class="text-xs font-medium">{{ link.name }}</span>
             </div>
-            <span class="text-[10px] px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400">
+            <span class="text-[10px] px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-[#131314] text-slate-400 dark:text-[#8e918f] border border-transparent dark:border-[#2d2f31]">
               {{ link.category }}
             </span>
           </Link>
 
-          <div v-if="filteredSearchLinks.length === 0" class="py-8 text-center text-xs text-slate-400">
+          <div v-if="filteredSearchLinks.length === 0" class="py-8 text-center text-xs text-slate-400 dark:text-[#8e918f]">
             {{ currentLang === 'km' ? `មិនមានម៉ូឌុលត្រូវគ្នានឹង "${searchQuery}" ទេ` : `No matching student modules found for "${searchQuery}"` }}
           </div>
         </div>

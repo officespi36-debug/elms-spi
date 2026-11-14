@@ -708,22 +708,22 @@ const recentActivities = computed(() => {
     <div class="space-y-6 pb-12 notranslate" translate="no">
       
       <!-- TOP GREETING & QUICK SHORTCUTS ROW (Glassmorphic Hero Header) -->
-      <div class="relative overflow-hidden rounded-3xl bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 p-5 sm:p-6 shadow-sm">
+      <div class="relative overflow-hidden rounded-3xl bg-white dark:bg-[#1e1f20] border border-slate-200/90 dark:border-[#2d2f31] p-5 sm:p-6 shadow-sm dark:shadow-xl">
         <!-- Ambient decorative background glow -->
         <div class="absolute -right-16 -top-16 w-64 h-64 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-transparent rounded-full blur-3xl pointer-events-none"></div>
         <div class="absolute -left-10 -bottom-10 w-48 h-48 bg-gradient-to-tr from-blue-500/10 to-transparent rounded-full blur-2xl pointer-events-none"></div>
 
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div class="space-y-1.5">
-            <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-800/50 text-[11px] font-semibold text-indigo-700 dark:text-indigo-300">
+            <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-[#1a73e8]/15 border border-blue-100 dark:border-[#1a73e8]/30 text-[11px] font-semibold text-blue-700 dark:text-[#a8c7fa]">
               <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               <span>{{ currentLang === 'km' ? 'SPI Student Portal • ឆមាសសិក្សាថ្មី ២០២៦-២០២៧' : 'SPI Student Portal • Active Academic Term 2026-2027' }}</span>
             </div>
-            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-normal leading-snug font-sans flex items-center gap-2">
+            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-[#e3e3e3] tracking-normal leading-snug font-sans flex items-center gap-2">
               <span>{{ currentLang === 'km' ? `សូមស្វាគមន៍ការត្រឡប់មកវិញ, ${user.name || 'Sok Pisey'}!` : `Welcome back, ${user.name || 'Sok Pisey'}!` }}</span>
               <span class="inline-block animate-bounce text-indigo-500">✨</span>
             </h1>
-            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium max-w-2xl">
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-[#c4c7c5] font-medium max-w-2xl">
               {{ currentLang === 'km' ? 'បន្តការសិក្សាពីកន្លែងដែលអ្នកបានឈប់ ឬស្វែងរកវគ្គសិក្សាថ្មីៗនៅថ្ងៃនេះ។ បន្តដំណើរទៅមុខជានិច្ចដើម្បីសម្រេចគោលដៅរបស់អ្នក!' : 'Continue where you left off or explore new courses today. Keep moving forward to reach your learning goals!' }}
             </p>
           </div>
@@ -732,7 +732,7 @@ const recentActivities = computed(() => {
           <div class="flex flex-wrap items-center gap-2.5 shrink-0">
             <Link
               href="/student/browse"
-              class="px-4 py-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/50 dark:hover:bg-purple-900/60 border border-purple-200/80 dark:border-purple-800/60 text-purple-700 dark:text-purple-300 font-bold text-xs flex items-center gap-2 transition-all hover:scale-105 shadow-xs"
+              class="px-4 py-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 dark:bg-[#282a2c] dark:hover:bg-[#333538] border border-purple-200/80 dark:border-[#3c4043] text-purple-700 dark:text-[#e3e3e3] font-bold text-xs flex items-center gap-2 transition-all hover:scale-105 shadow-xs"
             >
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
@@ -742,7 +742,7 @@ const recentActivities = computed(() => {
 
             <Link
               href="/student/notifications/announcements"
-              class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/90 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center gap-2 transition-all hover:scale-105 shadow-xs"
+              class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-[#282a2c] hover:bg-slate-200 dark:hover:bg-[#333538] border border-slate-200 dark:border-[#3c4043] text-slate-700 dark:text-[#e3e3e3] font-bold text-xs flex items-center gap-2 transition-all hover:scale-105 shadow-xs"
             >
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
@@ -763,7 +763,7 @@ const recentActivities = computed(() => {
           <div
             v-for="n in 6"
             :key="n"
-            class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-200 via-slate-100 to-slate-200 dark:from-slate-800 dark:via-slate-800/80 dark:to-slate-900 p-4.5 sm:p-5 flex flex-col justify-between shadow-xs border border-slate-300/60 dark:border-slate-700/60 min-h-[148px]"
+            class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-200 via-slate-100 to-slate-200 dark:from-[#1e1f20] dark:via-[#282a2c] dark:to-[#1e1f20] p-4.5 sm:p-5 flex flex-col justify-between shadow-xs border border-slate-300/60 dark:border-[#2d2f31] min-h-[148px]"
           >
             <!-- Shimmer Highlight Sweep Effect -->
             <div class="shimmer-sweep absolute inset-0 pointer-events-none"></div>
@@ -771,19 +771,19 @@ const recentActivities = computed(() => {
             <div>
               <div class="flex items-center justify-between">
                 <!-- Title Placeholder Bar -->
-                <div class="h-3 w-24 bg-white/70 dark:bg-slate-700/90 rounded-md"></div>
+                <div class="h-3 w-24 bg-white/70 dark:bg-[#333538] rounded-md"></div>
                 <!-- Icon Placeholder Square -->
-                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/70 dark:bg-slate-700/90 shrink-0"></div>
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/70 dark:bg-[#333538] shrink-0"></div>
               </div>
               <!-- Number Placeholder Block -->
-              <div class="h-8 w-20 bg-white/80 dark:bg-slate-700/90 rounded-lg mt-3"></div>
+              <div class="h-8 w-20 bg-white/80 dark:bg-[#333538] rounded-lg mt-3"></div>
               <!-- Subtitle Placeholder Bar -->
-              <div class="h-3 w-28 bg-white/60 dark:bg-slate-700/80 rounded-md mt-2"></div>
+              <div class="h-3 w-28 bg-white/60 dark:bg-[#282a2c] rounded-md mt-2"></div>
             </div>
 
             <!-- Wave Silhouette Placeholder at Bottom -->
             <div class="mt-2.5 -mx-4.5 -mb-4.5 sm:-mx-5 sm:-mb-5 overflow-hidden rounded-b-2xl">
-              <svg class="w-full h-10 sm:h-11 text-white/50 dark:text-slate-700/50" viewBox="0 0 100 25" preserveAspectRatio="none">
+              <svg class="w-full h-10 sm:h-11 text-white/50 dark:text-[#282a2c]/60" viewBox="0 0 100 25" preserveAspectRatio="none">
                 <path d="M0 18 Q 20 4, 40 14 T 70 6 T 100 12 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.4"/>
                 <path d="M0 18 Q 20 4, 40 14 T 70 6 T 100 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
               </svg>
@@ -912,18 +912,18 @@ const recentActivities = computed(() => {
           <!-- FEATURED CONTINUE LEARNING CARD -->
           <div class="space-y-3">
             <div class="flex items-center justify-between">
-              <h2 class="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">
+              <h2 class="text-xs font-bold text-slate-700 dark:text-[#c4c7c5] uppercase tracking-wider">
                 {{ currentLang === 'km' ? 'បន្តការសិក្សា' : 'Continue Learning' }}
               </h2>
-              <Link href="/student/my-courses/enrolled" class="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 font-semibold">
+              <Link href="/student/my-courses/enrolled" class="text-xs text-purple-600 dark:text-[#8ab4f8] hover:text-purple-500 dark:hover:text-[#a8c7fa] font-semibold">
                 {{ currentLang === 'km' ? 'មើលទាំងអស់' : 'View All' }}
               </Link>
             </div>
 
-            <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 sm:p-6 shadow-sm dark:shadow-xl flex flex-col md:flex-row items-center gap-5 relative overflow-hidden">
+            <div class="bg-white dark:bg-[#1e1f20] border border-slate-200/90 dark:border-[#2d2f31] hover:dark:border-[#1a73e8]/70 rounded-3xl p-5 sm:p-6 shadow-sm dark:shadow-xl flex flex-col md:flex-row items-center gap-5 relative overflow-hidden transition-all duration-300">
               
               <!-- Real Course Thumbnail for Continue Learning -->
-              <div class="relative w-full md:w-36 h-28 rounded-2xl overflow-hidden shrink-0 shadow-md bg-slate-900 border border-slate-200/60 dark:border-slate-800">
+              <div class="relative w-full md:w-36 h-28 rounded-2xl overflow-hidden shrink-0 shadow-md bg-slate-900 border border-slate-200/60 dark:border-[#2d2f31]">
                 <img
                   :src="continueCourseData.thumbnail || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=600&q=80'"
                   :alt="continueCourseData.title"
@@ -941,23 +941,23 @@ const recentActivities = computed(() => {
               <!-- Course Info and Progress -->
               <div class="flex-1 w-full space-y-3">
                 <div class="space-y-1">
-                  <span class="px-2.5 py-0.5 rounded-md bg-purple-500/10 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 text-[10px] font-bold border border-purple-500/20 dark:border-purple-500/30">
+                  <span class="px-2.5 py-0.5 rounded-md bg-purple-500/10 dark:bg-[#1a73e8]/15 text-purple-700 dark:text-[#a8c7fa] text-[10px] font-bold border border-purple-500/20 dark:border-[#1a73e8]/30">
                     {{ currentLang === 'km' ? 'គ្រូបង្រៀន: ' : 'Teacher: ' }}{{ continueCourseData.teacher }}
                   </span>
-                  <h3 class="text-base font-bold text-slate-900 dark:text-white leading-tight">
+                  <h3 class="text-base font-bold text-slate-900 dark:text-[#e3e3e3] leading-tight">
                     {{ continueCourseData.title }}
                   </h3>
-                  <p class="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                  <p class="text-xs text-slate-600 dark:text-[#c4c7c5] font-medium">
                     {{ continueCourseData.chapter }}
                   </p>
                 </div>
 
                 <!-- Progress Bar -->
                 <div class="space-y-1.5">
-                  <div class="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
-                    <div class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full" :style="{ width: continueCourseData.progress + '%' }"></div>
+                  <div class="w-full h-2 rounded-full bg-slate-200 dark:bg-[#282a2c] overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 dark:from-[#1a73e8] dark:to-[#a8c7fa] rounded-full" :style="{ width: continueCourseData.progress + '%' }"></div>
                   </div>
-                  <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                  <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-[#8e918f]">
                     <span>{{ currentLang === 'km' ? 'មេរៀនចុងក្រោយ: ' : 'Last lesson: ' }}{{ continueCourseData.lastLesson }}</span>
                     <span class="font-mono flex items-center gap-1">
                       <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -971,7 +971,7 @@ const recentActivities = computed(() => {
               <div class="w-full md:w-auto shrink-0">
                 <Link
                   :href="continueCourseData.href"
-                  class="w-full md:w-auto px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all text-center cursor-pointer"
+                  class="w-full md:w-auto px-5 py-3 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 dark:bg-none dark:bg-[#a8c7fa] dark:hover:bg-[#b8d2fa] text-white dark:text-[#041e49] font-bold text-xs shadow-lg shadow-purple-600/30 dark:shadow-none flex items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all text-center cursor-pointer"
                 >
                   <span>{{ currentLang === 'km' ? 'បន្តការសិក្សា' : 'Continue Learning' }}</span>
                   <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
@@ -985,40 +985,40 @@ const recentActivities = computed(() => {
           <div class="space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div class="flex items-center gap-3">
-                <h2 class="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">
+                <h2 class="text-xs font-bold text-slate-700 dark:text-[#c4c7c5] uppercase tracking-wider">
                   {{ currentLang === 'km' ? 'វគ្គសិក្សារបស់ខ្ញុំ' : 'My Courses' }}
                 </h2>
                 
                 <!-- Filter Pills -->
-                <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-950/80 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
+                <div class="flex items-center gap-1 bg-slate-100 dark:bg-[#131314] p-1 rounded-xl border border-slate-200 dark:border-[#2d2f31]">
                   <button
                     @click="selectedCourseFilter = 'all'"
-                    :class="[selectedCourseFilter === 'all' ? 'bg-purple-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200', 'px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer']"
+                    :class="[selectedCourseFilter === 'all' ? 'bg-purple-600 dark:bg-[#a8c7fa] text-white dark:text-[#041e49] font-bold shadow-xs' : 'text-slate-600 dark:text-[#c4c7c5] hover:text-slate-900 dark:hover:text-[#e3e3e3] dark:hover:bg-[#282a2c]', 'px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer']"
                   >
                     {{ currentLang === 'km' ? 'វគ្គសិក្សាទាំងអស់' : 'All Courses' }}
                   </button>
                   <button
                     @click="selectedCourseFilter = 'in_progress'"
-                    :class="[selectedCourseFilter === 'in_progress' ? 'bg-purple-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200', 'px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer']"
+                    :class="[selectedCourseFilter === 'in_progress' ? 'bg-purple-600 dark:bg-[#a8c7fa] text-white dark:text-[#041e49] font-bold shadow-xs' : 'text-slate-600 dark:text-[#c4c7c5] hover:text-slate-900 dark:hover:text-[#e3e3e3] dark:hover:bg-[#282a2c]', 'px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer']"
                   >
                     {{ currentLang === 'km' ? 'កំពុងសិក្សា' : 'In Progress' }}
                   </button>
                   <button
                     @click="selectedCourseFilter = 'completed'"
-                    :class="[selectedCourseFilter === 'completed' ? 'bg-purple-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200', 'px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer']"
+                    :class="[selectedCourseFilter === 'completed' ? 'bg-purple-600 dark:bg-[#a8c7fa] text-white dark:text-[#041e49] font-bold shadow-xs' : 'text-slate-600 dark:text-[#c4c7c5] hover:text-slate-900 dark:hover:text-[#e3e3e3] dark:hover:bg-[#282a2c]', 'px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer']"
                   >
                     {{ currentLang === 'km' ? 'បានបញ្ចប់' : 'Completed' }}
                   </button>
                   <button
                     @click="selectedCourseFilter = 'not_started'"
-                    :class="[selectedCourseFilter === 'not_started' ? 'bg-purple-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200', 'px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer']"
+                    :class="[selectedCourseFilter === 'not_started' ? 'bg-purple-600 dark:bg-[#a8c7fa] text-white dark:text-[#041e49] font-bold shadow-xs' : 'text-slate-600 dark:text-[#c4c7c5] hover:text-slate-900 dark:hover:text-[#e3e3e3] dark:hover:bg-[#282a2c]', 'px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer']"
                   >
                     {{ currentLang === 'km' ? 'មិនទាន់ចាប់ផ្ដើម' : 'Not Started' }}
                   </button>
                 </div>
               </div>
 
-              <Link href="/student/my-courses/enrolled" class="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 font-semibold self-start sm:self-auto">
+              <Link href="/student/my-courses/enrolled" class="text-xs text-purple-600 dark:text-[#8ab4f8] hover:text-purple-500 dark:hover:text-[#a8c7fa] font-semibold self-start sm:self-auto">
                 {{ currentLang === 'km' ? `មើលទាំងអស់ (${coursesToDisplay.length})` : `View All (${coursesToDisplay.length})` }}
               </Link>
             </div>
@@ -1029,10 +1029,10 @@ const recentActivities = computed(() => {
                 v-for="c in filteredCourses"
                 :key="c.id"
                 :href="c.href"
-                class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 hover:border-purple-500/50 rounded-2xl p-4.5 sm:p-5 shadow-xs dark:shadow-xl flex flex-col justify-between space-y-3.5 transition-all duration-200 hover:-translate-y-1 hover:shadow-md group"
+                class="bg-white dark:bg-[#1e1f20] border border-slate-200/90 dark:border-[#2d2f31] hover:border-purple-500/50 hover:dark:border-[#1a73e8]/70 hover:dark:bg-[#232426] rounded-2xl p-4.5 sm:p-5 shadow-xs dark:shadow-xl flex flex-col justify-between space-y-3.5 transition-all duration-200 hover:-translate-y-1 hover:shadow-md group"
               >
                 <!-- Real Representative Course Thumbnail Image -->
-                <div class="relative w-full h-36 rounded-2xl overflow-hidden bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 shadow-xs">
+                <div class="relative w-full h-36 rounded-2xl overflow-hidden bg-slate-900 border border-slate-200/60 dark:border-[#2d2f31] shadow-xs">
                   <img
                     :src="c.thumbnail || getCourseFallbackImage(c)"
                     :alt="c.title"
@@ -1050,27 +1050,27 @@ const recentActivities = computed(() => {
 
                 <!-- Course Title & Instructor -->
                 <div class="space-y-1">
-                  <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors line-clamp-2 min-h-[2.4rem] leading-snug" :title="c.title">
+                  <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-[#e3e3e3] group-hover:text-purple-600 dark:group-hover:text-[#8ab4f8] transition-colors line-clamp-2 min-h-[2.4rem] leading-snug" :title="c.title">
                     {{ c.title }}
                   </h4>
-                  <p class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                    <svg class="w-3 h-3 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
+                  <p class="text-[11px] text-slate-500 dark:text-[#8e918f] flex items-center gap-1">
+                    <svg class="w-3 h-3 text-slate-400 dark:text-[#8e918f] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
                     <span class="truncate">{{ c.teacher }}</span>
                   </p>
                 </div>
 
                 <!-- Progress Bar & Link -->
-                <div class="space-y-1.5 pt-1 border-t border-slate-100 dark:border-slate-800/80">
-                  <div class="w-full h-1.5 rounded-full bg-slate-200/90 dark:bg-slate-800 overflow-hidden">
+                <div class="space-y-1.5 pt-1 border-t border-slate-100 dark:border-[#2d2f31]">
+                  <div class="w-full h-1.5 rounded-full bg-slate-200/90 dark:bg-[#282a2c] overflow-hidden">
                     <div
-                      :class="c.progress === 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-purple-500 to-indigo-500'"
+                      :class="c.progress === 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-purple-500 to-indigo-500 dark:from-[#1a73e8] dark:to-[#a8c7fa]'"
                       class="h-full rounded-full transition-all duration-300"
                       :style="{ width: c.progress + '%' }"
                     ></div>
                   </div>
                   <div class="flex items-center justify-between text-[11px]">
-                    <span :class="c.progress === 100 ? 'text-emerald-600 dark:text-emerald-400' : 'text-purple-600 dark:text-purple-400'" class="font-bold font-mono">{{ c.progress }}%</span>
-                    <span class="text-slate-400 dark:text-slate-500 text-[10px] font-medium flex items-center gap-0.5 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                    <span :class="c.progress === 100 ? 'text-emerald-600 dark:text-emerald-400' : 'text-purple-600 dark:text-[#8ab4f8]'" class="font-bold font-mono">{{ c.progress }}%</span>
+                    <span class="text-slate-400 dark:text-[#8e918f] text-[10px] font-medium flex items-center gap-0.5 group-hover:text-purple-600 dark:group-hover:text-[#8ab4f8] transition-colors">
                       <span>{{ currentLang === 'km' ? 'ទិដ្ឋភាពទូទៅ' : 'Overview' }}</span>
                       <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </span>
@@ -1085,33 +1085,33 @@ const recentActivities = computed(() => {
             
             <!-- Learning Overview Line Chart Card with Range Switcher -->
             <div
-              class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-4 block transition-all"
+              class="bg-white dark:bg-[#1e1f20] border border-slate-200/90 dark:border-[#2d2f31] rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-4 block transition-all"
             >
               <div class="flex items-center justify-between">
-                <Link href="/student/progress/learning-time" class="text-xs font-bold text-slate-900 dark:text-white hover:text-purple-600 dark:hover:text-purple-300 uppercase tracking-wider flex items-center gap-1">
+                <Link href="/student/progress/learning-time" class="text-xs font-bold text-slate-900 dark:text-[#e3e3e3] hover:text-purple-600 dark:hover:text-[#8ab4f8] uppercase tracking-wider flex items-center gap-1">
                   <span>{{ currentLang === 'km' ? 'ទិដ្ឋភាពទូទៅនៃការរៀន' : 'Learning Overview' }}</span>
-                  <svg class="w-3 h-3 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                  <svg class="w-3 h-3 text-purple-500 dark:text-[#8ab4f8]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                 </Link>
 
                 <!-- Range Selector -->
-                <div class="flex items-center gap-1 text-[10px] bg-slate-100 dark:bg-slate-950 p-0.5 rounded-lg border border-slate-200 dark:border-slate-800">
+                <div class="flex items-center gap-1 text-[10px] bg-slate-100 dark:bg-[#131314] p-0.5 rounded-lg border border-slate-200 dark:border-[#2d2f31]">
                   <button
                     @click="selectedRange = 'week'"
-                    :class="selectedRange === 'week' ? 'bg-purple-600 text-white font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
+                    :class="selectedRange === 'week' ? 'bg-purple-600 dark:bg-[#a8c7fa] text-white dark:text-[#041e49] font-bold' : 'text-slate-600 dark:text-[#c4c7c5] hover:text-slate-900 dark:hover:text-[#e3e3e3]'"
                     class="px-2 py-0.5 rounded-md cursor-pointer transition-colors"
                   >
                     {{ currentLang === 'km' ? 'សប្តាហ៍' : 'Week' }}
                   </button>
                   <button
                     @click="selectedRange = 'last_week'"
-                    :class="selectedRange === 'last_week' ? 'bg-purple-600 text-white font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
+                    :class="selectedRange === 'last_week' ? 'bg-purple-600 dark:bg-[#a8c7fa] text-white dark:text-[#041e49] font-bold' : 'text-slate-600 dark:text-[#c4c7c5] hover:text-slate-900 dark:hover:text-[#e3e3e3]'"
                     class="px-2 py-0.5 rounded-md cursor-pointer transition-colors"
                   >
                     {{ currentLang === 'km' ? 'សប្តាហ៍មុន' : 'Last' }}
                   </button>
                   <button
                     @click="selectedRange = 'month'"
-                    :class="selectedRange === 'month' ? 'bg-purple-600 text-white font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
+                    :class="selectedRange === 'month' ? 'bg-purple-600 dark:bg-[#a8c7fa] text-white dark:text-[#041e49] font-bold' : 'text-slate-600 dark:text-[#c4c7c5] hover:text-slate-900 dark:hover:text-[#e3e3e3]'"
                     class="px-2 py-0.5 rounded-md cursor-pointer transition-colors"
                   >
                     {{ currentLang === 'km' ? 'ខែ' : 'Month' }}
@@ -1121,7 +1121,7 @@ const recentActivities = computed(() => {
 
               <!-- SVG Line Chart -->
               <div class="relative pt-2">
-                <div class="absolute top-2 left-1/2 -translate-x-1/2 px-2 py-1 rounded-lg bg-purple-600 text-white text-[10px] font-bold shadow-md">
+                <div class="absolute top-2 left-1/2 -translate-x-1/2 px-2 py-1 rounded-lg bg-purple-600 dark:bg-[#1a73e8] text-white text-[10px] font-bold shadow-md">
                   {{ chartDataByRange[selectedRange].total }}
                 </div>
 
@@ -1146,7 +1146,7 @@ const recentActivities = computed(() => {
                   <circle :cx="chartDataByRange[selectedRange].dotX" :cy="chartDataByRange[selectedRange].dotY" r="4" fill="#a855f7" stroke="#ffffff" stroke-width="2" />
                 </svg>
 
-                <div class="flex justify-between text-[9px] text-slate-400 dark:text-slate-500 font-mono pt-1">
+                <div class="flex justify-between text-[9px] text-slate-400 dark:text-[#8e918f] font-mono pt-1">
                   <span v-for="(lbl, idx) in chartDataByRange[selectedRange].labels" :key="idx">{{ lbl }}</span>
                 </div>
               </div>
@@ -1155,14 +1155,14 @@ const recentActivities = computed(() => {
             <!-- Study Time Donut Ring Chart Card -->
             <Link
               href="/student/progress/learning-time"
-              class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 hover:border-purple-500/40 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-4 block transition-all hover:-translate-y-1"
+              class="bg-white dark:bg-[#1e1f20] border border-slate-200/90 dark:border-[#2d2f31] hover:border-purple-500/40 hover:dark:border-[#1a73e8]/70 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-4 block transition-all hover:-translate-y-1"
             >
               <div class="flex items-center justify-between">
-                <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1">
+                <h3 class="text-xs font-bold text-slate-900 dark:text-[#e3e3e3] uppercase tracking-wider flex items-center gap-1">
                   <span>{{ currentLang === 'km' ? 'ម៉ោងសិក្សា' : 'Study Time' }}</span>
-                  <svg class="w-3 h-3 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                  <svg class="w-3 h-3 text-purple-500 dark:text-[#8ab4f8]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                 </h3>
-                <span class="text-[10px] text-purple-600 dark:text-purple-400 font-semibold">{{ currentLang === 'km' ? 'លម្អិត' : 'Breakdown' }}</span>
+                <span class="text-[10px] text-purple-600 dark:text-[#8ab4f8] font-semibold">{{ currentLang === 'km' ? 'លម្អិត' : 'Breakdown' }}</span>
               </div>
 
               <div class="flex items-center justify-center gap-4">
@@ -1170,7 +1170,7 @@ const recentActivities = computed(() => {
                 <div class="relative w-24 h-24 shrink-0 flex items-center justify-center">
                   <svg viewBox="0 0 36 36" class="w-24 h-24 -rotate-90">
                     <path
-                      class="text-slate-200 dark:text-slate-800"
+                      class="text-slate-200 dark:text-[#282a2c]"
                       stroke-width="4"
                       stroke="currentColor"
                       fill="none"
@@ -1186,7 +1186,7 @@ const recentActivities = computed(() => {
                       d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                     />
                     <path
-                      class="text-purple-500"
+                      class="text-purple-500 dark:text-[#8ab4f8]"
                       stroke-dasharray="30, 100"
                       stroke-dashoffset="-55"
                       stroke-width="4"
@@ -1197,19 +1197,19 @@ const recentActivities = computed(() => {
                     />
                   </svg>
                   <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-                    <span class="text-[11px] font-black text-slate-900 dark:text-white leading-none">{{ props.stats?.learningTime || (currentLang === 'km' ? '២៨h ៤៥m' : '28h 45m') }}</span>
-                    <span class="text-[8px] text-slate-500 dark:text-slate-400">{{ currentLang === 'km' ? 'សរុប' : 'Total' }}</span>
+                    <span class="text-[11px] font-black text-slate-900 dark:text-[#e3e3e3] leading-none">{{ props.stats?.learningTime || (currentLang === 'km' ? '២៨h ៤៥m' : '28h 45m') }}</span>
+                    <span class="text-[8px] text-slate-500 dark:text-[#8e918f]">{{ currentLang === 'km' ? 'សរុប' : 'Total' }}</span>
                   </div>
                 </div>
 
                 <!-- Legend -->
-                <div class="space-y-1.5 text-[10px] text-slate-600 dark:text-slate-300">
+                <div class="space-y-1.5 text-[10px] text-slate-600 dark:text-[#c4c7c5]">
                   <div class="flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-blue-500"></span>
                     <span>{{ currentLang === 'km' ? 'មេរៀន: 16h 30m' : 'Lessons: 16h 30m' }}</span>
                   </div>
                   <div class="flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+                    <span class="w-2 h-2 rounded-full bg-purple-500 dark:bg-[#8ab4f8]"></span>
                     <span>{{ currentLang === 'km' ? 'ការអនុវត្ត: 8h 15m' : 'Practice: 8h 15m' }}</span>
                   </div>
                   <div class="flex items-center gap-1.5">
@@ -1223,12 +1223,12 @@ const recentActivities = computed(() => {
             <!-- Quiz Performance Radial Gauge Card -->
             <Link
               href="/student/quizzes/scores"
-              class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 hover:border-purple-500/40 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-4 block transition-all hover:-translate-y-1"
+              class="bg-white dark:bg-[#1e1f20] border border-slate-200/90 dark:border-[#2d2f31] hover:border-purple-500/40 hover:dark:border-[#1a73e8]/70 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-4 block transition-all hover:-translate-y-1"
             >
               <div class="flex items-center justify-between">
-                <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1">
+                <h3 class="text-xs font-bold text-slate-900 dark:text-[#e3e3e3] uppercase tracking-wider flex items-center gap-1">
                   <span>{{ currentLang === 'km' ? 'លទ្ធផលកម្រងសំណួរ' : 'Quiz Performance' }}</span>
-                  <svg class="w-3 h-3 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                  <svg class="w-3 h-3 text-purple-500 dark:text-[#8ab4f8]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                 </h3>
                 <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">{{ currentLang === 'km' ? 'ជាប់' : 'Passing' }}</span>
               </div>
@@ -1238,7 +1238,7 @@ const recentActivities = computed(() => {
                 <div class="relative w-24 h-24 shrink-0 flex items-center justify-center">
                   <svg viewBox="0 0 36 36" class="w-24 h-24 -rotate-90">
                     <path
-                      class="text-rose-500/20 dark:text-rose-500/40"
+                      class="text-rose-500/20 dark:text-[#282a2c]"
                       stroke-width="4"
                       stroke="currentColor"
                       fill="none"
@@ -1255,13 +1255,13 @@ const recentActivities = computed(() => {
                     />
                   </svg>
                   <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-                    <span class="text-sm font-black text-slate-900 dark:text-white leading-none">{{ props.stats?.averageScore || '78%' }}</span>
-                    <span class="text-[8px] text-slate-500 dark:text-slate-400">{{ currentLang === 'km' ? 'មធ្យមភាគ' : 'Average' }}</span>
+                    <span class="text-sm font-black text-slate-900 dark:text-[#e3e3e3] leading-none">{{ props.stats?.averageScore || '78%' }}</span>
+                    <span class="text-[8px] text-slate-500 dark:text-[#8e918f]">{{ currentLang === 'km' ? 'មធ្យមភាគ' : 'Average' }}</span>
                   </div>
                 </div>
 
                 <!-- Legend -->
-                <div class="space-y-1.5 text-[10px] text-slate-600 dark:text-slate-300">
+                <div class="space-y-1.5 text-[10px] text-slate-600 dark:text-[#c4c7c5]">
                   <div class="flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400"></span>
                     <span>{{ currentLang === 'km' ? 'ត្រឹមត្រូវ: 78%' : 'Correct: 78%' }}</span>
@@ -1279,20 +1279,20 @@ const recentActivities = computed(() => {
           <!-- RECENT ACTIVITY LIST -->
           <div class="space-y-3">
             <div class="flex items-center justify-between">
-              <h2 class="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">
+              <h2 class="text-xs font-bold text-slate-700 dark:text-[#c4c7c5] uppercase tracking-wider">
                 {{ currentLang === 'km' ? 'សកម្មភាពថ្មីៗ' : 'Recent Activity' }}
               </h2>
-              <Link href="/student/progress/overview" class="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 font-semibold">
+              <Link href="/student/progress/overview" class="text-xs text-purple-600 dark:text-[#8ab4f8] hover:text-purple-500 dark:hover:text-[#a8c7fa] font-semibold">
                 {{ currentLang === 'km' ? 'មើលទាំងអស់' : 'View All' }}
               </Link>
             </div>
 
-            <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3">
+            <div class="bg-white dark:bg-[#1e1f20] border border-slate-200/90 dark:border-[#2d2f31] rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3">
               <Link
                 v-for="act in recentActivities"
                 :key="act.id"
                 :href="act.href"
-                class="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800/80 hover:border-purple-500/30 text-xs transition-all hover:bg-slate-100 dark:hover:bg-slate-950"
+                class="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-[#131314] border border-slate-200/80 dark:border-[#2d2f31] hover:border-purple-500/30 dark:hover:border-[#3c4043] text-xs transition-all hover:bg-slate-100 dark:hover:bg-[#282a2c]"
               >
                 <div class="flex items-center gap-3">
                   <div :class="[act.iconBg, 'w-8 h-8 rounded-xl flex items-center justify-center shrink-0']">
@@ -1304,12 +1304,12 @@ const recentActivities = computed(() => {
                     <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
                   </div>
                   <div>
-                    <h4 class="font-bold text-slate-900 dark:text-white">{{ act.title }}</h4>
-                    <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ act.course }}</p>
+                    <h4 class="font-bold text-slate-900 dark:text-[#e3e3e3]">{{ act.title }}</h4>
+                    <p class="text-[10px] text-slate-500 dark:text-[#8e918f]">{{ act.course }}</p>
                   </div>
                 </div>
 
-                <span class="text-[10px] text-slate-400 dark:text-slate-500 font-mono shrink-0">{{ act.time }}</span>
+                <span class="text-[10px] text-slate-400 dark:text-[#8e918f] font-mono shrink-0">{{ act.time }}</span>
               </Link>
             </div>
           </div>
@@ -1320,9 +1320,9 @@ const recentActivities = computed(() => {
         <div class="lg:col-span-4 space-y-6">
           
           <!-- TODAY'S GOAL CARD -->
-          <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3">
+          <div class="bg-white dark:bg-[#1e1f20] border border-slate-200/90 dark:border-[#2d2f31] rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3">
             <div class="flex items-center justify-between">
-              <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+              <h3 class="text-xs font-bold text-slate-900 dark:text-[#e3e3e3] uppercase tracking-wider">
                 {{ currentLang === 'km' ? 'គោលដៅថ្ងៃនេះ' : "Today's Goal" }}
               </h3>
               <div class="flex items-center gap-2">
@@ -1331,7 +1331,7 @@ const recentActivities = computed(() => {
                 </span>
                 <button
                   @click="isAddGoalOpen = !isAddGoalOpen"
-                  class="w-6 h-6 rounded-lg bg-purple-600/10 hover:bg-purple-600/20 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs font-bold cursor-pointer"
+                  class="w-6 h-6 rounded-lg bg-purple-600/10 hover:bg-purple-600/20 text-purple-600 dark:text-[#8ab4f8] flex items-center justify-center text-xs font-bold cursor-pointer"
                   :title="currentLang === 'km' ? 'បន្ថែមគោលដៅ' : 'Add custom task'"
                 >
                   <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
@@ -1340,39 +1340,39 @@ const recentActivities = computed(() => {
             </div>
 
             <!-- Add Task Form -->
-            <div v-if="isAddGoalOpen" class="p-2.5 rounded-2xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/50 space-y-2">
+            <div v-if="isAddGoalOpen" class="p-2.5 rounded-2xl bg-purple-50 dark:bg-[#131314] border border-purple-200 dark:border-[#2d2f31] space-y-2">
               <input
                 v-model="newGoalTitle"
                 type="text"
                 :placeholder="currentLang === 'km' ? 'បញ្ចូលគោលដៅសិក្សាថ្មី...' : 'Enter new study goal...'"
-                class="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-purple-200 dark:border-purple-700 text-xs text-slate-900 dark:text-white"
+                class="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-[#1e1f20] border border-purple-200 dark:border-[#3c4043] text-xs text-slate-900 dark:text-[#e3e3e3]"
                 @keyup.enter="addNewGoal"
               />
               <div class="flex justify-end gap-2 text-xs">
                 <button
                   @click="isAddGoalOpen = false"
-                  class="px-2.5 py-1 rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 text-[11px]"
+                  class="px-2.5 py-1 rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-[#e3e3e3] text-[11px]"
                 >
                   {{ currentLang === 'km' ? 'បោះបង់' : 'Cancel' }}
                 </button>
                 <button
                   @click="addNewGoal"
-                  class="px-3 py-1 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-[11px]"
+                  class="px-3 py-1 rounded-lg bg-purple-600 hover:bg-purple-500 dark:bg-[#a8c7fa] dark:hover:bg-[#b8d2fa] text-white dark:text-[#041e49] font-bold text-[11px]"
                 >
                   {{ currentLang === 'km' ? 'បន្ថែមគោលដៅ' : 'Add Goal' }}
                 </button>
               </div>
             </div>
 
-            <p class="text-xs text-slate-600 dark:text-slate-300 font-medium">
+            <p class="text-xs text-slate-600 dark:text-[#c4c7c5] font-medium">
               {{ currentLang === 'km' ? 'រក្សាសន្ទុះនៃការសិក្សារបស់អ្នកឱ្យបន្តទៅមុខ!' : 'Keep your study momentum going!' }}
             </p>
 
             <div class="space-y-1.5">
-              <div class="w-full h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+              <div class="w-full h-1.5 rounded-full bg-slate-200 dark:bg-[#282a2c] overflow-hidden">
                 <div class="h-full bg-emerald-500 rounded-full transition-all duration-300" :style="{ width: todayGoal.percentage + '%' }"></div>
               </div>
-              <p class="text-[10px] text-right text-slate-500 dark:text-slate-400">
+              <p class="text-[10px] text-right text-slate-500 dark:text-[#8e918f]">
                 {{ currentLang === 'km' ? `សម្រេចបាន ${todayGoal.percentage}%` : `${todayGoal.percentage}% completed` }}
               </p>
             </div>
@@ -1382,7 +1382,7 @@ const recentActivities = computed(() => {
               <div
                 v-for="item in todayGoal.items"
                 :key="item.id"
-                class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800/60 text-xs"
+                class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-[#131314] border border-slate-200/80 dark:border-[#2d2f31] text-xs hover:dark:bg-[#282a2c] transition-colors"
               >
                 <button
                   @click="toggleTask(item)"
@@ -1392,13 +1392,13 @@ const recentActivities = computed(() => {
                   <span v-if="item.completed" class="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
                   </span>
-                  <span v-else class="w-5 h-5 rounded-full border-2 border-slate-300 dark:border-slate-600 group-hover:border-purple-500 transition-colors flex items-center justify-center shrink-0"></span>
-                  <span :class="[item.completed ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-200 font-medium']" class="text-xs">
+                  <span v-else class="w-5 h-5 rounded-full border-2 border-slate-300 dark:border-[#3c4043] group-hover:border-purple-500 dark:group-hover:border-[#8ab4f8] transition-colors flex items-center justify-center shrink-0"></span>
+                  <span :class="[item.completed ? 'line-through text-slate-400 dark:text-[#8e918f]' : 'text-slate-700 dark:text-[#e3e3e3] font-medium']" class="text-xs">
                     {{ currentLang === 'km' ? (item.titleKm || item.titleEn) : (item.titleEn || item.titleKm) }}
                   </span>
                 </button>
                 
-                <Link :href="item.href" class="text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 text-[11px] font-bold ml-2 flex items-center gap-0.5">
+                <Link :href="item.href" class="text-purple-600 dark:text-[#8ab4f8] hover:text-purple-500 dark:hover:text-[#a8c7fa] text-[11px] font-bold ml-2 flex items-center gap-0.5">
                   <span>{{ currentLang === 'km' ? 'បើក' : 'Open' }}</span>
                   <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                 </Link>
@@ -1406,23 +1406,40 @@ const recentActivities = computed(() => {
             </div>
           </div>
 
-          <!-- AI RECOMMENDED FOR YOU CARD -->
-          <div class="bg-gradient-to-br from-indigo-50/80 via-purple-50/60 to-white dark:from-indigo-950/60 dark:via-purple-950/40 dark:to-slate-900 border border-purple-200 dark:border-purple-500/30 rounded-3xl p-5 shadow-sm dark:shadow-2xl space-y-3.5">
+          <!-- AI RECOMMENDED FOR YOU CARD (Styled with Google Gemini Dark Theme Style) -->
+          <div class="relative overflow-hidden bg-gradient-to-br from-indigo-50/80 via-purple-50/60 to-white dark:from-[#1e1f20] dark:via-[#1e1f20] dark:to-[#1e1f20] border border-purple-200 dark:border-[#1a73e8] rounded-3xl p-5 shadow-sm dark:shadow-[0_0_25px_rgba(26,115,232,0.18)] space-y-3.5 transition-all">
             <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <div class="w-6 h-6 rounded-lg bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-sm">
-                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"/></svg>
+              <div class="space-y-1">
+                <span class="text-[10px] font-bold text-indigo-600 dark:text-[#8ab4f8] tracking-widest uppercase">
+                  RECOMMENDED
+                </span>
+                <div class="flex items-center gap-2">
+                  <!-- Google Gemini 4-Point Sparkle Icon -->
+                  <div class="w-6 h-6 rounded-lg bg-gradient-to-tr from-purple-600 to-indigo-600 dark:from-transparent dark:to-transparent text-white flex items-center justify-center shadow-sm shrink-0">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
+                      <defs>
+                        <linearGradient id="geminiSparkleHead" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stop-color="#4285F4" />
+                          <stop offset="35%" stop-color="#9B72CB" />
+                          <stop offset="70%" stop-color="#EA4335" />
+                          <stop offset="100%" stop-color="#FBBC05" />
+                        </linearGradient>
+                      </defs>
+                      <path d="M12 2C12 7.52285 7.52285 12 2 12C7.52285 12 12 16.4772 12 22C12 16.4772 16.4772 12 22 12C16.4772 12 12 7.52285 12 2Z" fill="url(#geminiSparkleHead)" />
+                    </svg>
+                  </div>
+                  <h3 class="text-xs font-bold text-slate-900 dark:text-[#e3e3e3] uppercase tracking-wider">
+                    {{ currentLang === 'km' ? 'AI ណែនាំសម្រាប់អ្នក' : 'AI Recommended For You' }}
+                  </h3>
                 </div>
-                <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                  {{ currentLang === 'km' ? 'AI ណែនាំសម្រាប់អ្នក' : 'AI Recommended For You' }}
-                </h3>
               </div>
-              <Link href="/student/ai-path/recommended" class="text-[10px] text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 font-semibold">
+
+              <Link href="/student/ai-path/recommended" class="text-[10px] text-purple-600 dark:text-[#8ab4f8] hover:text-purple-500 dark:hover:text-[#a8c7fa] font-semibold">
                 {{ currentLang === 'km' ? 'ផែនទីសិក្សា' : 'Roadmap' }}
               </Link>
             </div>
 
-            <p class="text-[11px] text-purple-700 dark:text-purple-300 font-medium">
+            <p class="text-[11px] text-purple-700 dark:text-[#c4c7c5] font-medium">
               {{ currentLang === 'km' ? 'ផ្អែកលើពិន្ទុ Quiz ថ្មីៗ និងល្បឿននៃការរៀនរបស់អ្នក:' : 'Based on your recent quiz scores & learning pace:' }}
             </p>
 
@@ -1430,33 +1447,42 @@ const recentActivities = computed(() => {
               <div
                 v-for="rec in aiRecommendations"
                 :key="rec.id"
-                class="p-3 rounded-2xl bg-white dark:bg-slate-950/80 border border-purple-100 dark:border-purple-500/20 space-y-2 shadow-xs dark:shadow-none"
+                class="p-3.5 rounded-2xl bg-white dark:bg-[#131314] border border-purple-100 dark:border-[#2d2f31] space-y-2 shadow-xs dark:shadow-none"
               >
                 <div class="flex items-center justify-between">
-                  <h4 class="font-bold text-slate-900 dark:text-white text-xs">{{ rec.title }}</h4>
-                  <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-purple-500/10 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-500/20 dark:border-purple-500/30">
+                  <h4 class="font-bold text-slate-900 dark:text-[#e3e3e3] text-xs">{{ rec.title }}</h4>
+                  <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-purple-500/10 dark:bg-[#1a73e8]/20 text-purple-700 dark:text-[#a8c7fa] border border-purple-500/20 dark:border-[#1a73e8]/30">
                     {{ rec.badge }}
                   </span>
                 </div>
-                <p class="text-[10px] text-slate-600 dark:text-slate-300 leading-relaxed">{{ rec.desc }}</p>
+                <p class="text-[10px] text-slate-600 dark:text-[#c4c7c5] leading-relaxed">{{ rec.desc }}</p>
                 
-                <div class="pt-1">
+                <div class="pt-1 flex items-center justify-between">
+                  <!-- Google Soft Blue Pill Action Button -->
                   <Link
                     :href="rec.actionHref"
-                    :class="[rec.btnClass, 'inline-flex items-center gap-1 px-3 py-1 rounded-xl text-[10px] font-bold shadow-sm transition-transform hover:scale-105 active:scale-95']"
+                    class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-bold shadow-sm transition-all hover:scale-105 active:scale-95 bg-purple-600 hover:bg-purple-500 text-white dark:bg-[#a8c7fa] dark:hover:bg-[#b8d2fa] dark:text-[#041e49]"
                   >
                     <span>{{ rec.actionLabel }}</span>
                     <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                   </Link>
+
+                  <!-- Gemini Signature Branding -->
+                  <div class="flex items-center gap-1 text-[10px] text-slate-400 dark:text-[#8e918f] font-medium">
+                    <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none">
+                      <path d="M12 2C12 7.52285 7.52285 12 2 12C7.52285 12 12 16.4772 12 22C12 16.4772 16.4772 12 22 12C16.4772 12 12 7.52285 12 2Z" fill="url(#geminiSparkleHead)" />
+                    </svg>
+                    <span>Gemini AI</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
           <!-- UPCOMING SCHEDULE CARD -->
-          <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3">
-            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
-              <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+          <div class="bg-white dark:bg-[#1e1f20] border border-slate-200/90 dark:border-[#2d2f31] rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-[#2d2f31] pb-2">
+              <h3 class="text-xs font-bold text-slate-900 dark:text-[#e3e3e3] uppercase tracking-wider">
                 {{ currentLang === 'km' ? 'កាលវិភាគខាងមុខ' : 'Upcoming' }}
               </h3>
               <Link href="/student/calendar" class="text-[11px] text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 font-semibold">
@@ -1469,10 +1495,10 @@ const recentActivities = computed(() => {
                 v-for="item in upcomingEvents"
                 :key="item.id"
                 :href="item.href"
-                class="flex items-start justify-between gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800/60 hover:border-purple-500/30 text-xs transition-colors block hover:bg-slate-100 dark:hover:bg-slate-950"
+                class="flex items-start justify-between gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-[#131314] border border-slate-200/80 dark:border-[#2d2f31] hover:border-purple-500/30 dark:hover:border-[#3c4043] text-xs transition-colors block hover:bg-slate-100 dark:hover:bg-[#282a2c]"
               >
                 <div class="flex items-start gap-2.5">
-                  <div class="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-950/50 border border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 mt-0.5">
+                  <div class="w-7 h-7 rounded-lg bg-purple-50 dark:bg-[#282a2c] border border-purple-200 dark:border-[#3c4043] text-purple-600 dark:text-[#8ab4f8] flex items-center justify-center shrink-0 mt-0.5">
                     <!-- Calendar SVG -->
                     <svg v-if="item.type === 'quiz'" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>
                     <!-- Video Camera SVG -->
@@ -1481,13 +1507,13 @@ const recentActivities = computed(() => {
                     <svg v-else class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
                   </div>
                   <div>
-                    <h4 class="font-bold text-slate-900 dark:text-white text-[11px]">{{ item.title }}</h4>
-                    <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ item.course }}</p>
+                    <h4 class="font-bold text-slate-900 dark:text-[#e3e3e3] text-[11px]">{{ item.title }}</h4>
+                    <p class="text-[10px] text-slate-500 dark:text-[#8e918f]">{{ item.course }}</p>
                   </div>
                 </div>
 
-                <div class="text-right text-[10px] text-slate-500 dark:text-slate-400 shrink-0 font-mono">
-                  <p class="font-bold text-slate-700 dark:text-slate-300">{{ item.date }}</p>
+                <div class="text-right text-[10px] text-slate-500 dark:text-[#8e918f] shrink-0 font-mono">
+                  <p class="font-bold text-slate-700 dark:text-[#e3e3e3]">{{ item.date }}</p>
                   <p>{{ item.time }}</p>
                 </div>
               </Link>
@@ -1495,19 +1521,21 @@ const recentActivities = computed(() => {
           </div>
 
           <!-- AI STUDY ASSISTANT WIDGET -->
-          <div class="bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/60 dark:from-[#111827] dark:via-slate-900 dark:to-[#1e1b4b]/60 border border-purple-200 dark:border-purple-500/30 rounded-3xl p-5 shadow-sm dark:shadow-2xl space-y-3.5">
+          <div class="bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/60 dark:from-[#1e1f20] dark:via-[#1e1f20] dark:to-[#1e1f20] border border-purple-200 dark:border-[#2d2f31] rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3.5">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
-                <div class="w-6 h-6 rounded-lg bg-purple-600 text-white flex items-center justify-center text-xs shadow-sm">
-                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 002.25-2.25V6.75a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 6.75v10.5a2.25 2.25 0 002.25 2.25zm.75-12h9v9h-9v-9z"/></svg>
+                <div class="w-6 h-6 rounded-lg bg-purple-600 dark:bg-transparent text-white flex items-center justify-center text-xs shadow-sm">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2C12 7.52285 7.52285 12 2 12C7.52285 12 12 16.4772 12 22C12 16.4772 16.4772 12 22 12C16.4772 12 12 7.52285 12 2Z" fill="url(#geminiSparkleHead)" />
+                  </svg>
                 </div>
-                <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                <h3 class="text-xs font-bold text-slate-900 dark:text-[#e3e3e3] uppercase tracking-wider">
                   {{ currentLang === 'km' ? 'ជំនួយការសិក្សា AI' : 'AI Study Assistant' }}
                 </h3>
               </div>
               <Link
                 href="/student/ai-tutor/chat"
-                class="px-2 py-0.5 rounded-full bg-purple-500/10 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 text-[10px] font-bold border border-purple-500/20 dark:border-purple-500/30 hover:bg-purple-600 hover:text-white transition-colors"
+                class="px-2 py-0.5 rounded-full bg-purple-500/10 dark:bg-[#1a73e8]/20 text-purple-700 dark:text-[#a8c7fa] text-[10px] font-bold border border-purple-500/20 dark:border-[#1a73e8]/30 hover:bg-purple-600 hover:text-white transition-colors"
               >
                 {{ currentLang === 'km' ? 'ជជែកពេញលេញ ↗' : 'Full Chat ↗' }}
               </Link>
@@ -1519,14 +1547,14 @@ const recentActivities = computed(() => {
                 v-for="(msg, idx) in aiMessages"
                 :key="idx"
                 :class="[
-                  msg.role === 'user' ? 'bg-purple-600/15 dark:bg-purple-600/30 border border-purple-500/30 dark:border-purple-500/40 text-purple-950 dark:text-purple-100 ml-4' : 'bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 text-slate-800 dark:text-slate-200 mr-2',
+                  msg.role === 'user' ? 'bg-purple-600/15 dark:bg-[#004a77] border border-purple-500/30 dark:border-[#004a77] text-purple-950 dark:text-[#c2e7ff] ml-4' : 'bg-slate-100 dark:bg-[#131314] border border-slate-200 dark:border-[#2d2f31] text-slate-800 dark:text-[#c4c7c5] mr-2',
                   'p-2.5 rounded-2xl text-[11px] space-y-1'
                 ]"
               >
                 <p class="whitespace-pre-wrap leading-relaxed">{{ msg.text }}</p>
               </div>
 
-              <div v-if="isAiTyping" class="p-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 text-slate-500 text-[10px] italic flex items-center gap-1.5">
+              <div v-if="isAiTyping" class="p-2.5 rounded-2xl bg-slate-100 dark:bg-[#131314] text-slate-500 dark:text-[#8e918f] text-[10px] italic flex items-center gap-1.5">
                 <span class="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span>
                 <span>{{ currentLang === 'km' ? 'AI Tutor កំពុងគិត...' : 'AI Tutor is thinking...' }}</span>
               </div>
@@ -1537,28 +1565,28 @@ const recentActivities = computed(() => {
               <button
                 @click="handleSendAiPrompt(currentLang === 'km' ? 'ពន្យល់មេរៀននេះ' : 'Explain this lesson')"
                 type="button"
-                class="p-1.5 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] font-medium border border-slate-200 dark:border-slate-700 text-center transition-colors cursor-pointer truncate shadow-xs"
+                class="p-1.5 rounded-lg bg-white dark:bg-[#282a2c] hover:bg-slate-100 dark:hover:bg-[#333538] text-slate-700 dark:text-[#c4c7c5] text-[10px] font-medium border border-slate-200 dark:border-[#3c4043] text-center transition-colors cursor-pointer truncate shadow-xs"
               >
                 {{ currentLang === 'km' ? 'ពន្យល់មេរៀននេះ' : 'Explain this lesson' }}
               </button>
               <button
                 @click="handleSendAiPrompt(currentLang === 'km' ? 'ផ្តល់ឧទាហរណ៍' : 'Give me an example')"
                 type="button"
-                class="p-1.5 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] font-medium border border-slate-200 dark:border-slate-700 text-center transition-colors cursor-pointer truncate shadow-xs"
+                class="p-1.5 rounded-lg bg-white dark:bg-[#282a2c] hover:bg-slate-100 dark:hover:bg-[#333538] text-slate-700 dark:text-[#c4c7c5] text-[10px] font-medium border border-slate-200 dark:border-[#3c4043] text-center transition-colors cursor-pointer truncate shadow-xs"
               >
                 {{ currentLang === 'km' ? 'ផ្តល់ឧទាហរណ៍' : 'Give me an example' }}
               </button>
               <button
                 @click="handleSendAiPrompt(currentLang === 'km' ? 'សង្ខេបប្រធានបទនេះ' : 'Summarize this topic')"
                 type="button"
-                class="p-1.5 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] font-medium border border-slate-200 dark:border-slate-700 text-center transition-colors cursor-pointer truncate shadow-xs"
+                class="p-1.5 rounded-lg bg-white dark:bg-[#282a2c] hover:bg-slate-100 dark:hover:bg-[#333538] text-slate-700 dark:text-[#c4c7c5] text-[10px] font-medium border border-slate-200 dark:border-[#3c4043] text-center transition-colors cursor-pointer truncate shadow-xs"
               >
                 {{ currentLang === 'km' ? 'សង្ខេបប្រធានបទនេះ' : 'Summarize this topic' }}
               </button>
               <button
                 @click="handleSendAiPrompt(currentLang === 'km' ? 'តើខ្ញុំគួររៀនអ្វីថ្ងៃនេះ?' : 'What should I study today?')"
                 type="button"
-                class="p-1.5 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] font-medium border border-slate-200 dark:border-slate-700 text-center transition-colors cursor-pointer truncate shadow-xs"
+                class="p-1.5 rounded-lg bg-white dark:bg-[#282a2c] hover:bg-slate-100 dark:hover:bg-[#333538] text-slate-700 dark:text-[#c4c7c5] text-[10px] font-medium border border-slate-200 dark:border-[#3c4043] text-center transition-colors cursor-pointer truncate shadow-xs"
               >
                 {{ currentLang === 'km' ? 'តើខ្ញុំគួររៀនអ្វី?' : 'What should I study?' }}
               </button>
@@ -1570,11 +1598,11 @@ const recentActivities = computed(() => {
                 v-model="aiPromptInput"
                 type="text"
                 :placeholder="currentLang === 'km' ? 'សួរសំណួរទៅកាន់ AI Tutor របស់អ្នក...' : 'Ask your AI academic tutor...'"
-                class="w-full pl-3 pr-8 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-purple-500 shadow-inner"
+                class="w-full pl-3 pr-8 py-2 rounded-xl bg-white dark:bg-[#131314] border border-slate-200 dark:border-[#2d2f31] text-xs text-slate-900 dark:text-[#e3e3e3] placeholder:text-slate-400 dark:placeholder:text-[#8e918f] focus:outline-none focus:border-purple-500 dark:focus:border-[#1a73e8] shadow-inner"
               />
               <button
                 type="submit"
-                class="absolute right-1.5 p-1 rounded-lg bg-purple-600 hover:bg-purple-500 text-white transition-all cursor-pointer shadow-xs"
+                class="absolute right-1.5 p-1 rounded-lg bg-purple-600 hover:bg-purple-500 text-white dark:bg-[#a8c7fa] dark:hover:bg-[#b8d2fa] dark:text-[#041e49] transition-all cursor-pointer shadow-xs"
               >
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -1584,12 +1612,12 @@ const recentActivities = computed(() => {
           </div>
 
           <!-- ACHIEVEMENTS BADGES CARD with Real SVGs -->
-          <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3">
+          <div class="bg-white dark:bg-[#1e1f20] border border-slate-200/90 dark:border-[#2d2f31] rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3">
             <div class="flex items-center justify-between">
-              <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+              <h3 class="text-xs font-bold text-slate-900 dark:text-[#e3e3e3] uppercase tracking-wider">
                 {{ currentLang === 'km' ? 'សមិទ្ធផល' : 'Achievements' }}
               </h3>
-              <Link href="/student/certificates/achievements" class="text-[11px] text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 font-semibold">
+              <Link href="/student/certificates/achievements" class="text-[11px] text-purple-600 dark:text-[#8ab4f8] hover:text-purple-500 dark:hover:text-[#a8c7fa] font-semibold">
                 {{ currentLang === 'km' ? 'មើលទាំងអស់' : 'View All' }}
               </Link>
             </div>
@@ -1613,7 +1641,7 @@ const recentActivities = computed(() => {
                   <!-- Trophy SVG -->
                   <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.003 0H9.497m5.003 0a3 3 0 002.828-2.002l1.636-4.908A1.125 1.125 0 0017.896 6H6.104a1.125 1.125 0 00-1.068 1.465l1.636 4.908a3 3 0 002.828 2.002z"/></svg>
                 </div>
-                <span class="text-[8px] text-slate-500 dark:text-slate-400 leading-tight w-12 truncate">{{ ach.title }}</span>
+                <span class="text-[8px] text-slate-500 dark:text-[#8e918f] leading-tight w-12 truncate">{{ ach.title }}</span>
               </Link>
             </div>
           </div>
@@ -1664,6 +1692,9 @@ const recentActivities = computed(() => {
   border-radius: 9999px;
 }
 :global(.dark) .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #3c4043;
+}
+:global(.dark) .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #5f6368;
 }
 </style>

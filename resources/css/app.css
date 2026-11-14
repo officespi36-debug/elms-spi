@@ -9,6 +9,21 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Google Dark Theme & Modern Web Color Scheme */
+:root {
+  color-scheme: light dark;
+}
+
+html.dark {
+  color-scheme: dark;
+  background-color: #131314 !important;
+}
+
+html.dark body {
+  background-color: #131314 !important;
+  color: #e3e3e3 !important;
+}
+
 html,
 body {
   font-family: 'Kantumruy Pro', 'Plus Jakarta Sans', 'Koh Santepheap', 'Noto Sans Khmer', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -155,7 +170,7 @@ html.dark .custom-scrollbar,
 html.dark .custom-scrollbar-slim,
 .dark .custom-scrollbar,
 .dark .custom-scrollbar-slim {
-  scrollbar-color: #334155 transparent;
+  scrollbar-color: #3c4043 transparent;
 }
 
 .custom-scrollbar::-webkit-scrollbar,
@@ -185,14 +200,14 @@ html.dark .custom-scrollbar::-webkit-scrollbar-thumb,
 html.dark .custom-scrollbar-slim::-webkit-scrollbar-thumb,
 .dark .custom-scrollbar::-webkit-scrollbar-thumb,
 .dark .custom-scrollbar-slim::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #3c4043;
 }
 
 html.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover,
 html.dark .custom-scrollbar-slim::-webkit-scrollbar-thumb:hover,
 .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover,
 .dark .custom-scrollbar-slim::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #5f6368;
 }
 
 /* Waving Hand Micro-Interaction */

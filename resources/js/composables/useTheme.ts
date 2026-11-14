@@ -11,7 +11,7 @@ export function initTheme() {
       isDark.value = true
       document.documentElement.classList.add('dark')
       document.documentElement.style.colorScheme = 'dark'
-      document.documentElement.style.backgroundColor = '#0b132b'
+      document.documentElement.style.backgroundColor = '#131314'
     } else {
       isDark.value = false
       document.documentElement.classList.remove('dark')
@@ -22,7 +22,7 @@ export function initTheme() {
     isDark.value = true
     document.documentElement.classList.add('dark')
     document.documentElement.style.colorScheme = 'dark'
-    document.documentElement.style.backgroundColor = '#0b132b'
+    document.documentElement.style.backgroundColor = '#131314'
   }
 }
 
@@ -94,7 +94,7 @@ export function useTheme() {
         if (nextDark) {
           document.documentElement.classList.add('dark')
           document.documentElement.style.colorScheme = 'dark'
-          document.documentElement.style.backgroundColor = '#0b132b'
+          document.documentElement.style.backgroundColor = '#131314'
           localStorage.setItem('theme', 'dark')
         } else {
           document.documentElement.classList.remove('dark')
