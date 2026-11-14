@@ -1017,62 +1017,63 @@ const onIconError = (e: Event) => {
             </button>
 
             <!-- Direct Link (No Children) -->
-            <Link
-              v-else-if="!item.children || item.children.length === 0"
-              :href="item.href!"
-              prefetch="hover"
-              :class="[
-                $page.url.startsWith(item.href!) 
-                  ? 'bg-gradient-to-r from-purple-600/25 via-indigo-600/20 to-purple-600/10 text-indigo-700 dark:text-white border border-purple-500/40 font-bold shadow-xs' 
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-[#F1F5F9] hover:bg-slate-100 dark:hover:bg-slate-800/70 border border-transparent font-medium',
-                isSidebarCollapsed ? 'justify-center w-11 h-11 p-0 rounded-2xl mx-auto' : 'px-3 w-full justify-between py-2 rounded-xl',
-                'group flex items-center text-xs transition-all duration-200'
-              ]"
-            >
-              <div :class="[isSidebarCollapsed ? 'justify-center w-full' : '', 'flex items-center gap-x-2.5 truncate']">
-                <div class="relative flex items-center justify-center shrink-0">
-                  <img 
-                    v-if="item.iconUrl"
-                    :src="item.iconUrl" 
-                    :alt="item.name"
-                    loading="lazy"
-                    decoding="async"
-                    @error="onIconError"
-                    :class="[isSidebarCollapsed ? 'w-5 h-5' : 'w-4 h-4', 'object-contain shrink-0 filter drop-shadow-sm transition-transform duration-200 group-hover:scale-110']"
-                  />
-                  <svg 
-                    :class="[
-                      $page.url.startsWith(item.href!) ? 'text-indigo-600 dark:text-purple-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300',
-                      item.iconUrl ? 'hidden' : '',
-                      isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4',
-                      'shrink-0 transition-colors'
-                    ]"
-                    fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-                  >
-                    <path stroke-linecap="round" stroke-linejoin="round" :d="item.icon || 'M4 6h16M4 12h16M4 18h16'" />
-                  </svg>
-                </div>
-                <span v-show="!isSidebarCollapsed" class="truncate font-medium">
-                  {{ currentLang === 'km' ? item.khName : item.name }}
-                </span>
-              </div>
-
-              <span
-                v-if="!isSidebarCollapsed && item.badge"
-                :class="['px-1.5 py-0.5 rounded text-[10px] font-bold border ml-1 shrink-0', item.badge.colorClass]"
+            <template v-else-if="!item.children || item.children.length === 0">
+              <Link
+                :href="item.href!"
+                prefetch="hover"
+                :class="[
+                  $page.url.startsWith(item.href!) 
+                    ? 'bg-gradient-to-r from-purple-600/25 via-indigo-600/20 to-purple-600/10 text-indigo-700 dark:text-white border border-purple-500/40 font-bold shadow-xs' 
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-[#F1F5F9] hover:bg-slate-100 dark:hover:bg-slate-800/70 border border-transparent font-medium',
+                  isSidebarCollapsed ? 'justify-center w-11 h-11 p-0 rounded-2xl mx-auto' : 'px-3 w-full justify-between py-2 rounded-xl',
+                  'group flex items-center text-xs transition-all duration-200'
+                ]"
               >
-                {{ item.badge.text }}
-              </span>
-            </Link>
+                <div :class="[isSidebarCollapsed ? 'justify-center w-full' : '', 'flex items-center gap-x-2.5 truncate']">
+                  <div class="relative flex items-center justify-center shrink-0">
+                    <img 
+                      v-if="item.iconUrl"
+                      :src="item.iconUrl" 
+                      :alt="item.name"
+                      loading="lazy"
+                      decoding="async"
+                      @error="onIconError"
+                      :class="[isSidebarCollapsed ? 'w-5 h-5' : 'w-4 h-4', 'object-contain shrink-0 filter drop-shadow-sm transition-transform duration-200 group-hover:scale-110']"
+                    />
+                    <svg 
+                      :class="[
+                        $page.url.startsWith(item.href!) ? 'text-indigo-600 dark:text-purple-400' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-300',
+                        item.iconUrl ? 'hidden' : '',
+                        isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4',
+                        'shrink-0 transition-colors'
+                      ]"
+                      fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                    >
+                      <path stroke-linecap="round" stroke-linejoin="round" :d="item.icon || 'M4 6h16M4 12h16M4 18h16'" />
+                    </svg>
+                  </div>
+                  <span v-show="!isSidebarCollapsed" class="truncate font-medium">
+                    {{ currentLang === 'km' ? item.khName : item.name }}
+                  </span>
+                </div>
 
-            <!-- Flyout Tooltip for Direct Link when collapsed -->
-            <div
-              v-if="isSidebarCollapsed && (!item.children || item.children.length === 0)"
-              class="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-1.5 rounded-xl bg-slate-900/95 dark:bg-slate-800/95 text-white text-xs font-semibold whitespace-nowrap shadow-xl border border-slate-700/60 opacity-0 pointer-events-none group-hover/flyout:opacity-100 transition-all duration-150 z-50 flex items-center gap-2"
-            >
-              <img v-if="item.iconUrl" :src="item.iconUrl" class="w-4 h-4 object-contain" />
-              <span>{{ currentLang === 'km' ? item.khName : item.name }}</span>
-            </div>
+                <span
+                  v-if="!isSidebarCollapsed && item.badge"
+                  :class="['px-1.5 py-0.5 rounded text-[10px] font-bold border ml-1 shrink-0', item.badge.colorClass]"
+                >
+                  {{ item.badge.text }}
+                </span>
+              </Link>
+
+              <!-- Flyout Tooltip for Direct Link when collapsed -->
+              <div
+                v-if="isSidebarCollapsed"
+                class="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-1.5 rounded-xl bg-slate-900/95 dark:bg-slate-800/95 text-white text-xs font-semibold whitespace-nowrap shadow-xl border border-slate-700/60 opacity-0 pointer-events-none group-hover/flyout:opacity-100 transition-all duration-150 z-50 flex items-center gap-2"
+              >
+                <img v-if="item.iconUrl" :src="item.iconUrl" class="w-4 h-4 object-contain" />
+                <span>{{ currentLang === 'km' ? item.khName : item.name }}</span>
+              </div>
+            </template>
 
             <!-- Collapsible Module with Submenu -->
             <div v-else class="space-y-0.5 w-full flex flex-col items-center">
