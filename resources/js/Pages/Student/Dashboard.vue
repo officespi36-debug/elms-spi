@@ -839,8 +839,8 @@ const recentActivities = computed(() => {
             ]"
           >
             <div>
-              <div class="flex items-center justify-between">
-                <span class="text-[11px] font-bold tracking-wide uppercase text-white/90 truncate mr-1">{{ stat.title }}</span>
+              <div class="flex items-start justify-between gap-1">
+                <span class="text-[9.5px] sm:text-[10px] xl:text-[11px] font-bold tracking-tight uppercase text-white/90 leading-tight mr-1">{{ stat.title }}</span>
                 <div class="text-white/95 group-hover:text-white group-hover:scale-110 transition-transform duration-200 shrink-0">
                   <!-- Book SVG (Enrolled) -->
                   <svg v-if="stat.type === 'enrolled'" class="w-9 h-9 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
