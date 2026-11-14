@@ -23,6 +23,7 @@ const props = defineProps<{
     progress: number
     lastLesson: string
     timeLeft: string
+    thumbnail?: string
     href: string
   }
   dbCourses?: Array<{
@@ -36,6 +37,7 @@ const props = defineProps<{
     iconType: string
     iconColor: string
     bgGradient?: string
+    thumbnail?: string
     href: string
   }>
   enrollments?: any[]
@@ -366,6 +368,46 @@ const aiRecommendations = computed(() => [
   }
 ])
 
+// Curated Representative Course Cover Images (High-Resolution Professional Thematic Imagery)
+const getCourseFallbackImage = (course: any) => {
+  if (course?.thumbnail) return course.thumbnail
+  const title = (course?.title || '').toLowerCase()
+  if (title.includes('business english') || (title.includes('english') && title.includes('communication'))) {
+    return 'https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=600&q=80'
+  }
+  if (title.includes('english') || title.includes('grammar') || title.includes('language')) {
+    return 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=600&q=80'
+  }
+  if (title.includes('crop') || title.includes('agronomy')) {
+    return 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=600&q=80'
+  }
+  if (title.includes('plant') || title.includes('botany')) {
+    return 'https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?auto=format&fit=crop&w=600&q=80'
+  }
+  if (title.includes('agriculture') || title.includes('organic')) {
+    return 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?auto=format&fit=crop&w=600&q=80'
+  }
+  if (title.includes('tourism') || title.includes('hospitality') || title.includes('hotel')) {
+    return 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80'
+  }
+  if (title.includes('social') || title.includes('community') || title.includes('advocacy')) {
+    return 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?auto=format&fit=crop&w=600&q=80'
+  }
+  if (title.includes('mobile') || title.includes('flutter')) {
+    return 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=600&q=80'
+  }
+  if (title.includes('c program') || title.includes('dsa') || title.includes('algorithm')) {
+    return 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=600&q=80'
+  }
+  if (title.includes('machine learning') || title.includes('ai')) {
+    return 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=600&q=80'
+  }
+  if (title.includes('vue') || title.includes('laravel') || title.includes('web')) {
+    return 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=600&q=80'
+  }
+  return 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=600&q=80'
+}
+
 // My Courses Filter and List
 const selectedCourseFilter = ref<'all' | 'in_progress' | 'completed' | 'not_started'>('all')
 
@@ -380,6 +422,7 @@ const fallbackCoursesList = computed(() => [
     badgeClass: 'bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/30',
     iconType: 'code',
     iconColor: 'from-blue-600 to-purple-600',
+    thumbnail: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=600&q=80',
     href: '/student/courses/1/overview'
   },
   {
@@ -392,6 +435,7 @@ const fallbackCoursesList = computed(() => [
     badgeClass: 'bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/30',
     iconType: 'db',
     iconColor: 'from-purple-600 to-indigo-600',
+    thumbnail: 'https://images.unsplash.com/photo-1544383835-bda2bc66a55d?auto=format&fit=crop&w=600&q=80',
     href: '/student/courses/2/overview'
   },
   {
@@ -404,6 +448,7 @@ const fallbackCoursesList = computed(() => [
     badgeClass: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700',
     iconType: 'python',
     iconColor: 'from-amber-600 to-yellow-600',
+    thumbnail: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&w=600&q=80',
     href: '/student/courses/3/overview'
   },
   {
@@ -416,6 +461,7 @@ const fallbackCoursesList = computed(() => [
     badgeClass: 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/30',
     iconType: 'design',
     iconColor: 'from-pink-600 to-purple-600',
+    thumbnail: 'https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?auto=format&fit=crop&w=600&q=80',
     href: '/student/courses/4/overview'
   }
 ])
@@ -842,13 +888,19 @@ const recentActivities = computed(() => [
 
             <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 sm:p-6 shadow-sm dark:shadow-xl flex flex-col md:flex-row items-center gap-5 relative overflow-hidden">
               
-              <!-- 3D / Mock cover illustration -->
-              <div class="relative w-full md:w-36 h-28 rounded-2xl bg-gradient-to-br from-indigo-50 via-slate-100 to-purple-100 dark:from-[#0c1322] dark:via-[#0f172a] dark:to-[#1e1b4b] border border-slate-200 dark:border-slate-800 flex items-center justify-center shrink-0 shadow-md">
-                <div class="text-center space-y-1">
-                  <div class="inline-flex items-center justify-center px-2 py-0.5 rounded-lg bg-amber-400 text-slate-950 font-black text-xs shadow-sm">
-                    JS
-                  </div>
-                  <p class="text-[10px] font-mono text-purple-600 dark:text-purple-400 font-bold">{ functions }</p>
+              <!-- Real Course Thumbnail for Continue Learning -->
+              <div class="relative w-full md:w-36 h-28 rounded-2xl overflow-hidden shrink-0 shadow-md bg-slate-900 border border-slate-200/60 dark:border-slate-800">
+                <img
+                  :src="continueCourseData.thumbnail || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=600&q=80'"
+                  :alt="continueCourseData.title"
+                  class="w-full h-full object-cover"
+                  loading="lazy"
+                />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-2">
+                  <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-400 text-slate-950 font-black text-[10px] shadow-sm">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                    <span>Active</span>
+                  </span>
                 </div>
               </div>
 
@@ -945,41 +997,19 @@ const recentActivities = computed(() => [
                 :href="c.href"
                 class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 hover:border-purple-500/50 rounded-2xl p-4.5 sm:p-5 shadow-xs dark:shadow-xl flex flex-col justify-between space-y-3.5 transition-all duration-200 hover:-translate-y-1 hover:shadow-md group"
               >
-                <!-- Illustration Box with Badge -->
-                <div :class="['relative w-full h-32 rounded-2xl bg-gradient-to-br', c.bgGradient || 'from-indigo-50 to-purple-50 dark:from-slate-900 dark:to-slate-950', 'border border-slate-200/60 dark:border-slate-800/60 flex items-center justify-center overflow-hidden transition-colors']">
-                  <div :class="['w-12 h-12 rounded-2xl bg-gradient-to-tr', c.iconColor || 'from-purple-600 to-indigo-600', 'flex items-center justify-center text-white text-lg font-bold shadow-md group-hover:scale-110 transition-transform duration-300']">
-                    <!-- English / Literature SVG -->
-                    <svg v-if="c.iconType === 'english' || c.iconType?.includes('eng')" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
-                    </svg>
-                    <!-- Agriculture / Plant / Agronomy SVG -->
-                    <svg v-else-if="c.iconType === 'agriculture' || c.iconType?.includes('agr') || c.iconType?.includes('plant')" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.516 0c.85.493 1.508 1.333 1.508 2.316V18" />
-                    </svg>
-                    <!-- Tourism / Hospitality SVG -->
-                    <svg v-else-if="c.iconType === 'tourism' || c.iconType?.includes('trm') || c.iconType?.includes('hotel')" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
-                    </svg>
-                    <!-- Social Work / Community SVG -->
-                    <svg v-else-if="c.iconType === 'social_work' || c.iconType?.includes('soc') || c.iconType?.includes('sw')" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-                    </svg>
-                    <!-- Database SVG -->
-                    <svg v-else-if="c.iconType === 'db' || c.iconType?.includes('data')" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 5.625c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
-                    </svg>
-                    <!-- Python / Algorithm SVG -->
-                    <svg v-else-if="c.iconType === 'python' || c.iconType?.includes('program')" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
-                    </svg>
-                    <!-- Code </> SVG (Default) -->
-                    <svg v-else class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
-                    </svg>
-                  </div>
+                <!-- Real Representative Course Thumbnail Image -->
+                <div class="relative w-full h-36 rounded-2xl overflow-hidden bg-slate-900 border border-slate-200/60 dark:border-slate-800/80 shadow-xs">
+                  <img
+                    :src="c.thumbnail || getCourseFallbackImage(c)"
+                    :alt="c.title"
+                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                  <!-- Vignette gradient overlay for text and badge contrast -->
+                  <div class="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/20 pointer-events-none"></div>
 
                   <!-- Status Pill Badge on Card -->
-                  <span :class="[c.badgeClass, 'absolute top-2.5 right-2.5 px-2 py-0.5 rounded-md text-[10px] font-bold border backdrop-blur-xs shadow-2xs']">
+                  <span :class="[c.badgeClass, 'absolute top-2.5 right-2.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border backdrop-blur-md shadow-xs']">
                     {{ c.status === 'in_progress' ? (currentLang === 'km' ? 'កំពុងសិក្សា' : 'In Progress') : c.status === 'completed' ? (currentLang === 'km' ? 'បានបញ្ចប់' : 'Completed') : (currentLang === 'km' ? 'មិនទាន់ចាប់ផ្ដើម' : 'Not Started') }}
                   </span>
                 </div>

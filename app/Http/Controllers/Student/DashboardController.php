@@ -150,6 +150,7 @@ class DashboardController extends Controller
                         'iconType' => $iconType,
                         'iconColor' => $iconColor,
                         'bgGradient' => $bgGradient,
+                        'thumbnail' => $course->thumbnail,
                         'href' => '/student/courses/' . $course->id . '/overview',
                     ];
                 }
@@ -187,6 +188,7 @@ class DashboardController extends Controller
                 'progress' => $activeProgress,
                 'lastLesson' => $currentLessonTitle,
                 'timeLeft' => '18:20 left',
+                'thumbnail' => $activeCourse->thumbnail ?? 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=600&q=80',
                 'href' => '/student/courses/' . $activeCourse->id . '/overview',
             ];
         } else {
@@ -197,6 +199,7 @@ class DashboardController extends Controller
                 'progress' => 67,
                 'lastLesson' => 'Unit 3: Practical Laboratory Case',
                 'timeLeft' => '18:20 left',
+                'thumbnail' => 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=600&q=80',
                 'href' => '/student/my-courses/enrolled',
             ];
         }
