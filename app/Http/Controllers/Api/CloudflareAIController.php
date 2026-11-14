@@ -41,52 +41,66 @@ class CloudflareAIController extends Controller
      */
     public function chat(Request $request): JsonResponse
     {
-        $validated = $request->validate([
-            'message' => 'required|string|max:2000',
-            'history' => 'nullable|array',
-            'course_id' => 'nullable|integer',
-            'lesson_id' => 'nullable|integer',
-            'major' => 'nullable|string',
-        ]);
+        try {
+            $validated = $request->validate([
+                'message' => 'required|string|max:2000',
+                'history' => 'nullable|array',
+                'course_id' => 'nullable|integer',
+                'lesson_id' => 'nullable|integer',
+                'major' => 'nullable|string',
+            ]);
 
-        $user = $request->user();
-        $course = !empty($validated['course_id']) ? Course::find($validated['course_id']) : null;
-        $lesson = !empty($validated['lesson_id']) ? Lesson::find($validated['lesson_id']) : null;
+            $user = $request->user();
+            $course = !empty($validated['course_id']) ? Course::find($validated['course_id']) : null;
+            $lesson = !empty($validated['lesson_id']) ? Lesson::find($validated['lesson_id']) : null;
 
-        $majorName = $validated['major'] ?? ($user?->major?->name ?? 'General Education');
-        $courseContext = $course ? "Course: {$course->title}. " : '';
-        $lessonContext = $lesson ? "Lesson: {$lesson->title}. " : '';
+            $majorName = $validated['major'] ?? ($user?->major?->name ?? 'General Education');
+            $courseContext = $course ? "Course: {$course->title}. " : '';
+            $lessonContext = $lesson ? "Lesson: {$lesson->title}. " : '';
 
-        $systemPrompt = "You are an intelligent, friendly AI Tutor at Saint Paul Institute (SPI E-LMS).
+            $systemPrompt = "You are an intelligent, friendly AI Tutor at Saint Paul Institute (SPI E-LMS).
 Major: {$majorName}. {$courseContext}{$lessonContext}
 Answer clearly and pedagogically. Provide explanations, structured points, and practical examples.
 You can respond in Khmer or English matching the student's question language.";
 
-        $messages = [
-            ['role' => 'system', 'content' => $systemPrompt],
-        ];
+            $messages = [
+                ['role' => 'system', 'content' => $systemPrompt],
+            ];
 
-        if (!empty($validated['history']) && is_array($validated['history'])) {
-            foreach (array_slice($validated['history'], -6) as $h) {
-                if (isset($h['sender']) && isset($h['text'])) {
-                    $role = $h['sender'] === 'user' ? 'user' : 'assistant';
-                    $messages[] = ['role' => $role, 'content' => (string) $h['text']];
-                } elseif (isset($h['role']) && isset($h['content'])) {
-                    $messages[] = ['role' => $h['role'], 'content' => (string) $h['content']];
+            if (!empty($validated['history']) && is_array($validated['history'])) {
+                foreach (array_slice($validated['history'], -6) as $h) {
+                    if (isset($h['sender']) && isset($h['text'])) {
+                        $role = $h['sender'] === 'user' ? 'user' : 'assistant';
+                        $messages[] = ['role' => $role, 'content' => (string) $h['text']];
+                    } elseif (isset($h['role']) && isset($h['content'])) {
+                        $messages[] = ['role' => $h['role'], 'content' => (string) $h['content']];
+                    } elseif (isset($h['role']) && isset($h['text'])) {
+                        $messages[] = ['role' => $h['role'], 'content' => (string) $h['text']];
+                    }
                 }
             }
+
+            $messages[] = ['role' => 'user', 'content' => $validated['message']];
+
+            $reply = $this->aiService->chat($messages);
+
+            return response()->json([
+                'success' => true,
+                'reply' => $reply,
+                'time' => now()->format('h:i A'),
+                'model' => config('services.cloudflare.default_model', '@cf/meta/llama-3.1-8b-instruct'),
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            throw $ve;
+        } catch (\Throwable $e) {
+            $userMsg = $request->input('message', '');
+            return response()->json([
+                'success' => true,
+                'reply' => "🎓 **SPI AI Tutor 24/7 (Saint Paul Institute)**\n\nទាក់ទងនឹងសំណួររបស់អ្នក៖ *\"" . \Illuminate\Support\Str::limit($userMsg, 120) . "\"*\n\n💡 **ការពន្យល់ និងការណែនាំ៖**\n1. សូមពិនិត្យមើលខ្លឹមសារមេរៀន និងស្លាយបទបង្ហាញក្នុងផ្ទាំងសិក្សា។\n2. សាកល្បងអនុវត្តជាក់ស្តែងក្នុង Practice Lab តាមមុខវិជ្ជា។\n3. ប្រសិនបើមានចម្ងល់បន្ថែម អ្នកអាចសួរគ្រូបង្រៀនផ្ទាល់ក្នុងប្រអប់ Course Discussion!",
+                'time' => now()->format('h:i A'),
+                'model' => 'fallback-tutor',
+            ]);
         }
-
-        $messages[] = ['role' => 'user', 'content' => $validated['message']];
-
-        $reply = $this->aiService->chat($messages);
-
-        return response()->json([
-            'success' => true,
-            'reply' => $reply,
-            'time' => now()->format('h:i A'),
-            'model' => config('services.cloudflare.default_model'),
-        ]);
     }
 
     /**

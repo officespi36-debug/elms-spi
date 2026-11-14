@@ -1006,7 +1006,7 @@ const recentActivities = computed(() => {
               </Link>
             </div>
 
-            <div class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-[#0b57d0] hover:shadow-md hover:dark:border-[#1a73e8]/70 rounded-3xl p-5 sm:p-6 shadow-sm dark:shadow-xl flex flex-col md:flex-row items-center gap-5 relative overflow-hidden transition-all duration-300">
+            <div class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-[#0b57d0] hover:shadow-md hover:dark:border-[#1a73e8]/70 rounded-3xl p-6 sm:p-7 shadow-sm dark:shadow-xl flex flex-col md:flex-row items-center gap-5 sm:gap-6 relative overflow-hidden transition-all duration-300">
               
               <!-- Real Course Thumbnail for Continue Learning -->
               <div class="relative w-full md:w-36 h-28 rounded-2xl overflow-hidden shrink-0 shadow-md bg-slate-900 border border-[#dfe3e7] dark:border-[#2d2f31]">
@@ -1025,15 +1025,15 @@ const recentActivities = computed(() => {
               </div>
 
               <!-- Course Info and Progress -->
-              <div class="flex-1 w-full space-y-3">
+              <div class="flex-1 w-full space-y-3 min-w-0">
                 <div class="space-y-1">
                   <span class="px-2.5 py-0.5 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/15 text-[#0b57d0] dark:text-[#a8c7fa] text-[10px] font-semibold border border-[#d2e3fc] dark:border-[#1a73e8]/30">
                     {{ currentLang === 'km' ? 'គ្រូបង្រៀន: ' : 'Teacher: ' }}{{ continueCourseData.teacher }}
                   </span>
-                  <h3 class="text-base font-bold text-[#1f1f1f] dark:text-[#e3e3e3] leading-tight">
+                  <h3 class="text-base font-bold text-[#1f1f1f] dark:text-[#e3e3e3] leading-tight truncate">
                     {{ continueCourseData.title }}
                   </h3>
-                  <p class="text-xs text-[#444746] dark:text-[#c4c7c5] font-medium">
+                  <p class="text-xs text-[#444746] dark:text-[#c4c7c5] font-medium truncate">
                     {{ continueCourseData.chapter }}
                   </p>
                 </div>
@@ -1053,14 +1053,14 @@ const recentActivities = computed(() => {
                 </div>
               </div>
 
-              <!-- CTA Button (Gradient Purple-Blue with White Text) -->
-              <div class="w-full md:w-auto shrink-0">
+              <!-- CTA Button (Gradient Purple-Blue with White Text) with safe padding -->
+              <div class="w-full md:w-auto shrink-0 py-1">
                 <Link
                   :href="continueCourseData.href"
-                  class="w-full md:w-auto px-6 py-3 rounded-full bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:from-[#4f46e5] hover:to-[#6d28d9] text-white font-semibold text-xs shadow-md shadow-indigo-500/25 flex items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all text-center cursor-pointer"
+                  class="w-full md:w-auto px-6 py-3.5 rounded-full bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:from-[#4f46e5] hover:to-[#6d28d9] text-white font-semibold text-xs shadow-md shadow-indigo-500/25 flex items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all text-center cursor-pointer whitespace-nowrap"
                 >
                   <span>{{ currentLang === 'km' ? 'បន្តការសិក្សា' : 'Continue Learning' }}</span>
-                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                  <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                 </Link>
               </div>
 

@@ -119,10 +119,14 @@ class CloudflareAIService
                 return json_decode($raw, true);
             }
 
-            Log::warning("Cloudflare AI request failed [HTTP {$code}] on {$url}: " . substr($raw, 0, 300));
+            try {
+                Log::warning("Cloudflare AI request failed [HTTP {$code}] on {$url}: " . substr($raw, 0, 300));
+            } catch (\Throwable $logEx) {}
             return null;
         } catch (\Throwable $e) {
-            Log::error("Cloudflare AI cURL error on {$url}: " . $e->getMessage());
+            try {
+                Log::error("Cloudflare AI cURL error on {$url}: " . $e->getMessage());
+            } catch (\Throwable $logEx) {}
             return null;
         }
     }
