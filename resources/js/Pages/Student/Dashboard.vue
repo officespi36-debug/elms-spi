@@ -734,52 +734,99 @@ const sendUserCustomAi = () => {
   openAiTutorChat(text)
 }
 
-// Achievements Badges with SVG type
+// Achievements Badges with SVG type, descriptions & brand colors
 const achievements = computed(() => [
-  { title: currentLang.value === 'km' ? 'រៀន ៧ ថ្ងៃជាប់' : '7 Days Streak', type: 'flame', color: 'from-orange-500 to-amber-500', href: '/student/certificates/achievements' },
-  { title: currentLang.value === 'km' ? 'រៀនរហ័ស' : 'Quick Learner', type: 'book', color: 'from-emerald-500 to-teal-500', href: '/student/certificates/achievements' },
-  { title: currentLang.value === 'km' ? 'ជើងខ្លាំង Quiz' : 'Quiz Master', type: 'star', color: 'from-blue-500 to-indigo-500', href: '/student/certificates/achievements' },
-  { title: currentLang.value === 'km' ? 'រៀនព្រលឹម' : 'Early Bird', type: 'bolt', color: 'from-amber-500 to-yellow-500', href: '/student/certificates/achievements' },
-  { title: currentLang.value === 'km' ? 'លទ្ធផលឆ្នើម' : 'Top Performer', type: 'trophy', color: 'from-yellow-500 to-amber-600', href: '/student/certificates/achievements' }
+  {
+    title: currentLang.value === 'km' ? 'រៀន ៧ ថ្ងៃជាប់' : '7 Days Streak',
+    desc: currentLang.value === 'km' ? 'រៀន ៧ ថ្ងៃជាប់គ្នាឥតដាច់' : 'Studied 7 days in a row without breaking streak',
+    type: 'flame',
+    color: 'from-orange-500 to-amber-500',
+    href: '/student/certificates/achievements'
+  },
+  {
+    title: currentLang.value === 'km' ? 'រៀនរហ័ស' : 'Quick Learner',
+    desc: currentLang.value === 'km' ? 'បញ្ចប់មេរៀនមុនកាលកំណត់' : 'Completed lessons 30% faster than average',
+    type: 'book',
+    color: 'from-emerald-500 to-teal-500',
+    href: '/student/certificates/achievements'
+  },
+  {
+    title: currentLang.value === 'km' ? 'ជើងខ្លាំង Quiz' : 'Quiz Master',
+    desc: currentLang.value === 'km' ? 'ពិន្ទុ 90%+ លើ Quiz ជំពូក' : 'Scored 90%+ in 5 consecutive quizzes',
+    type: 'star',
+    color: 'from-blue-600 to-indigo-600',
+    href: '/student/certificates/achievements'
+  },
+  {
+    title: currentLang.value === 'km' ? 'រៀនព្រលឹម' : 'Early Bird',
+    desc: currentLang.value === 'km' ? 'ចូលរៀនមុនម៉ោង ៨:០០ ព្រឹក' : 'Completed learning session before 8:00 AM',
+    type: 'bolt',
+    color: 'from-amber-500 to-yellow-500',
+    href: '/student/certificates/achievements'
+  },
+  {
+    title: currentLang.value === 'km' ? 'លទ្ធផលឆ្នើម' : 'Top Performer',
+    desc: currentLang.value === 'km' ? 'ជាប់ចំណាត់ថ្នាក់ Top 10%' : 'Ranked in the top 10% high achievers',
+    type: 'trophy',
+    color: 'from-yellow-500 to-amber-600',
+    href: '/student/certificates/achievements'
+  }
 ])
 
-// Recent Activity with SVG type
+// Recent Activity with SVG type and clean 2-row title separation
 const recentActivities = computed(() => {
-  if (props.recentActivities && props.recentActivities.length > 0) {
-    return props.recentActivities.map(a => ({
-      ...a,
-      title: currentLang.value === 'km' && a.title_km ? a.title_km : a.title
-    }))
-  }
-  return [
-    {
-      id: 1,
-      type: 'play',
-      iconBg: 'bg-purple-600/20 text-purple-600 dark:text-purple-400 border border-purple-500/30',
-      title: currentLang.value === 'km' ? 'បានទស្សនា: 3.2 JavaScript Functions' : 'Watched: 3.2 JavaScript Functions',
-      course: currentLang.value === 'km' ? 'មូលដ្ឋានគ្រឹះ Web Development' : 'Web Development Fundamentals',
-      time: currentLang.value === 'km' ? 'ថ្ងៃនេះ, ម៉ោង ០៩:៣០ ព្រឹក' : 'Today, 09:30 AM',
-      href: '/student/my-courses/current'
-    },
-    {
-      id: 2,
-      type: 'check',
-      iconBg: 'bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30',
-      title: currentLang.value === 'km' ? 'បានបញ្ចប់ Quiz: Quiz ជំពូកទី ២' : 'Completed Quiz: Chapter 2 Quiz',
-      course: currentLang.value === 'km' ? 'មូលដ្ឋានគ្រឹះ Web Development' : 'Web Development Fundamentals',
-      time: currentLang.value === 'km' ? 'ម្សិលមិញ, ម៉ោង ០៤:១៥ រសៀល' : 'Yesterday, 04:15 PM',
-      href: '/student/quizzes/scores'
-    },
-    {
-      id: 3,
-      type: 'doc',
-      iconBg: 'bg-amber-600/20 text-amber-600 dark:text-amber-400 border border-amber-500/30',
-      title: currentLang.value === 'km' ? 'បានទាញយក: JavaScript Cheat Sheet' : 'Downloaded: JavaScript Cheat Sheet',
-      course: currentLang.value === 'km' ? 'មូលដ្ឋានគ្រឹះ Web Development' : 'Web Development Fundamentals',
-      time: currentLang.value === 'km' ? '២៦ ឧសភា, ម៉ោង ០៣:២០ រសៀល' : 'May 26, 03:20 PM',
-      href: '/student/learning-content/resources'
+  const rawList = (props.recentActivities && props.recentActivities.length > 0)
+    ? props.recentActivities
+    : [
+        {
+          id: 1,
+          type: 'play',
+          iconBg: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
+          title: currentLang.value === 'km' ? 'Lab 1.1: Hello World & Syntax Setup' : 'Lab 1.1: Hello World & Syntax Setup',
+          course: currentLang.value === 'km' ? 'មូលដ្ឋានគ្រឹះ Web Development' : 'Web Development with Vue',
+          actionLabel: currentLang.value === 'km' ? 'បានទស្សនា' : 'Watched',
+          time: currentLang.value === 'km' ? '៦ ម៉ោងមុន' : '6 hours ago',
+          href: '/student/my-courses/current'
+        },
+        {
+          id: 2,
+          type: 'play',
+          iconBg: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
+          title: currentLang.value === 'km' ? 'Lesson 1.1: Sustainable Farming Practices' : 'Lesson 1.1: Sustainable Farming Practices',
+          course: currentLang.value === 'km' ? 'វិទ្យាសាស្ត្រដំណាំកសិកម្ម' : 'Modern Crop Agronomy',
+          actionLabel: currentLang.value === 'km' ? 'បានទស្សនា' : 'Watched',
+          time: currentLang.value === 'km' ? '៦ ម៉ោងមុន' : '6 hours ago',
+          href: '/student/my-courses/current'
+        },
+        {
+          id: 3,
+          type: 'play',
+          iconBg: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
+          title: currentLang.value === 'km' ? 'Lesson 1.1: Formal Meeting & Email Phrases' : 'Lesson 1.1: Formal Meeting & Email Phrases',
+          course: currentLang.value === 'km' ? 'ភាសាអង់គ្លេសពាណិជ្ជកម្ម' : 'Business English Communication',
+          actionLabel: currentLang.value === 'km' ? 'បានទស្សនា' : 'Watched',
+          time: currentLang.value === 'km' ? '៦ ម៉ោងមុន' : '6 hours ago',
+          href: '/student/my-courses/current'
+        }
+      ]
+
+  return rawList.map(a => {
+    const rawTitle = currentLang.value === 'km' && a.title_km ? a.title_km : a.title
+    const cleanTitle = rawTitle.replace(/^(Watched:\s*|បានទស្សនា:\s*|Completed Quiz:\s*|បានបញ្ចប់ Quiz:\s*|Downloaded:\s*|បានទាញយក:\s*)/i, '')
+    let label = a.actionLabel || (currentLang.value === 'km' ? 'បានទស្សនា' : 'Watched')
+    if (rawTitle.toLowerCase().includes('quiz') || rawTitle.includes('បញ្ចប់') || a.type === 'check') {
+      label = currentLang.value === 'km' ? 'បានបញ្ចប់' : 'Completed'
+    } else if (rawTitle.toLowerCase().includes('download') || rawTitle.includes('ទាញយក') || a.type === 'doc') {
+      label = currentLang.value === 'km' ? 'ឯកសារ' : 'Resource'
     }
-  ]
+
+    return {
+      ...a,
+      cleanTitle,
+      actionLabel: label,
+      time: a.time || (currentLang.value === 'km' ? '៦ ម៉ោងមុន' : '6 hours ago')
+    }
+  })
 })
 </script>
 
@@ -790,7 +837,7 @@ const recentActivities = computed(() => {
       { label: currentLang === 'km' ? 'ផ្ទាំងគ្រប់គ្រង' : 'Dashboard' }
     ]"
   >
-    <div class="space-y-6 pb-12 notranslate" translate="no">
+    <div class="space-y-6 pb-24 notranslate" translate="no" style="padding-bottom: 96px;">
       
       <!-- TOP GREETING & QUICK SHORTCUTS ROW (Glassmorphic Hero Header) -->
       <div class="relative overflow-hidden rounded-3xl bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] p-5 sm:p-6 shadow-sm dark:shadow-xl">
@@ -1006,10 +1053,10 @@ const recentActivities = computed(() => {
               </Link>
             </div>
 
-            <div class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-[#0b57d0] hover:shadow-md hover:dark:border-[#1a73e8]/70 rounded-3xl p-6 sm:p-7 shadow-sm dark:shadow-xl flex flex-col md:flex-row items-center gap-5 sm:gap-6 relative overflow-hidden transition-all duration-300">
+            <div class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-[#0b57d0] hover:shadow-md hover:dark:border-[#1a73e8]/70 rounded-3xl p-6 shadow-sm dark:shadow-xl flex flex-col md:flex-row items-center gap-5 sm:gap-6 relative overflow-hidden transition-all duration-300">
               
               <!-- Real Course Thumbnail for Continue Learning -->
-              <div class="relative w-full md:w-36 h-28 rounded-2xl overflow-hidden shrink-0 shadow-md bg-slate-900 border border-[#dfe3e7] dark:border-[#2d2f31]">
+              <div class="relative w-full md:w-36 h-28 rounded-2xl overflow-hidden shrink-0 flex-shrink-0 shadow-md bg-slate-900 border border-[#dfe3e7] dark:border-[#2d2f31]">
                 <img
                   :src="continueCourseData.thumbnail || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=600&q=80'"
                   :alt="continueCourseData.title"
@@ -1027,13 +1074,13 @@ const recentActivities = computed(() => {
               <!-- Course Info and Progress -->
               <div class="flex-1 w-full space-y-3 min-w-0">
                 <div class="space-y-1">
-                  <span class="px-2.5 py-0.5 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/15 text-[#0b57d0] dark:text-[#a8c7fa] text-[10px] font-semibold border border-[#d2e3fc] dark:border-[#1a73e8]/30">
+                  <span class="px-2.5 py-0.5 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/15 text-[#475569] dark:text-[#a8c7fa] text-[13.5px] font-semibold border border-[#d2e3fc] dark:border-[#1a73e8]/30">
                     {{ currentLang === 'km' ? 'គ្រូបង្រៀន: ' : 'Teacher: ' }}{{ continueCourseData.teacher }}
                   </span>
                   <h3 class="text-base font-bold text-[#1f1f1f] dark:text-[#e3e3e3] leading-tight truncate">
                     {{ continueCourseData.title }}
                   </h3>
-                  <p class="text-xs text-[#444746] dark:text-[#c4c7c5] font-medium truncate">
+                  <p class="text-[13.5px] text-[#475569] dark:text-[#c4c7c5] font-medium truncate">
                     {{ continueCourseData.chapter }}
                   </p>
                 </div>
@@ -1043,9 +1090,9 @@ const recentActivities = computed(() => {
                   <div class="w-full h-2 rounded-full bg-[#e1e3e1] dark:bg-[#282a2c] overflow-hidden">
                     <div class="h-full bg-[#0b57d0] dark:bg-[#a8c7fa] rounded-full transition-all duration-900 ease-out" :style="{ width: continueCourseData.progress + '%' }"></div>
                   </div>
-                  <div class="flex items-center justify-between text-xs text-[#444746] dark:text-[#c4c7c5] font-medium min-w-0">
+                  <div class="flex items-center justify-between text-[13.5px] text-[#475569] dark:text-[#c4c7c5] font-medium min-w-0">
                     <span class="truncate min-w-0 flex-1 mr-3">{{ currentLang === 'km' ? 'មេរៀនចុងក្រោយ: ' : 'Last lesson: ' }}{{ continueCourseData.lastLesson }}</span>
-                    <span class="tabular-nums font-semibold flex items-center gap-1 shrink-0 whitespace-nowrap">
+                    <span class="tabular-nums font-semibold flex items-center gap-1 shrink-0 flex-shrink-0 whitespace-nowrap">
                       <svg class="w-3.5 h-3.5 text-[#0b57d0] dark:text-[#8ab4f8]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       {{ continueCourseData.timeLeft }}
                     </span>
@@ -1053,14 +1100,14 @@ const recentActivities = computed(() => {
                 </div>
               </div>
 
-              <!-- CTA Button (Gradient Purple-Blue with White Text) with safe padding -->
-              <div class="w-full md:w-auto shrink-0 py-1">
+              <!-- CTA Button (Gradient Purple-Blue with White Text) with safe padding 24px & flex-shrink 0 -->
+              <div class="w-full md:w-auto shrink-0 flex-shrink-0 py-1">
                 <Link
                   :href="continueCourseData.href"
-                  class="w-full md:w-auto px-6 py-3.5 rounded-full bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:from-[#4f46e5] hover:to-[#6d28d9] text-white font-semibold text-xs shadow-md shadow-indigo-500/25 flex items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all text-center cursor-pointer whitespace-nowrap"
+                  class="w-full md:w-auto px-6 py-3.5 rounded-full bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:from-[#4f46e5] hover:to-[#6d28d9] text-white font-semibold text-[13.5px] shadow-md shadow-indigo-500/25 flex items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all text-center cursor-pointer whitespace-nowrap shrink-0 flex-shrink-0"
                 >
                   <span>{{ currentLang === 'km' ? 'បន្តការសិក្សា' : 'Continue Learning' }}</span>
-                  <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                  <svg class="w-3.5 h-3.5 shrink-0 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                 </Link>
               </div>
 
@@ -1379,13 +1426,10 @@ const recentActivities = computed(() => {
           <!-- RECENT ACTIVITY SECTION (Inside Column ឆ្វេង under Analytics) -->
           <div class="space-y-3.5">
             <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-[#0b57d0] dark:bg-[#8ab4f8] animate-pulse"></span>
-                <h2 class="text-xs font-bold text-[#1f1f1f] dark:text-[#c4c7c5] uppercase tracking-wider">
-                  {{ currentLang === 'km' ? 'សកម្មភាពសិក្សាថ្មីៗ' : 'Recent Activity' }}
-                </h2>
-              </div>
-              <Link href="/student/progress/learning-time" class="text-xs text-[#0b57d0] dark:text-[#8ab4f8] hover:underline font-semibold flex items-center gap-1">
+              <h2 class="text-xs font-bold text-[#1f1f1f] dark:text-[#c4c7c5] uppercase tracking-wider">
+                {{ currentLang === 'km' ? 'សកម្មភាពសិក្សាថ្មីៗ' : 'Recent Activity' }}
+              </h2>
+              <Link href="/student/progress/learning-time" class="text-[13.5px] text-[#0b57d0] dark:text-[#8ab4f8] hover:underline font-semibold flex items-center gap-1">
                 <span>{{ currentLang === 'km' ? 'មើលប្រវត្តិទាំងអស់' : 'View Full History' }}</span>
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
               </Link>
@@ -1396,9 +1440,9 @@ const recentActivities = computed(() => {
                 v-for="act in recentActivities"
                 :key="act.id"
                 :href="act.href"
-                class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-[#0b57d0] hover:dark:border-[#1a73e8]/70 rounded-2xl p-4 shadow-sm dark:shadow-xl transition-all duration-200 hover:-translate-y-1 hover:shadow-md flex items-start gap-3.5 group cursor-pointer"
+                class="bg-white dark:bg-[#1e1f20] border border-transparent hover:border-[#dfe3e7] dark:hover:border-[#3c4043] rounded-2xl p-4 shadow-xs hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 flex items-start gap-3.5 group cursor-pointer"
               >
-                <div :class="[act.iconBg, 'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-200']">
+                <div :class="[act.iconBg, 'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 flex-shrink-0 group-hover:scale-105 transition-transform duration-200']">
                   <!-- Play SVG -->
                   <svg v-if="act.type === 'play'" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                   <!-- Checkmark SVG -->
@@ -1408,14 +1452,22 @@ const recentActivities = computed(() => {
                 </div>
 
                 <div class="flex-1 min-w-0 space-y-1">
-                  <h4 class="font-bold text-[#1f1f1f] dark:text-[#e3e3e3] text-xs leading-snug line-clamp-1 group-hover:text-[#0b57d0] dark:group-hover:text-[#8ab4f8] transition-colors" :title="act.title">
-                    {{ act.title }}
+                  <!-- Label តូច (Watched / Completed / Resource) -->
+                  <div class="flex items-center gap-1.5 mb-0.5">
+                    <span class="px-2 py-0.5 rounded text-[10.5px] font-semibold bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300">
+                      {{ act.actionLabel }}
+                    </span>
+                  </div>
+                  <!-- ចំណងជើង ២ ជួរ -->
+                  <h4 class="font-bold text-[#1f1f1f] dark:text-[#e3e3e3] text-sm leading-snug line-clamp-2 min-h-[2.5rem] group-hover:text-[#0b57d0] dark:group-hover:text-[#8ab4f8] transition-colors" :title="act.cleanTitle">
+                    {{ act.cleanTitle }}
                   </h4>
-                  <p class="text-xs text-[#444746] dark:text-[#c4c7c5] truncate font-medium">
+                  <p class="text-[13.5px] text-[#475569] dark:text-[#c4c7c5] truncate font-medium">
                     {{ act.course }}
                   </p>
-                  <p class="text-xs text-[#444746] dark:text-[#c4c7c5] tabular-nums font-semibold flex items-center gap-1 pt-1 border-t border-[#dfe3e7] dark:border-[#2d2f31]">
-                    <svg class="w-3.5 h-3.5 text-[#0b57d0] dark:text-[#8ab4f8]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <!-- ម៉ោងនៅ small ពណ៌ប្រផេះ -->
+                  <p class="text-[12px] text-slate-500 dark:text-slate-400 tabular-nums flex items-center gap-1.5 pt-1.5 border-t border-slate-100 dark:border-slate-800">
+                    <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     <span>{{ act.time }}</span>
                   </p>
                 </div>
@@ -1515,40 +1567,35 @@ const recentActivities = computed(() => {
             </div>
           </div>
 
-          <!-- AI RECOMMENDED FOR YOU CARD (Uniform border, hover blue border) -->
+          <!-- AI RECOMMENDED FOR YOU CARD (Uniform thin border, single header) -->
           <div class="relative overflow-hidden bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-[#0b57d0] dark:hover:border-[#8ab4f8] rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3.5 transition-all">
             <div class="flex items-center justify-between">
-              <div class="space-y-1">
-                <span class="text-[10px] font-bold text-[#0b57d0] dark:text-[#8ab4f8] tracking-widest uppercase">
-                  RECOMMENDED
-                </span>
-                <div class="flex items-center gap-2">
-                  <!-- Google Gemini 4-Point Sparkle Icon -->
-                  <div class="w-6 h-6 rounded-lg bg-gradient-to-tr from-purple-600 to-indigo-600 dark:from-transparent dark:to-transparent text-white flex items-center justify-center shadow-sm shrink-0">
-                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
-                      <defs>
-                        <linearGradient id="geminiSparkleHead" x1="0" y1="0" x2="1" y2="1">
-                          <stop offset="0%" stop-color="#4285F4" />
-                          <stop offset="35%" stop-color="#9B72CB" />
-                          <stop offset="70%" stop-color="#EA4335" />
-                          <stop offset="100%" stop-color="#FBBC05" />
-                        </linearGradient>
-                      </defs>
-                      <path d="M12 2C12 7.52285 7.52285 12 2 12C7.52285 12 12 16.4772 12 22C12 16.4772 16.4772 12 22 12C16.4772 12 12 7.52285 12 2Z" fill="url(#geminiSparkleHead)" />
-                    </svg>
-                  </div>
-                  <h3 class="text-xs font-bold text-[#1f1f1f] dark:text-[#e3e3e3] uppercase tracking-wider">
-                    {{ currentLang === 'km' ? 'AI ណែនាំសម្រាប់អ្នក' : 'AI Recommended For You' }}
-                  </h3>
+              <div class="flex items-center gap-2">
+                <!-- Google Gemini 4-Point Sparkle Icon -->
+                <div class="w-6 h-6 rounded-lg bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-xs shrink-0 flex-shrink-0">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
+                    <defs>
+                      <linearGradient id="geminiSparkleHead" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="#4285F4" />
+                        <stop offset="35%" stop-color="#9B72CB" />
+                        <stop offset="70%" stop-color="#EA4335" />
+                        <stop offset="100%" stop-color="#FBBC05" />
+                      </linearGradient>
+                    </defs>
+                    <path d="M12 2C12 7.52285 7.52285 12 2 12C7.52285 12 12 16.4772 12 22C12 16.4772 16.4772 12 22 12C16.4772 12 12 7.52285 12 2Z" fill="url(#geminiSparkleHead)" />
+                  </svg>
                 </div>
+                <h3 class="text-xs font-bold text-[#1f1f1f] dark:text-[#e3e3e3] uppercase tracking-wider">
+                  {{ currentLang === 'km' ? 'AI ណែនាំសម្រាប់អ្នក' : 'AI Recommended For You' }}
+                </h3>
               </div>
 
-              <Link href="/student/ai-path/recommended" class="text-[10px] text-[#0b57d0] dark:text-[#8ab4f8] hover:underline font-semibold">
+              <Link href="/student/ai-path/recommended" class="text-[13.5px] text-[#0b57d0] dark:text-[#8ab4f8] hover:underline font-semibold">
                 {{ currentLang === 'km' ? 'ផែនទីសិក្សា' : 'Roadmap' }}
               </Link>
             </div>
 
-            <p class="text-[11px] text-[#444746] dark:text-[#c4c7c5] font-medium">
+            <p class="text-[13.5px] text-[#475569] dark:text-[#c4c7c5] font-medium">
               {{ currentLang === 'km' ? 'ផ្អែកលើពិន្ទុ Quiz ថ្មីៗ និងល្បឿននៃការរៀនរបស់អ្នក:' : 'Based on your recent quiz scores & learning pace:' }}
             </p>
 
@@ -1559,26 +1606,26 @@ const recentActivities = computed(() => {
                 class="p-3.5 rounded-2xl bg-[#f8fafd] dark:bg-[#131314] border border-[#dfe3e7] dark:border-[#2d2f31] space-y-2"
               >
                 <div class="flex items-center justify-between">
-                  <h4 class="font-bold text-[#1f1f1f] dark:text-[#e3e3e3] text-xs">{{ rec.title }}</h4>
-                  <span class="px-2.5 py-0.5 rounded-full text-[9px] font-semibold bg-[#d3e3fd] text-[#041e49] border border-[#0b57d0]/20 dark:bg-[#1a73e8]/20 dark:text-[#a8c7fa] dark:border-[#1a73e8]/30">
+                  <h4 class="font-bold text-[#1f1f1f] dark:text-[#e3e3e3] text-sm">{{ rec.title }}</h4>
+                  <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#d3e3fd] text-[#041e49] border border-[#0b57d0]/20 dark:bg-[#1a73e8]/20 dark:text-[#a8c7fa] dark:border-[#1a73e8]/30">
                     {{ rec.badge }}
                   </span>
                 </div>
-                <p class="text-[10px] text-[#444746] dark:text-[#c4c7c5] leading-relaxed">{{ rec.desc }}</p>
+                <p class="text-[13.5px] text-[#475569] dark:text-[#c4c7c5] leading-relaxed">{{ rec.desc }}</p>
                 
                 <div class="pt-1 flex items-center justify-between">
                   <!-- Action Button: purple-blue gradient (#6366f1 -> #7c3aed) + white text (WCAG AA) -->
                   <Link
                     :href="rec.actionHref"
-                    class="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-[10px] font-semibold shadow-md shadow-indigo-500/25 transition-all hover:scale-105 active:scale-95 bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:from-[#4f46e5] hover:to-[#6d28d9] text-white"
+                    class="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-semibold shadow-md shadow-indigo-500/25 transition-all hover:scale-105 active:scale-95 bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:from-[#4f46e5] hover:to-[#6d28d9] text-white"
                   >
                     <span>{{ rec.actionLabel }}</span>
-                    <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                   </Link>
 
                   <!-- Gemini Signature Branding -->
-                  <div class="flex items-center gap-1 text-[10px] text-[#747775] dark:text-[#8e918f] font-medium">
-                    <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none">
+                  <div class="flex items-center gap-1 text-[13.5px] text-[#475569] dark:text-[#8e918f] font-medium">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
                       <path d="M12 2C12 7.52285 7.52285 12 2 12C7.52285 12 12 16.4772 12 22C12 16.4772 16.4772 12 22 12C16.4772 12 12 7.52285 12 2Z" fill="url(#geminiSparkleHead)" />
                     </svg>
                     <span>Gemini AI</span>
@@ -1740,13 +1787,13 @@ const recentActivities = computed(() => {
             </form>
           </div>
 
-          <!-- ACHIEVEMENTS BADGES CARD with 2-line wrapped titles & native tooltip -->
+          <!-- ACHIEVEMENTS BADGES CARD with equal min-height labels, brand colors & floating tooltip -->
           <div class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3">
             <div class="flex items-center justify-between">
               <h3 class="text-xs font-bold text-[#1f1f1f] dark:text-[#e3e3e3] uppercase tracking-wider">
                 {{ currentLang === 'km' ? 'សមិទ្ធផល' : 'Achievements' }}
               </h3>
-              <Link href="/student/certificates/achievements" class="text-xs text-[#0b57d0] dark:text-[#8ab4f8] hover:underline font-semibold">
+              <Link href="/student/certificates/achievements" class="text-[13.5px] text-[#0b57d0] dark:text-[#8ab4f8] hover:underline font-semibold">
                 {{ currentLang === 'km' ? 'មើលទាំងអស់' : 'View All' }}
               </Link>
             </div>
@@ -1756,24 +1803,34 @@ const recentActivities = computed(() => {
                 v-for="ach in achievements"
                 :key="ach.title"
                 :href="ach.href"
-                :title="ach.title"
-                class="flex flex-col items-center gap-1.5 group text-center cursor-pointer"
+                class="relative flex flex-col items-center gap-2 group text-center cursor-pointer"
               >
-                <div :class="['w-10 h-10 rounded-xl bg-gradient-to-tr', ach.color, 'flex items-center justify-center text-white text-sm shadow-md group-hover:scale-110 transition-transform duration-200']">
-                  <!-- Flame / Streak SVG -->
-                  <svg v-if="ach.type === 'flame'" class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"/></svg>
-                  <!-- Book SVG -->
-                  <svg v-else-if="ach.type === 'book'" class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-                  <!-- Star SVG -->
-                  <svg v-else-if="ach.type === 'star'" class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/></svg>
-                  <!-- Lightning Bolt SVG -->
-                  <svg v-else-if="ach.type === 'bolt'" class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
-                  <!-- Trophy SVG -->
-                  <svg v-else class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.003 0H9.497m5.003 0a3 3 0 002.828-2.002l1.636-4.908A1.125 1.125 0 0017.896 6H6.104a1.125 1.125 0 00-1.068 1.465l1.636 4.908a3 3 0 002.828 2.002z"/></svg>
+                <!-- Interactive Floating Tooltip on hover/focus -->
+                <div class="absolute -top-11 left-1/2 -translate-x-1/2 px-2.5 py-1 bg-slate-900 dark:bg-slate-800 text-white text-[11px] font-medium rounded-lg shadow-xl opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 whitespace-nowrap z-30 transform group-hover:-translate-y-1">
+                  <span>{{ ach.desc }}</span>
+                  <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900 dark:border-t-slate-800"></div>
                 </div>
-                <span class="text-[11px] font-medium text-[#444746] dark:text-[#c4c7c5] leading-tight max-w-[76px] text-center line-clamp-2">
-                  {{ ach.title }}
-                </span>
+
+                <!-- Brand Color Badge Icon Container -->
+                <div :class="['w-11 h-11 rounded-2xl bg-gradient-to-tr', ach.color, 'flex items-center justify-center text-white text-base shadow-md group-hover:scale-110 group-hover:shadow-lg transition-all duration-200 ring-2 ring-white/20 dark:ring-white/10']">
+                  <!-- Flame / Streak SVG -->
+                  <svg v-if="ach.type === 'flame'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"/></svg>
+                  <!-- Book SVG -->
+                  <svg v-else-if="ach.type === 'book'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                  <!-- Star SVG -->
+                  <svg v-else-if="ach.type === 'star'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/></svg>
+                  <!-- Lightning Bolt SVG -->
+                  <svg v-else-if="ach.type === 'bolt'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
+                  <!-- Trophy SVG -->
+                  <svg v-else class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.003 0H9.497m5.003 0a3 3 0 002.828-2.002l1.636-4.908A1.125 1.125 0 0017.896 6H6.104a1.125 1.125 0 00-1.068 1.465l1.636 4.908a3 3 0 002.828 2.002z"/></svg>
+                </div>
+
+                <!-- Equal min-height label container (min-h-[36px]) with text >=13.5px and color #475569 -->
+                <div class="min-h-[36px] flex items-center justify-center">
+                  <span class="text-[13.5px] font-semibold text-[#475569] dark:text-[#c4c7c5] leading-tight max-w-[80px] text-center line-clamp-2 group-hover:text-[#0b57d0] dark:group-hover:text-[#8ab4f8] transition-colors">
+                    {{ ach.title }}
+                  </span>
+                </div>
               </Link>
             </div>
           </div>
