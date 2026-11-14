@@ -21,12 +21,10 @@ const offlineIconUrl = '/images/nav/offline.svg'
 const props = defineProps<{
   title?: string
   breadcrumbs?: Array<{ label: string; href?: string }>
-  hideFloatingAi?: boolean
 }>()
 
 const page = usePage<any>()
 const user = computed(() => page.props.auth?.user || {})
-const isDashboard = computed(() => page.url === '/student/dashboard' || page.url.startsWith('/student/dashboard'))
 
 const studentDisplayName = computed(() => {
   const name = user.value?.name
@@ -1653,8 +1651,8 @@ const onIconError = (e: Event) => {
       </div>
     </main>
 
-    <!-- 24/7 AI Tutor Assistant Floating Button & Drawer (Hidden on Dashboard to avoid duplicate) -->
-    <AiTutorFloatingWidget v-if="!hideFloatingAi && !isDashboard" />
+    <!-- 24/7 AI Tutor Assistant Floating Button & Drawer -->
+    <AiTutorFloatingWidget />
 
     <!-- Logout Confirmation Modal (Centered, Glassmorphic, Modern) -->
     <LogoutConfirmModal
