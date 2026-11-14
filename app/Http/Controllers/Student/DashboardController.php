@@ -157,44 +157,7 @@ class DashboardController extends Controller
         }
 
         // 2. Compute Real / Fallback Stats with mathematical consistency
-        $enrolledCount = $enrollments->count();
-        $inProgressCount = $computedActive;
-        $completedCount = $computedCompleted;
-
-        try {
-            $certsCount = Certificate::where('student_id', $user->id)->whereIn('status', ['valid', 'issued'])->count();
-        } catch (\Throwable $e) {
-            $certsCount = 0;
-        }
-
-        try {
-            $avgScore = QuizAttempt::where('user_id', $user->id)->avg('score');
-            $avgScoreFormatted = $avgScore ? round($avgScore) . '%' : '89%';
-        } catch (\Throwable $e) {
-            $avgScoreFormatted = '89%';
-        }
-
-        try {
-            $lessonProgressCount = LessonProgress::where('user_id', $user->id)->count();
-            $learningTime = $lessonProgressCount > 0 ? (floor($lessonProgressCount * 45 / 60) . 'h ' . ($lessonProgressCount * 45 % 60) . 'm') : '28h 45m';
-        } catch (\Throwable $e) {
-            $learningTime = '28h 45m';
-        }
-
-        // Maintain consistent logic: enrolled = active + completed + not_started
-        $finalEnrolled = $enrolledCount > 0 ? $enrolledCount : 9;
-        $finalInProgress = $enrolledCount > 0 ? $inProgressCount : 3;
-        $finalCompleted = $enrolledCount > 0 ? $completedCount : 4;
-        $finalCerts = $certsCount > 0 ? $certsCount : ($finalCompleted > 0 ? $finalCompleted : 4);
-
-        $statsData = [
-            'enrolledCount'     => $finalEnrolled,
-            'inProgressCount'   => $finalInProgress,
-            'completedCount'    => $finalCompleted,
-            'certificatesCount' => $finalCerts,
-            'learningTime'      => $learningTime,
-            'averageScore'      => $avgScoreFormatted,
-        ];
+        $statsData = $this->computeStats($user);
 
         // 3. Active / Continue Course
         $firstActive = $enrollments->first(function ($e) {
@@ -243,6 +206,96 @@ class DashboardController extends Controller
             'stats'          => $statsData,
             'continueCourse' => $continueCourseData,
             'dbCourses'      => $myCoursesList,
+        ]);
+    }
+
+    /**
+     * Compute mathematically consistent real database stats for student dashboard.
+     */
+    public function computeStats($user): array
+    {
+        try {
+            $enrollments = Enrollment::where('student_id', $user->id)->get();
+        } catch (\Throwable $e) {
+            $enrollments = collect();
+        }
+
+        $computedActive = 0;
+        $computedCompleted = 0;
+        if ($enrollments->isNotEmpty()) {
+            foreach ($enrollments as $enr) {
+                if ($enr->status === 'completed') {
+                    $computedCompleted++;
+                } elseif ($enr->status === 'active') {
+                    $computedActive++;
+                }
+            }
+        }
+
+        $enrolledCount = $enrollments->count();
+        $inProgressCount = $computedActive;
+        $completedCount = $computedCompleted;
+
+        try {
+            $certsCount = Certificate::where('student_id', $user->id)->whereIn('status', ['valid', 'issued'])->count();
+        } catch (\Throwable $e) {
+            $certsCount = 0;
+        }
+
+        try {
+            $avgScore = QuizAttempt::where('user_id', $user->id)->whereNotNull('score')->avg('score');
+            $avgScoreNum = $avgScore !== null ? (int) round($avgScore) : 0;
+            $avgScoreFormatted = $avgScore !== null ? $avgScoreNum . '%' : '0%';
+        } catch (\Throwable $e) {
+            $avgScoreNum = 0;
+            $avgScoreFormatted = '0%';
+        }
+
+        try {
+            $totalSeconds = LessonProgress::where('user_id', $user->id)->sum('seconds_watched');
+            if ($totalSeconds > 0) {
+                $studyHours = (int) floor($totalSeconds / 3600);
+                $studyMinutes = (int) floor(($totalSeconds % 3600) / 60);
+            } else {
+                $completedLessons = LessonProgress::where('user_id', $user->id)->whereNotNull('completed_at')->count();
+                $studyHours = (int) floor(($completedLessons * 30) / 60);
+                $studyMinutes = (int) (($completedLessons * 30) % 60);
+            }
+            $learningTime = "{$studyHours}h {$studyMinutes}m";
+        } catch (\Throwable $e) {
+            $studyHours = 0;
+            $studyMinutes = 0;
+            $learningTime = '0h 0m';
+        }
+
+        return [
+            'enrolledCount'     => (int) $enrolledCount,
+            'inProgressCount'   => (int) $inProgressCount,
+            'completedCount'    => (int) $completedCount,
+            'certificatesCount' => (int) $certsCount,
+            'learningTime'      => $learningTime,
+            'studyHours'        => (int) $studyHours,
+            'studyMinutes'      => (int) $studyMinutes,
+            'averageScore'      => $avgScoreFormatted,
+            'averageScoreNum'   => (int) $avgScoreNum,
+        ];
+    }
+
+    /**
+     * Official JSON API Endpoint for asynchronous loading, skeleton, and count-up animation.
+     */
+    public function apiStats(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+
+        $stats = $this->computeStats($user);
+
+        return response()->json([
+            'success' => true,
+            'stats'   => $stats,
         ]);
     }
 }

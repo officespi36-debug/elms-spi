@@ -109,6 +109,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/certificate/download/{certificate}', [CertificateController::class, 'download'])->name('certificate.download');
 
     // Dashboard Direct API Endpoints
+    Route::get('/api/student/dashboard', [Student\DashboardController::class, 'apiStats'])->name('api.student.dashboard');
     Route::prefix('api/admin/dashboard')->group(function () {
         Route::get('/summary', [Admin\DashboardController::class, 'apiSummary']);
         Route::get('/kpis', [Admin\DashboardController::class, 'apiKpis']);

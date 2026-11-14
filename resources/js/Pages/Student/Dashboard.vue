@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { Link, usePage } from '@inertiajs/vue3'
 import StudentLayout from '@/Layouts/StudentLayout.vue'
 import { i18n } from '@/Services/i18n'
@@ -12,6 +12,9 @@ const props = defineProps<{
     certificatesCount: number
     learningTime: string
     averageScore: string
+    studyHours?: number
+    studyMinutes?: number
+    averageScoreNum?: number
   }
   continueCourse?: {
     title: string
@@ -42,69 +45,265 @@ const page = usePage<any>()
 const user = computed(() => page.props.auth?.user || {})
 const currentLang = computed(() => i18n.locale.value)
 
-// 6 Top Stats Metrics styled like the Admin Dashboard with vibrant gradients & sparklines
-const statsCards = computed(() => [
-  {
-    type: 'enrolled',
-    title: currentLang.value === 'km' ? 'វគ្គសិក្សាបានចុះឈ្មោះ' : 'ENROLLED COURSES',
-    value: props.stats?.enrolledCount?.toString() || '6',
-    subtitle: currentLang.value === 'km' ? '▲ វគ្គសិក្សាសរុប' : '▲ Total Enrolled',
-    gradient: 'from-[#7c3aed] to-[#6366f1]',
-    wavePath: 'M0 18 Q 20 4, 40 14 T 70 6 T 100 12 L 100 25 L 0 25 Z',
-    waveLine: 'M0 18 Q 20 4, 40 14 T 70 6 T 100 12',
-    href: '/student/my-courses/enrolled'
-  },
-  {
-    type: 'in_progress',
-    title: currentLang.value === 'km' ? 'កំពុងសិក្សា' : 'IN PROGRESS',
-    value: props.stats?.inProgressCount?.toString() || '2',
-    subtitle: currentLang.value === 'km' ? '▲ វគ្គសិក្សាសកម្ម' : '▲ Active Learning',
-    gradient: 'from-[#0284c7] to-[#2563eb]',
-    wavePath: 'M0 20 Q 25 8, 45 16 T 75 4 T 100 10 L 100 25 L 0 25 Z',
-    waveLine: 'M0 20 Q 25 8, 45 16 T 75 4 T 100 10',
-    href: '/student/my-courses/enrolled'
-  },
-  {
-    type: 'completed',
-    title: currentLang.value === 'km' ? 'បានបញ្ចប់' : 'COMPLETED',
-    value: props.stats?.completedCount?.toString() || '4',
-    subtitle: currentLang.value === 'km' ? '▲ ជោគជ័យ ១០០%' : '▲ Finished Courses',
-    gradient: 'from-[#10b981] to-[#059669]',
-    wavePath: 'M0 16 Q 20 22, 45 8 T 75 14 T 100 4 L 100 25 L 0 25 Z',
-    waveLine: 'M0 16 Q 20 22, 45 8 T 75 14 T 100 4',
-    href: '/student/my-courses/completed'
-  },
-  {
-    type: 'certificates',
-    title: currentLang.value === 'km' ? 'វិញ្ញាបនបត្រ' : 'CERTIFICATES',
-    value: props.stats?.certificatesCount?.toString() || '1',
-    subtitle: currentLang.value === 'km' ? '★ ទទួលបាន' : '★ Verified & Earned',
-    gradient: 'from-[#f59e0b] to-[#d97706]',
-    wavePath: 'M0 18 Q 20 6, 45 16 T 75 8 T 100 14 L 100 25 L 0 25 Z',
-    waveLine: 'M0 18 Q 20 6, 45 16 T 75 8 T 100 14',
-    href: '/student/certificates/my-certificates'
-  },
-  {
-    type: 'study_time',
-    title: currentLang.value === 'km' ? 'ម៉ោងសិក្សា' : 'STUDY TIME',
-    value: props.stats?.learningTime || (currentLang.value === 'km' ? '២៨h ៤៥m' : '28h 45m'),
-    subtitle: currentLang.value === 'km' ? '⏱ ម៉ោងសរុប' : '⏱ Total Hours Spent',
-    gradient: 'from-[#06b6d4] to-[#0d9488]',
-    wavePath: 'M0 19 Q 25 10, 50 18 T 80 8 T 100 12 L 100 25 L 0 25 Z',
-    waveLine: 'M0 19 Q 25 10, 50 18 T 80 8 T 100 12',
-    href: '/student/progress/learning-time'
-  },
-  {
-    type: 'quiz_avg',
-    title: currentLang.value === 'km' ? 'មធ្យមភាគ QUIZ' : 'QUIZ AVERAGE',
-    value: props.stats?.averageScore || '78%',
-    subtitle: currentLang.value === 'km' ? '★ ពិន្ទុមធ្យមរបស់អ្នក' : '★ Academic Score',
-    gradient: 'from-[#ec4899] to-[#8b5cf6]',
-    wavePath: 'M0 12 Q 25 20, 50 10 T 75 16 T 100 6 L 100 25 L 0 25 Z',
-    waveLine: 'M0 12 Q 25 20, 50 10 T 75 16 T 100 6',
-    href: '/student/quizzes/scores'
+// ─── Official Dashboard Loading & Animation System (DL-01 to DL-08) ───
+const loading = ref(true)
+const loadingStep = ref<'skeleton' | 'counting' | 'ready'>('skeleton')
+const error = ref('')
+const liveStats = ref<any>(null)
+
+// Animated count-up values (DL-04)
+const animatedEnrolled = ref(0)
+const animatedInProgress = ref(0)
+const animatedCompleted = ref(0)
+const animatedCertificates = ref(0)
+const animatedStudyHours = ref(0)
+const animatedStudyMinutes = ref(0)
+const animatedQuizAvg = ref(0)
+
+const parseStudyTime = (timeStr: string) => {
+  if (!timeStr) return { hours: 12, minutes: 0 }
+  const hMatch = timeStr.match(/(\d+)\s*h/)
+  const mMatch = timeStr.match(/(\d+)\s*m/)
+  return {
+    hours: hMatch ? parseInt(hMatch[1], 10) : 12,
+    minutes: mMatch ? parseInt(mMatch[1], 10) : 0,
   }
-])
+}
+
+const parseScoreNum = (scoreStr: any) => {
+  if (typeof scoreStr === 'number') return scoreStr
+  if (!scoreStr) return 89
+  const num = parseInt(scoreStr.toString().replace(/[^0-9]/g, ''), 10)
+  return isNaN(num) ? 89 : num
+}
+
+function runCountUp(targets: {
+  enrolled: number
+  inProgress: number
+  completed: number
+  certificates: number
+  studyHours: number
+  studyMinutes: number
+  quizAvg: number
+}) {
+  const prefersReduced = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+  if (prefersReduced) {
+    animatedEnrolled.value = targets.enrolled
+    animatedInProgress.value = targets.inProgress
+    animatedCompleted.value = targets.completed
+    animatedCertificates.value = targets.certificates
+    animatedStudyHours.value = targets.studyHours
+    animatedStudyMinutes.value = targets.studyMinutes
+    animatedQuizAvg.value = targets.quizAvg
+    loadingStep.value = 'ready'
+    loading.value = false
+    return
+  }
+
+  loadingStep.value = 'counting'
+  const duration = 1200 // 1.2s smooth count-up
+  const startTime = performance.now()
+
+  function step(currentTime: number) {
+    const elapsed = currentTime - startTime
+    const progress = Math.min(elapsed / duration, 1)
+    // Ease-out cubic curve: 1 - (1 - progress)^3
+    const easeOut = 1 - Math.pow(1 - progress, 3)
+
+    animatedEnrolled.value = Math.round(targets.enrolled * easeOut)
+    animatedInProgress.value = Math.round(targets.inProgress * easeOut)
+    animatedCompleted.value = Math.round(targets.completed * easeOut)
+    animatedCertificates.value = Math.round(targets.certificates * easeOut)
+    animatedStudyHours.value = Math.round(targets.studyHours * easeOut)
+    animatedStudyMinutes.value = Math.round(targets.studyMinutes * easeOut)
+    animatedQuizAvg.value = Math.round(targets.quizAvg * easeOut)
+
+    if (progress < 1) {
+      requestAnimationFrame(step)
+    } else {
+      loadingStep.value = 'ready'
+      loading.value = false
+    }
+  }
+
+  requestAnimationFrame(step)
+}
+
+async function loadDashboard() {
+  loading.value = true
+  loadingStep.value = 'skeleton'
+  error.value = ''
+
+  // Give 700ms minimum skeleton display for silky smooth UX (DL-01, DL-02)
+  const minSkeletonPromise = new Promise(resolve => setTimeout(resolve, 700))
+
+  try {
+    const response = await fetch('/api/student/dashboard', {
+      credentials: 'same-origin',
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+
+    if (!response.ok) {
+      if (props.stats) {
+        liveStats.value = props.stats
+      } else {
+        throw new Error('Dashboard API request failed (' + response.status + ')')
+      }
+    } else {
+      const data = await response.json()
+      liveStats.value = data.stats || data
+    }
+  } catch (err: any) {
+    if (props.stats) {
+      liveStats.value = props.stats
+    } else {
+      error.value = err.message || (currentLang.value === 'km' ? 'មិនអាចទាញយកទិន្នន័យស្ថិតិបានទេ' : 'Unable to load dashboard data.')
+      loading.value = false
+      return
+    }
+  }
+
+  await minSkeletonPromise
+
+  const activeStats = liveStats.value || props.stats || {}
+  const targetEnrolled = Number(activeStats.enrolledCount ?? 0)
+  const targetInProgress = Number(activeStats.inProgressCount ?? 0)
+  const targetCompleted = Number(activeStats.completedCount ?? 0)
+  const targetCerts = Number(activeStats.certificatesCount ?? 0)
+  const parsedTime = parseStudyTime(activeStats.learningTime || '0h 0m')
+  const targetQuiz = parseScoreNum(activeStats.averageScore ?? activeStats.averageScoreNum ?? 0)
+
+  runCountUp({
+    enrolled: targetEnrolled,
+    inProgress: targetInProgress,
+    completed: targetCompleted,
+    certificates: targetCerts,
+    studyHours: parsedTime.hours,
+    studyMinutes: parsedTime.minutes,
+    quizAvg: targetQuiz
+  })
+}
+
+function manualSetStep(step: 'skeleton' | 'counting' | 'ready') {
+  if (step === 'skeleton') {
+    loading.value = true
+    loadingStep.value = 'skeleton'
+  } else if (step === 'counting') {
+    loading.value = true
+    const activeStats = liveStats.value || props.stats || {}
+    const targetEnrolled = Number(activeStats.enrolledCount ?? 0)
+    const targetInProgress = Number(activeStats.inProgressCount ?? 0)
+    const targetCompleted = Number(activeStats.completedCount ?? 0)
+    const targetCerts = Number(activeStats.certificatesCount ?? 0)
+    const parsedTime = parseStudyTime(activeStats.learningTime || '0h 0m')
+    const targetQuiz = parseScoreNum(activeStats.averageScore ?? activeStats.averageScoreNum ?? 0)
+
+    runCountUp({
+      enrolled: targetEnrolled,
+      inProgress: targetInProgress,
+      completed: targetCompleted,
+      certificates: targetCerts,
+      studyHours: parsedTime.hours,
+      studyMinutes: parsedTime.minutes,
+      quizAvg: targetQuiz
+    })
+  } else if (step === 'ready') {
+    loading.value = false
+    loadingStep.value = 'ready'
+  }
+}
+
+onMounted(() => {
+  loadDashboard()
+})
+
+// 6 Top Stats Metrics styled like the Admin Dashboard with vibrant gradients & sparklines
+const statsCards = computed(() => {
+  const activeStats = liveStats.value || props.stats || {}
+
+  let enrolledDisplay = (activeStats.enrolledCount ?? 0).toString()
+  let inProgressDisplay = (activeStats.inProgressCount ?? 0).toString()
+  let completedDisplay = (activeStats.completedCount ?? 0).toString()
+  let certsDisplay = (activeStats.certificatesCount ?? 0).toString()
+  let studyTimeDisplay = activeStats.learningTime || '0h 0m'
+  let quizAvgDisplay = activeStats.averageScore || '0%'
+
+  if (loadingStep.value === 'counting') {
+    enrolledDisplay = `0 → ${animatedEnrolled.value}`
+    inProgressDisplay = `0 → ${animatedInProgress.value}`
+    completedDisplay = `0 → ${animatedCompleted.value}`
+    certsDisplay = `0 → ${animatedCertificates.value}`
+    studyTimeDisplay = `0h → ${animatedStudyHours.value}h ${animatedStudyMinutes.value}m`
+    quizAvgDisplay = `0% → ${animatedQuizAvg.value}%`
+  }
+
+  return [
+    {
+      type: 'enrolled',
+      title: currentLang.value === 'km' ? 'វគ្គសិក្សាបានចុះឈ្មោះ' : 'ENROLLED COURSES',
+      value: enrolledDisplay,
+      subtitle: currentLang.value === 'km' ? '▲ វគ្គសិក្សាសរុប' : '▲ Total Enrolled',
+      gradient: 'from-[#7c3aed] to-[#6366f1]',
+      wavePath: 'M0 18 Q 20 4, 40 14 T 70 6 T 100 12 L 100 25 L 0 25 Z',
+      waveLine: 'M0 18 Q 20 4, 40 14 T 70 6 T 100 12',
+      href: '/student/my-courses/enrolled'
+    },
+    {
+      type: 'in_progress',
+      title: currentLang.value === 'km' ? 'កំពុងសិក្សា' : 'IN PROGRESS',
+      value: inProgressDisplay,
+      subtitle: currentLang.value === 'km' ? '▲ វគ្គសិក្សាសកម្ម' : '▲ Active Learning',
+      gradient: 'from-[#0284c7] to-[#2563eb]',
+      wavePath: 'M0 20 Q 25 8, 45 16 T 75 4 T 100 10 L 100 25 L 0 25 Z',
+      waveLine: 'M0 20 Q 25 8, 45 16 T 75 4 T 100 10',
+      href: '/student/my-courses/enrolled'
+    },
+    {
+      type: 'completed',
+      title: currentLang.value === 'km' ? 'បានបញ្ចប់' : 'COMPLETED',
+      value: completedDisplay,
+      subtitle: currentLang.value === 'km' ? '▲ ជោគជ័យ ១០០%' : '▲ Finished Courses',
+      gradient: 'from-[#10b981] to-[#059669]',
+      wavePath: 'M0 16 Q 20 22, 45 8 T 75 14 T 100 4 L 100 25 L 0 25 Z',
+      waveLine: 'M0 16 Q 20 22, 45 8 T 75 14 T 100 4',
+      href: '/student/my-courses/completed'
+    },
+    {
+      type: 'certificates',
+      title: currentLang.value === 'km' ? 'វិញ្ញាបនបត្រ' : 'CERTIFICATES',
+      value: certsDisplay,
+      subtitle: currentLang.value === 'km' ? '★ ទទួលបាន' : '★ Verified & Earned',
+      gradient: 'from-[#f59e0b] to-[#d97706]',
+      wavePath: 'M0 18 Q 20 6, 45 16 T 75 8 T 100 14 L 100 25 L 0 25 Z',
+      waveLine: 'M0 18 Q 20 6, 45 16 T 75 8 T 100 14',
+      href: '/student/certificates/my-certificates'
+    },
+    {
+      type: 'study_time',
+      title: currentLang.value === 'km' ? 'ម៉ោងសិក្សា' : 'STUDY TIME',
+      value: studyTimeDisplay,
+      subtitle: currentLang.value === 'km' ? '⏱ ម៉ោងសរុប' : '⏱ Total Hours Spent',
+      gradient: 'from-[#06b6d4] to-[#0d9488]',
+      wavePath: 'M0 19 Q 25 10, 50 18 T 80 8 T 100 12 L 100 25 L 0 25 Z',
+      waveLine: 'M0 19 Q 25 10, 50 18 T 80 8 T 100 12',
+      href: '/student/progress/learning-time'
+    },
+    {
+      type: 'quiz_avg',
+      title: currentLang.value === 'km' ? 'មធ្យមភាគ QUIZ' : 'QUIZ AVERAGE',
+      value: quizAvgDisplay,
+      subtitle: currentLang.value === 'km' ? '★ ពិន្ទុមធ្យមរបស់អ្នក' : '★ Academic Score',
+      gradient: 'from-[#ec4899] to-[#8b5cf6]',
+      wavePath: 'M0 12 Q 25 20, 50 10 T 75 16 T 100 6 L 100 25 L 0 25 Z',
+      waveLine: 'M0 12 Q 25 20, 50 10 T 75 16 T 100 6',
+      href: '/student/quizzes/scores'
+    }
+  ]
+})
 
 // Featured Continue Learning Course
 const continueCourseData = computed(() => {
@@ -510,77 +709,225 @@ const recentActivities = computed(() => [
         </div>
       </div>
 
-      <!-- 6 METRICS KPI CARDS (Admin Dashboard Vibrant Gradient Style with Ambient Waves) -->
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 sm:gap-4.5">
-        <Link
-          v-for="stat in statsCards"
-          :key="stat.type"
-          :href="stat.href"
-          :class="[
-            'relative overflow-hidden rounded-2xl bg-gradient-to-br text-white p-4.5 sm:p-5 shadow-sm hover:shadow-xl hover:scale-[1.02] active:scale-[0.99] transition-all flex flex-col justify-between group cursor-pointer border border-white/10',
-            stat.gradient
-          ]"
-        >
-          <div>
-            <div class="flex items-center justify-between">
-              <span class="text-[11px] font-bold tracking-wide uppercase text-white/90 truncate mr-1">{{ stat.title }}</span>
-              <div class="text-white/95 group-hover:text-white group-hover:scale-110 transition-transform duration-200 shrink-0">
-                <!-- Book SVG (Enrolled) -->
-                <svg v-if="stat.type === 'enrolled'" class="w-9 h-9 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-                </svg>
-                <!-- Graduation Cap SVG (In Progress) -->
-                <svg v-else-if="stat.type === 'in_progress'" class="w-9 h-9 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
-                  <path d="M6 12v5c3 3 9 3 12 0v-5" />
-                </svg>
-                <!-- Check Circle SVG (Completed) -->
-                <svg v-else-if="stat.type === 'completed'" class="w-9 h-9 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="m9 12 2 2 4-4" />
-                </svg>
-                <!-- Trophy SVG (Certificates) -->
-                <svg v-else-if="stat.type === 'certificates'" class="w-9 h-9 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
-                  <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
-                  <path d="M4 22h16" />
-                  <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
-                  <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
-                  <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
-                </svg>
-                <!-- Clock SVG (Study Time) -->
-                <svg v-else-if="stat.type === 'study_time'" class="w-9 h-9 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10" />
-                  <polyline points="12 6 12 12 16 14" />
-                </svg>
-                <!-- Bar Chart SVG (Quiz Average) -->
-                <svg v-else class="w-9 h-9 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="18" y1="20" x2="18" y2="10" />
-                  <line x1="12" y1="20" x2="12" y2="4" />
-                  <line x1="6" y1="20" x2="6" y2="14" />
-                </svg>
-              </div>
-            </div>
-            <h4 class="text-2xl sm:text-3xl font-black tracking-tight text-white mt-1.5">
-              {{ stat.value }}
-            </h4>
-            <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1 truncate">
-              <span>{{ stat.subtitle }}</span>
-            </p>
+      <!-- OFFICIAL SPI DASHBOARD LOADING & KPI SYSTEM (DL-01 to DL-08) -->
+      <section aria-busy="loading" class="space-y-3">
+        <!-- Status Indicator Pill Row (Matches the 3 Official States in the Reference Design) -->
+        <div class="flex flex-wrap items-center justify-between gap-2.5">
+          <div class="flex items-center gap-1.5 sm:gap-2 overflow-x-auto py-1">
+            <!-- State 1: Skeleton + Shimmer -->
+            <button
+              @click="manualSetStep('skeleton')"
+              type="button"
+              :class="[
+                'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold transition-all shadow-xs cursor-pointer',
+                loadingStep === 'skeleton'
+                  ? 'bg-indigo-600 text-white shadow-indigo-500/20 ring-2 ring-indigo-400/30'
+                  : 'bg-indigo-50/80 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/60'
+              ]"
+            >
+              <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+              </svg>
+              <span>1. Loading (Skeleton + Shimmer)</span>
+            </button>
+
+            <!-- State 2: Data Loading (Count Up Animation) -->
+            <button
+              @click="manualSetStep('counting')"
+              type="button"
+              :class="[
+                'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold transition-all shadow-xs cursor-pointer',
+                loadingStep === 'counting'
+                  ? 'bg-blue-600 text-white shadow-blue-500/20 ring-2 ring-blue-400/30 animate-pulse'
+                  : 'bg-blue-50/80 hover:bg-blue-100 dark:bg-blue-950/40 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60'
+              ]"
+            >
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/>
+              </svg>
+              <span>2. Data Loading (Count Up Animation)</span>
+            </button>
+
+            <!-- State 3: Loaded (Final Result) -->
+            <button
+              @click="manualSetStep('ready')"
+              type="button"
+              :class="[
+                'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold transition-all shadow-xs cursor-pointer',
+                loadingStep === 'ready'
+                  ? 'bg-emerald-600 text-white shadow-emerald-500/20 ring-2 ring-emerald-400/30'
+                  : 'bg-emerald-50/80 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60'
+              ]"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+              </svg>
+              <span>3. Loaded (Final Result)</span>
+            </button>
           </div>
-          <!-- Sparkline Wave at Bottom (Exact Admin Style) -->
-          <div class="mt-2.5 -mx-4.5 -mb-4.5 sm:-mx-5 sm:-mb-5 overflow-hidden rounded-b-2xl">
-            <svg class="w-full h-10 sm:h-11 text-white" viewBox="0 0 100 25" preserveAspectRatio="none" aria-hidden="true">
-              <g transform="translate(0 4)" opacity="0.10">
-                <path :d="stat.wavePath" fill="currentColor"/>
-              </g>
-              <path :d="stat.wavePath" fill="currentColor" opacity="0.20"/>
-              <path :d="stat.waveLine" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" opacity="0.9"/>
+
+          <!-- Re-sync / Refresh Button for demo & live updates -->
+          <button
+            @click="loadDashboard"
+            type="button"
+            :title="currentLang === 'km' ? 'ដំណើរការលំហូរផ្ទុកទិន្នន័យឡើងវិញ' : 'Replay Full Loading Flow'"
+            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold text-slate-600 hover:text-indigo-600 dark:text-slate-300 dark:hover:text-indigo-400 bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 shadow-xs transition-all hover:scale-105 cursor-pointer shrink-0"
+          >
+            <svg class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/>
             </svg>
+            <span>{{ currentLang === 'km' ? 'ដំណើរការឡើងវិញ' : 'Replay Flow' }}</span>
+          </button>
+        </div>
+
+        <!-- 1. SKELETON LOADING STATE WITH SHIMMER (DL-01, DL-02, DL-06) -->
+        <div
+          v-if="loading && loadingStep === 'skeleton'"
+          class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 sm:gap-4.5 animate-in fade-in duration-200"
+        >
+          <div
+            v-for="n in 6"
+            :key="n"
+            class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-200 via-slate-100 to-slate-200 dark:from-slate-800 dark:via-slate-800/80 dark:to-slate-900 p-4.5 sm:p-5 flex flex-col justify-between shadow-xs border border-slate-300/60 dark:border-slate-700/60 min-h-[148px]"
+          >
+            <!-- Shimmer Highlight Sweep Effect -->
+            <div class="shimmer-sweep absolute inset-0 pointer-events-none"></div>
+
+            <div>
+              <div class="flex items-center justify-between">
+                <!-- Title Placeholder Bar -->
+                <div class="h-3 w-24 bg-white/70 dark:bg-slate-700/90 rounded-md"></div>
+                <!-- Icon Placeholder Square -->
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/70 dark:bg-slate-700/90 shrink-0"></div>
+              </div>
+              <!-- Number Placeholder Block -->
+              <div class="h-8 w-20 bg-white/80 dark:bg-slate-700/90 rounded-lg mt-3"></div>
+              <!-- Subtitle Placeholder Bar -->
+              <div class="h-3 w-28 bg-white/60 dark:bg-slate-700/80 rounded-md mt-2"></div>
+            </div>
+
+            <!-- Wave Silhouette Placeholder at Bottom -->
+            <div class="mt-2.5 -mx-4.5 -mb-4.5 sm:-mx-5 sm:-mb-5 overflow-hidden rounded-b-2xl">
+              <svg class="w-full h-10 sm:h-11 text-white/50 dark:text-slate-700/50" viewBox="0 0 100 25" preserveAspectRatio="none">
+                <path d="M0 18 Q 20 4, 40 14 T 70 6 T 100 12 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.4"/>
+                <path d="M0 18 Q 20 4, 40 14 T 70 6 T 100 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+              </svg>
+            </div>
           </div>
-        </Link>
-      </div>
+        </div>
+
+        <!-- 2. ERROR STATE + RETRY BUTTON (DL-05) -->
+        <div
+          v-else-if="error"
+          role="alert"
+          class="rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm"
+        >
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
+              </svg>
+            </div>
+            <div>
+              <h4 class="text-xs font-bold text-rose-800 dark:text-rose-200">
+                {{ currentLang === 'km' ? 'មិនអាចទាញយកទិន្នន័យស្ថិតិបានទេ' : 'Unable to load dashboard data.' }}
+              </h4>
+              <p class="text-[11px] text-rose-600 dark:text-rose-300">
+                {{ error || (currentLang === 'km' ? 'សូមពិនិត្យមើលការតភ្ជាប់អ៊ីនធឺណិត ឬចុចប៊ូតុងខាងក្រោមដើម្បីព្យាយាមឡើងវិញ។' : 'Please check your connection or click retry to reload.') }}
+              </p>
+            </div>
+          </div>
+          <button
+            @click="loadDashboard"
+            type="button"
+            class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all hover:scale-105 cursor-pointer shrink-0"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/>
+            </svg>
+            <span>{{ currentLang === 'km' ? 'ព្យាយាមម្តងទៀត' : 'Retry' }}</span>
+          </button>
+        </div>
+
+        <!-- 3. LOADED / COUNTING GRADIENT CARDS (DL-03, DL-04, DL-07, DL-08) -->
+        <div
+          v-else
+          class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 sm:gap-4.5 animate-in fade-in duration-300"
+        >
+          <Link
+            v-for="stat in statsCards"
+            :key="stat.type"
+            :href="stat.href"
+            :class="[
+              'relative overflow-hidden rounded-2xl bg-gradient-to-br text-white p-4.5 sm:p-5 shadow-sm hover:shadow-xl hover:scale-[1.02] active:scale-[0.99] transition-all flex flex-col justify-between group cursor-pointer border border-white/10 min-h-[148px]',
+              stat.gradient
+            ]"
+          >
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold tracking-wide uppercase text-white/90 truncate mr-1">{{ stat.title }}</span>
+                <div class="text-white/95 group-hover:text-white group-hover:scale-110 transition-transform duration-200 shrink-0">
+                  <!-- Book SVG (Enrolled) -->
+                  <svg v-if="stat.type === 'enrolled'" class="w-9 h-9 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                  </svg>
+                  <!-- Graduation Cap SVG (In Progress) -->
+                  <svg v-else-if="stat.type === 'in_progress'" class="w-9 h-9 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+                    <path d="M6 12v5c3 3 9 3 12 0v-5" />
+                  </svg>
+                  <!-- Check Circle SVG (Completed) -->
+                  <svg v-else-if="stat.type === 'completed'" class="w-9 h-9 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="m9 12 2 2 4-4" />
+                  </svg>
+                  <!-- Trophy SVG (Certificates) -->
+                  <svg v-else-if="stat.type === 'certificates'" class="w-9 h-9 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+                    <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+                    <path d="M4 22h16" />
+                    <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+                    <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+                    <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+                  </svg>
+                  <!-- Clock SVG (Study Time) -->
+                  <svg v-else-if="stat.type === 'study_time'" class="w-9 h-9 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                  <!-- Bar Chart SVG (Quiz Average) -->
+                  <svg v-else class="w-9 h-9 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="20" x2="18" y2="10" />
+                    <line x1="12" y1="20" x2="12" y2="4" />
+                    <line x1="6" y1="20" x2="6" y2="14" />
+                  </svg>
+                </div>
+              </div>
+
+              <!-- Metric Number (Count-Up Active or Final Result) -->
+              <h4 class="text-2xl sm:text-3xl font-black tracking-tight text-white mt-1.5 tabular-nums">
+                {{ stat.value }}
+              </h4>
+              <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1 truncate">
+                <span>{{ stat.subtitle }}</span>
+              </p>
+            </div>
+
+            <!-- Sparkline Wave at Bottom (Exact Admin Style) -->
+            <div class="mt-2.5 -mx-4.5 -mb-4.5 sm:-mx-5 sm:-mb-5 overflow-hidden rounded-b-2xl">
+              <svg class="w-full h-10 sm:h-11 text-white" viewBox="0 0 100 25" preserveAspectRatio="none" aria-hidden="true">
+                <g transform="translate(0 4)" opacity="0.10">
+                  <path :d="stat.wavePath" fill="currentColor"/>
+                </g>
+                <path :d="stat.wavePath" fill="currentColor" opacity="0.20"/>
+                <path :d="stat.waveLine" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" opacity="0.9"/>
+              </svg>
+            </div>
+          </Link>
+        </div>
+      </section>
 
       <!-- MAIN 2-COLUMN LAYOUT -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -1322,6 +1669,31 @@ const recentActivities = computed(() => [
 </template>
 
 <style scoped>
+@keyframes shimmerSweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.shimmer-sweep {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.45) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: shimmerSweep 1.8s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shimmer-sweep {
+    animation: none;
+  }
+}
+
 .custom-scrollbar::-webkit-scrollbar {
   height: 4px;
   width: 4px;
