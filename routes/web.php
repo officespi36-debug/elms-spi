@@ -659,6 +659,13 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/payment-alerts', [Student\NotificationController::class, 'paymentAlerts'])->name('payment-alerts');
         });
 
+        // Notifications Realtime API for Student Header Dropdown
+        Route::prefix('api/notifications')->name('api.notifications.')->group(function () {
+            Route::get('/', [Student\NotificationController::class, 'apiList'])->name('list');
+            Route::post('/read', [Student\NotificationController::class, 'apiMarkRead'])->name('read');
+            Route::post('/read-all', [Student\NotificationController::class, 'apiMarkAllRead'])->name('read_all');
+        });
+
         Route::get('/calendar', [Student\CalendarController::class, 'index'])->name('calendar');
         Route::prefix('calendar')->name('calendar.')->group(function () {
             Route::get('/live-class', [Student\CalendarController::class, 'liveClassSchedule'])->name('live-class');

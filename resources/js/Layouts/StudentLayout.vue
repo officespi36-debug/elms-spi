@@ -470,76 +470,50 @@ interface NotificationItem {
   desc_en: string
   time_km: string
   time_en: string
-  type: 'quiz' | 'ai'
-  defaultRead: boolean
+  type: 'quiz' | 'ai' | 'lesson' | 'announcement'
+  defaultRead?: boolean
   read: boolean
   link: string
+  created_at?: string
 }
 
-const rawStudentNotifications: Omit<NotificationItem, 'read'>[] = [
-  {
-    id: 1,
-    title_km: 'មេរៀនថ្មីត្រូវបានបន្ថែម: Database Systems',
-    title_en: 'New Lesson Available: Database Systems',
-    desc_km: 'មេរៀនថ្មី "Database Indexing & Normalization" អាចចូលរៀនបានហើយ',
-    desc_en: 'New lesson "Database Indexing & Normalization" is now available',
-    time_km: '1 ម៉ោងមុន',
-    time_en: '1 hour ago',
-    type: 'ai',
-    defaultRead: false,
-    link: '/student/my-courses/current'
-  },
-  {
-    id: 2,
-    title_km: 'Quiz ថ្មីអាចធ្វើបានហើយ: Module 2 Practice',
-    title_en: 'New Quiz Available: Module 2 Practice',
-    desc_km: 'គ្រូ Sophea បានបើក Practice Quiz សម្រាប់ C Programming',
-    desc_en: 'Teacher Sophea unlocked Practice Quiz for C Programming',
-    time_km: '2 ម៉ោងមុន',
-    time_en: '2 hours ago',
-    type: 'quiz',
-    defaultRead: false,
-    link: '/student/quizzes/practice'
-  },
-  {
-    id: 3,
-    title_km: '🤖 AI Recommendation: មេរៀនថ្មីសម្រាប់អ្នក',
-    title_en: '🤖 AI Recommendation: New Lesson For You',
-    desc_km: 'ផ្អែកលើពិន្ទុរបស់អ្នក សូមរៀនមេរៀន Operators & Pointers ឥឡូវនេះ',
-    desc_en: 'Based on your recent scores, explore Operators & Pointers next',
-    time_km: '5 ម៉ោងមុន',
-    time_en: '5 hours ago',
-    type: 'ai',
-    defaultRead: true,
-    link: '/student/ai-path/recommended'
+const NOTIF_STORAGE_KEY = computed(() => `elms_student_read_notif_ids_v2_${user.value?.id || 'guest'}`)
+
+// Base notifications from Inertia DB shared props
+const dbNotifications = computed<NotificationItem[]>(() => {
+  return (page.props.student_notifications as any)?.items || []
+})
+
+const notifications = ref<NotificationItem[]>([])
+
+const syncNotificationsWithStorage = () => {
+  const source = dbNotifications.value
+  let readIds: number[] = []
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem(NOTIF_STORAGE_KEY.value)
+      if (raw) readIds = JSON.parse(raw)
+    } catch {}
   }
-]
+  notifications.value = source.map(n => ({
+    ...n,
+    read: n.read || readIds.includes(n.id)
+  }))
+}
 
-const NOTIF_STORAGE_KEY = 'elms_student_read_notif_ids_v2'
-
-const notifications = ref<NotificationItem[]>(
-  rawStudentNotifications.map(n => ({ ...n, read: n.defaultRead }))
-)
+watch(dbNotifications, () => {
+  syncNotificationsWithStorage()
+}, { immediate: true })
 
 const loadPersistedNotifications = () => {
-  if (typeof window === 'undefined') return
-  try {
-    const raw = localStorage.getItem(NOTIF_STORAGE_KEY)
-    const readIds: number[] = raw ? JSON.parse(raw) : []
-    notifications.value = rawStudentNotifications.map(n => ({
-      ...n,
-      read: n.defaultRead || readIds.includes(n.id)
-    }))
-  } catch {
-    notifications.value = rawStudentNotifications.map(n => ({ ...n, read: n.defaultRead }))
-  }
+  syncNotificationsWithStorage()
 }
 
 const savePersistedReadIds = () => {
   if (typeof window === 'undefined') return
   try {
     const readIds = notifications.value.filter(n => n.read).map(n => n.id)
-    localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify(readIds))
+    localStorage.setItem(NOTIF_STORAGE_KEY.value, JSON.stringify(readIds))
   } catch {}
 }
 
@@ -561,17 +535,42 @@ const handleNotificationToggle = () => {
   toggleDropdown('notification')
 }
 
-const markAllAsRead = () => {
+const markAllAsRead = async () => {
   playClickSound()
+  const allIds = notifications.value.map(n => n.id)
   notifications.value.forEach(n => { n.read = true })
   savePersistedReadIds()
+  try {
+    const token = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || ''
+    await fetch('/student/api/notifications/read-all', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': token,
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({ ids: allIds })
+    })
+  } catch {}
 }
 
-const markNotificationRead = (id: number) => {
+const markNotificationRead = async (id: number) => {
   const item = notifications.value.find(n => n.id === id)
   if (item && !item.read) {
     item.read = true
     savePersistedReadIds()
+    try {
+      const token = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || ''
+      await fetch('/student/api/notifications/read', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': token,
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ id })
+      })
+    } catch {}
   }
 }
 
@@ -1489,7 +1488,27 @@ const onIconError = (e: Event) => {
                     ]"
                   >
                     <div class="flex items-start gap-3">
-                      <div class="p-2 rounded-xl shrink-0 mt-0.5 bg-[#e8f0fe] text-[#0b57d0] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8]">
+                      <!-- Type-specific Icon -->
+                      <div v-if="item.type === 'ai'" class="p-2 rounded-xl shrink-0 mt-0.5 bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-300">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <rect x="3" y="11" width="18" height="10" rx="2" />
+                          <circle cx="12" cy="5" r="2" />
+                          <path d="M12 7v4" />
+                          <line x1="8" y1="16" x2="8" y2="16.01" />
+                          <line x1="16" y1="16" x2="16" y2="16.01" />
+                        </svg>
+                      </div>
+                      <div v-else-if="item.type === 'lesson'" class="p-2 rounded-xl shrink-0 mt-0.5 bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-300">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                      </div>
+                      <div v-else-if="item.type === 'quiz'" class="p-2 rounded-xl shrink-0 mt-0.5 bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-300">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div v-else class="p-2 rounded-xl shrink-0 mt-0.5 bg-[#e8f0fe] text-[#0b57d0] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8]">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                           <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                         </svg>

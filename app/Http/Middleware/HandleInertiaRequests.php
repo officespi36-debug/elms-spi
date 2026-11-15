@@ -90,6 +90,9 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $user,
             ],
+            'student_notifications' => fn () => $user && ($user->role === 'student' || empty($user->role))
+                ? \App\Services\StudentNotificationService::getForUser($user)
+                : ['items' => [], 'unread_count' => 0],
             'telegram' => [
                 'bot_username' => config('services.telegram.bot_username') ?? env('TELEGRAM_BOT_USERNAME', 'spi_elms_auth_bot'),
                 'bot_id' => $botId ?? '8828915669',

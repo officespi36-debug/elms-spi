@@ -199,8 +199,37 @@ const initialAnnouncements: Announcement[] = [
   }
 ]
 
+const props = defineProps<{
+  dbAnnouncements?: any[]
+}>()
+
+const mappedDbAnnouncements = computed<Announcement[]>(() => {
+  if (!props.dbAnnouncements || props.dbAnnouncements.length === 0) return []
+  return props.dbAnnouncements.map((a: any) => ({
+    id: a.id,
+    title: a.title_kh || a.title_en || 'Announcement',
+    description: a.body_kh || a.body_en || '',
+    content: a.body_kh || a.body_en || '',
+    sourceType: 'system' as const,
+    source: 'SPI Official Announcement',
+    category: 'Academic',
+    date: new Date(a.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    time: new Date(a.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+    isUnread: true,
+    isNew: true,
+    isPinned: Boolean(a.is_pinned),
+    priority: (a.priority === 'urgent' || a.priority === 'high') ? 'high' : 'normal',
+    actionLabel: 'View Course',
+    actionRoute: '/student/my-courses/enrolled',
+  }))
+})
+
 // Reactive announcements list
-const announcements = ref<Announcement[]>(initialAnnouncements)
+const announcements = ref<Announcement[]>(
+  mappedDbAnnouncements.value.length > 0
+    ? [...mappedDbAnnouncements.value, ...initialAnnouncements]
+    : initialAnnouncements
+)
 
 // Active Source Tab: 'all' | 'system' | 'teacher'
 type SourceTab = 'all' | 'system' | 'teacher'
