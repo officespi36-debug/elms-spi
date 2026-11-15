@@ -59,7 +59,9 @@ class GitHubController extends Controller
     {
         if ($request->filled('error')) {
             $errDesc = $request->input('error_description') ?: $request->input('error');
-            Log::warning('GitHub OAuth cancelled or returned error: ' . $errDesc);
+            try {
+                Log::warning('GitHub OAuth cancelled or returned error: ' . $errDesc);
+            } catch (\Throwable $e) {}
             return redirect()->route('login')->withErrors([
                 'email' => 'ការចូលដោយប្រើប្រាស់ GitHub ត្រូវបានបោះបង់ ឬបរាជ័យ (' . $errDesc . ')។'
             ]);
@@ -90,7 +92,9 @@ class GitHubController extends Controller
                 ]);
 
             if (!$response->successful()) {
-                Log::error('GitHub Token Exchange Failed: ' . $response->body());
+                try {
+                    Log::error('GitHub Token Exchange Failed: ' . $response->body());
+                } catch (\Throwable $e) {}
                 return redirect()->route('login')->withErrors(['email' => 'GitHub Token Verification Failed.']);
             }
 
@@ -98,7 +102,9 @@ class GitHubController extends Controller
             $accessToken = $tokenData['access_token'] ?? null;
 
             if (empty($accessToken)) {
-                Log::error('GitHub Access Token missing in response: ' . json_encode($tokenData));
+                try {
+                    Log::error('GitHub Access Token missing in response: ' . json_encode($tokenData));
+                } catch (\Throwable $e) {}
                 return redirect()->route('login')->withErrors(['email' => 'Could not retrieve access token from GitHub.']);
             }
 
@@ -113,7 +119,9 @@ class GitHubController extends Controller
                 ->get('https://api.github.com/user');
 
             if (!$userResponse->successful()) {
-                Log::error('GitHub User Profile Fetch Failed: ' . $userResponse->body());
+                try {
+                    Log::error('GitHub User Profile Fetch Failed: ' . $userResponse->body());
+                } catch (\Throwable $e) {}
                 return redirect()->route('login')->withErrors(['email' => 'Could not retrieve profile from GitHub.']);
             }
 
@@ -296,7 +304,9 @@ class GitHubController extends Controller
                     ]);
                 }
             } catch (\Throwable $jwtEx) {
-                Log::warning('JWT token creation in GitHub Login: ' . $jwtEx->getMessage());
+                try {
+                    Log::warning('JWT token creation in GitHub Login: ' . $jwtEx->getMessage());
+                } catch (\Throwable $e) {}
             }
 
             if ($user->role === 'admin') {
@@ -308,7 +318,9 @@ class GitHubController extends Controller
             return redirect()->route('student.dashboard');
 
         } catch (\Throwable $e) {
-            Log::error('GitHub Callback Error: ' . $e->getMessage());
+            try {
+                Log::error('GitHub Callback Error: ' . $e->getMessage());
+            } catch (\Throwable $ignore) {}
             return redirect()->route('login')->withErrors(['email' => 'GitHub Login Exception: ' . $e->getMessage()]);
         }
     }

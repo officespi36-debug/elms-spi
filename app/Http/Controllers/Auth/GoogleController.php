@@ -25,7 +25,9 @@ class GoogleController extends Controller
         $redirectUri = config('services.google.redirect') ?: env('GOOGLE_REDIRECT_URI') ?: 'https://spilms.tech/auth/google/callback';
 
         if (empty($clientId)) {
-            Log::error('Google OAuth Client ID is missing.');
+            try {
+                Log::error('Google OAuth Client ID is missing.');
+            } catch (\Throwable $e) {}
             return redirect()->route('login')->withErrors([
                 'email' => 'Google Login មិនទាន់ត្រូវបានកំណត់នៅលើ Server ទេ (Missing GOOGLE_CLIENT_ID)។'
             ]);
@@ -77,7 +79,9 @@ class GoogleController extends Controller
     {
         if ($request->filled('error')) {
             $errDesc = $request->input('error_description') ?: $request->input('error');
-            Log::warning('Google OAuth cancelled or returned error: ' . $errDesc);
+            try {
+                Log::warning('Google OAuth cancelled or returned error: ' . $errDesc);
+            } catch (\Throwable $e) {}
             return redirect()->route('login')->withErrors([
                 'email' => 'ការចូលដោយប្រើប្រាស់ Google ត្រូវបានបោះបង់ ឬបរាជ័យ (' . $errDesc . ')។'
             ]);
@@ -124,7 +128,9 @@ class GoogleController extends Controller
             $response = Http::withoutVerifying()->timeout(20)->asForm()->post('https://oauth2.googleapis.com/token', $postData);
 
             if (!$response->successful()) {
-                Log::error('Google Token Exchange Failed: ' . $response->body());
+                try {
+                    Log::error('Google Token Exchange Failed: ' . $response->body());
+                } catch (\Throwable $e) {}
                 return redirect()->route('login')->withErrors(['email' => 'Google Token Verification Failed.']);
             }
 
@@ -165,8 +171,14 @@ class GoogleController extends Controller
                 return redirect()->route('login')->withErrors(['email' => 'Could not retrieve email from Google.']);
             }
 
-            // Find or create User
-            $user = User::where('email', $email)->first();
+            // Find existing User safely (check google_id first, then email)
+            $user = null;
+            if (!empty($googleId)) {
+                $user = User::where('google_id', $googleId)->first();
+            }
+            if (!$user) {
+                $user = User::where('email', $email)->first();
+            }
 
             if ($user) {
                 if ($user->is_active === false || $user->status === 'inactive') {
@@ -187,8 +199,17 @@ class GoogleController extends Controller
                     ]);
                 }
 
+                // Check if google_id is already assigned to a different user before setting
+                $safeGoogleId = $user->google_id;
+                if (!empty($googleId)) {
+                    $conflict = User::where('google_id', $googleId)->where('id', '!=', $user->id)->exists();
+                    if (!$conflict) {
+                        $safeGoogleId = $googleId;
+                    }
+                }
+
                 $user->update([
-                    'google_id' => $googleId ?: $user->google_id,
+                    'google_id' => $safeGoogleId,
                     'avatar' => $avatar ?: $user->avatar,
                     'email_verified_at' => $user->email_verified_at ?: now(),
                     'is_active' => true,
@@ -202,6 +223,12 @@ class GoogleController extends Controller
                     $studentCode = 'STU' . date('y') . rand(1000, 9999);
                 }
 
+                // Check if google_id is taken
+                $safeGoogleId = null;
+                if (!empty($googleId) && !User::where('google_id', $googleId)->exists()) {
+                    $safeGoogleId = $googleId;
+                }
+
                 $user = User::create([
                     'name' => $name ?: 'Google User',
                     'name_kh' => $name ?: 'Google User',
@@ -210,7 +237,7 @@ class GoogleController extends Controller
                     'role' => 'student',
                     'student_code' => $studentCode,
                     'study_type' => 'on_campus',
-                    'google_id' => $googleId,
+                    'google_id' => $safeGoogleId,
                     'avatar' => $avatar,
                     'email_verified_at' => now(),
                     'is_active' => true,
@@ -220,13 +247,19 @@ class GoogleController extends Controller
                 ]);
             }
 
-            if ($request->hasSession()) {
-                $request->session()->regenerate();
-            }
+            try {
+                if ($request->hasSession()) {
+                    $request->session()->regenerate();
+                }
+            } catch (\Throwable $sessEx) {}
+
             Auth::login($user, true);
-            if ($request->hasSession()) {
-                $request->session()->save();
-            }
+
+            try {
+                if ($request->hasSession()) {
+                    $request->session()->save();
+                }
+            } catch (\Throwable $sessEx) {}
 
             // Detect Client Environment
             $ip = $request->ip() ?: '127.0.0.1';
@@ -234,7 +267,7 @@ class GoogleController extends Controller
             $device = str_contains(strtolower($userAgent), 'mobile') ? 'Mobile' : 'Desktop';
             $browser = $this->getBrowserName($userAgent);
 
-            // Record AuthLog
+            // Record AuthLog safely
             try {
                 AuthLog::create([
                     'user_id' => $user->id,
@@ -246,10 +279,12 @@ class GoogleController extends Controller
                     'status' => 'success',
                 ]);
             } catch (\Throwable $logEx) {
-                Log::warning('AuthLog create failed for Google Login: ' . $logEx->getMessage());
+                try {
+                    Log::warning('AuthLog create failed for Google Login: ' . $logEx->getMessage());
+                } catch (\Throwable $e) {}
             }
 
-            // Real-time Telegram Alert & Email Dispatch
+            // Real-time Telegram Alert & Email Dispatch safely
             try {
                 $groupChatId = config('services.telegram.admin_chat_id') ?: env('TELEGRAM_ADMIN_CHAT_ID') ?: config('services.telegram.chat_id') ?: env('TELEGRAM_CHAT_ID') ?: '-5560385465';
 
@@ -292,10 +327,12 @@ class GoogleController extends Controller
                     );
                 }
             } catch (\Throwable $tgEx) {
-                Log::warning('Google login Telegram alert notice: ' . $tgEx->getMessage());
+                try {
+                    Log::warning('Google login Telegram alert notice: ' . $tgEx->getMessage());
+                } catch (\Throwable $e) {}
             }
 
-            // Security Email alert
+            // Security Email alert safely
             try {
                 if (!empty($user->email)) {
                     $loginDetails = [
@@ -308,7 +345,9 @@ class GoogleController extends Controller
                     (new AuthenticatedSessionController())->sendSecurityAlertEmail($user, $loginDetails);
                 }
             } catch (\Throwable $mailEx) {
-                Log::warning('Google login security alert email notice: ' . $mailEx->getMessage());
+                try {
+                    Log::warning('Google login security alert email notice: ' . $mailEx->getMessage());
+                } catch (\Throwable $e) {}
             }
 
             // Generate JWT Token safely if configured
@@ -326,7 +365,9 @@ class GoogleController extends Controller
                     ]);
                 }
             } catch (\Throwable $jwtEx) {
-                Log::warning('JWT token creation in Google Login: ' . $jwtEx->getMessage());
+                try {
+                    Log::warning('JWT token creation in Google Login: ' . $jwtEx->getMessage());
+                } catch (\Throwable $e) {}
             }
 
             if ($user->role === 'admin') {
@@ -338,7 +379,9 @@ class GoogleController extends Controller
             return redirect()->route('student.dashboard');
 
         } catch (\Throwable $e) {
-            Log::error('Google Callback Error: ' . $e->getMessage());
+            try {
+                Log::error('Google Callback Error: ' . $e->getMessage());
+            } catch (\Throwable $ignore) {}
             return redirect()->route('login')->withErrors(['email' => 'Google Login Exception: ' . $e->getMessage()]);
         }
     }

@@ -27,6 +27,13 @@ php artisan route:cache || true
 php artisan view:cache || true
 php artisan event:cache || true
 
+# Re-ensure proper permissions for www-data after root artisan commands
+mkdir -p /var/www/html/storage/logs /var/www/html/storage/framework/sessions /var/www/html/storage/framework/views /var/www/html/storage/framework/cache /var/www/html/database
+touch /var/www/html/storage/logs/laravel.log || true
+chown -R www-data:www-data /var/www/html/database /var/www/html/storage /var/www/html/bootstrap/cache
+chmod -R 775 /var/www/html/database /var/www/html/storage /var/www/html/bootstrap/cache
+chmod 666 /var/www/html/storage/logs/laravel.log || true
+
 # Start php-fpm in background and nginx in foreground
 php-fpm -D
 exec nginx -g "daemon off;"
