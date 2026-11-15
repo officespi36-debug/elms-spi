@@ -202,7 +202,8 @@ class DashboardController extends Controller
                     'lastLesson' => $currentLessonTitle,
                     'timeLeft' => '18:20 left',
                     'thumbnail' => $activeCourse->thumbnail ?? 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=600&q=80',
-                    'href' => '/student/courses/' . $activeCourse->id . '/overview',
+                    'href' => '/student/learn/' . $activeCourse->id,
+                    'overviewHref' => '/student/courses/' . $activeCourse->id . '/overview',
                 ];
             }
 
@@ -226,7 +227,7 @@ class DashboardController extends Controller
                             'title_km' => $lp->lesson->title,
                             'course' => $lp->lesson->course->title,
                             'time' => $lp->updated_at ? $lp->updated_at->diffForHumans() : 'Today',
-                            'href' => '/student/courses/' . $lp->lesson->course_id . '/overview',
+                            'href' => '/student/learn/' . $lp->lesson->course_id . '?lesson_id=' . $lp->lesson_id,
                             'timestamp' => $lp->updated_at ? $lp->updated_at->timestamp : 0,
                             'progress' => ($lp->percent && $lp->percent > 0) ? (int) $lp->percent : 45,
                             'category' => 'Lesson',

@@ -124,7 +124,7 @@ class LearningController extends Controller
             : 0;
 
         // 6. Determine the Active/Last Watched Lesson to Resume
-        $requestedLessonId = $request->query('lesson_id');
+        $requestedLessonId = $request->query('lesson_id') ?: $request->query('lesson');
         $initialLessonId = null;
 
         if ($requestedLessonId && in_array((int)$requestedLessonId, $lessonIds)) {
