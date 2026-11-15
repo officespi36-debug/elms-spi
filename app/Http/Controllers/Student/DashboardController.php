@@ -51,8 +51,8 @@ class DashboardController extends Controller
             Cache::forget("student_stats_{$user->id}");
         }
 
-        // Performance: Cache::remember 300s (scoped to user id) with eager loading & selected columns
-        $payload = Cache::remember("student_dashboard_payload_{$user->id}", 300, function () use ($user) {
+        // Performance: Cache::remember 60s (scoped to user id) with eager loading & selected columns
+        $payload = Cache::remember("student_dashboard_payload_{$user->id}", 60, function () use ($user) {
             try {
                 $enrollments = Enrollment::where('student_id', $user->id)
                     ->select(['id', 'student_id', 'course_id', 'status', 'enrolled_at', 'updated_at'])
