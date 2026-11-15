@@ -144,7 +144,7 @@ class StudentLearningService
      */
     public function getCourseCurriculum(User $user, Course $course): array
     {
-        $cacheKey = "course_{$course->id}_user_{$user->id}_curriculum_v3";
+        $cacheKey = "course_{$course->id}_user_{$user->id}_curriculum_v4";
 
         return Cache::remember($cacheKey, 60, function () use ($user, $course) {
             $course->load([
@@ -233,6 +233,11 @@ class StudentLearningService
                     'course_id'        => $l->course_id,
                     'title'            => $l->title,
                     'kh_title'         => $l->kh_title,
+                    'summary'          => $l->summary,
+                    'objectives'       => $l->objectives,
+                    'content'          => $l->content,
+                    'preview_url'      => $l->preview_url,
+                    'video_provider'   => $l->video_provider ?: ($l->video_url ? (str_contains($l->video_url, 'youtube') || str_contains($l->video_url, 'youtu.be') ? 'youtube' : 'mp4') : null),
                     'type'             => $l->type ?: 'video',
                     'video_url'        => $l->video_url,
                     'file_url'         => $l->file_url,

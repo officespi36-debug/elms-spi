@@ -7,10 +7,13 @@ use App\Models\Certificate;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Lesson;
+use App\Models\LessonComment;
 use App\Models\LessonProgress;
+use App\Models\LessonResource;
 use App\Services\CertificateService;
 use App\Services\StudentLearningService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class CourseController extends Controller
@@ -220,6 +223,79 @@ class CourseController extends Controller
             ['label' => $lessonItem['title']]
         ];
 
+        // 6. Resources & Comments for this lesson
+        $resources = LessonResource::where('lesson_id', $lesson->id)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
+
+        $comments = LessonComment::where('lesson_id', $lesson->id)
+            ->whereNull('parent_id')
+            ->with([
+                'user:id,name,avatar,role',
+                'replies' => fn($q) => $q->with('user:id,name,avatar,role')->oldest('created_at')
+            ])
+            ->latest('created_at')
+            ->get();
+
+        // 7. Smart Completion Action calculation
+        $currentIndex = $allLessons->search(fn($l) => $l['id'] === $lesson->id);
+        $nextLesson = ($currentIndex !== false && $currentIndex < $allLessons->count() - 1)
+            ? $allLessons[$currentIndex + 1]
+            : null;
+
+        $isCurrentCompleted = (bool) $lessonItem['is_completed'];
+        $watchedSeconds = (int) ($lessonItem['watched_seconds'] ?? 0);
+        $durationSeconds = (int) ($lessonItem['duration_seconds'] ?? 600);
+        $hasVideo = !empty($lessonItem['video_url']);
+
+        $canComplete = true;
+        $cannotCompleteReason = null;
+
+        if ($hasVideo && !$isCurrentCompleted) {
+            $requiredSeconds = (int) round($durationSeconds * 0.9);
+            if ($watchedSeconds < $requiredSeconds) {
+                $canComplete = false;
+                $cannotCompleteReason = 'សូមទស្សនាវីដេអូយ៉ាងតិច 90% សិនមុននឹងចុចបញ្ចប់ (Please watch at least 90% of the video).';
+            }
+        }
+
+        if ($isCurrentCompleted) {
+            if ($nextLesson) {
+                $completionAction = [
+                    'type'         => 'next',
+                    'label'        => 'Next Lesson →',
+                    'can_complete' => true,
+                    'next_url'     => "/student/my-courses/{$course->id}/lessons/{$nextLesson['id']}",
+                ];
+            } else {
+                $completionAction = [
+                    'type'         => 'finish',
+                    'label'        => 'Finish Course 🎓',
+                    'can_complete' => true,
+                    'next_url'     => "/student/courses/{$course->id}/overview",
+                ];
+            }
+        } else {
+            if ($nextLesson) {
+                $completionAction = [
+                    'type'         => 'complete_and_next',
+                    'label'        => 'Completed & Next Lesson →',
+                    'can_complete' => $canComplete,
+                    'reason'       => $cannotCompleteReason,
+                    'next_url'     => "/student/my-courses/{$course->id}/lessons/{$nextLesson['id']}",
+                ];
+            } else {
+                $completionAction = [
+                    'type'         => 'complete_and_finish',
+                    'label'        => 'Complete & Finish Course 🎓',
+                    'can_complete' => $canComplete,
+                    'reason'       => $cannotCompleteReason,
+                    'next_url'     => "/student/courses/{$course->id}/overview",
+                ];
+            }
+        }
+
         return Inertia::render('Student/MyCourses/CurrentCourse', [
             'course'                => $curriculum['course'],
             'currentLesson'         => $lessonItem,
@@ -230,6 +306,10 @@ class CourseController extends Controller
             'overallProgress'       => $curriculum['overall_progress_percent'],
             'completedLessonsCount' => $curriculum['completed_lessons_count'],
             'totalLessonsCount'     => $curriculum['total_lessons_count'],
+            'resources'             => $resources,
+            'comments'              => $comments,
+            'completionAction'      => $completionAction,
+            'currentUserId'         => $user->id,
         ]);
     }
 
@@ -462,5 +542,125 @@ class CourseController extends Controller
     public function wishlist(Request $request)
     {
         return Inertia::render('Student/MyCourses/Wishlist');
+    }
+
+    /**
+     * Download an attached lesson resource (guarded by enrollment check).
+     */
+    public function downloadResource(Request $request, Lesson $lesson, LessonResource $resource)
+    {
+        $user = $request->user();
+        $course = $lesson->course ?: Course::find($lesson->course_id);
+
+        if (!$course) {
+            abort(404, 'Course not found');
+        }
+
+        $isEnrolled = Enrollment::where('student_id', $user->id)
+            ->where('course_id', $course->id)
+            ->exists();
+
+        if (!$isEnrolled && $user->role !== 'admin' && $user->role !== 'teacher') {
+            abort(403, 'Unauthorized access to course resources');
+        }
+
+        if ($resource->lesson_id !== $lesson->id) {
+            abort(404, 'Resource does not belong to this lesson');
+        }
+
+        $path = $resource->disk_path;
+        $name = $resource->original_name ?: $resource->title;
+
+        if ($path && Storage::disk('public')->exists($path)) {
+            return Storage::disk('public')->download($path, $name);
+        }
+
+        if ($path && file_exists(storage_path('app/' . $path))) {
+            return response()->download(storage_path('app/' . $path), $name);
+        }
+
+        if ($path && file_exists(public_path($path))) {
+            return response()->download(public_path($path), $name);
+        }
+
+        // On-the-fly generated notes file if storage file not uploaded yet
+        $cleanTitle = preg_replace('/[^A-Za-z0-9_\-]/', '_', $resource->title);
+        $filename = ($cleanTitle ?: 'lesson_resource') . '.txt';
+        $content = "Course: {$course->title}\nLesson: {$lesson->title}\nResource: {$resource->title}\n\n"
+                 . ($lesson->summary ?: "Study materials for {$lesson->title}.\n\nSPI E-LMS: https://spilms.tech");
+
+        return response($content)
+            ->header('Content-Type', 'text/plain; charset=UTF-8')
+            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+    }
+
+    /**
+     * Store a comment/discussion on a lesson.
+     */
+    public function storeComment(Request $request, Lesson $lesson)
+    {
+        $user = $request->user();
+        $course = $lesson->course ?: Course::find($lesson->course_id);
+
+        if (!$course) {
+            return response()->json(['error' => 'Course not found'], 404);
+        }
+
+        $isEnrolled = Enrollment::where('student_id', $user->id)
+            ->where('course_id', $course->id)
+            ->exists();
+
+        if (!$isEnrolled && $user->role !== 'admin' && $user->role !== 'teacher') {
+            return response()->json(['error' => 'Only enrolled students can comment'], 403);
+        }
+
+        $validated = $request->validate([
+            'body'      => 'required|string|min:2|max:2000',
+            'parent_id' => 'nullable|exists:lesson_comments,id',
+        ]);
+
+        // XSS sanitization: strip dangerous tags
+        $cleanBody = trim(strip_tags($validated['body']));
+        if (empty($cleanBody)) {
+            return response()->json(['error' => 'Comment body cannot be empty'], 422);
+        }
+
+        $comment = LessonComment::create([
+            'lesson_id' => $lesson->id,
+            'user_id'   => $user->id,
+            'parent_id' => $validated['parent_id'] ?? null,
+            'body'      => $cleanBody,
+        ]);
+
+        $comment->load('user:id,name,avatar,role');
+
+        return response()->json([
+            'ok'      => true,
+            'comment' => $comment,
+            'message' => 'Comment posted successfully',
+        ]);
+    }
+
+    /**
+     * Delete user's own comment.
+     */
+    public function destroyComment(Request $request, Lesson $lesson, LessonComment $comment)
+    {
+        $user = $request->user();
+
+        if ($comment->lesson_id !== $lesson->id) {
+            return response()->json(['error' => 'Comment does not belong to this lesson'], 404);
+        }
+
+        if ($comment->user_id !== $user->id && $user->role !== 'admin') {
+            return response()->json(['error' => 'Unauthorized to delete this comment'], 403);
+        }
+
+        $comment->delete();
+
+        return response()->json([
+            'ok'      => true,
+            'message' => 'Comment deleted successfully',
+        ]);
     }
 }

@@ -32,13 +32,28 @@ class Lesson extends Model
 {
     protected $fillable = [
         'module_id', 'chapter_id', 'course_id', 'title', 'kh_title', 'type', 'file_path', 'file_url',
-        'video_url', 'content', 'ai_summary', 'thumbnail', 'duration_seconds', 'order', 'is_free_preview', 'downloadable'
+        'video_url', 'preview_url', 'video_provider', 'content', 'summary', 'objectives', 'ai_summary',
+        'thumbnail', 'duration_seconds', 'order', 'is_free_preview', 'downloadable'
     ];
 
     protected $casts = [
         'is_free_preview' => 'boolean',
-        'downloadable' => 'boolean',
+        'downloadable'    => 'boolean',
+        'objectives'      => 'array',
     ];
+
+    public function resources()
+    {
+        return $this->hasMany(LessonResource::class)->orderBy('sort_order');
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(LessonComment::class)
+            ->whereNull('parent_id')
+            ->with(['user', 'replies.user'])
+            ->latest();
+    }
 
     public function module()
     {

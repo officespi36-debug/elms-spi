@@ -21,8 +21,11 @@ interface LessonItem {
   is_completed: boolean
   is_locked: boolean
   completed_at?: string | null
-  about?: string
-  objectives?: string[]
+  summary?: string | null
+  objectives?: string[] | null
+  content?: string | null
+  preview_url?: string | null
+  video_provider?: string | null
 }
 
 interface ChapterItem {
@@ -54,6 +57,16 @@ const props = defineProps<{
   overallProgress?: number
   completedLessonsCount?: number
   totalLessonsCount?: number
+  resources?: Array<any>
+  comments?: Array<any>
+  completionAction?: {
+    type: string
+    label: string
+    can_complete: boolean
+    reason?: string
+    next_url?: string
+  }
+  currentUserId?: number
 }>()
 
 // Active tab state
@@ -152,6 +165,9 @@ const progressFillPercentage = computed(() => {
 
 // Video Provider Detection
 const videoProvider = computed<'youtube' | 'vimeo' | 'mp4' | 'none'>(() => {
+  if (props.currentLesson?.video_provider) {
+    return props.currentLesson.video_provider as any
+  }
   const url = props.currentLesson?.video_url?.trim()
   if (!url) return 'none'
   if (url.includes('youtube.com') || url.includes('youtu.be')) return 'youtube'
@@ -172,6 +188,9 @@ const youtubeEmbedUrl = computed(() => {
 
 // ─── YouTube-Style Hover to Play Preview Handlers ───
 const handleVideoMouseEnter = () => {
+  if (videoProvider.value === 'none' && !props.currentLesson?.preview_url) {
+    return
+  }
   isHoveringVideo.value = true
   if (!isLockedPlay.value) {
     isPreviewMode.value = true
@@ -530,6 +549,197 @@ const openAiAssistant = (promptText = '') => {
   }
 }
 
+// ─── Reactive Resources & Discussion Comments ───
+const localResources = ref<any[]>(props.resources || [])
+watch(() => props.resources, (newRes) => {
+  localResources.value = newRes || []
+})
+
+const localComments = ref<any[]>(props.comments || [])
+watch(() => props.comments, (newComms) => {
+  localComments.value = newComms || []
+})
+
+const newCommentText = ref('')
+const replyText = ref('')
+const replyingToId = ref<number | null>(null)
+const isPostingComment = ref(false)
+const deletingCommentId = ref<number | null>(null)
+
+// ─── Tab State & Keyboard Accessibility ───
+const tabList = ['overview', 'content', 'resources', 'discussion'] as const
+const setTab = (tab: 'overview' | 'content' | 'resources' | 'discussion') => {
+  activeTab.value = tab
+  if (typeof window !== 'undefined') {
+    const url = new URL(window.location.href)
+    url.searchParams.set('tab', tab)
+    window.history.replaceState({}, '', url.toString())
+  }
+}
+
+const handleTabKeydown = (e: KeyboardEvent, current: typeof tabList[number]) => {
+  const currentIndex = tabList.indexOf(current)
+  if (e.key === 'ArrowRight') {
+    e.preventDefault()
+    const nextTab = tabList[(currentIndex + 1) % tabList.length]
+    setTab(nextTab)
+    document.getElementById(`tab-${nextTab}`)?.focus()
+  } else if (e.key === 'ArrowLeft') {
+    e.preventDefault()
+    const prevTab = tabList[(currentIndex - 1 + tabList.length) % tabList.length]
+    setTab(prevTab)
+    document.getElementById(`tab-${prevTab}`)?.focus()
+  } else if (e.key === 'Home') {
+    e.preventDefault()
+    setTab(tabList[0])
+    document.getElementById(`tab-${tabList[0]}`)?.focus()
+  } else if (e.key === 'End') {
+    e.preventDefault()
+    setTab(tabList[tabList.length - 1])
+    document.getElementById(`tab-${tabList[tabList.length - 1]}`)?.focus()
+  }
+}
+
+// ─── Sanitized Lesson Content ───
+const sanitizedContent = computed(() => {
+  const raw = props.currentLesson?.content || ''
+  return raw
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/on\w+="[^"]*"/gi, '')
+    .replace(/javascript:[^"']*/gi, '')
+})
+
+// ─── Discussion: Post Comment / Reply (Optimistic UI) ───
+const postComment = async (parentId: number | null = null) => {
+  const text = (parentId ? replyText.value : newCommentText.value).trim()
+  if (!text || isPostingComment.value || !props.currentLesson?.id) return
+
+  const tempId = Date.now()
+  const optimisticComment: any = {
+    id: tempId,
+    lesson_id: props.currentLesson.id,
+    user_id: props.currentUserId || 0,
+    parent_id: parentId,
+    body: text,
+    created_at: new Date().toISOString(),
+    relative_time: 'Just now',
+    user: {
+      id: props.currentUserId || 0,
+      name: props.studentFirstName ? `${props.studentFirstName} (You)` : 'You',
+      avatar: null,
+      role: 'student',
+    },
+    replies: [],
+    _isOptimistic: true,
+  }
+
+  // Optimistic insert
+  if (parentId) {
+    const parent = localComments.value.find(c => c.id === parentId)
+    if (parent) {
+      if (!parent.replies) parent.replies = []
+      parent.replies.push(optimisticComment)
+    }
+    replyText.value = ''
+    replyingToId.value = null
+  } else {
+    localComments.value.unshift(optimisticComment)
+    newCommentText.value = ''
+  }
+
+  try {
+    isPostingComment.value = true
+    const res = await fetch(`/student/lessons/${props.currentLesson.id}/comments`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': getCsrfToken(),
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ body: text, parent_id: parentId }),
+    })
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}))
+      throw new Error(errData.message || errData.error || `HTTP ${res.status}`)
+    }
+
+    const data = await res.json()
+    // Replace optimistic item with server item
+    if (parentId) {
+      const parent = localComments.value.find(c => c.id === parentId)
+      if (parent && parent.replies) {
+        const idx = parent.replies.findIndex(r => r.id === tempId)
+        if (idx !== -1) parent.replies[idx] = data.comment
+      }
+    } else {
+      const idx = localComments.value.findIndex(c => c.id === tempId)
+      if (idx !== -1) localComments.value[idx] = data.comment
+    }
+  } catch (err: any) {
+    // Revert optimistic insert
+    if (parentId) {
+      const parent = localComments.value.find(c => c.id === parentId)
+      if (parent && parent.replies) {
+        parent.replies = parent.replies.filter(r => r.id !== tempId)
+      }
+    } else {
+      localComments.value = localComments.value.filter(c => c.id !== tempId)
+    }
+    toastType.value = 'warning'
+    toastMessage.value = err.message || 'Failed to post comment'
+    showToast.value = true
+    setTimeout(() => { showToast.value = false }, 4000)
+  } finally {
+    isPostingComment.value = false
+  }
+}
+
+// ─── Discussion: Delete Comment ───
+const deleteComment = async (commentId: number, parentId: number | null = null) => {
+  if (!confirm('Are you sure you want to delete this comment?')) return
+
+  try {
+    deletingCommentId.value = commentId
+    const res = await fetch(`/student/lessons/${props.currentLesson.id}/comments/${commentId}`, {
+      method: 'DELETE',
+      headers: {
+        'X-CSRF-TOKEN': getCsrfToken(),
+        'Accept': 'application/json',
+      },
+    })
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+
+    if (parentId) {
+      const parent = localComments.value.find(c => c.id === parentId)
+      if (parent && parent.replies) {
+        parent.replies = parent.replies.filter(r => r.id !== commentId)
+      }
+    } else {
+      localComments.value = localComments.value.filter(c => c.id !== commentId)
+    }
+  } catch (err) {
+    toastType.value = 'error'
+    toastMessage.value = 'Failed to delete comment'
+    showToast.value = true
+    setTimeout(() => { showToast.value = false }, 4000)
+  } finally {
+    deletingCommentId.value = null
+  }
+}
+
+// ─── Smart Completion Action Handler ───
+const handleSmartAction = () => {
+  if (props.completionAction?.type === 'next') {
+    handleNextNav()
+  } else if (props.completionAction?.type === 'finish') {
+    router.visit(props.completionAction.next_url || `/student/courses/${props.course.id}/overview`)
+  } else {
+    handleCompleteAndNext()
+  }
+}
+
 // Keyboard shortcuts (Space, Left/Right, F, N)
 const handleKeydown = (e: KeyboardEvent) => {
   // Ignore when typing inside input / textarea
@@ -576,12 +786,17 @@ const handleBeforeUnload = () => {
 }
 
 onMounted(() => {
-  startPlaybackSimulation()
   if (typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search)
+    const tabParam = params.get('tab')
+    if (tabParam && ['overview', 'content', 'resources', 'discussion'].includes(tabParam)) {
+      activeTab.value = tabParam as any
+    }
     window.addEventListener('keydown', handleKeydown)
     window.addEventListener('beforeunload', handleBeforeUnload)
     window.addEventListener('online', handleOnline)
   }
+  startPlaybackSimulation()
 })
 
 onUnmounted(() => {
@@ -720,11 +935,11 @@ onUnmounted(() => {
               leave-to-class="opacity-0 -translate-y-2"
             >
               <div
-                v-if="isPreviewMode && !isLockedPlay"
+                v-if="isPreviewMode && !isLockedPlay && (videoProvider !== 'none' || currentLesson.preview_url)"
                 class="absolute top-4 left-4 z-30 flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/85 backdrop-blur-md border border-purple-500/50 text-white text-xs font-semibold shadow-xl pointer-events-none"
               >
                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                <span class="text-purple-300 font-bold uppercase tracking-wider text-[10px]">YouTube Preview</span>
+                <span class="text-purple-300 font-bold uppercase tracking-wider text-[10px]">{{ videoProvider === 'youtube' ? 'YouTube Preview' : 'Preview' }}</span>
                 <span class="text-slate-400 text-[10px]">🔇 Muted</span>
               </div>
             </transition>
@@ -856,85 +1071,136 @@ onUnmounted(() => {
 
           <!-- Lesson Navigation Tabs (Overview, Lesson Content, Resources, Discussion) -->
           <div class="border-b border-slate-200 dark:border-slate-800">
-            <nav class="flex items-center gap-6 text-xs font-semibold">
+            <nav
+              role="tablist"
+              aria-label="Lesson Details Tabs"
+              class="flex items-center gap-6 text-xs font-semibold"
+            >
               <button
-                @click="activeTab = 'overview'"
+                id="tab-overview"
+                role="tab"
+                :aria-selected="activeTab === 'overview'"
+                aria-controls="panel-overview"
+                tabindex="0"
+                @click="setTab('overview')"
+                @keydown="handleTabKeydown($event, 'overview')"
                 :class="[
                   activeTab === 'overview'
-                    ? 'text-purple-600 dark:text-purple-400 border-b-2 border-purple-500 pb-3 font-bold'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 pb-3 border-b-2 border-transparent'
+                    ? 'text-purple-600 dark:text-purple-400 font-bold border-b-2 border-purple-500'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border-b-2 border-transparent'
                 ]"
-                class="transition-colors cursor-pointer"
+                class="pb-3 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 rounded-t-sm cursor-pointer"
               >
                 Overview
               </button>
+
               <button
-                @click="activeTab = 'content'"
+                id="tab-content"
+                role="tab"
+                :aria-selected="activeTab === 'content'"
+                aria-controls="panel-content"
+                tabindex="0"
+                @click="setTab('content')"
+                @keydown="handleTabKeydown($event, 'content')"
                 :class="[
                   activeTab === 'content'
-                    ? 'text-purple-600 dark:text-purple-400 border-b-2 border-purple-500 pb-3 font-bold'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 pb-3 border-b-2 border-transparent'
+                    ? 'text-purple-600 dark:text-purple-400 font-bold border-b-2 border-purple-500'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border-b-2 border-transparent'
                 ]"
-                class="transition-colors cursor-pointer"
+                class="pb-3 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 rounded-t-sm cursor-pointer"
               >
                 Lesson Content
               </button>
+
               <button
-                @click="activeTab = 'resources'"
+                id="tab-resources"
+                role="tab"
+                :aria-selected="activeTab === 'resources'"
+                aria-controls="panel-resources"
+                tabindex="0"
+                @click="setTab('resources')"
+                @keydown="handleTabKeydown($event, 'resources')"
                 :class="[
                   activeTab === 'resources'
-                    ? 'text-purple-600 dark:text-purple-400 border-b-2 border-purple-500 pb-3 font-bold'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 pb-3 border-b-2 border-transparent'
+                    ? 'text-purple-600 dark:text-purple-400 font-bold border-b-2 border-purple-500'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border-b-2 border-transparent'
                 ]"
-                class="transition-colors cursor-pointer"
+                class="pb-3 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 rounded-t-sm cursor-pointer flex items-center gap-1.5"
               >
-                Resources
+                <span>Resources</span>
+                <span
+                  v-if="localResources && localResources.length > 0"
+                  class="px-1.5 py-0.2 rounded-full text-[10px] bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 font-bold"
+                >
+                  {{ localResources.length }}
+                </span>
               </button>
+
               <button
-                @click="activeTab = 'discussion'"
+                id="tab-discussion"
+                role="tab"
+                :aria-selected="activeTab === 'discussion'"
+                aria-controls="panel-discussion"
+                tabindex="0"
+                @click="setTab('discussion')"
+                @keydown="handleTabKeydown($event, 'discussion')"
                 :class="[
                   activeTab === 'discussion'
-                    ? 'text-purple-600 dark:text-purple-400 border-b-2 border-purple-500 pb-3 font-bold'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 pb-3 border-b-2 border-transparent'
+                    ? 'text-purple-600 dark:text-purple-400 font-bold border-b-2 border-purple-500'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border-b-2 border-transparent'
                 ]"
-                class="transition-colors cursor-pointer"
+                class="pb-3 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 rounded-t-sm cursor-pointer flex items-center gap-1.5"
               >
-                Discussion
+                <span>Discussion</span>
+                <span
+                  v-if="localComments && localComments.length > 0"
+                  class="px-1.5 py-0.2 rounded-full text-[10px] bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 font-bold"
+                >
+                  {{ localComments.length }}
+                </span>
               </button>
             </nav>
           </div>
 
           <!-- TAB CONTENT: Overview -->
-          <div v-show="activeTab === 'overview'" class="space-y-6">
-            <!-- About This Lesson Section (Sentence case 18px semibold) -->
-            <div class="space-y-2">
+          <div
+            v-show="activeTab === 'overview'"
+            id="panel-overview"
+            role="tabpanel"
+            aria-labelledby="tab-overview"
+            class="space-y-6"
+          >
+            <!-- About This Lesson Section (Only show if summary from DB exists) -->
+            <div v-if="currentLesson.summary" class="space-y-2">
               <h3 class="text-[18px] font-semibold text-slate-900 dark:text-white capitalize">
                 About this lesson
               </h3>
-              <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                {{ currentLesson.kh_title || currentLesson.title }} — ស្វែងយល់អំពីគោលគំនិតសំខាន់ៗ ការអនុវត្តជាក់ស្តែង និងដំណោះស្រាយក្នុងវគ្គសិក្សា {{ course.title }}។
+              <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-['Kantumruy_Pro',sans-serif]">
+                {{ currentLesson.summary }}
               </p>
             </div>
 
-            <!-- What you will learn Section -->
-            <div class="space-y-2.5">
+            <!-- What you will learn Section (Only show if objectives from DB exist) -->
+            <div v-if="currentLesson.objectives && currentLesson.objectives.length > 0" class="space-y-2.5">
               <h4 class="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
                 What you will learn:
               </h4>
-              <ul class="space-y-2 text-xs text-slate-600 dark:text-slate-300">
-                <li class="flex items-center gap-2.5">
-                  <span class="w-4 h-4 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[10px] font-bold">✓</span>
-                  <span>Master fundamental concepts of {{ currentLesson.title }}</span>
-                </li>
-                <li class="flex items-center gap-2.5">
-                  <span class="w-4 h-4 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[10px] font-bold">✓</span>
-                  <span>Analyze practical laboratory and real-world examples</span>
-                </li>
-                <li class="flex items-center gap-2.5">
-                  <span class="w-4 h-4 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[10px] font-bold">✓</span>
-                  <span>Apply knowledge to solve course assignments and quizzes</span>
+              <ul class="space-y-2 text-xs text-slate-600 dark:text-slate-300 font-['Kantumruy_Pro',sans-serif]">
+                <li v-for="(obj, idx) in currentLesson.objectives" :key="idx" class="flex items-start gap-2.5">
+                  <span class="w-4 h-4 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[10px] font-bold mt-0.5 shrink-0">✓</span>
+                  <span>{{ obj }}</span>
                 </li>
               </ul>
+            </div>
+
+            <!-- Empty State for Overview if both are empty -->
+            <div
+              v-if="!currentLesson.summary && (!currentLesson.objectives || currentLesson.objectives.length === 0)"
+              class="p-6 text-center text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800"
+            >
+              <span class="text-2xl block mb-2">📋</span>
+              <p class="font-medium text-slate-700 dark:text-slate-300">No overview details provided for this lesson yet.</p>
+              <p class="text-[11px] text-slate-500 mt-0.5">Please check the Lesson Content or Discussion tab.</p>
             </div>
 
             <!-- Need help banner with Ask AI Assistant (Opens FAB Panel) -->
@@ -959,44 +1225,241 @@ onUnmounted(() => {
           </div>
 
           <!-- TAB CONTENT: Lesson Content -->
-          <div v-show="activeTab === 'content'" class="space-y-4 text-xs text-slate-700 dark:text-slate-300 leading-relaxed bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-2xs">
-            <h4 class="text-[18px] font-semibold text-slate-900 dark:text-white capitalize">Lesson content & notes</h4>
-            <p>1. <strong>Overview</strong>: {{ currentLesson.title }} provides foundational insight into the course curriculum.</p>
-            <p>2. <strong>Key Concepts</strong>: Follow the lecture carefully, take notes, and complete all self-assessment questions.</p>
+          <div
+            v-show="activeTab === 'content'"
+            id="panel-content"
+            role="tabpanel"
+            aria-labelledby="tab-content"
+            class="space-y-4"
+          >
+            <div
+              v-if="currentLesson.content"
+              class="space-y-4 text-xs text-slate-700 dark:text-slate-300 leading-relaxed bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-2xs font-['Kantumruy_Pro',sans-serif]"
+            >
+              <h4 class="text-[18px] font-semibold text-slate-900 dark:text-white capitalize">
+                Lesson content & notes
+              </h4>
+              <div
+                class="prose dark:prose-invert max-w-none text-xs leading-relaxed whitespace-pre-line"
+                v-html="sanitizedContent"
+              ></div>
+            </div>
+
+            <div
+              v-else
+              class="p-8 text-center text-xs text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900/60 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xs"
+            >
+              <span class="text-3xl block mb-2">📝</span>
+              <p class="font-semibold text-slate-800 dark:text-slate-200">No notes for this lesson yet</p>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">គ្មានកំណត់ចំណាំសម្រាប់មេរៀននេះនៅឡើយទេ។ You can ask questions in the Discussion tab.</p>
+            </div>
           </div>
 
           <!-- TAB CONTENT: Resources -->
-          <div v-show="activeTab === 'resources'" class="space-y-3">
-            <div class="p-3.5 bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-between gap-3 text-xs shadow-2xs">
-              <div class="flex items-center gap-2.5">
-                <span class="text-base">📄</span>
-                <div>
-                  <p class="font-bold text-slate-900 dark:text-white">{{ currentLesson.title }} — Lecture Notes.pdf</p>
-                  <p class="text-[10px] text-slate-500 dark:text-slate-400">PDF Document • 2.5 MB</p>
+          <div
+            v-show="activeTab === 'resources'"
+            id="panel-resources"
+            role="tabpanel"
+            aria-labelledby="tab-resources"
+            class="space-y-3"
+          >
+            <div v-if="localResources && localResources.length > 0" class="space-y-3">
+              <div
+                v-for="res in localResources"
+                :key="res.id"
+                class="p-4 bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl flex items-center justify-between gap-3 text-xs shadow-2xs hover:border-purple-300 dark:hover:border-purple-700/50 transition-all"
+              >
+                <div class="flex items-center gap-3 min-w-0">
+                  <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg shrink-0 border border-purple-100 dark:border-purple-800/40">
+                    <span v-if="res.file_extension === 'PDF' || (res.mime && res.mime.includes('pdf'))">📕</span>
+                    <span v-else-if="['ZIP','RAR','7Z'].includes(res.file_extension)">📦</span>
+                    <span v-else-if="['DOC','DOCX'].includes(res.file_extension)">📘</span>
+                    <span v-else-if="['XLS','XLSX','CSV'].includes(res.file_extension)">📊</span>
+                    <span v-else-if="['PPT','PPTX'].includes(res.file_extension)">📙</span>
+                    <span v-else>📄</span>
+                  </div>
+                  <div class="min-w-0">
+                    <p class="font-bold text-slate-900 dark:text-white truncate">{{ res.title }}</p>
+                    <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                      {{ res.file_extension || 'FILE' }} • {{ res.formatted_size || 'Attached' }}
+                    </p>
+                  </div>
                 </div>
+                <a
+                  :href="`/student/lessons/${currentLesson.id}/resources/${res.id}`"
+                  download
+                  class="px-4 py-2 rounded-xl bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-600 hover:text-white dark:hover:bg-purple-600 text-purple-600 dark:text-purple-400 text-xs font-bold border border-purple-200 dark:border-purple-800/40 transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
+                >
+                  <span>⬇</span>
+                  <span>Download</span>
+                </a>
               </div>
-              <button class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-purple-600 dark:text-purple-400 text-xs font-bold border border-slate-200 dark:border-slate-700 cursor-pointer">
-                Download
-              </button>
+            </div>
+
+            <div
+              v-else
+              class="p-8 text-center text-xs text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900/60 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xs"
+            >
+              <span class="text-3xl block mb-2">📁</span>
+              <p class="font-semibold text-slate-800 dark:text-slate-200">No downloadable resources for this lesson</p>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">គ្មានឯកសារទាញយកសម្រាប់មេរៀននេះនៅឡើយទេ។</p>
             </div>
           </div>
 
           <!-- TAB CONTENT: Discussion -->
-          <div v-show="activeTab === 'discussion'" class="space-y-4">
-            <div class="flex items-center gap-3">
-              <input
-                type="text"
-                placeholder="Ask a question about this lesson..."
-                class="flex-1 px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-purple-500 shadow-2xs"
-              />
-              <button class="px-4 py-2 rounded-xl bg-purple-600 text-white font-bold text-xs hover:bg-purple-500 cursor-pointer">
-                Post
-              </button>
+          <div
+            v-show="activeTab === 'discussion'"
+            id="panel-discussion"
+            role="tabpanel"
+            aria-labelledby="tab-discussion"
+            class="space-y-5"
+          >
+            <!-- Add Comment Input Box -->
+            <div class="p-4 bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xs space-y-3">
+              <label for="new-comment-input" class="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                <span>💬</span>
+                <span>Ask a Question or Share Feedback</span>
+              </label>
+              <div class="flex items-start gap-3">
+                <textarea
+                  id="new-comment-input"
+                  v-model="newCommentText"
+                  rows="2"
+                  placeholder="Ask a question about this lesson..."
+                  class="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 shadow-2xs font-['Kantumruy_Pro',sans-serif] resize-none"
+                  @keydown.ctrl.enter="postComment(null)"
+                ></textarea>
+                <button
+                  @click="postComment(null)"
+                  :disabled="isPostingComment || !newCommentText.trim()"
+                  class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs transition-all shadow-md shadow-purple-600/20 cursor-pointer shrink-0 self-end"
+                >
+                  <span v-if="isPostingComment">Posting...</span>
+                  <span v-else>Post</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Comment List -->
+            <div v-if="localComments && localComments.length > 0" class="space-y-4">
+              <div
+                v-for="comm in localComments"
+                :key="comm.id"
+                class="p-4 bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xs space-y-3"
+              >
+                <!-- Comment Header -->
+                <div class="flex items-start justify-between gap-3">
+                  <div class="flex items-center gap-3">
+                    <img
+                      :src="comm.user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(comm.user?.name || 'User')}&background=8b5cf6&color=fff`"
+                      :alt="comm.user?.name"
+                      class="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-700"
+                    />
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold text-slate-900 dark:text-white">{{ comm.user?.name }}</span>
+                        <span
+                          v-if="comm.user?.role === 'teacher' || comm.user?.role === 'admin'"
+                          class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-300"
+                        >
+                          Instructor
+                        </span>
+                      </div>
+                      <span class="text-[10px] text-slate-400 tabular-nums">{{ comm.relative_time || 'Recent' }}</span>
+                    </div>
+                  </div>
+
+                  <!-- Delete comment button for owner -->
+                  <button
+                    v-if="comm.user_id === currentUserId"
+                    @click="deleteComment(comm.id)"
+                    :disabled="deletingCommentId === comm.id"
+                    aria-label="Delete comment"
+                    class="text-[11px] text-red-500 hover:text-red-700 dark:hover:text-red-400 p-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
+                  >
+                    🗑️
+                  </button>
+                </div>
+
+                <!-- Comment Body -->
+                <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-['Kantumruy_Pro',sans-serif] pl-11">
+                  {{ comm.body }}
+                </p>
+
+                <!-- Action row (Reply toggle) -->
+                <div class="pl-11 flex items-center gap-4 text-[11px]">
+                  <button
+                    @click="replyingToId = replyingToId === comm.id ? null : comm.id"
+                    class="text-purple-600 dark:text-purple-400 font-semibold hover:underline cursor-pointer"
+                  >
+                    {{ replyingToId === comm.id ? 'Cancel Reply' : 'Reply' }}
+                  </button>
+                </div>
+
+                <!-- Reply Form -->
+                <div v-if="replyingToId === comm.id" class="pl-11 pt-2 flex items-center gap-2">
+                  <input
+                    type="text"
+                    v-model="replyText"
+                    placeholder="Write a reply..."
+                    class="flex-1 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-purple-500 font-['Kantumruy_Pro',sans-serif]"
+                    @keydown.enter="postComment(comm.id)"
+                  />
+                  <button
+                    @click="postComment(comm.id)"
+                    :disabled="isPostingComment || !replyText.trim()"
+                    class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs disabled:opacity-40 cursor-pointer"
+                  >
+                    Reply
+                  </button>
+                </div>
+
+                <!-- 1-Level Replies -->
+                <div v-if="comm.replies && comm.replies.length > 0" class="pl-11 pt-2 space-y-2 border-t border-slate-100 dark:border-slate-800/60 mt-2">
+                  <div
+                    v-for="rep in comm.replies"
+                    :key="rep.id"
+                    class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 text-xs space-y-1.5"
+                  >
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center gap-2">
+                        <img
+                          :src="rep.user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(rep.user?.name || 'User')}&background=8b5cf6&color=fff`"
+                          :alt="rep.user?.name"
+                          class="w-5 h-5 rounded-full object-cover"
+                        />
+                        <span class="font-bold text-slate-800 dark:text-slate-200 text-[11px]">{{ rep.user?.name }}</span>
+                        <span class="text-[9px] text-slate-400">{{ rep.relative_time || 'Recent' }}</span>
+                      </div>
+                      <button
+                        v-if="rep.user_id === currentUserId"
+                        @click="deleteComment(rep.id, comm.id)"
+                        class="text-[10px] text-red-500 hover:text-red-700 cursor-pointer"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                    <p class="text-slate-600 dark:text-slate-300 font-['Kantumruy_Pro',sans-serif] pl-7">
+                      {{ rep.body }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Empty State for Discussion -->
+            <div
+              v-else
+              class="p-8 text-center text-xs text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900/60 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xs"
+            >
+              <span class="text-3xl block mb-2">💬</span>
+              <p class="font-semibold text-slate-800 dark:text-slate-200">No questions yet. Be the first to ask!</p>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">មិនទាន់មានសំណួរនៅឡើយទេ។ សូមក្លាយជាអ្នកដំបូងដែលសួរសំណួរ!</p>
             </div>
           </div>
 
-          <!-- Bottom Action Buttons: Previous Lesson & Single Complete & Next Action -->
-          <div class="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800">
+          <!-- Bottom Action Buttons: Previous Lesson & Smart Completion Action -->
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
             <button
               @click="handlePreviousNav"
               :disabled="!previousLessonItem"
@@ -1004,25 +1467,37 @@ onUnmounted(() => {
               type="button"
               :class="[
                 !previousLessonItem ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-200 dark:hover:bg-slate-700 cursor-pointer',
-                'px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs border border-slate-200 dark:border-slate-700 flex items-center gap-2 transition-colors shadow-2xs'
+                'w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-2 transition-colors shadow-2xs'
               ]"
             >
               <span>←</span>
               <span>Previous Lesson</span>
             </button>
 
-            <!-- Single Complete & Next Button (Records progress & validates >= 90%) -->
-            <button
-              @click="handleCompleteAndNext"
-              :disabled="isCompleting"
-              aria-label="Complete and next lesson"
-              type="button"
-              class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/20 flex items-center gap-2 hover:scale-105 active:scale-95 transition-all cursor-pointer"
-            >
-              <span v-if="isCompleting">Saving...</span>
-              <span v-else-if="isLessonCompletedLocally">Completed & Next Lesson →</span>
-              <span v-else>Complete & Next Lesson →</span>
-            </button>
+            <!-- Smart Complete & Next Action Button -->
+            <div class="flex flex-col items-end gap-1 w-full sm:w-auto">
+              <button
+                @click="handleSmartAction"
+                :disabled="isCompleting || (completionAction && !completionAction.can_complete)"
+                aria-label="Smart Complete and Next"
+                type="button"
+                :class="[
+                  isCompleting || (completionAction && !completionAction.can_complete)
+                    ? 'opacity-50 cursor-not-allowed bg-purple-600/70'
+                    : 'bg-purple-600 hover:bg-purple-500 hover:scale-105 active:scale-95 cursor-pointer shadow-lg shadow-purple-600/20',
+                  'w-full sm:w-auto px-5 py-2.5 rounded-xl text-white font-bold text-xs flex items-center justify-center gap-2 transition-all'
+                ]"
+              >
+                <span v-if="isCompleting">Saving...</span>
+                <span v-else>{{ completionAction?.label || (isLessonCompletedLocally ? 'Next Lesson →' : 'Complete & Next Lesson →') }}</span>
+              </button>
+              <span
+                v-if="completionAction && !completionAction.can_complete && completionAction.reason"
+                class="text-[10px] text-amber-500 font-medium"
+              >
+                {{ completionAction.reason }}
+              </span>
+            </div>
           </div>
 
         </div>
@@ -1184,13 +1659,13 @@ onUnmounted(() => {
           ← Prev
         </button>
         <button
-          @click="handleCompleteAndNext"
-          :disabled="isCompleting"
+          @click="handleSmartAction"
+          :disabled="isCompleting || (completionAction && !completionAction.can_complete)"
           type="button"
-          class="flex-1 py-2 rounded-xl bg-purple-600 text-white text-xs font-bold text-center shadow-md shadow-purple-600/30"
+          class="flex-1 py-2 rounded-xl bg-purple-600 text-white text-xs font-bold text-center shadow-md shadow-purple-600/30 disabled:opacity-50"
         >
           <span v-if="isCompleting">Saving...</span>
-          <span v-else>Complete & Next Lesson →</span>
+          <span v-else>{{ completionAction?.label || (isLessonCompletedLocally ? 'Next Lesson →' : 'Complete & Next Lesson →') }}</span>
         </button>
       </div>
 
