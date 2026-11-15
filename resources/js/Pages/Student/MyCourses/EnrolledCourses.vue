@@ -556,6 +556,8 @@ onMounted(() => {
                     <img
                       :src="course.teacher.avatar"
                       :alt="course.teacher.name"
+                      loading="lazy"
+                      decoding="async"
                       class="w-6 h-6 rounded-full object-cover border border-purple-500/40"
                     />
                     <span class="text-xs text-slate-600 dark:text-slate-300 font-medium">{{ course.teacher.name }}</span>

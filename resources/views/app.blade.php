@@ -241,10 +241,10 @@
                 box-shadow: none;
             }
             20% {
-                background-color: #f97316;
+                background-color: #7c3aed;
                 transform: scale(1.24);
                 opacity: 1;
-                box-shadow: 0 0 16px rgba(249, 115, 22, 0.85);
+                box-shadow: 0 0 16px rgba(124, 58, 237, 0.85);
             }
         }
     </style>

@@ -27,8 +27,8 @@ class DashboardController extends Controller
             Cache::forget("student_stats_{$user->id}");
         }
 
-        // Performance: Cache::remember 60s (scoped to user id) with eager loading & selected columns
-        $payload = Cache::remember("student_dashboard_payload_{$user->id}", 60, function () use ($user) {
+        // Performance: Cache::remember 300s (scoped to user id) with eager loading & selected columns
+        $payload = Cache::remember("student_dashboard_payload_{$user->id}", 300, function () use ($user) {
             try {
                 $enrollments = Enrollment::where('student_id', $user->id)
                     ->select(['id', 'student_id', 'course_id', 'status', 'enrolled_at', 'updated_at'])
@@ -305,7 +305,7 @@ class DashboardController extends Controller
             ];
 
             // 7. Study Time Breakdown computed directly from database
-            $totalSeconds = (int) LessonProgress::where('user_id', $user->id)->sum('seconds_watched');
+            $totalSeconds = $statsData['totalSeconds'] ?? 0;
             if ($totalSeconds <= 0) {
                 $studyBreakdown = [
                     'total' => '0h 0m',
@@ -335,7 +335,7 @@ class DashboardController extends Controller
             }
 
             // 8. Quiz Performance from actual database records
-            $avgScore = QuizAttempt::where('user_id', $user->id)->whereNotNull('score')->avg('score');
+            $avgNum = $statsData['averageScoreNum'] ?? 0;
             $maxScore = QuizAttempt::where('user_id', $user->id)->whereNotNull('score')->max('score');
             $attempts = QuizAttempt::where('user_id', $user->id)->whereNotNull('score')->latest('submitted_at')->take(2)->pluck('score');
             if ($attempts->count() >= 2) {
@@ -346,12 +346,11 @@ class DashboardController extends Controller
             } else {
                 $trend = 'No quiz data';
             }
-            $avgNum = $avgScore !== null ? (int) round($avgScore) : 0;
             $quizPerformanceData = [
                 'averageScore' => "{$avgNum}%",
                 'averageScoreNum' => $avgNum,
                 'correctPct' => "{$avgNum}%",
-                'incorrectPct' => $avgScore !== null ? ((100 - $avgNum) . '%') : '0%',
+                'incorrectPct' => ($avgNum > 0 ? (100 - $avgNum) : 0) . '%',
                 'highestScore' => ($maxScore ? (int) round($maxScore) : $avgNum) . '%',
                 'trend' => $trend,
             ];
@@ -568,6 +567,7 @@ class DashboardController extends Controller
             'learningTime'      => $learningTime,
             'studyHours'        => (int) $studyHours,
             'studyMinutes'      => (int) $studyMinutes,
+            'totalSeconds'      => (int) $totalSeconds,
             'averageScore'      => $avgScoreFormatted,
             'averageScoreNum'   => (int) $avgScoreNum,
         ];

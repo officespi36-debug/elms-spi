@@ -968,7 +968,10 @@ const onIconError = (e: Event) => {
   <GlobalLoadingOverlay />
   <div class="min-h-screen bg-[#f8fafd] dark:bg-[#131314] text-[#1f1f1f] dark:text-[#e3e3e3] selection:bg-[#0b57d0]/20 transition-colors duration-200 notranslate" translate="no">
     <!-- Desktop Sidebar (Fixed Positioning exactly like Admin & Teacher layouts) -->
-    <aside :class="[isSidebarCollapsed ? 'w-[72px] overflow-visible' : 'w-72', 'fixed inset-y-0 left-0 z-50 hidden flex-col bg-white/95 dark:bg-[#131314] backdrop-blur-xl border-r border-[#dfe3e7] dark:border-[#28292a] lg:flex transition-all duration-250 ease-in-out shadow-xs dark:shadow-none']">
+    <aside
+      style="view-transition-name: student-sidebar;"
+      :class="[isSidebarCollapsed ? 'w-[72px] overflow-visible' : 'w-72', 'fixed inset-y-0 left-0 z-50 hidden flex-col bg-white/95 dark:bg-[#131314] backdrop-blur-xl border-r border-[#dfe3e7] dark:border-[#28292a] lg:flex transition-all duration-250 ease-in-out shadow-xs dark:shadow-none']"
+    >
       
       <!-- Sidebar Header & Logo -->
       <div
@@ -1459,7 +1462,10 @@ const onIconError = (e: Event) => {
     </aside>
 
     <!-- STICKY TOP NAVBAR (Dynamically padded to account for fixed sidebar) -->
-    <header :class="[isSidebarCollapsed ? 'lg:pl-[72px]' : 'lg:pl-72', 'sticky top-0 z-40 bg-white/95 dark:bg-[#131314]/95 backdrop-blur-xl border-b border-[#dfe3e7] dark:border-[#28292a] transition-all duration-250 ease-in-out shadow-2xs']">
+    <header
+      style="view-transition-name: student-topbar;"
+      :class="[isSidebarCollapsed ? 'lg:pl-[72px]' : 'lg:pl-72', 'sticky top-0 z-40 bg-white/95 dark:bg-[#131314]/95 backdrop-blur-xl border-b border-[#dfe3e7] dark:border-[#28292a] transition-all duration-250 ease-in-out shadow-2xs']"
+    >
       <div class="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8 xl:px-10 max-w-[1600px] mx-auto gap-4">
         
         <!-- Left Side: Mobile Sidebar Hamburger, Desktop Toggle & Multi-Segment Breadcrumbs -->

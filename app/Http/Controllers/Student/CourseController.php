@@ -40,12 +40,38 @@ class CourseController extends Controller
             ->with([
                 'course.teacher:id,name,avatar',
                 'course.major:id,name',
-                'course.modules.lessons'
+                'course.modules.lessons:id,module_id,course_id,title,order,duration_seconds',
+                'course.lessons:id,course_id,title,order,duration_seconds'
             ])
             ->latest('updated_at')
             ->get();
 
-        $enrolledList = $enrollments->map(function ($enr) use ($user) {
+        // High-Performance Optimization: Eager load all lesson progress in a single query (Eliminates N+1)
+        $allLessonIds = collect();
+        foreach ($enrollments as $enr) {
+            if (!$enr->course) continue;
+            if ($enr->course->modules && $enr->course->modules->count() > 0) {
+                foreach ($enr->course->modules as $mod) {
+                    if ($mod->lessons) {
+                        $allLessonIds = $allLessonIds->merge($mod->lessons->pluck('id'));
+                    }
+                }
+            }
+            if ($enr->course->lessons) {
+                $allLessonIds = $allLessonIds->merge($enr->course->lessons->pluck('id'));
+            }
+        }
+        $allLessonIds = $allLessonIds->unique()->filter()->values()->all();
+
+        $userProgressRecords = empty($allLessonIds)
+            ? collect()
+            : LessonProgress::where('user_id', $user->id)
+                ->whereIn('lesson_id', $allLessonIds)
+                ->select(['id', 'user_id', 'lesson_id', 'percent', 'seconds_watched', 'completed_at'])
+                ->get()
+                ->keyBy('lesson_id');
+
+        $enrolledList = $enrollments->map(function ($enr) use ($user, $userProgressRecords) {
             $c = $enr->course;
             if (!$c) return null;
 
@@ -64,12 +90,16 @@ class CourseController extends Controller
             }
 
             $lessonIds = $lessons->pluck('id')->all();
-            $totalLessons = $lessons->count();
+            $totalLessons = count($lessonIds);
 
-            $completedCount = LessonProgress::where('user_id', $user->id)
-                ->whereIn('lesson_id', $lessonIds)
-                ->where(fn($q) => $q->where('percent', '>=', 90)->orWhereNotNull('completed_at'))
-                ->count();
+            // In-memory completion count calculation (0 DB queries)
+            $completedCount = 0;
+            foreach ($lessonIds as $lid) {
+                $p = $userProgressRecords->get($lid);
+                if ($p && ($p->percent >= 90 || !empty($p->completed_at))) {
+                    $completedCount++;
+                }
+            }
 
             $progress = $totalLessons > 0 ? (int) round(($completedCount / $totalLessons) * 100) : 0;
             if ($enr->status === 'completed' || $progress >= 100) {
@@ -81,9 +111,10 @@ class CourseController extends Controller
                 $status = 'not_started';
             }
 
-            $nextLesson = $lessons->first(function ($l) use ($user) {
-                $p = LessonProgress::where('user_id', $user->id)->where('lesson_id', $l->id)->first();
-                return !$p || ($p->percent < 90 && !$p->completed_at);
+            // In-memory next lesson resolution (0 DB queries)
+            $nextLesson = $lessons->first(function ($l) use ($userProgressRecords) {
+                $p = $userProgressRecords->get($l->id);
+                return !$p || ($p->percent < 90 && empty($p->completed_at));
             }) ?: $lessons->first();
 
             $titleLower = strtolower($c->title . ' ' . ($c->major->name ?? ''));

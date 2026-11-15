@@ -4,7 +4,7 @@ import '@fontsource/noto-sans-khmer/400.css'
 import '@fontsource/noto-sans-khmer/700.css'
 
 import { createApp, h, type DefineComponent } from 'vue'
-import { createInertiaApp } from '@inertiajs/vue3'
+import { createInertiaApp, router } from '@inertiajs/vue3'
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers'
 import { createPinia } from 'pinia'
 import { VueQueryPlugin } from '@tanstack/vue-query'
@@ -31,7 +31,7 @@ if (typeof window !== 'undefined') {
       document.body.setAttribute('translate', 'no')
       document.body.classList.add('notranslate')
     }
-  } catch (e) {}
+  } catch (e) { }
 
   try {
     const updateSW = registerSW({
@@ -40,7 +40,7 @@ if (typeof window !== 'undefined') {
         updateSW(true)
       }
     })
-  } catch (e) {}
+  } catch (e) { }
 
   window.addEventListener('vite:preloadError', () => {
     window.location.reload()
@@ -49,13 +49,13 @@ if (typeof window !== 'undefined') {
   window.addEventListener('online', () => {
     try {
       flushQueue()
-    } catch (e) {}
+    } catch (e) { }
   })
 
   // Purge any legacy demo multi-account cache to maintain strict official production isolation
   try {
     localStorage.removeItem('elms_saved_accounts')
-  } catch (e) {}
+  } catch (e) { }
 }
 
 createInertiaApp({
@@ -106,7 +106,7 @@ createInertiaApp({
           ],
           tracesSampleRate: 0.2,
         })
-      }).catch(() => {})
+      }).catch(() => { })
     }
 
     vueApp.config.errorHandler = (err, instance, info) => {
@@ -114,7 +114,7 @@ createInertiaApp({
       if (sentryDsn) {
         import('@sentry/vue').then((Sentry) => {
           Sentry.captureException(err, { extra: { info } })
-        }).catch(() => {})
+        }).catch(() => { })
       }
     }
 
@@ -128,15 +128,72 @@ createInertiaApp({
           preloader.style.transition = 'opacity 0.25s ease-out'
           preloader.style.opacity = '0'
           setTimeout(() => {
-            try { preloader.remove() } catch (e) {}
+            try { preloader.remove() } catch (e) { }
           }, 250)
         }, 100)
       }
     }
   },
   progress: {
-    color: '#ea580c',
+    color: '#7c3aed',
     showSpinner: false,
-    delay: 100,
+    delay: 120,
   },
 })
+
+if (typeof window !== 'undefined') {
+  // Clear any stuck progress bar on Back/Forward cache restore (pageshow)
+  window.addEventListener('pageshow', () => {
+    const nprogressEl = document.getElementById('nprogress')
+    if (nprogressEl) {
+      nprogressEl.style.transition = 'opacity 0.2s ease-out'
+      nprogressEl.style.opacity = '0'
+      setTimeout(() => {
+        try { nprogressEl.remove() } catch (e) { }
+      }, 200)
+    }
+  })
+
+  // 65ms Hover Intent Prefetching for GET /student/* Links
+  let prefetchTimer: any = null
+  const prefetchedUrls = new Set<string>()
+
+  document.addEventListener('mouseover', (e) => {
+    const target = (e.target as HTMLElement)?.closest('a')
+    if (!target) return
+
+    const href = target.getAttribute('href')
+    if (!href) return
+
+    // Strictly prefetch GET /student/* routes
+    if (!href.startsWith('/student/') && !href.startsWith('/student?')) return
+
+    // Never prefetch logout, delete, api, or external endpoints
+    if (
+      href.includes('logout') ||
+      href.includes('delete') ||
+      href.includes('destroy') ||
+      href.includes('/api/') ||
+      target.hasAttribute('download') ||
+      target.getAttribute('target') === '_blank'
+    ) return
+
+    if (prefetchedUrls.has(href)) return
+
+    if (prefetchTimer) clearTimeout(prefetchTimer)
+
+    prefetchTimer = setTimeout(() => {
+      prefetchedUrls.add(href)
+      try {
+        router.prefetch(href, { method: 'get' })
+      } catch (err) { }
+    }, 65)
+  }, { passive: true })
+
+  document.addEventListener('mouseout', (e) => {
+    const target = (e.target as HTMLElement)?.closest('a')
+    if (target && prefetchTimer) {
+      clearTimeout(prefetchTimer)
+    }
+  }, { passive: true })
+}
