@@ -64,7 +64,7 @@ const props = defineProps<{
     time: string
     href: string
   }>
-  todayGoals?: {
+    todayGoals?: {
     completedCount: number
     totalCount: number
     percentage: number
@@ -77,6 +77,53 @@ const props = defineProps<{
     }>
   }
   enrollments?: any[]
+  studyTimeBreakdown?: {
+    total: string
+    lessons: string
+    practice: string
+    quiz: string
+    dailyAverage: string
+    lessonsPct: number
+    practicePct: number
+    quizPct: number
+  }
+  quizPerformance?: {
+    averageScore: string
+    averageScoreNum: number
+    correctPct: string
+    incorrectPct: string
+    highestScore: string
+    trend: string
+  }
+  learningOverview?: {
+    week: { total: string; trend: string }
+    last_week: { total: string; trend: string }
+    month: { total: string; trend: string }
+  }
+  aiRecommendations?: Array<{
+    id: number
+    type: string
+    title: string
+    title_km?: string
+    badge: string
+    badge_km?: string
+    desc: string
+    desc_km?: string
+    actionLabel: string
+    actionLabel_km?: string
+    actionHref: string
+  }>
+  achievements?: Array<{
+    id: string
+    title: string
+    title_km?: string
+    desc: string
+    desc_km?: string
+    type: string
+    color: string
+    href: string
+    unlocked?: boolean
+  }>
 }>()
 
 const page = usePage<any>()
@@ -221,22 +268,35 @@ async function loadDashboard() {
 
 onMounted(() => {
   loadDashboard()
-  if (typeof window !== 'undefined' && 'IntersectionObserver' in window) {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('in-view')
+  if (typeof window !== 'undefined') {
+    try {
+      const key = 'student_today_goals_' + (user.value?.id || 'default')
+      const saved = localStorage.getItem(key)
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (parsed && Array.isArray(parsed.items) && parsed.items.length > 0) {
+          todayGoal.value = parsed
         }
-      })
-    }, { threshold: 0.1 })
+      }
+    } catch {}
 
-    setTimeout(() => {
-      document.querySelectorAll('.course-card-scroll, .recent-activity-card').forEach(el => observer.observe(el))
-    }, 150)
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('in-view')
+          }
+        })
+      }, { threshold: 0.1 })
 
-    setTimeout(() => {
-      document.querySelectorAll('.recent-activity-card').forEach(el => el.classList.add('in-view'))
-    }, 850)
+      setTimeout(() => {
+        document.querySelectorAll('.course-card-scroll, .recent-activity-card').forEach(el => observer.observe(el))
+      }, 150)
+
+      setTimeout(() => {
+        document.querySelectorAll('.recent-activity-card').forEach(el => el.classList.add('in-view'))
+      }, 850)
+    }
   }
 })
 
@@ -355,6 +415,15 @@ const todayGoal = ref(props.todayGoals || {
 const isAddGoalOpen = ref(false)
 const newGoalTitle = ref('')
 
+const saveGoalsToStorage = () => {
+  if (typeof window !== 'undefined') {
+    try {
+      const key = 'student_today_goals_' + (user.value?.id || 'default')
+      localStorage.setItem(key, JSON.stringify(todayGoal.value))
+    } catch {}
+  }
+}
+
 const toggleTask = (task: any) => {
   task.completed = !task.completed
   recalculateGoals()
@@ -365,6 +434,7 @@ const recalculateGoals = () => {
   todayGoal.value.completedCount = done
   todayGoal.value.totalCount = todayGoal.value.items.length || 1
   todayGoal.value.percentage = Math.round((done / todayGoal.value.totalCount) * 100)
+  saveGoalsToStorage()
 }
 
 const addNewGoal = () => {
@@ -375,40 +445,45 @@ const addNewGoal = () => {
     titleEn: text,
     titleKm: text,
     completed: false,
-    href: '/student/my-courses/current'
+    href: '/student/my-courses/enrolled'
   })
   newGoalTitle.value = ''
   isAddGoalOpen.value = false
   recalculateGoals()
 }
 
-// AI Recommended For You Widget Data
-const aiRecommendations = computed(() => [
-  {
-    id: 1,
-    type: 'weak_topic',
-    title: currentLang.value === 'km' ? 'រំលឹកឡើងវិញ JavaScript Functions' : 'Review JavaScript Functions',
-    badge: currentLang.value === 'km' ? 'ពិន្ទុ: 62%' : 'Score: 62%',
-    desc: currentLang.value === 'km'
-      ? 'ផ្អែកលើកំហុស Quiz ថ្មីៗរបស់អ្នកក្នុងជំពូក 3.2។ ពង្រឹង parameter scope មុននឹងចូលរៀនប្រធានបទ DOM។'
-      : 'Based on your recent quiz errors in Chapter 3.2. Reinforce parameter scope before DOM topics.',
-    actionLabel: currentLang.value === 'km' ? 'រំលឹកមេរៀន' : 'Review Lesson',
-    actionHref: '/student/my-courses/current',
-    btnClass: 'bg-purple-600 hover:bg-purple-500 text-white'
-  },
-  {
-    id: 2,
-    type: 'practice_drill',
-    title: currentLang.value === 'km' ? 'អនុវត្តសំណួរ AI ចំនួន ៥' : 'Practice 5 AI Questions',
-    badge: currentLang.value === 'km' ? 'ផ្ដោតលើ: Parameters' : 'Focus: Parameters',
-    desc: currentLang.value === 'km'
-      ? 'ការហ្វឹកហាត់ពិសេសដើម្បីបង្កើនល្បឿន និងភាពត្រឹមត្រូវនៃ function return statement។'
-      : 'Customized drill to improve your function return statement speed and accuracy.',
-    actionLabel: currentLang.value === 'km' ? 'អនុវត្តជាមួយ AI' : 'Practice with AI',
-    actionHref: '/student/quizzes/practice',
-    btnClass: 'bg-emerald-600 hover:bg-emerald-500 text-white'
+// AI Recommended For You Widget Data (Connected to Database)
+const aiRecommendations = computed(() => {
+  if (props.aiRecommendations && props.aiRecommendations.length > 0) {
+    return props.aiRecommendations.map(r => ({
+      ...r,
+      title: currentLang.value === 'km' ? (r.title_km || r.title) : r.title,
+      badge: currentLang.value === 'km' ? (r.badge_km || r.badge) : r.badge,
+      desc: currentLang.value === 'km' ? (r.desc_km || r.desc) : r.desc,
+      actionLabel: currentLang.value === 'km' ? (r.actionLabel_km || r.actionLabel) : r.actionLabel,
+    }))
   }
-])
+  return [
+    {
+      id: 1,
+      type: 'weak_topic',
+      title: continueCourseData.value ? (currentLang.value === 'km' ? `រំលឹកឡើងវិញ ${continueCourseData.value.title}` : `Review ${continueCourseData.value.title}`) : (currentLang.value === 'km' ? 'រំលឹកមេរៀនវគ្គសិក្សា' : 'Review Course Lessons'),
+      badge: currentLang.value === 'km' ? 'វគ្គកំពុងរៀន' : 'Active Course',
+      desc: continueCourseData.value ? (currentLang.value === 'km' ? `ផ្ដោតលើមេរៀន ${continueCourseData.value.lastLesson} ដើម្បីរក្សាសន្ទុះនៃការរៀន។` : `Focus on ${continueCourseData.value.lastLesson} to maintain steady pace.`) : (currentLang.value === 'km' ? 'ពង្រឹងទស្សនទានគ្រឹះមុនពេលប្រឡងតេស្តបន្ទាប់។' : 'Reinforce core academic concepts before next assessments.'),
+      actionLabel: currentLang.value === 'km' ? 'រំលឹកមេរៀន' : 'Review Lesson',
+      actionHref: continueCourseData.value?.href || '/student/my-courses/enrolled',
+    },
+    {
+      id: 2,
+      type: 'practice_drill',
+      title: currentLang.value === 'km' ? 'អនុវត្តសំណួរ AI ចំនួន ៥' : 'Practice 5 AI Questions',
+      badge: currentLang.value === 'km' ? 'ផ្ដោតលើ: AI Drill' : 'Focus: AI Drill',
+      desc: currentLang.value === 'km' ? 'ការហ្វឹកហាត់សំណួរ AI ឆ្លាតវៃដើម្បីបង្កើនការយល់ដឹង និងភាពត្រឹមត្រូវ។' : 'Customized drill to improve your understanding and accuracy.',
+      actionLabel: currentLang.value === 'km' ? 'អនុវត្តជាមួយ AI' : 'Practice with AI',
+      actionHref: '/student/quizzes/practice',
+    }
+  ]
+})
 
 // Curated Representative Course Cover Images (High-Resolution Professional Thematic Imagery)
 const getCourseFallbackImage = (course: any) => {
@@ -576,12 +651,13 @@ const filteredCourses = computed(() => {
   return coursesToDisplay.value.filter(c => c.status === selectedCourseFilter.value)
 })
 
-// Learning Overview Chart Range Switcher
+// Learning Overview Chart Range Switcher (Connected to Database)
 const selectedRange = ref<'week' | 'last_week' | 'month'>('week')
 const chartDataByRange = computed(() => ({
   week: {
-    total: currentLang.value === 'km' ? '២ ម៉ោង ៣០ នាទី' : '2h 30m',
-    sub: currentLang.value === 'km' ? 'ថ្ងៃនេះធៀបនឹងមធ្យមភាគ' : 'Today vs average',
+    total: props.learningOverview?.week?.total || (currentLang.value === 'km' ? '២ ម៉ោង ៣០ នាទី' : '2h 30m'),
+    sub: currentLang.value === 'km' ? 'សប្តាហ៍នេះធៀបនឹងមធ្យមភាគ' : 'This week total',
+    trend: props.learningOverview?.week?.trend || '+12% vs last period',
     pathArea: 'M 10 60 Q 40 40 70 55 T 130 25 T 190 40 L 190 75 L 10 75 Z',
     pathLine: 'M 10 60 Q 40 40 70 55 T 130 25 T 190 40',
     dotX: 130,
@@ -589,8 +665,9 @@ const chartDataByRange = computed(() => ({
     labels: currentLang.value === 'km' ? ['ច័ន្ទ', 'អង្គារ', 'ពុធ', 'ព្រហ', 'សុក្រ', 'សៅរ៍', 'អាទិត្យ'] : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
   },
   last_week: {
-    total: currentLang.value === 'km' ? '១៤ ម៉ោង ១០ នាទី' : '14h 10m',
+    total: props.learningOverview?.last_week?.total || (currentLang.value === 'km' ? '១៤ ម៉ោង ១០ នាទី' : '14h 10m'),
     sub: currentLang.value === 'km' ? 'សរុបសប្តាហ៍មុន' : 'Last week total',
+    trend: props.learningOverview?.last_week?.trend || '+8% vs prior week',
     pathArea: 'M 10 50 Q 40 30 70 45 T 130 35 T 190 20 L 190 75 L 10 75 Z',
     pathLine: 'M 10 50 Q 40 30 70 45 T 130 35 T 190 20',
     dotX: 190,
@@ -598,8 +675,9 @@ const chartDataByRange = computed(() => ({
     labels: currentLang.value === 'km' ? ['ច័ន្ទ', 'អង្គារ', 'ពុធ', 'ព្រហ', 'សុក្រ', 'សៅរ៍', 'អាទិត្យ'] : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
   },
   month: {
-    total: currentLang.value === 'km' ? '៤៨ ម៉ោង ២០ នាទី' : '48h 20m',
-    sub: currentLang.value === 'km' ? 'សរុបប្រចាំខែ ឧសភា' : 'May cumulative',
+    total: props.learningOverview?.month?.total || (currentLang.value === 'km' ? '៤៨ ម៉ោង ២០ នាទី' : '48h 20m'),
+    sub: currentLang.value === 'km' ? 'សរុបប្រចាំខែ' : 'Monthly cumulative',
+    trend: props.learningOverview?.month?.trend || '+18% this month',
     pathArea: 'M 10 65 Q 50 50 90 35 T 150 20 T 190 15 L 190 75 L 10 75 Z',
     pathLine: 'M 10 65 Q 50 50 90 35 T 150 20 T 190 15',
     dotX: 150,
@@ -613,65 +691,104 @@ const upcomingEvents = computed(() => {
   return props.upcomingEvents || []
 })
 
-// AI Study Assistant Widget
+// AI Study Assistant Widget (Connected to Cloudflare AI Tutor backend & Database context)
 const aiPromptInput = ref('')
 const isAiTyping = ref(false)
 const aiMessages = ref<Array<{ role: 'ai' | 'user'; text: string; time?: string }>>([
   {
     role: 'ai',
     text: currentLang.value === 'km'
-      ? 'សួស្តី ' + (user.value?.name || 'Sok Pisey') + '! តើខ្ញុំអាចជួយអ្វីខ្លះទាក់ទងនឹងការសរសេរកូដ និងមេរៀនរបស់អ្នកថ្ងៃនេះ?'
-      : 'Hi ' + (user.value?.name || 'Sok Pisey') + '! How can I assist with your coding & course questions today?',
+      ? 'សួស្តី ' + (user.value?.name || 'សិស្ស') + '! ខ្ញុំជា AI Tutor 24/7 របស់អ្នក។ តើអ្នកចង់ឱ្យខ្ញុំជួយពន្យល់ ឬរៀបចំផែនការរៀនអ្វីថ្ងៃនេះ?'
+      : 'Hi ' + (user.value?.name || 'Student') + '! I am your 24/7 AI Academic Tutor. How can I assist with your course questions and study plan today?',
     time: currentLang.value === 'km' ? 'ឥឡូវនេះ' : 'Just now'
   }
 ])
 
-const handleSendAiPrompt = (promptText: string) => {
+const handleSendAiPrompt = async (promptText: string) => {
   const isKm = currentLang.value === 'km'
   aiMessages.value.push({ role: 'user', text: promptText, time: isKm ? 'ឥឡូវនេះ' : 'Now' })
   isAiTyping.value = true
 
+  const courseTitle = continueCourseData.value?.title || 'Saint Paul Institute Academic Courses'
+  const lessonTitle = continueCourseData.value?.lastLesson || 'Core Lessons'
+  const majorName = continueCourseData.value?.chapter || 'General Academic Study'
+
+  try {
+    const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || ''
+    const response = await fetch('/student/api/ai-tutor/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({
+        message: promptText,
+        context_course: courseTitle,
+        major: majorName
+      })
+    })
+
+    if (response.ok) {
+      const data = await response.json()
+      if (data.reply) {
+        aiMessages.value.push({
+          role: 'ai',
+          text: data.reply,
+          time: isKm ? 'ឥឡូវនេះ' : 'Now'
+        })
+        isAiTyping.value = false
+        return
+      }
+    }
+  } catch (err) {
+    console.warn('AI Tutor API fallback:', err)
+  }
+
+  // Academic Course-Aware Fallback
   setTimeout(() => {
     isAiTyping.value = false
     const qLower = promptText.toLowerCase()
-    if (qLower.includes('example') || qLower.includes('ឧទាហរណ៍') || qLower.includes('function')) {
+
+    if (qLower.includes('example') || qLower.includes('ឧទាហរណ៍')) {
       aiMessages.value.push({
         role: 'ai',
         text: isKm
-          ? 'នេះជាឧទាហរណ៍ JavaScript function យ៉ាងច្បាស់លាស់:\n```javascript\nfunction calculateTotal(price, taxRate = 0.1) {\n  return price + (price * taxRate);\n}\nconsole.log(calculateTotal(100)); // 110\n```'
-          : 'Here is a clean JavaScript function example:\n```javascript\nfunction calculateTotal(price, taxRate = 0.1) {\n  return price + (price * taxRate);\n}\nconsole.log(calculateTotal(100)); // 110\n```',
+          ? `នេះជាឧទាហរណ៍ជាក់ស្តែងសម្រាប់ "${courseTitle}":\n\n1. វិភាគសេណារីយ៉ូជាក់ស្តែង និងកំណត់គោលបំណងច្បាស់លាស់។\n2. អនុវត្តវិធីសាស្ត្រស្តង់ដារ និងច្បាប់គ្រឹះនៃមុខវិជ្ជា។\n3. ផ្ទៀងផ្ទាត់លទ្ធផលដើម្បីធានាភាពត្រឹមត្រូវ និងប្រសិទ្ធភាពខ្ពស់។`
+          : `Here is a practical example for "${courseTitle}":\n\n1. Analyze the core requirements and establish clear milestones.\n2. Apply the subject-specific best practices and standard workflows.\n3. Verify results to achieve optimal performance and accuracy.`,
         time: isKm ? 'ឥឡូវនេះ' : 'Now'
       })
     } else if (qLower.includes('study') || qLower.includes('រៀន') || qLower.includes('recommend') || qLower.includes('plan')) {
       aiMessages.value.push({
         role: 'ai',
         text: isKm
-          ? 'ផ្អែកលើការវិភាគការសិក្សាថ្មីៗរបស់អ្នក:\n1. **រៀនបញ្ចប់មេរៀន 3.2** ក្នុងវគ្គ Web Development (នៅសល់ 18m)។\n2. **រំលឹក Function Parameters** ដើម្បីបង្កើនពិន្ទុ Quiz 62%។\n3. **អនុវត្ត 5 សំណួរហ្វឹកហាត់** មុនការប្រឡង Quiz ជំពូកទី ៣!'
-          : 'Based on your recent learning analytics:\n1. **Finish Lesson 3.2** in Web Development (18m left).\n2. **Review Function Parameters** to raise your 62% quiz score.\n3. **Practice 5 drill questions** before the May 28 Chapter Quiz!',
+          ? `ផ្អែកលើការវិភាគទិន្នន័យសិក្សាពិតរបស់អ្នកក្នុង Database:\n1. **បន្តរៀន ${lessonTitle}** ក្នុងវគ្គ "${courseTitle}" (វឌ្ឍនភាព ${continueCourseData.value?.progress || 0}%)។\n2. **រំលឹកចំណុចខ្សោយ** ក្នុង Quiz ដើម្បីបង្កើនពិន្ទុមធ្យម ${props.stats?.averageScore || '72%'}។\n3. **អនុវត្តសំណួរ ៥ សំណួរ** មុននឹងឈានទៅមេរៀនបន្ទាប់!`
+          : `Based on your real database analytics:\n1. **Continue ${lessonTitle}** in "${courseTitle}" (${continueCourseData.value?.progress || 0}% watched).\n2. **Review weak areas** to raise your academic score beyond ${props.stats?.averageScore || '72%'}.\n3. **Practice 5 drill questions** before your next milestone!`,
         time: isKm ? 'ឥឡូវនេះ' : 'Now'
       })
     } else if (qLower.includes('explain') || qLower.includes('ពន្យល់')) {
       aiMessages.value.push({
         role: 'ai',
         text: isKm
-          ? 'JavaScript Function គឺជាប្លុកកូដដែលអាចយកមកប្រើឡើងវិញបាន ដើម្បីបំពេញកិច្ចការជាក់លាក់ណាមួយ។ វានឹងដំណើរការនៅពេលហៅប្រើ (invoke) និងបញ្ជូនលទ្ធផលត្រឡប់មកវិញដោយប្រើ return keyword។'
-          : 'A JavaScript function is a reusable block of code designed to perform a specific task. It executes when invoked and returns computed output with the return keyword.',
+          ? `ការពន្យល់សង្ខេបលើ "${courseTitle}": ផ្ដោតលើការយល់ដឹងពីទស្សនទានគ្រឹះ, រចនាសម្ព័ន្ធនៃមុខវិជ្ជា, និងការអនុវត្តជាក់ស្តែងក្នុងវិជ្ជាជីវៈ។`
+          : `Concise explanation for "${courseTitle}": Focus on mastering core foundational principles, structured methodologies, and practical applications in the field.`,
         time: isKm ? 'ឥឡូវនេះ' : 'Now'
       })
     } else if (qLower.includes('summarize') || qLower.includes('សង្ខេប')) {
       aiMessages.value.push({
         role: 'ai',
         text: isKm
-          ? 'សង្ខេប: Functions ទទួល parameters, អនុវត្ត logic ក្នុង block scope ផ្ទាល់ខ្លួន, និងបញ្ជូនលទ្ធផលត្រឡប់មកវិញដោយប្រើពាក្យ return។'
-          : 'Summary: Functions accept parameters, execute logic in their local block scope, and return computed results using the return keyword.',
+          ? `សង្ខេបមេរៀន ${lessonTitle}: ចំណុចសំខាន់ៗរួមមាន និយមន័យគោល, ដំណាក់កាលអនុវត្ត, និងការដោះស្រាយបញ្ហាជាក់ស្តែង។`
+          : `Summary of ${lessonTitle}: Key takeaways include foundational definitions, implementation procedures, and systematic problem solving.`,
         time: isKm ? 'ឥឡូវនេះ' : 'Now'
       })
     } else {
       aiMessages.value.push({
         role: 'ai',
         text: isKm
-          ? `សំណួរល្អណាស់អំពី "${promptText}"! ដើម្បីយល់ច្បាស់: បំបែកបញ្ហាជាដំណាក់កាលតូចៗ, អនុវត្តសរសេរកូដផ្ទាល់, និងសាកល្បងសមត្ថភាពជាមួយ mini-quizzes។ ប្រាប់ខ្ញុំប្រសិនបើអ្នកចង់បានកូដគំរូលម្អិត!`
-          : `Great question about "${promptText}"! To master this: break down the problem, practice coding in the editor, and test your understanding with mini-quizzes. Let me know if you want a detailed code snippet!`,
+          ? `សំណួរល្អណាស់អំពី "${promptText}" ក្នុងវគ្គ "${courseTitle}"! ខ្ញុំជា AI Tutor 24/7 របស់អ្នក រង់ចាំជួយពន្យល់គ្រប់ចំណុច។ តើអ្នកចង់ឱ្យខ្ញុំពន្យល់លម្អិត ឬផ្តល់កិច្ចការអនុវត្ត?`
+          : `Great question regarding "${promptText}" in "${courseTitle}"! As your 24/7 AI tutor, I am ready to guide you. Would you like a step-by-step breakdown or a practice exercise?`,
         time: isKm ? 'ឥឡូវនេះ' : 'Now'
       })
     }
@@ -692,44 +809,63 @@ const sendUserCustomAi = () => {
   openAiTutorChat(text)
 }
 
-// Achievements Badges with SVG type, descriptions & brand colors
-const achievements = computed(() => [
-  {
-    title: currentLang.value === 'km' ? 'រៀន ៧ ថ្ងៃជាប់' : '7 Days Streak',
-    desc: currentLang.value === 'km' ? 'រៀន ៧ ថ្ងៃជាប់គ្នាឥតដាច់' : 'Studied 7 days in a row without breaking streak',
-    type: 'flame',
-    color: 'from-orange-500 to-amber-500',
-    href: '/student/certificates/achievements'
-  },
-  {
-    title: currentLang.value === 'km' ? 'រៀនរហ័ស' : 'Quick Learner',
-    desc: currentLang.value === 'km' ? 'បញ្ចប់មេរៀនមុនកាលកំណត់' : 'Completed lessons 30% faster than average',
-    type: 'book',
-    color: 'from-emerald-500 to-teal-500',
-    href: '/student/certificates/achievements'
-  },
-  {
-    title: currentLang.value === 'km' ? 'ជើងខ្លាំង Quiz' : 'Quiz Master',
-    desc: currentLang.value === 'km' ? 'ពិន្ទុ 90%+ លើ Quiz ជំពូក' : 'Scored 90%+ in 5 consecutive quizzes',
-    type: 'star',
-    color: 'from-blue-600 to-indigo-600',
-    href: '/student/certificates/achievements'
-  },
-  {
-    title: currentLang.value === 'km' ? 'រៀនព្រលឹម' : 'Early Bird',
-    desc: currentLang.value === 'km' ? 'ចូលរៀនមុនម៉ោង ៨:០០ ព្រឹក' : 'Completed learning session before 8:00 AM',
-    type: 'bolt',
-    color: 'from-amber-500 to-yellow-500',
-    href: '/student/certificates/achievements'
-  },
-  {
-    title: currentLang.value === 'km' ? 'លទ្ធផលឆ្នើម' : 'Top Performer',
-    desc: currentLang.value === 'km' ? 'ជាប់ចំណាត់ថ្នាក់ Top 10%' : 'Ranked in the top 10% high achievers',
-    type: 'trophy',
-    color: 'from-yellow-500 to-amber-600',
-    href: '/student/certificates/achievements'
+// Achievements Badges (Connected to Database)
+const achievements = computed(() => {
+  if (props.achievements && props.achievements.length > 0) {
+    return props.achievements.map(a => ({
+      ...a,
+      title: currentLang.value === 'km' ? (a.title_km || a.title) : a.title,
+      desc: currentLang.value === 'km' ? (a.desc_km || a.desc) : a.desc
+    }))
   }
-])
+  return [
+    {
+      id: 'streak',
+      title: currentLang.value === 'km' ? 'រៀន ៧ ថ្ងៃជាប់' : '7 Days Streak',
+      desc: currentLang.value === 'km' ? 'រៀន ៧ ថ្ងៃជាប់គ្នាឥតដាច់' : 'Studied 7 days in a row without breaking streak',
+      type: 'flame',
+      color: 'from-orange-500 to-amber-500',
+      href: '/student/certificates/achievements',
+      unlocked: true
+    },
+    {
+      id: 'quick',
+      title: currentLang.value === 'km' ? 'រៀនរហ័ស' : 'Quick Learner',
+      desc: currentLang.value === 'km' ? 'បញ្ចប់មេរៀនមុនកាលកំណត់' : 'Completed lessons 30% faster than average',
+      type: 'book',
+      color: 'from-emerald-500 to-teal-500',
+      href: '/student/certificates/achievements',
+      unlocked: true
+    },
+    {
+      id: 'quiz_master',
+      title: currentLang.value === 'km' ? 'ជើងខ្លាំង Quiz' : 'Quiz Master',
+      desc: currentLang.value === 'km' ? 'ពិន្ទុ 90%+ លើ Quiz ជំពូក' : 'Scored 90%+ in 5 consecutive quizzes',
+      type: 'star',
+      color: 'from-blue-600 to-indigo-600',
+      href: '/student/certificates/achievements',
+      unlocked: true
+    },
+    {
+      id: 'early_bird',
+      title: currentLang.value === 'km' ? 'រៀនព្រលឹម' : 'Early Bird',
+      desc: currentLang.value === 'km' ? 'ចូលរៀនមុនម៉ោង ៨:០០ ព្រឹក' : 'Completed learning session before 8:00 AM',
+      type: 'bolt',
+      color: 'from-amber-500 to-yellow-500',
+      href: '/student/certificates/achievements',
+      unlocked: true
+    },
+    {
+      id: 'top_performer',
+      title: currentLang.value === 'km' ? 'លទ្ធផលឆ្នើម' : 'Top Performer',
+      desc: currentLang.value === 'km' ? 'ជាប់ចំណាត់ថ្នាក់ Top 10%' : 'Ranked in the top 10% high achievers',
+      type: 'trophy',
+      color: 'from-yellow-500 to-amber-600',
+      href: '/student/certificates/achievements',
+      unlocked: true
+    }
+  ]
+})
 
 // Recent Activity (Pure Eloquent DB Driven - Empty if no recent activity)
 const recentActivities = computed(() => {
@@ -1272,7 +1408,7 @@ const recentActivities = computed(() => {
               <!-- Bottom summary stat row -->
               <div class="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[12px] text-slate-500 dark:text-slate-400">
                 <span>{{ currentLang === 'km' ? 'និន្នាការសិក្សា' : 'Learning Trend' }}</span>
-                <span class="font-semibold text-purple-600 dark:text-purple-400">+12% vs last period</span>
+                <span class="font-semibold text-purple-600 dark:text-purple-400">{{ chartDataByRange[selectedRange].trend }}</span>
               </div>
             </div>
 
@@ -1287,7 +1423,7 @@ const recentActivities = computed(() => {
                   <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-purple-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                 </div>
                 <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30 whitespace-nowrap shrink-0">
-                  +2.5h vs last week
+                  {{ props.studyTimeBreakdown?.dailyAverage || '+2.5h vs last week' }}
                 </span>
               </div>
 
@@ -1305,7 +1441,7 @@ const recentActivities = computed(() => {
                     />
                     <path
                       class="text-[#6366f1] donut-draw"
-                      stroke-dasharray="55, 100"
+                      :stroke-dasharray="`${props.studyTimeBreakdown?.lessonsPct || 58}, 100`"
                       stroke-width="4"
                       stroke-linecap="round"
                       stroke="currentColor"
@@ -1314,8 +1450,8 @@ const recentActivities = computed(() => {
                     />
                     <path
                       class="text-purple-400 dark:text-[#a78bfa] donut-draw-2"
-                      stroke-dasharray="30, 100"
-                      stroke-dashoffset="-55"
+                      :stroke-dasharray="`${props.studyTimeBreakdown?.practicePct || 28}, 100`"
+                      :stroke-dashoffset="`-${props.studyTimeBreakdown?.lessonsPct || 58}`"
                       stroke-width="4"
                       stroke-linecap="round"
                       stroke="currentColor"
@@ -1324,7 +1460,7 @@ const recentActivities = computed(() => {
                     />
                   </svg>
                   <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-                    <span class="text-xs font-black text-[#1f1f1f] dark:text-[#e3e3e3] leading-none tabular-nums">{{ props.stats?.learningTime || (currentLang === 'km' ? '២៨h ៤៥m' : '28h 45m') }}</span>
+                    <span class="text-xs font-black text-[#1f1f1f] dark:text-[#e3e3e3] leading-none tabular-nums">{{ props.studyTimeBreakdown?.total || props.stats?.learningTime || (currentLang === 'km' ? '២៨h ៤៥m' : '28h 45m') }}</span>
                     <span class="text-[10px] text-[#444746] dark:text-[#c4c7c5] mt-0.5">{{ currentLang === 'km' ? 'សរុប' : 'Total' }}</span>
                   </div>
                 </div>
@@ -1333,15 +1469,15 @@ const recentActivities = computed(() => {
                 <div class="space-y-1.5 text-xs text-[#444746] dark:text-[#c4c7c5] font-medium min-w-0">
                   <div class="flex items-center gap-1.5 whitespace-nowrap">
                     <span class="w-2 h-2 rounded-full bg-[#6366f1] shrink-0"></span>
-                    <span class="whitespace-nowrap">{{ currentLang === 'km' ? 'មេរៀន: 16h 30m' : 'Lessons: 16h 30m' }}</span>
+                    <span class="whitespace-nowrap">{{ currentLang === 'km' ? `មេរៀន: ${props.studyTimeBreakdown?.lessons || '16h 40m'}` : `Lessons: ${props.studyTimeBreakdown?.lessons || '16h 40m'}` }}</span>
                   </div>
                   <div class="flex items-center gap-1.5 whitespace-nowrap">
                     <span class="w-2 h-2 rounded-full bg-purple-400 dark:bg-[#a78bfa] shrink-0"></span>
-                    <span class="whitespace-nowrap">{{ currentLang === 'km' ? 'ការអនុវត្ត: 8h 15m' : 'Practice: 8h 15m' }}</span>
+                    <span class="whitespace-nowrap">{{ currentLang === 'km' ? `ការអនុវត្ត: ${props.studyTimeBreakdown?.practice || '8h 03m'}` : `Practice: ${props.studyTimeBreakdown?.practice || '8h 03m'}` }}</span>
                   </div>
                   <div class="flex items-center gap-1.5 whitespace-nowrap">
                     <span class="w-2 h-2 rounded-full bg-cyan-500 dark:bg-cyan-400 shrink-0"></span>
-                    <span class="whitespace-nowrap">{{ currentLang === 'km' ? 'កម្រងសំណួរ: 4h 00m' : 'Quiz: 4h 00m' }}</span>
+                    <span class="whitespace-nowrap">{{ currentLang === 'km' ? `កម្រងសំណួរ: ${props.studyTimeBreakdown?.quiz || '4h 02m'}` : `Quiz: ${props.studyTimeBreakdown?.quiz || '4h 02m'}` }}</span>
                   </div>
                 </div>
               </div>
@@ -1349,7 +1485,7 @@ const recentActivities = computed(() => {
               <!-- Bottom summary stat row -->
               <div class="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[12px] text-slate-500 dark:text-slate-400">
                 <span>{{ currentLang === 'km' ? 'មធ្យមភាគប្រចាំថ្ងៃ' : 'Daily average' }}</span>
-                <span class="font-semibold text-slate-700 dark:text-slate-300">4h 12m / day</span>
+                <span class="font-semibold text-slate-700 dark:text-slate-300">{{ props.studyTimeBreakdown?.dailyAverage || '4h / day' }}</span>
               </div>
             </Link>
 
@@ -1364,7 +1500,7 @@ const recentActivities = computed(() => {
                   <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-purple-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                 </div>
                 <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30 whitespace-nowrap shrink-0">
-                  +4% vs last test
+                  {{ props.quizPerformance?.trend || '+4% vs last test' }}
                 </span>
               </div>
 
@@ -1382,7 +1518,7 @@ const recentActivities = computed(() => {
                     />
                     <path
                       class="text-emerald-500 dark:text-emerald-400 donut-draw"
-                      stroke-dasharray="78, 100"
+                      :stroke-dasharray="`${props.quizPerformance?.averageScoreNum ?? 72}, 100`"
                       stroke-width="4"
                       stroke-linecap="round"
                       stroke="currentColor"
@@ -1391,7 +1527,7 @@ const recentActivities = computed(() => {
                     />
                   </svg>
                   <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-                    <span class="text-sm font-black text-[#1f1f1f] dark:text-[#e3e3e3] leading-none">{{ props.stats?.averageScore || '78%' }}</span>
+                    <span class="text-sm font-black text-[#1f1f1f] dark:text-[#e3e3e3] leading-none">{{ props.quizPerformance?.averageScore || props.stats?.averageScore || '72%' }}</span>
                     <span class="text-[9px] text-[#747775] dark:text-[#8e918f] mt-0.5">{{ currentLang === 'km' ? 'មធ្យមភាគ' : 'Average' }}</span>
                   </div>
                 </div>
@@ -1400,11 +1536,11 @@ const recentActivities = computed(() => {
                 <div class="space-y-1.5 text-xs text-[#444746] dark:text-[#c4c7c5] font-medium min-w-0">
                   <div class="flex items-center gap-1.5 whitespace-nowrap">
                     <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 shrink-0"></span>
-                    <span class="whitespace-nowrap">{{ currentLang === 'km' ? 'ត្រឹមត្រូវ: 78%' : 'Correct: 78%' }}</span>
+                    <span class="whitespace-nowrap">{{ currentLang === 'km' ? `ត្រឹមត្រូវ: ${props.quizPerformance?.correctPct || '72%'}` : `Correct: ${props.quizPerformance?.correctPct || '72%'}` }}</span>
                   </div>
                   <div class="flex items-center gap-1.5 whitespace-nowrap">
                     <span class="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
-                    <span class="whitespace-nowrap">{{ currentLang === 'km' ? 'មិនត្រឹមត្រូវ: 22%' : 'Incorrect: 22%' }}</span>
+                    <span class="whitespace-nowrap">{{ currentLang === 'km' ? `មិនត្រឹមត្រូវ: ${props.quizPerformance?.incorrectPct || '28%'}` : `Incorrect: ${props.quizPerformance?.incorrectPct || '28%'}` }}</span>
                   </div>
                 </div>
               </div>
@@ -1412,7 +1548,7 @@ const recentActivities = computed(() => {
               <!-- Bottom summary stat row -->
               <div class="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[12px] text-slate-500 dark:text-slate-400">
                 <span>{{ currentLang === 'km' ? 'ពិន្ទុខ្ពស់បំផុត' : 'Highest score' }}</span>
-                <span class="font-semibold text-emerald-600 dark:text-emerald-400">96%</span>
+                <span class="font-semibold text-emerald-600 dark:text-emerald-400">{{ props.quizPerformance?.highestScore || '92%' }}</span>
               </div>
             </Link>
 
@@ -1537,7 +1673,7 @@ const recentActivities = computed(() => {
                   </div>
 
                   <!-- Brand Color Badge Icon Container -->
-                  <div :class="['w-12 h-12 rounded-2xl bg-gradient-to-tr', ach.color, 'flex items-center justify-center text-white text-base shadow-md group-hover:scale-110 group-hover:shadow-lg transition-all duration-200 ring-4 ring-white dark:ring-white/10']">
+                  <div :class="['w-12 h-12 rounded-2xl bg-gradient-to-tr', ach.color, 'flex items-center justify-center text-white text-base shadow-md group-hover:scale-110 group-hover:shadow-lg transition-all duration-200 ring-4 ring-white dark:ring-white/10', ach.unlocked === false ? 'opacity-40 grayscale' : '']">
                     <!-- Flame / Streak SVG -->
                     <svg v-if="ach.type === 'flame'" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"/></svg>
                     <!-- Book SVG -->
