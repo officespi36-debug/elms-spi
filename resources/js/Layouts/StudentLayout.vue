@@ -1090,8 +1090,8 @@ const onIconError = (e: Event) => {
                       <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
                     </svg>
                     <!-- Fallback SVG -->
-                    <svg v-else :class="[isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4', 'shrink-0 text-[#64748b] dark:text-slate-400']" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                    <svg v-else :class="[isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4', 'shrink-0 text-[#64748b] dark:text-slate-400']" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="4" />
                     </svg>
                   </div>
                   <span v-show="!isSidebarCollapsed" class="truncate font-medium">
@@ -1165,10 +1165,6 @@ const onIconError = (e: Event) => {
                       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
                       <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500 ring-2 ring-white dark:ring-[#131314]"></span>
                     </span>
-                    <!-- Fallback SVG -->
-                    <svg v-else :class="[isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4', 'shrink-0 text-[#64748b] dark:text-slate-400']" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
                   </div>
                   <span v-show="!isSidebarCollapsed" class="truncate font-medium">
                     {{ currentLang === 'km' ? item.khName : item.name }}
