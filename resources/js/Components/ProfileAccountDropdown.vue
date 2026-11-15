@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { Link } from '@inertiajs/vue3'
 import OfficialVerifiedBadge from '@/Components/OfficialVerifiedBadge.vue'
 import { i18n } from '@/Services/i18n'
@@ -11,7 +11,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  role: 'admin',
+  role: 'student',
 })
 
 const emit = defineEmits<{
@@ -33,27 +33,51 @@ const effectiveRole = computed(() => {
 })
 
 const userDisplayName = computed(() => {
-  const name = currentUser.value?.name
-  if (!name || name.toLowerCase().includes('hane') || name.toLowerCase().includes('camryn')) {
-    return 'kosal sensok'
-  }
-  return name
+  return currentUser.value?.name || (isKhmer.value ? 'គណនីនិស្សិត' : 'Student User')
 })
 
 const userDisplayEmail = computed(() => {
-  const email = currentUser.value?.email
-  if (!email || email.toLowerCase().includes('hanecamryn') || email.toLowerCase().includes('hane')) {
-    return 'kosalsensok@gmail.com'
-  }
-  return email
+  return currentUser.value?.email || ''
 })
 
-const userDisplayAvatar = computed(() => {
-  const av = currentUser.value?.avatar
-  if (!av || (typeof av === 'string' && (av.toLowerCase().includes('hane') || av.toLowerCase().includes('camryn')))) {
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(userDisplayName.value)}&background=4f46e5&color=fff&bold=true`
+const getStableAvatarBg = (name: string, id?: number | string) => {
+  const colors = [
+    '#6366f1', // indigo
+    '#3b82f6', // blue
+    '#8b5cf6', // purple
+    '#ec4899', // pink
+    '#06b6d4', // cyan
+    '#10b981', // emerald
+    '#f59e0b', // amber
+    '#0284c7', // sky
+  ]
+  const seed = String(name || '') + String(id || '')
+  let hash = 0
+  for (let i = 0; i < seed.length; i++) {
+    hash = seed.charCodeAt(i) + ((hash << 5) - hash)
   }
-  return av
+  const index = Math.abs(hash) % colors.length
+  return colors[index]
+}
+
+const userInitial = computed(() => {
+  const name = (userDisplayName.value || '').trim()
+  if (!name) return 'S'
+  const parts = name.split(/\s+/)
+  if (parts.length > 1) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+  }
+  return name.slice(0, 2).toUpperCase()
+})
+
+const avatarError = ref(false)
+
+const userDisplayAvatar = computed(() => {
+  const av = currentUser.value?.avatar_url || currentUser.value?.avatar
+  if (av && typeof av === 'string' && av.trim().length > 0 && !av.includes('ui-avatars.com')) {
+    return av.startsWith('http') ? av : `/storage/${av.replace(/^\/+/, '')}`
+  }
+  return null
 })
 
 const roleBadgeLabel = computed(() => {
@@ -92,29 +116,41 @@ const handleManageProfile = () => {
     <!-- ── 1. OFFICIAL USER IDENTITY PROFILE HEADER ── -->
     <div class="p-3.5 bg-gradient-to-br from-slate-50 via-slate-100/60 to-blue-50/40 dark:from-[#0f172a] dark:via-[#1e293b]/70 dark:to-[#0f172a] border-b border-slate-100 dark:border-slate-800/80">
       <div class="flex items-center gap-3">
-        <!-- Avatar with Active Indicator Ring -->
+        <!-- Avatar from DB or Hash-Based Initial Circle (No hardcoded fake image) -->
         <div class="relative shrink-0">
           <img
+            v-if="userDisplayAvatar && !avatarError"
             :src="userDisplayAvatar"
+            @error="avatarError = true"
             class="w-11 h-11 rounded-full object-cover border-2 border-white dark:border-slate-800 shadow-sm"
             alt="User Avatar"
           />
+          <div
+            v-else
+            class="w-11 h-11 rounded-full flex items-center justify-center font-bold text-white text-sm shadow-sm ring-2 ring-white dark:ring-slate-800 select-none"
+            :style="{ backgroundColor: getStableAvatarBg(userDisplayName, currentUser.id) }"
+          >
+            {{ userInitial }}
+          </div>
+
+          <!-- Active online dot: Only show if real last_seen_at exists in DB -->
           <span
+            v-if="currentUser?.last_seen_at"
             class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full ring-2 ring-white dark:ring-[#0f172a]"
             :title="isKhmer ? 'គណនីផ្លូវការសកម្ម (Online)' : 'Official Active Account'"
           ></span>
         </div>
 
-        <!-- Name, Role & Email/Code -->
+        <!-- Name, Role & Email (Normal font, truncated with tooltip) -->
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-1.5 flex-wrap">
-            <h4 class="text-xs font-bold text-slate-900 dark:text-white truncate">
+            <h4 class="text-xs font-bold text-slate-900 dark:text-white truncate max-w-[170px]" :title="userDisplayName">
               {{ userDisplayName }}
             </h4>
             <OfficialVerifiedBadge :role="effectiveRole" size="xs" />
           </div>
 
-          <p class="text-[10px] text-slate-500 dark:text-slate-400 font-mono truncate mt-0.5">
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 font-sans truncate mt-0.5 max-w-[190px]" :title="userDisplayEmail">
             {{ userDisplayEmail }}
           </p>
 
@@ -139,10 +175,9 @@ const handleManageProfile = () => {
         </div>
       </div>
 
-      <!-- Quick Action: Manage Profile Banner -->
-      <div class="mt-3 pt-2 border-t border-slate-200/60 dark:border-slate-800/80">
+      <!-- Quick Action: Manage Profile Banner for Admin/Teacher (Omitted for Student to avoid duplicate with links slot) -->
+      <div v-if="effectiveRole === 'admin'" class="mt-3 pt-2 border-t border-slate-200/60 dark:border-slate-800/80">
         <button
-          v-if="effectiveRole === 'admin'"
           type="button"
           @click="handleManageProfile"
           class="w-full flex items-center justify-between px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800/90 hover:bg-blue-50 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-700/70 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 shadow-2xs transition-all cursor-pointer group"
@@ -157,23 +192,6 @@ const handleManageProfile = () => {
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
           </svg>
         </button>
-
-        <Link
-          v-else
-          :href="manageProfileUrl"
-          @click="emit('close')"
-          class="w-full flex items-center justify-between px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800/90 hover:bg-blue-50 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-700/70 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 shadow-2xs transition-all group"
-        >
-          <span class="flex items-center gap-2">
-            <svg class="w-3.5 h-3.5 text-blue-500 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            <span>{{ isKhmer ? 'គ្រប់គ្រងគណនី (Manage Profile)' : 'Manage Profile' }}</span>
-          </span>
-          <svg class="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-          </svg>
-        </Link>
       </div>
     </div>
 
@@ -189,30 +207,6 @@ const handleManageProfile = () => {
             <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
           </svg>
           <span>{{ isKhmer ? 'ការកំណត់ប្រព័ន្ធ' : 'System Settings' }}</span>
-        </Link>
-
-        <Link
-          v-if="effectiveRole === 'admin'"
-          href="/admin/auth/roles"
-          @click="emit('close')"
-          class="flex items-center gap-2.5 px-4 py-2 text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors"
-        >
-          <svg class="w-4 h-4 text-indigo-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-          </svg>
-          <span>{{ isKhmer ? 'សិទ្ធិ និង តួនាទី' : 'Roles & Permissions' }}</span>
-        </Link>
-
-        <Link
-          v-if="effectiveRole === 'admin'"
-          href="/admin/auth-logs"
-          @click="emit('close')"
-          class="flex items-center gap-2.5 px-4 py-2 text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors"
-        >
-          <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-          </svg>
-          <span>{{ isKhmer ? 'កំណត់ត្រាសកម្មភាព' : 'System Logs' }}</span>
         </Link>
       </slot>
 

@@ -686,6 +686,9 @@ Route::middleware(['auth'])->group(function () {
 
         // 14. 24/7 AI Academic Tutor Endpoint
         Route::post('/api/ai-tutor/chat', [Student\AiTutorController::class, 'askTutor'])->name('ai.tutor.chat');
+
+        // 15. Student Preferences (sidebar_collapsed, theme, locale)
+        Route::patch('/preferences', [Student\PreferenceController::class, 'update'])->name('preferences.update');
     });
 });
 

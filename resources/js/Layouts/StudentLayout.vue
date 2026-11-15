@@ -25,13 +25,46 @@ const props = defineProps<{
 
 const page = usePage<any>()
 const user = computed(() => page.props.auth?.user || {})
+const userPrefs = computed(() => (user.value?.preferences as Record<string, any>) || {})
 
 const studentDisplayName = computed(() => {
-  const name = user.value?.name
-  if (!name || name.toLowerCase().includes('hane') || name.toLowerCase().includes('camryn')) {
-    return 'kosal sensok'
+  return user.value?.name || (currentLang.value === 'km' ? 'និស្សិត' : 'Student')
+})
+
+const headerAvatarError = ref(false)
+const userAvatarUrl = computed(() => {
+  const av = user.value?.avatar_url || user.value?.avatar
+  if (av && typeof av === 'string' && av.trim().length > 0 && !av.includes('ui-avatars.com')) {
+    return av.startsWith('http') ? av : `/storage/${av.replace(/^\/+/, '')}`
   }
-  return name
+  return null
+})
+
+const getStableAvatarBg = (name: string, id?: number | string) => {
+  const colors = [
+    '#6366f1', '#3b82f6', '#8b5cf6', '#ec4899', '#06b6d4', '#10b981', '#f59e0b', '#0284c7'
+  ]
+  const seed = String(name || '') + String(id || '')
+  let hash = 0
+  for (let i = 0; i < seed.length; i++) {
+    hash = seed.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  const index = Math.abs(hash) % colors.length
+  return colors[index]
+}
+
+const headerUserInitial = computed(() => {
+  const name = (studentDisplayName.value || '').trim()
+  if (!name) return 'S'
+  const parts = name.split(/\s+/)
+  if (parts.length > 1) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+  }
+  return name.slice(0, 2).toUpperCase()
+})
+
+const enrolledCoursesCount = computed(() => {
+  return (page.props.stats as any)?.enrolledCount || (page.props.enrollments as any[])?.length || 10
 })
 
 const avatarInput = ref<HTMLInputElement | null>(null)
@@ -56,6 +89,7 @@ const handleAvatarChange = (e: Event) => {
     preserveScroll: true,
     onSuccess: () => {
       isUploadingAvatar.value = false
+      headerAvatarError.value = false
     },
     onError: () => {
       isUploadingAvatar.value = false
@@ -68,22 +102,53 @@ const handleAvatarChange = (e: Event) => {
 }
 
 const studentId = computed(() => {
-  return user.value?.student_id || 'STU2024001'
+  return user.value?.student_id || user.value?.student_code || 'STU2026001'
 })
 
 const studentMajor = computed(() => {
-  return user.value?.major || 'IT & Networking'
+  return user.value?.major?.name || user.value?.major || 'Information Technology'
 })
 
 const studentDepartment = computed(() => {
-  return user.value?.department || 'Computer Science & Networking'
+  return user.value?.department?.name || user.value?.department || 'Computer Science'
 })
 
 const isSidebarCollapsed = ref(false)
 const sidebarOpen = ref(false)
 
+let prefDebounceTimer: any = null
+const saveUserPreferences = (newPrefs: Record<string, any>) => {
+  if (typeof window === 'undefined') return
+  if (newPrefs.sidebar_collapsed !== undefined) {
+    localStorage.setItem('elms_student_sidebar_collapsed', String(newPrefs.sidebar_collapsed))
+  }
+  clearTimeout(prefDebounceTimer)
+  prefDebounceTimer = setTimeout(async () => {
+    try {
+      const csrf = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || ''
+      await fetch('/student/preferences', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': csrf,
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(newPrefs)
+      })
+    } catch (e) {
+      // offline fallback
+    }
+  }, 300)
+}
+
 const toggleSidebarCollapse = () => {
   isSidebarCollapsed.value = !isSidebarCollapsed.value
+  saveUserPreferences({ sidebar_collapsed: isSidebarCollapsed.value })
+}
+
+const handleThemeToggle = (e?: MouseEvent) => {
+  toggleTheme(e)
+  saveUserPreferences({ theme: isDark.value ? 'dark' : 'light' })
 }
 
 // --- Top Navbar State & Dropdown Logic ---
@@ -125,6 +190,7 @@ const toggleLanguage = () => {
   const nextLang = currentLang.value === 'km' ? 'en' : 'km'
   showLoading(nextLang === 'km' ? 'សូមរង់ចាំ កំពុងដំណើរការ...' : 'Please wait while loading')
   i18n.setLanguage(nextLang)
+  saveUserPreferences({ locale: nextLang })
   try {
     router.reload({
       onFinish: () => hideLoading(150),
@@ -789,6 +855,22 @@ const studentNav: NavItem[] = [
   }
 ]
 
+const sidebarNavItems = computed<NavItem[]>(() => {
+  return studentNav.map(item => {
+    if (item.key === 'notificationsModule') {
+      const count = unreadNotificationsCount.value
+      return {
+        ...item,
+        badge: count > 0 ? {
+          text: count > 99 ? '99+' : String(count),
+          colorClass: 'bg-rose-500 text-white border-rose-600 shadow-xs'
+        } : undefined
+      }
+    }
+    return item
+  })
+})
+
 const isSubActive = (subHref: string) => {
   const currentUrl = page.url
   if (subHref.includes('?')) {
@@ -826,6 +908,27 @@ watch(
 )
 
 onMounted(() => {
+  if (typeof userPrefs.value.sidebar_collapsed === 'boolean') {
+    isSidebarCollapsed.value = userPrefs.value.sidebar_collapsed
+  } else if (typeof window !== 'undefined') {
+    const local = localStorage.getItem('elms_student_sidebar_collapsed')
+    if (local !== null) {
+      isSidebarCollapsed.value = local === 'true'
+    }
+  }
+
+  if (userPrefs.value.theme && (userPrefs.value.theme === 'dark' || userPrefs.value.theme === 'light')) {
+    if ((userPrefs.value.theme === 'dark') !== isDark.value) {
+      toggleTheme()
+    }
+  }
+
+  if (userPrefs.value.locale && (userPrefs.value.locale === 'km' || userPrefs.value.locale === 'en')) {
+    if (userPrefs.value.locale !== currentLang.value) {
+      i18n.setLanguage(userPrefs.value.locale)
+    }
+  }
+
   loadPersistedNotifications()
   initTheme()
   window.addEventListener('keydown', handleKeydown)
@@ -863,7 +966,7 @@ const onIconError = (e: Event) => {
   <GlobalLoadingOverlay />
   <div class="min-h-screen bg-[#f8fafd] dark:bg-[#131314] text-[#1f1f1f] dark:text-[#e3e3e3] selection:bg-[#0b57d0]/20 transition-colors duration-200 notranslate" translate="no">
     <!-- Desktop Sidebar (Fixed Positioning exactly like Admin & Teacher layouts) -->
-    <aside :class="[isSidebarCollapsed ? 'w-20 overflow-visible' : 'w-72', 'fixed inset-y-0 left-0 z-50 hidden flex-col bg-white/95 dark:bg-[#131314] backdrop-blur-xl border-r border-[#dfe3e7] dark:border-[#28292a] lg:flex transition-all duration-300 shadow-xs dark:shadow-none']">
+    <aside :class="[isSidebarCollapsed ? 'w-[72px] overflow-visible' : 'w-72', 'fixed inset-y-0 left-0 z-50 hidden flex-col bg-white/95 dark:bg-[#131314] backdrop-blur-xl border-r border-[#dfe3e7] dark:border-[#28292a] lg:flex transition-all duration-250 ease-in-out shadow-xs dark:shadow-none']">
       
       <!-- Sidebar Header & Logo -->
       <div
@@ -928,7 +1031,7 @@ const onIconError = (e: Event) => {
       >
         <ul role="list" class="space-y-1 w-full">
           <li
-            v-for="item in studentNav"
+            v-for="item in sidebarNavItems"
             :key="item.key"
             :class="isSidebarCollapsed ? 'relative group/flyout flex justify-center w-full my-0.5' : 'relative my-0.5'"
           >
@@ -1053,6 +1156,15 @@ const onIconError = (e: Event) => {
                     <svg v-else-if="item.key === 'notificationsModule'" :class="[isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4', isChildActive(item.children) ? 'text-purple-600 dark:text-purple-400' : 'text-[#64748b] dark:text-slate-400 group-hover:text-[#1f1f1f] dark:group-hover:text-slate-200', 'shrink-0 transition-colors']" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
                     </svg>
+
+                    <!-- Collapsed Notification Indicator Dot -->
+                    <span
+                      v-if="isSidebarCollapsed && item.key === 'notificationsModule' && unreadNotificationsCount > 0"
+                      class="absolute -top-1 -right-1 flex h-2.5 w-2.5 pointer-events-none z-10"
+                    >
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500 ring-2 ring-white dark:ring-[#131314]"></span>
+                    </span>
                     <!-- Fallback SVG -->
                     <svg v-else :class="[isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4', 'shrink-0 text-[#64748b] dark:text-slate-400']" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
@@ -1200,7 +1312,7 @@ const onIconError = (e: Event) => {
       </div>
 
       <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto custom-scrollbar">
-        <template v-for="item in studentNav" :key="item.key">
+        <template v-for="item in sidebarNavItems" :key="item.key">
           <!-- Action Item (e.g. Log Out) -->
           <button
             v-if="item.isAction"
@@ -1309,7 +1421,7 @@ const onIconError = (e: Event) => {
     </aside>
 
     <!-- STICKY TOP NAVBAR (Dynamically padded to account for fixed sidebar) -->
-    <header :class="[isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72', 'sticky top-0 z-40 bg-white/95 dark:bg-[#131314]/95 backdrop-blur-xl border-b border-[#dfe3e7] dark:border-[#28292a] transition-all duration-300 shadow-2xs']">
+    <header :class="[isSidebarCollapsed ? 'lg:pl-[72px]' : 'lg:pl-72', 'sticky top-0 z-40 bg-white/95 dark:bg-[#131314]/95 backdrop-blur-xl border-b border-[#dfe3e7] dark:border-[#28292a] transition-all duration-250 ease-in-out shadow-2xs']">
       <div class="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8 xl:px-10 max-w-[1600px] mx-auto gap-4">
         
         <!-- Left Side: Mobile Sidebar Hamburger, Desktop Toggle & Multi-Segment Breadcrumbs -->
@@ -1398,7 +1510,7 @@ const onIconError = (e: Event) => {
           <!-- Theme Switcher Pill (Icon Only) -->
           <button
             type="button"
-            @click="toggleTheme($event)"
+            @click="handleThemeToggle($event)"
             class="w-8 h-8 rounded-full bg-white hover:bg-[#f0f4f9] dark:bg-[#1e1f20] dark:hover:bg-[#282a2c] transition-all duration-200 border border-[#dfe3e7] dark:border-[#2d2f31] shadow-2xs flex items-center justify-center cursor-pointer select-none active:scale-95 group focus:outline-none"
             :title="isDark ? (currentLang === 'km' ? 'ប្ដូរទៅ Light Mode' : 'Switch to Light Mode') : (currentLang === 'km' ? 'ប្ដូរទៅ Dark Mode' : 'Switch to Dark Mode')"
             aria-label="Toggle theme"
@@ -1553,8 +1665,21 @@ const onIconError = (e: Event) => {
               :aria-expanded="isProfileOpen"
               class="flex items-center gap-2 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
-              <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 text-white font-bold flex items-center justify-center text-xs shadow">
-                {{ studentDisplayName.charAt(0) }}
+              <div class="relative shrink-0">
+                <img
+                  v-if="userAvatarUrl && !headerAvatarError"
+                  :src="userAvatarUrl"
+                  @error="headerAvatarError = true"
+                  class="w-8 h-8 rounded-full object-cover ring-2 ring-purple-500/30 shadow-xs"
+                  alt="Avatar"
+                />
+                <div
+                  v-else
+                  class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white text-xs shadow-xs ring-2 ring-purple-500/30 select-none"
+                  :style="{ backgroundColor: getStableAvatarBg(studentDisplayName, user.id) }"
+                >
+                  {{ headerUserInitial }}
+                </div>
               </div>
               <span class="hidden lg:inline text-xs font-bold text-slate-800 dark:text-slate-200 truncate max-w-[200px]">
                 {{ studentDisplayName }}
@@ -1583,14 +1708,19 @@ const onIconError = (e: Event) => {
                   <span>{{ currentLang === 'km' ? 'ការកំណត់គណនី' : 'Profile Settings' }}</span>
                 </Link>
                 <Link
-                  href="/student/my-courses/current"
+                  href="/student/my-courses/enrolled"
                   @click="isProfileOpen = false"
-                  class="flex items-center gap-2.5 px-4 py-2 text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors"
+                  class="flex items-center justify-between px-4 py-2 text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors"
                 >
-                  <svg class="w-4 h-4 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                  </svg>
-                  <span>{{ currentLang === 'km' ? 'វគ្គសិក្សារបស់ខ្ញុំ' : 'My Courses' }}</span>
+                  <span class="flex items-center gap-2.5">
+                    <svg class="w-4 h-4 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <span>{{ currentLang === 'km' ? 'វគ្គសិក្សារបស់ខ្ញុំ' : 'My Courses' }}</span>
+                  </span>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                    {{ enrolledCoursesCount }}
+                  </span>
                 </Link>
                 <Link
                   href="/student/certificates/my-certificates"
@@ -1664,7 +1794,7 @@ const onIconError = (e: Event) => {
     </div>
 
     <!-- MAIN CONTENT WRAPPER -->
-    <main :class="[isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72', 'transition-all duration-300 min-h-[calc(100vh-64px)] pb-28 sm:pb-32']">
+    <main :class="[isSidebarCollapsed ? 'lg:pl-[72px]' : 'lg:pl-72', 'transition-all duration-250 ease-in-out min-h-[calc(100vh-64px)] pb-28 sm:pb-32']">
       <div class="px-4 sm:px-6 lg:px-8 xl:px-10 py-6 max-w-[1600px] mx-auto space-y-6">
         <slot />
       </div>

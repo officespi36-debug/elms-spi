@@ -91,7 +91,18 @@ class DashboardController extends Controller
                 foreach ($enrollments as $enr) {
                     if ($enr->course) {
                         $course = $enr->course;
-                        $teacherName = $course->teacher->name ?? 'SPI Instructor';
+                        $rawTeacher = trim($course->teacher->name ?? '');
+                        if (empty($rawTeacher) && !empty($course->teacher->name_kh)) {
+                            $rawTeacher = trim($course->teacher->name_kh);
+                        }
+                        if (empty($rawTeacher) || strcasecmp($rawTeacher, 'pitaja6820') === 0 || str_contains($rawTeacher, '@')) {
+                            if ($course->teacher_id == 21 || str_contains(strtolower($course->teacher->email ?? ''), 'pitaja')) {
+                                $rawTeacher = 'Dr. Mengly Chea';
+                            } else {
+                                $rawTeacher = 'SPI Instructor';
+                            }
+                        }
+                        $teacherName = $rawTeacher;
 
                         // Calculate real progress from lessons
                         $totalLessons = $course->lessons ? $course->lessons->count() : 0;

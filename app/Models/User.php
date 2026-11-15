@@ -66,6 +66,7 @@ class User extends Authenticatable implements JWTSubject
         'github_username',
         'clerk_id',
         'avatar',
+        'preferences',
         'email_verified_at',
         'is_active',
         'status',
@@ -83,15 +84,31 @@ class User extends Authenticatable implements JWTSubject
         'otp_code',
     ];
 
+    protected $appends = [
+        'avatar_url',
+    ];
+
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'preferences' => 'array',
             'locked_until' => 'datetime',
             'otp_expires_at' => 'datetime',
         ];
+    }
+
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if (empty($this->avatar)) {
+            return null;
+        }
+        if (str_starts_with($this->avatar, 'http://') || str_starts_with($this->avatar, 'https://')) {
+            return $this->avatar;
+        }
+        return asset('storage/' . ltrim($this->avatar, '/'));
     }
 
     public function getJWTIdentifier()
