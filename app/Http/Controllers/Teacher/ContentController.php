@@ -163,13 +163,14 @@ class ContentController extends Controller
         }
 
         if (LabIntegration::whereIn('course_id', $courseIds)->doesntExist()) {
-            $firstLesson = Lesson::where('course_id', $firstCourse->id)->first();
+            $targetCourse = $courses->first(fn($c) => str_contains(strtolower($c->title), 'c programming') || str_contains(strtolower($c->title), 'programming')) ?: $firstCourse;
+            $firstLesson = Lesson::where('course_id', $targetCourse->id)->first();
             if (!$firstLesson) {
-                $module = Module::firstOrCreate(['course_id' => $firstCourse->id, 'title' => 'Module 1: Introduction']);
+                $module = Module::firstOrCreate(['course_id' => $targetCourse->id, 'title' => 'Module 1: Introduction']);
                 $firstLesson = Lesson::create([
                     'module_id' => $module->id,
-                    'course_id' => $firstCourse->id,
-                    'title' => 'Lab 1.1: Hello World & C Syntax Basics',
+                    'course_id' => $targetCourse->id,
+                    'title' => 'Lab 1.1: Hands-on Development Practice Lab',
                     'type' => 'video',
                     'duration_seconds' => 600,
                 ]);
@@ -177,7 +178,7 @@ class ContentController extends Controller
 
             $demoLabs = [
                 [
-                    'course_id' => $firstCourse->id,
+                    'course_id' => $targetCourse->id,
                     'lesson_id' => $firstLesson->id,
                     'title' => 'C Compiler Code Sandbox (Embedded IDE)',
                     'lab_type' => 'code_sandbox',

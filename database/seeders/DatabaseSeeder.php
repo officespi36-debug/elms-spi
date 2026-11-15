@@ -281,6 +281,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AcademicSeeder::class,
             DashboardRealDataSeeder::class,
+            LessonContentSeeder::class,
             StudentDashboardSeeder::class,
         ]);
     }

@@ -406,11 +406,26 @@ const seekVideo = (event: MouseEvent) => {
   const clickX = event.clientX - rect.left
   const percentage = Math.max(0, Math.min(1, clickX / rect.width))
   currentSeconds.value = Math.floor(percentage * currentDuration.value)
+  if (html5VideoRef.value) {
+    html5VideoRef.value.currentTime = currentSeconds.value
+  }
   if (currentSeconds.value > maxWatchedSeconds.value) {
     maxWatchedSeconds.value = currentSeconds.value
   }
   saveVideoProgress(currentSeconds.value)
 }
+
+watch(videoSpeed, (spd) => {
+  if (html5VideoRef.value) {
+    html5VideoRef.value.playbackRate = parseFloat(spd) || 1
+  }
+})
+
+watch(isMuted, (muted) => {
+  if (html5VideoRef.value) {
+    html5VideoRef.value.muted = muted
+  }
+})
 
 // ─── Complete & Next Lesson (Server validated >= 90%) ───
 const handleCompleteAndNext = async () => {
@@ -746,18 +761,27 @@ const handleKeydown = (e: KeyboardEvent) => {
   const target = e.target as HTMLElement
   if (target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return
 
-  if (e.code === 'Space') {
+  if (e.code === 'Space' || e.key === 'k' || e.key === 'K') {
     e.preventDefault()
     togglePlayPause()
   } else if (e.code === 'ArrowLeft') {
     e.preventDefault()
     currentSeconds.value = Math.max(0, currentSeconds.value - 10)
+    if (html5VideoRef.value) {
+      html5VideoRef.value.currentTime = currentSeconds.value
+    }
   } else if (e.code === 'ArrowRight') {
     e.preventDefault()
     currentSeconds.value = Math.min(currentDuration.value, currentSeconds.value + 10)
+    if (html5VideoRef.value) {
+      html5VideoRef.value.currentTime = currentSeconds.value
+    }
     if (currentSeconds.value > maxWatchedSeconds.value) {
       maxWatchedSeconds.value = currentSeconds.value
     }
+  } else if (e.key === 'm' || e.key === 'M') {
+    e.preventDefault()
+    isMuted.value = !isMuted.value
   } else if (e.key === 'f' || e.key === 'F') {
     e.preventDefault()
     if (!document.fullscreenElement) {
@@ -945,16 +969,40 @@ onUnmounted(() => {
             </transition>
 
             <!-- 1. Native HTML5 Video Element (If direct MP4) -->
-            <div v-if="videoProvider === 'mp4'" class="relative aspect-video w-full bg-black flex items-center justify-center">
+            <div v-if="videoProvider === 'mp4'" class="relative aspect-video w-full bg-black flex items-center justify-center overflow-hidden">
               <video
                 ref="html5VideoRef"
                 :src="currentLesson.video_url!"
-                class="w-full h-full object-contain"
+                class="w-full h-full object-contain cursor-pointer"
                 playsinline
+                @click="togglePlayPause"
+                @dblclick="handleKeydown({ code: 'KeyF', key: 'F', preventDefault: () => {} } as any)"
                 @play="isVideoPlaying = true"
                 @pause="isVideoPlaying = false; saveVideoProgress(currentSeconds)"
                 @timeupdate="currentSeconds = html5VideoRef?.currentTime || currentSeconds"
               ></video>
+
+              <!-- Central Play Button Overlay (when paused and not in hover preview) -->
+              <transition
+                enter-active-class="transition duration-200 ease-out"
+                enter-from-class="opacity-0 scale-90"
+                enter-to-class="opacity-100 scale-100"
+                leave-active-class="transition duration-150 ease-in"
+                leave-from-class="opacity-100 scale-100"
+                leave-to-class="opacity-0 scale-90"
+              >
+                <div
+                  v-if="!isVideoPlaying && !isPreviewMode"
+                  @click="togglePlayPause"
+                  class="absolute inset-0 flex items-center justify-center bg-black/25 backdrop-blur-[2px] cursor-pointer group/overlay transition-all"
+                >
+                  <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-500 text-white flex items-center justify-center shadow-2xl shadow-purple-600/50 group-hover/overlay:scale-110 transition-transform">
+                    <svg class="w-8 h-8 sm:w-10 sm:h-10 ml-1 fill-current" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                  </div>
+                </div>
+              </transition>
             </div>
 
             <!-- 2. YouTube Iframe Player (If YouTube URL) -->

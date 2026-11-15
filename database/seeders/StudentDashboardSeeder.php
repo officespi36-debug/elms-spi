@@ -74,7 +74,7 @@ class StudentDashboardSeeder extends Seeder
             [
                 'course_code' => 'CRS-IT-WD101',
                 'status'      => 'active',
-                'complete_n'  => 2, // 2 of 3 lessons done (66%)
+                'complete_n'  => 1, // 1 of 6 lessons done (16%), Lesson 2 in-progress
                 'enrolled_at' => now()->subDays(25),
             ],
             [
@@ -183,8 +183,21 @@ class StudentDashboardSeeder extends Seeder
                             'completed_at'    => now()->subDays(10 - $idx),
                         ]);
                         $completedCount++;
+                    } elseif ($item['status'] === 'active' && $idx === $item['complete_n']) {
+                        // Current in-progress lesson (partially watched, not yet completed)
+                        $duration = $lesson->duration_seconds ?: 1200;
+                        $watched = min(450, (int) round($duration * 0.38));
+                        LessonProgress::updateOrCreate([
+                            'user_id'   => $studentUser->id,
+                            'lesson_id' => $lesson->id,
+                        ], [
+                            'percent'           => (int) round(($watched / $duration) * 100),
+                            'seconds_watched'   => $watched,
+                            'completed_at'      => null,
+                            'client_updated_at' => now(),
+                        ]);
                     } else {
-                        // Uncompleted lesson - clear or set partial
+                        // Uncompleted lesson - clear
                         LessonProgress::where('user_id', $studentUser->id)
                             ->where('lesson_id', $lesson->id)
                             ->delete();
