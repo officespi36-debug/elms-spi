@@ -8,6 +8,7 @@ use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\LessonProgress;
 use App\Models\QuizAttempt;
+use App\Services\StudentLearningService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
@@ -160,35 +161,26 @@ class DashboardController extends Controller
             // 2. Compute Real Stats directly from database (Auth::user only)
             $statsData = $this->computeStats($user);
 
-            // 3. Active / Continue Course (Empty state if not enrolled)
+            // 3. Active / Continue Course (Using shared StudentLearningService)
             $continueCourseData = null;
-            $activeEnrollment = $enrollments->firstWhere('status', 'active') ?? $enrollments->first();
-            if ($activeEnrollment && $activeEnrollment->course) {
-                $activeCourse = $activeEnrollment->course;
-                $activeCourseItem = collect($myCoursesList)->firstWhere('id', $activeCourse->id);
-                $activeProgress = $activeCourseItem['progress'] ?? 0;
+            $learningService = app(StudentLearningService::class);
+            $currentData = $learningService->resolveCurrentLesson($user);
 
-                // Find current uncompleted lesson title dynamically
-                $currentLessonTitle = 'Lesson 1: Introduction & Fundamentals';
-                if ($activeCourse->lessons && $activeCourse->lessons->isNotEmpty()) {
-                    foreach ($activeCourse->lessons as $l) {
-                        if (!isset($completedLessonMap[$l->id])) {
-                            $currentLessonTitle = $l->title;
-                            break;
-                        }
-                    }
-                }
+            if ($currentData && isset($currentData['course'], $currentData['lesson'])) {
+                $activeCourse = $currentData['course'];
+                $currentLesson = $currentData['lesson'];
+                $activeCourseItem = collect($myCoursesList)->firstWhere('id', $activeCourse->id);
 
                 $continueCourseData = [
-                    'id' => $activeCourse->id,
-                    'title' => $activeCourse->title,
-                    'chapter' => 'Module 1 - ' . ($activeCourse->major->name ?? 'Core Academic Topics'),
-                    'teacher' => $activeCourseItem['teacher'] ?? ($activeCourse->teacher->name ?? 'SPI Instructor'),
-                    'progress' => $activeProgress,
-                    'lastLesson' => $currentLessonTitle,
-                    'timeLeft' => '18:20 left',
-                    'thumbnail' => $activeCourse->thumbnail ?? 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=600&q=80',
-                    'href' => '/student/learn/' . $activeCourse->id,
+                    'id'           => $activeCourse->id,
+                    'title'        => $activeCourse->title,
+                    'chapter'      => 'Module - ' . ($activeCourse->major->name ?? 'Core Academic Topics'),
+                    'teacher'      => $activeCourseItem['teacher'] ?? ($activeCourse->teacher->name ?? 'Dr. Mengly Chea'),
+                    'progress'     => $currentData['progress_percent'],
+                    'lastLesson'   => $currentLesson->title,
+                    'timeLeft'     => $currentData['time_left'],
+                    'thumbnail'    => $activeCourse->thumbnail ?? 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=600&q=80',
+                    'href'         => "/student/my-courses/{$activeCourse->id}/lessons/{$currentLesson->id}",
                     'overviewHref' => '/student/courses/' . $activeCourse->id . '/overview',
                 ];
             }

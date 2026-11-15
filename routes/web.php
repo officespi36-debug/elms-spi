@@ -533,9 +533,15 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/browse', [Student\BrowseController::class, 'index'])->name('browse');
             Route::get('/overview', [Student\CourseController::class, 'overview'])->name('overview');
             Route::get('/{course}/overview', [Student\CourseController::class, 'overview'])->name('course.overview');
+            Route::get('/{course}/lessons/{lesson}', [Student\CourseController::class, 'showLesson'])->name('lessons.show');
             Route::get('/wishlist', [Student\CourseController::class, 'wishlist'])->name('wishlist');
         });
         Route::get('/courses/{course}/overview', [Student\CourseController::class, 'overview'])->name('courses.overview');
+        Route::get('/courses/{course}/lessons/{lesson}', [Student\CourseController::class, 'showLesson']);
+
+        // Lesson Progress & Completion API endpoints
+        Route::post('/lessons/{lesson}/progress', [Student\CourseController::class, 'saveProgress'])->middleware('throttle:60,1')->name('lessons.progress');
+        Route::post('/lessons/{lesson}/complete', [Student\CourseController::class, 'completeLesson'])->name('lessons.complete');
 
         // URL Aliases for space-separated or underscore-separated requests (e.g. 'my courses' / 'my_courses')
         Route::get('/my courses', [Student\CourseController::class, 'enrolled']);
