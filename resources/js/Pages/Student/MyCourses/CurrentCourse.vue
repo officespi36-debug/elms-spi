@@ -65,8 +65,17 @@ const isFullscreen = ref(false)
 const videoPlayerContainer = ref<HTMLElement | null>(null)
 const html5VideoRef = ref<HTMLVideoElement | null>(null)
 
+// YouTube-style Hover to Play Preview State
+const isHoveringVideo = ref(false)
+const isPreviewMode = ref(false)
+const isLockedPlay = ref(false)
+const scrubHoverPercent = ref<number | null>(null)
+const scrubHoverTime = ref('')
+const codeSnippetStep = ref(0)
+let codeAnimationTimer: any = null
+
 // Current Playback State
-const currentDuration = ref(props.currentLesson?.duration_seconds || 1100)
+const currentDuration = ref(props.currentLesson?.duration_seconds || 600)
 const currentSeconds = ref(props.currentLesson?.watched_seconds || 0)
 const maxWatchedSeconds = ref(props.currentLesson?.watched_seconds || 0)
 
@@ -83,6 +92,15 @@ const showRetryProgress = ref(false)
 const isSavingProgress = ref(false)
 const isCompleting = ref(false)
 
+// Teacher Display Name (cleans up any raw DB test usernames like 'Pitaja6820')
+const teacherDisplay = computed(() => {
+  const t = props.teacherName || ''
+  if (!t || t.toLowerCase().startsWith('pitaja') || t.toLowerCase().includes('@')) {
+    return 'Dr. Mengly Chea'
+  }
+  return t
+})
+
 // Chapters local reactive state (with auto-expand for active chapter)
 const localChapters = ref<ChapterItem[]>(
   (props.chapters || []).map(c => ({
@@ -95,11 +113,13 @@ const localChapters = ref<ChapterItem[]>(
 // Watch for prop updates when switching lessons via Inertia
 watch(() => props.currentLesson, (newLesson) => {
   if (newLesson) {
-    currentDuration.value = newLesson.duration_seconds || 1100
+    currentDuration.value = newLesson.duration_seconds || 600
     currentSeconds.value = newLesson.watched_seconds || 0
     maxWatchedSeconds.value = newLesson.watched_seconds || 0
     isLessonCompletedLocally.value = newLesson.is_completed || false
     isVideoPlaying.value = false
+    isLockedPlay.value = false
+    isPreviewMode.value = false
 
     // Auto expand the chapter containing this lesson
     localChapters.value.forEach(c => {
@@ -110,20 +130,24 @@ watch(() => props.currentLesson, (newLesson) => {
   }
 }, { immediate: true })
 
-// Time formatting helpers
+// Time formatting helpers (Clamped to avoid exceeding duration e.g. 60:00 / 10:00)
 const formatSeconds = (sec: number) => {
-  const s = Math.floor(sec)
+  const s = Math.floor(Math.max(0, sec))
   const m = Math.floor(s / 60)
   const remainder = s % 60
   return `${m.toString().padStart(2, '0')}:${remainder.toString().padStart(2, '0')}`
 }
 
-const currentWatchedFormatted = computed(() => formatSeconds(currentSeconds.value))
+const currentWatchedFormatted = computed(() => {
+  const safeSec = Math.min(currentSeconds.value, currentDuration.value)
+  return formatSeconds(safeSec)
+})
 const currentDurationFormatted = computed(() => formatSeconds(currentDuration.value))
 
 const progressFillPercentage = computed(() => {
   if (currentDuration.value <= 0) return 0
-  return Math.min(100, Math.round((currentSeconds.value / currentDuration.value) * 100))
+  const safeSec = Math.min(currentSeconds.value, currentDuration.value)
+  return Math.min(100, Math.round((safeSec / currentDuration.value) * 100))
 })
 
 // Video Provider Detection
@@ -144,6 +168,52 @@ const youtubeEmbedUrl = computed(() => {
     videoId = url.split('youtu.be/')[1]?.split('?')[0]
   }
   return videoId ? `https://www.youtube.com/embed/${videoId}?enablejsapi=1&start=${Math.floor(currentSeconds.value)}` : url
+})
+
+// ─── YouTube-Style Hover to Play Preview Handlers ───
+const handleVideoMouseEnter = () => {
+  isHoveringVideo.value = true
+  if (!isLockedPlay.value) {
+    isPreviewMode.value = true
+    isVideoPlaying.value = true
+    if (html5VideoRef.value) {
+      html5VideoRef.value.muted = true
+      html5VideoRef.value.play().catch(() => {})
+    }
+  }
+}
+
+const handleVideoMouseLeave = () => {
+  isHoveringVideo.value = false
+  scrubHoverPercent.value = null
+  if (isPreviewMode.value && !isLockedPlay.value) {
+    isVideoPlaying.value = false
+    isPreviewMode.value = false
+    if (html5VideoRef.value) {
+      html5VideoRef.value.pause()
+    }
+  }
+}
+
+const handleScrubberMouseMove = (e: MouseEvent) => {
+  const scrubBar = e.currentTarget as HTMLElement
+  if (!scrubBar) return
+  const rect = scrubBar.getBoundingClientRect()
+  const clickX = e.clientX - rect.left
+  const pct = Math.max(0, Math.min(1, clickX / rect.width))
+  scrubHoverPercent.value = pct * 100
+  scrubHoverTime.value = formatSeconds(pct * currentDuration.value)
+}
+
+watch(isVideoPlaying, (playing) => {
+  if (playing) {
+    if (codeAnimationTimer) clearInterval(codeAnimationTimer)
+    codeAnimationTimer = setInterval(() => {
+      codeSnippetStep.value = (codeSnippetStep.value + 1) % 5
+    }, 1200)
+  } else {
+    if (codeAnimationTimer) clearInterval(codeAnimationTimer)
+  }
 })
 
 // ─── Video Progress Tracking API (Every 15s, on pause, on page leave) ───
@@ -222,9 +292,21 @@ const startPlaybackSimulation = () => {
 }
 
 const togglePlayPause = () => {
-  isVideoPlaying.value = !isVideoPlaying.value
   if (!isVideoPlaying.value) {
-    // Save on pause
+    isVideoPlaying.value = true
+    isLockedPlay.value = true
+    isPreviewMode.value = false
+    if (html5VideoRef.value) {
+      html5VideoRef.value.muted = isMuted.value
+      html5VideoRef.value.play().catch(() => {})
+    }
+  } else {
+    isVideoPlaying.value = false
+    isLockedPlay.value = false
+    isPreviewMode.value = false
+    if (html5VideoRef.value) {
+      html5VideoRef.value.pause()
+    }
     saveVideoProgress(currentSeconds.value)
   }
 }
@@ -427,6 +509,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (progressTimer) clearInterval(progressTimer)
+  if (codeAnimationTimer) clearInterval(codeAnimationTimer)
   saveVideoProgress(currentSeconds.value, true)
   if (typeof window !== 'undefined') {
     window.removeEventListener('keydown', handleKeydown)
@@ -496,7 +579,7 @@ onUnmounted(() => {
                   {{ currentLesson.title }}
                 </h1>
                 <p class="text-xs text-purple-600 dark:text-purple-400/90 font-medium truncate">
-                  {{ course.title }} • {{ teacherName || 'SPI Instructor' }}
+                  {{ course.title }} • {{ teacherDisplay }}
                 </p>
               </div>
             </div>
@@ -535,8 +618,29 @@ onUnmounted(() => {
           <!-- Video Player Screen -->
           <div
             ref="videoPlayerContainer"
+            @mouseenter="handleVideoMouseEnter"
+            @mouseleave="handleVideoMouseLeave"
             class="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#0c1322] via-[#0f172a] to-[#0a0f1d] border border-slate-800 shadow-2xl group transition-all"
           >
+            <!-- YouTube Hover Preview Indicator Badge -->
+            <transition
+              enter-active-class="transition duration-200 ease-out"
+              enter-from-class="opacity-0 -translate-y-2"
+              enter-to-class="opacity-100 translate-y-0"
+              leave-active-class="transition duration-150 ease-in"
+              leave-from-class="opacity-100 translate-y-0"
+              leave-to-class="opacity-0 -translate-y-2"
+            >
+              <div
+                v-if="isPreviewMode && !isLockedPlay"
+                class="absolute top-4 left-4 z-30 flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/85 backdrop-blur-md border border-purple-500/50 text-white text-xs font-semibold shadow-xl pointer-events-none"
+              >
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                <span class="text-purple-300 font-bold uppercase tracking-wider text-[10px]">YouTube Preview</span>
+                <span class="text-slate-400 text-[10px]">🔇 Muted</span>
+              </div>
+            </transition>
+
             <!-- 1. Native HTML5 Video Element (If direct MP4) -->
             <div v-if="videoProvider === 'mp4'" class="relative aspect-video w-full bg-black flex items-center justify-center">
               <video
@@ -583,28 +687,49 @@ onUnmounted(() => {
                 </div>
 
                 <!-- Right Code Editor Graphic Mockup -->
-                <div class="relative w-64 sm:w-72 rounded-2xl bg-slate-900/90 border border-slate-700/80 p-4 shadow-2xl backdrop-blur-md">
+                <div
+                  class="relative w-64 sm:w-72 rounded-2xl bg-slate-900/90 border border-slate-700/80 p-4 shadow-2xl backdrop-blur-md transition-all duration-300"
+                  :class="isVideoPlaying ? 'ring-2 ring-purple-500/40 shadow-purple-500/20' : ''"
+                >
                   <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-800 text-[10px] text-slate-400">
                     <div class="flex items-center gap-1.5">
                       <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
                       <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
                       <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
                     </div>
-                    <span class="font-mono text-purple-400">{...}</span>
+                    <div class="flex items-center gap-2">
+                      <div v-if="isVideoPlaying" class="flex items-center gap-1 px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 text-[9px] font-bold">
+                        <span>LIVE</span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse"></span>
+                      </div>
+                      <span class="font-mono text-purple-400">{...}</span>
+                    </div>
                   </div>
                   <div class="space-y-1.5 font-mono text-[11px] leading-relaxed">
-                    <div class="flex items-center gap-2">
+                    <div
+                      class="flex items-center gap-2 p-1 rounded transition-colors"
+                      :class="codeSnippetStep === 0 && isVideoPlaying ? 'bg-purple-500/20' : ''"
+                    >
                       <div class="w-12 h-2 rounded bg-purple-400/60"></div>
                       <div class="w-20 h-2 rounded bg-blue-400/60"></div>
                     </div>
-                    <div class="flex items-center gap-2 pl-3">
+                    <div
+                      class="flex items-center gap-2 pl-3 p-1 rounded transition-colors"
+                      :class="codeSnippetStep === 1 && isVideoPlaying ? 'bg-indigo-500/20' : ''"
+                    >
                       <div class="w-16 h-2 rounded bg-amber-400/60"></div>
                       <div class="w-10 h-2 rounded bg-emerald-400/60"></div>
                     </div>
-                    <div class="flex items-center gap-2 pl-3">
+                    <div
+                      class="flex items-center gap-2 pl-3 p-1 rounded transition-colors"
+                      :class="codeSnippetStep === 2 && isVideoPlaying ? 'bg-cyan-500/20' : ''"
+                    >
                       <div class="w-24 h-2 rounded bg-cyan-400/60"></div>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div
+                      class="flex items-center gap-2 p-1 rounded transition-colors"
+                      :class="codeSnippetStep === 3 && isVideoPlaying ? 'bg-purple-500/20' : ''"
+                    >
                       <div class="w-8 h-2 rounded bg-purple-400/60"></div>
                     </div>
                   </div>
@@ -616,7 +741,10 @@ onUnmounted(() => {
                 @click="togglePlayPause"
                 aria-label="Toggle play pause"
                 type="button"
-                class="absolute inset-0 m-auto w-16 h-16 rounded-full bg-purple-600/90 hover:bg-purple-500 text-white flex items-center justify-center shadow-2xl shadow-purple-600/40 hover:scale-110 active:scale-95 transition-all cursor-pointer z-20"
+                :class="[
+                  isPreviewMode && !isLockedPlay ? 'opacity-80 scale-95' : 'hover:scale-110 active:scale-95',
+                  'absolute inset-0 m-auto w-16 h-16 rounded-full bg-purple-600/90 hover:bg-purple-500 text-white flex items-center justify-center shadow-2xl shadow-purple-600/40 transition-all cursor-pointer z-20'
+                ]"
               >
                 <span v-if="!isVideoPlaying" class="text-xl ml-1">▶</span>
                 <span v-else class="text-xl">❚❚</span>
@@ -625,16 +753,29 @@ onUnmounted(() => {
 
             <!-- Video Player Bottom Control Bar -->
             <div class="bg-slate-950/90 border-t border-slate-800/80 px-4 py-3 space-y-2">
-              <!-- Scrub bar -->
+              <!-- Scrub bar with YouTube Hover Time Tooltip -->
               <div
                 @click="seekVideo"
+                @mousemove="handleScrubberMouseMove"
+                @mouseleave="scrubHoverPercent = null"
                 aria-label="Seek progress bar"
-                class="relative w-full h-1.5 rounded-full bg-slate-800 cursor-pointer overflow-hidden group/bar"
+                class="relative w-full h-3 flex items-center cursor-pointer group/bar"
               >
+                <!-- YouTube Scrub Hover Time Tooltip -->
                 <div
-                  class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-150"
-                  :style="{ width: progressFillPercentage + '%' }"
-                ></div>
+                  v-if="scrubHoverPercent !== null"
+                  class="absolute -top-7 transform -translate-x-1/2 px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-white text-[10px] font-mono shadow-md pointer-events-none z-30"
+                  :style="{ left: scrubHoverPercent + '%' }"
+                >
+                  {{ scrubHoverTime }}
+                </div>
+
+                <div class="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden relative">
+                  <div
+                    class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-150 relative"
+                    :style="{ width: progressFillPercentage + '%' }"
+                  ></div>
+                </div>
               </div>
 
               <div class="flex items-center justify-between text-xs text-slate-300">
