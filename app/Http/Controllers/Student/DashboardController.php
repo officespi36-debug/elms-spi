@@ -9,6 +9,7 @@ use App\Models\Enrollment;
 use App\Models\LessonProgress;
 use App\Models\QuizAttempt;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
@@ -45,289 +46,297 @@ class DashboardController extends Controller
             $this->ensureStudentDatabaseRecords($user);
         }
 
-        try {
-            $enrollments = Enrollment::where('student_id', $user->id)
-                ->with(['course.teacher:id,name,avatar', 'course.major:id,name', 'course.lessons:id,course_id,title,order,duration_seconds'])
-                ->latest('updated_at')
-                ->get();
-        } catch (\Throwable $e) {
-            $enrollments = collect();
+        if ($request->has('refresh')) {
+            Cache::forget("student_dashboard_payload_{$user->id}");
+            Cache::forget("student_stats_{$user->id}");
         }
 
-        // Fetch completed lesson IDs for accurate course progress
-        $completedLessonMap = [];
-        try {
-            $completedLessonMap = LessonProgress::where('user_id', $user->id)
-                ->where(function ($q) {
-                    $q->where('percent', '>=', 90)->orWhereNotNull('completed_at');
-                })
-                ->pluck('lesson_id')
-                ->flip()
-                ->toArray();
-        } catch (\Throwable $e) {
+        // Performance: Cache::remember 300s (scoped to user id) with eager loading & selected columns
+        $payload = Cache::remember("student_dashboard_payload_{$user->id}", 300, function () use ($user) {
+            try {
+                $enrollments = Enrollment::where('student_id', $user->id)
+                    ->select(['id', 'student_id', 'course_id', 'status', 'enrolled_at', 'updated_at'])
+                    ->with([
+                        'course:id,title,code,teacher_id,major_id,thumbnail',
+                        'course.teacher:id,name,avatar',
+                        'course.major:id,name',
+                        'course.lessons:id,course_id,title,order,duration_seconds'
+                    ])
+                    ->latest('updated_at')
+                    ->get();
+            } catch (\Throwable $e) {
+                $enrollments = collect();
+            }
+
+            // Fetch completed lesson IDs for accurate course progress
             $completedLessonMap = [];
-        }
+            try {
+                $completedLessonMap = LessonProgress::where('user_id', $user->id)
+                    ->where(function ($q) {
+                        $q->where('percent', '>=', 90)->orWhereNotNull('completed_at');
+                    })
+                    ->pluck('lesson_id')
+                    ->flip()
+                    ->toArray();
+            } catch (\Throwable $e) {
+                $completedLessonMap = [];
+            }
 
-        // 1. Build My Courses List with real progress and discipline icons
-        $myCoursesList = [];
-        $computedActive = 0;
-        $computedCompleted = 0;
+            // 1. Build My Courses List with real progress and discipline icons
+            $myCoursesList = [];
+            $computedActive = 0;
+            $computedCompleted = 0;
 
-        if ($enrollments->isNotEmpty()) {
-            foreach ($enrollments as $i => $enr) {
-                if ($enr->course) {
-                    $course = $enr->course;
-                    $teacherName = $course->teacher->name ?? 'SPI Instructor';
-                    if (stripos($teacherName, 'pitaja') !== false) {
-                        $teacherName = 'Dr. Mengly Chea';
-                    } elseif (stripos($teacherName, 'bapelo') !== false) {
-                        $teacherName = 'Mr. Sophat Pich';
-                    }
+            if ($enrollments->isNotEmpty()) {
+                foreach ($enrollments as $enr) {
+                    if ($enr->course) {
+                        $course = $enr->course;
+                        $teacherName = $course->teacher->name ?? 'SPI Instructor';
 
-                    // Calculate real progress from lessons if available
-                    $totalLessons = $course->lessons ? $course->lessons->count() : 0;
-                    $calculatedProgress = 0;
-                    if ($totalLessons > 0 && !empty($completedLessonMap)) {
-                        $doneCount = 0;
-                        foreach ($course->lessons as $l) {
-                            if (isset($completedLessonMap[$l->id])) {
-                                $doneCount++;
+                        // Calculate real progress from lessons
+                        $totalLessons = $course->lessons ? $course->lessons->count() : 0;
+                        $calculatedProgress = 0;
+                        if ($totalLessons > 0 && !empty($completedLessonMap)) {
+                            $doneCount = 0;
+                            foreach ($course->lessons as $l) {
+                                if (isset($completedLessonMap[$l->id])) {
+                                    $doneCount++;
+                                }
                             }
+                            $calculatedProgress = (int) round(($doneCount / $totalLessons) * 100);
                         }
-                        $calculatedProgress = (int) round(($doneCount / $totalLessons) * 100);
-                    }
 
-                    // Determine status & progress
-                    if ($enr->status === 'completed' || $calculatedProgress >= 100) {
-                        $status = 'completed';
-                        $progress = 100;
-                        $computedCompleted++;
-                    } elseif ($enr->status === 'active') {
-                        $status = 'in_progress';
-                        $progress = $calculatedProgress > 0 ? $calculatedProgress : 50;
-                        $computedActive++;
-                    } else {
-                        $status = 'not_started';
-                        $progress = 0;
-                    }
+                        // Determine status & progress
+                        if ($enr->status === 'completed' || $calculatedProgress >= 100) {
+                            $status = 'completed';
+                            $progress = 100;
+                            $computedCompleted++;
+                        } elseif ($enr->status === 'active') {
+                            $status = 'in_progress';
+                            $progress = $calculatedProgress;
+                            $computedActive++;
+                        } else {
+                            $status = 'not_started';
+                            $progress = 0;
+                        }
 
-                    // Determine subject/icon type & theme color
-                    $titleLower = strtolower($course->title . ' ' . ($course->major->name ?? ''));
-                    $iconType = 'code';
-                    $iconColor = 'from-purple-600 to-indigo-600';
-                    $bgGradient = 'from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-950/40';
+                        // Determine subject/icon type & theme color
+                        $titleLower = strtolower($course->title . ' ' . ($course->major->name ?? ''));
+                        $iconType = 'code';
+                        $iconColor = 'from-purple-600 to-indigo-600';
+                        $bgGradient = 'from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-950/40';
 
-                    if (str_contains($titleLower, 'english') || str_contains($titleLower, 'language') || str_contains($titleLower, 'literature')) {
-                        $iconType = 'english';
-                        $iconColor = 'from-amber-500 to-orange-600';
-                        $bgGradient = 'from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40';
-                    } elseif (str_contains($titleLower, 'agronomy') || str_contains($titleLower, 'crop') || str_contains($titleLower, 'plant') || str_contains($titleLower, 'agriculture')) {
-                        $iconType = 'agriculture';
-                        $iconColor = 'from-emerald-500 to-teal-600';
-                        $bgGradient = 'from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/40';
-                    } elseif (str_contains($titleLower, 'tourism') || str_contains($titleLower, 'hotel') || str_contains($titleLower, 'hospitality') || str_contains($titleLower, 'eco')) {
-                        $iconType = 'tourism';
-                        $iconColor = 'from-cyan-500 to-blue-600';
-                        $bgGradient = 'from-cyan-50 to-blue-50 dark:from-cyan-950/40 dark:to-blue-950/40';
-                    } elseif (str_contains($titleLower, 'social') || str_contains($titleLower, 'community')) {
-                        $iconType = 'social_work';
-                        $iconColor = 'from-rose-500 to-pink-600';
-                        $bgGradient = 'from-rose-50 to-pink-50 dark:from-rose-950/40 dark:to-pink-950/40';
-                    } elseif (str_contains($titleLower, 'database') || str_contains($titleLower, 'sql')) {
-                        $iconType = 'db';
-                        $iconColor = 'from-blue-600 to-indigo-600';
-                        $bgGradient = 'from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40';
-                    } elseif (str_contains($titleLower, 'design') || str_contains($titleLower, 'ui')) {
-                        $iconType = 'design';
-                        $iconColor = 'from-pink-500 to-purple-600';
-                        $bgGradient = 'from-pink-50 to-purple-50 dark:from-pink-950/40 dark:to-purple-950/40';
-                    }
+                        if (str_contains($titleLower, 'english') || str_contains($titleLower, 'language') || str_contains($titleLower, 'literature')) {
+                            $iconType = 'english';
+                            $iconColor = 'from-amber-500 to-orange-600';
+                            $bgGradient = 'from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40';
+                        } elseif (str_contains($titleLower, 'agronomy') || str_contains($titleLower, 'crop') || str_contains($titleLower, 'plant') || str_contains($titleLower, 'agriculture')) {
+                            $iconType = 'agriculture';
+                            $iconColor = 'from-emerald-500 to-teal-600';
+                            $bgGradient = 'from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/40';
+                        } elseif (str_contains($titleLower, 'tourism') || str_contains($titleLower, 'hotel') || str_contains($titleLower, 'hospitality') || str_contains($titleLower, 'eco')) {
+                            $iconType = 'tourism';
+                            $iconColor = 'from-cyan-500 to-blue-600';
+                            $bgGradient = 'from-cyan-50 to-blue-50 dark:from-cyan-950/40 dark:to-blue-950/40';
+                        } elseif (str_contains($titleLower, 'social') || str_contains($titleLower, 'community')) {
+                            $iconType = 'social_work';
+                            $iconColor = 'from-rose-500 to-pink-600';
+                            $bgGradient = 'from-rose-50 to-pink-50 dark:from-rose-950/40 dark:to-pink-950/40';
+                        } elseif (str_contains($titleLower, 'database') || str_contains($titleLower, 'sql')) {
+                            $iconType = 'db';
+                            $iconColor = 'from-blue-600 to-indigo-600';
+                            $bgGradient = 'from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40';
+                        } elseif (str_contains($titleLower, 'design') || str_contains($titleLower, 'ui')) {
+                            $iconType = 'design';
+                            $iconColor = 'from-pink-500 to-purple-600';
+                            $bgGradient = 'from-pink-50 to-purple-50 dark:from-pink-950/40 dark:to-purple-950/40';
+                        }
 
-                    $myCoursesList[] = [
-                        'id' => $course->id,
-                        'title' => $course->title,
-                        'code' => $course->code,
-                        'teacher' => $teacherName,
-                        'progress' => $progress,
-                        'status' => $status,
-                        'statusLabel' => $status === 'completed' ? 'Completed' : ($status === 'in_progress' ? 'In Progress' : 'Not Started'),
-                        'badgeClass' => $status === 'completed' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' : ($status === 'in_progress' ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'),
-                        'iconType' => $iconType,
-                        'iconColor' => $iconColor,
-                        'bgGradient' => $bgGradient,
-                        'thumbnail' => $course->thumbnail,
-                        'href' => '/student/courses/' . $course->id . '/overview',
-                    ];
-                }
-            }
-        }
-
-        // 2. Compute Real Stats directly from database
-        $statsData = $this->computeStats($user);
-
-        // 3. Active / Continue Course
-        $firstActive = $enrollments->first(function ($e) {
-            return $e->status === 'active';
-        });
-
-        if ($firstActive && $firstActive->course) {
-            $activeCourse = $firstActive->course;
-            $activeCourseItem = collect($myCoursesList)->firstWhere('id', $activeCourse->id);
-            $activeProgress = $activeCourseItem['progress'] ?? 67;
-
-            // Find current uncompleted lesson title dynamically
-            $currentLessonTitle = 'Lesson 1: Introduction & Fundamentals';
-            if ($activeCourse->lessons && $activeCourse->lessons->isNotEmpty()) {
-                foreach ($activeCourse->lessons as $l) {
-                    if (!isset($completedLessonMap[$l->id])) {
-                        $currentLessonTitle = $l->title;
-                        break;
+                        $myCoursesList[] = [
+                            'id' => $course->id,
+                            'title' => $course->title,
+                            'code' => $course->code,
+                            'teacher' => $teacherName,
+                            'progress' => $progress,
+                            'status' => $status,
+                            'statusLabel' => $status === 'completed' ? 'Completed' : ($status === 'in_progress' ? 'In Progress' : 'Not Started'),
+                            'badgeClass' => $status === 'completed' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' : ($status === 'in_progress' ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'),
+                            'iconType' => $iconType,
+                            'iconColor' => $iconColor,
+                            'bgGradient' => $bgGradient,
+                            'thumbnail' => $course->thumbnail,
+                            'href' => '/student/courses/' . $course->id . '/overview',
+                        ];
                     }
                 }
             }
 
-            $continueCourseData = [
-                'id' => $activeCourse->id,
-                'title' => $activeCourse->title,
-                'chapter' => 'Module 1 - ' . ($activeCourse->major->name ?? 'Core Academic Topics'),
-                'teacher' => $activeCourseItem['teacher'] ?? ($activeCourse->teacher->name ?? 'Dr. Mengly Chea'),
-                'progress' => $activeProgress,
-                'lastLesson' => $currentLessonTitle,
-                'timeLeft' => '18:20 left',
-                'thumbnail' => $activeCourse->thumbnail ?? 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=600&q=80',
-                'href' => '/student/courses/' . $activeCourse->id . '/overview',
-            ];
-        } else {
-            $firstCourse = $enrollments->first()?->course;
-            $continueCourseData = [
-                'id' => $firstCourse?->id ?? 9,
-                'title' => $firstCourse?->title ?? 'Web Development with Vue & Laravel',
-                'chapter' => 'Module 1 - Information Technology',
-                'teacher' => 'Dr. Mengly Chea',
-                'progress' => 67,
-                'lastLesson' => 'Unit 3: Practical Laboratory Case',
-                'timeLeft' => '18:20 left',
-                'thumbnail' => $firstCourse?->thumbnail ?? 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=600&q=80',
-                'href' => '/student/my-courses/enrolled',
-            ];
-        }
+            // 2. Compute Real Stats directly from database (Auth::user only)
+            $statsData = $this->computeStats($user);
 
-        // 4. Query Recent Learning Activities from Database
-        $recentActivitiesList = [];
-        try {
-            $recentLessons = LessonProgress::where('user_id', $user->id)
-                ->where('percent', '>=', 90)
-                ->with('lesson.course')
-                ->latest('updated_at')
-                ->take(3)
-                ->get();
+            // 3. Active / Continue Course (Empty state if not enrolled)
+            $continueCourseData = null;
+            $activeEnrollment = $enrollments->firstWhere('status', 'active') ?? $enrollments->first();
+            if ($activeEnrollment && $activeEnrollment->course) {
+                $activeCourse = $activeEnrollment->course;
+                $activeCourseItem = collect($myCoursesList)->firstWhere('id', $activeCourse->id);
+                $activeProgress = $activeCourseItem['progress'] ?? 0;
 
-            foreach ($recentLessons as $lp) {
-                if ($lp->lesson && $lp->lesson->course) {
-                    $recentActivitiesList[] = [
-                        'id' => 'lp-' . $lp->id,
-                        'type' => 'play',
-                        'iconBg' => 'bg-purple-600/20 text-purple-600 dark:text-purple-400 border border-purple-500/30',
-                        'title' => $lp->lesson->title,
-                        'title_km' => $lp->lesson->title,
-                        'course' => $lp->lesson->course->title,
-                        'time' => $lp->updated_at ? $lp->updated_at->diffForHumans() : 'Today',
-                        'href' => '/student/courses/' . $lp->lesson->course_id . '/overview',
-                        'timestamp' => $lp->updated_at ? $lp->updated_at->timestamp : 0,
-                        'progress' => ($lp->percent && $lp->percent > 0) ? (int) $lp->percent : 45,
-                        'category' => 'Lesson',
-                        'category_km' => 'មេរៀន',
-                    ];
+                // Find current uncompleted lesson title dynamically
+                $currentLessonTitle = 'Lesson 1: Introduction & Fundamentals';
+                if ($activeCourse->lessons && $activeCourse->lessons->isNotEmpty()) {
+                    foreach ($activeCourse->lessons as $l) {
+                        if (!isset($completedLessonMap[$l->id])) {
+                            $currentLessonTitle = $l->title;
+                            break;
+                        }
+                    }
                 }
-            }
 
-            $recentQuizzes = QuizAttempt::where('user_id', $user->id)
-                ->with('quiz.course')
-                ->latest('submitted_at')
-                ->take(2)
-                ->get();
-
-            foreach ($recentQuizzes as $qa) {
-                if ($qa->quiz && $qa->quiz->course) {
-                    $recentActivitiesList[] = [
-                        'id' => 'qa-' . $qa->id,
-                        'type' => 'check',
-                        'iconBg' => 'bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30',
-                        'title' => $qa->quiz->title . ' (' . round($qa->score) . '%)',
-                        'title_km' => $qa->quiz->title . ' (ពិន្ទុ ' . round($qa->score) . '%)',
-                        'course' => $qa->quiz->course->title,
-                        'time' => $qa->submitted_at ? \Carbon\Carbon::parse($qa->submitted_at)->diffForHumans() : 'Yesterday',
-                        'href' => '/student/quizzes/scores',
-                        'timestamp' => $qa->submitted_at ? \Carbon\Carbon::parse($qa->submitted_at)->timestamp : 0,
-                        'progress' => round($qa->score ?? 100),
-                        'category' => 'Quiz',
-                        'category_km' => 'កម្រងសំណួរ',
-                    ];
-                }
-            }
-
-            usort($recentActivitiesList, fn($a, $b) => $b['timestamp'] <=> $a['timestamp']);
-            $recentActivitiesList = array_slice($recentActivitiesList, 0, 3);
-        } catch (\Throwable $e) {
-            $recentActivitiesList = [];
-        }
-
-        // 5. Query Upcoming Quizzes / Deadlines from Database
-        $upcomingEventsList = [];
-        try {
-            $activeCourseIds = $enrollments->where('status', 'active')->pluck('course_id');
-            $quizzes = \App\Models\Quiz::whereIn('course_id', $activeCourseIds)
-                ->with('course')
-                ->take(3)
-                ->get();
-
-            foreach ($quizzes as $qIdx => $q) {
-                $upcomingEventsList[] = [
-                    'id' => $q->id,
-                    'type' => 'quiz',
-                    'title' => 'Quiz: ' . $q->title,
-                    'course' => $q->course->title ?? 'Academic Course',
-                    'date' => now()->addDays(3 + $qIdx * 2)->format('M d, Y'),
-                    'time' => '10:00 AM',
-                    'href' => '/student/quizzes/practice',
+                $continueCourseData = [
+                    'id' => $activeCourse->id,
+                    'title' => $activeCourse->title,
+                    'chapter' => 'Module 1 - ' . ($activeCourse->major->name ?? 'Core Academic Topics'),
+                    'teacher' => $activeCourseItem['teacher'] ?? ($activeCourse->teacher->name ?? 'SPI Instructor'),
+                    'progress' => $activeProgress,
+                    'lastLesson' => $currentLessonTitle,
+                    'timeLeft' => '18:20 left',
+                    'thumbnail' => $activeCourse->thumbnail ?? 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=600&q=80',
+                    'href' => '/student/courses/' . $activeCourse->id . '/overview',
                 ];
             }
-        } catch (\Throwable $e) {
+
+            // 4. Query Recent Learning Activities strictly for Auth::user()
+            $recentActivitiesList = [];
+            try {
+                $recentLessons = LessonProgress::where('user_id', $user->id)
+                    ->select(['id', 'user_id', 'lesson_id', 'percent', 'seconds_watched', 'completed_at', 'updated_at'])
+                    ->with(['lesson:id,course_id,title', 'lesson.course:id,title'])
+                    ->latest('updated_at')
+                    ->take(3)
+                    ->get();
+
+                foreach ($recentLessons as $lp) {
+                    if ($lp->lesson && $lp->lesson->course) {
+                        $recentActivitiesList[] = [
+                            'id' => 'lp-' . $lp->id,
+                            'type' => 'play',
+                            'iconBg' => 'bg-purple-600/20 text-purple-600 dark:text-purple-400 border border-purple-500/30',
+                            'title' => $lp->lesson->title,
+                            'title_km' => $lp->lesson->title,
+                            'course' => $lp->lesson->course->title,
+                            'time' => $lp->updated_at ? $lp->updated_at->diffForHumans() : 'Today',
+                            'href' => '/student/courses/' . $lp->lesson->course_id . '/overview',
+                            'timestamp' => $lp->updated_at ? $lp->updated_at->timestamp : 0,
+                            'progress' => ($lp->percent && $lp->percent > 0) ? (int) $lp->percent : 45,
+                            'category' => 'Lesson',
+                            'category_km' => 'មេរៀន',
+                        ];
+                    }
+                }
+
+                $recentQuizzes = QuizAttempt::where('user_id', $user->id)
+                    ->select(['id', 'user_id', 'quiz_id', 'score', 'passed', 'submitted_at'])
+                    ->with(['quiz:id,course_id,title', 'quiz.course:id,title'])
+                    ->latest('submitted_at')
+                    ->take(2)
+                    ->get();
+
+                foreach ($recentQuizzes as $qa) {
+                    if ($qa->quiz && $qa->quiz->course) {
+                        $recentActivitiesList[] = [
+                            'id' => 'qa-' . $qa->id,
+                            'type' => 'check',
+                            'iconBg' => 'bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30',
+                            'title' => $qa->quiz->title . ' (' . round($qa->score) . '%)',
+                            'title_km' => $qa->quiz->title . ' (ពិន្ទុ ' . round($qa->score) . '%)',
+                            'course' => $qa->quiz->course->title,
+                            'time' => $qa->submitted_at ? \Carbon\Carbon::parse($qa->submitted_at)->diffForHumans() : 'Recently',
+                            'href' => '/student/quizzes/scores',
+                            'timestamp' => $qa->submitted_at ? \Carbon\Carbon::parse($qa->submitted_at)->timestamp : 0,
+                            'progress' => round($qa->score ?? 100),
+                            'category' => 'Quiz',
+                            'category_km' => 'កម្រងសំណួរ',
+                        ];
+                    }
+                }
+
+                usort($recentActivitiesList, fn($a, $b) => $b['timestamp'] <=> $a['timestamp']);
+                $recentActivitiesList = array_slice($recentActivitiesList, 0, 3);
+            } catch (\Throwable $e) {
+                $recentActivitiesList = [];
+            }
+
+            // 5. Query Upcoming Quizzes from active enrollments
             $upcomingEventsList = [];
-        }
+            try {
+                $activeCourseIds = $enrollments->where('status', 'active')->pluck('course_id');
+                if ($activeCourseIds->isNotEmpty()) {
+                    $quizzes = \App\Models\Quiz::whereIn('course_id', $activeCourseIds)
+                        ->select(['id', 'course_id', 'title', 'duration_minutes'])
+                        ->with('course:id,title')
+                        ->take(3)
+                        ->get();
 
-        // 6. Dynamic Today's Goals from Active Course
-        $todayGoalsList = [
-            'completedCount' => 1,
-            'totalCount' => 2,
-            'percentage' => 50,
-            'items' => [
-                [
-                    'id' => 1,
-                    'titleEn' => $continueCourseData['title'] . ' - ' . $continueCourseData['lastLesson'],
-                    'titleKm' => $continueCourseData['title'] . ' - ' . $continueCourseData['lastLesson'],
-                    'completed' => true,
-                    'href' => $continueCourseData['href'],
-                ],
-                [
-                    'id' => 2,
-                    'titleEn' => 'Practice 10 quiz questions',
-                    'titleKm' => 'អនុវត្តសំណួរ Quiz ចំនួន ១០',
-                    'completed' => false,
-                    'href' => '/student/quizzes/practice',
-                ],
-            ],
-        ];
+                    foreach ($quizzes as $qIdx => $q) {
+                        $upcomingEventsList[] = [
+                            'id' => $q->id,
+                            'type' => 'quiz',
+                            'title' => 'Quiz: ' . $q->title,
+                            'course' => $q->course->title ?? 'Academic Course',
+                            'date' => now()->addDays(3 + $qIdx * 2)->format('M d, Y'),
+                            'time' => '10:00 AM',
+                            'href' => '/student/quizzes/practice',
+                        ];
+                    }
+                }
+            } catch (\Throwable $e) {
+                $upcomingEventsList = [];
+            }
 
-        return Inertia::render('Student/Dashboard', [
-            'enrollments'      => $enrollments,
-            'stats'            => $statsData,
-            'continueCourse'   => $continueCourseData,
-            'dbCourses'        => $myCoursesList,
-            'recentActivities' => $recentActivitiesList,
-            'upcomingEvents'   => $upcomingEventsList,
-            'todayGoals'       => $todayGoalsList,
-        ]);
+            // 6. Dynamic Today's Goals (Empty state fallback if no courses enrolled)
+            $todayGoalsList = [
+                'completedCount' => $continueCourseData ? 1 : 0,
+                'totalCount' => $continueCourseData ? 2 : 1,
+                'percentage' => $continueCourseData ? 50 : 0,
+                'items' => $continueCourseData ? [
+                    [
+                        'id' => 1,
+                        'titleEn' => $continueCourseData['title'] . ' - ' . $continueCourseData['lastLesson'],
+                        'titleKm' => $continueCourseData['title'] . ' - ' . $continueCourseData['lastLesson'],
+                        'completed' => true,
+                        'href' => $continueCourseData['href'],
+                    ],
+                    [
+                        'id' => 2,
+                        'titleEn' => 'Practice 10 quiz questions',
+                        'titleKm' => 'អនុវត្តសំណួរ Quiz ចំនួន ១០',
+                        'completed' => false,
+                        'href' => '/student/quizzes/practice',
+                    ],
+                ] : [
+                    [
+                        'id' => 1,
+                        'titleEn' => 'Explore and enroll in your first course',
+                        'titleKm' => 'ស្វែងរក និងចុះឈ្មោះចូលរៀនវគ្គសិក្សាដំបូងរបស់អ្នក',
+                        'completed' => false,
+                        'href' => '/student/browse',
+                    ],
+                ],
+            ];
+
+            return [
+                'enrollments'      => $enrollments,
+                'stats'            => $statsData,
+                'continueCourse'   => $continueCourseData,
+                'dbCourses'        => $myCoursesList,
+                'recentActivities' => $recentActivitiesList,
+                'upcomingEvents'   => $upcomingEventsList,
+                'todayGoals'       => $todayGoalsList,
+            ];
+        });
+
+        return Inertia::render('Student/Dashboard', $payload);
     }
 
     /**
@@ -464,84 +473,49 @@ class DashboardController extends Controller
 
     /**
      * Compute mathematically consistent real database stats for student dashboard.
+     * Strictly from DB via Eloquent for Auth::user() with 0/empty fallbacks.
      */
     public function computeStats($user): array
     {
         try {
-            $enrollments = Enrollment::where('student_id', $user->id)->get();
+            $enrollments = Enrollment::where('student_id', $user->id)->select(['id', 'status'])->get();
         } catch (\Throwable $e) {
             $enrollments = collect();
         }
 
-        $computedActive = 0;
-        $computedCompleted = 0;
-        if ($enrollments->isNotEmpty()) {
-            foreach ($enrollments as $enr) {
-                if ($enr->status === 'completed') {
-                    $computedCompleted++;
-                } elseif ($enr->status === 'active') {
-                    $computedActive++;
-                }
-            }
-        }
-
         $enrolledCount = $enrollments->count();
-        $inProgressCount = $computedActive;
-        $completedCount = $computedCompleted;
+        $inProgressCount = $enrollments->where('status', 'active')->count();
+        $completedCount = $enrollments->where('status', 'completed')->count();
 
         try {
             $certsCount = Certificate::where('student_id', $user->id)->whereIn('status', ['valid', 'issued'])->count();
-            if ($certsCount === 0 && $completedCount > 0) {
-                $certsCount = $completedCount;
-            }
         } catch (\Throwable $e) {
-            $certsCount = $completedCount;
+            $certsCount = 0;
         }
 
         try {
             $avgScore = QuizAttempt::where('user_id', $user->id)->whereNotNull('score')->avg('score');
-            if ($avgScore === null || $avgScore == 0) {
-                $completedEnrs = Enrollment::where('student_id', $user->id)->where('status', 'completed')->with('course.quizzes')->get();
-                foreach ($completedEnrs as $cIdx => $enr) {
-                    $quiz = $enr->course?->quizzes?->first();
-                    if ($quiz) {
-                        $scores = [92, 88, 90, 86];
-                        QuizAttempt::updateOrCreate(
-                            ['user_id' => $user->id, 'quiz_id' => $quiz->id],
-                            [
-                                'answers'        => json_encode(['score' => $scores[$cIdx % 4]]),
-                                'score'          => $scores[$cIdx % 4],
-                                'passed'         => true,
-                                'attempt_number' => 1,
-                                'started_at'     => now()->subDays(10),
-                                'submitted_at'   => now()->subDays(10)->addMinutes(20),
-                            ]
-                        );
-                    }
-                }
-                $avgScore = QuizAttempt::where('user_id', $user->id)->whereNotNull('score')->avg('score') ?: 89.0;
+            if ($avgScore !== null) {
+                $avgScoreNum = (int) round($avgScore);
+                $avgScoreFormatted = $avgScoreNum . '%';
+            } else {
+                $avgScoreNum = 0;
+                $avgScoreFormatted = '0%';
             }
-            $avgScoreNum = (int) round($avgScore);
-            $avgScoreFormatted = $avgScoreNum . '%';
         } catch (\Throwable $e) {
-            $avgScoreNum = 89;
-            $avgScoreFormatted = '89%';
+            $avgScoreNum = 0;
+            $avgScoreFormatted = '0%';
         }
 
         try {
-            $totalSeconds = LessonProgress::where('user_id', $user->id)->sum('seconds_watched');
-            if ($totalSeconds >= (28 * 3600)) {
-                $studyHours = (int) floor($totalSeconds / 3600);
-                $studyMinutes = (int) floor(($totalSeconds % 3600) / 60);
-            } else {
-                $studyHours = 28;
-                $studyMinutes = 45;
-            }
+            $totalSeconds = (int) LessonProgress::where('user_id', $user->id)->sum('seconds_watched');
+            $studyHours = (int) floor($totalSeconds / 3600);
+            $studyMinutes = (int) floor(($totalSeconds % 3600) / 60);
             $learningTime = "{$studyHours}h {$studyMinutes}m";
         } catch (\Throwable $e) {
-            $studyHours = 28;
-            $studyMinutes = 45;
-            $learningTime = '28h 45m';
+            $studyHours = 0;
+            $studyMinutes = 0;
+            $learningTime = '0h 0m';
         }
 
         return [
@@ -571,7 +545,13 @@ class DashboardController extends Controller
             $this->ensureStudentDatabaseRecords($user);
         }
 
-        $stats = $this->computeStats($user);
+        if ($request->has('refresh')) {
+            Cache::forget("student_stats_{$user->id}");
+        }
+
+        $stats = Cache::remember("student_stats_{$user->id}", 300, function () use ($user) {
+            return $this->computeStats($user);
+        });
 
         return response()->json([
             'success' => true,

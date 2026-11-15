@@ -324,20 +324,9 @@ const statsCards = computed(() => {
   ]
 })
 
-// Featured Continue Learning Course
+// Featured Continue Learning Course (Real Database Driven - Null if not enrolled)
 const continueCourseData = computed(() => {
-  if (props.continueCourse) {
-    return props.continueCourse
-  }
-  return {
-    title: currentLang.value === 'km' ? 'មូលដ្ឋានគ្រឹះ Web Development' : 'Web Development Fundamentals',
-    chapter: currentLang.value === 'km' ? 'ជំពូកទី ៣ - JavaScript Functions' : 'Chapter 3 - JavaScript Functions',
-    teacher: 'Mr. Sophea Chem',
-    progress: 53,
-    lastLesson: currentLang.value === 'km' ? '៣.២ JavaScript Functions' : '3.2 JavaScript Functions',
-    timeLeft: currentLang.value === 'km' ? 'នៅសល់ 18:20' : '18:20 left',
-    href: '/student/my-courses/current'
-  }
+  return props.continueCourse || null
 })
 
 // Today's Goal (Interactive tasks with database & local state)
@@ -574,21 +563,12 @@ const fallbackCoursesList = computed(() => [
   }
 ])
 
+// Pure Eloquent Courses List (Empty array if no courses enrolled)
 const coursesToDisplay = computed(() => {
-  if (props.dbCourses && props.dbCourses.length >= 6) {
-    return props.dbCourses.slice(0, 6)
-  }
   if (props.dbCourses && props.dbCourses.length > 0) {
-    const list = [...props.dbCourses]
-    for (const fb of fallbackCoursesList.value) {
-      if (list.length >= 6) break
-      if (!list.some(c => c.id === fb.id || c.title === fb.title)) {
-        list.push(fb)
-      }
-    }
-    return list.slice(0, 6)
+    return props.dbCourses
   }
-  return fallbackCoursesList.value.slice(0, 6)
+  return []
 })
 
 const filteredCourses = computed(() => {
@@ -628,40 +608,9 @@ const chartDataByRange = computed(() => ({
   }
 }))
 
-// Upcoming Schedule with real SVG icon type
+// Upcoming Schedule (Pure DB Driven - Empty if none scheduled)
 const upcomingEvents = computed(() => {
-  if (props.upcomingEvents && props.upcomingEvents.length > 0) {
-    return props.upcomingEvents
-  }
-  return [
-    {
-      id: 1,
-      type: 'quiz',
-      title: currentLang.value === 'km' ? 'Quiz: Quiz ជំពូកទី ៣' : 'Quiz: Chapter 3 Quiz',
-      course: currentLang.value === 'km' ? 'មូលដ្ឋានគ្រឹះ Web Development' : 'Web Development Fundamentals',
-      date: currentLang.value === 'km' ? '២៨ ឧសភា ២០២៥' : 'May 28, 2025',
-      time: currentLang.value === 'km' ? 'ម៉ោង ១០:០០ ព្រឹក' : '10:00 AM',
-      href: '/student/quizzes/practice'
-    },
-    {
-      id: 2,
-      type: 'live',
-      title: currentLang.value === 'km' ? 'ថ្នាក់រៀនផ្ទាល់: JavaScript DOM' : 'Live Class: JavaScript DOM',
-      course: currentLang.value === 'km' ? 'មូលដ្ឋានគ្រឹះ Web Development' : 'Web Development Fundamentals',
-      date: currentLang.value === 'km' ? '៣០ ឧសភា ២០២៥' : 'May 30, 2025',
-      time: currentLang.value === 'km' ? 'ម៉ោង ០២:០០ រសៀល' : '02:00 PM',
-      href: '/student/calendar/live-class'
-    },
-    {
-      id: 3,
-      type: 'assignment',
-      title: currentLang.value === 'km' ? 'កិច្ចការ: គំរូ Relational ER' : 'Assignment: Relational ER Model',
-      course: currentLang.value === 'km' ? 'ប្រព័ន្ធមូលដ្ឋានទិន្នន័យ (Database)' : 'Database Systems',
-      date: currentLang.value === 'km' ? '០១ មិថុនា ២០២៥' : 'Jun 01, 2025',
-      time: currentLang.value === 'km' ? 'ម៉ោង ១១:៥៩ យប់' : '11:59 PM',
-      href: '/student/assignments'
-    }
-  ]
+  return props.upcomingEvents || []
 })
 
 // AI Study Assistant Widget
@@ -782,39 +731,12 @@ const achievements = computed(() => [
   }
 ])
 
-// Recent Activity with clean 2-row title, 48px purple gradient play button and progress
+// Recent Activity (Pure Eloquent DB Driven - Empty if no recent activity)
 const recentActivities = computed(() => {
-  const rawList = (props.recentActivities && props.recentActivities.length > 0)
-    ? props.recentActivities
-    : [
-        {
-          id: 1,
-          type: 'play',
-          title: currentLang.value === 'km' ? 'Lab 1.1: Hello World & Syntax Setup' : 'Lab 1.1: Hello World & Syntax Setup',
-          course: currentLang.value === 'km' ? 'មូលដ្ឋានគ្រឹះ Web Development' : 'Web Development with Vue',
-          time: currentLang.value === 'km' ? '៦ ម៉ោងមុន' : '6 hours ago',
-          href: '/student/my-courses/current',
-          progress: 35
-        },
-        {
-          id: 2,
-          type: 'play',
-          title: currentLang.value === 'km' ? 'Lesson 1.1: Sustainable Farming Practices' : 'Lesson 1.1: Sustainable Farming Practices',
-          course: currentLang.value === 'km' ? 'វិទ្យាសាស្ត្រដំណាំកសិកម្ម' : 'Modern Crop Agronomy',
-          time: currentLang.value === 'km' ? '៦ ម៉ោងមុន' : '6 hours ago',
-          href: '/student/my-courses/current',
-          progress: 60
-        },
-        {
-          id: 3,
-          type: 'play',
-          title: currentLang.value === 'km' ? 'Lesson 1.1: Formal Meeting & Email Phrases' : 'Lesson 1.1: Formal Meeting & Email Phrases',
-          course: currentLang.value === 'km' ? 'ភាសាអង់គ្លេសពាណិជ្ជកម្ម' : 'Business English Communication',
-          time: currentLang.value === 'km' ? '៦ ម៉ោងមុន' : '6 hours ago',
-          href: '/student/my-courses/current',
-          progress: 80
-        }
-      ]
+  if (!props.recentActivities || props.recentActivities.length === 0) {
+    return []
+  }
+  const rawList = props.recentActivities
 
   return rawList.map((a, index) => {
     const rawTitle = (currentLang.value === 'km' && a.title_km) ? a.title_km : (a.title || '')
@@ -860,7 +782,7 @@ const recentActivities = computed(() => {
       { label: currentLang === 'km' ? 'ផ្ទាំងគ្រប់គ្រង' : 'Dashboard' }
     ]"
   >
-    <div class="space-y-6 pb-28 sm:pb-36 notranslate" translate="no" style="padding-bottom: 112px;">
+    <div class="student-dashboard space-y-6 pb-28 sm:pb-36 notranslate" translate="no" style="padding-bottom: 112px;">
       
       <!-- TOP GREETING & QUICK SHORTCUTS ROW (Glassmorphic Hero Header) -->
       <div class="relative overflow-hidden rounded-3xl bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] p-5 sm:p-6 shadow-sm dark:shadow-xl">
@@ -1076,7 +998,7 @@ const recentActivities = computed(() => {
               </Link>
             </div>
 
-            <div class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-[#0b57d0] hover:shadow-md hover:dark:border-[#1a73e8]/70 rounded-3xl p-6 shadow-sm dark:shadow-xl flex flex-col md:flex-row items-center gap-5 sm:gap-6 relative overflow-hidden transition-all duration-300">
+            <div v-if="continueCourseData" class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-[#0b57d0] hover:shadow-md hover:dark:border-[#1a73e8]/70 rounded-3xl p-6 shadow-sm dark:shadow-xl flex flex-col md:flex-row items-center gap-5 sm:gap-6 relative overflow-hidden transition-all duration-300">
               
               <!-- Real Course Thumbnail for Continue Learning -->
               <div class="relative w-full md:w-36 h-28 rounded-2xl overflow-hidden shrink-0 flex-shrink-0 shadow-md bg-slate-900 border border-[#dfe3e7] dark:border-[#2d2f31]">
@@ -1135,6 +1057,27 @@ const recentActivities = computed(() => {
               </div>
 
             </div>
+
+            <!-- Empty State when no course in progress -->
+            <div v-else class="rounded-3xl bg-white dark:bg-[#1e1f20] border border-dashed border-[#dfe3e7] dark:border-[#2d2f31] p-8 text-center space-y-4 shadow-sm dark:shadow-xl">
+              <div class="w-16 h-16 mx-auto rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+              </div>
+              <div class="space-y-1">
+                <h3 class="text-base font-bold text-slate-900 dark:text-slate-100">
+                  {{ currentLang === 'km' ? 'មិនទាន់មានវគ្គសិក្សាកំពុងរៀននៅឡើយទេ' : 'No active course in progress' }}
+                </h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+                  {{ currentLang === 'km' ? 'ជ្រើសរើសវគ្គសិក្សាពីកាតាឡុក ដើម្បីចាប់ផ្ដើមការសិក្សារបស់អ្នក' : 'Explore the course catalog to start your learning journey.' }}
+                </p>
+              </div>
+              <Link href="/student/browse" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-[#6366f1] to-[#7c3aed] text-white text-xs font-semibold shadow-md hover:scale-105 active:scale-95 transition-all">
+                <span>{{ currentLang === 'km' ? 'ស្វែងរកវគ្គសិក្សា' : 'Browse Courses' }}</span>
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+              </Link>
+            </div>
           </div>
 
           <!-- MY COURSES SECTION WITH FILTER TABS -->
@@ -1180,7 +1123,7 @@ const recentActivities = computed(() => {
             </div>
 
             <!-- Courses Grid (Spacious 2-3 Column Layout with Elegant Card Ratios) -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+            <div v-if="filteredCourses.length > 0" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
               <Link
                 v-for="c in filteredCourses"
                 :key="c.id"
@@ -1237,6 +1180,16 @@ const recentActivities = computed(() => {
                     </span>
                   </div>
                 </div>
+              </Link>
+            </div>
+
+            <!-- EMPTY STATE FOR COURSES -->
+            <div v-else class="rounded-2xl bg-white dark:bg-[#1e1f20] border border-dashed border-[#dfe3e7] dark:border-[#2d2f31] p-8 text-center space-y-2">
+              <p class="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                {{ currentLang === 'km' ? 'មិនមានវគ្គសិក្សាក្នុងប្រភេទនេះនៅឡើយទេ' : 'No courses found in this category' }}
+              </p>
+              <Link href="/student/browse" class="inline-block text-xs text-purple-600 dark:text-purple-400 font-semibold hover:underline">
+                {{ currentLang === 'km' ? 'ស្វែងរក និងចុះឈ្មោះវគ្គសិក្សា ↗' : 'Browse & enroll in courses ↗' }}
               </Link>
             </div>
           </div>
@@ -1484,7 +1437,7 @@ const recentActivities = computed(() => {
             </div>
 
             <!-- ៥. Layout (grid minmax 300px, gap 16px, 1 col mobile) -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 [grid-template-columns:repeat(auto-fit,minmax(300px,1fr))]">
+            <div v-if="recentActivities.length > 0" class="grid grid-cols-1 md:grid-cols-3 gap-4 [grid-template-columns:repeat(auto-fit,minmax(300px,1fr))]">
               <!-- ២. Card ទាំងមូលចុចបាន (cursor: pointer, link ទៅមេរៀន, hover translateY(-3px), border #a78bfa, shadow, Resume ›) -->
               <div
                 v-for="(act, idx) in recentActivities"
@@ -1549,6 +1502,11 @@ const recentActivities = computed(() => {
                   </div>
                 </div>
               </div>
+            </div>
+
+            <!-- Empty State for Recent Activities -->
+            <div v-else class="rounded-2xl bg-white dark:bg-[#1e1f20] border border-dashed border-[#dfe3e7] dark:border-[#2d2f31] p-8 text-center text-xs text-slate-500 dark:text-slate-400">
+              {{ currentLang === 'km' ? 'មិនទាន់មានសកម្មភាពថ្មីៗនៅឡើយទេ។ ចាប់ផ្តើមរៀនដើម្បីតាមដានវឌ្ឍនភាពរបស់អ្នក!' : 'No recent activities recorded yet. Complete lessons to track your learning journey here!' }}
             </div>
           </div>
 
@@ -1774,7 +1732,7 @@ const recentActivities = computed(() => {
               </Link>
             </div>
 
-            <div class="space-y-3">
+            <div v-if="upcomingEvents.length > 0" class="space-y-3">
               <Link
                 v-for="item in upcomingEvents"
                 :key="item.id"
@@ -1812,6 +1770,11 @@ const recentActivities = computed(() => {
                   </p>
                 </div>
               </Link>
+            </div>
+
+            <!-- Empty State for Upcoming Events -->
+            <div v-else class="p-6 text-center text-xs text-slate-500 dark:text-slate-400 bg-[#f8fafd] dark:bg-[#131314] rounded-2xl border border-dashed border-[#dfe3e7] dark:border-[#2d2f31]">
+              {{ currentLang === 'km' ? 'គ្មានកាលវិភាគ Quiz ឬកាលកំណត់ខាងមុខទេ' : 'No upcoming quizzes or deadlines. You are all caught up!' }}
             </div>
           </div>
 
