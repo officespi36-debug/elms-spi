@@ -85,9 +85,10 @@ const isCompleting = ref(false)
 
 // Chapters local reactive state (with auto-expand for active chapter)
 const localChapters = ref<ChapterItem[]>(
-  props.chapters.map(c => ({
+  (props.chapters || []).map(c => ({
     ...c,
-    expanded: c.lessons.some(l => l.id === props.currentLesson.id)
+    lessons: c.lessons || [],
+    expanded: Array.isArray(c.lessons) && props.currentLesson ? c.lessons.some(l => l.id === props.currentLesson?.id) : true
   }))
 )
 
@@ -102,7 +103,7 @@ watch(() => props.currentLesson, (newLesson) => {
 
     // Auto expand the chapter containing this lesson
     localChapters.value.forEach(c => {
-      if (c.lessons.some(l => l.id === newLesson.id)) {
+      if (Array.isArray(c.lessons) && c.lessons.some(l => l.id === newLesson.id)) {
         c.expanded = true
       }
     })
@@ -318,11 +319,11 @@ const handleCompleteAndNext = async () => {
 
 // Navigation helpers
 const allOrderedLessons = computed(() => {
-  return localChapters.value.flatMap(c => c.lessons)
+  return localChapters.value.flatMap(c => c.lessons || [])
 })
 
 const currentLessonIndex = computed(() => {
-  return allOrderedLessons.value.findIndex(l => l.id === props.currentLesson.id)
+  return allOrderedLessons.value.findIndex(l => l.id === props.currentLesson?.id)
 })
 
 const previousLessonItem = computed(() => {
