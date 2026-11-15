@@ -762,10 +762,10 @@ const studentNav: NavItem[] = [
     iconUrl: '/images/nav/courses.svg',
     icon: 'M12 14l9-5-9-5-9 5 9 5z',
     children: [
-      { name: 'Continue Learning', khName: 'រៀនបន្ត', href: '/student/my-courses/current', iconUrl: '/images/actions/add-course.svg' },
-      { name: 'Enrolled Courses', khName: 'វគ្គសិក្សាដែលបានចុះឈ្មោះ', href: '/student/my-courses/enrolled', iconUrl: '/images/nav/sub/all-courses.svg' },
-      { name: 'Completed Courses', khName: 'វគ្គសិក្សាដែលបានបញ្ចប់', href: '/student/my-courses/completed', iconUrl: '/images/nav/sub/roles.svg' },
-      { name: 'Browse Catalog', khName: 'ស្វែងរកវគ្គសិក្សា', href: '/student/browse', iconUrl: '/images/nav/sub/overview.svg' },
+      { name: 'Continue Learning', khName: 'រៀនបន្ត', href: '/student/my-courses/current' },
+      { name: 'Enrolled Courses', khName: 'វគ្គសិក្សាដែលបានចុះឈ្មោះ', href: '/student/my-courses/enrolled' },
+      { name: 'Completed Courses', khName: 'វគ្គសិក្សាដែលបានបញ្ចប់', href: '/student/my-courses/completed' },
+      { name: 'Browse Catalog', khName: 'ស្វែងរកវគ្គសិក្សា', href: '/student/browse' },
     ]
   },
   {
@@ -1207,10 +1207,23 @@ const onIconError = (e: Event) => {
                       isSubActive(sub.href)
                         ? 'bg-purple-50 text-purple-700 font-bold border border-purple-200 dark:bg-purple-600/20 dark:text-purple-300 dark:border-purple-500/30'
                         : 'text-[#64748b] hover:text-[#1f1f1f] hover:bg-[#f0f4f9] dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800/50 border border-transparent font-medium',
-                      'flex items-center gap-x-2 rounded-lg px-2 py-1.5 text-[11px] transition-all duration-200 truncate'
+                      'flex items-center gap-x-2 rounded-lg px-2 py-1.5 text-[11px] transition-all duration-200 truncate group/sub'
                     ]"
                   >
-                    <img v-if="sub.iconUrl" :src="sub.iconUrl" :alt="sub.name" class="w-3.5 h-3.5 object-contain shrink-0" @error="onIconError" />
+                    <!-- Lucide Line Icons for Submenu (Clean grey line icons, no emojis) -->
+                    <svg v-if="sub.name === 'Continue Learning' || sub.href.includes('/my-courses/current')" class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 group-hover/sub:text-purple-600 dark:group-hover/sub:text-purple-400 shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/>
+                    </svg>
+                    <svg v-else-if="sub.name === 'Enrolled Courses' || sub.href.includes('/my-courses/enrolled')" class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 group-hover/sub:text-purple-600 dark:group-hover/sub:text-purple-400 shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/>
+                    </svg>
+                    <svg v-else-if="sub.name === 'Completed Courses' || sub.href.includes('/my-courses/completed')" class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 group-hover/sub:text-purple-600 dark:group-hover/sub:text-purple-400 shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/>
+                    </svg>
+                    <svg v-else-if="sub.name === 'Browse Catalog' || sub.href.includes('/browse')" class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 group-hover/sub:text-purple-600 dark:group-hover/sub:text-purple-400 shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>
+                    </svg>
+                    <img v-else-if="sub.iconUrl" :src="sub.iconUrl" :alt="sub.name" class="w-3.5 h-3.5 object-contain shrink-0" @error="onIconError" />
                     <span v-else :class="[isSubActive(sub.href) ? 'bg-purple-600 dark:bg-purple-400' : 'bg-slate-400 dark:bg-slate-600', 'w-1.5 h-1.5 rounded-full shrink-0']"></span>
                     <span class="truncate">{{ currentLang === 'km' ? sub.khName : sub.name }}</span>
                   </Link>
@@ -1243,10 +1256,24 @@ const onIconError = (e: Event) => {
                       isSubActive(sub.href)
                         ? 'bg-[#d3e3fd] text-[#041e49] font-bold border border-[#0b57d0]/20 dark:bg-purple-600/20 dark:text-purple-300 dark:border-purple-500/30'
                         : 'text-[#444746] hover:text-[#1f1f1f] hover:bg-[#f0f4f9] dark:text-slate-400 dark:hover:text-[#e3e3e3] dark:hover:bg-[#282a2c] border border-transparent',
-                      'flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs transition-all duration-150 truncate'
+                      'flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs transition-all duration-150 truncate group/sub'
                     ]"
                   >
-                    <img v-if="sub.iconUrl" :src="sub.iconUrl" :alt="sub.name" loading="lazy" decoding="async" class="w-3.5 h-3.5 object-contain shrink-0" />
+                    <!-- Lucide Line Icons for Submenu (Clean grey line icons, no emojis) -->
+                    <svg v-if="sub.name === 'Continue Learning' || sub.href.includes('/my-courses/current')" class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 group-hover/sub:text-purple-600 dark:group-hover/sub:text-purple-400 shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/>
+                    </svg>
+                    <svg v-else-if="sub.name === 'Enrolled Courses' || sub.href.includes('/my-courses/enrolled')" class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 group-hover/sub:text-purple-600 dark:group-hover/sub:text-purple-400 shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/>
+                    </svg>
+                    <svg v-else-if="sub.name === 'Completed Courses' || sub.href.includes('/my-courses/completed')" class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 group-hover/sub:text-purple-600 dark:group-hover/sub:text-purple-400 shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/>
+                    </svg>
+                    <svg v-else-if="sub.name === 'Browse Catalog' || sub.href.includes('/browse')" class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 group-hover/sub:text-purple-600 dark:group-hover/sub:text-purple-400 shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>
+                    </svg>
+                    <img v-else-if="sub.iconUrl" :src="sub.iconUrl" :alt="sub.name" loading="lazy" decoding="async" class="w-3.5 h-3.5 object-contain shrink-0" />
+                    <span v-else :class="[isSubActive(sub.href) ? 'bg-purple-600 dark:bg-purple-400' : 'bg-slate-400 dark:bg-slate-600', 'w-1.5 h-1.5 rounded-full shrink-0']"></span>
                     <span class="truncate">{{ currentLang === 'km' ? sub.khName : sub.name }}</span>
                   </Link>
                 </div>
