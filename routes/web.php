@@ -540,7 +540,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/courses/{course}/lessons/{lesson}', [Student\CourseController::class, 'showLesson']);
 
         // Lesson Progress & Completion API endpoints
-        Route::post('/lessons/{lesson}/progress', [Student\CourseController::class, 'saveProgress'])->middleware('throttle:60,1')->name('lessons.progress');
+        Route::post('/lessons/{lesson}/progress', [Student\CourseController::class, 'saveProgress'])->middleware('throttle:120,1')->name('lessons.progress');
         Route::post('/lessons/{lesson}/complete', [Student\CourseController::class, 'completeLesson'])->name('lessons.complete');
 
         // URL Aliases for space-separated or underscore-separated requests (e.g. 'my courses' / 'my_courses')

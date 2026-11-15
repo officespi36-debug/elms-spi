@@ -216,60 +216,129 @@ watch(isVideoPlaying, (playing) => {
   }
 })
 
-// ─── Video Progress Tracking API (Every 15s, on pause, on page leave) ───
+// ─── Video Progress Tracking API (Monotonic, Backoff Retry, CSRF Handled) ───
 let progressTimer: any = null
+let retryTimer: any = null
+const consecutiveFailures = ref(0)
+const lastFailedPayload = ref<{ seconds: number; duration: number } | null>(null)
 
 const getCsrfToken = () => {
   return (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || ''
 }
 
-const saveVideoProgress = async (secondsToSend: number, isBeacon = false) => {
+const saveVideoProgress = async (secondsToSend: number, isBeacon = false, isRetry = false) => {
   if (!props.currentLesson?.id) return
-  if (secondsToSend < maxWatchedSeconds.value) {
-    secondsToSend = maxWatchedSeconds.value
-  } else {
-    maxWatchedSeconds.value = secondsToSend
+
+  // If lesson has no video or already completed & ended, suppress errors
+  const isAlreadyCompleted = isLessonCompletedLocally.value && currentSeconds.value >= currentDuration.value
+
+  const safeDuration = Math.max(1, Math.floor(currentDuration.value || 600))
+  // Client clamp position to [0, duration]
+  const safeSeconds = Math.max(0, Math.min(Math.floor(secondsToSend), safeDuration))
+
+  if (safeSeconds > maxWatchedSeconds.value) {
+    maxWatchedSeconds.value = safeSeconds
   }
 
   const endpoint = `/student/lessons/${props.currentLesson.id}/progress`
   const payload = {
-    seconds: Math.floor(secondsToSend),
-    duration: Math.floor(currentDuration.value),
+    seconds: safeSeconds,
+    duration: safeDuration,
   }
 
+  // sendBeacon handling: pass _token in FormData for CSRF verification
   if (isBeacon && typeof navigator !== 'undefined' && navigator.sendBeacon) {
-    const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' })
-    navigator.sendBeacon(endpoint, blob)
-    return
+    try {
+      const formData = new FormData()
+      formData.append('_token', getCsrfToken())
+      formData.append('seconds', String(payload.seconds))
+      formData.append('duration', String(payload.duration))
+      navigator.sendBeacon(endpoint, formData)
+      return
+    } catch {
+      return
+    }
   }
 
   try {
     isSavingProgress.value = true
-    const response = await fetch(endpoint, {
+    let token = getCsrfToken()
+
+    let response = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': getCsrfToken(),
+        'X-CSRF-TOKEN': token,
+        'X-Requested-With': 'XMLHttpRequest',
         'Accept': 'application/json'
       },
       body: JSON.stringify(payload)
     })
 
+    // If HTTP 419 (CSRF token expired): read token and retry once
+    if (response.status === 419) {
+      try {
+        const freshMeta = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || ''
+        if (freshMeta) token = freshMeta
+      } catch {}
+
+      response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': token,
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      })
+    }
+
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`)
     }
+
+    // Success: reset failure count & hide retry toast
+    consecutiveFailures.value = 0
     showRetryProgress.value = false
+    lastFailedPayload.value = null
+    if (retryTimer) clearTimeout(retryTimer)
+
   } catch (err) {
     console.warn('Progress save failed:', err)
-    showRetryProgress.value = true
+
+    if (isAlreadyCompleted) {
+      return
+    }
+
+    lastFailedPayload.value = payload
+    consecutiveFailures.value += 1
+
+    // Show toast only after 3 consecutive failures
+    if (consecutiveFailures.value >= 3) {
+      showRetryProgress.value = true
+    }
+
+    // Auto retry with backoff 2s / 5s / 15s
+    const backoffs = [2000, 5000, 15000]
+    const delay = backoffs[Math.min(consecutiveFailures.value - 1, backoffs.length - 1)]
+
+    if (retryTimer) clearTimeout(retryTimer)
+    retryTimer = setTimeout(() => {
+      if (lastFailedPayload.value && typeof navigator !== 'undefined' && navigator.onLine !== false) {
+        saveVideoProgress(lastFailedPayload.value.seconds, false, true)
+      }
+    }, delay)
+
   } finally {
     isSavingProgress.value = false
   }
 }
 
-// Timer Simulation for Playback (Works for native video or preview timer)
+// Playback Simulation (Only runs when a real video provider exists)
 const startPlaybackSimulation = () => {
   if (progressTimer) clearInterval(progressTimer)
+  if (videoProvider.value === 'none') return
 
   progressTimer = setInterval(() => {
     if (isVideoPlaying.value) {
@@ -494,6 +563,13 @@ const handleKeydown = (e: KeyboardEvent) => {
   }
 }
 
+// Online status event handler for auto-retry
+const handleOnline = () => {
+  if (lastFailedPayload.value) {
+    saveVideoProgress(lastFailedPayload.value.seconds, false, true)
+  }
+}
+
 // Unload / sendBeacon handler
 const handleBeforeUnload = () => {
   saveVideoProgress(currentSeconds.value, true)
@@ -504,16 +580,19 @@ onMounted(() => {
   if (typeof window !== 'undefined') {
     window.addEventListener('keydown', handleKeydown)
     window.addEventListener('beforeunload', handleBeforeUnload)
+    window.addEventListener('online', handleOnline)
   }
 })
 
 onUnmounted(() => {
   if (progressTimer) clearInterval(progressTimer)
   if (codeAnimationTimer) clearInterval(codeAnimationTimer)
+  if (retryTimer) clearTimeout(retryTimer)
   saveVideoProgress(currentSeconds.value, true)
   if (typeof window !== 'undefined') {
     window.removeEventListener('keydown', handleKeydown)
     window.removeEventListener('beforeunload', handleBeforeUnload)
+    window.removeEventListener('online', handleOnline)
   }
 })
 </script>
@@ -548,19 +627,28 @@ onUnmounted(() => {
         </div>
       </transition>
 
-      <!-- Retry Progress Toast (When network request fails) -->
-      <div
-        v-if="showRetryProgress"
-        class="fixed bottom-24 right-6 z-50 p-3.5 rounded-2xl bg-slate-900 text-white border border-slate-700 shadow-2xl flex items-center gap-3 text-xs"
+      <!-- Retry Progress Toast (Top-right positioned, away from FAB button) -->
+      <transition
+        enter-active-class="transition duration-300 ease-out"
+        enter-from-class="transform -translate-y-2 opacity-0"
+        enter-to-class="transform translate-y-0 opacity-100"
+        leave-active-class="transition duration-200 ease-in"
+        leave-from-class="transform translate-y-0 opacity-100"
+        leave-to-class="transform -translate-y-2 opacity-0"
       >
-        <span class="text-amber-400">⚠️ Failed to sync progress</span>
-        <button
-          @click="saveVideoProgress(currentSeconds)"
-          class="px-2.5 py-1 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-semibold transition-colors cursor-pointer"
+        <div
+          v-if="showRetryProgress"
+          class="fixed top-24 right-6 z-50 p-3.5 rounded-2xl bg-slate-900/95 text-white border border-slate-700 shadow-2xl flex items-center gap-3 text-xs backdrop-blur-md"
         >
-          Retry
-        </button>
-      </div>
+          <span class="text-amber-400">⚠️ Failed to sync progress</span>
+          <button
+            @click="saveVideoProgress(currentSeconds)"
+            class="px-2.5 py-1 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-semibold transition-colors cursor-pointer"
+          >
+            Retry
+          </button>
+        </div>
+      </transition>
 
       <!-- MAIN GRID: Left 8 cols Video & Tabs, Right 4 cols Course Progress & Accordion -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -664,95 +752,40 @@ onUnmounted(() => {
               ></iframe>
             </div>
 
-            <!-- 3. Standard Design Graphic Banner & Simulation Player (When no external video URL yet) -->
+            <!-- 3. Clean Empty State (When no video URL is available - No fake player, no fake play button) -->
             <div
               v-else
-              class="relative aspect-video w-full flex items-center justify-center p-6 sm:p-12 overflow-hidden select-none bg-[#090e1a]"
+              class="relative aspect-video w-full flex flex-col items-center justify-center p-8 sm:p-12 text-center select-none bg-[#090e1a] overflow-hidden"
             >
               <!-- Ambient background pattern -->
               <div class="absolute inset-0 bg-[radial-gradient(#6366f1_1px,transparent_1px)] [background-size:24px_24px] opacity-15 pointer-events-none"></div>
 
-              <div class="relative z-10 w-full max-w-2xl flex flex-col md:flex-row items-center justify-between gap-6">
-                <!-- Left Title Banner -->
-                <div class="space-y-3 text-left">
-                  <div class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg bg-amber-400 text-slate-950 font-black text-xs shadow-md">
-                    {{ course.code ? course.code.split('-')[1] || 'SPI' : 'SPI' }}
+              <div class="relative z-10 max-w-md space-y-4">
+                <div class="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-3xl bg-slate-900/90 border border-slate-700/80 text-purple-400 flex items-center justify-center shadow-2xl shadow-purple-900/20">
+                  <svg class="w-8 h-8 sm:w-9 sm:h-9 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
+                    <line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                  </svg>
+                </div>
+                <div class="space-y-1.5">
+                  <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/10 text-amber-400 border border-amber-400/20 text-[11px] font-bold">
+                    <span>⚠️ Video not available yet</span>
                   </div>
-                  <h2 class="text-2xl sm:text-3xl font-extrabold text-white leading-tight tracking-tight">
+                  <h3 class="text-base sm:text-lg font-bold text-white tracking-tight">
                     {{ currentLesson.title }}
-                  </h2>
-                  <p class="text-xs text-slate-400">
-                    {{ course.title }}
+                  </h3>
+                  <p class="text-xs text-slate-400 leading-relaxed">
+                    វីដេអូមេរៀននេះមិនទាន់ត្រូវបានបញ្ចូលនៅឡើយទេ។ អ្នកអាចអានឯកសារមេរៀនខាងក្រោម ឬចុច Complete & Next ដើម្បីបន្តទៅមុខ។
                   </p>
                 </div>
-
-                <!-- Right Code Editor Graphic Mockup -->
-                <div
-                  class="relative w-64 sm:w-72 rounded-2xl bg-slate-900/90 border border-slate-700/80 p-4 shadow-2xl backdrop-blur-md transition-all duration-300"
-                  :class="isVideoPlaying ? 'ring-2 ring-purple-500/40 shadow-purple-500/20' : ''"
-                >
-                  <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-800 text-[10px] text-slate-400">
-                    <div class="flex items-center gap-1.5">
-                      <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
-                      <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-                      <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <div v-if="isVideoPlaying" class="flex items-center gap-1 px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 text-[9px] font-bold">
-                        <span>LIVE</span>
-                        <span class="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse"></span>
-                      </div>
-                      <span class="font-mono text-purple-400">{...}</span>
-                    </div>
-                  </div>
-                  <div class="space-y-1.5 font-mono text-[11px] leading-relaxed">
-                    <div
-                      class="flex items-center gap-2 p-1 rounded transition-colors"
-                      :class="codeSnippetStep === 0 && isVideoPlaying ? 'bg-purple-500/20' : ''"
-                    >
-                      <div class="w-12 h-2 rounded bg-purple-400/60"></div>
-                      <div class="w-20 h-2 rounded bg-blue-400/60"></div>
-                    </div>
-                    <div
-                      class="flex items-center gap-2 pl-3 p-1 rounded transition-colors"
-                      :class="codeSnippetStep === 1 && isVideoPlaying ? 'bg-indigo-500/20' : ''"
-                    >
-                      <div class="w-16 h-2 rounded bg-amber-400/60"></div>
-                      <div class="w-10 h-2 rounded bg-emerald-400/60"></div>
-                    </div>
-                    <div
-                      class="flex items-center gap-2 pl-3 p-1 rounded transition-colors"
-                      :class="codeSnippetStep === 2 && isVideoPlaying ? 'bg-cyan-500/20' : ''"
-                    >
-                      <div class="w-24 h-2 rounded bg-cyan-400/60"></div>
-                    </div>
-                    <div
-                      class="flex items-center gap-2 p-1 rounded transition-colors"
-                      :class="codeSnippetStep === 3 && isVideoPlaying ? 'bg-purple-500/20' : ''"
-                    >
-                      <div class="w-8 h-2 rounded bg-purple-400/60"></div>
-                    </div>
-                  </div>
-                </div>
               </div>
-
-              <!-- Overlay Play/Pause Button -->
-              <button
-                @click="togglePlayPause"
-                aria-label="Toggle play pause"
-                type="button"
-                :class="[
-                  isPreviewMode && !isLockedPlay ? 'opacity-80 scale-95' : 'hover:scale-110 active:scale-95',
-                  'absolute inset-0 m-auto w-16 h-16 rounded-full bg-purple-600/90 hover:bg-purple-500 text-white flex items-center justify-center shadow-2xl shadow-purple-600/40 transition-all cursor-pointer z-20'
-                ]"
-              >
-                <span v-if="!isVideoPlaying" class="text-xl ml-1">▶</span>
-                <span v-else class="text-xl">❚❚</span>
-              </button>
             </div>
 
-            <!-- Video Player Bottom Control Bar -->
-            <div class="bg-slate-950/90 border-t border-slate-800/80 px-4 py-3 space-y-2">
+            <!-- Video Player Bottom Control Bar (Shown only when real video exists) -->
+            <div
+              v-if="videoProvider !== 'none'"
+              class="bg-slate-950/90 border-t border-slate-800/80 px-4 py-3 space-y-2"
+            >
               <!-- Scrub bar with YouTube Hover Time Tooltip -->
               <div
                 @click="seekVideo"

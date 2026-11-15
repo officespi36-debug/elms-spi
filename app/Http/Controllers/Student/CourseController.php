@@ -259,14 +259,14 @@ class CourseController extends Controller
             'duration' => 'nullable|integer|min:0',
         ]);
 
+        $duration = (int) ($data['duration'] ?: ($lesson->duration_seconds ?: 600));
         $incomingSeconds = (int) $data['seconds'];
-        $duration = (int) ($data['duration'] ?: ($lesson->duration_seconds ?: 1100));
 
-        // Prevent invalid values beyond duration
-        if ($duration > 0 && $incomingSeconds > ($duration + 15)) {
-            return response()->json([
-                'error' => 'Watched seconds cannot exceed video duration.'
-            ], 422);
+        // Server clamp position to [0, duration_seconds] instead of throwing 422
+        if ($duration > 0) {
+            $incomingSeconds = max(0, min($incomingSeconds, $duration));
+        } else {
+            $incomingSeconds = max(0, $incomingSeconds);
         }
 
         $prog = LessonProgress::firstOrNew([
@@ -275,6 +275,11 @@ class CourseController extends Controller
         ]);
 
         $existingSeconds = (int) ($prog->seconds_watched ?? 0);
+        // Clamp legacy over-duration seconds if present
+        if ($duration > 0 && $existingSeconds > $duration) {
+            $existingSeconds = $duration;
+        }
+
         // Monotonic: only accept greater values, no backward progress
         $newSeconds = max($existingSeconds, $incomingSeconds);
 
@@ -293,6 +298,7 @@ class CourseController extends Controller
             'lesson_id'       => $lesson->id,
             'seconds_watched' => $newSeconds,
             'percent'         => $newPercent,
+            'is_completed'    => !empty($prog->completed_at),
         ]);
     }
 
