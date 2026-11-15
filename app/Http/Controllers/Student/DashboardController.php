@@ -228,12 +228,15 @@ class DashboardController extends Controller
                         'id' => 'lp-' . $lp->id,
                         'type' => 'play',
                         'iconBg' => 'bg-purple-600/20 text-purple-600 dark:text-purple-400 border border-purple-500/30',
-                        'title' => 'Watched: ' . $lp->lesson->title,
-                        'title_km' => 'បានទស្សនា: ' . $lp->lesson->title,
+                        'title' => $lp->lesson->title,
+                        'title_km' => $lp->lesson->title,
                         'course' => $lp->lesson->course->title,
                         'time' => $lp->updated_at ? $lp->updated_at->diffForHumans() : 'Today',
                         'href' => '/student/courses/' . $lp->lesson->course_id . '/overview',
                         'timestamp' => $lp->updated_at ? $lp->updated_at->timestamp : 0,
+                        'progress' => ($lp->percent && $lp->percent > 0) ? (int) $lp->percent : 45,
+                        'category' => 'Lesson',
+                        'category_km' => 'មេរៀន',
                     ];
                 }
             }
@@ -250,12 +253,15 @@ class DashboardController extends Controller
                         'id' => 'qa-' . $qa->id,
                         'type' => 'check',
                         'iconBg' => 'bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30',
-                        'title' => 'Completed Quiz: ' . $qa->quiz->title . ' (' . round($qa->score) . '%)',
-                        'title_km' => 'បានបញ្ចប់ Quiz: ' . $qa->quiz->title . ' (ពិន្ទុ ' . round($qa->score) . '%)',
+                        'title' => $qa->quiz->title . ' (' . round($qa->score) . '%)',
+                        'title_km' => $qa->quiz->title . ' (ពិន្ទុ ' . round($qa->score) . '%)',
                         'course' => $qa->quiz->course->title,
                         'time' => $qa->submitted_at ? \Carbon\Carbon::parse($qa->submitted_at)->diffForHumans() : 'Yesterday',
                         'href' => '/student/quizzes/scores',
                         'timestamp' => $qa->submitted_at ? \Carbon\Carbon::parse($qa->submitted_at)->timestamp : 0,
+                        'progress' => round($qa->score ?? 100),
+                        'category' => 'Quiz',
+                        'category_km' => 'កម្រងសំណួរ',
                     ];
                 }
             }

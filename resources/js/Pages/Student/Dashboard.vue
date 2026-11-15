@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { Link, usePage } from '@inertiajs/vue3'
+import { Link, usePage, router } from '@inertiajs/vue3'
 import StudentLayout from '@/Layouts/StudentLayout.vue'
 import { i18n } from '@/Services/i18n'
 
@@ -43,12 +43,17 @@ const props = defineProps<{
   recentActivities?: Array<{
     id: string | number
     type: 'play' | 'check' | 'doc'
-    iconBg: string
+    iconBg?: string
     title: string
     title_km?: string
     course: string
     time: string
     href: string
+    progress?: number
+    percent?: number
+    category?: string
+    category_km?: string
+    actionLabel?: string
   }>
   upcomingEvents?: Array<{
     id: number
@@ -226,8 +231,12 @@ onMounted(() => {
     }, { threshold: 0.1 })
 
     setTimeout(() => {
-      document.querySelectorAll('.course-card-scroll').forEach(el => observer.observe(el))
+      document.querySelectorAll('.course-card-scroll, .recent-activity-card').forEach(el => observer.observe(el))
     }, 150)
+
+    setTimeout(() => {
+      document.querySelectorAll('.recent-activity-card').forEach(el => el.classList.add('in-view'))
+    }, 850)
   }
 })
 
@@ -773,7 +782,7 @@ const achievements = computed(() => [
   }
 ])
 
-// Recent Activity with SVG type and clean 2-row title separation
+// Recent Activity with clean 2-row title, 48px purple gradient play button and progress
 const recentActivities = computed(() => {
   const rawList = (props.recentActivities && props.recentActivities.length > 0)
     ? props.recentActivities
@@ -781,50 +790,55 @@ const recentActivities = computed(() => {
         {
           id: 1,
           type: 'play',
-          iconBg: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
           title: currentLang.value === 'km' ? 'Lab 1.1: Hello World & Syntax Setup' : 'Lab 1.1: Hello World & Syntax Setup',
           course: currentLang.value === 'km' ? 'មូលដ្ឋានគ្រឹះ Web Development' : 'Web Development with Vue',
-          actionLabel: currentLang.value === 'km' ? 'បានទស្សនា' : 'Watched',
           time: currentLang.value === 'km' ? '៦ ម៉ោងមុន' : '6 hours ago',
-          href: '/student/my-courses/current'
+          href: '/student/my-courses/current',
+          progress: 35
         },
         {
           id: 2,
           type: 'play',
-          iconBg: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
           title: currentLang.value === 'km' ? 'Lesson 1.1: Sustainable Farming Practices' : 'Lesson 1.1: Sustainable Farming Practices',
           course: currentLang.value === 'km' ? 'វិទ្យាសាស្ត្រដំណាំកសិកម្ម' : 'Modern Crop Agronomy',
-          actionLabel: currentLang.value === 'km' ? 'បានទស្សនា' : 'Watched',
           time: currentLang.value === 'km' ? '៦ ម៉ោងមុន' : '6 hours ago',
-          href: '/student/my-courses/current'
+          href: '/student/my-courses/current',
+          progress: 60
         },
         {
           id: 3,
           type: 'play',
-          iconBg: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
           title: currentLang.value === 'km' ? 'Lesson 1.1: Formal Meeting & Email Phrases' : 'Lesson 1.1: Formal Meeting & Email Phrases',
           course: currentLang.value === 'km' ? 'ភាសាអង់គ្លេសពាណិជ្ជកម្ម' : 'Business English Communication',
-          actionLabel: currentLang.value === 'km' ? 'បានទស្សនា' : 'Watched',
           time: currentLang.value === 'km' ? '៦ ម៉ោងមុន' : '6 hours ago',
-          href: '/student/my-courses/current'
+          href: '/student/my-courses/current',
+          progress: 80
         }
       ]
 
-  return rawList.map(a => {
-    const rawTitle = currentLang.value === 'km' && a.title_km ? a.title_km : a.title
-    const cleanTitle = rawTitle.replace(/^(Watched:\s*|បានទស្សនា:\s*|Completed Quiz:\s*|បានបញ្ចប់ Quiz:\s*|Downloaded:\s*|បានទាញយក:\s*)/i, '')
-    let label = a.actionLabel || (currentLang.value === 'km' ? 'បានទស្សនា' : 'Watched')
-    if (rawTitle.toLowerCase().includes('quiz') || rawTitle.includes('បញ្ចប់') || a.type === 'check') {
-      label = currentLang.value === 'km' ? 'បានបញ្ចប់' : 'Completed'
+  return rawList.map((a, index) => {
+    const rawTitle = (currentLang.value === 'km' && a.title_km) ? a.title_km : (a.title || '')
+    // Strip prefixes like "Watched:", "បានទស្សនា:", etc. completely
+    const cleanTitle = rawTitle.replace(/^(Watched:\s*|បានទស្សនា:\s*|Completed Quiz:\s*|បានបញ្ចប់ Quiz:\s*|Downloaded:\s*|បានទាញយក:\s*)/i, '').trim()
+
+    let category = (currentLang.value === 'km' && a.category_km) ? a.category_km : (a.category || (currentLang.value === 'km' ? 'មេរៀន' : 'Lesson'))
+    if (rawTitle.toLowerCase().includes('quiz') || rawTitle.includes('កម្រងសំណួរ') || a.type === 'check') {
+      category = currentLang.value === 'km' ? 'កម្រងសំណួរ' : 'Quiz'
     } else if (rawTitle.toLowerCase().includes('download') || rawTitle.includes('ទាញយក') || a.type === 'doc') {
-      label = currentLang.value === 'km' ? 'ឯកសារ' : 'Resource'
+      category = currentLang.value === 'km' ? 'ឯកសារ' : 'Resource'
+    } else if (rawTitle.toLowerCase().includes('lab')) {
+      category = currentLang.value === 'km' ? 'ការអនុវត្ត' : 'Lab'
     }
+
+    const defaultProgressSteps = [35, 60, 80]
+    const p = (a as any).progress ?? (a as any).percent ?? defaultProgressSteps[index % defaultProgressSteps.length]
 
     return {
       ...a,
       cleanTitle,
-      actionLabel: label,
-      time: a.time || (currentLang.value === 'km' ? '៦ ម៉ោងមុន' : '6 hours ago')
+      category,
+      time: a.time || (currentLang.value === 'km' ? '៦ ម៉ោងមុន' : '6 hours ago'),
+      progress: Math.min(100, Math.max(5, Math.round(p)))
     }
   })
 })
@@ -1425,53 +1439,88 @@ const recentActivities = computed(() => {
 
           <!-- RECENT ACTIVITY SECTION (Inside Column ឆ្វេង under Analytics) -->
           <div class="space-y-3.5">
+            <!-- ៤. ចំណងជើងផ្នែក (ដកចំណុចខៀវ, "Recent activity" 17px semibold, "View full history" ពណ៌ស្វាយ ជាមួយព្រួញ) -->
             <div class="flex items-center justify-between">
-              <h2 class="text-xs font-bold text-[#1f1f1f] dark:text-[#c4c7c5] uppercase tracking-wider">
-                {{ currentLang === 'km' ? 'សកម្មភាពសិក្សាថ្មីៗ' : 'Recent Activity' }}
+              <h2 class="text-[17px] font-semibold text-slate-900 dark:text-slate-100 tracking-tight">
+                {{ currentLang === 'km' ? 'សកម្មភាពសិក្សាថ្មីៗ' : 'Recent activity' }}
               </h2>
-              <Link href="/student/progress/learning-time" class="text-[13.5px] text-[#0b57d0] dark:text-[#8ab4f8] hover:underline font-semibold flex items-center gap-1">
-                <span>{{ currentLang === 'km' ? 'មើលប្រវត្តិទាំងអស់' : 'View Full History' }}</span>
-                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              <Link
+                href="/student/progress/learning-time"
+                class="text-[13.5px] font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors inline-flex items-center gap-1 group/history"
+              >
+                <span>{{ currentLang === 'km' ? 'មើលប្រវត្តិទាំងអស់' : 'View full history' }}</span>
+                <svg class="w-3.5 h-3.5 group-hover/history:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                </svg>
               </Link>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Link
-                v-for="act in recentActivities"
+            <!-- ៥. Layout (grid auto-fit minmax 280px, gap 16px, 1 col mobile) -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 [grid-template-columns:repeat(auto-fit,minmax(280px,1fr))]">
+              <!-- ២. Card ទាំងមូលចុចបាន (cursor: pointer, link ទៅមេរៀន, hover translateY(-3px), border #a78bfa, shadow, Resume ›) -->
+              <div
+                v-for="(act, idx) in recentActivities"
                 :key="act.id"
-                :href="act.href"
-                class="bg-white dark:bg-[#1e1f20] border border-transparent hover:border-[#dfe3e7] dark:hover:border-[#3c4043] rounded-2xl p-4 shadow-xs hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 flex items-start gap-3.5 group cursor-pointer"
+                role="link"
+                tabindex="0"
+                @click="router.visit(act.href)"
+                @keydown.enter="router.visit(act.href)"
+                class="recent-activity-card group relative flex items-start gap-3.5 p-4 rounded-2xl border transition-all duration-200 cursor-pointer bg-white dark:bg-[#1e1f20] border-slate-200 dark:border-white/[0.08] hover:-translate-y-[3px] hover:border-[#a78bfa] dark:hover:border-[#a78bfa] hover:shadow-lg hover:shadow-purple-500/10 dark:hover:shadow-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-600 focus-visible:ring-offset-2"
+                :style="{ '--stagger-index': idx }"
               >
-                <div :class="[act.iconBg, 'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 flex-shrink-0 group-hover:scale-105 transition-transform duration-200']">
-                  <!-- Play SVG -->
-                  <svg v-if="act.type === 'play'" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                  <!-- Checkmark SVG -->
-                  <svg v-else-if="act.type === 'check'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                  <!-- Document SVG -->
-                  <svg v-else class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
-                </div>
+                <!-- ១. ប៊ូតុង Play (សំខាន់បំផុត: 48×48px, mobile 52px, gradient #6366f1 → #7c3aed, icon ស 20px, shadow, ring, hover scale 1.08, active 0.95, focus-visible ring ស្វាយ) -->
+                <Link
+                  :href="act.href"
+                  :aria-label="`${currentLang === 'km' ? 'បន្តមេរៀន' : 'Resume lesson'}: ${act.cleanTitle}`"
+                  class="activity-play-btn focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-600 focus-visible:ring-offset-2"
+                  @click.stop
+                >
+                  <svg class="w-5 h-5 ml-0.5 fill-white text-white drop-shadow-xs" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="6 3 20 12 6 21 6 3"></polygon>
+                  </svg>
+                </Link>
 
+                <!-- ៣. រចនាសម្ព័ន្ធមាតិកា (កុំកាត់អក្សរ, ដកបន្ទាត់ខណ្ឌ និង icon នាឡិកា) -->
                 <div class="flex-1 min-w-0 space-y-1">
-                  <!-- Label តូច (Watched / Completed / Resource) -->
-                  <div class="flex items-center gap-1.5 mb-0.5">
-                    <span class="px-2 py-0.5 rounded text-[10.5px] font-semibold bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300">
-                      {{ act.actionLabel }}
+                  <!-- បន្ទាត់ទី ១: "Lesson · 6 hours ago" + បង្ហាញអក្សរតូច "Resume" / ព្រួញ › នៅជ្រុងស្តាំពេល hover -->
+                  <div class="flex items-center justify-between gap-1 text-[12.5px] text-slate-500 dark:text-slate-400 font-medium">
+                    <span>{{ act.category }} · {{ act.time }}</span>
+                    <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-xs font-semibold text-purple-600 dark:text-purple-400 inline-flex items-center gap-0.5 shrink-0">
+                      {{ currentLang === 'km' ? 'បន្ត' : 'Resume' }}
+                      <svg class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                      </svg>
                     </span>
                   </div>
-                  <!-- ចំណងជើង ២ ជួរ -->
-                  <h4 class="font-bold text-[#1f1f1f] dark:text-[#e3e3e3] text-sm leading-snug line-clamp-2 min-h-[2.5rem] group-hover:text-[#0b57d0] dark:group-hover:text-[#8ab4f8] transition-colors" :title="act.cleanTitle">
+
+                  <!-- បន្ទាត់ទី ២: ឈ្មោះមេរៀនពេញ អនុញ្ញាត ២ ជួរ (15px bold, line-clamp: 2, ដក "Watched:") -->
+                  <h4
+                    class="font-bold text-[15px] text-slate-900 dark:text-[#e2e8f0] leading-snug line-clamp-2 min-h-[2.6rem] group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors"
+                    :title="act.cleanTitle"
+                  >
                     {{ act.cleanTitle }}
                   </h4>
-                  <p class="text-[13.5px] text-[#475569] dark:text-[#c4c7c5] truncate font-medium">
+
+                  <!-- បន្ទាត់ទី ៣: ឈ្មោះវគ្គសិក្សា (14px #475569, 1 ជួរ truncate) -->
+                  <p class="text-[14px] text-[#475569] dark:text-slate-400 truncate font-medium">
                     {{ act.course }}
                   </p>
-                  <!-- ម៉ោងនៅ small ពណ៌ប្រផេះ -->
-                  <p class="text-[12px] text-slate-500 dark:text-slate-400 tabular-nums flex items-center gap-1.5 pt-1.5 border-t border-slate-100 dark:border-slate-800">
-                    <svg class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    <span>{{ act.time }}</span>
-                  </p>
+
+                  <!-- Progress bar តូច (4px) បង្ហាញដំណាក់កាលមេរៀន (ឧ. 35% watched) -->
+                  <div class="pt-1.5 space-y-1">
+                    <div class="flex items-center justify-between text-[11px] text-slate-400 dark:text-slate-500 font-medium">
+                      <span>{{ currentLang === 'km' ? 'វឌ្ឍនភាព' : 'Progress' }}</span>
+                      <span class="font-semibold text-slate-700 dark:text-slate-300">{{ act.progress }}% {{ currentLang === 'km' ? 'បានមើល' : 'watched' }}</span>
+                    </div>
+                    <div class="w-full h-1 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
+                      <div
+                        class="h-full bg-gradient-to-r from-[#6366f1] to-[#7c3aed] rounded-full transition-all duration-300"
+                        :style="{ width: `${act.progress}%` }"
+                      ></div>
+                    </div>
+                  </div>
                 </div>
-              </Link>
+              </div>
             </div>
           </div>
 
@@ -1943,6 +1992,65 @@ const recentActivities = computed(() => {
   animation: shimmerSweep 1.8s infinite;
 }
 
+/* Recent Activity Play Button & Stagger Enter Animation */
+.activity-play-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #6366f1 0%, #7c3aed 100%);
+  box-shadow: 0 6px 14px rgba(124, 58, 237, 0.35), 0 0 0 4px rgba(124, 58, 237, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (max-width: 640px) {
+  .activity-play-btn {
+    width: 52px;
+    height: 52px;
+  }
+}
+
+.activity-play-btn:hover,
+.recent-activity-card:hover .activity-play-btn {
+  transform: scale(1.08);
+  box-shadow: 0 8px 22px rgba(124, 58, 237, 0.52), 0 0 0 4px rgba(124, 58, 237, 0.22);
+}
+
+.activity-play-btn:active,
+.recent-activity-card:active .activity-play-btn {
+  transform: scale(0.95);
+}
+
+.activity-play-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 6px 14px rgba(124, 58, 237, 0.35), 0 0 0 4px #a855f7, 0 0 0 6px rgba(124, 58, 237, 0.3);
+}
+
+@keyframes recentActivityFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.recent-activity-card {
+  opacity: 0;
+  transform: translateY(14px);
+  will-change: transform, opacity;
+}
+
+.recent-activity-card.in-view {
+  animation: recentActivityFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: calc(var(--stagger-index, 0) * 70ms);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .stat-card,
   .donut-draw,
@@ -1950,6 +2058,8 @@ const recentActivities = computed(() => {
   .goal-checkbox-bounce,
   .shimmer-sweep,
   .course-card-scroll,
+  .recent-activity-card,
+  .activity-play-btn,
   .line-chart-draw {
     animation: none !important;
     transition: none !important;
