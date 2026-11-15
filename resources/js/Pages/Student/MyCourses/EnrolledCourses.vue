@@ -47,126 +47,13 @@ const viewMode = ref<'grid' | 'list'>('grid')
 const activeDropdownId = ref<number | null>(null)
 const cachedCourseIds = ref<number[]>([])
 
-// 4 Primary Enrolled Courses matching screenshot & prompt
-const courses = ref<EnrolledCourseItem[]>([
-  {
-    id: 1,
-    slug: 'web-dev',
-    title: 'Web Development Fundamentals',
-    category: 'Web Development',
-    status: 'in_progress',
-    statusLabel: 'In Progress',
-    progress: 53,
-    teacher: {
-      name: 'Mr. Sophea',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80',
-      role: 'Senior Web Instructor'
-    },
-    currentChapter: 'Chapter 3',
-    completedChapters: 3,
-    totalChapters: 6,
-    currentLesson: '3.2 JavaScript Functions',
-    completedLessons: 12,
-    totalLessons: 30,
-    remainingTime: '18h 20m Left',
-    lastAccessed: 'Today, 09:30 AM',
-    lastAccessedTimeMs: Date.now() - 3600000,
-    enrolledDate: '2026-08-01',
-    overviewHref: '/student/courses/1/overview',
-    learningHref: '/student/my-courses/current',
-    themeColor: 'purple',
-    accentGradient: 'from-purple-600 to-indigo-600',
-    illustrationType: 'web'
-  },
-  {
-    id: 2,
-    slug: 'db-systems',
-    title: 'Database Systems',
-    category: 'Database Systems',
-    status: 'in_progress',
-    statusLabel: 'In Progress',
-    progress: 35,
-    teacher: {
-      name: 'Mr. Long Dararith',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80',
-      role: 'Database Specialist'
-    },
-    currentChapter: 'Chapter 2',
-    completedChapters: 2,
-    totalChapters: 5,
-    currentLesson: '2.1 Relational Schema & Keys',
-    completedLessons: 8,
-    totalLessons: 23,
-    remainingTime: '12h 10m Left',
-    lastAccessed: 'Yesterday, 04:15 PM',
-    lastAccessedTimeMs: Date.now() - 86400000,
-    enrolledDate: '2026-08-05',
-    overviewHref: '/student/courses/2/overview',
-    learningHref: '/student/my-courses/current',
-    themeColor: 'indigo',
-    accentGradient: 'from-indigo-600 to-blue-600',
-    illustrationType: 'database'
-  },
-  {
-    id: 3,
-    slug: 'python',
-    title: 'Python Programming',
-    category: 'Programming',
-    status: 'not_started',
-    statusLabel: 'Not Started',
-    progress: 0,
-    teacher: {
-      name: 'Mr. Eng Thida',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&auto=format&fit=crop&q=80',
-      role: 'Python & AI Engineer'
-    },
-    currentChapter: 'Chapter 0',
-    completedChapters: 0,
-    totalChapters: 7,
-    currentLesson: '1.1 Python Setup & Basics',
-    completedLessons: 0,
-    totalLessons: 28,
-    remainingTime: '20h 00m Total',
-    lastAccessed: 'Not started yet',
-    lastAccessedTimeMs: 0,
-    enrolledDate: '2026-08-10',
-    overviewHref: '/student/courses/3/overview',
-    learningHref: '/student/courses/3/overview',
-    themeColor: 'blue',
-    accentGradient: 'from-blue-600 to-cyan-600',
-    illustrationType: 'python'
-  },
-  {
-    id: 4,
-    slug: 'ui-ux',
-    title: 'UI/UX Design Basics',
-    category: 'UI/UX Design',
-    status: 'completed',
-    statusLabel: 'Completed',
-    progress: 100,
-    teacher: {
-      name: 'Ms. Nhean Sreymom',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80',
-      role: 'Lead UI/UX Designer'
-    },
-    currentChapter: 'Chapter 4',
-    completedChapters: 4,
-    totalChapters: 4,
-    currentLesson: '4.4 Final Design Showcase',
-    completedLessons: 20,
-    totalLessons: 20,
-    remainingTime: '15h 30m Total',
-    lastAccessed: 'Completed on Aug 24',
-    lastAccessedTimeMs: Date.now() - 432000000,
-    enrolledDate: '2026-07-20',
-    overviewHref: '/student/courses/4/overview',
-    learningHref: '/student/courses/4/overview',
-    certificateHref: '/student/certificates/my-certificates',
-    themeColor: 'emerald',
-    accentGradient: 'from-emerald-600 to-teal-600',
-    illustrationType: 'uiux'
+// Real Enrolled Courses dynamically computed from Database props
+const courses = computed<EnrolledCourseItem[]>(() => {
+  if (props.enrollments && props.enrollments.length > 0) {
+    return props.enrollments
   }
-])
+  return []
+})
 
 const refreshCachedCourses = async () => {
   try {

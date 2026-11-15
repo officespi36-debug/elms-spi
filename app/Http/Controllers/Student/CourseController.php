@@ -30,15 +30,112 @@ class CourseController extends Controller
         ]);
     }
 
-    public function enrolled(Request $request)
+    public function enrolled(Request $request, StudentLearningService $learningService)
     {
-        $enrollments = Enrollment::where('student_id', $request->user()->id)
-            ->with(['course.teacher:id,name,avatar', 'course.major:id,name'])
+        $user = $request->user();
+        $enrollments = Enrollment::where('student_id', $user->id)
+            ->with([
+                'course.teacher:id,name,avatar',
+                'course.major:id,name',
+                'course.modules.lessons'
+            ])
             ->latest('updated_at')
             ->get();
 
+        $enrolledList = $enrollments->map(function ($enr) use ($user) {
+            $c = $enr->course;
+            if (!$c) return null;
+
+            $lessons = collect();
+            if ($c->modules && $c->modules->count() > 0) {
+                foreach ($c->modules as $mod) {
+                    if ($mod->lessons) {
+                        foreach ($mod->lessons as $l) {
+                            $lessons->push($l);
+                        }
+                    }
+                }
+            }
+            if ($lessons->isEmpty()) {
+                $lessons = $c->lessons ?: collect();
+            }
+
+            $lessonIds = $lessons->pluck('id')->all();
+            $totalLessons = $lessons->count();
+
+            $completedCount = LessonProgress::where('user_id', $user->id)
+                ->whereIn('lesson_id', $lessonIds)
+                ->where(fn($q) => $q->where('percent', '>=', 90)->orWhereNotNull('completed_at'))
+                ->count();
+
+            $progress = $totalLessons > 0 ? (int) round(($completedCount / $totalLessons) * 100) : 0;
+            if ($enr->status === 'completed' || $progress >= 100) {
+                $status = 'completed';
+                $progress = 100;
+            } elseif ($progress > 0 || $enr->status === 'active') {
+                $status = 'in_progress';
+            } else {
+                $status = 'not_started';
+            }
+
+            $nextLesson = $lessons->first(function ($l) use ($user) {
+                $p = LessonProgress::where('user_id', $user->id)->where('lesson_id', $l->id)->first();
+                return !$p || ($p->percent < 90 && !$p->completed_at);
+            }) ?: $lessons->first();
+
+            $titleLower = strtolower($c->title . ' ' . ($c->major->name ?? ''));
+            $themeColor = 'indigo';
+            $gradient = 'from-indigo-600 to-blue-600';
+            $illus = 'web';
+
+            if (str_contains($titleLower, 'python') || str_contains($titleLower, 'ai') || str_contains($titleLower, 'machine')) {
+                $themeColor = 'blue';
+                $gradient = 'from-blue-600 to-cyan-600';
+                $illus = 'python';
+            } elseif (str_contains($titleLower, 'database') || str_contains($titleLower, 'sql')) {
+                $themeColor = 'purple';
+                $gradient = 'from-purple-600 to-indigo-600';
+                $illus = 'database';
+            } elseif (str_contains($titleLower, 'design') || str_contains($titleLower, 'ui')) {
+                $themeColor = 'emerald';
+                $gradient = 'from-emerald-600 to-teal-600';
+                $illus = 'uiux';
+            }
+
+            return [
+                'id'                 => $c->id,
+                'slug'               => $c->code ?: ('course-' . $c->id),
+                'title'              => $c->title,
+                'category'           => $c->major?->name ?: 'Academic Studies',
+                'status'             => $status,
+                'statusLabel'        => $status === 'completed' ? 'Completed' : ($status === 'in_progress' ? 'In Progress' : 'Not Started'),
+                'progress'           => $progress,
+                'teacher'            => [
+                    'name'   => $c->teacher?->name ?: 'Dr. Mengly Chea',
+                    'avatar' => $c->teacher?->avatar ?: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80',
+                    'role'   => 'SPI Instructor',
+                ],
+                'currentChapter'     => $c->modules?->first()?->title ?: 'Module 1',
+                'completedChapters'  => (int) round(($c->modules?->count() ?: 1) * ($progress / 100)),
+                'totalChapters'      => $c->modules?->count() ?: 1,
+                'currentLesson'      => $nextLesson?->title ?: 'Lesson 1',
+                'completedLessons'   => $completedCount,
+                'totalLessons'       => $totalLessons,
+                'remainingTime'      => $progress >= 100 ? 'Completed' : 'Study in progress',
+                'lastAccessed'       => $enr->updated_at ? $enr->updated_at->diffForHumans() : 'Recently',
+                'lastAccessedTimeMs' => $enr->updated_at ? $enr->updated_at->getTimestamp() * 1000 : 0,
+                'enrolledDate'       => $enr->enrolled_at ? $enr->enrolled_at->format('Y-m-d') : ($enr->created_at ? $enr->created_at->format('Y-m-d') : '2026-08-01'),
+                'overviewHref'       => "/student/courses/{$c->id}/overview",
+                'learningHref'       => $nextLesson ? "/student/my-courses/{$c->id}/lessons/{$nextLesson->id}" : "/student/courses/{$c->id}/overview",
+                'certificateHref'    => '/student/certificates/my-certificates',
+                'themeColor'         => $themeColor,
+                'accentGradient'     => $gradient,
+                'illustrationType'   => $illus,
+            ];
+        })->filter()->values();
+
         return Inertia::render('Student/MyCourses/EnrolledCourses', [
-            'enrollments' => $enrollments,
+            'enrollments' => $enrolledList,
         ]);
     }
 
@@ -274,14 +371,60 @@ class CourseController extends Controller
 
     public function completed(Request $request)
     {
-        $enrollments = Enrollment::where('student_id', $request->user()->id)
+        $user = $request->user();
+        $enrollments = Enrollment::where('student_id', $user->id)
             ->where('status', 'completed')
-            ->with(['course.teacher:id,name,avatar', 'course.major:id,name'])
+            ->with([
+                'course.teacher:id,name,avatar',
+                'course.major:id,name',
+                'course.modules.lessons',
+                'course.certificates' => fn($q) => $q->where('student_id', $user->id)
+            ])
             ->latest('updated_at')
             ->get();
 
+        $completedList = $enrollments->map(function ($enr) use ($user) {
+            $c = $enr->course;
+            if (!$c) return null;
+
+            $cert = $c->certificates ? $c->certificates->first() : null;
+            if (!$cert) {
+                $cert = Certificate::where('student_id', $user->id)->where('course_id', $c->id)->first();
+            }
+
+            $lessonsCount = $c->lessons ? $c->lessons->count() : 3;
+            $chaptersCount = $c->modules ? $c->modules->count() : 1;
+
+            return [
+                'id'                     => $c->id,
+                'slug'                   => $c->code ?: ('course-' . $c->id),
+                'title'                  => $c->title,
+                'category'               => $c->major?->name ?: 'Academic Studies',
+                'status'                 => 'completed',
+                'progress'               => 100,
+                'teacher'                => [
+                    'name'   => $c->teacher?->name ?: 'Dr. Mengly Chea',
+                    'avatar' => $c->teacher?->avatar ?: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80',
+                    'role'   => 'SPI Instructor',
+                ],
+                'completedDate'          => $enr->updated_at ? $enr->updated_at->format('M d, Y') : 'Nov 2026',
+                'completedDateTimestamp' => $enr->updated_at ? $enr->updated_at->getTimestamp() * 1000 : 0,
+                'chaptersCount'          => $chaptersCount,
+                'lessonsCount'           => $lessonsCount,
+                'studyTime'              => '18h 20m',
+                'studyTimeMinutes'       => 1100,
+                'quizScore'              => 90,
+                'hasCertificate'         => $cert !== null,
+                'certificateId'          => $cert?->certificate_number ?: ('SPI-CERT-' . $c->id),
+                'certIssueDate'          => $cert?->issued_at ? $cert->issued_at->format('M d, Y') : null,
+                'medalType'              => 'gold',
+                'illustrationType'       => 'web',
+                'overviewHref'           => "/student/courses/{$c->id}/overview",
+            ];
+        })->filter()->values();
+
         return Inertia::render('Student/MyCourses/CompletedCourses', [
-            'enrollments' => $enrollments,
+            'enrollments' => $completedList,
         ]);
     }
 

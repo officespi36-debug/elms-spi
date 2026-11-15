@@ -45,112 +45,13 @@ const isCertModalOpen = ref(false)
 const isNoCertModalOpen = ref(false)
 const selectedCertCourse = ref<CompletedCourseItem | null>(null)
 
-// 4 Completed Courses matching screenshot & prompt
-const courses = ref<CompletedCourseItem[]>([
-  {
-    id: 1,
-    slug: 'web-dev',
-    title: 'Web Development Fundamentals',
-    category: 'Web Development',
-    status: 'completed',
-    progress: 100,
-    teacher: {
-      name: 'Mr. Sophea',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80',
-      role: 'Senior Web Instructor'
-    },
-    completedDate: 'May 25, 2025',
-    completedDateTimestamp: new Date('2025-05-25').getTime(),
-    chaptersCount: 5,
-    lessonsCount: 30,
-    studyTime: '18h 20m',
-    studyTimeMinutes: 18 * 60 + 20,
-    quizScore: 92,
-    hasCertificate: true,
-    certificateId: 'SPI-WD-2025-001',
-    certIssueDate: 'May 25, 2025',
-    medalType: 'gold',
-    illustrationType: 'web',
-    overviewHref: '/student/courses/1/overview'
-  },
-  {
-    id: 2,
-    slug: 'db-systems',
-    title: 'Database Systems',
-    category: 'Database Systems',
-    status: 'completed',
-    progress: 100,
-    teacher: {
-      name: 'Mr. Long Dararith',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80',
-      role: 'Database Specialist'
-    },
-    completedDate: 'May 15, 2025',
-    completedDateTimestamp: new Date('2025-05-15').getTime(),
-    chaptersCount: 4,
-    lessonsCount: 23,
-    studyTime: '12h 10m',
-    studyTimeMinutes: 12 * 60 + 10,
-    quizScore: 88,
-    hasCertificate: true,
-    certificateId: 'SPI-DB-2025-002',
-    certIssueDate: 'May 15, 2025',
-    medalType: 'gold',
-    illustrationType: 'database',
-    overviewHref: '/student/courses/2/overview'
-  },
-  {
-    id: 3,
-    slug: 'python',
-    title: 'Python Programming',
-    category: 'Programming',
-    status: 'completed',
-    progress: 100,
-    teacher: {
-      name: 'Mr. Eng Thida',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&auto=format&fit=crop&q=80',
-      role: 'Python & AI Engineer'
-    },
-    completedDate: 'April 28, 2025',
-    completedDateTimestamp: new Date('2025-04-28').getTime(),
-    chaptersCount: 6,
-    lessonsCount: 28,
-    studyTime: '20h 00m',
-    studyTimeMinutes: 20 * 60,
-    quizScore: 62,
-    hasCertificate: false,
-    missingCertReason: 'Final Assessment Passing Score is 70%. Your current score is 62%.',
-    medalType: 'silver',
-    illustrationType: 'python',
-    overviewHref: '/student/courses/3/overview'
-  },
-  {
-    id: 4,
-    slug: 'ui-ux',
-    title: 'UI/UX Design Basics',
-    category: 'UI/UX Design',
-    status: 'completed',
-    progress: 100,
-    teacher: {
-      name: 'Ms. Nhean Sreymom',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80',
-      role: 'Lead UI/UX Designer'
-    },
-    completedDate: 'April 10, 2025',
-    completedDateTimestamp: new Date('2025-04-10').getTime(),
-    chaptersCount: 4,
-    lessonsCount: 20,
-    studyTime: '15h 30m',
-    studyTimeMinutes: 15 * 60 + 30,
-    quizScore: 95,
-    hasCertificate: true,
-    certificateId: 'SPI-UX-2025-004',
-    certIssueDate: 'April 10, 2025',
-    medalType: 'bronze',
-    illustrationType: 'uiux',
-    overviewHref: '/student/courses/4/overview'
+// Real Completed Courses dynamically computed from Database props
+const courses = computed<CompletedCourseItem[]>(() => {
+  if (props.enrollments && props.enrollments.length > 0) {
+    return props.enrollments
   }
-])
+  return []
+})
 
 // Computed Counts & Analytics
 const totalCount = computed(() => courses.value.length)

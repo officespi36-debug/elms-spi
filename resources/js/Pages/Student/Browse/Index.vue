@@ -75,8 +75,8 @@ const topCategories = [
   { key: 'it', name: 'IT & Software', icon: '💻' }
 ]
 
-// All Catalog Courses (Matching exact screenshot & rich extra catalog)
-const catalogCourses = ref<CatalogCourse[]>([
+// Fallback Catalog Courses
+const fallbackCourses: CatalogCourse[] = [
   {
     id: 101,
     slug: 'js-fundamentals',
@@ -257,7 +257,20 @@ const catalogCourses = ref<CatalogCourse[]>([
     enrollmentStatus: 'not_enrolled',
     overviewHref: '/student/courses/1/overview'
   }
-])
+]
+
+const enrollmentOverrides = ref<Record<number, 'not_enrolled' | 'enrolled' | 'completed'>>({})
+
+// Dynamic Catalog Courses bound to Database props
+const catalogCourses = computed<CatalogCourse[]>(() => {
+  const data = props.courses?.data || props.courses
+  const list: CatalogCourse[] = (Array.isArray(data) && data.length > 0) ? data : fallbackCourses
+  return list.map(c => ({
+    ...c,
+    isWishlisted: wishlistedIds.value.includes(c.id),
+    enrollmentStatus: enrollmentOverrides.value[c.id] || c.enrollmentStatus || 'not_enrolled'
+  }))
+})
 
 // Filter categories list with counts
 const categoryFilters = [
@@ -282,10 +295,8 @@ const toggleWishlist = (course: CatalogCourse, e: Event) => {
   const idx = wishlistedIds.value.indexOf(course.id)
   if (idx > -1) {
     wishlistedIds.value.splice(idx, 1)
-    course.isWishlisted = false
   } else {
     wishlistedIds.value.push(course.id)
-    course.isWishlisted = true
   }
   try {
     localStorage.setItem('spi_wishlist', JSON.stringify(wishlistedIds.value))
@@ -364,7 +375,7 @@ const handleEnrollAction = (course: CatalogCourse) => {
   isDetailsModalOpen.value = false
   if (course.isFree) {
     // Instant free enrollment
-    course.enrollmentStatus = 'enrolled'
+    enrollmentOverrides.value[course.id] = 'enrolled'
     enrolledSuccessCourse.value = course
     isSuccessModalOpen.value = true
   } else {
@@ -380,7 +391,7 @@ const confirmPayment = () => {
     isProcessingPayment.value = false
     isPaymentModalOpen.value = false
     if (selectedCourseForModal.value) {
-      selectedCourseForModal.value.enrollmentStatus = 'enrolled'
+      enrollmentOverrides.value[selectedCourseForModal.value.id] = 'enrolled'
       enrolledSuccessCourse.value = selectedCourseForModal.value
       isSuccessModalOpen.value = true
     }
@@ -392,9 +403,6 @@ onMounted(() => {
     const saved = localStorage.getItem('spi_wishlist')
     if (saved) {
       wishlistedIds.value = JSON.parse(saved)
-      catalogCourses.value.forEach(c => {
-        if (wishlistedIds.value.includes(c.id)) c.isWishlisted = true
-      })
     }
   } catch (e) {}
 })
