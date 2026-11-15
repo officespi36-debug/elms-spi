@@ -28,7 +28,10 @@ class StudentLearningService
                 ->exists();
 
             if (!$isEnrolled) {
-                return null;
+                Enrollment::firstOrCreate(
+                    ['student_id' => $user->id, 'course_id' => $course->id],
+                    ['status' => 'active', 'enrolled_at' => now()]
+                );
             }
             $targetCourse = $course;
         } else {
@@ -45,6 +48,21 @@ class StudentLearningService
                     ->first();
             }
 
+            // If no enrollment, auto-enroll user into primary published course
+            if (!$enrollment || !$enrollment->course) {
+                $defaultCourse = Course::where('status', 'published')
+                    ->whereHas('lessons')
+                    ->first()
+                    ?: Course::where('status', 'published')->first();
+
+                if ($defaultCourse) {
+                    $enrollment = Enrollment::firstOrCreate(
+                        ['student_id' => $user->id, 'course_id' => $defaultCourse->id],
+                        ['status' => 'active', 'enrolled_at' => now()]
+                    );
+                }
+            }
+
             if (!$enrollment || !$enrollment->course) {
                 return null;
             }
@@ -54,6 +72,19 @@ class StudentLearningService
         // 2. Fetch full curriculum for this course
         $curriculum = $this->getCourseCurriculum($user, $targetCourse);
         if (empty($curriculum['lessons'])) {
+            // Fallback to alternative published course that has lessons
+            $altCourse = Course::where('status', 'published')
+                ->where('id', '!=', $targetCourse->id)
+                ->whereHas('lessons')
+                ->first();
+
+            if ($altCourse) {
+                Enrollment::firstOrCreate(
+                    ['student_id' => $user->id, 'course_id' => $altCourse->id],
+                    ['status' => 'active', 'enrolled_at' => now()]
+                );
+                return $this->resolveCurrentLesson($user, $altCourse);
+            }
             return null;
         }
 
@@ -113,7 +144,7 @@ class StudentLearningService
      */
     public function getCourseCurriculum(User $user, Course $course): array
     {
-        $cacheKey = "course_{$course->id}_user_{$user->id}_curriculum_v2";
+        $cacheKey = "course_{$course->id}_user_{$user->id}_curriculum_v3";
 
         return Cache::remember($cacheKey, 60, function () use ($user, $course) {
             $course->load([
@@ -255,13 +286,20 @@ class StudentLearningService
             }
 
             return [
-                'course'                   => $course,
+                'course'                   => [
+                    'id'          => $course->id,
+                    'title'       => $course->title,
+                    'code'        => $course->code,
+                    'description' => $course->description,
+                    'thumbnail'   => $course->thumbnail,
+                    'status'      => $course->status,
+                ],
                 'teacher_name'             => $course->teacher?->name ?: 'SPI Instructor',
                 'teacher_avatar'           => $course->teacher?->avatar,
                 'major_name'               => $course->major?->name ?: 'Academic Studies',
                 'lessons'                  => $flattenedLessons,
                 'chapters'                 => $chapterItems,
-                'progress_map'             => $progressRecords,
+                'progress_map'             => $progressRecords->toArray(),
                 'last_watched_lesson_id'   => $lastWatchedLessonId,
                 'completed_lessons_count'  => $completedCount,
                 'total_lessons_count'      => $totalCount,
@@ -275,7 +313,7 @@ class StudentLearningService
      */
     public function invalidateCourseCache(int $userId, int $courseId): void
     {
-        Cache::forget("course_{$courseId}_user_{$userId}_curriculum_v2");
+        Cache::forget("course_{$courseId}_user_{$userId}_curriculum_v3");
         Cache::forget("student_dashboard_payload_{$userId}");
     }
 

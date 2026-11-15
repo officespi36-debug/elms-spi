@@ -872,6 +872,9 @@ const sidebarNavItems = computed<NavItem[]>(() => {
 
 const isSubActive = (subHref: string) => {
   const currentUrl = page.url
+  if (subHref === '/student/my-courses/current') {
+    return currentUrl === '/student/my-courses/current' || currentUrl.includes('/lessons/')
+  }
   if (subHref.includes('?')) {
     const [path, query] = subHref.split('?')
     if (!currentUrl.startsWith(path)) return false

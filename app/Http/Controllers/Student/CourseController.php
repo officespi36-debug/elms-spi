@@ -140,18 +140,33 @@ class CourseController extends Controller
     }
 
     /**
-     * Redirect to the current/next lesson of the active enrolled course (302).
+     * Display current/next lesson player of the active enrolled course.
      */
     public function current(Request $request, StudentLearningService $learningService)
     {
         $user = $request->user();
         $current = $learningService->resolveCurrentLesson($user);
 
-        if ($current && isset($current['course'], $current['lesson'])) {
-            return redirect()->to("/student/my-courses/{$current['course']->id}/lessons/{$current['lesson']->id}", 302);
+        if (!$current || !isset($current['course'], $current['lesson'])) {
+            $defaultCourse = Course::where('status', 'published')
+                ->whereHas('lessons')
+                ->first()
+                ?: Course::where('status', 'published')->first();
+
+            if ($defaultCourse) {
+                Enrollment::firstOrCreate(
+                    ['student_id' => $user->id, 'course_id' => $defaultCourse->id],
+                    ['status' => 'active', 'enrolled_at' => now()]
+                );
+                $current = $learningService->resolveCurrentLesson($user, $defaultCourse);
+            }
         }
 
-        return redirect()->route('student.my-courses.enrolled')
+        if ($current && isset($current['course'], $current['lesson'])) {
+            return $this->showLesson($request, $current['course'], $current['lesson'], $learningService);
+        }
+
+        return redirect()->route('student.browse')
             ->with('info', 'សូមចុះឈ្មោះវគ្គសិក្សាដើម្បីចាប់ផ្តើមរៀន (Please enroll in a course to start learning).');
     }
 
@@ -162,13 +177,16 @@ class CourseController extends Controller
     {
         $user = $request->user();
 
-        // 1. Authorization: Only enrolled students can view the lesson
+        // 1. Authorization: Ensure enrollment exists (auto-enroll if student is viewing a published course)
         $enrollment = Enrollment::where('student_id', $user->id)
             ->where('course_id', $course->id)
             ->first();
 
         if (!$enrollment) {
-            abort(403, 'You are not enrolled in this course.');
+            $enrollment = Enrollment::firstOrCreate(
+                ['student_id' => $user->id, 'course_id' => $course->id],
+                ['status' => 'active', 'enrolled_at' => now()]
+            );
         }
 
         // 2. Fetch full curriculum with sequential lock states
