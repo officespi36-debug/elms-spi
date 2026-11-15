@@ -826,7 +826,7 @@ const achievements = computed(() => {
       type: 'flame',
       color: 'from-orange-500 to-amber-500',
       href: '/student/certificates/achievements',
-      unlocked: true
+      unlocked: false
     },
     {
       id: 'quick',
@@ -835,7 +835,7 @@ const achievements = computed(() => {
       type: 'book',
       color: 'from-emerald-500 to-teal-500',
       href: '/student/certificates/achievements',
-      unlocked: true
+      unlocked: false
     },
     {
       id: 'quiz_master',
@@ -844,7 +844,7 @@ const achievements = computed(() => {
       type: 'star',
       color: 'from-blue-600 to-indigo-600',
       href: '/student/certificates/achievements',
-      unlocked: true
+      unlocked: false
     },
     {
       id: 'early_bird',
@@ -853,7 +853,7 @@ const achievements = computed(() => {
       type: 'bolt',
       color: 'from-amber-500 to-yellow-500',
       href: '/student/certificates/achievements',
-      unlocked: true
+      unlocked: false
     },
     {
       id: 'top_performer',
@@ -862,7 +862,7 @@ const achievements = computed(() => {
       type: 'trophy',
       color: 'from-yellow-500 to-amber-600',
       href: '/student/certificates/achievements',
-      unlocked: true
+      unlocked: false
     }
   ]
 })
@@ -1460,7 +1460,7 @@ const recentActivities = computed(() => {
                     />
                   </svg>
                   <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-                    <span class="text-xs font-black text-[#1f1f1f] dark:text-[#e3e3e3] leading-none tabular-nums">{{ props.studyTimeBreakdown?.total || props.stats?.learningTime || (currentLang === 'km' ? '២៨h ៤៥m' : '28h 45m') }}</span>
+                    <span class="text-xs font-black text-[#1f1f1f] dark:text-[#e3e3e3] leading-none tabular-nums">{{ props.studyTimeBreakdown?.total || props.stats?.learningTime || (currentLang === 'km' ? '០h ០m' : '0h 0m') }}</span>
                     <span class="text-[10px] text-[#444746] dark:text-[#c4c7c5] mt-0.5">{{ currentLang === 'km' ? 'សរុប' : 'Total' }}</span>
                   </div>
                 </div>
@@ -1469,15 +1469,15 @@ const recentActivities = computed(() => {
                 <div class="space-y-1.5 text-xs text-[#444746] dark:text-[#c4c7c5] font-medium min-w-0">
                   <div class="flex items-center gap-1.5 whitespace-nowrap">
                     <span class="w-2 h-2 rounded-full bg-[#6366f1] shrink-0"></span>
-                    <span class="whitespace-nowrap">{{ currentLang === 'km' ? `មេរៀន: ${props.studyTimeBreakdown?.lessons || '16h 40m'}` : `Lessons: ${props.studyTimeBreakdown?.lessons || '16h 40m'}` }}</span>
+                    <span class="whitespace-nowrap">{{ currentLang === 'km' ? `មេរៀន: ${props.studyTimeBreakdown?.lessons || '0h 0m'}` : `Lessons: ${props.studyTimeBreakdown?.lessons || '0h 0m'}` }}</span>
                   </div>
                   <div class="flex items-center gap-1.5 whitespace-nowrap">
                     <span class="w-2 h-2 rounded-full bg-purple-400 dark:bg-[#a78bfa] shrink-0"></span>
-                    <span class="whitespace-nowrap">{{ currentLang === 'km' ? `ការអនុវត្ត: ${props.studyTimeBreakdown?.practice || '8h 03m'}` : `Practice: ${props.studyTimeBreakdown?.practice || '8h 03m'}` }}</span>
+                    <span class="whitespace-nowrap">{{ currentLang === 'km' ? `ការអនុវត្ត: ${props.studyTimeBreakdown?.practice || '0h 0m'}` : `Practice: ${props.studyTimeBreakdown?.practice || '0h 0m'}` }}</span>
                   </div>
                   <div class="flex items-center gap-1.5 whitespace-nowrap">
                     <span class="w-2 h-2 rounded-full bg-cyan-500 dark:bg-cyan-400 shrink-0"></span>
-                    <span class="whitespace-nowrap">{{ currentLang === 'km' ? `កម្រងសំណួរ: ${props.studyTimeBreakdown?.quiz || '4h 02m'}` : `Quiz: ${props.studyTimeBreakdown?.quiz || '4h 02m'}` }}</span>
+                    <span class="whitespace-nowrap">{{ currentLang === 'km' ? `កម្រងសំណួរ: ${props.studyTimeBreakdown?.quiz || '0h 0m'}` : `Quiz: ${props.studyTimeBreakdown?.quiz || '0h 0m'}` }}</span>
                   </div>
                 </div>
               </div>
@@ -1485,7 +1485,7 @@ const recentActivities = computed(() => {
               <!-- Bottom summary stat row -->
               <div class="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[12px] text-slate-500 dark:text-slate-400">
                 <span>{{ currentLang === 'km' ? 'មធ្យមភាគប្រចាំថ្ងៃ' : 'Daily average' }}</span>
-                <span class="font-semibold text-slate-700 dark:text-slate-300">{{ props.studyTimeBreakdown?.dailyAverage || '4h / day' }}</span>
+                <span class="font-semibold text-slate-700 dark:text-slate-300">{{ props.studyTimeBreakdown?.dailyAverage || (currentLang === 'km' ? '០h / ថ្ងៃ' : '0h / day') }}</span>
               </div>
             </Link>
 
@@ -1500,7 +1500,7 @@ const recentActivities = computed(() => {
                   <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-purple-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                 </div>
                 <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30 whitespace-nowrap shrink-0">
-                  {{ props.quizPerformance?.trend || '+4% vs last test' }}
+                  {{ props.quizPerformance?.trend || (currentLang === 'km' ? 'គ្មានទិន្នន័យ' : 'No quiz data') }}
                 </span>
               </div>
 
@@ -1518,7 +1518,7 @@ const recentActivities = computed(() => {
                     />
                     <path
                       class="text-emerald-500 dark:text-emerald-400 donut-draw"
-                      :stroke-dasharray="`${props.quizPerformance?.averageScoreNum ?? 72}, 100`"
+                      :stroke-dasharray="`${props.quizPerformance?.averageScoreNum ?? 0}, 100`"
                       stroke-width="4"
                       stroke-linecap="round"
                       stroke="currentColor"
@@ -1527,7 +1527,7 @@ const recentActivities = computed(() => {
                     />
                   </svg>
                   <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-                    <span class="text-sm font-black text-[#1f1f1f] dark:text-[#e3e3e3] leading-none">{{ props.quizPerformance?.averageScore || props.stats?.averageScore || '72%' }}</span>
+                    <span class="text-sm font-black text-[#1f1f1f] dark:text-[#e3e3e3] leading-none">{{ props.quizPerformance?.averageScore || props.stats?.averageScore || '0%' }}</span>
                     <span class="text-[9px] text-[#747775] dark:text-[#8e918f] mt-0.5">{{ currentLang === 'km' ? 'មធ្យមភាគ' : 'Average' }}</span>
                   </div>
                 </div>
@@ -1536,11 +1536,11 @@ const recentActivities = computed(() => {
                 <div class="space-y-1.5 text-xs text-[#444746] dark:text-[#c4c7c5] font-medium min-w-0">
                   <div class="flex items-center gap-1.5 whitespace-nowrap">
                     <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 shrink-0"></span>
-                    <span class="whitespace-nowrap">{{ currentLang === 'km' ? `ត្រឹមត្រូវ: ${props.quizPerformance?.correctPct || '72%'}` : `Correct: ${props.quizPerformance?.correctPct || '72%'}` }}</span>
+                    <span class="whitespace-nowrap">{{ currentLang === 'km' ? `ត្រឹមត្រូវ: ${props.quizPerformance?.correctPct || '0%'}` : `Correct: ${props.quizPerformance?.correctPct || '0%'}` }}</span>
                   </div>
                   <div class="flex items-center gap-1.5 whitespace-nowrap">
                     <span class="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
-                    <span class="whitespace-nowrap">{{ currentLang === 'km' ? `មិនត្រឹមត្រូវ: ${props.quizPerformance?.incorrectPct || '28%'}` : `Incorrect: ${props.quizPerformance?.incorrectPct || '28%'}` }}</span>
+                    <span class="whitespace-nowrap">{{ currentLang === 'km' ? `មិនត្រឹមត្រូវ: ${props.quizPerformance?.incorrectPct || '0%'}` : `Incorrect: ${props.quizPerformance?.incorrectPct || '0%'}` }}</span>
                   </div>
                 </div>
               </div>
@@ -1548,7 +1548,7 @@ const recentActivities = computed(() => {
               <!-- Bottom summary stat row -->
               <div class="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[12px] text-slate-500 dark:text-slate-400">
                 <span>{{ currentLang === 'km' ? 'ពិន្ទុខ្ពស់បំផុត' : 'Highest score' }}</span>
-                <span class="font-semibold text-emerald-600 dark:text-emerald-400">{{ props.quizPerformance?.highestScore || '92%' }}</span>
+                <span class="font-semibold text-emerald-600 dark:text-emerald-400">{{ props.quizPerformance?.highestScore || '0%' }}</span>
               </div>
             </Link>
 

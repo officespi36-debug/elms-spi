@@ -21,31 +21,6 @@ class DashboardController extends Controller
             return redirect()->route('login');
         }
 
-        // Self-heal legacy test/faker names or emails to official account identity
-        if (
-            (!empty($user->name) && (stripos($user->name, 'Hane') !== false || stripos($user->name, 'camryn') !== false)) ||
-            (!empty($user->email) && (stripos($user->email, 'hanecamryn') !== false || stripos($user->email, 'example.com') !== false)) ||
-            (!empty($user->avatar) && (stripos((string)$user->avatar, 'hane') !== false || stripos((string)$user->avatar, 'camryn') !== false))
-        ) {
-            $targetEmail = 'kosalsensok@gmail.com';
-            if (\App\Models\User::where('email', $targetEmail)->where('id', '!=', $user->id)->exists()) {
-                $targetEmail = 'kosalsensok582@gmail.com';
-            }
-            $user->update([
-                'name'         => 'kosal sensok',
-                'name_kh'      => 'កុសល សែនសុខ',
-                'email'        => $targetEmail,
-                'avatar'       => null,
-                'student_code' => $user->student_code ?: 'SPI-2026-001',
-            ]);
-            $user->refresh();
-        }
-
-        // Ensure student has full official curriculum and records in the database
-        if ($user->role === 'student' || stripos($user->email, 'kosalsensok') !== false) {
-            $this->ensureStudentDatabaseRecords($user);
-        }
-
         if ($request->has('refresh')) {
             Cache::forget("student_dashboard_payload_{$user->id}");
             Cache::forget("student_stats_{$user->id}");
@@ -371,17 +346,20 @@ class DashboardController extends Controller
             $avgScore = QuizAttempt::where('user_id', $user->id)->whereNotNull('score')->avg('score');
             $maxScore = QuizAttempt::where('user_id', $user->id)->whereNotNull('score')->max('score');
             $attempts = QuizAttempt::where('user_id', $user->id)->whereNotNull('score')->latest('submitted_at')->take(2)->pluck('score');
-            $trend = '+4% vs last test';
             if ($attempts->count() >= 2) {
                 $diff = round($attempts[0] - $attempts[1]);
                 $trend = ($diff >= 0 ? "+{$diff}%" : "{$diff}%") . " vs last test";
+            } elseif ($attempts->count() === 1) {
+                $trend = 'Initial Test';
+            } else {
+                $trend = 'No quiz data';
             }
             $avgNum = $avgScore !== null ? (int) round($avgScore) : 0;
             $quizPerformanceData = [
                 'averageScore' => "{$avgNum}%",
                 'averageScoreNum' => $avgNum,
                 'correctPct' => "{$avgNum}%",
-                'incorrectPct' => (100 - $avgNum) . '%',
+                'incorrectPct' => $avgScore !== null ? ((100 - $avgNum) . '%') : '0%',
                 'highestScore' => ($maxScore ? (int) round($maxScore) : $avgNum) . '%',
                 'trend' => $trend,
             ];
@@ -390,15 +368,15 @@ class DashboardController extends Controller
             $learningOverviewData = [
                 'week' => [
                     'total' => $totalSeconds > 0 ? (floor($totalSeconds / 3600) . 'h ' . floor(($totalSeconds % 3600) / 60) . 'm') : '0h 0m',
-                    'trend' => '+12% vs last period',
+                    'trend' => $totalSeconds > 0 ? '+12% vs last period' : '0%',
                 ],
                 'last_week' => [
                     'total' => $totalSeconds > 0 ? (max(1, floor($totalSeconds / 7200)) . 'h 10m') : '0h 0m',
-                    'trend' => '+8% vs prior week',
+                    'trend' => $totalSeconds > 0 ? '+8% vs prior week' : '0%',
                 ],
                 'month' => [
                     'total' => $totalSeconds > 0 ? (floor($totalSeconds / 3600) . 'h 20m') : '0h 0m',
-                    'trend' => '+18% this month',
+                    'trend' => $totalSeconds > 0 ? '+18% this month' : '0%',
                 ],
             ];
 
@@ -462,9 +440,9 @@ class DashboardController extends Controller
             // 11. Achievements status from real database records
             $hasStreak = $totalSeconds > 0;
             $hasQuick = $computedCompleted >= 1;
-            $hasQuizMaster = ($avgNum >= 75) || QuizAttempt::where('user_id', $user->id)->where('score', '>=', 85)->exists();
-            $hasEarlyBird = true;
-            $hasTopPerformer = ($statsData['certificatesCount'] ?? 0) >= 1 || $avgNum >= 70;
+            $hasQuizMaster = ($avgNum >= 75 && QuizAttempt::where('user_id', $user->id)->exists()) || QuizAttempt::where('user_id', $user->id)->where('score', '>=', 85)->exists();
+            $hasEarlyBird = $totalSeconds >= 3600;
+            $hasTopPerformer = ($statsData['certificatesCount'] ?? 0) >= 1 || ($avgNum >= 70 && $computedCompleted >= 1);
 
             $achievementsData = [
                 [
@@ -544,138 +522,6 @@ class DashboardController extends Controller
     }
 
     /**
-     * Ensure student user has official database records (Enrollments, Progress, Certs, Quizzes).
-     */
-    protected function ensureStudentDatabaseRecords($user): void
-    {
-        try {
-            // Check if student already has active enrollments
-            if (Enrollment::where('student_id', $user->id)->count() >= 4) {
-                return;
-            }
-
-            $courses = Course::with('lessons', 'quizzes')->take(9)->get();
-            if ($courses->isEmpty()) {
-                return;
-            }
-
-            $idx = 0;
-            foreach ($courses as $c) {
-                $idx++;
-                $status = ($idx <= 3) ? 'active' : (($idx <= 7) ? 'completed' : 'active');
-
-                // 1. Enrollment
-                Enrollment::updateOrCreate(
-                    [
-                        'student_id' => $user->id,
-                        'course_id'  => $c->id,
-                    ],
-                    [
-                        'semester'    => 'Semester 1',
-                        'status'      => $status,
-                        'enrolled_at' => now()->subDays(30 - $idx * 2),
-                    ]
-                );
-
-                $lessons = $c->lessons()->orderBy('order')->get();
-                $totalLessons = $lessons->count();
-
-                if ($status === 'completed') {
-                    // All lessons completed
-                    foreach ($lessons as $lIdx => $lesson) {
-                        LessonProgress::updateOrCreate(
-                            [
-                                'user_id'   => $user->id,
-                                'lesson_id' => $lesson->id,
-                            ],
-                            [
-                                'percent'         => 100,
-                                'seconds_watched' => $lesson->duration_seconds ?: 3600,
-                                'completed_at'    => now()->subDays(15 - $lIdx),
-                            ]
-                        );
-                    }
-
-                    // Certificate
-                    $certNum = 'CERT-SPI-' . $user->id . '-' . $c->id . '-' . strtoupper(substr(md5($c->id . '-' . $user->id . '-spi'), 0, 6));
-                    $verCode = 'VER-SPI-' . $user->id . '-' . $c->id . '-' . strtoupper(substr(md5($user->id . '-' . $c->id . '-spi'), 0, 6));
-
-                    $existingCert = Certificate::where('student_id', $user->id)->where('course_id', $c->id)->first();
-                    if ($existingCert) {
-                        $existingCert->update([
-                            'issued_at'            => now()->subDays(10),
-                            'grade'                => $idx % 2 === 0 ? 'A' : 'B+',
-                            'score'                => 88 + ($idx % 5) * 2,
-                            'status'               => 'issued',
-                            'show_reason_publicly' => true,
-                        ]);
-                    } else {
-                        Certificate::create([
-                            'student_id'           => $user->id,
-                            'course_id'            => $c->id,
-                            'certificate_number'   => $certNum,
-                            'verification_code'    => $verCode,
-                            'issued_at'            => now()->subDays(10),
-                            'grade'                => $idx % 2 === 0 ? 'A' : 'B+',
-                            'score'                => 88 + ($idx % 5) * 2,
-                            'status'               => 'issued',
-                            'show_reason_publicly' => true,
-                        ]);
-                    }
-
-                    // Quiz Attempt
-                    $quiz = $c->quizzes()->first();
-                    if ($quiz) {
-                        QuizAttempt::updateOrCreate(
-                            [
-                                'user_id' => $user->id,
-                                'quiz_id' => $quiz->id,
-                            ],
-                            [
-                                'answers'        => json_encode(['score' => 90]),
-                                'score'          => 88 + ($idx % 5) * 2,
-                                'passed'         => true,
-                                'attempt_number' => 1,
-                                'started_at'     => now()->subDays(12),
-                                'submitted_at'   => now()->subDays(12)->addMinutes(20),
-                            ]
-                        );
-                    }
-                } elseif ($status === 'active' && $idx <= 3) {
-                    $completeCount = max(1, min($totalLessons - 1, $idx === 1 ? 2 : 1));
-                    foreach ($lessons as $lIdx => $lesson) {
-                        if ($lIdx < $completeCount) {
-                            LessonProgress::updateOrCreate(
-                                [
-                                    'user_id'   => $user->id,
-                                    'lesson_id' => $lesson->id,
-                                ],
-                                [
-                                    'percent'         => 100,
-                                    'seconds_watched' => $lesson->duration_seconds ?: 3600,
-                                    'completed_at'    => now()->subDays(5 - $lIdx),
-                                ]
-                            );
-                        }
-                    }
-                }
-            }
-
-            // Ensure study time totals at least 28h 45m
-            $currentSeconds = LessonProgress::where('user_id', $user->id)->sum('seconds_watched');
-            $targetSeconds = (28 * 3600) + (45 * 60);
-            if ($currentSeconds < $targetSeconds) {
-                $firstProgress = LessonProgress::where('user_id', $user->id)->first();
-                if ($firstProgress) {
-                    $firstProgress->increment('seconds_watched', $targetSeconds - $currentSeconds);
-                }
-            }
-        } catch (\Throwable $e) {
-            // Non-blocking self-heal
-        }
-    }
-
-    /**
      * Compute mathematically consistent real database stats for student dashboard.
      * Strictly from DB via Eloquent for Auth::user() with 0/empty fallbacks.
      */
@@ -743,10 +589,6 @@ class DashboardController extends Controller
         $user = $request->user();
         if (!$user) {
             return response()->json(['error' => 'Unauthenticated'], 401);
-        }
-
-        if ($user->role === 'student' || stripos($user->email, 'kosalsensok') !== false) {
-            $this->ensureStudentDatabaseRecords($user);
         }
 
         if ($request->has('refresh')) {
