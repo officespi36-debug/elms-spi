@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { Link, usePage, router } from '@inertiajs/vue3'
 import StudentLayout from '@/Layouts/StudentLayout.vue'
+import TodaysGoalWidget from '@/Components/Student/TodaysGoalWidget.vue'
 import { i18n } from '@/Services/i18n'
 
 const props = defineProps<{
@@ -389,68 +390,7 @@ const continueCourseData = computed(() => {
   return props.continueCourse || null
 })
 
-// Today's Goal (Interactive tasks with database & local state)
-const todayGoal = ref(props.todayGoals || {
-  completedCount: 1,
-  totalCount: 2,
-  percentage: 50,
-  items: [
-    {
-      id: 1,
-      titleEn: 'Continue Learning Core Academic Lessons',
-      titleKm: 'បន្តការសិក្សាមេរៀនក្នុងវគ្គសិក្សាគោល',
-      completed: true,
-      href: '/student/my-courses/enrolled'
-    },
-    {
-      id: 2,
-      titleEn: 'Practice 10 quiz questions',
-      titleKm: 'អនុវត្តសំណួរ Quiz ចំនួន ១០',
-      completed: false,
-      href: '/student/quizzes/practice'
-    }
-  ]
-})
-
-const isAddGoalOpen = ref(false)
-const newGoalTitle = ref('')
-
-const saveGoalsToStorage = () => {
-  if (typeof window !== 'undefined') {
-    try {
-      const key = 'student_today_goals_' + (user.value?.id || 'default')
-      localStorage.setItem(key, JSON.stringify(todayGoal.value))
-    } catch {}
-  }
-}
-
-const toggleTask = (task: any) => {
-  task.completed = !task.completed
-  recalculateGoals()
-}
-
-const recalculateGoals = () => {
-  const done = todayGoal.value.items.filter(i => i.completed).length
-  todayGoal.value.completedCount = done
-  todayGoal.value.totalCount = todayGoal.value.items.length || 1
-  todayGoal.value.percentage = Math.round((done / todayGoal.value.totalCount) * 100)
-  saveGoalsToStorage()
-}
-
-const addNewGoal = () => {
-  if (!newGoalTitle.value.trim()) return
-  const text = newGoalTitle.value.trim()
-  todayGoal.value.items.push({
-    id: Date.now(),
-    titleEn: text,
-    titleKm: text,
-    completed: false,
-    href: '/student/my-courses/enrolled'
-  })
-  newGoalTitle.value = ''
-  isAddGoalOpen.value = false
-  recalculateGoals()
-}
+// Today's Goal state & persistence are encapsulated inside TodaysGoalWidget.vue
 
 // AI Recommended For You Widget Data (Connected to Database)
 const aiRecommendations = computed(() => {
@@ -1702,92 +1642,12 @@ const recentActivities = computed(() => {
         <!-- RIGHT 4 COLUMNS -->
         <div class="lg:col-span-4 space-y-6">
           
-          <!-- TODAY'S GOAL CARD -->
-          <div class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3">
-            <div class="flex items-center justify-between">
-              <h3 class="text-[18px] font-semibold text-slate-900 dark:text-slate-100">
-                {{ currentLang === 'km' ? 'គោលដៅថ្ងៃនេះ' : "Today's goal" }}
-              </h3>
-              <div class="flex items-center gap-2">
-                <span class="px-2.5 py-0.5 rounded-full bg-[#e6f4ea] dark:bg-emerald-500/20 text-[#137333] dark:text-emerald-400 text-[10px] font-semibold border border-[#ceead6] dark:border-emerald-500/30">
-                  {{ currentLang === 'km' ? `រួចរាល់ ${todayGoal.completedCount} / ${todayGoal.totalCount}` : `${todayGoal.completedCount} / ${todayGoal.totalCount} Done` }}
-                </span>
-                <button
-                  @click="isAddGoalOpen = !isAddGoalOpen"
-                  class="w-6 h-6 rounded-full bg-[#e8f0fe] hover:bg-[#d2e3fc] dark:bg-purple-600/10 dark:hover:bg-purple-600/20 text-[#0b57d0] dark:text-[#8ab4f8] flex items-center justify-center text-xs font-bold cursor-pointer"
-                  :title="currentLang === 'km' ? 'បន្ថែមគោលដៅ' : 'Add custom task'"
-                >
-                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-                </button>
-              </div>
-            </div>
-
-            <!-- Add Task Form -->
-            <div v-if="isAddGoalOpen" class="p-2.5 rounded-2xl bg-[#f8fafd] dark:bg-[#131314] border border-[#dfe3e7] dark:border-[#2d2f31] space-y-2">
-              <input
-                v-model="newGoalTitle"
-                type="text"
-                :placeholder="currentLang === 'km' ? 'បញ្ចូលគោលដៅសិក្សាថ្មី...' : 'Enter new study goal...'"
-                class="w-full px-3 py-1.5 rounded-full bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#3c4043] text-xs text-[#1f1f1f] dark:text-[#e3e3e3]"
-                @keyup.enter="addNewGoal"
-              />
-              <div class="flex justify-end gap-2 text-xs">
-                <button
-                  @click="isAddGoalOpen = false"
-                  class="px-3 py-1 rounded-full text-[#444746] hover:text-[#1f1f1f] dark:hover:text-[#e3e3e3] text-[11px]"
-                >
-                  {{ currentLang === 'km' ? 'បោះបង់' : 'Cancel' }}
-                </button>
-                <button
-                  @click="addNewGoal"
-                  class="px-4 py-1 rounded-full bg-[#0b57d0] hover:bg-[#1557bf] dark:bg-[#a8c7fa] dark:hover:bg-[#b8d2fa] text-white dark:text-[#041e49] font-medium text-[11px] shadow-sm"
-                >
-                  {{ currentLang === 'km' ? 'បន្ថែមគោលដៅ' : 'Add Goal' }}
-                </button>
-              </div>
-            </div>
-
-            <p class="text-xs text-[#444746] dark:text-[#c4c7c5] font-medium">
-              {{ currentLang === 'km' ? 'រក្សាសន្ទុះនៃការសិក្សារបស់អ្នកឱ្យបន្តទៅមុខ!' : 'Keep your study momentum going!' }}
-            </p>
-
-            <div class="space-y-1.5">
-              <div class="w-full h-1.5 rounded-full bg-[#e1e3e1] dark:bg-[#282a2c] overflow-hidden">
-                <div class="h-full bg-[#137333] dark:bg-emerald-500 rounded-full transition-all duration-900 ease-out" :style="{ width: todayGoal.percentage + '%' }"></div>
-              </div>
-              <p class="text-xs text-right text-[#444746] dark:text-[#c4c7c5] tabular-nums font-semibold">
-                {{ currentLang === 'km' ? `សម្រេចបាន ${todayGoal.percentage}%` : `${todayGoal.percentage}% completed` }}
-              </p>
-            </div>
-
-            <!-- Task Checklist with Smooth Checkbox Bounce & Strikethrough -->
-            <div class="space-y-2 pt-1">
-              <div
-                v-for="item in todayGoal.items"
-                :key="item.id"
-                class="flex items-center justify-between p-2.5 rounded-2xl bg-[#f8fafd] dark:bg-[#131314] border border-[#dfe3e7] dark:border-[#2d2f31] text-xs hover:bg-[#f0f4f9] dark:hover:bg-[#282a2c] transition-colors"
-              >
-                <button
-                  @click="toggleTask(item)"
-                  type="button"
-                  class="flex items-center gap-3 text-left flex-1 cursor-pointer group"
-                >
-                  <span v-if="item.completed" class="w-5 h-5 rounded-full bg-[#137333] text-white flex items-center justify-center shrink-0 shadow-2xs goal-checkbox-bounce">
-                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                  </span>
-                  <span v-else class="w-5 h-5 rounded-full border-2 border-[#c7c7c7] dark:border-[#3c4043] group-hover:border-[#0b57d0] dark:group-hover:border-[#8ab4f8] transition-colors flex items-center justify-center shrink-0"></span>
-                  <span :class="[item.completed ? 'line-through text-[#444746] dark:text-[#c4c7c5] opacity-75' : 'text-[#1f1f1f] dark:text-[#e3e3e3] font-medium']" class="text-xs transition-all duration-300">
-                    {{ currentLang === 'km' ? (item.titleKm || item.titleEn) : (item.titleEn || item.titleKm) }}
-                  </span>
-                </button>
-                
-                <Link :href="item.href" class="text-[#0b57d0] dark:text-[#8ab4f8] hover:underline text-xs font-semibold ml-2 flex items-center gap-0.5">
-                  <span>{{ currentLang === 'km' ? 'បើក' : 'Open' }}</span>
-                  <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                </Link>
-              </div>
-            </div>
-          </div>
+          <!-- TODAY'S GOAL WIDGET -->
+          <TodaysGoalWidget
+            :initial-goals="props.todayGoals"
+            :user-id="user?.id"
+            :current-lang="currentLang"
+          />
 
           <!-- AI RECOMMENDED FOR YOU CARD (Uniform thin border, single header, no 16px text) -->
           <div class="relative overflow-hidden bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-[#0b57d0] dark:hover:border-[#8ab4f8] rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3.5 transition-all">
