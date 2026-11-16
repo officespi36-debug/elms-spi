@@ -213,22 +213,17 @@ watch(
       v-if="isGlobalProcessing"
       role="status"
       aria-live="polite"
-      class="fixed inset-0 z-[10000] flex items-center justify-center p-4 pointer-events-none select-none"
+      class="fixed inset-0 z-[10000] flex flex-col items-center justify-center gap-3.5 pointer-events-none select-none"
     >
-      <div class="relative p-[2px] rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(15,23,42,0.28)]">
-        <div class="elms-frame-runner" aria-hidden="true"></div>
-        <div class="relative px-8 py-5 rounded-[14px] bg-white dark:bg-slate-900 flex flex-col items-center justify-center gap-3.5 min-w-[240px]">
-          <div class="flex items-center justify-center gap-3.5 pt-1" aria-hidden="true">
-            <span class="elms-dot elms-dot-1"></span>
-            <span class="elms-dot elms-dot-2"></span>
-            <span class="elms-dot elms-dot-3"></span>
-            <span class="elms-dot elms-dot-4"></span>
-          </div>
-          <p class="elms-loading-text text-sm font-bold tracking-wide text-slate-800 dark:text-slate-100 flex items-center">
-            <span>{{ loadingText }}</span><span class="elms-ellipsis" aria-hidden="true">...</span>
-          </p>
-        </div>
+      <div class="flex items-center justify-center gap-3.5" aria-hidden="true">
+        <span class="elms-dot elms-dot-1"></span>
+        <span class="elms-dot elms-dot-2"></span>
+        <span class="elms-dot elms-dot-3"></span>
+        <span class="elms-dot elms-dot-4"></span>
       </div>
+      <p class="elms-loading-text text-sm sm:text-base font-bold tracking-wide text-slate-900 dark:text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)] flex items-center">
+        <span>{{ loadingText }}</span><span class="elms-ellipsis" aria-hidden="true">...</span>
+      </p>
     </div>
   </Transition>
   <!-- Centered Screen Notice / Confirmation Card (e.g. Continue Learning when not enrolled yet) -->
@@ -246,17 +241,13 @@ watch(
       aria-modal="true"
       class="fixed inset-0 z-[10001] flex items-center justify-center p-4 pointer-events-none"
     >
-      <div class="pointer-events-auto relative w-full max-w-sm p-[2.5px] rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.4)]">
-        <!-- Animated light beam running around the frame -->
-        <div class="elms-frame-runner" aria-hidden="true"></div>
-
-        <div class="relative w-full rounded-[14px] bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 px-6 py-6 flex flex-col items-center text-center gap-3">
+      <div class="pointer-events-auto relative w-full max-w-xs px-4 py-4 flex flex-col items-center text-center gap-3">
         <!-- Close button -->
         <button
           type="button"
           @click="dismissCenterNotice"
           :aria-label="currentLang === 'km' ? 'បិទ' : 'Close'"
-          class="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          class="absolute top-0 right-0 w-8 h-8 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
         >
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -268,22 +259,22 @@ watch(
           :class="[
             'w-12 h-12 rounded-full flex items-center justify-center',
             centerNotice.type === 'warning'
-              ? 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400'
-              : 'bg-purple-100 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400'
+              ? 'text-amber-500'
+              : 'text-purple-500 dark:text-purple-400'
           ]"
         >
-          <svg v-if="centerNotice.type === 'warning'" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <svg v-if="centerNotice.type === 'warning'" class="w-8 h-8 drop-shadow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
           </svg>
-          <svg v-else class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <svg v-else class="w-8 h-8 drop-shadow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
           </svg>
         </div>
 
-        <h3 class="text-base font-bold text-slate-900 dark:text-white">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.45)]">
           {{ centerNotice.title }}
         </h3>
-        <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+        <p class="text-sm font-medium text-slate-800 dark:text-slate-100 leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.45)]">
           {{ centerNotice.message }}
         </p>
 
@@ -294,7 +285,6 @@ watch(
         >
           {{ currentLang === 'km' ? 'យល់ព្រម' : 'OK, Got it' }}
         </button>
-        </div>
       </div>
     </div>
   </Transition>
