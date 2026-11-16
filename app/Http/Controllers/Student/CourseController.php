@@ -15,6 +15,7 @@ use App\Models\Notification;
 use App\Models\ReportedContent;
 use App\Services\CertificateService;
 use App\Services\ContinueLearningService;
+use App\Services\CourseProgressService;
 use App\Services\EnrollmentService;
 use App\Services\StudentLearningService;
 use Illuminate\Http\Request;
@@ -42,12 +43,33 @@ class CourseController extends Controller
         ]);
     }
 
-    public function enrolled(Request $request, StudentLearningService $learningService)
+    public function enrolled(Request $request, CourseProgressService $progressService)
     {
         $user = $request->user();
+
+        // 1. Validation of query parameters
+        $status = (string)$request->query('status', 'all');
+        if (!in_array($status, ['all', 'in_progress', 'not_started', 'completed'])) {
+            $status = 'all';
+        }
+        $category = (string)$request->query('category', 'all');
+        $sort = (string)$request->query('sort', 'newest');
+        if (!in_array($sort, ['newest', 'recent', 'progress', 'title'])) {
+            $sort = 'newest';
+        }
+        $q = substr(trim((string)$request->query('q', '')), 0, 100);
+
+        $savedView = is_array($user->preferences) ? ($user->preferences['courses_view'] ?? 'grid') : 'grid';
+        $view = (string)$request->query('view', $savedView);
+        if (!in_array($view, ['grid', 'list'])) {
+            $view = 'grid';
+        }
+
+        // 2. Fetch all active/completed enrollments for Auth student
         $enrollments = Enrollment::where('student_id', $user->id)
+            ->whereIn('status', ['active', 'completed'])
             ->with([
-                'course.teacher:id,name,avatar',
+                'course.teacher:id,name,name_kh,email,avatar,role',
                 'course.major:id,name',
                 'course.modules.lessons:id,module_id,course_id,title,order,duration_seconds',
                 'course.lessons:id,course_id,title,order,duration_seconds',
@@ -56,76 +78,12 @@ class CourseController extends Controller
             ->latest('updated_at')
             ->get();
 
-        // High-Performance Optimization: Eager load all lesson progress in a single query (Eliminates N+1)
-        $allLessonIds = collect();
-        foreach ($enrollments as $enr) {
-            if (!$enr->course) continue;
-            if ($enr->course->modules && $enr->course->modules->count() > 0) {
-                foreach ($enr->course->modules as $mod) {
-                    if ($mod->lessons) {
-                        $allLessonIds = $allLessonIds->merge($mod->lessons->pluck('id'));
-                    }
-                }
-            }
-            if ($enr->course->lessons) {
-                $allLessonIds = $allLessonIds->merge($enr->course->lessons->pluck('id'));
-            }
-        }
-        $allLessonIds = $allLessonIds->unique()->filter()->values()->all();
+        // 3. High-performance unified progress calculation (0 N+1 queries)
+        $computedCollection = $progressService->calculateForEnrollments($user, $enrollments);
 
-        $userProgressRecords = empty($allLessonIds)
-            ? collect()
-            : LessonProgress::where('user_id', $user->id)
-                ->whereIn('lesson_id', $allLessonIds)
-                ->select(['id', 'user_id', 'lesson_id', 'percent', 'seconds_watched', 'completed_at'])
-                ->get()
-                ->keyBy('lesson_id');
-
-        $enrolledList = $enrollments->map(function ($enr) use ($user, $userProgressRecords) {
-            $c = $enr->course;
-            if (!$c) return null;
-
-            $lessons = collect();
-            if ($c->modules && $c->modules->count() > 0) {
-                foreach ($c->modules as $mod) {
-                    if ($mod->lessons) {
-                        foreach ($mod->lessons as $l) {
-                            $lessons->push($l);
-                        }
-                    }
-                }
-            }
-            if ($lessons->isEmpty()) {
-                $lessons = $c->lessons ?: collect();
-            }
-
-            $lessonIds = $lessons->pluck('id')->all();
-            $totalLessons = count($lessonIds);
-
-            // In-memory completion count calculation (0 DB queries)
-            $completedCount = 0;
-            foreach ($lessonIds as $lid) {
-                $p = $userProgressRecords->get($lid);
-                if ($p && ($p->percent >= 90 || !empty($p->completed_at))) {
-                    $completedCount++;
-                }
-            }
-
-            $progress = $totalLessons > 0 ? (int) round(($completedCount / $totalLessons) * 100) : 0;
-            if ($enr->status === 'completed' || $progress >= 100) {
-                $status = 'completed';
-                $progress = 100;
-            } elseif ($progress > 0 || $enr->status === 'active') {
-                $status = 'in_progress';
-            } else {
-                $status = 'not_started';
-            }
-
-            // In-memory next lesson resolution (0 DB queries)
-            $nextLesson = $lessons->first(function ($l) use ($userProgressRecords) {
-                $p = $userProgressRecords->get($l->id);
-                return !$p || ($p->percent < 90 && empty($p->completed_at));
-            }) ?: $lessons->first();
+        $allCoursesList = $computedCollection->map(function ($item) use ($progressService) {
+            $enr = $item['enrollment'];
+            $c = $item['course'];
 
             $titleLower = strtolower($c->title . ' ' . ($c->major->name ?? ''));
             $themeColor = 'indigo';
@@ -146,6 +104,8 @@ class CourseController extends Controller
                 $illus = 'uiux';
             }
 
+            $teacherName = $progressService->cleanTeacherName($c->teacher, $c);
+
             return [
                 'id'                 => $c->id,
                 'enrollment_id'      => $enr->id,
@@ -159,24 +119,26 @@ class CourseController extends Controller
                 'source'             => $enr->source ?: 'system',
                 'slug'               => $c->code ?: ('course-' . $c->id),
                 'title'              => $c->title,
+                'thumbnail'          => $c->thumbnail ?: null,
                 'category'           => $c->major?->name ?: 'Academic Studies',
-                'status'             => $status,
-                'statusLabel'        => $status === 'completed' ? 'Completed' : ($status === 'in_progress' ? 'In Progress' : 'Not Started'),
-                'progress'           => $progress,
+                'status'             => $item['state'],
+                'statusLabel'        => $item['state_label'],
+                'progress'           => $item['percent'],
                 'teacher'            => [
-                    'name'   => $c->teacher?->name ?: 'Dr. Mengly Chea',
+                    'name'   => $teacherName,
                     'avatar' => $c->teacher?->avatar ?: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80',
                     'role'   => 'SPI Instructor',
                 ],
-                'currentChapter'     => $c->modules?->first()?->title ?: 'Module 1',
-                'completedChapters'  => (int) round(($c->modules?->count() ?: 1) * ($progress / 100)),
-                'totalChapters'      => $c->modules?->count() ?: 1,
-                'currentLesson'      => $nextLesson?->title ?: 'Lesson 1',
-                'completedLessons'   => $completedCount,
-                'totalLessons'       => $totalLessons,
-                'remainingTime'      => $progress >= 100 ? 'Completed' : 'Study in progress',
-                'lastAccessed'       => $enr->updated_at ? $enr->updated_at->diffForHumans() : 'Recently',
-                'lastAccessedTimeMs' => $enr->updated_at ? $enr->updated_at->getTimestamp() * 1000 : 0,
+                'currentChapter'     => $item['current_module_title'],
+                'currentModuleIndex' => $item['current_module_index'],
+                'completedChapters'  => $item['completed_modules'],
+                'totalChapters'      => $item['total_modules'],
+                'currentLesson'      => $item['current_lesson_title'],
+                'completedLessons'   => $item['lessons_done'],
+                'totalLessons'       => $item['lessons_total'],
+                'remainingTime'      => $item['percent'] >= 100 ? 'Completed' : 'Study in progress',
+                'lastAccessed'       => $item['last_activity_at'] ?: 'Not started yet',
+                'lastAccessedTimeMs' => $item['last_activity_ms'],
                 'enrolledDate'       => $enr->enrolled_at ? $enr->enrolled_at->format('Y-m-d') : ($enr->created_at ? $enr->created_at->format('Y-m-d') : '2026-08-01'),
                 'overviewHref'       => "/student/courses/{$c->id}/overview",
                 'learningHref'       => "/student/my-courses/{$c->id}/continue",
@@ -185,10 +147,59 @@ class CourseController extends Controller
                 'accentGradient'     => $gradient,
                 'illustrationType'   => $illus,
             ];
-        })->filter()->values();
+        });
+
+        // 4. Calculate accurate counts from single unified collection
+        $counts = [
+            'all'         => $allCoursesList->count(),
+            'in_progress' => $allCoursesList->where('status', 'in_progress')->count(),
+            'not_started' => $allCoursesList->where('status', 'not_started')->count(),
+            'completed'   => $allCoursesList->where('status', 'completed')->count(),
+        ];
+
+        // 5. Distinct categories from user courses
+        $distinctCategories = $allCoursesList->pluck('category')->unique()->filter()->values()->all();
+
+        // 6. Filter by status, category, and search query
+        $filtered = $allCoursesList;
+        if ($status !== 'all') {
+            $filtered = $filtered->where('status', $status);
+        }
+        if ($category !== 'all') {
+            $filtered = $filtered->where('category', $category);
+        }
+        if (!empty($q)) {
+            $qLower = strtolower($q);
+            $filtered = $filtered->filter(function ($item) use ($qLower) {
+                return str_contains(strtolower($item['title']), $qLower)
+                    || str_contains(strtolower($item['teacher']['name']), $qLower)
+                    || str_contains(strtolower($item['category']), $qLower)
+                    || str_contains(strtolower($item['currentLesson']), $qLower);
+            });
+        }
+
+        // 7. Sort
+        if ($sort === 'recent') {
+            $filtered = $filtered->sortByDesc('lastAccessedTimeMs');
+        } elseif ($sort === 'progress') {
+            $filtered = $filtered->sortByDesc('progress');
+        } elseif ($sort === 'title') {
+            $filtered = $filtered->sortBy('title', SORT_NATURAL | SORT_FLAG_CASE);
+        } else { // 'newest'
+            $filtered = $filtered->sortByDesc('enrollment_id');
+        }
 
         return Inertia::render('Student/MyCourses/EnrolledCourses', [
-            'enrollments' => $enrolledList,
+            'enrollments' => $filtered->values()->all(),
+            'counts'      => $counts,
+            'categories'  => $distinctCategories,
+            'filters'     => [
+                'status'   => $status,
+                'category' => $category,
+                'sort'     => $sort,
+                'q'        => $q,
+                'view'     => $view,
+            ],
         ]);
     }
 
@@ -247,6 +258,12 @@ class CourseController extends Controller
             }
             return redirect()->route('student.my-courses.enrolled')
                 ->with('warning', 'ស្ថានភាពចុះឈ្មោះមិនទាន់សកម្មទេ (Enrollment is not active).');
+        }
+
+        // Mark enrollment as seen on first access
+        if ($enrollment && $enrollment->seen_at === null) {
+            $enrollment->update(['seen_at' => now()]);
+            Cache::forget("student.{$user->id}.new_enrollments");
         }
 
         $resolved = $continueService->resolve($user, $course);

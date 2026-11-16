@@ -22,6 +22,7 @@ class PreferenceController extends Controller
             'sidebar_collapsed' => ['nullable', 'boolean'],
             'theme'             => ['nullable', 'string', 'in:light,dark,system'],
             'locale'            => ['nullable', 'string', 'in:km,en'],
+            'courses_view'      => ['nullable', 'string', 'in:grid,list'],
         ]);
 
         $currentPreferences = $user->preferences ?? [];
@@ -30,7 +31,7 @@ class PreferenceController extends Controller
         }
 
         // Whitelist merge
-        foreach (['sidebar_collapsed', 'theme', 'locale'] as $key) {
+        foreach (['sidebar_collapsed', 'theme', 'locale', 'courses_view'] as $key) {
             if (array_key_exists($key, $validated)) {
                 $currentPreferences[$key] = $validated[$key];
             }

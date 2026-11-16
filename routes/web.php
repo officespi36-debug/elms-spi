@@ -533,6 +533,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/completed', [Student\CourseController::class, 'completed'])->name('completed');
             Route::get('/browse', [Student\BrowseController::class, 'index'])->name('browse');
             Route::get('/overview', [Student\CourseController::class, 'overview'])->name('overview');
+            Route::get('/{course}', [Student\CourseController::class, 'overview'])->name('show');
             Route::get('/{course}/overview', [Student\CourseController::class, 'overview'])->name('course.overview');
             Route::get('/{course}/lessons/{lesson}', [Student\CourseController::class, 'showLesson'])->name('lessons.show');
             Route::get('/wishlist', [Student\CourseController::class, 'wishlist'])->name('wishlist');
