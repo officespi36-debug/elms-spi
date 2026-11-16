@@ -279,10 +279,12 @@ class CourseController extends Controller
         }
 
         if (!empty($resolved['course'])) {
-            return redirect()->to("/student/courses/{$resolved['course']->id}/overview");
+            return redirect()->to("/student/courses/{$resolved['course']->id}/overview")
+                ->with('info', 'វគ្គសិក្សានេះមិនទាន់មានមេរៀននៅឡើយទេ (This course has no lessons yet).');
         }
 
-        return redirect()->route('student.browse');
+        return redirect()->route('student.browse')
+            ->with('info', 'សូមចុះឈ្មោះវគ្គសិក្សាដើម្បីចាប់ផ្តើមរៀន (Please enroll in a course to start learning).');
     }
 
     /**

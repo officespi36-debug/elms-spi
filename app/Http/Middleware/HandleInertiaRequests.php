@@ -132,6 +132,8 @@ class HandleInertiaRequests extends Middleware
             'flash' => [
                 'success'           => fn () => $request->session()->get('success'),
                 'error'             => fn () => $request->session()->get('error'),
+                'info'              => fn () => $request->session()->get('info'),
+                'warning'           => fn () => $request->session()->get('warning'),
                 'status'            => fn () => $request->session()->get('status'),
                 'message'           => fn () => $request->session()->get('message'),
                 'sent_to_telegram'  => fn () => $request->session()->get('sent_to_telegram'),
