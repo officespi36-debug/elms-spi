@@ -703,46 +703,126 @@ class CourseController extends Controller
         ]);
     }
 
-    public function completed(Request $request)
+    public function completed(Request $request, CourseProgressService $progressService)
     {
         $user = $request->user();
         $enrollments = Enrollment::where('student_id', $user->id)
-            ->where('status', 'completed')
+            ->whereIn('status', ['active', 'completed'])
             ->with([
-                'course.teacher:id,name,name_kh,email,avatar',
+                'course.teacher:id,name,name_kh,email,avatar,role',
                 'course.major:id,name',
-                'course.modules.lessons:id,module_id,course_id,title,order',
-                'course.lessons:id,course_id,title,order',
+                'course.modules.lessons:id,module_id,course_id,title,order,duration_seconds',
+                'course.lessons:id,course_id,title,order,duration_seconds',
             ])
             ->latest('updated_at')
             ->get();
 
+        $computedCollection = $progressService->calculateForEnrollments($user, $enrollments);
+
+        // Filter to courses that are either explicitly marked 'completed' or have 100% lesson completion
+        $completedItems = $computedCollection->filter(function ($item) {
+            $enr = $item['enrollment'];
+            return $enr->status === 'completed' || ($item['state'] ?? '') === 'completed';
+        })->values();
+
+        $completedCourseIds = $completedItems->map(fn ($item) => $item['course']->id)->unique()->values()->all();
+
+        // Batch load real certificates from DB
         $certsByCourse = collect();
         try {
-            $certsByCourse = Certificate::where('student_id', $user->id)
-                ->get()
-                ->keyBy('course_id');
+            if (!empty($completedCourseIds)) {
+                $certsByCourse = Certificate::where('student_id', $user->id)
+                    ->whereIn('course_id', $completedCourseIds)
+                    ->whereIn('status', ['issued', 'valid'])
+                    ->get()
+                    ->keyBy('course_id');
+            }
         } catch (\Throwable $e) {
             $certsByCourse = collect();
         }
 
-        $completedList = $enrollments->map(function ($enr) use ($certsByCourse) {
-            $c = $enr->course;
+        // Batch load real study time (LessonProgress.seconds_watched) per course
+        $secondsByCourse = [];
+        try {
+            if (!empty($completedCourseIds)) {
+                $rows = LessonProgress::query()
+                    ->join('lessons', 'lesson_progress.lesson_id', '=', 'lessons.id')
+                    ->where('lesson_progress.user_id', $user->id)
+                    ->whereIn('lessons.course_id', $completedCourseIds)
+                    ->selectRaw('lessons.course_id, COALESCE(SUM(lesson_progress.seconds_watched), 0) as total_seconds')
+                    ->groupBy('lessons.course_id')
+                    ->get();
+                foreach ($rows as $r) {
+                    $secondsByCourse[(int) $r->course_id] = (int) $r->total_seconds;
+                }
+            }
+        } catch (\Throwable $e) {
+            $secondsByCourse = [];
+        }
+
+        // Batch load real quiz scores (QuizAttempt.score) per course
+        $quizScoresByCourse = [];
+        try {
+            if (!empty($completedCourseIds)) {
+                $rows = \App\Models\QuizAttempt::query()
+                    ->join('quizzes', 'quiz_attempts.quiz_id', '=', 'quizzes.id')
+                    ->where('quiz_attempts.user_id', $user->id)
+                    ->whereIn('quizzes.course_id', $completedCourseIds)
+                    ->whereNotNull('quiz_attempts.score')
+                    ->selectRaw('quizzes.course_id, ROUND(AVG(quiz_attempts.score)) as avg_score')
+                    ->groupBy('quizzes.course_id')
+                    ->get();
+                foreach ($rows as $r) {
+                    $quizScoresByCourse[(int) $r->course_id] = (int) $r->avg_score;
+                }
+            }
+        } catch (\Throwable $e) {
+            $quizScoresByCourse = [];
+        }
+
+        $completedList = $completedItems->map(function ($item) use ($progressService, $certsByCourse, $secondsByCourse, $quizScoresByCourse) {
+            $enr = $item['enrollment'];
+            $c = $item['course'];
             if (!$c) return null;
 
             $cert = $certsByCourse->get($c->id);
 
-            $lessonsCount = $c->lessons ? $c->lessons->count() : 0;
-            if ($lessonsCount === 0 && $c->modules) {
-                $lessonsCount = $c->modules->sum(fn ($m) => $m->lessons ? $m->lessons->count() : 0);
+            $lessonsCount = (int) ($item['lessons_total'] ?? 0);
+            if ($lessonsCount === 0) {
+                $lessonsCount = $c->lessons ? $c->lessons->count() : 0;
             }
-            $chaptersCount = $c->modules ? $c->modules->count() : 1;
+            $chaptersCount = (int) ($item['total_modules'] ?? ($c->modules ? $c->modules->count() : 1));
 
-            $completedDate = 'Nov 2026';
+            // Real study time from DB (seconds_watched -> fallback to lesson duration_seconds if 0)
+            $totalSeconds = $secondsByCourse[(int) $c->id] ?? 0;
+            if ($totalSeconds <= 0 && $c->lessons) {
+                $totalSeconds = (int) $c->lessons->sum('duration_seconds');
+            }
+            $studyMinutes = (int) round($totalSeconds / 60);
+            $hours = intdiv($studyMinutes, 60);
+            $mins = $studyMinutes % 60;
+            $studyTimeFormatted = $hours > 0 ? "{$hours}h " . str_pad((string) $mins, 2, '0', STR_PAD_LEFT) . 'm' : "{$mins}m";
+
+            // Real quiz score from DB
+            $quizScore = $quizScoresByCourse[(int) $c->id] ?? 0;
+            $medalType = $quizScore >= 90 ? 'gold' : ($quizScore >= 75 ? 'silver' : 'bronze');
+
+            $titleLower = strtolower($c->title . ' ' . ($c->major->name ?? ''));
+            $illus = 'web';
+            if (str_contains($titleLower, 'python') || str_contains($titleLower, 'ai') || str_contains($titleLower, 'machine')) {
+                $illus = 'python';
+            } elseif (str_contains($titleLower, 'database') || str_contains($titleLower, 'sql')) {
+                $illus = 'database';
+            } elseif (str_contains($titleLower, 'design') || str_contains($titleLower, 'ui')) {
+                $illus = 'uiux';
+            }
+
+            $completedDate = '';
             $completedTs = 0;
             try {
-                if ($enr->updated_at) {
-                    $dt = \Carbon\Carbon::parse($enr->updated_at);
+                $dateSource = $enr->completed_at ?? $enr->updated_at ?? $enr->created_at;
+                if ($dateSource) {
+                    $dt = \Carbon\Carbon::parse($dateSource);
                     $completedDate = $dt->format('M d, Y');
                     $completedTs = $dt->getTimestamp() * 1000;
                 }
@@ -763,7 +843,7 @@ class CourseController extends Controller
                 'status'                 => 'completed',
                 'progress'               => 100,
                 'teacher'                => [
-                    'name'   => $c->teacher?->name ?: 'Dr. Mengly Chea',
+                    'name'   => $progressService->cleanTeacherName($c->teacher, $c),
                     'avatar' => $c->teacher?->avatar ?: null,
                     'role'   => 'SPI Instructor',
                 ],
@@ -771,14 +851,14 @@ class CourseController extends Controller
                 'completedDateTimestamp' => $completedTs,
                 'chaptersCount'          => $chaptersCount,
                 'lessonsCount'           => $lessonsCount,
-                'studyTime'              => '18h 20m',
-                'studyTimeMinutes'       => 1100,
-                'quizScore'              => 90,
+                'studyTime'              => $studyTimeFormatted,
+                'studyTimeMinutes'       => $studyMinutes,
+                'quizScore'              => $quizScore,
                 'hasCertificate'         => $cert !== null,
-                'certificateId'          => $cert?->certificate_number ?: ('SPI-CERT-' . $c->id),
+                'certificateId'          => $cert?->certificate_number ?: null,
                 'certIssueDate'          => $certIssueDate,
-                'medalType'              => 'gold',
-                'illustrationType'       => 'web',
+                'medalType'              => $medalType,
+                'illustrationType'       => $illus,
                 'overviewHref'           => "/student/courses/{$c->id}/overview",
             ];
         })->filter()->values();
