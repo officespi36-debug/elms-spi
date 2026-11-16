@@ -208,16 +208,16 @@
 <body class="font-sans antialiased bg-[#0b132b] text-slate-100 min-h-screen notranslate" translate="no"
     style="background-color: #0b132b; color: #f8fafc;">
     
-    <!-- Instant Initial Page Preloader (Exact 1:1 match to screenshot) -->
+    <!-- Instant Initial Page Preloader (4 colorful glowing dots + animated text) -->
     <div id="initial-page-preloader"
-        style="position: fixed; inset: 0; z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #0b132b; transition: opacity 0.45s ease-out; pointer-events: none;">
-        <div style="display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 16px;">
-            <span class="init-dot init-dot-1" style="width: 18px; height: 18px; border-radius: 50%; background: #334155; animation: initDotTravel 0.52s infinite ease-in-out; animation-delay: 0s; display: inline-block;"></span>
-            <span class="init-dot init-dot-2" style="width: 18px; height: 18px; border-radius: 50%; background: #334155; animation: initDotTravel 0.52s infinite ease-in-out; animation-delay: 0.12s; display: inline-block;"></span>
-            <span class="init-dot init-dot-3" style="width: 18px; height: 18px; border-radius: 50%; background: #334155; animation: initDotTravel 0.52s infinite ease-in-out; animation-delay: 0.24s; display: inline-block;"></span>
-            <span class="init-dot init-dot-4" style="width: 18px; height: 18px; border-radius: 50%; background: #334155; animation: initDotTravel 0.52s infinite ease-in-out; animation-delay: 0.36s; display: inline-block;"></span>
+        style="position: fixed; inset: 0; z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background-color: #0b132b; transition: opacity 0.35s ease-out; pointer-events: none;">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 14px;">
+            <span class="init-dot init-dot-1"></span>
+            <span class="init-dot init-dot-2"></span>
+            <span class="init-dot init-dot-3"></span>
+            <span class="init-dot init-dot-4"></span>
         </div>
-        <p id="initial-preloader-text" style="margin: 0; font-family: 'Plus Jakarta Sans', 'Kantumruy Pro', system-ui, -apple-system, sans-serif; font-size: 14px; font-weight: 600; color: #cbd5e1; letter-spacing: 0.4px;">
+        <p id="initial-preloader-text" class="init-loading-text" style="margin: 0; font-family: 'Plus Jakarta Sans', 'Kantumruy Pro', system-ui, -apple-system, sans-serif; font-size: 15px; font-weight: 700; color: #f1f5f9; letter-spacing: 0.4px; text-shadow: 0 2px 8px rgba(0,0,0,0.35);">
             សូមរង់ចាំ កំពុងដំណើរការ...
         </p>
     </div>
@@ -227,25 +227,59 @@
                 var lang = localStorage.getItem('elms_lang') || document.documentElement.lang || 'km';
                 var el = document.getElementById('initial-preloader-text');
                 if (el) {
-                    el.textContent = (lang === 'en') ? 'Please wait while loading' : 'សូមរង់ចាំ កំពុងដំណើរការ...';
+                    el.textContent = (lang === 'en') ? 'Please wait while loading...' : 'សូមរង់ចាំ កំពុងដំណើរការ...';
                 }
             } catch(e) {}
         })();
     </script>
     <style>
+        .init-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 9999px;
+            display: inline-block;
+            will-change: transform, opacity;
+            animation: initDotTravel 0.9s infinite cubic-bezier(0.45, 0.05, 0.55, 0.95);
+        }
+        .init-dot-1 {
+            background: linear-gradient(135deg, #a855f7, #7c3aed);
+            box-shadow: 0 0 14px rgba(168, 85, 247, 0.8);
+            animation-delay: 0s;
+        }
+        .init-dot-2 {
+            background: linear-gradient(135deg, #6366f1, #3b82f6);
+            box-shadow: 0 0 14px rgba(99, 102, 241, 0.8);
+            animation-delay: 0.14s;
+        }
+        .init-dot-3 {
+            background: linear-gradient(135deg, #ec4899, #f43f5e);
+            box-shadow: 0 0 14px rgba(236, 72, 153, 0.8);
+            animation-delay: 0.28s;
+        }
+        .init-dot-4 {
+            background: linear-gradient(135deg, #06b6d4, #10b981);
+            box-shadow: 0 0 14px rgba(6, 182, 212, 0.8);
+            animation-delay: 0.42s;
+        }
+        .init-loading-text {
+            animation: initTextPulse 1.4s ease-in-out infinite;
+        }
         @keyframes initDotTravel {
-            0%, 40%, 100% {
-                background-color: #334155;
-                transform: scale(0.9);
-                opacity: 0.6;
-                box-shadow: none;
+            0%, 100% {
+                transform: translateY(0) scale(0.88);
+                opacity: 0.65;
             }
-            20% {
-                background-color: #7c3aed;
-                transform: scale(1.24);
+            40% {
+                transform: translateY(-6px) scale(1.22);
                 opacity: 1;
-                box-shadow: 0 0 16px rgba(124, 58, 237, 0.85);
             }
+        }
+        @keyframes initTextPulse {
+            0%, 100% { opacity: 0.78; }
+            50% { opacity: 1; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .init-dot, .init-loading-text { animation: none; }
         }
     </style>
 
