@@ -78,6 +78,7 @@ const averageQuizScore = computed(() => {
 })
 
 const quizScoreLabel = computed(() => {
+  if (courses.value.length === 0) return 'No quizzes completed yet'
   const score = averageQuizScore.value
   if (score >= 90) return 'Excellent Performance'
   if (score >= 80) return 'Very Good Performance'
@@ -671,8 +672,10 @@ const navigateToReview = (course: CompletedCourseItem) => {
             href="/student/progress/learning-time"
             class="bg-white dark:bg-[#0e1424] border border-slate-200/90 dark:border-slate-800 hover:border-blue-400 dark:hover:border-blue-500/40 rounded-3xl p-5 shadow-sm dark:shadow-xl flex items-center gap-4 group transition-all cursor-pointer block"
           >
-            <div class="w-12 h-12 rounded-2xl bg-blue-500/10 dark:bg-blue-500/20 border border-blue-500/30 dark:border-blue-500/40 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xl shrink-0 group-hover:scale-110 transition-transform">
-              ⏱
+            <div class="w-12 h-12 rounded-2xl bg-blue-500/10 dark:bg-blue-500/20 border border-blue-500/25 dark:border-blue-500/40 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 1.5"/><path d="M9 2h6"/><path d="m19 7-1.5-1.5"/>
+              </svg>
             </div>
             <div class="min-w-0 flex-1">
               <p class="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Total Study Time</p>
@@ -689,15 +692,26 @@ const navigateToReview = (course: CompletedCourseItem) => {
             href="/student/quizzes/scores"
             class="bg-white dark:bg-[#0e1424] border border-slate-200/90 dark:border-slate-800 hover:border-purple-400 dark:hover:border-purple-500/40 rounded-3xl p-5 shadow-sm dark:shadow-xl flex items-center gap-4 group transition-all cursor-pointer block"
           >
-            <div class="w-12 h-12 rounded-2xl bg-purple-500/10 dark:bg-purple-500/20 border border-purple-500/30 dark:border-purple-500/40 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl shrink-0 group-hover:scale-110 transition-transform">
-              📊
+            <div class="w-12 h-12 rounded-2xl bg-purple-500/10 dark:bg-purple-500/20 border border-purple-500/25 dark:border-purple-500/40 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>
+              </svg>
             </div>
             <div class="min-w-0 flex-1">
               <p class="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Average Quiz Score</p>
               <h4 class="text-xl font-black text-slate-900 dark:text-white mt-0.5 tracking-tight group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors">
                 {{ averageQuizScore }}%
               </h4>
-              <p class="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">{{ quizScoreLabel }}</p>
+              <p
+                :class="[
+                  'text-[10px] font-medium mt-0.5',
+                  courses.length === 0
+                    ? 'text-slate-400 dark:text-slate-500'
+                    : 'text-emerald-600 dark:text-emerald-400'
+                ]"
+              >
+                {{ quizScoreLabel }}
+              </p>
             </div>
             <span class="text-slate-400 dark:text-slate-600 group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors text-sm">›</span>
           </Link>
@@ -730,9 +744,22 @@ const navigateToReview = (course: CompletedCourseItem) => {
                 </button>
               </div>
             </div>
-            <div v-else class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 text-center space-y-1">
-              <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">No certificates earned yet</p>
-              <p class="text-[11px] text-slate-500 dark:text-slate-400">Complete a course to unlock your certificate.</p>
+            <div v-else class="p-5 rounded-2xl bg-slate-50/80 dark:bg-slate-950/60 border border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center text-center gap-2">
+              <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-500 flex items-center justify-center">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
+                </svg>
+              </div>
+              <div class="space-y-0.5">
+                <p class="text-xs font-bold text-slate-700 dark:text-slate-200">No certificates earned yet</p>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">Complete a course to unlock your certificate.</p>
+              </div>
+              <Link
+                href="/student/browse"
+                class="mt-1 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-purple-600/10 hover:bg-purple-600/20 text-purple-600 dark:text-purple-400 text-[11px] font-semibold transition-colors"
+              >
+                Browse Courses ›
+              </Link>
             </div>
           </div>
 
@@ -753,33 +780,41 @@ const navigateToReview = (course: CompletedCourseItem) => {
             <!-- 4 Badges Row -->
             <div class="grid grid-cols-4 gap-2 text-center">
               <!-- Badge 1 -->
-              <div class="flex flex-col items-center gap-1.5 p-2 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/80">
-                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/30 dark:border-emerald-500/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-base shadow-xs">
-                  📖
+              <div class="flex flex-col items-center gap-1.5 p-2 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/90 dark:border-slate-800/80 hover:border-emerald-400/50 transition-colors">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/25 dark:border-emerald-500/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-xs">
+                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                  </svg>
                 </div>
                 <span class="text-[10px] font-bold text-slate-700 dark:text-slate-300 leading-tight">Quick Learner</span>
               </div>
 
               <!-- Badge 2 -->
-              <div class="flex flex-col items-center gap-1.5 p-2 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/80">
-                <div class="w-10 h-10 rounded-xl bg-blue-500/10 dark:bg-blue-500/20 border border-blue-500/30 dark:border-blue-500/50 text-blue-600 dark:text-blue-400 flex items-center justify-center text-base shadow-xs">
-                  ⭐
+              <div class="flex flex-col items-center gap-1.5 p-2 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/90 dark:border-slate-800/80 hover:border-blue-400/50 transition-colors">
+                <div class="w-10 h-10 rounded-xl bg-blue-500/10 dark:bg-blue-500/20 border border-blue-500/25 dark:border-blue-500/40 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-xs">
+                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
                 </div>
                 <span class="text-[10px] font-bold text-slate-700 dark:text-slate-300 leading-tight">Course Master</span>
               </div>
 
               <!-- Badge 3 -->
-              <div class="flex flex-col items-center gap-1.5 p-2 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/80">
-                <div class="w-10 h-10 rounded-xl bg-orange-500/10 dark:bg-orange-500/20 border border-orange-500/30 dark:border-orange-500/50 text-orange-600 dark:text-orange-400 flex items-center justify-center text-base shadow-xs">
-                  🏆
+              <div class="flex flex-col items-center gap-1.5 p-2 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/90 dark:border-slate-800/80 hover:border-orange-400/50 transition-colors">
+                <div class="w-10 h-10 rounded-xl bg-orange-500/10 dark:bg-orange-500/20 border border-orange-500/25 dark:border-orange-500/40 text-orange-600 dark:text-orange-400 flex items-center justify-center shadow-xs">
+                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+                  </svg>
                 </div>
                 <span class="text-[10px] font-bold text-slate-700 dark:text-slate-300 leading-tight">Top Performer</span>
               </div>
 
               <!-- Badge 4 -->
-              <div class="flex flex-col items-center gap-1.5 p-2 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/80">
-                <div class="w-10 h-10 rounded-xl bg-purple-500/10 dark:bg-purple-500/20 border border-purple-500/30 dark:border-purple-500/50 text-purple-600 dark:text-purple-400 flex items-center justify-center text-base shadow-xs">
-                  ⚡
+              <div class="flex flex-col items-center gap-1.5 p-2 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/90 dark:border-slate-800/80 hover:border-purple-400/50 transition-colors">
+                <div class="w-10 h-10 rounded-xl bg-purple-500/10 dark:bg-purple-500/20 border border-purple-500/25 dark:border-purple-500/40 text-purple-600 dark:text-purple-400 flex items-center justify-center shadow-xs">
+                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                  </svg>
                 </div>
                 <span class="text-[10px] font-bold text-slate-700 dark:text-slate-300 leading-tight">Consistent Learner</span>
               </div>
