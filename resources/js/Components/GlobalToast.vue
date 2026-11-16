@@ -213,17 +213,22 @@ watch(
       v-if="isGlobalProcessing"
       role="status"
       aria-live="polite"
-      class="fixed inset-0 z-[10000] flex flex-col items-center justify-center gap-3.5 pointer-events-none select-none"
+      class="fixed inset-0 z-[10000] flex items-center justify-center p-4 pointer-events-none select-none"
     >
-      <div class="flex items-center justify-center gap-3.5" aria-hidden="true">
-        <span class="elms-dot elms-dot-1"></span>
-        <span class="elms-dot elms-dot-2"></span>
-        <span class="elms-dot elms-dot-3"></span>
-        <span class="elms-dot elms-dot-4"></span>
+      <div class="relative p-[2px] rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(15,23,42,0.28)]">
+        <div class="elms-frame-runner" aria-hidden="true"></div>
+        <div class="relative px-8 py-5 rounded-[14px] bg-white dark:bg-slate-900 flex flex-col items-center justify-center gap-3.5 min-w-[240px]">
+          <div class="flex items-center justify-center gap-3.5 pt-1" aria-hidden="true">
+            <span class="elms-dot elms-dot-1"></span>
+            <span class="elms-dot elms-dot-2"></span>
+            <span class="elms-dot elms-dot-3"></span>
+            <span class="elms-dot elms-dot-4"></span>
+          </div>
+          <p class="elms-loading-text text-sm font-bold tracking-wide text-slate-800 dark:text-slate-100 flex items-center">
+            <span>{{ loadingText }}</span><span class="elms-ellipsis" aria-hidden="true">...</span>
+          </p>
+        </div>
       </div>
-      <p class="elms-loading-text text-sm sm:text-base font-bold tracking-wide text-slate-800 dark:text-slate-100 drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)] flex items-center">
-        <span>{{ loadingText }}</span><span class="elms-ellipsis" aria-hidden="true">...</span>
-      </p>
     </div>
   </Transition>
   <!-- Centered Screen Notice / Confirmation Card (e.g. Continue Learning when not enrolled yet) -->
