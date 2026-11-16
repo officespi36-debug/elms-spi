@@ -482,19 +482,19 @@ onUnmounted(() => {
       <!-- 3. COURSE CARDS CONTAINER (GRID OR LIST) -->
       <div v-if="courses.length > 0">
         
-        <!-- GRID VIEW (Matching dark & light screenshots) -->
+        <!-- GRID VIEW (Matching Dashboard #3 clean surface & light/dark parity) -->
         <div v-if="viewMode === 'grid'" class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div
             v-for="course in courses"
             :key="course.id"
             @click="navigateToCourseOverview(course)"
-            class="bg-white dark:bg-[#0c1222] border border-slate-200/90 dark:border-slate-800 hover:border-purple-400 dark:hover:border-purple-500/40 rounded-3xl overflow-hidden shadow-sm dark:shadow-2xl transition-all duration-200 hover:-translate-y-1 group flex flex-col justify-between cursor-pointer relative"
+            class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-purple-400 hover:dark:border-purple-400/60 rounded-3xl overflow-hidden shadow-sm dark:shadow-xl transition-all duration-200 hover:-translate-y-1 group flex flex-col justify-between cursor-pointer relative"
           >
             <!-- TOP CARD HEADER / THUMBNAIL OR 3D ILLUSTRATION BOX -->
-            <div class="relative w-full h-48 border-b border-slate-100 dark:border-slate-800/80">
+            <div class="relative w-full h-48 border-b border-slate-100 dark:border-white/5">
               
               <!-- Inner visual wrapper with overflow-hidden for image & glow -->
-              <div class="absolute inset-0 bg-slate-900 dark:bg-slate-950 flex items-center justify-center overflow-hidden">
+              <div class="absolute inset-0 bg-slate-900 dark:bg-[#131314] flex items-center justify-center overflow-hidden">
                 <!-- Real Image Thumbnail if available -->
                 <div v-if="course.thumbnail" class="w-full h-full relative overflow-hidden">
                   <img
@@ -503,6 +503,7 @@ onUnmounted(() => {
                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     @error="(e: any) => { e.target.style.display = 'none'; (course as any)._thumbError = true }"
                   />
+                  <div class="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/15 pointer-events-none"></div>
                 </div>
 
                 <!-- Ambient Glow & Radial Gradient Fallback -->
@@ -608,10 +609,10 @@ onUnmounted(() => {
                   NEW
                 </span>
 
-                <!-- Content Coming Soon Badge (Amber) -->
+                <!-- Content Coming Soon Badge (High-contrast Amber) -->
                 <span
                   v-if="course.status === 'no_content'"
-                  class="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-md backdrop-blur-md"
+                  class="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/95 text-white border border-amber-400/60 shadow-md backdrop-blur-md"
                 >
                   Content Coming Soon
                 </span>
@@ -889,7 +890,7 @@ onUnmounted(() => {
             v-for="course in courses"
             :key="course.id"
             @click="navigateToCourseOverview(course)"
-            class="bg-white dark:bg-[#0c1222] border border-slate-200/90 dark:border-slate-800 hover:border-purple-400 dark:hover:border-purple-500/40 rounded-2xl p-4 sm:p-5 shadow-sm dark:shadow-xl transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer group"
+            class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-purple-400 hover:dark:border-purple-400/60 rounded-3xl p-4 sm:p-5 shadow-sm dark:shadow-xl transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer group"
           >
             <!-- Left Info -->
             <div class="flex items-center gap-4 min-w-0">
