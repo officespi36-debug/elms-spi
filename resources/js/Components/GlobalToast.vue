@@ -82,16 +82,10 @@ onMounted(() => {
 
     if (method && method !== 'get') {
       processingMode.value = 'save'
-      isGlobalProcessing.value = true
-    } else if (rawUrl.includes('/my-courses/current') || rawUrl.includes('/courses/current')) {
-      processingMode.value = 'nav'
-      isGlobalProcessing.value = true
     } else {
       processingMode.value = 'nav'
-      showDelayTimer = setTimeout(() => {
-        isGlobalProcessing.value = true
-      }, 120)
     }
+    isGlobalProcessing.value = true
   })
 
   removeFinishListener = router.on('finish', () => {
@@ -201,8 +195,11 @@ watch(
       aria-live="polite"
       class="fixed inset-0 z-[10000] flex items-center justify-center pointer-events-none select-none"
     >
-      <div class="px-6 py-5 rounded-2xl bg-white/95 dark:bg-slate-900/95 text-slate-900 dark:text-slate-100 shadow-2xl border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center gap-3 min-w-[200px]">
-        <progress :aria-label="loadingText" class="elms-center-spinner"></progress>
+      <div class="px-6 py-4 rounded-2xl bg-white/95 dark:bg-slate-900/95 text-slate-900 dark:text-slate-100 shadow-2xl border border-purple-200/80 dark:border-purple-500/30 flex flex-col items-center gap-3 min-w-[200px]">
+        <div class="relative w-10 h-10 flex items-center justify-center" aria-hidden="true">
+          <span class="absolute inset-0 rounded-full border-[3.5px] border-purple-200 dark:border-purple-900/60"></span>
+          <span class="absolute inset-0 rounded-full border-[3.5px] border-transparent border-t-purple-600 dark:border-t-purple-400 elms-spinner-ring"></span>
+        </div>
         <span class="text-xs sm:text-sm font-semibold tracking-wide text-slate-700 dark:text-slate-200">
           {{ loadingText }}
         </span>
@@ -254,120 +251,19 @@ watch(
 </template>
 
 <style scoped>
-@property --arc-start {
-  syntax: "<angle>";
-  inherits: false;
-  initial-value: 0deg;
-}
-@property --arc-end {
-  syntax: "<angle>";
-  inherits: false;
-  initial-value: 0deg;
-}
-@property --progress-dash-animation {
-  syntax: "*";
-  inherits: false;
-  initial-value: , elms-progress-dash 3s ease-in-out infinite;
-}
-
-progress.elms-center-spinner:indeterminate::-webkit-progress-bar {
-  display: none;
-  background: none;
-}
-progress.elms-center-spinner:indeterminate::-webkit-progress-value {
-  display: none;
-  background: none;
-}
-progress.elms-center-spinner:indeterminate::-moz-progress-bar {
-  display: none;
-  background: none;
-}
-progress.elms-center-spinner:indeterminate::slider-fill {
-  display: none;
-  background: none;
-}
-
-progress.elms-center-spinner:indeterminate {
-  --_from: calc(90deg + var(--arc-start, 0deg));
-  --_to: calc(90deg + var(--arc-end, 158deg));
-  --size: 42px;
-  --thickness: 3.5px;
-  --spinner-color: #7c3aed;
-  --track-color: rgba(124, 58, 237, 0.16);
-  --spinner-duration: 1.35s;
-  --_used-spinner-duration: var(--spinner-duration);
-
-  position: relative;
-  width: var(--size);
-  height: var(--size);
-  border-radius: 50%;
-  appearance: none;
-  background: conic-gradient(
-      from var(--_from),
-      var(--spinner-color) calc(var(--_to) - var(--_from)),
-      transparent 0
-    )
-    var(--track-color);
-
-  animation:
-    elms-progress-spin var(--_used-spinner-duration) linear infinite
-    var(--progress-dash-animation, );
-}
-
-@supports (background-clip: border-area) {
-  progress.elms-center-spinner:indeterminate {
-    background-clip: border-area;
-    border: var(--thickness) solid transparent;
-    background-origin: border-box;
-  }
-}
-
-@supports not (background-clip: border-area) {
-  progress.elms-center-spinner:indeterminate {
-    --clip-boundary: calc(100% - var(--thickness));
-    mask-image: radial-gradient(
-      farthest-side,
-      transparent var(--clip-boundary),
-      black var(--clip-boundary)
-    );
-    border: 0;
-  }
-}
-
-@media (forced-colors: active) {
-  progress.elms-center-spinner:indeterminate {
-    forced-color-adjust: none;
-    --spinner-color: CanvasText;
-    --track-color: Canvas;
-  }
+.elms-spinner-ring {
+  animation: elms-ring-spin 0.75s linear infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  progress.elms-center-spinner:indeterminate {
-    --_used-spinner-duration: 6s;
-    --progress-dash-animation: ;
-    --arc-end: 158deg;
+  .elms-spinner-ring {
+    animation-duration: 3s;
   }
 }
 
-@keyframes elms-progress-spin {
+@keyframes elms-ring-spin {
   to {
-    rotate: 1turn;
-  }
-}
-
-@keyframes elms-progress-dash {
-  from {
-    --arc-start: 0deg;
-    --arc-end: 3deg;
-  }
-  50% {
-    --arc-start: 100deg;
-    --arc-end: 358deg;
-  }
-  to {
-    --arc-start: 360deg;
-    --arc-end: 363deg;
+    transform: rotate(360deg);
   }
 }
 </style>
