@@ -68,15 +68,19 @@ class CourseController extends Controller
 
         // 2 & 3. Fetch + compute enrolled courses with 60s user-scoped cache (0 N+1 queries)
         $cachedItems = Cache::remember("student_enrolled_{$user->id}_v2", 60, function () use ($user, $progressService) {
+            $withRelations = [
+                'course.teacher:id,name,name_kh,email,avatar,role',
+                'course.major:id,name',
+                'course.modules.lessons:id,module_id,course_id,title,order,duration_seconds',
+                'course.lessons:id,course_id,title,order,duration_seconds',
+            ];
+            if (Schema::hasColumn('enrollments', 'enrolled_by')) {
+                $withRelations[] = 'enrolledBy:id,name,role,avatar';
+            }
+
             $enrollments = Enrollment::where('student_id', $user->id)
                 ->whereIn('status', ['active', 'completed'])
-                ->with([
-                    'course.teacher:id,name,name_kh,email,avatar,role',
-                    'course.major:id,name',
-                    'course.modules.lessons:id,module_id,course_id,title,order,duration_seconds',
-                    'course.lessons:id,course_id,title,order,duration_seconds',
-                    'enrolledBy:id,name,role,avatar',
-                ])
+                ->with($withRelations)
                 ->latest('updated_at')
                 ->get();
 
@@ -138,11 +142,13 @@ class CourseController extends Controller
                     $enrolledRel = 'Recently';
                 }
 
+                $hasEnrolledBy = $enr->relationLoaded('enrolledBy') && $enr->enrolledBy;
+
                 return [
                     'id'                 => $c->id,
                     'enrollment_id'      => $enr->id,
-                    'is_new'             => isset($enr->seen_at) ? ($enr->seen_at === null) : false,
-                    'enrolled_by'        => $enr->enrolledBy ? [
+                    'is_new'             => array_key_exists('seen_at', $enr->getAttributes()) ? ($enr->seen_at === null) : false,
+                    'enrolled_by'        => $hasEnrolledBy ? [
                         'name'   => $enr->enrolledBy->name,
                         'role'   => $enr->enrolledBy->role,
                         'avatar' => $enr->enrolledBy->avatar,
@@ -213,10 +219,10 @@ class CourseController extends Controller
         if (!empty($q)) {
             $qLower = strtolower($q);
             $filtered = $filtered->filter(function ($item) use ($qLower) {
-                return str_contains(strtolower($item['title']), $qLower)
-                    || str_contains(strtolower($item['teacher']['name']), $qLower)
-                    || str_contains(strtolower($item['category']), $qLower)
-                    || str_contains(strtolower($item['currentLesson']), $qLower);
+                return str_contains(strtolower((string) ($item['title'] ?? '')), $qLower)
+                    || str_contains(strtolower((string) ($item['teacher']['name'] ?? '')), $qLower)
+                    || str_contains(strtolower((string) ($item['category'] ?? '')), $qLower)
+                    || str_contains(strtolower((string) ($item['currentLesson'] ?? '')), $qLower);
             });
         }
 
@@ -308,10 +314,12 @@ class CourseController extends Controller
         }
 
         // Mark enrollment as seen on first access
-        if ($enrollment && $enrollment->seen_at === null) {
-            $enrollment->update(['seen_at' => now()]);
-            Cache::forget("student.{$user->id}.new_enrollments");
-        }
+        try {
+            if ($enrollment && Schema::hasColumn('enrollments', 'seen_at') && $enrollment->seen_at === null) {
+                $enrollment->update(['seen_at' => now()]);
+                Cache::forget("student.{$user->id}.new_enrollments");
+            }
+        } catch (\Throwable $e) {}
 
         $resolved = $continueService->resolve($user, $course);
 
