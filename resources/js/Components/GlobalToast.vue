@@ -16,11 +16,27 @@ const dismissCenterNotice = () => {
   centerNotice.value = null
 }
 
+const localizeNoticeMessage = (raw: string): string => {
+  const msg = (raw || '').trim()
+  // Handle "Khmer text (English text)." pattern cleanly per active UI language
+  const match = msg.match(/^(.+?)\s*\(([^()]+)\)\.?$/)
+  if (match) {
+    const kmPart = match[1].trim()
+    const enPart = match[2].trim()
+    const hasKhmer = /[\u1780-\u17FF]/.test(kmPart)
+    const hasLatin = /[A-Za-z]/.test(enPart)
+    if (hasKhmer && hasLatin) {
+      return currentLang.value === 'km' ? kmPart : enPart
+    }
+  }
+  return msg
+}
+
 const showCenterNotice = (type: 'info' | 'warning', message: string) => {
   const title = type === 'warning'
     ? (currentLang.value === 'km' ? 'ការព្រមាន' : 'Warning')
-    : (currentLang.value === 'km' ? 'សូមជ្រាប / ដំណឹង' : 'Notice')
-  centerNotice.value = { type, title, message }
+    : (currentLang.value === 'km' ? 'សូមជ្រាប' : 'Notice')
+  centerNotice.value = { type, title, message: localizeNoticeMessage(message) }
 }
 
 const loadingText = computed(() => {
@@ -183,7 +199,7 @@ watch(
       v-if="isGlobalProcessing"
       role="status"
       aria-live="polite"
-      class="fixed inset-0 z-[10000] flex items-center justify-center pointer-events-none select-none bg-slate-950/20 dark:bg-slate-950/40 backdrop-blur-[2px]"
+      class="fixed inset-0 z-[10000] flex items-center justify-center pointer-events-none select-none"
     >
       <div class="px-6 py-5 rounded-2xl bg-white/95 dark:bg-slate-900/95 text-slate-900 dark:text-slate-100 shadow-2xl border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center gap-3 min-w-[200px]">
         <progress :aria-label="loadingText" class="elms-center-spinner"></progress>
@@ -206,10 +222,9 @@ watch(
       v-if="centerNotice && !isGlobalProcessing"
       role="alertdialog"
       aria-modal="true"
-      class="fixed inset-0 z-[10001] flex items-center justify-center p-4 bg-slate-950/45 backdrop-blur-[2px]"
-      @click.self="dismissCenterNotice"
+      class="fixed inset-0 z-[10001] flex items-center justify-center p-4 pointer-events-none"
     >
-      <div class="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl border border-slate-200/90 dark:border-slate-700/80 p-6 flex flex-col items-center text-center gap-3">
+      <div class="pointer-events-auto w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl border border-slate-200/90 dark:border-slate-700/80 p-6 flex flex-col items-center text-center gap-3">
         <div
           :class="[
             'w-12 h-12 rounded-full flex items-center justify-center',

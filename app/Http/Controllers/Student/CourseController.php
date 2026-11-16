@@ -264,14 +264,20 @@ class CourseController extends Controller
         $user = $request->user();
         $resolved = $continueService->resolve($user);
 
+        $isKm = app()->getLocale() === 'km';
+
         if (!$resolved) {
             return redirect()->route('student.browse')
-                ->with('info', 'សូមចុះឈ្មោះវគ្គសិក្សាដើម្បីចាប់ផ្តើមរៀន (Please enroll in a course to start learning).');
+                ->with('info', $isKm
+                    ? 'សូមចុះឈ្មោះវគ្គសិក្សាដើម្បីចាប់ផ្តើមរៀន។'
+                    : 'Please enroll in a course to start learning.');
         }
 
         if (!empty($resolved['all_completed'])) {
             return redirect()->route('student.my-courses.completed')
-                ->with('info', 'អ្នកបានបញ្ចប់វគ្គសិក្សាទាំងអស់រួចរាល់ហើយ! (You have completed all your courses!)');
+                ->with('info', $isKm
+                    ? 'អ្នកបានបញ្ចប់វគ្គសិក្សាទាំងអស់រួចរាល់ហើយ!'
+                    : 'You have completed all your courses!');
         }
 
         if (!empty($resolved['course']) && !empty($resolved['lesson'])) {
@@ -280,11 +286,15 @@ class CourseController extends Controller
 
         if (!empty($resolved['course'])) {
             return redirect()->to("/student/courses/{$resolved['course']->id}/overview")
-                ->with('info', 'វគ្គសិក្សានេះមិនទាន់មានមេរៀននៅឡើយទេ (This course has no lessons yet).');
+                ->with('info', $isKm
+                    ? 'វគ្គសិក្សានេះមិនទាន់មានមេរៀននៅឡើយទេ។'
+                    : 'This course has no lessons yet.');
         }
 
         return redirect()->route('student.browse')
-            ->with('info', 'សូមចុះឈ្មោះវគ្គសិក្សាដើម្បីចាប់ផ្តើមរៀន (Please enroll in a course to start learning).');
+            ->with('info', $isKm
+                ? 'សូមចុះឈ្មោះវគ្គសិក្សាដើម្បីចាប់ផ្តើមរៀន។'
+                : 'Please enroll in a course to start learning.');
     }
 
     /**
