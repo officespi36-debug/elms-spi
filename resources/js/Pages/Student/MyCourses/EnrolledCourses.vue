@@ -57,6 +57,7 @@ const props = defineProps<{
     coming_soon?: number
   }
   categories?: string[]
+  savedOfflineCourseIds?: number[]
   filters?: {
     status?: string
     category?: string
@@ -86,7 +87,8 @@ watch(() => props.filters?.status, (s) => {
 })
 
 const activeDropdownId = ref<number | null>(null)
-const cachedCourseIds = ref<number[]>([])
+const cachedCourseIds = ref<number[]>([...(props.savedOfflineCourseIds || [])])
+const savingOfflineId = ref<number | null>(null)
 const searchInputRef = ref<HTMLInputElement | null>(null)
 const copyLinkSuccessId = ref<number | null>(null)
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
@@ -197,23 +199,55 @@ const resetFilters = () => {
 }
 
 const refreshCachedCourses = async () => {
+  const dbIds = new Set<number>(props.savedOfflineCourseIds || [])
   try {
     const all = await getAllOfflineCourses()
-    cachedCourseIds.value = all.map(c => Number(c.id))
+    all.forEach(c => dbIds.add(Number(c.id)))
+  } catch (e) {}
+  cachedCourseIds.value = Array.from(dbIds)
+}
+
+const persistOfflineCourseIdsToDb = async (ids: number[]) => {
+  try {
+    const csrf = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || ''
+    await fetch('/student/preferences', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': csrf,
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ offline_course_ids: ids }),
+    })
   } catch (e) {}
 }
 
 const handleSaveCourseOffline = async (course: EnrolledCourseItem) => {
-  if (cachedCourseIds.value.includes(course.id)) return
-  await saveCourseForOffline({
-    id: course.id,
-    title: course.title,
-    teacher: course.teacher.name,
-    progress: course.progress,
-    thumbnail: course.thumbnail || '',
-  })
-  await refreshCachedCourses()
-  activeDropdownId.value = null
+  savingOfflineId.value = course.id
+  try {
+    const isAlreadySaved = cachedCourseIds.value.includes(course.id)
+    if (isAlreadySaved) {
+      cachedCourseIds.value = cachedCourseIds.value.filter(id => id !== course.id)
+      await persistOfflineCourseIdsToDb(cachedCourseIds.value)
+    } else {
+      try {
+        await saveCourseForOffline({
+          id: course.id,
+          title: course.title,
+          teacher: course.teacher.name,
+          progress: course.progress,
+          thumbnail: course.thumbnail || '',
+        })
+      } catch (e) {}
+      if (!cachedCourseIds.value.includes(course.id)) {
+        cachedCourseIds.value = [...cachedCourseIds.value, course.id]
+      }
+      await persistOfflineCourseIdsToDb(cachedCourseIds.value)
+    }
+  } finally {
+    savingOfflineId.value = null
+    activeDropdownId.value = null
+  }
 }
 
 const toggleDropdown = (id: number, e: Event) => {
@@ -736,15 +770,16 @@ onUnmounted(() => {
                   </button>
 
                   <button
+                    @click="handleSaveCourseOffline(course)"
                     type="button"
-                    disabled
-                    class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-slate-400 dark:text-slate-500 font-medium text-left cursor-not-allowed transition-colors opacity-70"
-                    title="Offline storage coming soon"
+                    :disabled="savingOfflineId === course.id"
+                    class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-600/20 hover:text-purple-600 dark:hover:text-purple-300 font-medium text-left cursor-pointer transition-colors disabled:opacity-60"
                   >
                     <span class="flex items-center gap-2.5">
-                      <span>📥</span>
-                      <span>Save for Offline (Coming soon)</span>
+                      <span>{{ cachedCourseIds.includes(course.id) ? '✅' : '📥' }}</span>
+                      <span>{{ savingOfflineId === course.id ? 'Saving...' : (cachedCourseIds.includes(course.id) ? 'Saved Offline' : 'Save for Offline') }}</span>
                     </span>
+                    <span v-if="cachedCourseIds.includes(course.id)" class="text-emerald-600 dark:text-emerald-400 font-bold">✓</span>
                   </button>
                 </div>
               </div>

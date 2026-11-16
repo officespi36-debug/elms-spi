@@ -19,10 +19,12 @@ class PreferenceController extends Controller
         }
 
         $validated = $request->validate([
-            'sidebar_collapsed' => ['nullable', 'boolean'],
-            'theme'             => ['nullable', 'string', 'in:light,dark,system'],
-            'locale'            => ['nullable', 'string', 'in:km,en'],
-            'courses_view'      => ['nullable', 'string', 'in:grid,list'],
+            'sidebar_collapsed'  => ['nullable', 'boolean'],
+            'theme'              => ['nullable', 'string', 'in:light,dark,system'],
+            'locale'             => ['nullable', 'string', 'in:km,en'],
+            'courses_view'       => ['nullable', 'string', 'in:grid,list'],
+            'offline_course_ids' => ['nullable', 'array'],
+            'offline_course_ids.*' => ['integer'],
         ]);
 
         $currentPreferences = $user->preferences ?? [];
@@ -31,7 +33,7 @@ class PreferenceController extends Controller
         }
 
         // Whitelist merge
-        foreach (['sidebar_collapsed', 'theme', 'locale', 'courses_view'] as $key) {
+        foreach (['sidebar_collapsed', 'theme', 'locale', 'courses_view', 'offline_course_ids'] as $key) {
             if (array_key_exists($key, $validated)) {
                 $currentPreferences[$key] = $validated[$key];
             }

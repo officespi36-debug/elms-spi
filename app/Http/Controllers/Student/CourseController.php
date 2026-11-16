@@ -231,11 +231,16 @@ class CourseController extends Controller
             $filtered = $filtered->sortByDesc('enrollment_id');
         }
 
+        $savedOfflineIds = is_array($user->preferences) && is_array($user->preferences['offline_course_ids'] ?? null)
+            ? array_values(array_unique(array_map('intval', $user->preferences['offline_course_ids'])))
+            : [];
+
         return Inertia::render('Student/MyCourses/EnrolledCourses', [
-            'enrollments' => $filtered->values()->all(),
-            'counts'      => $counts,
-            'categories'  => $distinctCategories,
-            'filters'     => [
+            'enrollments'           => $filtered->values()->all(),
+            'counts'                => $counts,
+            'categories'            => $distinctCategories,
+            'savedOfflineCourseIds' => $savedOfflineIds,
+            'filters'               => [
                 'status'   => $status,
                 'category' => $category,
                 'sort'     => $sort,
