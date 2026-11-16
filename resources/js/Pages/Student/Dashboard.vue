@@ -1237,7 +1237,7 @@ const recentActivities = computed(() => {
             
             <!-- Learning Overview Line Chart Card with Segmented Control (7D | 30D | 90D) inline in header -->
             <div
-              class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-purple-400 hover:dark:border-purple-400/60 rounded-3xl p-5 shadow-sm dark:shadow-xl flex flex-col justify-between space-y-3 block transition-all hover:-translate-y-1"
+              class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-purple-400 hover:dark:border-purple-400/60 rounded-3xl p-4 xl:p-5 shadow-sm dark:shadow-xl flex flex-col justify-between space-y-3 overflow-hidden transition-all hover:-translate-y-1"
             >
               <!-- Row 1: Header with inline segmented control (wrap cleanly on narrow cards) -->
               <div class="flex flex-wrap items-center justify-between min-h-[32px] gap-1.5">
@@ -1318,7 +1318,7 @@ const recentActivities = computed(() => {
             <!-- Study Time Donut Ring Chart Card (Uniform border, hover purple border) -->
             <Link
               href="/student/progress/learning-time"
-              class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-purple-400 hover:dark:border-purple-400/60 rounded-3xl p-5 shadow-sm dark:shadow-xl flex flex-col justify-between space-y-3 transition-all hover:-translate-y-1 group"
+              class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-purple-400 hover:dark:border-purple-400/60 rounded-3xl p-4 xl:p-5 shadow-sm dark:shadow-xl flex flex-col justify-between space-y-3 overflow-hidden transition-all hover:-translate-y-1 group"
             >
               <div class="flex flex-wrap items-center justify-between min-h-[32px] gap-1.5">
                 <div class="flex items-center gap-1 text-[14px] font-semibold text-slate-900 dark:text-slate-100 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
@@ -1330,11 +1330,11 @@ const recentActivities = computed(() => {
                 </span>
               </div>
 
-              <!-- Content centered vertically with 104px ring and nowrap legend -->
-              <div class="flex items-center justify-center gap-4 my-auto py-1">
-                <!-- SVG Circular Donut with 104px dimension -->
-                <div class="relative w-[104px] h-[104px] shrink-0 flex items-center justify-center">
-                  <svg viewBox="0 0 36 36" class="w-[104px] h-[104px] -rotate-90">
+              <!-- Content centered vertically with responsive ring and aligned legend -->
+              <div class="flex items-center justify-between gap-3 my-auto py-1 min-w-0">
+                <!-- SVG Circular Donut -->
+                <div class="relative w-[84px] h-[84px] xl:w-[96px] xl:h-[96px] shrink-0 flex items-center justify-center">
+                  <svg viewBox="0 0 36 36" class="w-full h-full -rotate-90">
                     <path
                       class="text-[#e1e3e1] dark:text-[#282a2c]"
                       stroke-width="4"
@@ -1375,25 +1375,34 @@ const recentActivities = computed(() => {
                       d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                     />
                   </svg>
-                  <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-                    <span class="text-xs font-black text-[#1f1f1f] dark:text-[#e3e3e3] leading-none tabular-nums">{{ props.studyTimeBreakdown?.total || props.stats?.learningTime || (currentLang === 'km' ? '០h ០m' : '0h 0m') }}</span>
-                    <span class="text-[10px] text-[#444746] dark:text-[#c4c7c5] mt-0.5">{{ currentLang === 'km' ? 'សរុប' : 'Total' }}</span>
+                  <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-1">
+                    <span class="text-[11px] xl:text-xs font-black text-[#1f1f1f] dark:text-[#e3e3e3] leading-none tabular-nums">{{ props.studyTimeBreakdown?.total || props.stats?.learningTime || (currentLang === 'km' ? '0h 0m' : '0h 0m') }}</span>
+                    <span class="text-[9px] text-[#444746] dark:text-[#c4c7c5] mt-0.5">{{ currentLang === 'km' ? 'សរុប' : 'Total' }}</span>
                   </div>
                 </div>
 
-                <!-- Legend with whitespace-nowrap -->
-                <div class="space-y-1.5 text-xs text-[#444746] dark:text-[#c4c7c5] font-medium min-w-0">
-                  <div class="flex items-center gap-1.5 whitespace-nowrap">
-                    <span class="w-2 h-2 rounded-full bg-[#6366f1] shrink-0"></span>
-                    <span class="whitespace-nowrap">{{ currentLang === 'km' ? `មេរៀន: ${props.studyTimeBreakdown?.lessons || '0h 0m'}` : `Lessons: ${props.studyTimeBreakdown?.lessons || '0h 0m'}` }}</span>
+                <!-- Aligned Legend (never overflows card) -->
+                <div class="flex-1 min-w-0 space-y-1.5 text-[11px] xl:text-xs text-[#444746] dark:text-[#c4c7c5] font-medium">
+                  <div class="flex items-center justify-between gap-1.5 min-w-0">
+                    <span class="flex items-center gap-1.5 min-w-0 truncate">
+                      <span class="w-2 h-2 rounded-full bg-[#6366f1] shrink-0"></span>
+                      <span class="truncate">{{ currentLang === 'km' ? 'មេរៀន' : 'Lessons' }}</span>
+                    </span>
+                    <span class="font-semibold text-slate-700 dark:text-slate-200 tabular-nums shrink-0">{{ props.studyTimeBreakdown?.lessons || '0h 0m' }}</span>
                   </div>
-                  <div class="flex items-center gap-1.5 whitespace-nowrap">
-                    <span class="w-2 h-2 rounded-full bg-purple-400 dark:bg-[#a78bfa] shrink-0"></span>
-                    <span class="whitespace-nowrap">{{ currentLang === 'km' ? `ការអនុវត្ត: ${props.studyTimeBreakdown?.practice || '0h 0m'}` : `Practice: ${props.studyTimeBreakdown?.practice || '0h 0m'}` }}</span>
+                  <div class="flex items-center justify-between gap-1.5 min-w-0">
+                    <span class="flex items-center gap-1.5 min-w-0 truncate">
+                      <span class="w-2 h-2 rounded-full bg-purple-400 dark:bg-[#a78bfa] shrink-0"></span>
+                      <span class="truncate">{{ currentLang === 'km' ? 'ការអនុវត្ត' : 'Practice' }}</span>
+                    </span>
+                    <span class="font-semibold text-slate-700 dark:text-slate-200 tabular-nums shrink-0">{{ props.studyTimeBreakdown?.practice || '0h 0m' }}</span>
                   </div>
-                  <div class="flex items-center gap-1.5 whitespace-nowrap">
-                    <span class="w-2 h-2 rounded-full bg-cyan-500 dark:bg-cyan-400 shrink-0"></span>
-                    <span class="whitespace-nowrap">{{ currentLang === 'km' ? `កម្រងសំណួរ: ${props.studyTimeBreakdown?.quiz || '0h 0m'}` : `Quiz: ${props.studyTimeBreakdown?.quiz || '0h 0m'}` }}</span>
+                  <div class="flex items-center justify-between gap-1.5 min-w-0">
+                    <span class="flex items-center gap-1.5 min-w-0 truncate">
+                      <span class="w-2 h-2 rounded-full bg-cyan-500 dark:bg-cyan-400 shrink-0"></span>
+                      <span class="truncate">{{ currentLang === 'km' ? 'កម្រងសំណួរ' : 'Quiz' }}</span>
+                    </span>
+                    <span class="font-semibold text-slate-700 dark:text-slate-200 tabular-nums shrink-0">{{ props.studyTimeBreakdown?.quiz || '0h 0m' }}</span>
                   </div>
                 </div>
               </div>
@@ -1408,7 +1417,7 @@ const recentActivities = computed(() => {
             <!-- Quiz Performance Radial Gauge Card -->
             <Link
               href="/student/quizzes/scores"
-              class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-purple-400 hover:dark:border-purple-400/60 rounded-3xl p-5 shadow-sm dark:shadow-xl flex flex-col justify-between space-y-3 transition-all hover:-translate-y-1 group"
+              class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-purple-400 hover:dark:border-purple-400/60 rounded-3xl p-4 xl:p-5 shadow-sm dark:shadow-xl flex flex-col justify-between space-y-3 overflow-hidden transition-all hover:-translate-y-1 group"
             >
               <div class="flex flex-wrap items-center justify-between min-h-[32px] gap-1.5">
                 <div class="flex items-center gap-1 text-[14px] font-semibold text-slate-900 dark:text-slate-100 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
@@ -1420,11 +1429,11 @@ const recentActivities = computed(() => {
                 </span>
               </div>
 
-              <!-- Content centered vertically with 104px ring and nowrap legend -->
-              <div class="flex items-center justify-center gap-4 my-auto py-1">
-                <!-- Gauge Circle 104px -->
-                <div class="relative w-[104px] h-[104px] shrink-0 flex items-center justify-center">
-                  <svg viewBox="0 0 36 36" class="w-[104px] h-[104px] -rotate-90">
+              <!-- Content centered vertically with responsive ring and aligned legend -->
+              <div class="flex items-center justify-between gap-3 my-auto py-1 min-w-0">
+                <!-- Gauge Circle -->
+                <div class="relative w-[84px] h-[84px] xl:w-[96px] xl:h-[96px] shrink-0 flex items-center justify-center">
+                  <svg viewBox="0 0 36 36" class="w-full h-full -rotate-90">
                     <path
                       class="text-[#e1e3e1] dark:text-[#282a2c]"
                       stroke-width="4"
@@ -1448,15 +1457,21 @@ const recentActivities = computed(() => {
                   </div>
                 </div>
 
-                <!-- Legend with whitespace-nowrap -->
-                <div class="space-y-1.5 text-xs text-[#444746] dark:text-[#c4c7c5] font-medium min-w-0">
-                  <div class="flex items-center gap-1.5 whitespace-nowrap">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 shrink-0"></span>
-                    <span class="whitespace-nowrap">{{ currentLang === 'km' ? `ត្រឹមត្រូវ: ${props.quizPerformance?.correctPct || '0%'}` : `Correct: ${props.quizPerformance?.correctPct || '0%'}` }}</span>
+                <!-- Aligned Legend (never overflows card) -->
+                <div class="flex-1 min-w-0 space-y-1.5 text-[11px] xl:text-xs text-[#444746] dark:text-[#c4c7c5] font-medium">
+                  <div class="flex items-center justify-between gap-1.5 min-w-0">
+                    <span class="flex items-center gap-1.5 min-w-0 truncate">
+                      <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 shrink-0"></span>
+                      <span class="truncate">{{ currentLang === 'km' ? 'ត្រឹមត្រូវ' : 'Correct' }}</span>
+                    </span>
+                    <span class="font-semibold text-slate-700 dark:text-slate-200 tabular-nums shrink-0">{{ props.quizPerformance?.correctPct || '0%' }}</span>
                   </div>
-                  <div class="flex items-center gap-1.5 whitespace-nowrap">
-                    <span class="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
-                    <span class="whitespace-nowrap">{{ currentLang === 'km' ? `មិនត្រឹមត្រូវ: ${props.quizPerformance?.incorrectPct || '0%'}` : `Incorrect: ${props.quizPerformance?.incorrectPct || '0%'}` }}</span>
+                  <div class="flex items-center justify-between gap-1.5 min-w-0">
+                    <span class="flex items-center gap-1.5 min-w-0 truncate">
+                      <span class="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
+                      <span class="truncate">{{ currentLang === 'km' ? 'មិនត្រឹមត្រូវ' : 'Incorrect' }}</span>
+                    </span>
+                    <span class="font-semibold text-slate-700 dark:text-slate-200 tabular-nums shrink-0">{{ props.quizPerformance?.incorrectPct || '0%' }}</span>
                   </div>
                 </div>
               </div>
