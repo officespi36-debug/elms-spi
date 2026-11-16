@@ -175,8 +175,6 @@ class CourseController extends Controller
         } elseif ($status !== 'all') {
             $filtered = $filtered->where('status', $status);
         }
-            $filtered = $filtered->where('status', $status);
-        }
         if ($category !== 'all') {
             $filtered = $filtered->where('category', $category);
         }
