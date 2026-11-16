@@ -211,7 +211,7 @@ class DashboardController extends Controller
                             'time' => $lp->updated_at ? $lp->updated_at->diffForHumans() : 'Today',
                             'href' => '/student/learn/' . $lp->lesson->course_id . '?lesson_id=' . $lp->lesson_id,
                             'timestamp' => $lp->updated_at ? $lp->updated_at->timestamp : 0,
-                            'progress' => ($lp->percent && $lp->percent > 0) ? (int) $lp->percent : 45,
+                            'progress' => (int) ($lp->percent ?? 0),
                             'category' => 'Lesson',
                             'category_km' => 'មេរៀន',
                         ];
@@ -308,33 +308,60 @@ class DashboardController extends Controller
                 ],
             ];
 
-            // 7. Study Time Breakdown computed directly from database
-            $totalSeconds = $statsData['totalSeconds'] ?? 0;
-            if ($totalSeconds <= 0) {
+            // 7. Study Time Breakdown computed directly from real database records
+            $totalSeconds = (int) ($statsData['totalSeconds'] ?? 0);
+            $lessonsSec = $totalSeconds;
+            $practiceSec = 0;
+            $quizSec = 0;
+            try {
+                $quizAttempts = QuizAttempt::where('user_id', $user->id)
+                    ->whereNotNull('started_at')
+                    ->whereNotNull('submitted_at')
+                    ->get(['started_at', 'submitted_at']);
+                foreach ($quizAttempts as $qa) {
+                    $secs = max(0, $qa->submitted_at->timestamp - $qa->started_at->timestamp);
+                    $quizSec += min($secs, 10800);
+                }
+            } catch (\Throwable $e) {
+                $quizSec = 0;
+            }
+
+            $totalStudySec = $lessonsSec + $practiceSec + $quizSec;
+            $formatDuration = static function (int $secs): string {
+                $h = (int) floor($secs / 3600);
+                $m = (int) floor(($secs % 3600) / 60);
+                return "{$h}h {$m}m";
+            };
+
+            if ($totalStudySec <= 0) {
                 $studyBreakdown = [
                     'total' => '0h 0m',
                     'lessons' => '0h 0m',
                     'practice' => '0h 0m',
                     'quiz' => '0h 0m',
-                    'dailyAverage' => '0h 0m / day',
-                    'lessonsPct' => 58,
-                    'practicePct' => 28,
-                    'quizPct' => 14,
+                    'dailyAverage' => '0h / day',
+                    'lessonsPct' => 0,
+                    'practicePct' => 0,
+                    'quizPct' => 0,
                 ];
             } else {
-                $lessonsSec = (int) round($totalSeconds * 0.58);
-                $practiceSec = (int) round($totalSeconds * 0.28);
-                $quizSec = max(0, $totalSeconds - $lessonsSec - $practiceSec);
+                $lessonsPct = (int) round(($lessonsSec / $totalStudySec) * 100);
+                $practicePct = (int) round(($practiceSec / $totalStudySec) * 100);
+                $quizPct = max(0, 100 - $lessonsPct - $practicePct);
+                $avgHoursPerDay = round(($totalStudySec / 3600) / 7, 1);
+                $dailyAvgStr = $avgHoursPerDay >= 0.1
+                    ? "{$avgHoursPerDay}h / day"
+                    : max(1, (int) round(($totalStudySec / 60) / 7)) . 'm / day';
 
                 $studyBreakdown = [
-                    'total' => floor($totalSeconds / 3600) . 'h ' . floor(($totalSeconds % 3600) / 60) . 'm',
-                    'lessons' => floor($lessonsSec / 3600) . 'h ' . floor(($lessonsSec % 3600) / 60) . 'm',
-                    'practice' => floor($practiceSec / 3600) . 'h ' . floor(($practiceSec % 3600) / 60) . 'm',
-                    'quiz' => floor($quizSec / 3600) . 'h ' . floor(($quizSec % 3600) / 60) . 'm',
-                    'dailyAverage' => max(1, round(floor($totalSeconds / 3600) / 7, 1)) . 'h / day',
-                    'lessonsPct' => 58,
-                    'practicePct' => 28,
-                    'quizPct' => 14,
+                    'total' => $formatDuration($totalStudySec),
+                    'lessons' => $formatDuration($lessonsSec),
+                    'practice' => $formatDuration($practiceSec),
+                    'quiz' => $formatDuration($quizSec),
+                    'dailyAverage' => $dailyAvgStr,
+                    'lessonsPct' => $lessonsPct,
+                    'practicePct' => $practicePct,
+                    'quizPct' => $quizPct,
                 ];
             }
 
@@ -359,20 +386,44 @@ class DashboardController extends Controller
                 'trend' => $trend,
             ];
 
-            // 9. Learning Overview Chart data computed from real activity
+            // 9. Learning Overview Chart data computed from real database activity (7D, 30D, 90D)
+            $computeRangeOverview = static function (int $days) use ($user, $formatDuration): array {
+                try {
+                    $now = now();
+                    $curStart = $now->copy()->subDays($days);
+                    $prevStart = $now->copy()->subDays($days * 2);
+
+                    $curSec = (int) LessonProgress::where('user_id', $user->id)
+                        ->where('updated_at', '>=', $curStart)
+                        ->sum('seconds_watched');
+
+                    $prevSec = (int) LessonProgress::where('user_id', $user->id)
+                        ->where('updated_at', '>=', $prevStart)
+                        ->where('updated_at', '<', $curStart)
+                        ->sum('seconds_watched');
+
+                    if ($curSec === 0 && $prevSec === 0) {
+                        $trendStr = '0%';
+                    } elseif ($prevSec === 0) {
+                        $trendStr = '+100% vs last period';
+                    } else {
+                        $pct = (int) round((($curSec - $prevSec) / $prevSec) * 100);
+                        $trendStr = ($pct >= 0 ? "+{$pct}%" : "{$pct}%") . ' vs last period';
+                    }
+
+                    return [
+                        'total' => $formatDuration($curSec),
+                        'trend' => $trendStr,
+                    ];
+                } catch (\Throwable $e) {
+                    return ['total' => '0h 0m', 'trend' => '0%'];
+                }
+            };
+
             $learningOverviewData = [
-                'week' => [
-                    'total' => $totalSeconds > 0 ? (floor($totalSeconds / 3600) . 'h ' . floor(($totalSeconds % 3600) / 60) . 'm') : '0h 0m',
-                    'trend' => $totalSeconds > 0 ? '+12% vs last period' : '0%',
-                ],
-                'last_week' => [
-                    'total' => $totalSeconds > 0 ? (max(1, floor($totalSeconds / 7200)) . 'h 10m') : '0h 0m',
-                    'trend' => $totalSeconds > 0 ? '+8% vs prior week' : '0%',
-                ],
-                'month' => [
-                    'total' => $totalSeconds > 0 ? (floor($totalSeconds / 3600) . 'h 20m') : '0h 0m',
-                    'trend' => $totalSeconds > 0 ? '+18% this month' : '0%',
-                ],
+                'week' => $computeRangeOverview(7),
+                'last_week' => $computeRangeOverview(30),
+                'month' => $computeRangeOverview(90),
             ];
 
             // 10. AI Recommendations from real student courses & quiz weaknesses

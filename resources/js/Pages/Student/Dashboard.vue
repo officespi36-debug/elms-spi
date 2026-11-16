@@ -596,9 +596,9 @@ const filteredCourses = computed(() => {
 const selectedRange = ref<'week' | 'last_week' | 'month'>('week')
 const chartDataByRange = computed(() => ({
   week: {
-    total: props.learningOverview?.week?.total || (currentLang.value === 'km' ? '២ ម៉ោង ៣០ នាទី' : '2h 30m'),
-    sub: currentLang.value === 'km' ? 'សប្តាហ៍នេះធៀបនឹងមធ្យមភាគ' : 'This week total',
-    trend: props.learningOverview?.week?.trend || '+12% vs last period',
+    total: props.learningOverview?.week?.total ?? '0h 0m',
+    sub: currentLang.value === 'km' ? '៧ ថ្ងៃចុងក្រោយ' : 'Last 7 days',
+    trend: props.learningOverview?.week?.trend ?? '0%',
     pathArea: 'M 10 60 Q 40 40 70 55 T 130 25 T 190 40 L 190 75 L 10 75 Z',
     pathLine: 'M 10 60 Q 40 40 70 55 T 130 25 T 190 40',
     dotX: 130,
@@ -606,24 +606,24 @@ const chartDataByRange = computed(() => ({
     labels: currentLang.value === 'km' ? ['ច័ន្ទ', 'អង្គារ', 'ពុធ', 'ព្រហ', 'សុក្រ', 'សៅរ៍', 'អាទិត្យ'] : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
   },
   last_week: {
-    total: props.learningOverview?.last_week?.total || (currentLang.value === 'km' ? '១៤ ម៉ោង ១០ នាទី' : '14h 10m'),
-    sub: currentLang.value === 'km' ? 'សរុបសប្តាហ៍មុន' : 'Last week total',
-    trend: props.learningOverview?.last_week?.trend || '+8% vs prior week',
+    total: props.learningOverview?.last_week?.total ?? '0h 0m',
+    sub: currentLang.value === 'km' ? '៣០ ថ្ងៃចុងក្រោយ' : 'Last 30 days',
+    trend: props.learningOverview?.last_week?.trend ?? '0%',
     pathArea: 'M 10 50 Q 40 30 70 45 T 130 35 T 190 20 L 190 75 L 10 75 Z',
     pathLine: 'M 10 50 Q 40 30 70 45 T 130 35 T 190 20',
     dotX: 190,
     dotY: 20,
-    labels: currentLang.value === 'km' ? ['ច័ន្ទ', 'អង្គារ', 'ពុធ', 'ព្រហ', 'សុក្រ', 'សៅរ៍', 'អាទិត្យ'] : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    labels: currentLang.value === 'km' ? ['ស១', 'ស២', 'ស៣', 'ស៤', '', '', ''] : ['W1', 'W2', 'W3', 'W4', '', '', '']
   },
   month: {
-    total: props.learningOverview?.month?.total || (currentLang.value === 'km' ? '៤៨ ម៉ោង ២០ នាទី' : '48h 20m'),
-    sub: currentLang.value === 'km' ? 'សរុបប្រចាំខែ' : 'Monthly cumulative',
-    trend: props.learningOverview?.month?.trend || '+18% this month',
+    total: props.learningOverview?.month?.total ?? '0h 0m',
+    sub: currentLang.value === 'km' ? '៩០ ថ្ងៃចុងក្រោយ' : 'Last 90 days',
+    trend: props.learningOverview?.month?.trend ?? '0%',
     pathArea: 'M 10 65 Q 50 50 90 35 T 150 20 T 190 15 L 190 75 L 10 75 Z',
     pathLine: 'M 10 65 Q 50 50 90 35 T 150 20 T 190 15',
     dotX: 150,
     dotY: 20,
-    labels: currentLang.value === 'km' ? ['ស១', 'ស២', 'ស៣', 'ស៤', '', '', ''] : ['W1', 'W2', 'W3', 'W4', '', '', '']
+    labels: currentLang.value === 'km' ? ['ខែ១', 'ខែ២', 'ខែ៣', '', '', '', ''] : ['M1', 'M2', 'M3', '', '', '', '']
   }
 }))
 
@@ -1239,10 +1239,10 @@ const recentActivities = computed(() => {
             <div
               class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-purple-400 hover:dark:border-purple-400/60 rounded-3xl p-5 shadow-sm dark:shadow-xl flex flex-col justify-between space-y-3 block transition-all hover:-translate-y-1"
             >
-              <!-- Row 1: Equal 1-line header with inline segmented control -->
-              <div class="flex items-center justify-between min-h-[32px] gap-2">
-                <Link href="/student/progress/learning-time" class="flex items-center gap-1.5 text-[15px] font-semibold text-slate-900 dark:text-slate-100 hover:text-purple-600 dark:hover:text-purple-400 transition-colors min-w-0 group">
-                  <span class="truncate">{{ currentLang === 'km' ? 'ទិដ្ឋភាពទូទៅនៃការរៀន' : 'Learning overview' }}</span>
+              <!-- Row 1: Header with inline segmented control (wrap cleanly on narrow cards) -->
+              <div class="flex flex-wrap items-center justify-between min-h-[32px] gap-1.5">
+                <Link href="/student/progress/learning-time" class="flex items-center gap-1 text-[14px] font-semibold text-slate-900 dark:text-slate-100 hover:text-purple-600 dark:hover:text-purple-400 transition-colors group">
+                  <span>{{ currentLang === 'km' ? 'ទិដ្ឋភាពទូទៅនៃការរៀន' : 'Learning overview' }}</span>
                   <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-purple-600 group-hover:translate-x-0.5 transition-all shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                 </Link>
 
@@ -1252,7 +1252,7 @@ const recentActivities = computed(() => {
                     type="button"
                     @click="selectedRange = 'week'"
                     :class="selectedRange === 'week' ? 'bg-[#6366f1] text-white font-bold shadow-xs' : 'text-[#444746] dark:text-[#c4c7c5] hover:text-[#1f1f1f] dark:hover:text-white'"
-                    class="px-2 py-0.5 rounded-lg text-xs font-semibold transition-all cursor-pointer"
+                    class="px-1.5 py-0.5 rounded-lg text-[11px] font-semibold transition-all cursor-pointer"
                   >
                     7D
                   </button>
@@ -1260,7 +1260,7 @@ const recentActivities = computed(() => {
                     type="button"
                     @click="selectedRange = 'last_week'"
                     :class="selectedRange === 'last_week' ? 'bg-[#6366f1] text-white font-bold shadow-xs' : 'text-[#444746] dark:text-[#c4c7c5] hover:text-[#1f1f1f] dark:hover:text-white'"
-                    class="px-2 py-0.5 rounded-lg text-xs font-semibold transition-all cursor-pointer"
+                    class="px-1.5 py-0.5 rounded-lg text-[11px] font-semibold transition-all cursor-pointer"
                   >
                     30D
                   </button>
@@ -1268,7 +1268,7 @@ const recentActivities = computed(() => {
                     type="button"
                     @click="selectedRange = 'month'"
                     :class="selectedRange === 'month' ? 'bg-[#6366f1] text-white font-bold shadow-xs' : 'text-[#444746] dark:text-[#c4c7c5] hover:text-[#1f1f1f] dark:hover:text-white'"
-                    class="px-2 py-0.5 rounded-lg text-xs font-semibold transition-all cursor-pointer"
+                    class="px-1.5 py-0.5 rounded-lg text-[11px] font-semibold transition-all cursor-pointer"
                   >
                     90D
                   </button>
@@ -1320,13 +1320,13 @@ const recentActivities = computed(() => {
               href="/student/progress/learning-time"
               class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-purple-400 hover:dark:border-purple-400/60 rounded-3xl p-5 shadow-sm dark:shadow-xl flex flex-col justify-between space-y-3 transition-all hover:-translate-y-1 group"
             >
-              <div class="flex items-center justify-between min-h-[32px] gap-2">
-                <div class="flex items-center gap-1.5 text-[15px] font-semibold text-slate-900 dark:text-slate-100 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors min-w-0">
-                  <span class="truncate">{{ currentLang === 'km' ? 'ម៉ោងសិក្សា' : 'Study time' }}</span>
+              <div class="flex flex-wrap items-center justify-between min-h-[32px] gap-1.5">
+                <div class="flex items-center gap-1 text-[14px] font-semibold text-slate-900 dark:text-slate-100 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                  <span>{{ currentLang === 'km' ? 'ម៉ោងសិក្សា' : 'Study time' }}</span>
                   <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-purple-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                 </div>
                 <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30 whitespace-nowrap shrink-0">
-                  {{ props.studyTimeBreakdown?.dailyAverage || '+2.5h vs last week' }}
+                  {{ props.studyTimeBreakdown?.dailyAverage || (currentLang === 'km' ? '0h / ថ្ងៃ' : '0h / day') }}
                 </span>
               </div>
 
@@ -1343,8 +1343,9 @@ const recentActivities = computed(() => {
                       d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                     />
                     <path
+                      v-if="(props.studyTimeBreakdown?.lessonsPct ?? 0) > 0"
                       class="text-[#6366f1] donut-draw"
-                      :stroke-dasharray="`${props.studyTimeBreakdown?.lessonsPct || 58}, 100`"
+                      :stroke-dasharray="`${props.studyTimeBreakdown?.lessonsPct ?? 0}, 100`"
                       stroke-width="4"
                       stroke-linecap="round"
                       stroke="currentColor"
@@ -1352,9 +1353,21 @@ const recentActivities = computed(() => {
                       d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                     />
                     <path
+                      v-if="(props.studyTimeBreakdown?.practicePct ?? 0) > 0"
                       class="text-purple-400 dark:text-[#a78bfa] donut-draw-2"
-                      :stroke-dasharray="`${props.studyTimeBreakdown?.practicePct || 28}, 100`"
-                      :stroke-dashoffset="`-${props.studyTimeBreakdown?.lessonsPct || 58}`"
+                      :stroke-dasharray="`${props.studyTimeBreakdown?.practicePct ?? 0}, 100`"
+                      :stroke-dashoffset="`-${props.studyTimeBreakdown?.lessonsPct ?? 0}`"
+                      stroke-width="4"
+                      stroke-linecap="round"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                    <path
+                      v-if="(props.studyTimeBreakdown?.quizPct ?? 0) > 0"
+                      class="text-cyan-500 dark:text-cyan-400 donut-draw-2"
+                      :stroke-dasharray="`${props.studyTimeBreakdown?.quizPct ?? 0}, 100`"
+                      :stroke-dashoffset="`-${(props.studyTimeBreakdown?.lessonsPct ?? 0) + (props.studyTimeBreakdown?.practicePct ?? 0)}`"
                       stroke-width="4"
                       stroke-linecap="round"
                       stroke="currentColor"
@@ -1397,13 +1410,13 @@ const recentActivities = computed(() => {
               href="/student/quizzes/scores"
               class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-purple-400 hover:dark:border-purple-400/60 rounded-3xl p-5 shadow-sm dark:shadow-xl flex flex-col justify-between space-y-3 transition-all hover:-translate-y-1 group"
             >
-              <div class="flex items-center justify-between min-h-[32px] gap-2">
-                <div class="flex items-center gap-1.5 text-[15px] font-semibold text-slate-900 dark:text-slate-100 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors min-w-0">
-                  <span class="truncate">{{ currentLang === 'km' ? 'លទ្ធផលកម្រងសំណួរ' : 'Quiz performance' }}</span>
+              <div class="flex flex-wrap items-center justify-between min-h-[32px] gap-1.5">
+                <div class="flex items-center gap-1 text-[14px] font-semibold text-slate-900 dark:text-slate-100 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                  <span>{{ currentLang === 'km' ? 'លទ្ធផលកម្រងសំណួរ' : 'Quiz performance' }}</span>
                   <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-purple-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                 </div>
                 <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30 whitespace-nowrap shrink-0">
-                  {{ props.quizPerformance?.trend || (currentLang === 'km' ? 'គ្មានទិន្នន័យ' : 'No quiz data') }}
+                  {{ props.quizPerformance?.trend === 'No quiz data' ? (currentLang === 'km' ? 'គ្មានទិន្នន័យ' : 'No quiz data') : (props.quizPerformance?.trend || (currentLang === 'km' ? 'គ្មានទិន្នន័យ' : 'No quiz data')) }}
                 </span>
               </div>
 
@@ -1476,7 +1489,7 @@ const recentActivities = computed(() => {
             </div>
 
             <!-- ៥. Layout (grid minmax 300px, gap 16px, 1 col mobile) -->
-            <div v-if="recentActivities.length > 0" class="grid grid-cols-1 md:grid-cols-3 gap-4 [grid-template-columns:repeat(auto-fit,minmax(300px,1fr))]">
+            <div v-if="recentActivities.length > 0" class="grid grid-cols-1 gap-4 [grid-template-columns:repeat(auto-fit,minmax(280px,1fr))]">
               <!-- ២. Card ទាំងមូលចុចបាន (cursor: pointer, link ទៅមេរៀន, hover translateY(-3px), border #a78bfa, shadow, Resume ›) -->
               <div
                 v-for="(act, idx) in recentActivities"
