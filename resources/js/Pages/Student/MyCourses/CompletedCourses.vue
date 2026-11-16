@@ -684,7 +684,7 @@ const navigateToReview = (course: CompletedCourseItem) => {
           <!-- WIDGET 2: Total Study Time -->
           <Link
             href="/student/progress/learning-time"
-            class="bg-white dark:bg-[#0e1424] border border-slate-200/90 dark:border-slate-800 hover:border-blue-400 dark:hover:border-blue-500/40 rounded-3xl p-5 shadow-sm dark:shadow-xl flex items-center gap-4 group transition-all cursor-pointer block"
+            class="bg-white dark:bg-[#0e1424] border border-slate-200/90 dark:border-slate-800 hover:border-blue-400 dark:hover:border-blue-500/40 rounded-3xl p-5 shadow-sm dark:shadow-xl flex items-center gap-4 group transition-all cursor-pointer"
           >
             <div class="w-12 h-12 rounded-2xl bg-blue-500/10 dark:bg-blue-500/20 border border-blue-500/25 dark:border-blue-500/40 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
               <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -704,7 +704,7 @@ const navigateToReview = (course: CompletedCourseItem) => {
           <!-- WIDGET 3: Average Quiz Score -->
           <Link
             href="/student/quizzes/scores"
-            class="bg-white dark:bg-[#0e1424] border border-slate-200/90 dark:border-slate-800 hover:border-purple-400 dark:hover:border-purple-500/40 rounded-3xl p-5 shadow-sm dark:shadow-xl flex items-center gap-4 group transition-all cursor-pointer block"
+            class="bg-white dark:bg-[#0e1424] border border-slate-200/90 dark:border-slate-800 hover:border-purple-400 dark:hover:border-purple-500/40 rounded-3xl p-5 shadow-sm dark:shadow-xl flex items-center gap-4 group transition-all cursor-pointer"
           >
             <div class="w-12 h-12 rounded-2xl bg-purple-500/10 dark:bg-purple-500/20 border border-purple-500/25 dark:border-purple-500/40 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
               <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
