@@ -790,7 +790,7 @@ const studentNav: NavItem[] = [
     icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6',
     children: [
       { name: 'Learning Overview', khName: 'ទិដ្ឋភាពទូទៅនៃការរៀន', href: '/student/progress/overview', iconUrl: '/images/nav/progress.svg' },
-      { name: 'Course Progress', khName: 'វឌ្ឍនភាពតាមវគ្គសិក្សា', href: '/student/my-courses/enrolled', iconUrl: '/images/nav/courses.svg' },
+      { name: 'Course Progress', khName: 'វឌ្ឍនភាពតាមវគ្គសិក្សា', href: '/student/progress', iconUrl: '/images/nav/courses.svg' },
       { name: 'Quiz Performance', khName: 'លទ្ធផលកម្រងសំណួរ', href: '/student/progress/weekly', iconUrl: '/images/nav/analytics.svg' },
       { name: 'Skills Progress', khName: 'ការរីកចម្រើនជំនាញ', href: '/student/progress/achievements', iconUrl: '/images/nav/sub/roles.svg' },
       { name: 'Learning Activity', khName: 'សកម្មភាពនៃការរៀន', href: '/student/progress/learning-time', iconUrl: '/images/nav/sub/history.svg' },
@@ -875,12 +875,29 @@ const isSubActive = (subHref: string) => {
   if (subHref === '/student/my-courses/current') {
     return currentUrl === '/student/my-courses/current' || currentUrl.includes('/lessons/')
   }
-  if (subHref.includes('?')) {
-    const [path, query] = subHref.split('?')
-    if (!currentUrl.startsWith(path)) return false
-    return currentUrl.includes(query)
+
+  const [subPath, subQuery] = subHref.split('?')
+  const [currentPath] = currentUrl.split('?')
+
+  if (subQuery) {
+    if (currentPath !== subPath) return false
+    return currentUrl.includes(subQuery)
   }
-  return currentUrl === subHref || (currentUrl.startsWith(subHref.split('?')[0]) && !subHref.includes('?'))
+
+  if (currentPath === subPath) {
+    return true
+  }
+
+  // Deep child route (e.g. /student/quizzes/practice/123 matches /student/quizzes/practice)
+  // Ensure we don't match sibling routes where another nav item has an exact match
+  if (currentPath.startsWith(subPath + '/')) {
+    const hasMoreSpecificMatch = studentNav.some(nav =>
+      nav.children?.some(c => c.href.split('?')[0] === currentPath)
+    )
+    return !hasMoreSpecificMatch
+  }
+
+  return false
 }
 
 const isChildActive = (children?: NavSubItem[]) => {
@@ -900,10 +917,10 @@ const toggleModule = (key: string) => {
 watch(
   () => page.url,
   () => {
-    studentNav.forEach(item => {
-      if (item.key && item.children && isChildActive(item.children)) {
-        expandedModules.value[item.key] = true
-      }
+    // Only expand the active module, collapse all others
+    const activeModule = studentNav.find(item => item.children && isChildActive(item.children))
+    Object.keys(expandedModules.value).forEach(k => {
+      expandedModules.value[k] = (activeModule?.key === k)
     })
   },
   { immediate: true }
@@ -1220,7 +1237,7 @@ const onIconError = (e: Event) => {
                     <svg v-if="sub.name === 'Continue Learning' || sub.href.includes('/my-courses/current')" class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 group-hover/sub:text-purple-600 dark:group-hover/sub:text-purple-400 shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/>
                     </svg>
-                    <svg v-else-if="sub.name === 'Enrolled Courses' || sub.href.includes('/my-courses/enrolled')" class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 group-hover/sub:text-purple-600 dark:group-hover/sub:text-purple-400 shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg v-else-if="sub.name === 'Enrolled Courses' || sub.href === '/student/my-courses/enrolled'" class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 group-hover/sub:text-purple-600 dark:group-hover/sub:text-purple-400 shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/>
                     </svg>
                     <svg v-else-if="sub.name === 'Completed Courses' || sub.href.includes('/my-courses/completed')" class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 group-hover/sub:text-purple-600 dark:group-hover/sub:text-purple-400 shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1269,7 +1286,7 @@ const onIconError = (e: Event) => {
                     <svg v-if="sub.name === 'Continue Learning' || sub.href.includes('/my-courses/current')" class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 group-hover/sub:text-purple-600 dark:group-hover/sub:text-purple-400 shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/>
                     </svg>
-                    <svg v-else-if="sub.name === 'Enrolled Courses' || sub.href.includes('/my-courses/enrolled')" class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 group-hover/sub:text-purple-600 dark:group-hover/sub:text-purple-400 shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg v-else-if="sub.name === 'Enrolled Courses' || sub.href === '/student/my-courses/enrolled'" class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 group-hover/sub:text-purple-600 dark:group-hover/sub:text-purple-400 shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/>
                     </svg>
                     <svg v-else-if="sub.name === 'Completed Courses' || sub.href.includes('/my-courses/completed')" class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 group-hover/sub:text-purple-600 dark:group-hover/sub:text-purple-400 shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
