@@ -134,11 +134,7 @@ createInertiaApp({
       }
     }
   },
-  progress: {
-    color: '#7c3aed',
-    showSpinner: false,
-    delay: 120,
-  },
+  progress: false,
 })
 
 if (typeof window !== 'undefined') {
