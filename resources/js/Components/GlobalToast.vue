@@ -16,6 +16,26 @@ const dismissCenterNotice = () => {
   centerNotice.value = null
 }
 
+const confirmCenterNotice = () => {
+  const msg = centerNotice.value?.message || ''
+  centerNotice.value = null
+
+  const needsEnroll = msg.includes('ចុះឈ្មោះ') || msg.toLowerCase().includes('enroll')
+  const allCompleted = msg.includes('ទាំងអស់') || msg.toLowerCase().includes('all your courses')
+  const currentPath = (page.url || window.location.pathname).split('?')[0]
+
+  if (needsEnroll) {
+    if (!currentPath.startsWith('/student/browse')) {
+      router.visit('/student/browse')
+    } else {
+      const target = document.querySelector('main') || document.body
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  } else if (allCompleted && !currentPath.startsWith('/student/my-courses/completed')) {
+    router.visit('/student/my-courses/completed')
+  }
+}
+
 const localizeNoticeMessage = (raw: string): string => {
   const msg = (raw || '').trim()
   // Handle "Khmer text (English text)." pattern cleanly per active UI language
@@ -238,7 +258,11 @@ watch(
       aria-modal="true"
       class="fixed inset-0 z-[10001] flex items-center justify-center p-4 pointer-events-none"
     >
-      <div class="pointer-events-auto relative w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.35)] border border-slate-200 dark:border-slate-700/80 px-6 py-6 flex flex-col items-center text-center gap-3">
+      <div class="pointer-events-auto relative w-full max-w-sm p-[2.5px] rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.4)]">
+        <!-- Animated light beam running around the frame -->
+        <div class="elms-frame-runner" aria-hidden="true"></div>
+
+        <div class="relative w-full rounded-[14px] bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 px-6 py-6 flex flex-col items-center text-center gap-3">
         <!-- Close button -->
         <button
           type="button"
@@ -277,11 +301,12 @@ watch(
 
         <button
           type="button"
-          @click="dismissCenterNotice"
+          @click="confirmCenterNotice"
           class="mt-1 px-8 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-[0.98] text-white text-sm font-semibold shadow-md shadow-purple-500/25 transition-all focus:outline-none focus:ring-2 focus:ring-purple-500"
         >
           {{ currentLang === 'km' ? 'យល់ព្រម' : 'OK, Got it' }}
         </button>
+        </div>
       </div>
     </div>
   </Transition>
@@ -349,10 +374,33 @@ watch(
   to { width: 1.25em; }
 }
 
+.elms-frame-runner {
+  position: absolute;
+  inset: -60%;
+  background: conic-gradient(
+    from 0deg,
+    #a855f7,
+    #6366f1,
+    #ec4899,
+    #06b6d4,
+    transparent 45%,
+    #a855f7
+  );
+  will-change: transform;
+  animation: elms-frame-spin 3.2s linear infinite;
+}
+
+@keyframes elms-frame-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .elms-dot,
   .elms-loading-text,
-  .elms-ellipsis {
+  .elms-ellipsis,
+  .elms-frame-runner {
     animation: none;
   }
   .elms-ellipsis {
