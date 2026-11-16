@@ -210,18 +210,17 @@ watch(
       v-if="isGlobalProcessing"
       role="status"
       aria-live="polite"
-      class="fixed inset-0 z-[10000] flex items-center justify-center pointer-events-none select-none"
+      class="fixed inset-0 z-[10000] flex flex-col items-center justify-center gap-3.5 pointer-events-none select-none"
     >
-      <div class="px-7 py-5 rounded-2xl bg-white/95 dark:bg-slate-900/95 text-slate-900 dark:text-slate-100 shadow-2xl border border-purple-200/80 dark:border-purple-500/30 flex flex-col items-center gap-3.5 min-w-[230px]">
-        <div class="flex items-center justify-center gap-3.5" aria-hidden="true">
-          <span class="elms-dot elms-dot-1"></span>
-          <span class="elms-dot elms-dot-2"></span>
-          <span class="elms-dot elms-dot-3"></span>
-        </div>
-        <p class="elms-loading-text text-xs sm:text-sm font-semibold tracking-wide text-slate-700 dark:text-slate-200 flex items-center">
-          <span>{{ loadingText }}</span><span class="elms-ellipsis" aria-hidden="true">...</span>
-        </p>
+      <div class="flex items-center justify-center gap-3.5" aria-hidden="true">
+        <span class="elms-dot elms-dot-1"></span>
+        <span class="elms-dot elms-dot-2"></span>
+        <span class="elms-dot elms-dot-3"></span>
+        <span class="elms-dot elms-dot-4"></span>
       </div>
+      <p class="elms-loading-text text-sm sm:text-base font-bold tracking-wide text-slate-800 dark:text-slate-100 drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)] flex items-center">
+        <span>{{ loadingText }}</span><span class="elms-ellipsis" aria-hidden="true">...</span>
+      </p>
     </div>
   </Transition>
   <!-- Centered Screen Notice / Confirmation Card (e.g. Continue Learning when not enrolled yet) -->
@@ -304,27 +303,32 @@ watch(
 
 <style scoped>
 .elms-dot {
-  width: 14px;
-  height: 14px;
+  width: 15px;
+  height: 15px;
   border-radius: 9999px;
   display: inline-block;
   will-change: transform, opacity;
   animation: elms-dot-travel 0.9s infinite cubic-bezier(0.45, 0.05, 0.55, 0.95);
 }
 .elms-dot-1 {
-  background-color: #a855f7;
-  box-shadow: 0 0 12px rgba(168, 85, 247, 0.7);
+  background: linear-gradient(135deg, #a855f7, #7c3aed);
+  box-shadow: 0 0 14px rgba(168, 85, 247, 0.8);
   animation-delay: 0s;
 }
 .elms-dot-2 {
-  background-color: #6366f1;
-  box-shadow: 0 0 12px rgba(99, 102, 241, 0.7);
-  animation-delay: 0.16s;
+  background: linear-gradient(135deg, #6366f1, #3b82f6);
+  box-shadow: 0 0 14px rgba(99, 102, 241, 0.8);
+  animation-delay: 0.14s;
 }
 .elms-dot-3 {
-  background-color: #ec4899;
-  box-shadow: 0 0 12px rgba(236, 72, 153, 0.7);
-  animation-delay: 0.32s;
+  background: linear-gradient(135deg, #ec4899, #f43f5e);
+  box-shadow: 0 0 14px rgba(236, 72, 153, 0.8);
+  animation-delay: 0.28s;
+}
+.elms-dot-4 {
+  background: linear-gradient(135deg, #06b6d4, #10b981);
+  box-shadow: 0 0 14px rgba(6, 182, 212, 0.8);
+  animation-delay: 0.42s;
 }
 
 @keyframes elms-dot-travel {
