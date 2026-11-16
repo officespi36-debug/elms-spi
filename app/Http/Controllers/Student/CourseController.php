@@ -15,6 +15,7 @@ use App\Models\Notification;
 use App\Models\ReportedContent;
 use App\Services\CertificateService;
 use App\Services\ContinueLearningService;
+use App\Services\EnrollmentService;
 use App\Services\StudentLearningService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -234,10 +235,7 @@ class CourseController extends Controller
 
         if (!$enrollment) {
             if ($course->status === 'published') {
-                $enrollment = Enrollment::firstOrCreate(
-                    ['student_id' => $user->id, 'course_id' => $course->id],
-                    ['status' => 'active', 'enrolled_at' => now()]
-                );
+                $enrollment = app(EnrollmentService::class)->enroll($user, $course, 'self', $user);
             } else {
                 return redirect()->route('student.my-courses.enrolled')
                     ->with('error', 'វគ្គសិក្សាមិនទាន់ត្រូវបានដាក់ឱ្យដំណើរការនៅឡើយទេ (Course is not published).');
@@ -284,17 +282,7 @@ class CourseController extends Controller
 
         if (!$enrollment) {
             if ($course->status === 'published') {
-                $enrollData = ['status' => 'active', 'enrolled_at' => now()];
-                try {
-                    if (Schema::hasColumn('enrollments', 'seen_at')) {
-                        $enrollData['seen_at'] = now();
-                    }
-                } catch (\Throwable $e) {}
-
-                $enrollment = Enrollment::firstOrCreate(
-                    ['student_id' => $user->id, 'course_id' => $course->id],
-                    $enrollData
-                );
+                $enrollment = app(EnrollmentService::class)->enroll($user, $course, 'self', $user);
             } else {
                 abort(403, 'Unauthorized access to unpublished course.');
             }

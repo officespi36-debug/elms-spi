@@ -28,10 +28,7 @@ class StudentLearningService
                 ->exists();
 
             if (!$isEnrolled) {
-                Enrollment::firstOrCreate(
-                    ['student_id' => $user->id, 'course_id' => $course->id],
-                    ['status' => 'active', 'enrolled_at' => now()]
-                );
+                app(EnrollmentService::class)->enroll($user, $course, 'self', $user);
             }
             $targetCourse = $course;
         } else {
@@ -56,10 +53,7 @@ class StudentLearningService
                     ?: Course::where('status', 'published')->first();
 
                 if ($defaultCourse) {
-                    $enrollment = Enrollment::firstOrCreate(
-                        ['student_id' => $user->id, 'course_id' => $defaultCourse->id],
-                        ['status' => 'active', 'enrolled_at' => now()]
-                    );
+                    $enrollment = app(EnrollmentService::class)->enroll($user, $defaultCourse, 'self', $user);
                 }
             }
 
@@ -79,10 +73,7 @@ class StudentLearningService
                 ->first();
 
             if ($altCourse) {
-                Enrollment::firstOrCreate(
-                    ['student_id' => $user->id, 'course_id' => $altCourse->id],
-                    ['status' => 'active', 'enrolled_at' => now()]
-                );
+                $altEnrollment = app(EnrollmentService::class)->enroll($user, $altCourse, 'self', $user);
                 return $this->resolveCurrentLesson($user, $altCourse);
             }
             return null;

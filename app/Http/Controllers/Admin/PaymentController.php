@@ -8,6 +8,7 @@ use App\Models\Enrollment;
 use App\Models\Major;
 use App\Models\Payment;
 use App\Models\User;
+use App\Services\EnrollmentService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -540,7 +541,7 @@ class PaymentController extends Controller
         ]);
     }
 
-    public function verify(Request $request, Payment $payment)
+    public function verify(Request $request, Payment $payment, EnrollmentService $enrollmentService)
     {
         $payment->update([
             'status' => 'paid',
@@ -548,9 +549,12 @@ class PaymentController extends Controller
             'verified_at' => now(),
         ]);
 
-        Enrollment::where('student_id', $payment->student_id)
-            ->where('course_id', $payment->course_id)
-            ->update(['status' => 'active', 'enrolled_at' => now()]);
+        $student = User::find($payment->student_id);
+        $course = Course::find($payment->course_id);
+
+        if ($student && $course) {
+            $enrollmentService->enroll($student, $course, 'payment', $request->user());
+        }
 
         return back()->with('success', 'Payment verified — Student course access unlocked! ✅');
     }

@@ -173,6 +173,31 @@ const navigateToCourseOverview = (course: EnrolledCourseItem) => {
   router.visit(course.overviewHref)
 }
 
+const formatEnrollmentMeta = (course: any) => {
+  const source = course.source
+  const enrolledBy = course.enrolled_by
+  const relative = course.enrolled_relative || 'Recently'
+  const date = course.enrolledDate || relative
+
+  if (source === 'teacher' || source === 'admin') {
+    if (enrolledBy?.name) {
+      return `Added by ${enrolledBy.name} · ${relative}`
+    }
+    return `Added by ${source === 'teacher' ? 'Instructor' : 'Admin'} · ${relative}`
+  }
+
+  if (source === 'self') {
+    return `You enrolled · ${relative}`
+  }
+
+  if (source === 'payment') {
+    return 'Enrolled after payment'
+  }
+
+  // NULL or legacy manual
+  return `Enrolled · ${date}`
+}
+
 onMounted(() => {
   refreshCachedCourses()
   window.addEventListener('click', closeAllDropdowns)
@@ -579,12 +604,16 @@ onMounted(() => {
                       decoding="async"
                       class="w-6 h-6 rounded-full object-cover border border-purple-500/40"
                     />
-                    <span class="text-xs text-slate-600 dark:text-slate-300 font-medium">{{ course.teacher.name }}</span>
-                    <span
-                      v-if="(course as any).enrolled_by?.name"
-                      class="text-[11px] text-purple-600 dark:text-purple-400 font-medium ml-auto flex items-center gap-1"
+                    <Link
+                      :href="'/student/courses/' + course.id + '/overview'"
+                      class="text-xs text-slate-600 dark:text-slate-300 font-medium hover:text-purple-600 dark:hover:text-purple-400 hover:underline transition-colors"
                     >
-                      Added by {{ (course as any).enrolled_by.name }} <span v-if="(course as any).enrolled_relative" class="text-slate-400 dark:text-slate-500">· {{ (course as any).enrolled_relative }}</span>
+                      {{ course.teacher.name }}
+                    </Link>
+                    <span
+                      class="text-[11px] text-purple-600 dark:text-purple-400 font-medium ml-auto flex items-center gap-1 shrink-0"
+                    >
+                      {{ formatEnrollmentMeta(course) }}
                     </span>
                   </div>
                 </div>
@@ -730,9 +759,9 @@ onMounted(() => {
                 </h3>
 
                 <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-                  <span>Instructor: {{ course.teacher.name }}</span>
-                  <span v-if="(course as any).enrolled_by?.name" class="text-purple-600 dark:text-purple-400 font-medium">
-                    • Added by {{ (course as any).enrolled_by.name }} <span v-if="(course as any).enrolled_relative">({{ (course as any).enrolled_relative }})</span>
+                  <span>Instructor: <Link :href="'/student/courses/' + course.id + '/overview'" class="hover:text-purple-600 dark:hover:text-purple-400 hover:underline font-medium text-slate-700 dark:text-slate-200">{{ course.teacher.name }}</Link></span>
+                  <span class="text-purple-600 dark:text-purple-400 font-medium">
+                    • {{ formatEnrollmentMeta(course) }}
                   </span>
                   <span>•</span>
                   <span>{{ course.completedLessons }} / {{ course.totalLessons }} Lessons</span>

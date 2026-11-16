@@ -1307,24 +1307,10 @@ const onIconError = (e: Event) => {
                     <img v-else-if="sub.iconUrl" :src="sub.iconUrl" :alt="sub.name" class="w-3.5 h-3.5 object-contain shrink-0" @error="onIconError" />
                     <span v-else :class="[isSubActive(sub.href) ? 'bg-purple-600 dark:bg-purple-400' : 'bg-slate-400 dark:bg-slate-600', 'w-1.5 h-1.5 rounded-full shrink-0']"></span>
                     <span class="truncate">{{ currentLang === 'km' ? sub.khName : sub.name }}</span>
-                <!-- New Enrolled Courses Badge (Mobile) -->
-                <span
-                  v-if="(sub.name === 'Enrolled Courses' || sub.href === '/student/my-courses/enrolled') && newEnrollmentsCount > 0"
-                  class="ml-auto inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300 border border-purple-200 dark:border-purple-700/50 shrink-0"
-                >
-                  {{ newEnrollmentsCount > 9 ? '9+' : newEnrollmentsCount }} {{ currentLang === 'km' ? 'ថ្មី' : 'New' }}
-                </span>
-                    <!-- New Enrolled Courses Badge in Popover -->
-                    <span
-                      v-if="(sub.name === 'Enrolled Courses' || sub.href === '/student/my-courses/enrolled') && newEnrollmentsCount > 0"
-                      class="ml-auto inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300 border border-purple-200 dark:border-purple-700/50 shrink-0"
-                    >
-                      {{ newEnrollmentsCount > 9 ? '9+' : newEnrollmentsCount }} {{ currentLang === 'km' ? 'ថ្មី' : 'New' }}
-                    </span>
                     <!-- New Enrolled Courses Badge -->
                     <span
                       v-if="(sub.name === 'Enrolled Courses' || sub.href === '/student/my-courses/enrolled') && newEnrollmentsCount > 0"
-                      class="ml-auto inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300 border border-purple-200 dark:border-purple-700/50 shrink-0 transition-transform duration-200 animate-in fade-in zoom-in-95"
+                      class="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300 border border-purple-200 dark:border-purple-700/50 shrink-0 transition-transform duration-200 animate-in fade-in zoom-in-95"
                       :aria-label="`${newEnrollmentsCount} new enrolled courses`"
                     >
                       {{ newEnrollmentsCount > 9 ? '9+' : newEnrollmentsCount }} {{ currentLang === 'km' ? 'ថ្មី' : 'New' }}

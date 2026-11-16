@@ -1486,8 +1486,16 @@ onUnmounted(() => {
                 <h1 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight line-clamp-2 leading-snug">
                   {{ currentLesson.title }}
                 </h1>
-                <p class="text-xs text-purple-600 dark:text-purple-400/90 font-medium truncate">
-                  {{ course.title }} • {{ teacherDisplay }}
+                <p class="text-xs text-purple-600 dark:text-purple-400/90 font-medium truncate flex items-center gap-1.5">
+                  <Link :href="'/student/courses/' + course.id + '/overview'" class="hover:underline">{{ course.title }}</Link>
+                  <span>•</span>
+                  <Link
+                    :href="'/student/courses/' + course.id + '/overview'"
+                    class="hover:underline font-bold hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
+                    title="View Course Information & Instructor"
+                  >
+                    {{ teacherDisplay }}
+                  </Link>
                 </p>
               </div>
             </div>

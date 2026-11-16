@@ -42,10 +42,7 @@ class ContinueLearningService
                 ->first();
 
             if (!$enrollment && $targetCourse->status === 'published') {
-                $enrollment = Enrollment::firstOrCreate(
-                    ['student_id' => $user->id, 'course_id' => $targetCourse->id],
-                    ['status' => 'active', 'enrolled_at' => now()]
-                );
+                $enrollment = app(EnrollmentService::class)->enroll($user, $targetCourse, 'self', $user);
             }
 
             if (!$enrollment || $enrollment->status !== 'active') {

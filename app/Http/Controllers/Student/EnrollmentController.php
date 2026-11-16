@@ -4,19 +4,20 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\Course;
-use App\Models\Enrollment;
+use App\Services\EnrollmentService;
 use Illuminate\Http\Request;
 
 class EnrollmentController extends Controller
 {
-    public function store(Request $request, Course $course)
+    public function store(Request $request, Course $course, EnrollmentService $enrollmentService)
     {
-        $status = $course->is_paid ? 'pending_payment' : 'active';
+        $user = $request->user();
+        $enrollment = $enrollmentService->enroll($user, $course, 'self', $user);
 
-        $enrollment = Enrollment::firstOrCreate(
-            ['student_id' => $request->user()->id, 'course_id' => $course->id],
-            ['status' => $status, 'enrolled_at' => $status === 'active' ? now() : null]
-        );
+        if ($enrollment->status === 'pending_payment') {
+            return redirect()->route('student.payments.index')
+                ->with('info', 'សូមបង់ប្រាក់ដើម្បីចូលរៀនវគ្គសិក្សានេះ (Please complete payment to access course).');
+        }
 
         return back()->with('success', 'Enrolled successfully');
     }
