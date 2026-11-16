@@ -62,7 +62,6 @@ class EnrollmentService
                     $existing->save();
 
                     Cache::forget("student.{$student->id}.new_enrollments");
-                    DashboardStatsService::forgetForUser($student->id);
                     $this->sendNotification($student, $course, $source, $actor, $semesterVal);
                 }
                 return $existing;

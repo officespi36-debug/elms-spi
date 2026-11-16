@@ -318,7 +318,6 @@ class StudentLearningService
         Cache::forget("course_{$courseId}_user_{$userId}_curriculum_v2");
         Cache::forget("course_{$courseId}_user_{$userId}_curriculum");
         Cache::forget("student_dashboard_payload_{$userId}");
-        DashboardStatsService::forgetForUser($userId);
     }
 
     public function formatDuration(int $seconds): string
