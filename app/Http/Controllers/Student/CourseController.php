@@ -14,6 +14,7 @@ use App\Models\LessonResource;
 use App\Models\Notification;
 use App\Models\ReportedContent;
 use App\Services\CertificateService;
+use App\Services\ContinueLearningService;
 use App\Services\StudentLearningService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -177,7 +178,7 @@ class CourseController extends Controller
                 'lastAccessedTimeMs' => $enr->updated_at ? $enr->updated_at->getTimestamp() * 1000 : 0,
                 'enrolledDate'       => $enr->enrolled_at ? $enr->enrolled_at->format('Y-m-d') : ($enr->created_at ? $enr->created_at->format('Y-m-d') : '2026-08-01'),
                 'overviewHref'       => "/student/courses/{$c->id}/overview",
-                'learningHref'       => $nextLesson ? "/student/my-courses/{$c->id}/lessons/{$nextLesson->id}" : "/student/courses/{$c->id}/overview",
+                'learningHref'       => "/student/my-courses/{$c->id}/continue",
                 'certificateHref'    => '/student/certificates/my-certificates',
                 'themeColor'         => $themeColor,
                 'accentGradient'     => $gradient,
@@ -191,84 +192,144 @@ class CourseController extends Controller
     }
 
     /**
-     * Display current/next lesson player of the active enrolled course.
+     * Resolve current learning session and 302 redirect to the active lesson.
      */
-    public function current(Request $request, StudentLearningService $learningService)
+    public function current(Request $request, ContinueLearningService $continueService)
     {
         $user = $request->user();
-        $current = $learningService->resolveCurrentLesson($user);
+        $resolved = $continueService->resolve($user);
 
-        if (!$current || !isset($current['course'], $current['lesson'])) {
-            $defaultCourse = Course::where('status', 'published')
-                ->whereHas('lessons')
-                ->first()
-                ?: Course::where('status', 'published')->first();
-
-            if ($defaultCourse) {
-                Enrollment::firstOrCreate(
-                    ['student_id' => $user->id, 'course_id' => $defaultCourse->id],
-                    ['status' => 'active', 'enrolled_at' => now()]
-                );
-                $current = $learningService->resolveCurrentLesson($user, $defaultCourse);
-            }
+        if (!$resolved) {
+            return redirect()->route('student.browse')
+                ->with('info', 'សូមចុះឈ្មោះវគ្គសិក្សាដើម្បីចាប់ផ្តើមរៀន (Please enroll in a course to start learning).');
         }
 
-        if ($current && isset($current['course'], $current['lesson'])) {
-            return $this->showLesson($request, $current['course'], $current['lesson'], $learningService);
+        if (!empty($resolved['all_completed'])) {
+            return redirect()->route('student.my-courses.completed')
+                ->with('info', 'អ្នកបានបញ្ចប់វគ្គសិក្សាទាំងអស់រួចរាល់ហើយ! (You have completed all your courses!)');
         }
 
-        return redirect()->route('student.browse')
-            ->with('info', 'សូមចុះឈ្មោះវគ្គសិក្សាដើម្បីចាប់ផ្តើមរៀន (Please enroll in a course to start learning).');
+        if (!empty($resolved['course']) && !empty($resolved['lesson'])) {
+            return redirect()->to("/student/my-courses/{$resolved['course']->id}/lessons/{$resolved['lesson']->id}");
+        }
+
+        if (!empty($resolved['course'])) {
+            return redirect()->to("/student/courses/{$resolved['course']->id}/overview");
+        }
+
+        return redirect()->route('student.browse');
     }
 
     /**
-     * Show Lesson Player connected to real course and database.
+     * Resolve and 302 redirect to the first incomplete lesson for a specific course.
      */
-    public function showLesson(Request $request, Course $course, Lesson $lesson, StudentLearningService $learningService)
+    public function continueCourse(Request $request, Course $course, ContinueLearningService $continueService)
     {
         $user = $request->user();
 
-        // 1. Authorization: Ensure enrollment exists (auto-enroll if student is viewing a published course)
+        // 1. Enrollment check
         $enrollment = Enrollment::where('student_id', $user->id)
             ->where('course_id', $course->id)
             ->first();
 
         if (!$enrollment) {
-            $enrollData = ['status' => 'active', 'enrolled_at' => now()];
-            try {
-                if (Schema::hasColumn('enrollments', 'seen_at')) {
-                    $enrollData['seen_at'] = now();
-                }
-            } catch (\Throwable $e) {}
-
-            $enrollment = Enrollment::firstOrCreate(
-                ['student_id' => $user->id, 'course_id' => $course->id],
-                $enrollData
-            );
-        } elseif (isset($enrollment->seen_at) && $enrollment->seen_at === null) {
-            try {
-                $enrollment->update(['seen_at' => now()]);
-            } catch (\Throwable $e) {}
-            Cache::forget("student.{$user->id}.new_enrollments");
+            if ($course->status === 'published') {
+                $enrollment = Enrollment::firstOrCreate(
+                    ['student_id' => $user->id, 'course_id' => $course->id],
+                    ['status' => 'active', 'enrolled_at' => now()]
+                );
+            } else {
+                return redirect()->route('student.my-courses.enrolled')
+                    ->with('error', 'វគ្គសិក្សាមិនទាន់ត្រូវបានដាក់ឱ្យដំណើរការនៅឡើយទេ (Course is not published).');
+            }
+        } elseif ($enrollment->status !== 'active') {
+            if ($enrollment->status === 'completed') {
+                return redirect()->to("/student/courses/{$course->id}/overview")
+                    ->with('info', 'អ្នកបានបញ្ចប់វគ្គសិក្សានេះរួចរាល់ហើយ! (You have completed this course!)');
+            }
+            return redirect()->route('student.my-courses.enrolled')
+                ->with('warning', 'ស្ថានភាពចុះឈ្មោះមិនទាន់សកម្មទេ (Enrollment is not active).');
         }
 
-        // 2. Fetch full curriculum with sequential lock states
+        $resolved = $continueService->resolve($user, $course);
+
+        if (!$resolved || !empty($resolved['all_completed'])) {
+            return redirect()->to("/student/courses/{$course->id}/overview")
+                ->with('info', 'អ្នកបានបញ្ចប់វគ្គសិក្សានេះរួចរាល់ហើយ! (You have completed this course!)');
+        }
+
+        if (!empty($resolved['lesson'])) {
+            return redirect()->to("/student/my-courses/{$course->id}/lessons/{$resolved['lesson']->id}");
+        }
+
+        return redirect()->to("/student/courses/{$course->id}/overview");
+    }
+
+    /**
+     * Show Lesson Player connected to real course and database.
+     */
+    public function showLesson(Request $request, Course $course, Lesson $lesson, StudentLearningService $learningService, ContinueLearningService $continueService)
+    {
+        $user = $request->user();
+
+        // 1. Ownership & Spoofing Protection: Verify lesson belongs to this course
+        if ((int)$lesson->course_id !== (int)$course->id) {
+            abort(404, 'Lesson does not belong to this course.');
+        }
+
+        // 2. Authorization: Ensure enrollment exists (auto-enroll if student is viewing a published course)
+        $enrollment = Enrollment::where('student_id', $user->id)
+            ->where('course_id', $course->id)
+            ->first();
+
+        if (!$enrollment) {
+            if ($course->status === 'published') {
+                $enrollData = ['status' => 'active', 'enrolled_at' => now()];
+                try {
+                    if (Schema::hasColumn('enrollments', 'seen_at')) {
+                        $enrollData['seen_at'] = now();
+                    }
+                } catch (\Throwable $e) {}
+
+                $enrollment = Enrollment::firstOrCreate(
+                    ['student_id' => $user->id, 'course_id' => $course->id],
+                    $enrollData
+                );
+            } else {
+                abort(403, 'Unauthorized access to unpublished course.');
+            }
+        } else {
+            if ($enrollment->status !== 'active' && $enrollment->status !== 'completed') {
+                abort(403, 'Your enrollment in this course is not active.');
+            }
+
+            // Mark seen_at idempotently
+            if (isset($enrollment->seen_at) && $enrollment->seen_at === null) {
+                try {
+                    $enrollment->update(['seen_at' => now()]);
+                } catch (\Throwable $e) {}
+                Cache::forget("student.{$user->id}.new_enrollments");
+            }
+        }
+
+        // 3. Fetch full curriculum with sequential lock states
         $curriculum = $learningService->getCourseCurriculum($user, $course);
         $allLessons = collect($curriculum['lessons']);
 
         $lessonItem = $allLessons->firstWhere('id', $lesson->id);
         if (!$lessonItem) {
-            abort(404, 'Lesson not found in this course.');
+            abort(404, 'Lesson not found in curriculum.');
         }
 
-        // 3. Lock enforcement: If lesson is locked, redirect to current unlocked lesson
-        if ($lessonItem['is_locked']) {
-            $unlockedLesson = $allLessons->first(fn($l) => !$l['is_locked'] && !$l['is_completed'])
-                ?: $allLessons->firstWhere('is_locked', false)
-                ?: $allLessons->first();
+        // 4. Sequential Lock Enforcement:
+        // A lesson is unlocked if it is completed OR if it is the first incomplete lesson.
+        // If student navigates directly to a locked lesson, redirect to firstIncomplete.
+        if (!empty($lessonItem['is_locked'])) {
+            $firstIncomplete = $continueService->firstIncomplete($user, $course);
+            $targetLessonId = $firstIncomplete ? $firstIncomplete->id : ($allLessons->firstWhere('is_locked', false)['id'] ?? $allLessons->first()['id']);
 
-            return redirect()->to("/student/my-courses/{$course->id}/lessons/{$unlockedLesson['id']}")
-                ->with('warning', 'សូមបញ្ចប់មេរៀនមុនសិន (Complete previous lesson first).');
+            return redirect()->to("/student/my-courses/{$course->id}/lessons/{$targetLessonId}")
+                ->with('warning', 'សូមបញ្ចប់មេរៀនមុនសិន (Complete the previous lesson first).');
         }
 
         // 4. Calculate student first name
@@ -548,6 +609,8 @@ class CourseController extends Controller
             ? $allLessons[$currentIndex + 1]
             : null;
 
+        $finishUrl = "/student/courses/{$course->id}/overview";
+
         return response()->json([
             'ok'                      => true,
             'lesson_id'               => $lesson->id,
@@ -556,9 +619,9 @@ class CourseController extends Controller
             'completed_lessons_count' => $completedCount,
             'total_lessons_count'     => $totalCount,
             'is_course_completed'     => $isCourseCompleted,
-            'next_lesson_url'         => $nextLessonItem ? "/student/my-courses/{$course->id}/lessons/{$nextLessonItem['id']}" : null,
+            'next_lesson_url'         => $nextLessonItem ? "/student/my-courses/{$course->id}/lessons/{$nextLessonItem['id']}" : $finishUrl,
             'next_lesson_id'          => $nextLessonItem['id'] ?? null,
-            'message'                 => 'មេរៀនត្រូវបានបញ្ចប់ដោយជោគជ័យ! (Lesson completed successfully)',
+            'message'                 => $isCourseCompleted ? 'អបអរសាទរ! អ្នកបានបញ្ចប់វគ្គសិក្សាទាំងមូលដោយជោគជ័យ! (Congratulations! You have completed the entire course!)' : 'មេរៀនត្រូវបានបញ្ចប់ដោយជោគជ័យ! (Lesson completed successfully)',
         ]);
     }
 

@@ -123,6 +123,19 @@ const toastType = ref<'success' | 'warning' | 'error'>('success')
 const showRetryProgress = ref(false)
 const isSavingProgress = ref(false)
 const isCompleting = ref(false)
+const videoPlaybackError = ref(false)
+
+const handleVideoError = () => {
+  videoPlaybackError.value = true
+}
+
+const retryVideoPlayback = () => {
+  videoPlaybackError.value = false
+  if (html5VideoRef.value) {
+    html5VideoRef.value.load()
+    html5VideoRef.value.play().catch(() => {})
+  }
+}
 
 // Teacher Display Name (cleans up any raw DB test usernames like 'Pitaja6820')
 const teacherDisplay = computed(() => {
@@ -1294,12 +1307,7 @@ const smartActionLabel = computed(() => {
 })
 
 const completionNotice = computed(() => {
-  if (isLessonCompletedLocally.value) return ''
-  if (!isEligibleToComplete.value) {
-    const watched = Math.max(currentSeconds.value, maxWatchedSeconds.value, props.currentLesson?.watched_seconds || 0)
-    const pct = Math.floor((watched / (currentDuration.value || 1)) * 100)
-    return `សូមទស្សនាវីដេអូយ៉ាងតិច 90% សិនមុននឹងចុចបញ្ចប់ (ទស្សនាបាន ${pct}%, ត្រូវការ 90%)`
-  }
+  // Empty to avoid duplicate cluttered text; progress is shown cleanly on the button
   return ''
 })
 
@@ -1541,8 +1549,30 @@ onUnmounted(() => {
               </div>
             </transition>
 
+            <!-- Video Playback Error State with Retry Button -->
+            <div
+              v-if="videoPlaybackError"
+              class="relative aspect-video w-full flex flex-col items-center justify-center p-8 text-center bg-slate-950 text-white space-y-3 z-30"
+            >
+              <div class="w-14 h-14 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center">
+                <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                </svg>
+              </div>
+              <p class="text-sm font-semibold text-rose-300">មិនអាចផ្ទុកវីដេអូបានទេ (Unable to load video)</p>
+              <p class="text-xs text-slate-400 max-w-sm">សូមពិនិត្យមើលការភ្ជាប់អ៊ីនធឺណិត ឬចុចប៊ូតុងខាងក្រោមដើម្បីព្យាយាមម្តងទៀត។</p>
+              <button
+                @click="retryVideoPlayback"
+                type="button"
+                class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition-all shadow-md flex items-center gap-2 cursor-pointer"
+              >
+                <span>🔄</span>
+                <span>Retry (ព្យាយាមម្តងទៀត)</span>
+              </button>
+            </div>
+
             <!-- 1. Native HTML5 Video Element (If direct MP4) -->
-            <div v-if="videoProvider === 'mp4'" class="relative aspect-video w-full bg-black flex items-center justify-center overflow-hidden">
+            <div v-else-if="videoProvider === 'mp4'" class="relative aspect-video w-full bg-black flex items-center justify-center overflow-hidden">
               <video
                 ref="html5VideoRef"
                 :src="currentLesson.video_url!"
@@ -1553,6 +1583,7 @@ onUnmounted(() => {
                 @play="isVideoPlaying = true"
                 @pause="isVideoPlaying = false; saveVideoProgress(currentSeconds)"
                 @timeupdate="currentSeconds = html5VideoRef?.currentTime || currentSeconds"
+                @error="handleVideoError"
               ></video>
 
               <!-- Central Play Button Overlay (when paused and not in hover preview) -->

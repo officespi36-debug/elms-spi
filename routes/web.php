@@ -529,6 +529,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/', [Student\CourseController::class, 'enrolled'])->name('index');
             Route::get('/enrolled', [Student\CourseController::class, 'enrolled'])->name('enrolled');
             Route::get('/current', [Student\CourseController::class, 'current'])->name('current');
+            Route::get('/{course}/continue', [Student\CourseController::class, 'continueCourse'])->name('continue');
             Route::get('/completed', [Student\CourseController::class, 'completed'])->name('completed');
             Route::get('/browse', [Student\BrowseController::class, 'index'])->name('browse');
             Route::get('/overview', [Student\CourseController::class, 'overview'])->name('overview');
@@ -536,6 +537,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{course}/lessons/{lesson}', [Student\CourseController::class, 'showLesson'])->name('lessons.show');
             Route::get('/wishlist', [Student\CourseController::class, 'wishlist'])->name('wishlist');
         });
+        Route::get('/courses/{course}/continue', [Student\CourseController::class, 'continueCourse']);
         Route::get('/courses/{course}/overview', [Student\CourseController::class, 'overview'])->name('courses.overview');
         Route::get('/courses/{course}/lessons/{lesson}', [Student\CourseController::class, 'showLesson']);
 

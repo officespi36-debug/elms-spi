@@ -8,6 +8,7 @@ use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\LessonProgress;
 use App\Models\QuizAttempt;
+use App\Services\ContinueLearningService;
 use App\Services\StudentLearningService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -161,14 +162,14 @@ class DashboardController extends Controller
             // 2. Compute Real Stats directly from database (Auth::user only)
             $statsData = $this->computeStats($user);
 
-            // 3. Active / Continue Course (Using shared StudentLearningService)
+            // 3. Active / Continue Course (Using unified ContinueLearningService)
             $continueCourseData = null;
-            $learningService = app(StudentLearningService::class);
-            $currentData = $learningService->resolveCurrentLesson($user);
+            $continueService = app(ContinueLearningService::class);
+            $currentData = $continueService->resolve($user);
 
-            if ($currentData && isset($currentData['course'], $currentData['lesson'])) {
+            if ($currentData && isset($currentData['course'])) {
                 $activeCourse = $currentData['course'];
-                $currentLesson = $currentData['lesson'];
+                $currentLesson = $currentData['lesson'] ?? null;
                 $activeCourseItem = collect($myCoursesList)->firstWhere('id', $activeCourse->id);
 
                 $continueCourseData = [
@@ -176,11 +177,11 @@ class DashboardController extends Controller
                     'title'        => $activeCourse->title,
                     'chapter'      => 'Module - ' . ($activeCourse->major->name ?? 'Core Academic Topics'),
                     'teacher'      => $activeCourseItem['teacher'] ?? ($activeCourse->teacher->name ?? 'Dr. Mengly Chea'),
-                    'progress'     => $currentData['progress_percent'],
-                    'lastLesson'   => $currentLesson->title,
-                    'timeLeft'     => $currentData['time_left'],
+                    'progress'     => $currentData['progress_percent'] ?? 0,
+                    'lastLesson'   => $currentLesson?->title ?? (!empty($currentData['all_completed']) ? 'All Lessons Completed' : 'Start Course'),
+                    'timeLeft'     => $currentData['time_left'] ?? '00:00',
                     'thumbnail'    => $activeCourse->thumbnail ?? 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=600&q=80',
-                    'href'         => "/student/my-courses/{$activeCourse->id}/lessons/{$currentLesson->id}",
+                    'href'         => $currentLesson ? "/student/my-courses/{$activeCourse->id}/lessons/{$currentLesson->id}" : "/student/my-courses/{$activeCourse->id}/continue",
                     'overviewHref' => '/student/courses/' . $activeCourse->id . '/overview',
                 ];
             }

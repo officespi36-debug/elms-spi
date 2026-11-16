@@ -889,9 +889,10 @@ const isSubActive = (subHref: string) => {
   const currentPath = currentUrl.split(/[?#]/)[0]
   const subPath = subHref.split(/[?#]/)[0]
 
-  // Continue Learning: active on /student/my-courses/current and any lesson route
+  // Continue Learning: active on /student/my-courses/current, /continue, and any lesson route
   if (subHref === '/student/my-courses/current' || subHref.includes('/my-courses/current')) {
     return currentPath === '/student/my-courses/current' ||
+           currentPath.includes('/continue') ||
            currentPath.includes('/lessons/') ||
            currentUrl.includes('/lessons/')
   }
@@ -950,10 +951,24 @@ const toggleModule = (key: string) => {
 watch(
   () => page.url,
   () => {
-    // Only expand the active module, collapse all others
-    const activeModule = studentNav.find(item => item.children && isChildActive(item.children))
+    const currentUrl = page.url
+    const currentPath = currentUrl.split(/[?#]/)[0]
+
+    // If navigating inside any course, lesson, or my-courses route, prioritize expanding 'courses'
+    let activeKey: string | null = null
+    if (
+      currentPath.includes('/lessons/') ||
+      currentPath.startsWith('/student/my-courses') ||
+      currentPath.startsWith('/student/courses')
+    ) {
+      activeKey = 'courses'
+    } else {
+      const activeModule = studentNav.find(item => item.children && isChildActive(item.children))
+      activeKey = activeModule?.key || null
+    }
+
     Object.keys(expandedModules.value).forEach(k => {
-      expandedModules.value[k] = (activeModule?.key === k)
+      expandedModules.value[k] = (activeKey === k)
     })
   },
   { immediate: true }
