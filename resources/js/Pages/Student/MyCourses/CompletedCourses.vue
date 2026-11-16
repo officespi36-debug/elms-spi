@@ -59,8 +59,8 @@ const certEarnedCount = computed(() => courses.value.filter(c => c.hasCertificat
 const noCertCount = computed(() => courses.value.filter(c => !c.hasCertificate).length)
 
 // Donut calculation percentages
-const certPercent = computed(() => Math.round((certEarnedCount.value / totalCount.value) * 100))
-const noCertPercent = computed(() => Math.round((noCertCount.value / totalCount.value) * 100))
+const certPercent = computed(() => totalCount.value > 0 ? Math.round((certEarnedCount.value / totalCount.value) * 100) : 0)
+const noCertPercent = computed(() => totalCount.value > 0 ? Math.round((noCertCount.value / totalCount.value) * 100) : 0)
 
 // Total Study Time Sum Calculation (65h 40m)
 const totalStudyTimeFormatted = computed(() => {
@@ -708,7 +708,7 @@ const navigateToReview = (course: CompletedCourseItem) => {
               Latest Certificate
             </h3>
 
-            <div class="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800">
+            <div v-if="latestCertCourse" class="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800">
               <!-- Mini Certificate Thumbnail Mock -->
               <div class="w-14 h-16 rounded-lg bg-amber-50 border-2 border-amber-300 p-1 flex flex-col justify-between text-center shadow-md shrink-0">
                 <div class="text-[6px] font-bold text-amber-900">SAINT PAUL</div>
@@ -720,7 +720,7 @@ const navigateToReview = (course: CompletedCourseItem) => {
 
               <div class="min-w-0 flex-1 space-y-1">
                 <h4 class="font-bold text-xs text-slate-900 dark:text-white truncate">{{ latestCertCourse.title }}</h4>
-                <p class="text-[10px] text-slate-500 dark:text-slate-400">Earned on: {{ latestCertCourse.certIssueDate }}</p>
+                <p class="text-[10px] text-slate-500 dark:text-slate-400">Earned on: {{ latestCertCourse.certIssueDate || latestCertCourse.completedDate }}</p>
                 <button
                   @click="handleCertificateClick(latestCertCourse, $event)"
                   type="button"
@@ -729,6 +729,10 @@ const navigateToReview = (course: CompletedCourseItem) => {
                   View Certificate
                 </button>
               </div>
+            </div>
+            <div v-else class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 text-center space-y-1">
+              <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">No certificates earned yet</p>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">Complete a course to unlock your certificate.</p>
             </div>
           </div>
 
