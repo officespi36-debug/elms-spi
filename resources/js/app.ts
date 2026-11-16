@@ -164,12 +164,14 @@ if (typeof window !== 'undefined') {
     // Strictly prefetch GET /student/* routes
     if (!href.startsWith('/student/') && !href.startsWith('/student?')) return
 
-    // Never prefetch logout, delete, api, or external endpoints
+    // Never prefetch logout, delete, api, dynamic current redirect, or external endpoints
     if (
       href.includes('logout') ||
       href.includes('delete') ||
       href.includes('destroy') ||
       href.includes('/api/') ||
+      href.includes('/my-courses/current') ||
+      href.includes('/courses/current') ||
       target.hasAttribute('download') ||
       target.getAttribute('target') === '_blank'
     ) return
@@ -183,7 +185,7 @@ if (typeof window !== 'undefined') {
       try {
         router.prefetch(href, { method: 'get' })
       } catch (err) { }
-    }, 65)
+    }, 30)
   }, { passive: true })
 
   document.addEventListener('mouseout', (e) => {

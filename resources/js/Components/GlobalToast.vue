@@ -67,39 +67,22 @@ const loadingText = computed(() => {
 })
 
 let lastMethod = ''
-let loadingShownAt = 0
-let hideDelayTimer: ReturnType<typeof setTimeout> | null = null
+let showDelayTimer: ReturnType<typeof setTimeout> | null = null
 let removeStartListener: (() => void) | null = null
 let removeFinishListener: (() => void) | null = null
 let removeSuccessListener: (() => void) | null = null
 let removeErrorListener: (() => void) | null = null
 
-const MIN_LOADER_MS = 450
-
-const hideCenterLoader = (immediate = false) => {
-  if (hideDelayTimer) {
-    clearTimeout(hideDelayTimer)
-    hideDelayTimer = null
+const hideCenterLoader = () => {
+  if (showDelayTimer) {
+    clearTimeout(showDelayTimer)
+    showDelayTimer = null
   }
-  if (immediate || !isGlobalProcessing.value) {
-    isGlobalProcessing.value = false
-    return
-  }
-  const elapsed = Date.now() - loadingShownAt
-  const remaining = Math.max(0, MIN_LOADER_MS - elapsed)
-  if (remaining === 0) {
-    isGlobalProcessing.value = false
-  } else {
-    hideDelayTimer = setTimeout(() => {
-      isGlobalProcessing.value = false
-      hideDelayTimer = null
-    }, remaining)
-  }
+  isGlobalProcessing.value = false
 }
 
 onMounted(() => {
-  const forceHide = () => hideCenterLoader(true)
-  window.addEventListener('pageshow', forceHide)
+  window.addEventListener('pageshow', hideCenterLoader)
 
   removeStartListener = router.on('start', (event: any) => {
     const visit = event?.detail?.visit
@@ -112,22 +95,25 @@ onMounted(() => {
     // NEVER show center loader for logout
     if (rawUrl.includes('logout')) return
 
-    if (hideDelayTimer) {
-      clearTimeout(hideDelayTimer)
-      hideDelayTimer = null
+    if (showDelayTimer) {
+      clearTimeout(showDelayTimer)
+      showDelayTimer = null
     }
 
     if (method && method !== 'get') {
       processingMode.value = 'save'
+      isGlobalProcessing.value = true
     } else {
       processingMode.value = 'nav'
+      // Only show loader if navigation takes >150ms so instant/prefetched clicks feel immediate
+      showDelayTimer = setTimeout(() => {
+        isGlobalProcessing.value = true
+      }, 150)
     }
-    loadingShownAt = Date.now()
-    isGlobalProcessing.value = true
   })
 
   removeFinishListener = router.on('finish', () => {
-    hideCenterLoader(false)
+    hideCenterLoader()
   })
 
   removeSuccessListener = router.on('success', (event: any) => {
@@ -158,7 +144,8 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  hideCenterLoader(true)
+  window.removeEventListener('pageshow', hideCenterLoader)
+  hideCenterLoader()
   if (removeStartListener) removeStartListener()
   if (removeFinishListener) removeFinishListener()
   if (removeSuccessListener) removeSuccessListener()
