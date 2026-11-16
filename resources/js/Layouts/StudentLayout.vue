@@ -1314,7 +1314,7 @@ const onIconError = (e: Event) => {
                 >
                   <Link
                     :href="sub.href"
-                    prefetch="hover"
+                    :prefetch="sub.href.includes('/my-courses/current') ? false : 'hover'"
                     :title="currentLang === 'km' ? sub.khName : sub.name"
                     :class="[
                       isSubActive(sub.href)
@@ -1372,7 +1372,7 @@ const onIconError = (e: Event) => {
                     v-for="sub in item.children"
                     :key="sub.href"
                     :href="sub.href"
-                    prefetch="hover"
+                    :prefetch="sub.href.includes('/my-courses/current') ? false : 'hover'"
                     :class="[
                       isSubActive(sub.href)
                         ? 'bg-[#d3e3fd] text-[#041e49] font-bold border border-[#0b57d0]/20 dark:bg-purple-600/20 dark:text-purple-300 dark:border-purple-500/30'

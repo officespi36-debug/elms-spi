@@ -9,7 +9,19 @@ const page = usePage<any>()
 const appToast = useAppToast()
 const isGlobalProcessing = ref(false)
 const processingMode = ref<'nav' | 'save'>('nav')
+const centerNotice = ref<{ type: 'info' | 'warning'; title: string; message: string } | null>(null)
 const currentLang = computed(() => i18n.locale.value)
+
+const dismissCenterNotice = () => {
+  centerNotice.value = null
+}
+
+const showCenterNotice = (type: 'info' | 'warning', message: string) => {
+  const title = type === 'warning'
+    ? (currentLang.value === 'km' ? 'ការព្រមាន' : 'Warning')
+    : (currentLang.value === 'km' ? 'សូមជ្រាប / ដំណឹង' : 'Notice')
+  centerNotice.value = { type, title, message }
+}
 
 const loadingText = computed(() => {
   if (processingMode.value === 'save') {
@@ -54,6 +66,9 @@ onMounted(() => {
 
     if (method && method !== 'get') {
       processingMode.value = 'save'
+      isGlobalProcessing.value = true
+    } else if (rawUrl.includes('/my-courses/current') || rawUrl.includes('/courses/current')) {
+      processingMode.value = 'nav'
       isGlobalProcessing.value = true
     } else {
       processingMode.value = 'nav'
@@ -114,10 +129,10 @@ watch(
       appToast.error(flash.error, currentLang.value === 'km' ? 'បរាជ័យ' : 'Failed')
     }
     if (flash.info) {
-      appToast.info(flash.info, currentLang.value === 'km' ? 'ដំណឹង' : 'Notice')
+      showCenterNotice('info', flash.info)
     }
     if (flash.warning || flash.warn) {
-      appToast.warn(flash.warning || flash.warn, currentLang.value === 'km' ? 'ការព្រមាន' : 'Warning')
+      showCenterNotice('warning', flash.warning || flash.warn)
     }
     if (flash.status) {
       appToast.info(flash.status, currentLang.value === 'km' ? 'ដំណឹង' : 'Notice')
@@ -175,6 +190,49 @@ watch(
         <span class="text-xs sm:text-sm font-semibold tracking-wide text-slate-700 dark:text-slate-200">
           {{ loadingText }}
         </span>
+      </div>
+    </div>
+  </Transition>
+  <!-- Centered Screen Notice / Confirmation Card (e.g. Continue Learning when not enrolled yet) -->
+  <Transition
+    enter-active-class="transition duration-200 ease-out"
+    enter-from-class="opacity-0 scale-95"
+    enter-to-class="opacity-100 scale-100"
+    leave-active-class="transition duration-150 ease-in"
+    leave-from-class="opacity-100 scale-100"
+    leave-to-class="opacity-0 scale-95"
+  >
+    <div
+      v-if="centerNotice && !isGlobalProcessing"
+      role="alertdialog"
+      aria-modal="true"
+      class="fixed inset-0 z-[10001] flex items-center justify-center p-4 bg-slate-950/45 backdrop-blur-[2px]"
+      @click.self="dismissCenterNotice"
+    >
+      <div class="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl border border-slate-200/90 dark:border-slate-700/80 p-6 flex flex-col items-center text-center gap-3">
+        <div
+          :class="[
+            'w-12 h-12 rounded-full flex items-center justify-center',
+            centerNotice.type === 'warning'
+              ? 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400'
+              : 'bg-purple-100 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400'
+          ]"
+        >
+          <i :class="centerNotice.type === 'warning' ? 'pi pi-exclamation-triangle text-xl' : 'pi pi-info-circle text-xl'"></i>
+        </div>
+        <h3 class="text-base font-bold text-slate-900 dark:text-white">
+          {{ centerNotice.title }}
+        </h3>
+        <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+          {{ centerNotice.message }}
+        </p>
+        <button
+          type="button"
+          @click="dismissCenterNotice"
+          class="mt-2 px-6 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
+        >
+          {{ currentLang === 'km' ? 'យល់ព្រម' : 'OK, Got it' }}
+        </button>
       </div>
     </div>
   </Transition>
