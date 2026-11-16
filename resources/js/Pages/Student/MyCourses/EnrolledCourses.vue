@@ -158,6 +158,18 @@ const resetFilters = () => {
 }
 
 const navigateToCourseOverview = (course: EnrolledCourseItem) => {
+  if ((course as any).is_new && (course as any).enrollment_id) {
+    try {
+      const csrf = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || ''
+      fetch(`/student/enrollments/${(course as any).enrollment_id}/seen`, {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': csrf,
+          'Accept': 'application/json'
+        }
+      }).catch(() => {})
+    } catch (e) {}
+  }
   router.visit(course.overviewHref)
 }
 
@@ -384,7 +396,14 @@ onMounted(() => {
               ></div>
 
               <!-- Status Badge (Top-Left) -->
-              <div class="absolute top-4 left-4 z-20">
+              <div class="absolute top-4 left-4 z-20 flex items-center gap-2">
+                <span
+                  v-if="(course as any).is_new"
+                  class="px-2.5 py-1 rounded-full text-xs font-black bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-600/30 flex items-center gap-1.5 animate-pulse"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                  NEW
+                </span>
                 <span
                   v-if="course.status === 'in_progress'"
                   class="px-3 py-1 rounded-full text-xs font-bold bg-indigo-600/90 text-white shadow-md shadow-indigo-600/30 backdrop-blur-md"
@@ -561,6 +580,12 @@ onMounted(() => {
                       class="w-6 h-6 rounded-full object-cover border border-purple-500/40"
                     />
                     <span class="text-xs text-slate-600 dark:text-slate-300 font-medium">{{ course.teacher.name }}</span>
+                    <span
+                      v-if="(course as any).enrolled_by?.name"
+                      class="text-[11px] text-purple-600 dark:text-purple-400 font-medium ml-auto flex items-center gap-1"
+                    >
+                      Added by {{ (course as any).enrolled_by.name }} <span v-if="(course as any).enrolled_relative" class="text-slate-400 dark:text-slate-500">· {{ (course as any).enrolled_relative }}</span>
+                    </span>
                   </div>
                 </div>
 
@@ -683,6 +708,12 @@ onMounted(() => {
               <div class="min-w-0 space-y-1">
                 <div class="flex items-center gap-2">
                   <span
+                    v-if="(course as any).is_new"
+                    class="px-2 py-0.5 rounded-full text-[10px] font-black bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-xs animate-pulse"
+                  >
+                    NEW
+                  </span>
+                  <span
                     :class="[
                       course.status === 'completed' ? 'bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-500/30' :
                       course.status === 'not_started' ? 'bg-blue-500/10 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/30' : 'bg-purple-500/10 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-500/30',
@@ -698,8 +729,11 @@ onMounted(() => {
                   {{ course.title }}
                 </h3>
 
-                <div class="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
                   <span>Instructor: {{ course.teacher.name }}</span>
+                  <span v-if="(course as any).enrolled_by?.name" class="text-purple-600 dark:text-purple-400 font-medium">
+                    • Added by {{ (course as any).enrolled_by.name }} <span v-if="(course as any).enrolled_relative">({{ (course as any).enrolled_relative }})</span>
+                  </span>
                   <span>•</span>
                   <span>{{ course.completedLessons }} / {{ course.totalLessons }} Lessons</span>
                 </div>

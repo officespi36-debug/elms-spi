@@ -17,15 +17,30 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Enrollment extends Model
 {
-    protected $fillable = ['student_id', 'course_id', 'semester', 'status', 'enrolled_at'];
+    protected $fillable = [
+        'student_id',
+        'course_id',
+        'semester',
+        'status',
+        'enrolled_at',
+        'seen_at',
+        'enrolled_by',
+        'source',
+    ];
 
     protected $casts = [
         'enrolled_at' => 'datetime',
+        'seen_at'     => 'datetime',
     ];
 
     public function student()
     {
         return $this->belongsTo(User::class, 'student_id');
+    }
+
+    public function enrolledBy()
+    {
+        return $this->belongsTo(User::class, 'enrolled_by');
     }
 
     public function course()

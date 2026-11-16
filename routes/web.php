@@ -543,6 +543,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/lessons/{lesson}/progress', [Student\CourseController::class, 'saveProgress'])->middleware('throttle:120,1')->name('lessons.progress');
         Route::post('/lessons/{lesson}/complete', [Student\CourseController::class, 'completeLesson'])->name('lessons.complete');
         Route::get('/lessons/{lesson}/resources/{resource}', [Student\CourseController::class, 'downloadResource'])->name('lessons.resources.download');
+        Route::post('/enrollments/{enrollment}/seen', [Student\CourseController::class, 'markEnrollmentSeen'])->name('enrollments.seen');
 
         // Lesson Discussion & Comment Endpoints
         Route::get('/lessons/{lesson}/comments', [Student\CourseController::class, 'getComments'])->name('lessons.comments.index');

@@ -47,7 +47,8 @@ class CourseController extends Controller
                 'course.teacher:id,name,avatar',
                 'course.major:id,name',
                 'course.modules.lessons:id,module_id,course_id,title,order,duration_seconds',
-                'course.lessons:id,course_id,title,order,duration_seconds'
+                'course.lessons:id,course_id,title,order,duration_seconds',
+                'enrolledBy:id,name,role,avatar',
             ])
             ->latest('updated_at')
             ->get();
@@ -144,6 +145,15 @@ class CourseController extends Controller
 
             return [
                 'id'                 => $c->id,
+                'enrollment_id'      => $enr->id,
+                'is_new'             => ($enr->seen_at === null),
+                'enrolled_by'        => $enr->enrolledBy ? [
+                    'name'   => $enr->enrolledBy->name,
+                    'role'   => $enr->enrolledBy->role,
+                    'avatar' => $enr->enrolledBy->avatar,
+                ] : null,
+                'enrolled_relative'  => $enr->created_at ? $enr->created_at->diffForHumans() : 'Recently',
+                'source'             => $enr->source ?: 'system',
                 'slug'               => $c->code ?: ('course-' . $c->id),
                 'title'              => $c->title,
                 'category'           => $c->major?->name ?: 'Academic Studies',
@@ -225,8 +235,11 @@ class CourseController extends Controller
         if (!$enrollment) {
             $enrollment = Enrollment::firstOrCreate(
                 ['student_id' => $user->id, 'course_id' => $course->id],
-                ['status' => 'active', 'enrolled_at' => now()]
+                ['status' => 'active', 'enrolled_at' => now(), 'seen_at' => now()]
             );
+        } elseif ($enrollment->seen_at === null) {
+            $enrollment->update(['seen_at' => now()]);
+            Cache::forget("student.{$user->id}.new_enrollments");
         }
 
         // 2. Fetch full curriculum with sequential lock states
@@ -600,6 +613,19 @@ class CourseController extends Controller
 
     public function overview(Request $request, $course = null)
     {
+        $user = $request->user();
+        if ($user && $course) {
+            $courseId = is_object($course) ? $course->id : (int) $course;
+            $enr = Enrollment::where('student_id', $user->id)
+                ->where('course_id', $courseId)
+                ->whereNull('seen_at')
+                ->first();
+            if ($enr) {
+                $enr->update(['seen_at' => now()]);
+                Cache::forget("student.{$user->id}.new_enrollments");
+            }
+        }
+
         return Inertia::render('Student/Courses/Overview', [
             'courseId' => $course,
         ]);
@@ -1054,6 +1080,32 @@ class CourseController extends Controller
         return response()->json([
             'ok'      => true,
             'message' => 'Report submitted successfully. Administrators will review it.',
+        ]);
+    }
+
+    /**
+     * Mark an enrollment as seen by the student (Idempotent).
+     */
+    public function markEnrollmentSeen(Request $request, Enrollment $enrollment)
+    {
+        $user = $request->user() ?: Auth::user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+
+        if ($enrollment->student_id !== $user->id) {
+            return response()->json(['error' => 'Unauthorized access to enrollment'], 403);
+        }
+
+        if ($enrollment->seen_at === null) {
+            $enrollment->update(['seen_at' => now()]);
+            Cache::forget("student.{$user->id}.new_enrollments");
+        }
+
+        return response()->json([
+            'ok'      => true,
+            'seen_at' => $enrollment->seen_at,
+            'message' => 'Enrollment marked as seen',
         ]);
     }
 }

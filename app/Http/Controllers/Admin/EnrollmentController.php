@@ -10,6 +10,7 @@ use App\Models\LessonProgress;
 use App\Models\Major;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -170,23 +171,31 @@ class EnrollmentController extends Controller
 
         $semesterVal = !empty($validated['semester']) ? $validated['semester'] : ($course->semester ?: 'Semester 1');
 
-        // Enroll Student (Sets to Active with current timestamp)
+        // Enroll Student (Sets to Active with current timestamp and null seen_at)
         $enr = Enrollment::create([
             'student_id'  => $student->id,
             'course_id'   => $course->id,
             'semester'    => $semesterVal,
             'status'      => 'active',
             'enrolled_at' => now(),
+            'enrolled_by' => $request->user()?->id,
+            'source'      => 'admin',
+            'seen_at'     => null,
         ]);
+
+        // Invalidate Student New Enrollments Cache
+        Cache::forget("student.{$student->id}.new_enrollments");
 
         // In-app Notification for Student
         try {
             if (class_exists(\App\Models\Notification::class)) {
+                $courseUrl = "/student/courses/{$course->id}/overview";
                 \App\Models\Notification::create([
-                    'title'   => 'ការចុះឈ្មោះវគ្គសិក្សាជោគជ័យ (Course Enrollment)',
-                    'message' => "អ្នកត្រូវបានចុះឈ្មោះចូលរៀនវគ្គសិក្សា '{$course->title}' ({$semesterVal}) រួចរាល់។",
-                    'target'  => 'students',
+                    'title'   => 'ការចុះឈ្មោះវគ្គសិក្សាជោគជ័យ (New Course Enrolled)',
+                    'message' => "អ្នកត្រូវបានចុះឈ្មោះចូលរៀនវគ្គសិក្សា '{$course->title}' ({$semesterVal}) រួចរាល់។ [url:{$courseUrl}]",
+                    'target'  => "user:{$student->id}",
                 ]);
+                Cache::forget("student_notif_payload_{$student->id}");
             }
         } catch (\Throwable $e) {
             // notification fallback

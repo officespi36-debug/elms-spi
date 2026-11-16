@@ -113,6 +113,10 @@ const studentDepartment = computed(() => {
   return user.value?.department?.name || user.value?.department || 'Computer Science'
 })
 
+const newEnrollmentsCount = computed<number>(() => {
+  return Number((page.props as any)?.new_enrollments_count || 0)
+})
+
 const isSidebarCollapsed = ref(false)
 const sidebarOpen = ref(false)
 
@@ -866,19 +870,48 @@ const sidebarNavItems = computed<NavItem[]>(() => {
         } : undefined
       }
     }
+    if (item.key === 'courses') {
+      const count = newEnrollmentsCount.value
+      return {
+        ...item,
+        badge: (count > 0 && !expandedModules.value['courses']) ? {
+          text: count > 9 ? '9+' : String(count),
+          colorClass: 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300 border-purple-200 dark:border-purple-700/50 shadow-xs'
+        } : undefined
+      }
+    }
     return item
   })
 })
 
 const isSubActive = (subHref: string) => {
   const currentUrl = page.url
-  if (subHref === '/student/my-courses/current') {
-    return currentUrl === '/student/my-courses/current' || currentUrl.includes('/lessons/')
+  const currentPath = currentUrl.split(/[?#]/)[0]
+  const subPath = subHref.split(/[?#]/)[0]
+
+  // Continue Learning: active on /student/my-courses/current and any lesson route
+  if (subHref === '/student/my-courses/current' || subHref.includes('/my-courses/current')) {
+    return currentPath === '/student/my-courses/current' ||
+           currentPath.includes('/lessons/') ||
+           currentUrl.includes('/lessons/')
   }
 
-  const [subPath, subQuery] = subHref.split('?')
-  const [currentPath] = currentUrl.split('?')
+  // Enrolled Courses: active on /student/my-courses/enrolled or /student/courses/enrolled
+  if (subHref === '/student/my-courses/enrolled') {
+    return currentPath === '/student/my-courses/enrolled' || currentPath === '/student/courses/enrolled'
+  }
 
+  // Completed Courses
+  if (subHref === '/student/my-courses/completed') {
+    return currentPath === '/student/my-courses/completed' || currentPath === '/student/courses/completed'
+  }
+
+  // Browse Catalog
+  if (subHref === '/student/browse' || subHref.includes('/browse')) {
+    return currentPath === '/student/browse' || currentPath.startsWith('/student/browse/')
+  }
+
+  const [, subQuery] = subHref.split('?')
   if (subQuery) {
     if (currentPath !== subPath) return false
     return currentUrl.includes(subQuery)
@@ -892,7 +925,7 @@ const isSubActive = (subHref: string) => {
   // Ensure we don't match sibling routes where another nav item has an exact match
   if (currentPath.startsWith(subPath + '/')) {
     const hasMoreSpecificMatch = studentNav.some(nav =>
-      nav.children?.some(c => c.href.split('?')[0] === currentPath)
+      nav.children?.some(c => c.href.split(/[?#]/)[0] === currentPath)
     )
     return !hasMoreSpecificMatch
   }
@@ -1187,6 +1220,16 @@ const onIconError = (e: Event) => {
                       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
                       <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500 ring-2 ring-white dark:ring-[#131314]"></span>
                     </span>
+
+                    <!-- Collapsed Courses Indicator Badge -->
+                    <span
+                      v-if="isSidebarCollapsed && item.key === 'courses' && newEnrollmentsCount > 0"
+                      :title="`${newEnrollmentsCount} new course${newEnrollmentsCount > 1 ? 's' : ''}`"
+                      class="absolute -top-1.5 -right-1.5 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-purple-600 text-[9px] font-bold text-white shadow-xs pointer-events-none ring-2 ring-white dark:ring-[#131314] animate-in fade-in zoom-in-95 duration-200"
+                    >
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-60"></span>
+                      <span class="relative">{{ newEnrollmentsCount > 9 ? '9+' : newEnrollmentsCount }}</span>
+                    </span>
                   </div>
                   <span v-show="!isSidebarCollapsed" class="truncate font-medium">
                     {{ currentLang === 'km' ? item.khName : item.name }}
@@ -1230,7 +1273,7 @@ const onIconError = (e: Event) => {
                       isSubActive(sub.href)
                         ? 'bg-purple-50 text-purple-700 font-bold border border-purple-200 dark:bg-purple-600/20 dark:text-purple-300 dark:border-purple-500/30'
                         : 'text-[#64748b] hover:text-[#1f1f1f] hover:bg-[#f0f4f9] dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800/50 border border-transparent font-medium',
-                      'flex items-center gap-x-2 rounded-lg px-2 py-1.5 text-[11px] transition-all duration-200 truncate group/sub'
+                      'flex items-center gap-x-2 rounded-lg px-2 py-1.5 text-[11px] transition-all duration-200 truncate group/sub select-none'
                     ]"
                   >
                     <!-- Lucide Line Icons for Submenu (Clean grey line icons, no emojis) -->
@@ -1249,6 +1292,28 @@ const onIconError = (e: Event) => {
                     <img v-else-if="sub.iconUrl" :src="sub.iconUrl" :alt="sub.name" class="w-3.5 h-3.5 object-contain shrink-0" @error="onIconError" />
                     <span v-else :class="[isSubActive(sub.href) ? 'bg-purple-600 dark:bg-purple-400' : 'bg-slate-400 dark:bg-slate-600', 'w-1.5 h-1.5 rounded-full shrink-0']"></span>
                     <span class="truncate">{{ currentLang === 'km' ? sub.khName : sub.name }}</span>
+                <!-- New Enrolled Courses Badge (Mobile) -->
+                <span
+                  v-if="(sub.name === 'Enrolled Courses' || sub.href === '/student/my-courses/enrolled') && newEnrollmentsCount > 0"
+                  class="ml-auto inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300 border border-purple-200 dark:border-purple-700/50 shrink-0"
+                >
+                  {{ newEnrollmentsCount > 9 ? '9+' : newEnrollmentsCount }} {{ currentLang === 'km' ? 'ថ្មី' : 'New' }}
+                </span>
+                    <!-- New Enrolled Courses Badge in Popover -->
+                    <span
+                      v-if="(sub.name === 'Enrolled Courses' || sub.href === '/student/my-courses/enrolled') && newEnrollmentsCount > 0"
+                      class="ml-auto inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300 border border-purple-200 dark:border-purple-700/50 shrink-0"
+                    >
+                      {{ newEnrollmentsCount > 9 ? '9+' : newEnrollmentsCount }} {{ currentLang === 'km' ? 'ថ្មី' : 'New' }}
+                    </span>
+                    <!-- New Enrolled Courses Badge -->
+                    <span
+                      v-if="(sub.name === 'Enrolled Courses' || sub.href === '/student/my-courses/enrolled') && newEnrollmentsCount > 0"
+                      class="ml-auto inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300 border border-purple-200 dark:border-purple-700/50 shrink-0 transition-transform duration-200 animate-in fade-in zoom-in-95"
+                      :aria-label="`${newEnrollmentsCount} new enrolled courses`"
+                    >
+                      {{ newEnrollmentsCount > 9 ? '9+' : newEnrollmentsCount }} {{ currentLang === 'km' ? 'ថ្មី' : 'New' }}
+                    </span>
                   </Link>
                 </div>
               </div>
@@ -1298,6 +1363,20 @@ const onIconError = (e: Event) => {
                     <img v-else-if="sub.iconUrl" :src="sub.iconUrl" :alt="sub.name" loading="lazy" decoding="async" class="w-3.5 h-3.5 object-contain shrink-0" />
                     <span v-else :class="[isSubActive(sub.href) ? 'bg-purple-600 dark:bg-purple-400' : 'bg-slate-400 dark:bg-slate-600', 'w-1.5 h-1.5 rounded-full shrink-0']"></span>
                     <span class="truncate">{{ currentLang === 'km' ? sub.khName : sub.name }}</span>
+                <!-- New Enrolled Courses Badge (Mobile) -->
+                <span
+                  v-if="(sub.name === 'Enrolled Courses' || sub.href === '/student/my-courses/enrolled') && newEnrollmentsCount > 0"
+                  class="ml-auto inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300 border border-purple-200 dark:border-purple-700/50 shrink-0"
+                >
+                  {{ newEnrollmentsCount > 9 ? '9+' : newEnrollmentsCount }} {{ currentLang === 'km' ? 'ថ្មី' : 'New' }}
+                </span>
+                    <!-- New Enrolled Courses Badge in Popover -->
+                    <span
+                      v-if="(sub.name === 'Enrolled Courses' || sub.href === '/student/my-courses/enrolled') && newEnrollmentsCount > 0"
+                      class="ml-auto inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300 border border-purple-200 dark:border-purple-700/50 shrink-0"
+                    >
+                      {{ newEnrollmentsCount > 9 ? '9+' : newEnrollmentsCount }} {{ currentLang === 'km' ? 'ថ្មី' : 'New' }}
+                    </span>
                   </Link>
                 </div>
               </div>
@@ -1471,6 +1550,13 @@ const onIconError = (e: Event) => {
                 <img v-else-if="sub.iconUrl" :src="sub.iconUrl" :alt="sub.name" class="w-3.5 h-3.5 object-contain shrink-0" @error="onIconError" />
                 <span v-else :class="[isSubActive(sub.href) ? 'bg-purple-600 dark:bg-purple-400' : 'bg-slate-400 dark:bg-slate-600', 'w-1.5 h-1.5 rounded-full shrink-0']"></span>
                 <span class="truncate">{{ currentLang === 'km' ? sub.khName : sub.name }}</span>
+                <!-- New Enrolled Courses Badge (Mobile) -->
+                <span
+                  v-if="(sub.name === 'Enrolled Courses' || sub.href === '/student/my-courses/enrolled') && newEnrollmentsCount > 0"
+                  class="ml-auto inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300 border border-purple-200 dark:border-purple-700/50 shrink-0"
+                >
+                  {{ newEnrollmentsCount > 9 ? '9+' : newEnrollmentsCount }} {{ currentLang === 'km' ? 'ថ្មី' : 'New' }}
+                </span>
               </Link>
             </div>
           </div>
