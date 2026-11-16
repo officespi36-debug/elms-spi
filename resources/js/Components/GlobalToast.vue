@@ -238,64 +238,38 @@ watch(
       aria-modal="true"
       class="fixed inset-0 z-[10001] flex items-center justify-center p-4 pointer-events-none"
     >
-      <div class="pointer-events-auto relative w-full max-w-sm overflow-hidden rounded-3xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl text-slate-900 dark:text-slate-100 shadow-[0_24px_60px_-12px_rgba(15,23,42,0.55)] border border-slate-200/80 dark:border-slate-700/70">
-        <!-- Top gradient accent bar -->
+      <div class="pointer-events-auto relative w-full max-w-xs px-4 py-4 flex flex-col items-center text-center gap-3">
+        <!-- Icon badge -->
         <div
           :class="[
-            'h-1.5 w-full',
+            'w-12 h-12 rounded-full flex items-center justify-center',
             centerNotice.type === 'warning'
-              ? 'bg-gradient-to-r from-amber-400 via-orange-500 to-amber-500'
-              : 'bg-gradient-to-r from-purple-500 via-indigo-500 to-pink-500'
+              ? 'text-amber-500'
+              : 'text-purple-500 dark:text-purple-400'
           ]"
-        ></div>
+        >
+          <svg v-if="centerNotice.type === 'warning'" class="w-8 h-8 drop-shadow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+          </svg>
+          <svg v-else class="w-8 h-8 drop-shadow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+          </svg>
+        </div>
 
-        <!-- Close button -->
+        <h3 class="text-base font-bold text-slate-900 dark:text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.45)]">
+          {{ centerNotice.title }}
+        </h3>
+        <p class="text-sm font-medium text-slate-800 dark:text-slate-100 leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.45)]">
+          {{ centerNotice.message }}
+        </p>
+
         <button
           type="button"
           @click="dismissCenterNotice"
-          :aria-label="currentLang === 'km' ? 'បិទ' : 'Close'"
-          class="absolute top-3.5 right-3.5 w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          class="mt-1 px-7 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-[0.98] text-white text-sm font-semibold shadow-lg shadow-purple-500/30 transition-all focus:outline-none focus:ring-2 focus:ring-purple-500"
         >
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          {{ currentLang === 'km' ? 'យល់ព្រម' : 'OK, Got it' }}
         </button>
-
-        <div class="px-7 pt-7 pb-6 flex flex-col items-center text-center gap-3.5">
-          <!-- Icon badge -->
-          <div
-            :class="[
-              'w-14 h-14 rounded-2xl flex items-center justify-center shadow-inner ring-4',
-              centerNotice.type === 'warning'
-                ? 'bg-amber-500/15 text-amber-500 ring-amber-500/15'
-                : 'bg-gradient-to-br from-purple-500/20 via-indigo-500/20 to-pink-500/20 text-purple-600 dark:text-purple-400 ring-purple-500/15'
-            ]"
-          >
-            <svg v-if="centerNotice.type === 'warning'" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-            </svg>
-            <svg v-else class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
-            </svg>
-          </div>
-
-          <div class="space-y-1.5">
-            <h3 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white">
-              {{ centerNotice.title }}
-            </h3>
-            <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-              {{ centerNotice.message }}
-            </p>
-          </div>
-
-          <button
-            type="button"
-            @click="dismissCenterNotice"
-            class="mt-1.5 w-full py-2.5 px-6 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:brightness-110 active:scale-[0.99] text-white text-sm font-semibold shadow-lg shadow-purple-500/25 transition-all focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
-          >
-            {{ currentLang === 'km' ? 'យល់ព្រម' : 'OK, Got it' }}
-          </button>
-        </div>
       </div>
     </div>
   </Transition>
