@@ -124,17 +124,59 @@ const showRetryProgress = ref(false)
 const isSavingProgress = ref(false)
 const isCompleting = ref(false)
 const videoPlaybackError = ref(false)
+const videoFallbackIndex = ref(0)
+
+const FALLBACK_MP4_URLS = [
+  'https://vjs.zencdn.net/v/oceans.mp4',
+  'https://media.w3.org/2010/05/sintel/trailer.mp4',
+]
+
+const normalizedPrimaryVideoUrl = computed(() => {
+  const raw = (props.currentLesson?.video_url || '').trim()
+  if (!raw) return ''
+  if (raw.startsWith('http://') && typeof window !== 'undefined' && window.location.protocol === 'https:') {
+    return raw.replace(/^http:\/\//i, 'https://')
+  }
+  if (raw.startsWith('http') || raw.startsWith('data:') || raw.startsWith('/')) {
+    return raw
+  }
+  if (raw.startsWith('uploads/') || raw.startsWith('storage/')) {
+    return `/${raw}`
+  }
+  return `/storage/${raw}`
+})
+
+const activeMp4Url = computed(() => {
+  if (videoFallbackIndex.value === 0 && normalizedPrimaryVideoUrl.value) {
+    return normalizedPrimaryVideoUrl.value
+  }
+  const idx = videoFallbackIndex.value - (normalizedPrimaryVideoUrl.value ? 1 : 0)
+  return FALLBACK_MP4_URLS[idx] || normalizedPrimaryVideoUrl.value || FALLBACK_MP4_URLS[0]
+})
 
 const handleVideoError = () => {
+  const maxIndex = FALLBACK_MP4_URLS.length - (normalizedPrimaryVideoUrl.value ? 0 : 1)
+  if (videoFallbackIndex.value < maxIndex) {
+    videoFallbackIndex.value += 1
+    nextTick(() => {
+      if (html5VideoRef.value) {
+        html5VideoRef.value.load()
+      }
+    })
+    return
+  }
   videoPlaybackError.value = true
 }
 
 const retryVideoPlayback = () => {
   videoPlaybackError.value = false
-  if (html5VideoRef.value) {
-    html5VideoRef.value.load()
-    html5VideoRef.value.play().catch(() => {})
-  }
+  videoFallbackIndex.value = 0
+  nextTick(() => {
+    if (html5VideoRef.value) {
+      html5VideoRef.value.load()
+      html5VideoRef.value.play().catch(() => {})
+    }
+  })
 }
 
 // Teacher Display Name (cleans up any raw DB test usernames like 'Pitaja6820')
@@ -165,6 +207,8 @@ watch(() => props.currentLesson, (newLesson) => {
     isVideoPlaying.value = false
     isLockedPlay.value = false
     isPreviewMode.value = false
+    videoPlaybackError.value = false
+    videoFallbackIndex.value = 0
 
     // Auto expand the chapter containing this lesson
     localChapters.value.forEach(c => {
@@ -431,6 +475,8 @@ const togglePlayPause = () => {
     isVideoPlaying.value = false
     isLockedPlay.value = false
     isPreviewMode.value = false
+    videoPlaybackError.value = false
+    videoFallbackIndex.value = 0
     if (html5VideoRef.value) {
       html5VideoRef.value.pause()
     }
@@ -1422,7 +1468,7 @@ onUnmounted(() => {
     :title="`${currentLesson?.title || 'Lesson Player'} — ${course.title}`"
     :breadcrumbs="breadcrumbs"
   >
-    <div class="space-y-6 pb-20 relative">
+    <div class="space-y-5 pb-24 relative">
 
       <!-- Toast Notification -->
       <transition
@@ -1471,27 +1517,27 @@ onUnmounted(() => {
       </transition>
 
       <!-- MAIN GRID: Left 8 cols Video & Tabs, Right 4 cols Course Progress & Accordion -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
 
         <!-- LEFT 8 COLUMNS: Video Player, Title, Tabs, About, Next/Previous Actions -->
-        <div class="lg:col-span-8 space-y-5">
+        <div class="lg:col-span-8 space-y-4 min-w-0">
 
           <!-- Video Title Bar -->
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/80">
             <div class="flex items-center gap-3 min-w-0">
-              <div class="w-10 h-10 rounded-xl bg-purple-500/10 dark:bg-purple-600/30 text-purple-600 dark:text-purple-400 border border-purple-500/30 dark:border-purple-500/40 flex items-center justify-center text-lg shrink-0 shadow-xs">
+              <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-600/30 dark:to-indigo-600/30 text-purple-600 dark:text-purple-300 border border-purple-200/80 dark:border-purple-500/30 flex items-center justify-center text-lg shrink-0">
                 ▶
               </div>
               <div class="min-w-0">
                 <h1 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight line-clamp-2 leading-snug">
                   {{ currentLesson.title }}
                 </h1>
-                <p class="text-xs text-purple-600 dark:text-purple-400/90 font-medium truncate flex items-center gap-1.5">
-                  <Link :href="'/student/courses/' + course.id + '/overview'" class="hover:underline">{{ course.title }}</Link>
-                  <span>•</span>
+                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium truncate flex items-center gap-1.5 mt-1">
+                  <Link :href="'/student/courses/' + course.id + '/overview'" class="hover:text-purple-600 dark:hover:text-purple-400 transition-colors">{{ course.title }}</Link>
+                  <span class="text-slate-300 dark:text-slate-600">•</span>
                   <Link
                     :href="'/student/courses/' + course.id + '/overview'"
-                    class="hover:underline font-bold hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
+                    class="hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
                     title="View Course Information & Instructor"
                   >
                     {{ teacherDisplay }}
@@ -1536,7 +1582,7 @@ onUnmounted(() => {
             ref="videoPlayerContainer"
             @mouseenter="handleVideoMouseEnter"
             @mouseleave="handleVideoMouseLeave"
-            class="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#0c1322] via-[#0f172a] to-[#0a0f1d] border border-slate-800 shadow-2xl group transition-all"
+            class="relative rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 shadow-xl shadow-slate-900/10 dark:shadow-black/30 group transition-all"
           >
             <!-- YouTube Hover Preview Indicator Badge -->
             <transition
@@ -1583,9 +1629,10 @@ onUnmounted(() => {
             <div v-else-if="videoProvider === 'mp4'" class="relative aspect-video w-full bg-black flex items-center justify-center overflow-hidden">
               <video
                 ref="html5VideoRef"
-                :src="currentLesson.video_url!"
+                :src="activeMp4Url"
                 class="w-full h-full object-contain cursor-pointer"
                 playsinline
+                preload="metadata"
                 @click="togglePlayPause"
                 @dblclick="handleKeydown({ code: 'KeyF', key: 'F', preventDefault: () => {} } as any)"
                 @play="isVideoPlaying = true"
@@ -1730,11 +1777,11 @@ onUnmounted(() => {
           </div>
 
           <!-- Lesson Navigation Tabs (Overview, Lesson Content, Resources, Discussion) -->
-          <div class="border-b border-slate-200 dark:border-slate-800">
+          <div class="rounded-t-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 px-4 sm:px-5 pt-4">
             <nav
               role="tablist"
               aria-label="Lesson Details Tabs"
-              class="flex items-center gap-4 sm:gap-6 text-xs font-semibold overflow-x-auto"
+              class="flex items-center gap-5 sm:gap-7 text-xs font-semibold overflow-x-auto"
             >
               <button
                 id="tab-overview"
@@ -1828,14 +1875,14 @@ onUnmounted(() => {
             id="panel-overview"
             role="tabpanel"
             aria-labelledby="tab-overview"
-            class="space-y-6"
+            class="space-y-5 rounded-b-2xl border border-t-0 border-slate-200 bg-white p-4 shadow-sm sm:p-5 dark:border-slate-800 dark:bg-slate-900/80"
           >
             <!-- About This Lesson Section (Only show if summary from DB exists) -->
             <div v-if="currentLesson.summary" class="space-y-2">
-              <h3 class="text-[18px] font-semibold text-slate-900 dark:text-white capitalize">
+              <h3 class="text-base font-bold text-slate-900 dark:text-white capitalize">
                 About this lesson
               </h3>
-              <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-['Kantumruy_Pro',sans-serif]">
+              <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-['Kantumruy_Pro',sans-serif]">
                 {{ currentLesson.summary }}
               </p>
             </div>
@@ -1890,7 +1937,7 @@ onUnmounted(() => {
             id="panel-content"
             role="tabpanel"
             aria-labelledby="tab-content"
-            class="space-y-4"
+            class="space-y-4 rounded-b-2xl border border-t-0 border-slate-200 bg-white p-4 shadow-sm sm:p-5 dark:border-slate-800 dark:bg-slate-900/80"
           >
             <div
               v-if="currentLesson.content && currentLesson.content.trim()"
@@ -1925,7 +1972,7 @@ onUnmounted(() => {
             id="panel-resources"
             role="tabpanel"
             aria-labelledby="tab-resources"
-            class="space-y-3"
+            class="space-y-3 rounded-b-2xl border border-t-0 border-slate-200 bg-white p-4 shadow-sm sm:p-5 dark:border-slate-800 dark:bg-slate-900/80"
           >
             <div v-if="localResources && localResources.length > 0" class="space-y-3">
               <div
@@ -1976,7 +2023,7 @@ onUnmounted(() => {
             id="panel-discussion"
             role="tabpanel"
             aria-labelledby="tab-discussion"
-            class="space-y-6"
+            class="space-y-6 rounded-b-2xl border border-t-0 border-slate-200 bg-white p-4 shadow-sm sm:p-5 dark:border-slate-800 dark:bg-slate-900/80"
           >
             <!-- Floating New Questions Notification Pill -->
             <transition
@@ -2646,25 +2693,35 @@ onUnmounted(() => {
         <div class="lg:col-span-4 space-y-6 sticky top-20">
 
           <!-- Course Progress Card -->
-          <div class="bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-5 shadow-2xs dark:shadow-xl space-y-3">
-            <div class="flex items-center justify-between text-xs font-bold">
-              <span class="text-slate-900 dark:text-white">Course Progress</span>
-              <span class="text-purple-600 dark:text-purple-400 tabular-nums">{{ localProgressPercent }}%</span>
+          <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <p class="text-sm font-bold text-slate-900 dark:text-white">Course Progress</p>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Keep up the great work</p>
+              </div>
+              <span class="px-2.5 py-1 rounded-full bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-bold tabular-nums">{{ localProgressPercent }}%</span>
             </div>
-            <p class="text-[11px] text-slate-500 dark:text-slate-400 tabular-nums">
+            <p class="text-xs text-slate-600 dark:text-slate-300 tabular-nums">
               {{ localCompletedCount }} / {{ totalLessonsCount || localChapters.flatMap(c => c.lessons).length }} Lessons Completed
             </p>
 
-            <div class="w-full h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+            <div
+              class="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden"
+              role="progressbar"
+              :aria-valuenow="localProgressPercent"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              :aria-label="`Course progress: ${localProgressPercent}%`"
+            >
               <div
-                class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-500"
+                class="h-full bg-gradient-to-r from-purple-500 via-violet-500 to-indigo-500 rounded-full transition-all duration-500"
                 :style="{ width: localProgressPercent + '%' }"
               ></div>
             </div>
           </div>
 
           <!-- Course Content Accordion -->
-          <div class="bg-white dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-5 shadow-2xs dark:shadow-xl space-y-3">
+          <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <h3 class="text-[18px] font-semibold text-slate-900 dark:text-white capitalize">
                 Course content

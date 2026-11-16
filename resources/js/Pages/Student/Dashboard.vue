@@ -1331,9 +1331,9 @@ const recentActivities = computed(() => {
               </div>
 
               <!-- Content centered vertically with responsive ring and aligned legend -->
-              <div class="flex items-center justify-between gap-3 my-auto py-1 min-w-0">
+              <div class="flex items-center justify-between gap-2.5 my-auto py-1 min-w-0">
                 <!-- SVG Circular Donut -->
-                <div class="relative w-[84px] h-[84px] xl:w-[96px] xl:h-[96px] shrink-0 flex items-center justify-center">
+                <div class="relative w-[72px] h-[72px] xl:w-[82px] xl:h-[82px] shrink-0 flex items-center justify-center">
                   <svg viewBox="0 0 36 36" class="w-full h-full -rotate-90">
                     <path
                       class="text-[#e1e3e1] dark:text-[#282a2c]"
@@ -1430,9 +1430,9 @@ const recentActivities = computed(() => {
               </div>
 
               <!-- Content centered vertically with responsive ring and aligned legend -->
-              <div class="flex items-center justify-between gap-3 my-auto py-1 min-w-0">
+              <div class="flex items-center justify-between gap-2.5 my-auto py-1 min-w-0">
                 <!-- Gauge Circle -->
-                <div class="relative w-[84px] h-[84px] xl:w-[96px] xl:h-[96px] shrink-0 flex items-center justify-center">
+                <div class="relative w-[72px] h-[72px] xl:w-[82px] xl:h-[82px] shrink-0 flex items-center justify-center">
                   <svg viewBox="0 0 36 36" class="w-full h-full -rotate-90">
                     <path
                       class="text-[#e1e3e1] dark:text-[#282a2c]"
