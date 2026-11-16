@@ -86,28 +86,41 @@ class StudentNotificationService
             }
         } catch (\Throwable $e) {}
 
-        // 2. Notifications Table (System & AI alerts)
+        // 2. Notifications Table (System, AI alerts, Discussion alerts)
         try {
-            $dbNotifs = Notification::whereIn('target', ['all', 'students'])
-                ->latest()
-                ->take(4)
-                ->get();
+            $dbNotifs = Notification::where(function ($q) use ($user) {
+                $q->whereIn('target', ['all', 'students'])
+                  ->orWhere('target', "user:{$user->id}");
+            })
+            ->latest()
+            ->take(6)
+            ->get();
 
             foreach ($dbNotifs as $n) {
                 $createdAt = Carbon::parse($n->created_at ?: Carbon::now());
                 $isAi = Str::contains(strtolower($n->title), 'ai');
+                $isDiscussion = Str::contains(strtolower($n->title), ['សំណួរ', 'ចម្លើយ', 'question', 'reply', 'discussion']);
+
+                $link = $isAi ? '/student/ai-path/recommended' : '/student/notifications/announcements';
+                $messageText = $n->message;
+
+                if (preg_match('/\[url:(.*?)\]/', $n->message, $matches)) {
+                    $link = $matches[1];
+                    $messageText = trim(preg_replace('/\[url:.*?\]/', '', $n->message));
+                }
+
                 $items[] = [
                     'id' => 2000 + (int)$n->id,
                     'title_km' => $isAi ? ('🤖 AI: ' . $n->title) : $n->title,
                     'title_en' => $isAi ? ('🤖 AI: ' . $n->title) : $n->title,
-                    'desc_km' => Str::limit($n->message, 85),
-                    'desc_en' => Str::limit($n->message, 85),
+                    'desc_km' => Str::limit($messageText, 85),
+                    'desc_en' => Str::limit($messageText, 85),
                     'time_km' => self::formatKhmerRelativeTime($createdAt),
                     'time_en' => self::formatEnglishRelativeTime($createdAt),
-                    'type' => $isAi ? 'ai' : 'announcement',
+                    'type' => $isDiscussion ? 'discussion' : ($isAi ? 'ai' : 'announcement'),
                     'defaultRead' => false,
                     'read' => false,
-                    'link' => $isAi ? '/student/ai-path/recommended' : '/student/notifications/announcements',
+                    'link' => $link,
                     'created_at' => $createdAt->toISOString(),
                 ];
             }

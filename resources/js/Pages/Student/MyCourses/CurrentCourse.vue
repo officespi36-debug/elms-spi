@@ -59,6 +59,13 @@ const props = defineProps<{
   totalLessonsCount?: number
   resources?: Array<any>
   comments?: Array<any>
+  discussionCounts?: {
+    all: number
+    unanswered: number
+    answered: number
+    mine: number
+  }
+  courseTeacherId?: number
   completionAction?: {
     type: string
     label: string
@@ -575,11 +582,512 @@ watch(() => props.comments, (newComms) => {
   localComments.value = newComms || []
 })
 
+// ─── Discussion: State, Filter & Sort ───
+const discussionSort = ref<'newest' | 'oldest' | 'helpful'>('newest')
+const discussionFilter = ref<'all' | 'unanswered' | 'answered' | 'mine'>('all')
+const discussionCounts = ref({
+  all: props.discussionCounts?.all ?? props.comments?.length ?? 0,
+  unanswered: props.discussionCounts?.unanswered ?? 0,
+  answered: props.discussionCounts?.answered ?? 0,
+  mine: props.discussionCounts?.mine ?? 0,
+})
+
+const isFetchingComments = ref(false)
+const currentCommentsPage = ref(1)
+const hasMoreComments = ref(false)
+const isLoadingMoreComments = ref(false)
+
 const newCommentText = ref('')
+const newCommentVideoSeconds = ref<number | null>(null)
+const isPostingComment = ref(false)
+const commentTextareaRef = ref<HTMLTextAreaElement | null>(null)
+
 const replyText = ref('')
 const replyingToId = ref<number | null>(null)
-const isPostingComment = ref(false)
+const isPostingReply = ref(false)
+
+const editingCommentId = ref<number | null>(null)
+const editCommentText = ref('')
+const isSavingEdit = ref(false)
+
 const deletingCommentId = ref<number | null>(null)
+const expandedReplies = ref<Record<number, boolean>>({})
+const highlightedCommentId = ref<number | null>(null)
+const activeMenuCommentId = ref<number | null>(null)
+const newCommentsPillCount = ref(0)
+
+// Report modal state
+const reportModalOpen = ref(false)
+const reportingComment = ref<any>(null)
+const reportReason = ref('')
+const isSubmittingReport = ref(false)
+
+// ─── Discussion: Helper Actions ───
+const focusComposer = () => {
+  commentTextareaRef.value?.focus()
+  commentTextareaRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+
+const seekToTimestamp = (seconds: number) => {
+  const safeSec = Math.max(0, Math.floor(seconds))
+  if (html5VideoRef.value) {
+    html5VideoRef.value.currentTime = safeSec
+    currentSeconds.value = safeSec
+    html5VideoRef.value.play().catch(() => {})
+    isVideoPlaying.value = true
+  }
+  videoPlayerContainer.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+
+const insertCurrentVideoTime = () => {
+  const sec = Math.floor(currentSeconds.value || 0)
+  const formatted = formatSeconds(sec)
+  if (!newCommentText.value.includes(formatted)) {
+    newCommentText.value = newCommentText.value ? `${newCommentText.value} ${formatted}` : formatted
+  }
+  newCommentVideoSeconds.value = sec
+  commentTextareaRef.value?.focus()
+}
+
+const canEditComment = (comm: any) => {
+  if (!comm || comm.user_id !== props.currentUserId) return false
+  if (!comm.created_at) return false
+  const created = new Date(comm.created_at).getTime()
+  return (Date.now() - created) <= (15 * 60 * 1000)
+}
+
+const toggleReplies = (commId: number) => {
+  expandedReplies.value[commId] = !expandedReplies.value[commId]
+}
+
+const toggleCommentMenu = (id: number) => {
+  activeMenuCommentId.value = activeMenuCommentId.value === id ? null : id
+}
+
+const closeCommentMenu = () => {
+  activeMenuCommentId.value = null
+}
+
+const renderCommentBodyHtml = (body: string) => {
+  if (!body) return ''
+  // 1. Escape HTML entities to prevent XSS
+  const escaped = body
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+
+  // 2. Linkify safe URLs
+  const urlPattern = /(https?:\/\/[^\s<]+)/g
+  const linkified = escaped.replace(urlPattern, (url) => {
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-purple-600 dark:text-purple-400 font-semibold underline hover:opacity-80">${url}</a>`
+  })
+
+  // 3. Highlight timestamps (e.g. 07:40, 1:02:15) as interactive jump chips
+  const timePattern = /\b(?:(\d{1,2}):)?([0-5]?\d):([0-5]\d)\b/g
+  return linkified.replace(timePattern, (match) => {
+    return `<button type="button" data-timestamp="${match}" class="inline-flex items-center gap-1 px-1.5 py-0.5 mx-0.5 rounded-md bg-purple-100 hover:bg-purple-200 dark:bg-purple-900/40 dark:hover:bg-purple-800/60 text-purple-700 dark:text-purple-300 font-mono text-[11px] font-bold transition-all cursor-pointer select-none">⏱️ ${match}</button>`
+  })
+}
+
+const handleCommentBodyClick = (e: MouseEvent) => {
+  const target = (e.target as HTMLElement).closest('[data-timestamp]')
+  if (target) {
+    const ts = target.getAttribute('data-timestamp')
+    if (ts) {
+      e.preventDefault()
+      const parts = ts.split(':').map(Number)
+      let seconds = 0
+      if (parts.length === 3) {
+        seconds = parts[0] * 3600 + parts[1] * 60 + parts[2]
+      } else if (parts.length === 2) {
+        seconds = parts[0] * 60 + parts[1]
+      }
+      seekToTimestamp(seconds)
+    }
+  }
+}
+
+// ─── Discussion: API Fetching ───
+const fetchComments = async (page = 1, append = false) => {
+  if (!props.currentLesson?.id) return
+  try {
+    if (append) {
+      isLoadingMoreComments.value = true
+    } else {
+      isFetchingComments.value = true
+    }
+    const url = `/lessons/${props.currentLesson.id}/comments?sort=${discussionSort.value}&filter=${discussionFilter.value}&page=${page}`
+    const res = await fetch(url, {
+      headers: {
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': getCsrfToken(),
+      }
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const data = await res.json()
+
+    if (append) {
+      localComments.value = [...localComments.value, ...(data.data || [])]
+    } else {
+      localComments.value = data.data || []
+    }
+    currentCommentsPage.value = data.current_page || page
+    hasMoreComments.value = !!data.has_more
+    if (data.counts) {
+      discussionCounts.value = data.counts
+    }
+    newCommentsPillCount.value = 0
+  } catch (err) {
+    console.error('Failed to fetch comments', err)
+  } finally {
+    isFetchingComments.value = false
+    isLoadingMoreComments.value = false
+  }
+}
+
+watch([discussionSort, discussionFilter], () => {
+  fetchComments(1, false)
+})
+
+// ─── Discussion: Post Question / Reply (Optimistic UI) ───
+const postComment = async (parentId: number | null = null) => {
+  const text = (parentId ? replyText.value : newCommentText.value).trim()
+  if (text.length < 2 || isPostingComment.value || !props.currentLesson?.id) return
+
+  const tempId = Date.now()
+  const videoSec = parentId ? null : newCommentVideoSeconds.value
+
+  const optimisticComment: any = {
+    id: tempId,
+    lesson_id: props.currentLesson.id,
+    user_id: props.currentUserId || 0,
+    parent_id: parentId,
+    body: text,
+    video_seconds: videoSec,
+    video_timestamp_formatted: videoSec !== null ? formatSeconds(videoSec) : null,
+    created_at: new Date().toISOString(),
+    relative_time: 'Just now',
+    likes_count: 0,
+    liked_by_me: false,
+    is_answered: false,
+    role_label: (props.currentUserId === (props.courseTeacherId || props.course?.teacher_id)) ? 'instructor' : 'student',
+    user: {
+      id: props.currentUserId || 0,
+      name: props.studentFirstName ? `${props.studentFirstName} (You)` : 'You',
+      avatar: null,
+      role: 'student',
+    },
+    replies: [],
+    _isOptimistic: true,
+  }
+
+  // Optimistic insert
+  if (parentId) {
+    const parent = localComments.value.find(c => c.id === parentId)
+    if (parent) {
+      if (!parent.replies) parent.replies = []
+      parent.replies.push(optimisticComment)
+      expandedReplies.value[parentId] = true
+    }
+    replyText.value = ''
+    replyingToId.value = null
+  } else {
+    localComments.value.unshift(optimisticComment)
+    newCommentText.value = ''
+    newCommentVideoSeconds.value = null
+    discussionCounts.value.all++
+    discussionCounts.value.unanswered++
+    discussionCounts.value.mine++
+  }
+
+  try {
+    isPostingComment.value = true
+    const res = await fetch(`/lessons/${props.currentLesson.id}/comments`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': getCsrfToken(),
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        body: text,
+        parent_id: parentId,
+        video_seconds: videoSec,
+      }),
+    })
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}))
+      throw new Error(errData.message || errData.error || `HTTP ${res.status}`)
+    }
+
+    const data = await res.json()
+    const saved = data.comment
+
+    if (parentId) {
+      const parent = localComments.value.find(c => c.id === parentId)
+      if (parent && parent.replies) {
+        const idx = parent.replies.findIndex(r => r.id === tempId)
+        if (idx !== -1) parent.replies[idx] = saved
+      }
+    } else {
+      const idx = localComments.value.findIndex(c => c.id === tempId)
+      if (idx !== -1) localComments.value[idx] = saved
+    }
+  } catch (err: any) {
+    // Rollback
+    if (parentId) {
+      const parent = localComments.value.find(c => c.id === parentId)
+      if (parent && parent.replies) {
+        parent.replies = parent.replies.filter(r => r.id !== tempId)
+      }
+    } else {
+      localComments.value = localComments.value.filter(c => c.id !== tempId)
+      discussionCounts.value.all = Math.max(0, discussionCounts.value.all - 1)
+      discussionCounts.value.unanswered = Math.max(0, discussionCounts.value.unanswered - 1)
+      discussionCounts.value.mine = Math.max(0, discussionCounts.value.mine - 1)
+    }
+    toastType.value = 'warning'
+    toastMessage.value = err.message || 'Failed to post comment'
+    showToast.value = true
+    setTimeout(() => { showToast.value = false }, 4000)
+  } finally {
+    isPostingComment.value = false
+  }
+}
+
+// ─── Discussion: Edit Comment ───
+const startEditComment = (comm: any) => {
+  editingCommentId.value = comm.id
+  editCommentText.value = comm.body
+  activeMenuCommentId.value = null
+}
+
+const cancelEditComment = () => {
+  editingCommentId.value = null
+  editCommentText.value = ''
+}
+
+const saveEditComment = async (comm: any) => {
+  const text = editCommentText.value.trim()
+  if (text.length < 2 || isSavingEdit.value) return
+  try {
+    isSavingEdit.value = true
+    const res = await fetch(`/comments/${comm.id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': getCsrfToken(),
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ body: text }),
+    })
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}))
+      throw new Error(errData.message || errData.error || `HTTP ${res.status}`)
+    }
+    const data = await res.json()
+    comm.body = data.comment.body
+    comm.edited_at = data.comment.edited_at
+    comm.video_seconds = data.comment.video_seconds
+    comm.video_timestamp_formatted = data.comment.video_timestamp_formatted
+    editingCommentId.value = null
+    editCommentText.value = ''
+    toastType.value = 'success'
+    toastMessage.value = 'Comment updated successfully'
+    showToast.value = true
+    setTimeout(() => { showToast.value = false }, 3000)
+  } catch (err: any) {
+    toastType.value = 'warning'
+    toastMessage.value = err.message || 'Failed to update comment'
+    showToast.value = true
+    setTimeout(() => { showToast.value = false }, 4000)
+  } finally {
+    isSavingEdit.value = false
+  }
+}
+
+// ─── Discussion: Delete Comment ───
+const deleteComment = async (commentId: number, parentId: number | null = null) => {
+  if (!confirm('Are you sure you want to delete this comment?')) return
+  activeMenuCommentId.value = null
+  try {
+    deletingCommentId.value = commentId
+    const res = await fetch(`/comments/${commentId}`, {
+      method: 'DELETE',
+      headers: {
+        'X-CSRF-TOKEN': getCsrfToken(),
+        'Accept': 'application/json',
+      },
+    })
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+
+    if (parentId) {
+      const parent = localComments.value.find(c => c.id === parentId)
+      if (parent && parent.replies) {
+        parent.replies = parent.replies.filter(r => r.id !== commentId)
+      }
+    } else {
+      const comm = localComments.value.find(c => c.id === commentId)
+      if (comm && comm.replies && comm.replies.length > 0) {
+        comm.body = '[Deleted comment]'
+        comm.is_deleted = true
+      } else {
+        localComments.value = localComments.value.filter(c => c.id !== commentId)
+        discussionCounts.value.all = Math.max(0, discussionCounts.value.all - 1)
+      }
+    }
+    toastType.value = 'success'
+    toastMessage.value = 'Comment deleted'
+    showToast.value = true
+    setTimeout(() => { showToast.value = false }, 3000)
+  } catch (err: any) {
+    toastType.value = 'warning'
+    toastMessage.value = err.message || 'Failed to delete comment'
+    showToast.value = true
+    setTimeout(() => { showToast.value = false }, 4000)
+  } finally {
+    deletingCommentId.value = null
+  }
+}
+
+// ─── Discussion: Toggle Like ───
+const toggleLike = async (comm: any) => {
+  const previousLiked = !!comm.liked_by_me
+  const previousCount = comm.likes_count || 0
+
+  comm.liked_by_me = !previousLiked
+  comm.likes_count = previousLiked ? Math.max(0, previousCount - 1) : previousCount + 1
+
+  try {
+    const res = await fetch(`/comments/${comm.id}/like`, {
+      method: 'POST',
+      headers: {
+        'X-CSRF-TOKEN': getCsrfToken(),
+        'Accept': 'application/json',
+      },
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const data = await res.json()
+    comm.liked_by_me = data.liked
+    comm.likes_count = data.likes_count
+  } catch {
+    comm.liked_by_me = previousLiked
+    comm.likes_count = previousCount
+  }
+}
+
+// ─── Discussion: Toggle Accepted Answer ───
+const toggleAnswer = async (parentQuestion: any, replyComm: any) => {
+  try {
+    const res = await fetch(`/comments/${replyComm.id}/answer`, {
+      method: 'POST',
+      headers: {
+        'X-CSRF-TOKEN': getCsrfToken(),
+        'Accept': 'application/json',
+      },
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.message || err.error || 'Failed to mark answer')
+    }
+    const data = await res.json()
+    parentQuestion.is_answered = data.is_answered
+    parentQuestion.answered_comment_id = data.answered_comment_id
+
+    if (data.is_answered) {
+      discussionCounts.value.answered++
+      discussionCounts.value.unanswered = Math.max(0, discussionCounts.value.unanswered - 1)
+    } else {
+      discussionCounts.value.unanswered++
+      discussionCounts.value.answered = Math.max(0, discussionCounts.value.answered - 1)
+    }
+  } catch (err: any) {
+    toastType.value = 'warning'
+    toastMessage.value = err.message || 'Failed to mark answer'
+    showToast.value = true
+    setTimeout(() => { showToast.value = false }, 3500)
+  }
+}
+
+// ─── Discussion: Report Comment ───
+const openReportModal = (comm: any) => {
+  reportingComment.value = comm
+  reportReason.value = ''
+  reportModalOpen.value = true
+  activeMenuCommentId.value = null
+}
+
+const submitReport = async () => {
+  if (!reportingComment.value || !reportReason.value.trim() || isSubmittingReport.value) return
+  try {
+    isSubmittingReport.value = true
+    const res = await fetch(`/comments/${reportingComment.value.id}/report`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': getCsrfToken(),
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ reason: reportReason.value.trim() }),
+    })
+    if (!res.ok) throw new Error('Failed to submit report')
+    reportModalOpen.value = false
+    toastType.value = 'success'
+    toastMessage.value = 'Report submitted to moderators'
+    showToast.value = true
+    setTimeout(() => { showToast.value = false }, 3500)
+  } catch (err: any) {
+    toastType.value = 'warning'
+    toastMessage.value = err.message || 'Failed to report comment'
+    showToast.value = true
+    setTimeout(() => { showToast.value = false }, 3500)
+  } finally {
+    isSubmittingReport.value = false
+  }
+}
+
+// ─── Discussion: Hash Navigation (#comment-123) ───
+const checkHashAndHighlight = () => {
+  if (typeof window === 'undefined') return
+  const hash = window.location.hash
+  if (hash && hash.startsWith('#comment-')) {
+    const id = parseInt(hash.replace('#comment-', ''), 10)
+    if (!isNaN(id)) {
+      activeTab.value = 'discussion'
+      highlightedCommentId.value = id
+      setTimeout(() => {
+        const el = document.getElementById(`comment-${id}`)
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+      }, 400)
+      setTimeout(() => {
+        highlightedCommentId.value = null
+      }, 3500)
+    }
+  }
+}
+
+// ─── Discussion: Polling (30s) ───
+let discussionPollTimer: any = null
+const pollForNewComments = async () => {
+  if (activeTab.value !== 'discussion' || !props.currentLesson?.id) return
+  try {
+    const res = await fetch(`/lessons/${props.currentLesson.id}/comments?sort=newest&filter=all&page=1`)
+    if (res.ok) {
+      const data = await res.json()
+      const serverTotal = data.total_questions_count || 0
+      const localTotal = discussionCounts.value.all || 0
+      if (serverTotal > localTotal) {
+        newCommentsPillCount.value = serverTotal - localTotal
+      }
+    }
+  } catch {}
+}
 
 // ─── Tab State & Keyboard Accessibility ───
 const tabList = ['overview', 'content', 'resources', 'discussion'] as const
@@ -623,126 +1131,6 @@ const sanitizedContent = computed(() => {
     .replace(/on\w+="[^"]*"/gi, '')
     .replace(/javascript:[^"']*/gi, '')
 })
-
-// ─── Discussion: Post Comment / Reply (Optimistic UI) ───
-const postComment = async (parentId: number | null = null) => {
-  const text = (parentId ? replyText.value : newCommentText.value).trim()
-  if (!text || isPostingComment.value || !props.currentLesson?.id) return
-
-  const tempId = Date.now()
-  const optimisticComment: any = {
-    id: tempId,
-    lesson_id: props.currentLesson.id,
-    user_id: props.currentUserId || 0,
-    parent_id: parentId,
-    body: text,
-    created_at: new Date().toISOString(),
-    relative_time: 'Just now',
-    user: {
-      id: props.currentUserId || 0,
-      name: props.studentFirstName ? `${props.studentFirstName} (You)` : 'You',
-      avatar: null,
-      role: 'student',
-    },
-    replies: [],
-    _isOptimistic: true,
-  }
-
-  // Optimistic insert
-  if (parentId) {
-    const parent = localComments.value.find(c => c.id === parentId)
-    if (parent) {
-      if (!parent.replies) parent.replies = []
-      parent.replies.push(optimisticComment)
-    }
-    replyText.value = ''
-    replyingToId.value = null
-  } else {
-    localComments.value.unshift(optimisticComment)
-    newCommentText.value = ''
-  }
-
-  try {
-    isPostingComment.value = true
-    const res = await fetch(`/student/lessons/${props.currentLesson.id}/comments`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': getCsrfToken(),
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({ body: text, parent_id: parentId }),
-    })
-
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}))
-      throw new Error(errData.message || errData.error || `HTTP ${res.status}`)
-    }
-
-    const data = await res.json()
-    // Replace optimistic item with server item
-    if (parentId) {
-      const parent = localComments.value.find(c => c.id === parentId)
-      if (parent && parent.replies) {
-        const idx = parent.replies.findIndex(r => r.id === tempId)
-        if (idx !== -1) parent.replies[idx] = data.comment
-      }
-    } else {
-      const idx = localComments.value.findIndex(c => c.id === tempId)
-      if (idx !== -1) localComments.value[idx] = data.comment
-    }
-  } catch (err: any) {
-    // Revert optimistic insert
-    if (parentId) {
-      const parent = localComments.value.find(c => c.id === parentId)
-      if (parent && parent.replies) {
-        parent.replies = parent.replies.filter(r => r.id !== tempId)
-      }
-    } else {
-      localComments.value = localComments.value.filter(c => c.id !== tempId)
-    }
-    toastType.value = 'warning'
-    toastMessage.value = err.message || 'Failed to post comment'
-    showToast.value = true
-    setTimeout(() => { showToast.value = false }, 4000)
-  } finally {
-    isPostingComment.value = false
-  }
-}
-
-// ─── Discussion: Delete Comment ───
-const deleteComment = async (commentId: number, parentId: number | null = null) => {
-  if (!confirm('Are you sure you want to delete this comment?')) return
-
-  try {
-    deletingCommentId.value = commentId
-    const res = await fetch(`/student/lessons/${props.currentLesson.id}/comments/${commentId}`, {
-      method: 'DELETE',
-      headers: {
-        'X-CSRF-TOKEN': getCsrfToken(),
-        'Accept': 'application/json',
-      },
-    })
-
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-
-    if (parentId) {
-      const parent = localComments.value.find(c => c.id === parentId)
-      if (parent && parent.replies) {
-        parent.replies = parent.replies.filter(r => r.id !== commentId)
-      }
-    } else {
-      localComments.value = localComments.value.filter(c => c.id !== commentId)
-    }
-  } catch (err) {
-    toastType.value = 'error'
-    toastMessage.value = 'Failed to delete comment'
-    showToast.value = true
-    setTimeout(() => { showToast.value = false }, 4000)
-  } finally {
-    deletingCommentId.value = null
-  }
-}
 
 // ─── Smart Completion Action Handler ───
 const handleSmartAction = () => {
@@ -816,9 +1204,12 @@ onMounted(() => {
     if (tabParam && ['overview', 'content', 'resources', 'discussion'].includes(tabParam)) {
       activeTab.value = tabParam as any
     }
+    checkHashAndHighlight()
     window.addEventListener('keydown', handleKeydown)
     window.addEventListener('beforeunload', handleBeforeUnload)
     window.addEventListener('online', handleOnline)
+    window.addEventListener('click', closeCommentMenu)
+    discussionPollTimer = setInterval(pollForNewComments, 30000)
   }
   startPlaybackSimulation()
 })
@@ -827,11 +1218,13 @@ onUnmounted(() => {
   if (progressTimer) clearInterval(progressTimer)
   if (codeAnimationTimer) clearInterval(codeAnimationTimer)
   if (retryTimer) clearTimeout(retryTimer)
+  if (discussionPollTimer) clearInterval(discussionPollTimer)
   saveVideoProgress(currentSeconds.value, true)
   if (typeof window !== 'undefined') {
     window.removeEventListener('keydown', handleKeydown)
     window.removeEventListener('beforeunload', handleBeforeUnload)
     window.removeEventListener('online', handleOnline)
+    window.removeEventListener('click', closeCommentMenu)
   }
 })
 </script>
@@ -1360,149 +1753,625 @@ onUnmounted(() => {
             id="panel-discussion"
             role="tabpanel"
             aria-labelledby="tab-discussion"
-            class="space-y-5"
+            class="space-y-6"
           >
-            <!-- Add Comment Input Box -->
-            <div class="p-4 bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xs space-y-3">
-              <label for="new-comment-input" class="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                <span>💬</span>
-                <span>Ask a Question or Share Feedback</span>
-              </label>
-              <div class="flex items-start gap-3">
+            <!-- Floating New Questions Notification Pill -->
+            <transition
+              enter-active-class="transition duration-200 ease-out"
+              enter-from-class="transform -translate-y-2 opacity-0"
+              enter-to-class="transform translate-y-0 opacity-100"
+              leave-active-class="transition duration-150 ease-in"
+              leave-from-class="transform translate-y-0 opacity-100"
+              leave-to-class="transform -translate-y-2 opacity-0"
+            >
+              <div v-if="newCommentsPillCount > 0" class="flex justify-center sticky top-2 z-20">
+                <button
+                  @click="fetchComments(1, false)"
+                  class="px-4 py-1.5 rounded-full bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-xl flex items-center gap-2 cursor-pointer transition-all hover:scale-105"
+                >
+                  <span class="animate-bounce">⬆</span>
+                  <span>{{ newCommentsPillCount }} new comment{{ newCommentsPillCount > 1 ? 's' : '' }} · Click to refresh</span>
+                </button>
+              </div>
+            </transition>
+
+            <!-- Discussion Header Toolbar: Filters & Sorting -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-1">
+              <!-- Filter Chips -->
+              <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 custom-scrollbar">
+                <button
+                  type="button"
+                  @click="discussionFilter = 'all'"
+                  :class="[
+                    discussionFilter === 'all'
+                      ? 'bg-purple-600 text-white font-bold shadow-xs'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700',
+                    'px-3 py-1.5 rounded-xl text-xs transition-all cursor-pointer shrink-0 flex items-center gap-1.5'
+                  ]"
+                >
+                  <span>All</span>
+                  <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-black/10 dark:bg-white/10 font-mono">
+                    {{ discussionCounts.all }}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  @click="discussionFilter = 'unanswered'"
+                  :class="[
+                    discussionFilter === 'unanswered'
+                      ? 'bg-purple-600 text-white font-bold shadow-xs'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700',
+                    'px-3 py-1.5 rounded-xl text-xs transition-all cursor-pointer shrink-0 flex items-center gap-1.5'
+                  ]"
+                >
+                  <span>Unanswered</span>
+                  <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-black/10 dark:bg-white/10 font-mono">
+                    {{ discussionCounts.unanswered }}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  @click="discussionFilter = 'answered'"
+                  :class="[
+                    discussionFilter === 'answered'
+                      ? 'bg-purple-600 text-white font-bold shadow-xs'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700',
+                    'px-3 py-1.5 rounded-xl text-xs transition-all cursor-pointer shrink-0 flex items-center gap-1.5'
+                  ]"
+                >
+                  <span>Answered</span>
+                  <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-black/10 dark:bg-white/10 font-mono">
+                    {{ discussionCounts.answered }}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  @click="discussionFilter = 'mine'"
+                  :class="[
+                    discussionFilter === 'mine'
+                      ? 'bg-purple-600 text-white font-bold shadow-xs'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700',
+                    'px-3 py-1.5 rounded-xl text-xs transition-all cursor-pointer shrink-0 flex items-center gap-1.5'
+                  ]"
+                >
+                  <span>My Questions</span>
+                  <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-black/10 dark:bg-white/10 font-mono">
+                    {{ discussionCounts.mine }}
+                  </span>
+                </button>
+              </div>
+
+              <!-- Sort Dropdown -->
+              <div class="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Sort by:</span>
+                <select
+                  v-model="discussionSort"
+                  class="text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-2.5 py-1.5 text-slate-700 dark:text-slate-200 focus:outline-none focus:border-purple-500 font-medium cursor-pointer shadow-2xs"
+                >
+                  <option value="newest">Newest First</option>
+                  <option value="oldest">Oldest First</option>
+                  <option value="helpful">Most Helpful / Liked</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Question Composer Card -->
+            <div class="p-4 sm:p-5 bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm space-y-3 transition-all">
+              <div class="flex items-center justify-between">
+                <label for="new-comment-input" class="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                  <span class="text-base">💬</span>
+                  <span>Ask a Question or Join Discussion</span>
+                </label>
+                <span class="text-[10px] text-slate-400 tabular-nums">
+                  {{ newCommentText.length }}/1000
+                </span>
+              </div>
+
+              <div class="space-y-2">
                 <textarea
                   id="new-comment-input"
+                  ref="commentTextareaRef"
                   v-model="newCommentText"
-                  rows="2"
-                  placeholder="Ask a question about this lesson..."
-                  class="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 shadow-2xs font-['Kantumruy_Pro',sans-serif] resize-none"
+                  maxlength="1000"
+                  rows="3"
+                  placeholder="Ask a question about this lesson... (Tip: type e.g. 07:40 to link directly to a video moment)"
+                  class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 shadow-2xs font-['Kantumruy_Pro',sans-serif] resize-y min-h-[75px]"
                   @keydown.ctrl.enter="postComment(null)"
+                  @keydown.meta.enter="postComment(null)"
                 ></textarea>
-                <button
-                  @click="postComment(null)"
-                  :disabled="isPostingComment || !newCommentText.trim()"
-                  class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs transition-all shadow-md shadow-purple-600/20 cursor-pointer shrink-0 self-end"
-                >
-                  <span v-if="isPostingComment">Posting...</span>
-                  <span v-else>Post</span>
-                </button>
+
+                <!-- Composer Action Bar -->
+                <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+                  <!-- Tag Timestamp Button -->
+                  <div class="flex items-center gap-2">
+                    <button
+                      type="button"
+                      @click="insertCurrentVideoTime"
+                      title="Insert current video timestamp"
+                      class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 dark:bg-purple-900/30 dark:hover:bg-purple-900/50 text-purple-700 dark:text-purple-300 font-mono text-[11px] font-bold border border-purple-200 dark:border-purple-800/40 transition-colors cursor-pointer"
+                    >
+                      <span>⏱️ + Current Time</span>
+                      <span class="text-[10px] opacity-80">({{ formatSeconds(currentSeconds) }})</span>
+                    </button>
+                    <span class="hidden md:inline text-[10px] text-slate-400">
+                      💡 Click timestamp to jump video directly
+                    </span>
+                  </div>
+
+                  <!-- Post Button & Keyboard hint -->
+                  <div class="flex items-center gap-2">
+                    <span class="hidden sm:inline text-[10px] text-slate-400">Ctrl + Enter to send</span>
+                    <button
+                      @click="postComment(null)"
+                      :disabled="isPostingComment || newCommentText.trim().length < 2"
+                      class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs transition-all shadow-md shadow-purple-600/20 cursor-pointer flex items-center gap-2"
+                    >
+                      <svg v-if="isPostingComment" class="animate-spin w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                      </svg>
+                      <span v-if="isPostingComment">Posting...</span>
+                      <span v-else>Post Question</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Shimmer Loading Skeletons -->
+            <div v-if="isFetchingComments" class="space-y-4">
+              <div v-for="i in 3" :key="i" class="p-4 bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-2xl animate-pulse space-y-3">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-full bg-slate-200 dark:bg-slate-800"></div>
+                  <div class="space-y-1.5 flex-1">
+                    <div class="h-3.5 w-32 bg-slate-200 dark:bg-slate-800 rounded"></div>
+                    <div class="h-2.5 w-20 bg-slate-100 dark:bg-slate-800/60 rounded"></div>
+                  </div>
+                </div>
+                <div class="h-3 w-3/4 bg-slate-100 dark:bg-slate-800/60 rounded ml-12"></div>
+                <div class="h-3 w-1/2 bg-slate-100 dark:bg-slate-800/60 rounded ml-12"></div>
               </div>
             </div>
 
             <!-- Comment List -->
-            <div v-if="localComments && localComments.length > 0" class="space-y-4">
+            <div v-else-if="localComments && localComments.length > 0" class="space-y-4">
               <div
                 v-for="comm in localComments"
                 :key="comm.id"
-                class="p-4 bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xs space-y-3"
+                :id="`comment-${comm.id}`"
+                :class="[
+                  highlightedCommentId === comm.id
+                    ? 'ring-2 ring-purple-500 shadow-lg shadow-purple-500/20'
+                    : 'border-slate-200 dark:border-slate-800',
+                  'p-4 sm:p-5 bg-white dark:bg-slate-900/70 border rounded-2xl shadow-2xs space-y-3 transition-all duration-300'
+                ]"
               >
-                <!-- Comment Header -->
+                <!-- Question Header -->
                 <div class="flex items-start justify-between gap-3">
-                  <div class="flex items-center gap-3">
+                  <div class="flex items-center gap-3 min-w-0">
                     <img
                       :src="comm.user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(comm.user?.name || 'User')}&background=8b5cf6&color=fff`"
                       :alt="comm.user?.name"
-                      class="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-700"
+                      class="w-9 h-9 rounded-full object-cover border border-slate-200 dark:border-slate-700 shrink-0"
                     />
-                    <div>
-                      <div class="flex items-center gap-2">
-                        <span class="text-xs font-bold text-slate-900 dark:text-white">{{ comm.user?.name }}</span>
+                    <div class="min-w-0">
+                      <div class="flex flex-wrap items-center gap-1.5">
+                        <span class="text-xs font-bold text-slate-900 dark:text-white truncate">
+                          {{ comm.user?.name }}
+                        </span>
+                        <span v-if="comm.user_id === currentUserId" class="text-[10px] text-slate-400 font-medium">(You)</span>
+
+                        <!-- Role Badge -->
                         <span
-                          v-if="comm.user?.role === 'teacher' || comm.user?.role === 'admin'"
-                          class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-300"
+                          v-if="comm.role_label === 'instructor' || comm.user_id === (courseTeacherId || course?.teacher_id)"
+                          class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-purple-600 text-white shadow-2xs flex items-center gap-1 shrink-0"
                         >
-                          Instructor
+                          <span>✓ Instructor</span>
+                        </span>
+                        <span
+                          v-else-if="comm.role_label === 'admin' || comm.user?.role === 'admin'"
+                          class="px-2 py-0.5 rounded-full text-[9px] font-medium bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 shrink-0"
+                        >
+                          Admin
+                        </span>
+
+                        <!-- Answered Question Badge -->
+                        <span
+                          v-if="comm.is_answered"
+                          class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1 shrink-0"
+                          title="This question has been answered"
+                        >
+                          <span>✓ Answered</span>
                         </span>
                       </div>
-                      <span class="text-[10px] text-slate-400 tabular-nums">{{ comm.relative_time || 'Recent' }}</span>
+
+                      <div class="flex items-center gap-2 mt-0.5">
+                        <span class="text-[10px] text-slate-400 tabular-nums" :title="comm.created_at">
+                          {{ comm.relative_time || 'Recent' }}
+                        </span>
+                        <span v-if="comm.edited_at" class="text-[9px] text-slate-400 italic">
+                          (edited)
+                        </span>
+                      </div>
                     </div>
                   </div>
 
-                  <!-- Delete comment button for owner -->
+                  <!-- 3-Dots Action Dropdown Menu -->
+                  <div class="relative shrink-0" @click.stop>
+                    <button
+                      type="button"
+                      @click="toggleCommentMenu(comm.id)"
+                      aria-label="Comment options"
+                      class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                    >
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                      </svg>
+                    </button>
+
+                    <!-- Dropdown Content -->
+                    <div
+                      v-if="activeMenuCommentId === comm.id"
+                      class="absolute right-0 mt-1 w-36 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl py-1 z-30 text-xs"
+                    >
+                      <button
+                        v-if="canEditComment(comm)"
+                        type="button"
+                        @click="startEditComment(comm)"
+                        class="w-full px-3 py-1.5 text-left text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 cursor-pointer"
+                      >
+                        <span>✏️</span>
+                        <span>Edit (15m)</span>
+                      </button>
+
+                      <button
+                        v-if="comm.user_id === currentUserId || (courseTeacherId && currentUserId === courseTeacherId) || comm.user?.role === 'admin'"
+                        type="button"
+                        @click="deleteComment(comm.id)"
+                        class="w-full px-3 py-1.5 text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center gap-2 cursor-pointer"
+                      >
+                        <span>🗑️</span>
+                        <span>Delete</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        @click="openReportModal(comm)"
+                        class="w-full px-3 py-1.5 text-left text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30 flex items-center gap-2 cursor-pointer"
+                      >
+                        <span>🚩</span>
+                        <span>Report</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Video Timestamp Pill (If tagged explicitly) -->
+                <div v-if="comm.video_seconds !== null && comm.video_seconds !== undefined" class="pl-12">
                   <button
-                    v-if="comm.user_id === currentUserId"
-                    @click="deleteComment(comm.id)"
-                    :disabled="deletingCommentId === comm.id"
-                    aria-label="Delete comment"
-                    class="text-[11px] text-red-500 hover:text-red-700 dark:hover:text-red-400 p-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
+                    type="button"
+                    @click="seekToTimestamp(comm.video_seconds)"
+                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 dark:bg-purple-900/30 dark:hover:bg-purple-900/50 text-purple-700 dark:text-purple-300 font-mono text-[11px] font-bold border border-purple-200 dark:border-purple-800/40 transition-colors cursor-pointer"
                   >
-                    🗑️
+                    <span>▶️ Jump to timestamp:</span>
+                    <span>{{ comm.video_timestamp_formatted || formatSeconds(comm.video_seconds) }}</span>
                   </button>
                 </div>
 
-                <!-- Comment Body -->
-                <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-['Kantumruy_Pro',sans-serif] pl-11">
-                  {{ comm.body }}
-                </p>
+                <!-- Comment Body / In-place Edit Form -->
+                <div class="pl-12">
+                  <!-- In-place Edit Form -->
+                  <div v-if="editingCommentId === comm.id" class="space-y-2">
+                    <textarea
+                      v-model="editCommentText"
+                      rows="3"
+                      class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-purple-300 dark:border-purple-700 text-xs text-slate-900 dark:text-white focus:outline-none font-['Kantumruy_Pro',sans-serif]"
+                    ></textarea>
+                    <div class="flex items-center gap-2 justify-end">
+                      <button
+                        type="button"
+                        @click="cancelEditComment"
+                        class="px-3 py-1 rounded-lg text-xs text-slate-500 hover:text-slate-800 dark:hover:text-white cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        @click="saveEditComment(comm)"
+                        :disabled="isSavingEdit || editCommentText.trim().length < 2"
+                        class="px-4 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs disabled:opacity-40 cursor-pointer shadow-xs"
+                      >
+                        <span v-if="isSavingEdit">Saving...</span>
+                        <span v-else>Save Changes</span>
+                      </button>
+                    </div>
+                  </div>
 
-                <!-- Action row (Reply toggle) -->
-                <div class="pl-11 flex items-center gap-4 text-[11px]">
+                  <!-- Normal Body Text with Safe Linkified URLs & Timestamps -->
+                  <div
+                    v-else
+                    class="text-xs text-slate-700 dark:text-slate-200 leading-relaxed font-['Kantumruy_Pro',sans-serif] break-words whitespace-pre-line"
+                    @click="handleCommentBodyClick"
+                    v-html="renderCommentBodyHtml(comm.body)"
+                  ></div>
+                </div>
+
+                <!-- Action Row (Like, Reply, Replies count) -->
+                <div class="pl-12 flex flex-wrap items-center gap-4 text-xs pt-1">
+                  <!-- Like Button (Optimistic) -->
                   <button
+                    type="button"
+                    @click="toggleLike(comm)"
+                    :class="[
+                      comm.liked_by_me
+                        ? 'text-purple-600 dark:text-purple-400 font-bold'
+                        : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white font-medium',
+                      'flex items-center gap-1.5 transition-all cursor-pointer hover:scale-105 active:scale-95'
+                    ]"
+                  >
+                    <svg
+                      class="w-4 h-4 transition-transform duration-200"
+                      :class="comm.liked_by_me ? 'fill-current scale-110 text-purple-600 dark:text-purple-400' : 'fill-none'"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      viewBox="0 0 24 24"
+                    >
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/>
+                    </svg>
+                    <span class="tabular-nums">{{ comm.likes_count || 0 }}</span>
+                  </button>
+
+                  <!-- Reply Toggle Button -->
+                  <button
+                    type="button"
                     @click="replyingToId = replyingToId === comm.id ? null : comm.id"
-                    class="text-purple-600 dark:text-purple-400 font-semibold hover:underline cursor-pointer"
+                    class="text-slate-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 font-semibold transition-colors cursor-pointer flex items-center gap-1"
                   >
-                    {{ replyingToId === comm.id ? 'Cancel Reply' : 'Reply' }}
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+                    </svg>
+                    <span>{{ replyingToId === comm.id ? 'Cancel Reply' : 'Reply' }}</span>
                   </button>
-                </div>
 
-                <!-- Reply Form -->
-                <div v-if="replyingToId === comm.id" class="pl-11 pt-2 flex items-center gap-2">
-                  <input
-                    type="text"
-                    v-model="replyText"
-                    placeholder="Write a reply..."
-                    class="flex-1 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-purple-500 font-['Kantumruy_Pro',sans-serif]"
-                    @keydown.enter="postComment(comm.id)"
-                  />
+                  <!-- Expand/Collapse Replies Button (if has replies) -->
                   <button
-                    @click="postComment(comm.id)"
-                    :disabled="isPostingComment || !replyText.trim()"
-                    class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs disabled:opacity-40 cursor-pointer"
+                    v-if="comm.replies && comm.replies.length > 0"
+                    type="button"
+                    @click="toggleReplies(comm.id)"
+                    class="text-purple-600 dark:text-purple-400 font-bold hover:underline cursor-pointer flex items-center gap-1 ml-auto text-[11px]"
                   >
-                    Reply
+                    <span>{{ expandedReplies[comm.id] ? 'Hide' : 'View' }} {{ comm.replies.length }} repl{{ comm.replies.length > 1 ? 'ies' : 'y' }}</span>
+                    <span>{{ expandedReplies[comm.id] ? '▲' : '▼' }}</span>
                   </button>
                 </div>
 
-                <!-- 1-Level Replies -->
-                <div v-if="comm.replies && comm.replies.length > 0" class="pl-11 pt-2 space-y-2 border-t border-slate-100 dark:border-slate-800/60 mt-2">
+                <!-- Inline Reply Form -->
+                <div v-if="replyingToId === comm.id" class="pl-12 pt-2">
+                  <div class="flex items-start gap-2 bg-slate-50 dark:bg-slate-950 p-2.5 rounded-xl border border-purple-200 dark:border-purple-800/40">
+                    <textarea
+                      v-model="replyText"
+                      rows="2"
+                      placeholder="Write a clear reply or solution..."
+                      class="flex-1 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-purple-500 font-['Kantumruy_Pro',sans-serif] resize-none"
+                      @keydown.ctrl.enter="postComment(comm.id)"
+                      @keydown.meta.enter="postComment(comm.id)"
+                    ></textarea>
+                    <button
+                      type="button"
+                      @click="postComment(comm.id)"
+                      :disabled="isPostingComment || replyText.trim().length < 2"
+                      class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs disabled:opacity-40 cursor-pointer shadow-xs shrink-0 self-end"
+                    >
+                      Reply
+                    </button>
+                  </div>
+                </div>
+
+                <!-- 1-Level Replies Thread (Auto-expanded when reply is posted or toggled) -->
+                <div
+                  v-if="comm.replies && comm.replies.length > 0 && (expandedReplies[comm.id] ?? true)"
+                  class="pl-12 pt-2 space-y-2.5 border-t border-slate-100 dark:border-slate-800/60 mt-3"
+                >
                   <div
                     v-for="rep in comm.replies"
                     :key="rep.id"
-                    class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 text-xs space-y-1.5"
+                    :id="`comment-${rep.id}`"
+                    :class="[
+                      highlightedCommentId === rep.id ? 'ring-2 ring-purple-500' : '',
+                      (rep.role_label === 'instructor' || rep.user_id === (courseTeacherId || course?.teacher_id))
+                        ? 'border-l-4 border-purple-600 bg-purple-50/60 dark:bg-purple-950/20 rounded-xl p-3.5 space-y-2'
+                        : 'bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 rounded-xl p-3 space-y-2'
+                    ]"
                   >
+                    <!-- Reply Header -->
                     <div class="flex items-center justify-between">
-                      <div class="flex items-center gap-2">
+                      <div class="flex items-center gap-2 min-w-0">
                         <img
                           :src="rep.user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(rep.user?.name || 'User')}&background=8b5cf6&color=fff`"
                           :alt="rep.user?.name"
-                          class="w-5 h-5 rounded-full object-cover"
+                          class="w-6 h-6 rounded-full object-cover shrink-0"
                         />
-                        <span class="font-bold text-slate-800 dark:text-slate-200 text-[11px]">{{ rep.user?.name }}</span>
-                        <span class="text-[9px] text-slate-400">{{ rep.relative_time || 'Recent' }}</span>
+                        <span class="font-bold text-slate-800 dark:text-slate-200 text-xs truncate">
+                          {{ rep.user?.name }}
+                        </span>
+
+                        <!-- Instructor Badge on Reply -->
+                        <span
+                          v-if="rep.role_label === 'instructor' || rep.user_id === (courseTeacherId || course?.teacher_id)"
+                          class="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-purple-600 text-white flex items-center gap-1 shrink-0"
+                        >
+                          <span>✓ Instructor Answer</span>
+                        </span>
+
+                        <!-- Accepted Answer Badge -->
+                        <span
+                          v-if="comm.answered_comment_id === rep.id"
+                          class="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-emerald-600 text-white flex items-center gap-1 shrink-0"
+                        >
+                          <span>✓ Accepted Solution</span>
+                        </span>
+
+                        <span class="text-[9px] text-slate-400 tabular-nums">
+                          {{ rep.relative_time || 'Recent' }}
+                        </span>
                       </div>
+
+                      <!-- Reply Action Options Menu -->
+                      <div class="flex items-center gap-2">
+                        <!-- Mark as Answer button (For Question Owner or Instructor) -->
+                        <button
+                          v-if="comm.user_id === currentUserId || currentUserId === (courseTeacherId || course?.teacher_id)"
+                          type="button"
+                          @click="toggleAnswer(comm, rep)"
+                          :class="[
+                            comm.answered_comment_id === rep.id
+                              ? 'text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300'
+                              : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-slate-700/50',
+                            'px-2 py-0.5 rounded text-[10px] font-semibold transition-colors cursor-pointer flex items-center gap-1'
+                          ]"
+                          :title="comm.answered_comment_id === rep.id ? 'Unmark as accepted answer' : 'Mark as accepted answer'"
+                        >
+                          <span>✓</span>
+                          <span>{{ comm.answered_comment_id === rep.id ? 'Accepted' : 'Mark as Answer' }}</span>
+                        </button>
+
+                        <button
+                          v-if="rep.user_id === currentUserId || (courseTeacherId && currentUserId === courseTeacherId)"
+                          type="button"
+                          @click="deleteComment(rep.id, comm.id)"
+                          title="Delete reply"
+                          class="text-slate-400 hover:text-red-500 p-1 rounded transition-colors cursor-pointer text-[11px]"
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Reply Body -->
+                    <div
+                      class="text-xs text-slate-700 dark:text-slate-300 font-['Kantumruy_Pro',sans-serif] pl-8 break-words whitespace-pre-line"
+                      @click="handleCommentBodyClick"
+                      v-html="renderCommentBodyHtml(rep.body)"
+                    ></div>
+
+                    <!-- Reply Action row (Like) -->
+                    <div class="pl-8 flex items-center gap-3 pt-0.5">
                       <button
-                        v-if="rep.user_id === currentUserId"
-                        @click="deleteComment(rep.id, comm.id)"
-                        class="text-[10px] text-red-500 hover:text-red-700 cursor-pointer"
+                        type="button"
+                        @click="toggleLike(rep)"
+                        :class="[
+                          rep.liked_by_me ? 'text-purple-600 font-bold' : 'text-slate-400 hover:text-slate-600',
+                          'text-[10px] flex items-center gap-1 cursor-pointer'
+                        ]"
                       >
-                        🗑️
+                        <span>👍</span>
+                        <span class="tabular-nums">{{ rep.likes_count || 0 }}</span>
                       </button>
                     </div>
-                    <p class="text-slate-600 dark:text-slate-300 font-['Kantumruy_Pro',sans-serif] pl-7">
-                      {{ rep.body }}
-                    </p>
                   </div>
                 </div>
+              </div>
+
+              <!-- Load More Questions Button -->
+              <div v-if="hasMoreComments" class="pt-2 flex justify-center">
+                <button
+                  type="button"
+                  @click="fetchComments(currentCommentsPage + 1, true)"
+                  :disabled="isLoadingMoreComments"
+                  class="px-5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <svg v-if="isLoadingMoreComments" class="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                  </svg>
+                  <span>{{ isLoadingMoreComments ? 'Loading more...' : 'Load More Questions' }}</span>
+                </button>
               </div>
             </div>
 
             <!-- Empty State for Discussion -->
             <div
               v-else
-              class="p-8 text-center text-xs text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900/60 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xs"
+              class="p-10 text-center text-xs text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900/60 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xs space-y-3"
             >
-              <span class="text-3xl block mb-2">💬</span>
-              <p class="font-semibold text-slate-800 dark:text-slate-200">No questions yet. Be the first to ask!</p>
-              <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">មិនទាន់មានសំណួរនៅឡើយទេ។ សូមក្លាយជាអ្នកដំបូងដែលសួរសំណួរ!</p>
+              <span class="text-4xl block">💬</span>
+              <div>
+                <p class="font-bold text-slate-800 dark:text-slate-200 text-sm">No questions asked yet</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Have a question about this lecture? Ask below and the instructor or peers will help you!
+                </p>
+              </div>
+              <button
+                type="button"
+                @click="focusComposer"
+                class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition-all shadow-md shadow-purple-600/20 cursor-pointer"
+              >
+                Ask the First Question
+              </button>
+            </div>
+
+            <!-- Report Comment Modal -->
+            <div
+              v-if="reportModalOpen"
+              class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in"
+              @click.self="reportModalOpen = false"
+            >
+              <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 max-w-md w-full shadow-2xl space-y-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                    <span>🚩</span>
+                    <span>Report Comment</span>
+                  </h3>
+                  <button
+                    type="button"
+                    @click="reportModalOpen = false"
+                    class="text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <p class="text-xs text-slate-600 dark:text-slate-400">
+                  Please let us know why you are reporting this comment. Our moderation team will review it.
+                </p>
+
+                <div class="space-y-2">
+                  <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Reason</label>
+                  <select
+                    v-model="reportReason"
+                    class="w-full text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:border-purple-500"
+                  >
+                    <option value="">Select a reason...</option>
+                    <option value="Inappropriate or offensive language">Inappropriate or offensive language</option>
+                    <option value="Spam or promotional content">Spam or promotional content</option>
+                    <option value="Misinformation or incorrect code">Misinformation or incorrect code</option>
+                    <option value="Harassment or abusive behavior">Harassment or abusive behavior</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    @click="reportModalOpen = false"
+                    class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    @click="submitReport"
+                    :disabled="isSubmittingReport || !reportReason"
+                    class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 disabled:opacity-40 text-white font-bold text-xs transition-all cursor-pointer shadow-xs"
+                  >
+                    <span v-if="isSubmittingReport">Submitting...</span>
+                    <span v-else>Submit Report</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 

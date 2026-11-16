@@ -543,8 +543,16 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/lessons/{lesson}/progress', [Student\CourseController::class, 'saveProgress'])->middleware('throttle:120,1')->name('lessons.progress');
         Route::post('/lessons/{lesson}/complete', [Student\CourseController::class, 'completeLesson'])->name('lessons.complete');
         Route::get('/lessons/{lesson}/resources/{resource}', [Student\CourseController::class, 'downloadResource'])->name('lessons.resources.download');
+
+        // Lesson Discussion & Comment Endpoints
+        Route::get('/lessons/{lesson}/comments', [Student\CourseController::class, 'getComments'])->name('lessons.comments.index');
         Route::post('/lessons/{lesson}/comments', [Student\CourseController::class, 'storeComment'])->middleware('throttle:10,1')->name('lessons.comments.store');
-        Route::delete('/lessons/{lesson}/comments/{comment}', [Student\CourseController::class, 'destroyComment'])->name('lessons.comments.destroy');
+        Route::patch('/comments/{comment}', [Student\CourseController::class, 'updateComment'])->name('comments.update');
+        Route::delete('/comments/{comment}', [Student\CourseController::class, 'destroyComment'])->name('comments.destroy');
+        Route::delete('/lessons/{lesson}/comments/{comment}', [Student\CourseController::class, 'destroyComment']);
+        Route::post('/comments/{comment}/like', [Student\CourseController::class, 'toggleLikeComment'])->name('comments.like');
+        Route::post('/comments/{comment}/answer', [Student\CourseController::class, 'toggleAnswerComment'])->name('comments.answer');
+        Route::post('/comments/{comment}/report', [Student\CourseController::class, 'reportComment'])->middleware('throttle:10,1')->name('comments.report');
 
         // URL Aliases for space-separated or underscore-separated requests (e.g. 'my courses' / 'my_courses')
         Route::get('/my courses', [Student\CourseController::class, 'enrolled']);

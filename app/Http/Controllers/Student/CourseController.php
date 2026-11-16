@@ -8,12 +8,18 @@ use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Lesson;
 use App\Models\LessonComment;
+use App\Models\LessonCommentLike;
 use App\Models\LessonProgress;
 use App\Models\LessonResource;
+use App\Models\Notification;
+use App\Models\ReportedContent;
 use App\Services\CertificateService;
 use App\Services\StudentLearningService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class CourseController extends Controller
@@ -260,14 +266,41 @@ class CourseController extends Controller
             ->orderBy('id')
             ->get();
 
-        $comments = LessonComment::where('lesson_id', $lesson->id)
+        $commentsQuery = LessonComment::where('lesson_id', $lesson->id)
             ->whereNull('parent_id')
             ->with([
                 'user:id,name,avatar,role',
-                'replies' => fn($q) => $q->with('user:id,name,avatar,role')->oldest('created_at')
+                'replies' => function ($q) use ($user) {
+                    $q->with(['user:id,name,avatar,role'])
+                      ->withCount('likes')
+                      ->withExists(['likes as liked_by_me' => fn($lq) => $lq->where('user_id', $user->id)])
+                      ->oldest('created_at');
+                }
             ])
-            ->latest('created_at')
-            ->get();
+            ->withCount('likes')
+            ->withExists(['likes as liked_by_me' => fn($lq) => $lq->where('user_id', $user->id)])
+            ->orderByDesc('is_pinned')
+            ->latest('created_at');
+
+        $initialComments = $commentsQuery->take(10)->get();
+
+        // Calculate role labels and format
+        $comments = $initialComments->map(function ($comm) use ($course) {
+            $comm->role_label = ($comm->user_id === $course->teacher_id) ? 'instructor' : ($comm->user?->role ?? 'student');
+            if ($comm->replies) {
+                foreach ($comm->replies as $rep) {
+                    $rep->role_label = ($rep->user_id === $course->teacher_id) ? 'instructor' : ($rep->user?->role ?? 'student');
+                }
+            }
+            return $comm;
+        });
+
+        $discussionCounts = [
+            'all'        => LessonComment::where('lesson_id', $lesson->id)->whereNull('parent_id')->count(),
+            'unanswered' => LessonComment::where('lesson_id', $lesson->id)->whereNull('parent_id')->where('is_answered', false)->count(),
+            'answered'   => LessonComment::where('lesson_id', $lesson->id)->whereNull('parent_id')->where('is_answered', true)->count(),
+            'mine'       => LessonComment::where('lesson_id', $lesson->id)->whereNull('parent_id')->where('user_id', $user->id)->count(),
+        ];
 
         // 7. Smart Completion Action calculation
         $currentIndex = $allLessons->search(fn($l) => $l['id'] === $lesson->id);
@@ -339,6 +372,8 @@ class CourseController extends Controller
             'totalLessonsCount'     => $curriculum['total_lessons_count'],
             'resources'             => $resources,
             'comments'              => $comments,
+            'discussionCounts'      => $discussionCounts,
+            'courseTeacherId'       => $course->teacher_id,
             'completionAction'      => $completionAction,
             'currentUserId'         => $user->id,
         ]);
@@ -626,11 +661,102 @@ class CourseController extends Controller
     }
 
     /**
-     * Store a comment/discussion on a lesson.
+     * Get paginated comments with sorting and filtering.
+     */
+    public function getComments(Request $request, Lesson $lesson)
+    {
+        $user = $request->user() ?: Auth::user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+        $course = $lesson->course ?: Course::find($lesson->course_id);
+
+        if (!$course) {
+            return response()->json(['error' => 'Course not found'], 404);
+        }
+
+        $isEnrolled = Enrollment::where('student_id', $user->id)->where('course_id', $course->id)->exists();
+        if (!$isEnrolled && $user->role !== 'admin' && $user->id !== $course->teacher_id) {
+            return response()->json(['error' => 'Unauthorized. Must be enrolled in this course.'], 403);
+        }
+
+        $sort = $request->query('sort', 'newest');
+        $filter = $request->query('filter', 'all');
+
+        $query = LessonComment::where('lesson_id', $lesson->id)
+            ->whereNull('parent_id')
+            ->with([
+                'user:id,name,avatar,role',
+                'replies' => function ($q) use ($user) {
+                    $q->with(['user:id,name,avatar,role'])
+                      ->withCount('likes')
+                      ->withExists(['likes as liked_by_me' => fn($lq) => $lq->where('user_id', $user->id)])
+                      ->oldest('created_at');
+                }
+            ])
+            ->withCount('likes')
+            ->withExists(['likes as liked_by_me' => fn($lq) => $lq->where('user_id', $user->id)]);
+
+        // Filter
+        if ($filter === 'unanswered') {
+            $query->where('is_answered', false);
+        } elseif ($filter === 'answered') {
+            $query->where('is_answered', true);
+        } elseif ($filter === 'mine') {
+            $query->where('user_id', $user->id);
+        }
+
+        // Sort
+        if ($sort === 'oldest') {
+            $query->oldest('created_at');
+        } elseif ($sort === 'helpful') {
+            $query->orderByDesc('likes_count')->latest('created_at');
+        } else {
+            $query->orderByDesc('is_pinned')->latest('created_at');
+        }
+
+        $paginated = $query->paginate(10);
+
+        // Map role labels
+        $paginated->getCollection()->transform(function ($comm) use ($course) {
+            $comm->role_label = ($comm->user_id === $course->teacher_id) ? 'instructor' : ($comm->user?->role ?? 'student');
+            if ($comm->replies) {
+                foreach ($comm->replies as $rep) {
+                    $rep->role_label = ($rep->user_id === $course->teacher_id) ? 'instructor' : ($rep->user?->role ?? 'student');
+                }
+            }
+            return $comm;
+        });
+
+        $counts = [
+            'all'        => LessonComment::where('lesson_id', $lesson->id)->whereNull('parent_id')->count(),
+            'unanswered' => LessonComment::where('lesson_id', $lesson->id)->whereNull('parent_id')->where('is_answered', false)->count(),
+            'answered'   => LessonComment::where('lesson_id', $lesson->id)->whereNull('parent_id')->where('is_answered', true)->count(),
+            'mine'       => LessonComment::where('lesson_id', $lesson->id)->whereNull('parent_id')->where('user_id', $user->id)->count(),
+        ];
+
+        return response()->json([
+            'ok'                    => true,
+            'data'                  => $paginated->items(),
+            'current_page'          => $paginated->currentPage(),
+            'last_page'             => $paginated->lastPage(),
+            'total'                 => $paginated->total(),
+            'has_more'              => $paginated->hasMorePages(),
+            'counts'                => $counts,
+            'total_questions_count' => $counts['all'],
+            'course_teacher_id'     => $course->teacher_id,
+        ]);
+    }
+
+    /**
+     * Store a comment/discussion or reply on a lesson.
      */
     public function storeComment(Request $request, Lesson $lesson)
     {
-        $user = $request->user();
+        $user = $request->user() ?: Auth::user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
         $course = $lesson->course ?: Course::find($lesson->course_id);
 
         if (!$course) {
@@ -641,29 +767,95 @@ class CourseController extends Controller
             ->where('course_id', $course->id)
             ->exists();
 
-        if (!$isEnrolled && $user->role !== 'admin' && $user->role !== 'teacher') {
+        if (!$isEnrolled && $user->role !== 'admin' && $user->id !== $course->teacher_id) {
             return response()->json(['error' => 'Only enrolled students can comment'], 403);
         }
 
         $validated = $request->validate([
-            'body'      => 'required|string|min:2|max:2000',
-            'parent_id' => 'nullable|exists:lesson_comments,id',
+            'body'          => 'required|string|min:2|max:1000',
+            'parent_id'     => 'nullable|integer',
+            'video_seconds' => 'nullable|integer|min:0',
         ]);
 
-        // XSS sanitization: strip dangerous tags
         $cleanBody = trim(strip_tags($validated['body']));
         if (empty($cleanBody)) {
             return response()->json(['error' => 'Comment body cannot be empty'], 422);
         }
 
+        $parentId = $validated['parent_id'] ?? null;
+        if ($parentId) {
+            $parentComment = LessonComment::find($parentId);
+            if (!$parentComment || $parentComment->lesson_id !== $lesson->id) {
+                return response()->json(['error' => 'Parent comment does not belong to this lesson'], 422);
+            }
+            if ($parentComment->parent_id !== null) {
+                return response()->json(['error' => 'Nested replies are not allowed (maximum depth is 1)'], 422);
+            }
+        }
+
+        // Timestamp parsing: look for 07:40, 1:02:15, or 7:40 in body
+        $videoSeconds = isset($validated['video_seconds']) && $validated['video_seconds'] !== null
+            ? (int) $validated['video_seconds']
+            : null;
+
+        if ($videoSeconds === null) {
+            if (preg_match('/\b(?:(\d{1,2}):)?([0-5]?\d):([0-5]\d)\b/', $cleanBody, $matches)) {
+                if (!empty($matches[1])) {
+                    $videoSeconds = ((int)$matches[1] * 3600) + ((int)$matches[2] * 60) + (int)$matches[3];
+                } else {
+                    $videoSeconds = ((int)$matches[2] * 60) + (int)$matches[3];
+                }
+            }
+        }
+
+        // Clamp video_seconds to [0, duration]
+        if ($videoSeconds !== null) {
+            $duration = (int) ($lesson->duration_seconds ?: 3600);
+            $videoSeconds = max(0, min($videoSeconds, $duration));
+        }
+
         $comment = LessonComment::create([
-            'lesson_id' => $lesson->id,
-            'user_id'   => $user->id,
-            'parent_id' => $validated['parent_id'] ?? null,
-            'body'      => $cleanBody,
+            'lesson_id'     => $lesson->id,
+            'user_id'       => $user->id,
+            'parent_id'     => $parentId,
+            'body'          => $cleanBody,
+            'video_seconds' => $videoSeconds,
         ]);
 
         $comment->load('user:id,name,avatar,role');
+        $comment->likes_count = 0;
+        $comment->liked_by_me = false;
+        $comment->role_label = ($comment->user_id === $course->teacher_id) ? 'instructor' : ($comment->user?->role ?? 'student');
+
+        // Step 4: Dispatch notification to teacher or parent author
+        try {
+            $commentUrl = "/student/my-courses/{$course->id}/lessons/{$lesson->id}?tab=discussion#comment-{$comment->id}";
+            $shortBody = Str::limit($cleanBody, 70);
+
+            if ($parentId === null) {
+                // Student asked question -> notify course teacher
+                $teacherId = $course->teacher_id;
+                if ($teacherId && $teacherId !== $user->id) {
+                    Notification::create([
+                        'title'   => "សំណួរថ្មីពីសិស្ស ({$course->title})",
+                        'message' => "សិស្ស {$user->name} បានសួរក្នុងមេរៀន '{$lesson->title}': \"{$shortBody}\" [url:{$commentUrl}]",
+                        'target'  => "user:{$teacherId}",
+                    ]);
+                    Cache::forget("student_notif_payload_{$teacherId}");
+                }
+            } else {
+                // Reply posted -> notify question author
+                $parent = LessonComment::find($parentId);
+                if ($parent && $parent->user_id !== $user->id) {
+                    Notification::create([
+                        'title'   => "ចម្លើយតបថ្មី ({$lesson->title})",
+                        'message' => "{$user->name} បានឆ្លើយតបសំណួររបស់អ្នក: \"{$shortBody}\" [url:{$commentUrl}]",
+                        'target'  => "user:{$parent->user_id}",
+                    ]);
+                    Cache::forget("student_notif_payload_{$parent->user_id}");
+                }
+            }
+        } catch (\Throwable $e) {}
 
         return response()->json([
             'ok'      => true,
@@ -673,17 +865,77 @@ class CourseController extends Controller
     }
 
     /**
-     * Delete user's own comment.
+     * Update comment within 15 minutes of posting (Owner only).
      */
-    public function destroyComment(Request $request, Lesson $lesson, LessonComment $comment)
+    public function updateComment(Request $request, LessonComment $comment)
     {
-        $user = $request->user();
-
-        if ($comment->lesson_id !== $lesson->id) {
-            return response()->json(['error' => 'Comment does not belong to this lesson'], 404);
+        $user = $request->user() ?: Auth::user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
         }
 
-        if ($comment->user_id !== $user->id && $user->role !== 'admin') {
+        if ($comment->user_id !== $user->id) {
+            return response()->json(['error' => 'You can only edit your own comment'], 403);
+        }
+
+        // Allowed only within 15 minutes
+        if ($comment->created_at && $comment->created_at->diffInMinutes(now()) > 15) {
+            return response()->json(['error' => 'Comments can only be edited within 15 minutes of posting'], 403);
+        }
+
+        $validated = $request->validate([
+            'body' => 'required|string|min:2|max:1000',
+        ]);
+
+        $cleanBody = trim(strip_tags($validated['body']));
+        if (empty($cleanBody)) {
+            return response()->json(['error' => 'Comment body cannot be empty'], 422);
+        }
+
+        $lesson = $comment->lesson;
+        $videoSeconds = $comment->video_seconds;
+        if (preg_match('/\b(?:(\d{1,2}):)?([0-5]?\d):([0-5]\d)\b/', $cleanBody, $matches)) {
+            if (!empty($matches[1])) {
+                $videoSeconds = ((int)$matches[1] * 3600) + ((int)$matches[2] * 60) + (int)$matches[3];
+            } else {
+                $videoSeconds = ((int)$matches[2] * 60) + (int)$matches[3];
+            }
+            if ($lesson) {
+                $videoSeconds = max(0, min($videoSeconds, (int)($lesson->duration_seconds ?: 3600)));
+            }
+        }
+
+        $comment->update([
+            'body'          => $cleanBody,
+            'video_seconds' => $videoSeconds,
+            'edited_at'     => now(),
+        ]);
+
+        $comment->load('user:id,name,avatar,role');
+
+        return response()->json([
+            'ok'      => true,
+            'comment' => $comment,
+            'message' => 'Comment updated successfully',
+        ]);
+    }
+
+    /**
+     * Delete comment (Owner, Course Instructor, or Admin).
+     */
+    public function destroyComment(Request $request, LessonComment $comment)
+    {
+        $user = $request->user() ?: Auth::user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+        $course = $comment->lesson?->course ?: ($comment->lesson?->course_id ? Course::find($comment->lesson->course_id) : null);
+
+        $isOwner = ($comment->user_id === $user->id);
+        $isAdmin = ($user->role === 'admin');
+        $isTeacher = ($course && $user->id === $course->teacher_id);
+
+        if (!$isOwner && !$isAdmin && !$isTeacher) {
             return response()->json(['error' => 'Unauthorized to delete this comment'], 403);
         }
 
@@ -692,6 +944,116 @@ class CourseController extends Controller
         return response()->json([
             'ok'      => true,
             'message' => 'Comment deleted successfully',
+        ]);
+    }
+
+    /**
+     * Toggle like on a comment (Idempotent).
+     */
+    public function toggleLikeComment(Request $request, LessonComment $comment)
+    {
+        $user = $request->user() ?: Auth::user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+
+        $existing = LessonCommentLike::where('comment_id', $comment->id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if ($existing) {
+            $existing->delete();
+            $liked = false;
+        } else {
+            LessonCommentLike::create([
+                'comment_id' => $comment->id,
+                'user_id'    => $user->id,
+            ]);
+            $liked = true;
+        }
+
+        $likesCount = LessonCommentLike::where('comment_id', $comment->id)->count();
+
+        return response()->json([
+            'ok'          => true,
+            'liked'       => $liked,
+            'likes_count' => $likesCount,
+        ]);
+    }
+
+    /**
+     * Mark/unmark a reply as accepted answer (Question owner, Course Instructor, or Admin).
+     */
+    public function toggleAnswerComment(Request $request, LessonComment $comment)
+    {
+        $user = $request->user() ?: Auth::user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+        $parent = $comment->parent_id ? $comment->parent : $comment;
+        $course = $parent->lesson?->course ?: ($parent->lesson?->course_id ? Course::find($parent->lesson->course_id) : null);
+
+        $isQuestionOwner = ($parent->user_id === $user->id);
+        $isAdmin = ($user->role === 'admin');
+        $isTeacher = ($course && $user->id === $course->teacher_id);
+
+        if (!$isQuestionOwner && !$isAdmin && !$isTeacher) {
+            return response()->json(['error' => 'Only the question author or course instructor can mark this answer'], 403);
+        }
+
+        if ($parent->is_answered && $parent->answered_comment_id === $comment->id) {
+            $parent->update([
+                'is_answered'         => false,
+                'answered_comment_id' => null,
+            ]);
+            $isAnswered = false;
+        } else {
+            $parent->update([
+                'is_answered'         => true,
+                'answered_comment_id' => $comment->id,
+            ]);
+            $isAnswered = true;
+        }
+
+        return response()->json([
+            'ok'                  => true,
+            'is_answered'         => $isAnswered,
+            'answered_comment_id' => $parent->answered_comment_id,
+        ]);
+    }
+
+    /**
+     * Report a comment to administrators.
+     */
+    public function reportComment(Request $request, LessonComment $comment)
+    {
+        $user = $request->user() ?: Auth::user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+
+        $validated = $request->validate([
+            'reason' => 'required|string|min:3|max:500',
+        ]);
+
+        $lesson = $comment->lesson;
+        $courseId = $lesson?->course_id;
+        $evidenceUrl = url("/student/my-courses/{$courseId}/lessons/{$comment->lesson_id}?tab=discussion#comment-{$comment->id}");
+
+        ReportedContent::create([
+            'report_code'  => 'REP-' . strtoupper(Str::random(8)),
+            'reported_by'  => $user->name ?: ('User #' . $user->id),
+            'reason'       => $validated['reason'],
+            'content_type' => 'lesson_comment',
+            'author_name'  => $comment->user?->name ?? 'User',
+            'comment_text' => $comment->body,
+            'evidence_url' => $evidenceUrl,
+            'status'       => 'pending',
+        ]);
+
+        return response()->json([
+            'ok'      => true,
+            'message' => 'Report submitted successfully. Administrators will review it.',
         ]);
     }
 }
