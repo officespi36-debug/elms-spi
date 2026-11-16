@@ -4,8 +4,6 @@ import { Link, usePage, router } from '@inertiajs/vue3'
 import StudentLayout from '@/Layouts/StudentLayout.vue'
 import TodaysGoalWidget from '@/Components/Student/TodaysGoalWidget.vue'
 import WelcomeBanner from '@/Components/Student/WelcomeBanner.vue'
-import DashboardKpiStrip from '@/Components/Student/DashboardKpiStrip.vue'
-import DashboardAnalyticsRow, { type MetricsPayload } from '@/Components/Student/DashboardAnalyticsRow.vue'
 import { i18n } from '@/Services/i18n'
 
 const props = defineProps<{
@@ -128,13 +126,11 @@ const props = defineProps<{
     href: string
     unlocked?: boolean
   }>
-  initialMetrics?: MetricsPayload | null
 }>()
 
 const page = usePage<any>()
 const user = computed(() => page.props.auth?.user || {})
 const currentLang = computed(() => i18n.locale.value)
-const activeMetrics = ref<MetricsPayload | null>(props.initialMetrics || null)
 
 // ─── Official Dashboard Loading & Animation System (DL-01 to DL-08) ───
 const loading = ref(true)
@@ -873,12 +869,156 @@ const recentActivities = computed(() => {
         :current-lang="currentLang"
       />
 
-      <!-- UNIFIED 6-KPI SUMMARY STRIP -->
-      <DashboardKpiStrip
-        :kpi="activeMetrics?.kpi"
-        :current-lang="currentLang"
-        :is-loading="loading && loadingStep === 'skeleton'"
-      />
+      <!-- OFFICIAL SPI DASHBOARD LOADING & KPI SYSTEM (DL-01 to DL-08) -->
+      <section aria-busy="loading">
+        <!-- 1. SKELETON LOADING STATE WITH SHIMMER (DL-01, DL-02, DL-06) -->
+        <div
+          v-if="loading && loadingStep === 'skeleton'"
+          class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 sm:gap-4.5 animate-in fade-in duration-200"
+        >
+          <div
+            v-for="n in 6"
+            :key="n"
+            class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-200 via-slate-100 to-slate-200 dark:from-[#1e1f20] dark:via-[#282a2c] dark:to-[#1e1f20] p-3.5 sm:p-4 flex flex-col justify-between shadow-xs border border-slate-300/60 dark:border-[#2d2f31] min-h-[136px] sm:min-h-[140px] max-h-[142px]"
+          >
+            <!-- Shimmer Highlight Sweep Effect -->
+            <div class="shimmer-sweep absolute inset-0 pointer-events-none"></div>
+
+            <div>
+              <div class="flex items-center justify-between">
+                <!-- Title Placeholder Bar -->
+                <div class="h-3 w-20 bg-white/70 dark:bg-[#333538] rounded-md"></div>
+                <!-- Icon Placeholder Square -->
+                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white/70 dark:bg-[#333538] shrink-0"></div>
+              </div>
+              <!-- Number Placeholder Block -->
+              <div class="h-7 w-16 bg-white/80 dark:bg-[#333538] rounded-lg mt-2"></div>
+              <!-- Subtitle Placeholder Bar -->
+              <div class="h-2.5 w-24 bg-white/60 dark:bg-[#282a2c] rounded-md mt-1.5"></div>
+            </div>
+
+            <!-- Wave Silhouette Placeholder at Bottom -->
+            <div class="mt-1.5 -mx-3.5 -mb-3.5 sm:-mx-4 sm:-mb-4 overflow-hidden rounded-b-2xl">
+              <svg class="w-full h-7 sm:h-8 text-white/50 dark:text-[#282a2c]/60" viewBox="0 0 100 25" preserveAspectRatio="none">
+                <path d="M0 18 Q 20 4, 40 14 T 70 6 T 100 12 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.4"/>
+                <path d="M0 18 Q 20 4, 40 14 T 70 6 T 100 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.8"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. ERROR STATE + RETRY BUTTON (DL-05) -->
+        <div
+          v-else-if="error"
+          role="alert"
+          class="rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm"
+        >
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
+              </svg>
+            </div>
+            <div>
+              <h4 class="text-xs font-bold text-rose-800 dark:text-rose-200">
+                {{ currentLang === 'km' ? 'មិនអាចទាញយកទិន្នន័យស្ថិតិបានទេ' : 'Unable to load dashboard data.' }}
+              </h4>
+              <p class="text-[11px] text-rose-600 dark:text-rose-300">
+                {{ error || (currentLang === 'km' ? 'សូមពិនិត្យមើលការតភ្ជាប់អ៊ីនធឺណិត ឬចុចប៊ូតុងខាងក្រោមដើម្បីព្យាយាមឡើងវិញ។' : 'Please check your connection or click retry to reload.') }}
+              </p>
+            </div>
+          </div>
+          <button
+            @click="loadDashboard"
+            type="button"
+            class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all hover:scale-105 cursor-pointer shrink-0"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/>
+            </svg>
+            <span>{{ currentLang === 'km' ? 'ព្យាយាមម្តងទៀត' : 'Retry' }}</span>
+          </button>
+        </div>
+
+        <!-- 3. LOADED / COUNTING GRADIENT CARDS (Staggered 70ms animation, hover translateY(-6px)) -->
+        <div
+          v-else
+          class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 sm:gap-4.5"
+        >
+          <Link
+            v-for="(stat, idx) in statsCards"
+            :key="stat.type"
+            :href="stat.href"
+            :style="{ animationDelay: `${idx * 70}ms` }"
+            :class="[
+              'stat-card relative overflow-hidden rounded-2xl bg-gradient-to-br text-white p-3.5 sm:p-4 shadow-sm hover:shadow-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col justify-between group cursor-pointer border border-white/10 min-h-[136px] sm:min-h-[140px] max-h-[142px]',
+              stat.gradient
+            ]"
+          >
+            <div>
+              <div class="flex items-start justify-between gap-1">
+                <span class="text-[9.5px] sm:text-[10px] xl:text-[11px] font-bold tracking-tight uppercase text-white/90 leading-tight mr-1">{{ stat.title }}</span>
+                <div class="text-white/95 group-hover:text-white group-hover:scale-110 transition-transform duration-200 shrink-0">
+                  <!-- Book SVG (Enrolled) -->
+                  <svg v-if="stat.type === 'enrolled'" class="w-7 h-7 sm:w-8 sm:h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                  </svg>
+                  <!-- Graduation Cap SVG (In Progress) -->
+                  <svg v-else-if="stat.type === 'in_progress'" class="w-7 h-7 sm:w-8 sm:h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+                    <path d="M6 12v5c3 3 9 3 12 0v-5" />
+                  </svg>
+                  <!-- Check Circle SVG (Completed) -->
+                  <svg v-else-if="stat.type === 'completed'" class="w-7 h-7 sm:w-8 sm:h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="m9 12 2 2 4-4" />
+                  </svg>
+                  <!-- Trophy SVG (Certificates) -->
+                  <svg v-else-if="stat.type === 'certificates'" class="w-7 h-7 sm:w-8 sm:h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+                    <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+                    <path d="M4 22h16" />
+                    <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+                    <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+                    <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+                  </svg>
+                  <!-- Clock SVG (Study Time) -->
+                  <svg v-else-if="stat.type === 'study_time'" class="w-7 h-7 sm:w-8 sm:h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                  <!-- Bar Chart SVG (Quiz Average) -->
+                  <svg v-else class="w-7 h-7 sm:w-8 sm:h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="20" x2="18" y2="10" />
+                    <line x1="12" y1="20" x2="12" y2="4" />
+                    <line x1="6" y1="20" x2="6" y2="14" />
+                  </svg>
+                </div>
+              </div>
+
+              <!-- Metric Number (Count-Up Active or Final Result) -->
+              <h4 class="text-2xl font-black tracking-tight text-white mt-1 tabular-nums">
+                {{ stat.value }}
+              </h4>
+              <p class="text-[11px] text-white/95 font-medium mt-0.5 flex items-center gap-1 truncate">
+                <span>{{ stat.subtitle }}</span>
+              </p>
+            </div>
+
+            <!-- Sparkline Wave at Bottom (Exact Admin Style) -->
+            <div class="mt-1.5 -mx-3.5 -mb-3.5 sm:-mx-4 sm:-mb-4 overflow-hidden rounded-b-2xl">
+              <svg class="w-full h-7 sm:h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none" aria-hidden="true">
+                <g transform="translate(0 3)" opacity="0.10">
+                  <path :d="stat.wavePath" fill="currentColor"/>
+                </g>
+                <path :d="stat.wavePath" fill="currentColor" opacity="0.20"/>
+                <path :d="stat.waveLine" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" opacity="0.9"/>
+              </svg>
+            </div>
+          </Link>
+        </div>
+      </section>
 
       <!-- MAIN 2-COLUMN LAYOUT -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -1092,13 +1232,230 @@ const recentActivities = computed(() => {
               </Link>
             </div>
           </div>
-          <!-- UNIFIED 3-COLUMN ANALYTICS OVERVIEW ROW -->
-          <DashboardAnalyticsRow
-            :initial-metrics="props.initialMetrics"
-            :current-lang="currentLang"
-            :is-loading="loading && loadingStep === 'skeleton'"
-            @metrics-updated="(m) => activeMetrics = m"
-          />
+          <!-- ANALYTICS CHARTS ROW -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            
+            <!-- Learning Overview Line Chart Card with Segmented Control (7D | 30D | 90D) inline in header -->
+            <div
+              class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-purple-400 hover:dark:border-purple-400/60 rounded-3xl p-5 shadow-sm dark:shadow-xl flex flex-col justify-between space-y-3 block transition-all hover:-translate-y-1"
+            >
+              <!-- Row 1: Equal 1-line header with inline segmented control -->
+              <div class="flex items-center justify-between min-h-[32px] gap-2">
+                <Link href="/student/progress/learning-time" class="flex items-center gap-1.5 text-[15px] font-semibold text-slate-900 dark:text-slate-100 hover:text-purple-600 dark:hover:text-purple-400 transition-colors min-w-0 group">
+                  <span class="truncate">{{ currentLang === 'km' ? 'ទិដ្ឋភាពទូទៅនៃការរៀន' : 'Learning overview' }}</span>
+                  <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-purple-600 group-hover:translate-x-0.5 transition-all shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                </Link>
+
+                <!-- Segmented Control (7D | 30D | 90D) inline on right -->
+                <div class="inline-flex items-center gap-0.5 p-0.5 bg-[#f0f4f9] dark:bg-[#131314] rounded-xl border border-[#dfe3e7] dark:border-[#2d2f31] shrink-0">
+                  <button
+                    type="button"
+                    @click="selectedRange = 'week'"
+                    :class="selectedRange === 'week' ? 'bg-[#6366f1] text-white font-bold shadow-xs' : 'text-[#444746] dark:text-[#c4c7c5] hover:text-[#1f1f1f] dark:hover:text-white'"
+                    class="px-2 py-0.5 rounded-lg text-xs font-semibold transition-all cursor-pointer"
+                  >
+                    7D
+                  </button>
+                  <button
+                    type="button"
+                    @click="selectedRange = 'last_week'"
+                    :class="selectedRange === 'last_week' ? 'bg-[#6366f1] text-white font-bold shadow-xs' : 'text-[#444746] dark:text-[#c4c7c5] hover:text-[#1f1f1f] dark:hover:text-white'"
+                    class="px-2 py-0.5 rounded-lg text-xs font-semibold transition-all cursor-pointer"
+                  >
+                    30D
+                  </button>
+                  <button
+                    type="button"
+                    @click="selectedRange = 'month'"
+                    :class="selectedRange === 'month' ? 'bg-[#6366f1] text-white font-bold shadow-xs' : 'text-[#444746] dark:text-[#c4c7c5] hover:text-[#1f1f1f] dark:hover:text-white'"
+                    class="px-2 py-0.5 rounded-lg text-xs font-semibold transition-all cursor-pointer"
+                  >
+                    90D
+                  </button>
+                </div>
+              </div>
+
+              <!-- SVG Line Chart with dark mode stroke #818cf8 + glowing fill -->
+              <div class="relative pt-2 my-auto">
+                <div class="absolute top-1 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-[#6366f1] to-[#7c3aed] text-white text-xs font-semibold shadow-sm tabular-nums">
+                  {{ chartDataByRange[selectedRange].total }}
+                </div>
+
+                <svg viewBox="0 0 200 80" class="w-full h-20 overflow-visible">
+                  <defs>
+                    <linearGradient id="learningOverviewLineGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#818cf8" stop-opacity="0.35" />
+                      <stop offset="100%" stop-color="#818cf8" stop-opacity="0.02" />
+                    </linearGradient>
+                  </defs>
+                  <path
+                    :d="chartDataByRange[selectedRange].pathArea"
+                    fill="url(#learningOverviewLineGrad)"
+                  />
+                  <path
+                    :d="chartDataByRange[selectedRange].pathLine"
+                    fill="none"
+                    stroke="#818cf8"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    class="line-chart-draw"
+                  />
+                  <circle :cx="chartDataByRange[selectedRange].dotX" :cy="chartDataByRange[selectedRange].dotY" r="4" fill="#818cf8" stroke="#ffffff" stroke-width="2" />
+                </svg>
+
+                <div class="flex justify-between text-xs text-[#444746] dark:text-[#c4c7c5] tabular-nums font-medium pt-1">
+                  <span v-for="(lbl, idx) in chartDataByRange[selectedRange].labels" :key="idx">{{ lbl }}</span>
+                </div>
+              </div>
+
+              <!-- Bottom summary stat row -->
+              <div class="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[12px] text-slate-500 dark:text-slate-400">
+                <span>{{ currentLang === 'km' ? 'និន្នាការសិក្សា' : 'Learning Trend' }}</span>
+                <span class="font-semibold text-purple-600 dark:text-purple-400">{{ chartDataByRange[selectedRange].trend }}</span>
+              </div>
+            </div>
+
+            <!-- Study Time Donut Ring Chart Card (Uniform border, hover purple border) -->
+            <Link
+              href="/student/progress/learning-time"
+              class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-purple-400 hover:dark:border-purple-400/60 rounded-3xl p-5 shadow-sm dark:shadow-xl flex flex-col justify-between space-y-3 transition-all hover:-translate-y-1 group"
+            >
+              <div class="flex items-center justify-between min-h-[32px] gap-2">
+                <div class="flex items-center gap-1.5 text-[15px] font-semibold text-slate-900 dark:text-slate-100 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors min-w-0">
+                  <span class="truncate">{{ currentLang === 'km' ? 'ម៉ោងសិក្សា' : 'Study time' }}</span>
+                  <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-purple-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                </div>
+                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30 whitespace-nowrap shrink-0">
+                  {{ props.studyTimeBreakdown?.dailyAverage || '+2.5h vs last week' }}
+                </span>
+              </div>
+
+              <!-- Content centered vertically with 104px ring and nowrap legend -->
+              <div class="flex items-center justify-center gap-4 my-auto py-1">
+                <!-- SVG Circular Donut with 104px dimension -->
+                <div class="relative w-[104px] h-[104px] shrink-0 flex items-center justify-center">
+                  <svg viewBox="0 0 36 36" class="w-[104px] h-[104px] -rotate-90">
+                    <path
+                      class="text-[#e1e3e1] dark:text-[#282a2c]"
+                      stroke-width="4"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                    <path
+                      class="text-[#6366f1] donut-draw"
+                      :stroke-dasharray="`${props.studyTimeBreakdown?.lessonsPct || 58}, 100`"
+                      stroke-width="4"
+                      stroke-linecap="round"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                    <path
+                      class="text-purple-400 dark:text-[#a78bfa] donut-draw-2"
+                      :stroke-dasharray="`${props.studyTimeBreakdown?.practicePct || 28}, 100`"
+                      :stroke-dashoffset="`-${props.studyTimeBreakdown?.lessonsPct || 58}`"
+                      stroke-width="4"
+                      stroke-linecap="round"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                  </svg>
+                  <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                    <span class="text-xs font-black text-[#1f1f1f] dark:text-[#e3e3e3] leading-none tabular-nums">{{ props.studyTimeBreakdown?.total || props.stats?.learningTime || (currentLang === 'km' ? '០h ០m' : '0h 0m') }}</span>
+                    <span class="text-[10px] text-[#444746] dark:text-[#c4c7c5] mt-0.5">{{ currentLang === 'km' ? 'សរុប' : 'Total' }}</span>
+                  </div>
+                </div>
+
+                <!-- Legend with whitespace-nowrap -->
+                <div class="space-y-1.5 text-xs text-[#444746] dark:text-[#c4c7c5] font-medium min-w-0">
+                  <div class="flex items-center gap-1.5 whitespace-nowrap">
+                    <span class="w-2 h-2 rounded-full bg-[#6366f1] shrink-0"></span>
+                    <span class="whitespace-nowrap">{{ currentLang === 'km' ? `មេរៀន: ${props.studyTimeBreakdown?.lessons || '0h 0m'}` : `Lessons: ${props.studyTimeBreakdown?.lessons || '0h 0m'}` }}</span>
+                  </div>
+                  <div class="flex items-center gap-1.5 whitespace-nowrap">
+                    <span class="w-2 h-2 rounded-full bg-purple-400 dark:bg-[#a78bfa] shrink-0"></span>
+                    <span class="whitespace-nowrap">{{ currentLang === 'km' ? `ការអនុវត្ត: ${props.studyTimeBreakdown?.practice || '0h 0m'}` : `Practice: ${props.studyTimeBreakdown?.practice || '0h 0m'}` }}</span>
+                  </div>
+                  <div class="flex items-center gap-1.5 whitespace-nowrap">
+                    <span class="w-2 h-2 rounded-full bg-cyan-500 dark:bg-cyan-400 shrink-0"></span>
+                    <span class="whitespace-nowrap">{{ currentLang === 'km' ? `កម្រងសំណួរ: ${props.studyTimeBreakdown?.quiz || '0h 0m'}` : `Quiz: ${props.studyTimeBreakdown?.quiz || '0h 0m'}` }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Bottom summary stat row -->
+              <div class="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[12px] text-slate-500 dark:text-slate-400">
+                <span>{{ currentLang === 'km' ? 'មធ្យមភាគប្រចាំថ្ងៃ' : 'Daily average' }}</span>
+                <span class="font-semibold text-slate-700 dark:text-slate-300">{{ props.studyTimeBreakdown?.dailyAverage || (currentLang === 'km' ? '០h / ថ្ងៃ' : '0h / day') }}</span>
+              </div>
+            </Link>
+
+            <!-- Quiz Performance Radial Gauge Card -->
+            <Link
+              href="/student/quizzes/scores"
+              class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-purple-400 hover:dark:border-purple-400/60 rounded-3xl p-5 shadow-sm dark:shadow-xl flex flex-col justify-between space-y-3 transition-all hover:-translate-y-1 group"
+            >
+              <div class="flex items-center justify-between min-h-[32px] gap-2">
+                <div class="flex items-center gap-1.5 text-[15px] font-semibold text-slate-900 dark:text-slate-100 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors min-w-0">
+                  <span class="truncate">{{ currentLang === 'km' ? 'លទ្ធផលកម្រងសំណួរ' : 'Quiz performance' }}</span>
+                  <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-purple-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                </div>
+                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30 whitespace-nowrap shrink-0">
+                  {{ props.quizPerformance?.trend || (currentLang === 'km' ? 'គ្មានទិន្នន័យ' : 'No quiz data') }}
+                </span>
+              </div>
+
+              <!-- Content centered vertically with 104px ring and nowrap legend -->
+              <div class="flex items-center justify-center gap-4 my-auto py-1">
+                <!-- Gauge Circle 104px -->
+                <div class="relative w-[104px] h-[104px] shrink-0 flex items-center justify-center">
+                  <svg viewBox="0 0 36 36" class="w-[104px] h-[104px] -rotate-90">
+                    <path
+                      class="text-[#e1e3e1] dark:text-[#282a2c]"
+                      stroke-width="4"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                    <path
+                      class="text-emerald-500 dark:text-emerald-400 donut-draw"
+                      :stroke-dasharray="`${props.quizPerformance?.averageScoreNum ?? 0}, 100`"
+                      stroke-width="4"
+                      stroke-linecap="round"
+                      stroke="currentColor"
+                      fill="none"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                  </svg>
+                  <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                    <span class="text-sm font-black text-[#1f1f1f] dark:text-[#e3e3e3] leading-none">{{ props.quizPerformance?.averageScore || props.stats?.averageScore || '0%' }}</span>
+                    <span class="text-[9px] text-[#747775] dark:text-[#8e918f] mt-0.5">{{ currentLang === 'km' ? 'មធ្យមភាគ' : 'Average' }}</span>
+                  </div>
+                </div>
+
+                <!-- Legend with whitespace-nowrap -->
+                <div class="space-y-1.5 text-xs text-[#444746] dark:text-[#c4c7c5] font-medium min-w-0">
+                  <div class="flex items-center gap-1.5 whitespace-nowrap">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 shrink-0"></span>
+                    <span class="whitespace-nowrap">{{ currentLang === 'km' ? `ត្រឹមត្រូវ: ${props.quizPerformance?.correctPct || '0%'}` : `Correct: ${props.quizPerformance?.correctPct || '0%'}` }}</span>
+                  </div>
+                  <div class="flex items-center gap-1.5 whitespace-nowrap">
+                    <span class="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
+                    <span class="whitespace-nowrap">{{ currentLang === 'km' ? `មិនត្រឹមត្រូវ: ${props.quizPerformance?.incorrectPct || '0%'}` : `Incorrect: ${props.quizPerformance?.incorrectPct || '0%'}` }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Bottom summary stat row -->
+              <div class="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[12px] text-slate-500 dark:text-slate-400">
+                <span>{{ currentLang === 'km' ? 'ពិន្ទុខ្ពស់បំផុត' : 'Highest score' }}</span>
+                <span class="font-semibold text-emerald-600 dark:text-emerald-400">{{ props.quizPerformance?.highestScore || '0%' }}</span>
+              </div>
+            </Link>
+
+          </div>
 
           <!-- RECENT ACTIVITY SECTION (Inside Column ឆ្វេង under Analytics) -->
           <div class="space-y-3.5">

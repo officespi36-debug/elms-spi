@@ -9,7 +9,6 @@ use App\Models\Enrollment;
 use App\Models\LessonProgress;
 use App\Models\QuizAttempt;
 use App\Services\ContinueLearningService;
-use App\Services\DashboardMetricsService;
 use App\Services\StudentLearningService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -27,7 +26,6 @@ class DashboardController extends Controller
         if ($request->has('refresh')) {
             Cache::forget("student_dashboard_payload_{$user->id}");
             Cache::forget("student_stats_{$user->id}");
-            DashboardMetricsService::forgetForUser($user->id);
         }
 
         // Performance: Cache::remember 300s (scoped to user id) with eager loading & selected columns
@@ -515,8 +513,6 @@ class DashboardController extends Controller
             ];
         });
 
-        $payload['initialMetrics'] = app(DashboardMetricsService::class)->getMetrics($user, '7d', $request->has('refresh'));
-
         return Inertia::render('Student/Dashboard', $payload);
     }
 
@@ -612,27 +608,6 @@ class DashboardController extends Controller
         return response()->json([
             'success' => true,
             'stats'   => $stats,
-        ]);
-    }
-
-    /**
-     * Unified single-source-of-truth metrics endpoint:
-     * GET /api/v1/student/dashboard/metrics?range=7d|30d|90d
-     */
-    public function metrics(Request $request, DashboardMetricsService $metricsService)
-    {
-        $user = $request->user();
-        if (!$user) {
-            return response()->json(['error' => 'Unauthenticated'], 401);
-        }
-
-        $range = $request->query('range', '7d');
-        $forceRefresh = $request->boolean('refresh', false);
-        $metrics = $metricsService->getMetrics($user, $range, $forceRefresh);
-
-        return response()->json([
-            'success' => true,
-            'data'    => $metrics,
         ]);
     }
 }

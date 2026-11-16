@@ -110,7 +110,6 @@ Route::middleware(['auth'])->group(function () {
 
     // Dashboard Direct API Endpoints
     Route::get('/api/student/dashboard', [Student\DashboardController::class, 'apiStats'])->name('api.student.dashboard');
-    Route::get('/api/v1/student/dashboard/metrics', [Student\DashboardController::class, 'metrics'])->name('api.v1.student.dashboard.metrics');
     Route::prefix('api/admin/dashboard')->group(function () {
         Route::get('/summary', [Admin\DashboardController::class, 'apiSummary']);
         Route::get('/kpis', [Admin\DashboardController::class, 'apiKpis']);
