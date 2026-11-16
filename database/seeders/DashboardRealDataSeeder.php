@@ -172,8 +172,15 @@ class DashboardRealDataSeeder extends Seeder
             'scheduled_at' => now()->addDays(3),
         ]);
 
-        // 6. Ensure Enrollments across published courses
-        $activeStudents = User::where('role', 'student')->where('status', 'active')->get();
+        // 6. Ensure Enrollments across published courses ONLY for official demo accounts (never touch real registered students)
+        $demoEmails = ['student@elms.com'];
+        $activeStudents = User::where('role', 'student')
+            ->where('status', 'active')
+            ->where(function ($q) use ($demoEmails) {
+                $q->whereIn('email', $demoEmails)
+                  ->orWhere('email', 'like', '%.risk@spilms.tech');
+            })
+            ->get();
         $publishedCourses = Course::where('status', 'published')->get();
 
         foreach ($publishedCourses as $idx => $course) {

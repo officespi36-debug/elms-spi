@@ -53,16 +53,23 @@ class StudentNotificationService
     protected static function buildNotificationsPayload(User $user): array
     {
         $items = [];
+        $userCreatedAt = $user->created_at ? Carbon::parse($user->created_at) : null;
 
-        // 1. Announcements Table
+        // 1. Announcements Table (only broadcasts created on/after user joined)
         try {
-            $announcements = DB::table('announcements')
+            $announcementsQuery = DB::table('announcements')
                 ->whereIn('audience_type', ['everyone', 'students', 'All Students & Teachers', 'Active Students'])
                 ->whereIn('status', ['sent', 'scheduled'])
                 ->where(function ($q) {
                     $q->whereNull('scheduled_at')
                       ->orWhere('scheduled_at', '<=', Carbon::now());
-                })
+                });
+
+            if ($userCreatedAt) {
+                $announcementsQuery->where('created_at', '>=', $userCreatedAt);
+            }
+
+            $announcements = $announcementsQuery
                 ->latest()
                 ->take(4)
                 ->get();
@@ -88,9 +95,14 @@ class StudentNotificationService
 
         // 2. Notifications Table (System, AI alerts, Discussion alerts)
         try {
-            $dbNotifs = Notification::where(function ($q) use ($user) {
-                $q->whereIn('target', ['all', 'students'])
-                  ->orWhere('target', "user:{$user->id}");
+            $dbNotifs = Notification::where(function ($q) use ($user, $userCreatedAt) {
+                $q->where('target', "user:{$user->id}")
+                  ->orWhere(function ($sub) use ($userCreatedAt) {
+                      $sub->whereIn('target', ['all', 'students']);
+                      if ($userCreatedAt) {
+                          $sub->where('created_at', '>=', $userCreatedAt);
+                      }
+                  });
             })
             ->latest()
             ->take(6)

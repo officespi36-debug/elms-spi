@@ -150,8 +150,8 @@ class DashboardController extends Controller
                             'teacher' => $teacherName,
                             'progress' => $progress,
                             'status' => $status,
-                            'statusLabel' => $status === 'completed' ? 'Completed' : ($status === 'in_progress' ? 'In Progress' : 'Not Started'),
-                            'badgeClass' => $status === 'completed' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' : ($status === 'in_progress' ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'),
+                            'statusLabel' => $status === 'completed' ? 'Completed' : ($status === 'in_progress' ? 'In Progress' : ($status === 'no_content' ? 'Content Coming Soon' : 'Not Started')),
+                            'badgeClass' => $status === 'completed' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' : ($status === 'in_progress' ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30' : ($status === 'no_content' ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700')),
                             'iconType' => $iconType,
                             'iconColor' => $iconColor,
                             'bgGradient' => $bgGradient,
@@ -523,14 +523,24 @@ class DashboardController extends Controller
     public function computeStats($user): array
     {
         try {
-            $enrollments = Enrollment::where('student_id', $user->id)->select(['id', 'status'])->get();
-        } catch (\Throwable $e) {
-            $enrollments = collect();
-        }
+            $enrollments = Enrollment::where('student_id', $user->id)
+                ->whereIn('status', ['active', 'completed'])
+                ->with([
+                    'course:id,title,teacher_id,major_id',
+                    'course.lessons:id,course_id,title,order,duration_seconds',
+                    'course.modules.lessons:id,module_id,course_id,title,order,duration_seconds',
+                ])
+                ->get();
 
-        $enrolledCount = $enrollments->count();
-        $inProgressCount = $enrollments->where('status', 'active')->count();
-        $completedCount = $enrollments->where('status', 'completed')->count();
+            $computedProgress = app(\App\Services\CourseProgressService::class)->calculateForEnrollments($user, $enrollments);
+            $enrolledCount = $computedProgress->count();
+            $inProgressCount = $computedProgress->where('state', 'in_progress')->count();
+            $completedCount = $computedProgress->where('state', 'completed')->count();
+        } catch (\Throwable $e) {
+            $enrolledCount = 0;
+            $inProgressCount = 0;
+            $completedCount = 0;
+        }
 
         try {
             $certsCount = Certificate::where('student_id', $user->id)->whereIn('status', ['valid', 'issued'])->count();
