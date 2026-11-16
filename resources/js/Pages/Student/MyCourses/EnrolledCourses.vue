@@ -19,7 +19,7 @@ interface EnrolledCourseItem {
   title: string
   thumbnail?: string | null
   category: string
-  status: 'in_progress' | 'not_started' | 'completed' | 'no_content'
+  status: 'in_progress' | 'not_started' | 'completed' | 'coming_soon' | 'no_content'
   statusLabel: string
   progress: number
   teacher: {
@@ -54,6 +54,7 @@ const props = defineProps<{
     in_progress: number
     not_started: number
     completed: number
+    coming_soon?: number
   }
   categories?: string[]
   filters?: {
@@ -65,13 +66,24 @@ const props = defineProps<{
   }
 }>()
 
-const activeTab = ref<'all' | 'in_progress' | 'not_started' | 'completed'>(
+const activeTab = ref<'all' | 'in_progress' | 'not_started' | 'completed' | 'coming_soon'>(
   (props.filters?.status as any) || 'all'
 )
 const searchQuery = ref(props.filters?.q || '')
 const selectedCategory = ref(props.filters?.category || 'all')
 const selectedSort = ref(props.filters?.sort || 'newest')
 const viewMode = ref<'grid' | 'list'>((props.filters?.view as any) || 'grid')
+
+watch(() => props.filters?.view, (v) => {
+  if (v === 'grid' || v === 'list') {
+    viewMode.value = v
+  }
+})
+watch(() => props.filters?.status, (s) => {
+  if (s) {
+    activeTab.value = s as any
+  }
+})
 
 const activeDropdownId = ref<number | null>(null)
 const cachedCourseIds = ref<number[]>([])
@@ -95,13 +107,20 @@ const courses = computed<EnrolledCourseItem[]>(() => {
 
 const counts = computed(() => {
   if (props.counts) {
-    return props.counts
+    return {
+      all: props.counts.all ?? 0,
+      in_progress: props.counts.in_progress ?? 0,
+      not_started: props.counts.not_started ?? 0,
+      completed: props.counts.completed ?? 0,
+      coming_soon: props.counts.coming_soon ?? 0,
+    }
   }
-  const all = courses.value.length
   const in_progress = courses.value.filter(c => c.status === 'in_progress').length
-  const not_started = courses.value.filter(c => c.status === 'not_started' || c.status === 'no_content').length
+  const not_started = courses.value.filter(c => c.status === 'not_started').length
   const completed = courses.value.filter(c => c.status === 'completed').length
-  return { all, in_progress, not_started, completed }
+  const coming_soon = courses.value.filter(c => c.status === 'coming_soon' || c.status === 'no_content').length
+  const all = in_progress + not_started + completed + coming_soon
+  return { all, in_progress, not_started, completed, coming_soon }
 })
 
 const availableCategories = computed(() => {
@@ -137,7 +156,7 @@ const onSearchInput = () => {
   }, 300)
 }
 
-const changeTab = (tab: 'all' | 'in_progress' | 'not_started' | 'completed') => {
+const changeTab = (tab: 'all' | 'in_progress' | 'not_started' | 'completed' | 'coming_soon') => {
   activeTab.value = tab
   triggerServerFilter()
 }
@@ -397,14 +416,31 @@ onUnmounted(() => {
             type="button"
             :class="[
               activeTab === 'completed'
-                ? 'bg-purple-600 text-white font-bold shadow-md shadow-purple-600/20'
-                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-800',
-              'px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-2 transition-all cursor-pointer shadow-xs shrink-0'
+                ? 'bg-gradient-to-r from-[#6366f1] to-[#7c3aed] text-white font-bold shadow-md shadow-purple-600/20'
+                : 'bg-white dark:bg-[#1e1f20] text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-[#282a2c] border border-[#dfe3e7] dark:border-[#2d2f31]',
+              'px-3.5 py-1.5 rounded-full text-xs flex items-center gap-2 transition-all cursor-pointer shadow-xs shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500'
             ]"
           >
             <span>Completed</span>
-            <span :class="[activeTab === 'completed' ? 'bg-purple-700/80 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300', 'px-1.5 py-0.5 rounded-md text-[10px] font-bold']">
+            <span :class="[activeTab === 'completed' ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300', 'px-1.5 py-0.5 rounded-full text-[10px] font-bold tabular-nums']">
               {{ counts.completed }}
+            </span>
+          </button>
+
+          <button
+            v-if="(counts.coming_soon || 0) > 0"
+            @click="changeTab('coming_soon')"
+            type="button"
+            :class="[
+              activeTab === 'coming_soon'
+                ? 'bg-amber-600 text-white font-bold shadow-md shadow-amber-600/20'
+                : 'bg-white dark:bg-[#1e1f20] text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-[#282a2c] border border-[#dfe3e7] dark:border-[#2d2f31]',
+              'px-3.5 py-1.5 rounded-full text-xs flex items-center gap-2 transition-all cursor-pointer shadow-xs shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500'
+            ]"
+          >
+            <span>Coming Soon</span>
+            <span :class="[activeTab === 'coming_soon' ? 'bg-white/20 text-white' : 'bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200', 'px-1.5 py-0.5 rounded-full text-[10px] font-bold tabular-nums']">
+              {{ counts.coming_soon }}
             </span>
           </button>
         </div>
@@ -609,12 +645,12 @@ onUnmounted(() => {
                   NEW
                 </span>
 
-                <!-- Content Coming Soon Badge (High-contrast Amber) -->
+                <!-- Coming Soon Badge (Solid high-contrast Amber) -->
                 <span
-                  v-if="course.status === 'no_content'"
-                  class="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/95 text-white border border-amber-400/60 shadow-md backdrop-blur-md"
+                  v-if="course.status === 'coming_soon' || course.status === 'no_content'"
+                  class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300 dark:bg-amber-900/95 dark:text-amber-200 dark:border-amber-700 shadow-md"
                 >
-                  Content Coming Soon
+                  Coming soon
                 </span>
 
                 <!-- Not Started Badge (Slate / Gray) -->
@@ -670,7 +706,7 @@ onUnmounted(() => {
                   </Link>
 
                   <Link
-                    v-if="course.status !== 'no_content'"
+                    v-if="course.status !== 'coming_soon' && course.status !== 'no_content'"
                     :href="course.learningHref"
                     class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-600/20 hover:text-purple-600 dark:hover:text-purple-300 font-medium transition-colors"
                   >
@@ -757,15 +793,16 @@ onUnmounted(() => {
                 <div class="space-y-1.5 pt-1">
                   <div class="flex items-center justify-between text-xs font-bold">
                     <span class="text-slate-500 dark:text-slate-400 text-[11px]">
-                      {{ course.status === 'no_content' ? 'Content Coming Soon' : (course.status === 'completed' ? 'Course Completed' : (course.status === 'not_started' ? 'Not Started' : 'Progress')) }}
+                      {{ course.status === 'completed' ? 'Course Completed' : (course.status === 'not_started' ? 'Not Started' : 'Progress') }}
                     </span>
                     <span
                       :class="[
                         course.status === 'completed' ? 'text-emerald-600 dark:text-emerald-400 font-black' :
                         course.status === 'in_progress' ? 'text-purple-600 dark:text-purple-400 font-black' :
-                        course.status === 'no_content' ? 'text-amber-600 dark:text-amber-400 font-bold' :
+                        (course.status === 'coming_soon' || course.status === 'no_content') ? 'text-amber-700 dark:text-amber-300 font-bold' :
                         'text-slate-500 dark:text-slate-400 font-bold'
                       ]"
+                      class="tabular-nums"
                     >
                       {{ course.progress }}%
                     </span>
@@ -797,7 +834,7 @@ onUnmounted(() => {
                     </div>
                     <div class="flex items-center gap-1.5">
                       <span>⏱</span>
-                      <span>Content coming soon</span>
+                      <span>Not started yet</span>
                     </div>
                   </template>
                   <template v-else>
@@ -822,9 +859,9 @@ onUnmounted(() => {
                 
                 <!-- Main Action Button -->
                 <Link
-                  v-if="course.status === 'no_content'"
+                  v-if="course.status === 'coming_soon' || course.status === 'no_content'"
                   :href="course.overviewHref"
-                  class="col-span-2 py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-600/20 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all text-center cursor-pointer min-h-[44px]"
+                  class="col-span-2 py-2.5 px-3 rounded-xl bg-white dark:bg-[#1e1f20] hover:bg-slate-50 dark:hover:bg-[#282a2c] text-slate-700 dark:text-slate-200 font-semibold text-xs border border-[#dfe3e7] dark:border-[#2d2f31] flex items-center justify-center gap-1.5 transition-all text-center cursor-pointer min-h-[48px] sm:min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                 >
                   <span>ⓘ</span>
                   <span>Course Details</span>
@@ -833,7 +870,7 @@ onUnmounted(() => {
                 <Link
                   v-else-if="course.status === 'in_progress'"
                   :href="course.learningHref"
-                  class="py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-600/20 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all text-center cursor-pointer min-h-[44px]"
+                  class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:opacity-95 text-white font-bold text-xs shadow-md shadow-purple-600/20 flex items-center justify-center gap-1.5 transition-all text-center cursor-pointer min-h-[48px] sm:min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                 >
                   <span>▶</span>
                   <span>Continue Learning</span>
@@ -842,7 +879,7 @@ onUnmounted(() => {
                 <Link
                   v-else-if="course.status === 'not_started'"
                   :href="course.learningHref"
-                  class="py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-600/20 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all text-center cursor-pointer min-h-[44px]"
+                  class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:opacity-95 text-white font-bold text-xs shadow-md shadow-purple-600/20 flex items-center justify-center gap-1.5 transition-all text-center cursor-pointer min-h-[48px] sm:min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                 >
                   <span>▶</span>
                   <span>Start Learning</span>
@@ -850,15 +887,15 @@ onUnmounted(() => {
 
                 <Link
                   v-else-if="course.status === 'completed'"
-                  :href="course.overviewHref"
-                  class="py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all text-center cursor-pointer min-h-[44px]"
+                  :href="course.learningHref"
+                  class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:opacity-95 text-white font-bold text-xs shadow-md shadow-purple-600/20 flex items-center justify-center gap-1.5 transition-all text-center cursor-pointer min-h-[48px] sm:min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                 >
                   <span>👁</span>
                   <span>Review Course</span>
                 </Link>
 
                 <!-- Secondary Button (Course Details or Certificate) -->
-                <template v-if="course.status !== 'no_content'">
+                <template v-if="course.status !== 'coming_soon' && course.status !== 'no_content'">
                   <Link
                     v-if="course.status === 'completed' && course.has_certificate && course.certificateHref"
                     :href="course.certificateHref"
@@ -963,38 +1000,39 @@ onUnmounted(() => {
 
               <div class="flex items-center gap-2">
                 <Link
-                  v-if="course.status === 'no_content'"
+                  v-if="course.status === 'coming_soon' || course.status === 'no_content'"
                   :href="course.overviewHref"
-                  class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-600/20 cursor-pointer min-h-[38px] flex items-center"
+                  class="px-4 py-2 rounded-xl bg-white dark:bg-[#1e1f20] hover:bg-slate-50 dark:hover:bg-[#282a2c] text-slate-700 dark:text-slate-200 font-semibold text-xs border border-[#dfe3e7] dark:border-[#2d2f31] cursor-pointer min-h-[38px] flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                 >
                   Details
                 </Link>
                 <Link
                   v-else-if="course.status === 'in_progress'"
                   :href="course.learningHref"
-                  class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-600/20 cursor-pointer min-h-[38px] flex items-center"
+                  class="px-4 py-2 rounded-xl bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:opacity-95 text-white font-bold text-xs shadow-md shadow-purple-600/20 cursor-pointer min-h-[38px] flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                 >
                   Continue
                 </Link>
                 <Link
                   v-else-if="course.status === 'not_started'"
                   :href="course.learningHref"
-                  class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-600/20 cursor-pointer min-h-[38px] flex items-center"
+                  class="px-4 py-2 rounded-xl bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:opacity-95 text-white font-bold text-xs shadow-md shadow-purple-600/20 cursor-pointer min-h-[38px] flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                 >
                   Start
                 </Link>
                 <Link
                   v-else-if="course.status === 'completed'"
-                  :href="course.overviewHref"
-                  class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-bold text-xs cursor-pointer min-h-[38px] flex items-center"
+                  :href="course.learningHref"
+                  class="px-4 py-2 rounded-xl bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:opacity-95 text-white font-bold text-xs shadow-md shadow-purple-600/20 cursor-pointer min-h-[38px] flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                 >
                   Review
                 </Link>
 
                 <Link
                   :href="course.overviewHref"
-                  class="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 cursor-pointer min-w-[38px] min-h-[38px] flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                  :aria-label="`Course details for ${course.title}`"
                   title="Course Details"
+                  class="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 cursor-pointer min-w-[38px] min-h-[38px] flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                 >
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />

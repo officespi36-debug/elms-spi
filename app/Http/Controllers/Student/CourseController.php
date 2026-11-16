@@ -16,6 +16,7 @@ use App\Models\ReportedContent;
 use App\Services\CertificateService;
 use App\Services\ContinueLearningService;
 use App\Services\CourseProgressService;
+use App\Services\DashboardAnalyticsService;
 use App\Services\EnrollmentService;
 use App\Services\StudentLearningService;
 use Illuminate\Http\Request;
@@ -49,7 +50,7 @@ class CourseController extends Controller
 
         // 1. Validation of query parameters
         $status = (string)$request->query('status', 'all');
-        if (!in_array($status, ['all', 'in_progress', 'not_started', 'completed'])) {
+        if (!in_array($status, ['all', 'in_progress', 'not_started', 'completed', 'coming_soon'])) {
             $status = 'all';
         }
         $category = (string)$request->query('category', 'all');
@@ -60,109 +61,115 @@ class CourseController extends Controller
         $q = substr(trim((string)$request->query('q', '')), 0, 100);
 
         $savedView = is_array($user->preferences) ? ($user->preferences['courses_view'] ?? 'grid') : 'grid';
-        $view = (string)$request->query('view', $savedView);
-        if (!in_array($view, ['grid', 'list'])) {
-            $view = 'grid';
-        }
+        $urlView = $request->query('view');
+        $view = in_array($urlView, ['grid', 'list'], true)
+            ? $urlView
+            : (in_array($savedView, ['grid', 'list'], true) ? $savedView : 'grid');
 
-        // 2. Fetch all active/completed enrollments for Auth student
-        $enrollments = Enrollment::where('student_id', $user->id)
-            ->whereIn('status', ['active', 'completed'])
-            ->with([
-                'course.teacher:id,name,name_kh,email,avatar,role',
-                'course.major:id,name',
-                'course.modules.lessons:id,module_id,course_id,title,order,duration_seconds',
-                'course.lessons:id,course_id,title,order,duration_seconds',
-                'enrolledBy:id,name,role,avatar',
-            ])
-            ->latest('updated_at')
-            ->get();
+        // 2 & 3. Fetch + compute enrolled courses with 60s user-scoped cache (0 N+1 queries)
+        $allCoursesList = Cache::remember("student_enrolled_{$user->id}", 60, function () use ($user, $progressService) {
+            $enrollments = Enrollment::where('student_id', $user->id)
+                ->whereIn('status', ['active', 'completed'])
+                ->with([
+                    'course.teacher:id,name,name_kh,email,avatar,role',
+                    'course.major:id,name',
+                    'course.modules.lessons:id,module_id,course_id,title,order,duration_seconds',
+                    'course.lessons:id,course_id,title,order,duration_seconds',
+                    'enrolledBy:id,name,role,avatar',
+                ])
+                ->latest('updated_at')
+                ->get();
 
-        // 3. High-performance unified progress calculation (0 N+1 queries)
-        $computedCollection = $progressService->calculateForEnrollments($user, $enrollments);
+            $computedCollection = $progressService->calculateForEnrollments($user, $enrollments);
 
-        // Check actual issued certificates in DB for Auth student
-        $issuedCertificateCourseIds = \App\Models\Certificate::where('student_id', $user->id)
-            ->where('status', 'issued')
-            ->pluck('course_id')
-            ->all();
+            $issuedCertificateCourseIds = \App\Models\Certificate::where('student_id', $user->id)
+                ->whereIn('status', ['issued', 'valid'])
+                ->pluck('course_id')
+                ->all();
 
-        $allCoursesList = $computedCollection->map(function ($item) use ($progressService, $issuedCertificateCourseIds) {
-            $enr = $item['enrollment'];
-            $c = $item['course'];
+            return $computedCollection->map(function ($item) use ($progressService, $issuedCertificateCourseIds) {
+                $enr = $item['enrollment'];
+                $c = $item['course'];
 
-            $titleLower = strtolower($c->title . ' ' . ($c->major->name ?? ''));
-            $themeColor = 'indigo';
-            $gradient = 'from-indigo-600 to-blue-600';
-            $illus = 'web';
+                $titleLower = strtolower($c->title . ' ' . ($c->major->name ?? ''));
+                $themeColor = 'indigo';
+                $gradient = 'from-indigo-600 to-blue-600';
+                $illus = 'web';
 
-            if (str_contains($titleLower, 'python') || str_contains($titleLower, 'ai') || str_contains($titleLower, 'machine')) {
-                $themeColor = 'blue';
-                $gradient = 'from-blue-600 to-cyan-600';
-                $illus = 'python';
-            } elseif (str_contains($titleLower, 'database') || str_contains($titleLower, 'sql')) {
-                $themeColor = 'purple';
-                $gradient = 'from-purple-600 to-indigo-600';
-                $illus = 'database';
-            } elseif (str_contains($titleLower, 'design') || str_contains($titleLower, 'ui')) {
-                $themeColor = 'emerald';
-                $gradient = 'from-emerald-600 to-teal-600';
-                $illus = 'uiux';
-            }
+                if (str_contains($titleLower, 'python') || str_contains($titleLower, 'ai') || str_contains($titleLower, 'machine')) {
+                    $themeColor = 'blue';
+                    $gradient = 'from-blue-600 to-cyan-600';
+                    $illus = 'python';
+                } elseif (str_contains($titleLower, 'database') || str_contains($titleLower, 'sql')) {
+                    $themeColor = 'purple';
+                    $gradient = 'from-purple-600 to-indigo-600';
+                    $illus = 'database';
+                } elseif (str_contains($titleLower, 'design') || str_contains($titleLower, 'ui')) {
+                    $themeColor = 'emerald';
+                    $gradient = 'from-emerald-600 to-teal-600';
+                    $illus = 'uiux';
+                }
 
-            $teacherName = $progressService->cleanTeacherName($c->teacher, $c);
-            $hasCert = in_array($c->id, $issuedCertificateCourseIds);
+                $teacherName = $progressService->cleanTeacherName($c->teacher, $c);
+                $hasCert = in_array($c->id, $issuedCertificateCourseIds);
 
-            return [
-                'id'                 => $c->id,
-                'enrollment_id'      => $enr->id,
-                'is_new'             => isset($enr->seen_at) ? ($enr->seen_at === null) : false,
-                'enrolled_by'        => $enr->enrolledBy ? [
-                    'name'   => $enr->enrolledBy->name,
-                    'role'   => $enr->enrolledBy->role,
-                    'avatar' => $enr->enrolledBy->avatar,
-                ] : null,
-                'enrolled_relative'  => $enr->created_at ? $enr->created_at->diffForHumans() : 'Recently',
-                'source'             => $enr->source ?: 'system',
-                'slug'               => $c->code ?: ('course-' . $c->id),
-                'title'              => $c->title,
-                'thumbnail'          => $c->thumbnail ?: null,
-                'category'           => $c->major?->name ?: 'Academic Studies',
-                'status'             => $item['state'],
-                'statusLabel'        => $item['state_label'],
-                'progress'           => $item['percent'],
-                'teacher'            => [
-                    'name'   => $teacherName,
-                    'avatar' => $c->teacher?->avatar ?: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80',
-                    'role'   => 'SPI Instructor',
-                ],
-                'currentChapter'     => $item['current_module_title'],
-                'currentModuleIndex' => $item['current_module_index'],
-                'completedChapters'  => $item['completed_modules'],
-                'totalChapters'      => $item['total_modules'],
-                'currentLesson'      => $item['current_lesson_title'],
-                'completedLessons'   => $item['lessons_done'],
-                'totalLessons'       => $item['lessons_total'],
-                'remainingTime'      => $item['percent'] >= 100 ? 'Completed' : 'Study in progress',
-                'lastAccessed'       => $item['last_activity_at'] ?: 'Not started yet',
-                'lastAccessedTimeMs' => $item['last_activity_ms'],
-                'enrolledDate'       => $enr->enrolled_at ? $enr->enrolled_at->format('j M Y') : ($enr->created_at ? $enr->created_at->format('j M Y') : '9 Nov 2026'),
-                'overviewHref'       => "/student/courses/{$c->id}/overview",
-                'learningHref'       => "/student/my-courses/{$c->id}/continue",
-                'has_certificate'    => $hasCert,
-                'certificateHref'    => $hasCert ? '/student/certificates/my-certificates' : null,
-                'themeColor'         => $themeColor,
-                'accentGradient'     => $gradient,
-                'illustrationType'   => $illus,
-            ];
+                return [
+                    'id'                 => $c->id,
+                    'enrollment_id'      => $enr->id,
+                    'is_new'             => isset($enr->seen_at) ? ($enr->seen_at === null) : false,
+                    'enrolled_by'        => $enr->enrolledBy ? [
+                        'name'   => $enr->enrolledBy->name,
+                        'role'   => $enr->enrolledBy->role,
+                        'avatar' => $enr->enrolledBy->avatar,
+                    ] : null,
+                    'enrolled_relative'  => $enr->created_at ? $enr->created_at->diffForHumans() : 'Recently',
+                    'source'             => $enr->source ?: 'system',
+                    'slug'               => $c->code ?: ('course-' . $c->id),
+                    'title'              => $c->title,
+                    'thumbnail'          => $c->thumbnail ?: null,
+                    'category'           => $c->major?->name ?: 'Academic Studies',
+                    'status'             => $item['state'],
+                    'statusLabel'        => $item['state_label'],
+                    'progress'           => $item['percent'],
+                    'teacher'            => [
+                        'name'   => $teacherName,
+                        'avatar' => $c->teacher?->avatar ?: null,
+                        'role'   => 'SPI Instructor',
+                    ],
+                    'currentChapter'     => $item['current_module_title'],
+                    'currentModuleIndex' => $item['current_module_index'],
+                    'completedChapters'  => $item['completed_modules'],
+                    'totalChapters'      => $item['total_modules'],
+                    'currentLesson'      => $item['current_lesson_title'],
+                    'completedLessons'   => $item['lessons_done'],
+                    'totalLessons'       => $item['lessons_total'],
+                    'remainingTime'      => $item['percent'] >= 100 ? 'Completed' : 'Study in progress',
+                    'lastAccessed'       => $item['last_activity_at'] ?: 'Not started yet',
+                    'lastAccessedTimeMs' => $item['last_activity_ms'],
+                    'enrolledDate'       => $enr->enrolled_at ? $enr->enrolled_at->format('j M Y') : ($enr->created_at ? $enr->created_at->format('j M Y') : ''),
+                    'overviewHref'       => "/student/courses/{$c->id}/overview",
+                    'learningHref'       => "/student/my-courses/{$c->id}/continue",
+                    'has_certificate'    => $hasCert,
+                    'certificateHref'    => $hasCert ? '/student/certificates/my-certificates' : null,
+                    'themeColor'         => $themeColor,
+                    'accentGradient'     => $gradient,
+                    'illustrationType'   => $illus,
+                ];
+            });
         });
 
-        // 4. Calculate accurate counts from single unified collection
+        // 4. Calculate accurate counts from single unified collection (All = sum of all states)
+        $inProgressCount = $allCoursesList->where('status', 'in_progress')->count();
+        $notStartedCount = $allCoursesList->where('status', 'not_started')->count();
+        $completedCount = $allCoursesList->where('status', 'completed')->count();
+        $comingSoonCount = $allCoursesList->where('status', 'coming_soon')->count();
+
         $counts = [
-            'all'         => $allCoursesList->count(),
-            'in_progress' => $allCoursesList->where('status', 'in_progress')->count(),
-            'not_started' => $allCoursesList->whereIn('status', ['not_started', 'no_content'])->count(),
-            'completed'   => $allCoursesList->where('status', 'completed')->count(),
+            'all'         => $inProgressCount + $notStartedCount + $completedCount + $comingSoonCount,
+            'in_progress' => $inProgressCount,
+            'not_started' => $notStartedCount,
+            'completed'   => $completedCount,
+            'coming_soon' => $comingSoonCount,
         ];
 
         // 5. Distinct categories from user courses
@@ -170,9 +177,7 @@ class CourseController extends Controller
 
         // 6. Filter by status, category, and search query
         $filtered = $allCoursesList;
-        if ($status === 'not_started') {
-            $filtered = $filtered->whereIn('status', ['not_started', 'no_content']);
-        } elseif ($status !== 'all') {
+        if ($status !== 'all') {
             $filtered = $filtered->where('status', $status);
         }
         if ($category !== 'all') {
@@ -536,7 +541,13 @@ class CourseController extends Controller
         $prog->client_updated_at = now();
         $prog->save();
 
+        $deltaSeconds = max(0, min(40, $newSeconds - $existingSeconds));
+        if ($deltaSeconds > 0) {
+            app(DashboardAnalyticsService::class)->recordDailyDelta($user->id, 'lesson', $deltaSeconds);
+        }
+
         $learningService->invalidateCourseCache($user->id, $course->id);
+        app(DashboardAnalyticsService::class)->invalidateUserCache($user->id);
 
         return response()->json([
             'ok'              => true,

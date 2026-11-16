@@ -90,17 +90,19 @@ const props = defineProps<{
     quizPct: number
   }
   quizPerformance?: {
-    averageScore: string
-    averageScoreNum: number
-    correctPct: string
-    incorrectPct: string
-    highestScore: string
-    trend: string
+    hasData?: boolean
+    attemptsCount?: number
+    averageScore: string | null
+    averageScoreNum: number | null
+    correctPct: string | null
+    incorrectPct: string | null
+    highestScore: string | null
+    trend: string | null
   }
   learningOverview?: {
-    week: { total: string; trend: string }
-    last_week: { total: string; trend: string }
-    month: { total: string; trend: string }
+    week: { total: string; trend: string | null; series?: Array<{ date: string; label: string; seconds: number; formatted: string }> }
+    last_week: { total: string; trend: string | null; series?: Array<{ date: string; label: string; seconds: number; formatted: string }> }
+    month: { total: string; trend: string | null; series?: Array<{ date: string; label: string; seconds: number; formatted: string }> }
   }
   aiRecommendations?: Array<{
     id: number
@@ -592,39 +594,56 @@ const filteredCourses = computed(() => {
   return coursesToDisplay.value.filter(c => c.status === selectedCourseFilter.value)
 })
 
-// Learning Overview Chart Range Switcher (Connected to Database)
+// Learning Overview Chart Range Switcher (Connected to real study_daily series)
 const selectedRange = ref<'week' | 'last_week' | 'month'>('week')
-const chartDataByRange = computed(() => ({
-  week: {
-    total: props.learningOverview?.week?.total ?? '0h 0m',
-    sub: currentLang.value === 'km' ? '៧ ថ្ងៃចុងក្រោយ' : 'Last 7 days',
-    trend: props.learningOverview?.week?.trend ?? '0%',
-    pathArea: 'M 10 60 Q 40 40 70 55 T 130 25 T 190 40 L 190 75 L 10 75 Z',
-    pathLine: 'M 10 60 Q 40 40 70 55 T 130 25 T 190 40',
-    dotX: 130,
-    dotY: 25,
-    labels: currentLang.value === 'km' ? ['ច័ន្ទ', 'អង្គារ', 'ពុធ', 'ព្រហ', 'សុក្រ', 'សៅរ៍', 'អាទិត្យ'] : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-  },
-  last_week: {
-    total: props.learningOverview?.last_week?.total ?? '0h 0m',
-    sub: currentLang.value === 'km' ? '៣០ ថ្ងៃចុងក្រោយ' : 'Last 30 days',
-    trend: props.learningOverview?.last_week?.trend ?? '0%',
-    pathArea: 'M 10 50 Q 40 30 70 45 T 130 35 T 190 20 L 190 75 L 10 75 Z',
-    pathLine: 'M 10 50 Q 40 30 70 45 T 130 35 T 190 20',
-    dotX: 190,
-    dotY: 20,
-    labels: currentLang.value === 'km' ? ['ស១', 'ស២', 'ស៣', 'ស៤', '', '', ''] : ['W1', 'W2', 'W3', 'W4', '', '', '']
-  },
-  month: {
-    total: props.learningOverview?.month?.total ?? '0h 0m',
-    sub: currentLang.value === 'km' ? '៩០ ថ្ងៃចុងក្រោយ' : 'Last 90 days',
-    trend: props.learningOverview?.month?.trend ?? '0%',
-    pathArea: 'M 10 65 Q 50 50 90 35 T 150 20 T 190 15 L 190 75 L 10 75 Z',
-    pathLine: 'M 10 65 Q 50 50 90 35 T 150 20 T 190 15',
-    dotX: 150,
-    dotY: 20,
-    labels: currentLang.value === 'km' ? ['ខែ១', 'ខែ២', 'ខែ៣', '', '', '', ''] : ['M1', 'M2', 'M3', '', '', '', '']
+const hoveredSeriesIdx = ref<number | null>(null)
+
+const buildSeriesChart = (
+  rangeData: { total?: string; trend?: string | null; series?: Array<{ date: string; label: string; seconds: number; formatted: string }> } | undefined,
+  subLabel: string
+) => {
+  const series = rangeData?.series && rangeData.series.length > 0
+    ? rangeData.series
+    : Array.from({ length: 7 }, (_, i) => ({ date: '', label: `D${i + 1}`, seconds: 0, formatted: '0h 0m' }))
+
+  const maxSec = Math.max(3600, ...series.map(s => s.seconds || 0))
+  const n = series.length
+  const points = series.map((s, idx) => {
+    const x = n === 1 ? 100 : 10 + (idx / (n - 1)) * 180
+    const ratio = Math.min(1, Math.max(0, (s.seconds || 0) / maxSec))
+    const y = 70 - ratio * 50
+    return { x: Number(x.toFixed(1)), y: Number(y.toFixed(1)), ...s }
+  })
+
+  const pathLine = points.map((p, idx) => `${idx === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
+  const pathArea = `${pathLine} L ${points[points.length - 1].x} 75 L ${points[0].x} 75 Z`
+
+  // Pick up to 7 evenly spaced axis labels
+  const labelIndices = n <= 7
+    ? points.map((_, i) => i)
+    : [0, Math.floor((n - 1) * 0.25), Math.floor((n - 1) * 0.5), Math.floor((n - 1) * 0.75), n - 1]
+  const labels = labelIndices.map(i => points[i]?.label || '')
+
+  const activePoint = hoveredSeriesIdx.value !== null && points[hoveredSeriesIdx.value]
+    ? points[hoveredSeriesIdx.value]
+    : points[points.length - 1]
+
+  return {
+    total: rangeData?.total ?? '0h 0m',
+    sub: subLabel,
+    trend: rangeData?.trend ?? null,
+    points,
+    pathLine,
+    pathArea,
+    activePoint,
+    labels,
   }
+}
+
+const chartDataByRange = computed(() => ({
+  week: buildSeriesChart(props.learningOverview?.week, currentLang.value === 'km' ? '៧ ថ្ងៃចុងក្រោយ' : 'Last 7 days'),
+  last_week: buildSeriesChart(props.learningOverview?.last_week, currentLang.value === 'km' ? '៣០ ថ្ងៃចុងក្រោយ' : 'Last 30 days'),
+  month: buildSeriesChart(props.learningOverview?.month, currentLang.value === 'km' ? '៩០ ថ្ងៃចុងក្រោយ' : 'Last 90 days'),
 }))
 
 // Upcoming Schedule (Pure DB Driven - Empty if none scheduled)
@@ -1275,10 +1294,13 @@ const recentActivities = computed(() => {
                 </div>
               </div>
 
-              <!-- SVG Line Chart with dark mode stroke #818cf8 + glowing fill -->
-              <div class="relative pt-2 my-auto">
-                <div class="absolute top-1 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-[#6366f1] to-[#7c3aed] text-white text-xs font-semibold shadow-sm tabular-nums">
-                  {{ chartDataByRange[selectedRange].total }}
+              <!-- SVG Line Chart with daily points & per-day tooltip (<= 24h/day) -->
+              <div class="relative pt-3 my-auto" @mouseleave="hoveredSeriesIdx = null">
+                <div class="flex items-center justify-between text-[11px] mb-1">
+                  <span class="px-2.5 py-0.5 rounded-full bg-gradient-to-r from-[#6366f1] to-[#7c3aed] text-white font-semibold shadow-xs tabular-nums">
+                    {{ hoveredSeriesIdx !== null ? `${chartDataByRange[selectedRange].activePoint.label}: ${chartDataByRange[selectedRange].activePoint.formatted}` : chartDataByRange[selectedRange].total }}
+                  </span>
+                  <span class="text-slate-400 dark:text-slate-500 text-[10px]">{{ chartDataByRange[selectedRange].sub }}</span>
                 </div>
 
                 <svg viewBox="0 0 200 80" class="w-full h-20 overflow-visible">
@@ -1298,9 +1320,21 @@ const recentActivities = computed(() => {
                     stroke="#818cf8"
                     stroke-width="2.5"
                     stroke-linecap="round"
+                    stroke-linejoin="round"
                     class="line-chart-draw"
                   />
-                  <circle :cx="chartDataByRange[selectedRange].dotX" :cy="chartDataByRange[selectedRange].dotY" r="4" fill="#818cf8" stroke="#ffffff" stroke-width="2" />
+                  <circle
+                    v-for="(pt, idx) in chartDataByRange[selectedRange].points"
+                    :key="idx"
+                    :cx="pt.x"
+                    :cy="pt.y"
+                    :r="hoveredSeriesIdx === idx ? 4.5 : (chartDataByRange[selectedRange].points.length <= 7 ? 3 : 1.5)"
+                    :fill="hoveredSeriesIdx === idx ? '#6366f1' : '#818cf8'"
+                    stroke="#ffffff"
+                    stroke-width="1.5"
+                    class="cursor-pointer transition-all"
+                    @mouseenter="hoveredSeriesIdx = idx"
+                  />
                 </svg>
 
                 <div class="flex justify-between text-xs text-[#444746] dark:text-[#c4c7c5] tabular-nums font-medium pt-1">
@@ -1308,10 +1342,10 @@ const recentActivities = computed(() => {
                 </div>
               </div>
 
-              <!-- Bottom summary stat row -->
-              <div class="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[12px] text-slate-500 dark:text-slate-400">
-                <span>{{ currentLang === 'km' ? 'និន្នាការសិក្សា' : 'Learning Trend' }}</span>
-                <span class="font-semibold text-purple-600 dark:text-purple-400">{{ chartDataByRange[selectedRange].trend }}</span>
+              <!-- Bottom summary stat row (Hidden when prev < 1800s -> trend is null) -->
+              <div v-if="chartDataByRange[selectedRange].trend" class="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between gap-2 text-[12px] text-slate-500 dark:text-slate-400">
+                <span class="whitespace-nowrap">{{ currentLang === 'km' ? 'និន្នាការសិក្សា' : 'Learning Trend' }}</span>
+                <span class="font-semibold text-purple-600 dark:text-purple-400 whitespace-nowrap tabular-nums">{{ chartDataByRange[selectedRange].trend }}</span>
               </div>
             </div>
 
@@ -1320,13 +1354,13 @@ const recentActivities = computed(() => {
               href="/student/progress/learning-time"
               class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-purple-400 hover:dark:border-purple-400/60 rounded-3xl p-4 xl:p-5 shadow-sm dark:shadow-xl flex flex-col justify-between space-y-3 overflow-hidden transition-all hover:-translate-y-1 group"
             >
-              <div class="flex flex-wrap items-center justify-between min-h-[32px] gap-1.5">
+              <div class="flex items-center justify-between min-h-[32px] gap-1.5">
                 <div class="flex items-center gap-1 text-[14px] font-semibold text-slate-900 dark:text-slate-100 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
                   <span>{{ currentLang === 'km' ? 'ម៉ោងសិក្សា' : 'Study time' }}</span>
                   <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-purple-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                 </div>
-                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30 whitespace-nowrap shrink-0">
-                  {{ props.studyTimeBreakdown?.dailyAverage || (currentLang === 'km' ? '0h / ថ្ងៃ' : '0h / day') }}
+                <span class="text-[11px] font-medium text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                  {{ currentLang === 'km' ? '៧ ថ្ងៃ' : '7 days' }}
                 </span>
               </div>
 
@@ -1416,7 +1450,7 @@ const recentActivities = computed(() => {
 
             <!-- Quiz Performance Radial Gauge Card -->
             <Link
-              href="/student/quizzes/scores"
+              :href="props.quizPerformance?.hasData ? '/student/quizzes/scores' : '/student/quizzes/practice'"
               class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-purple-400 hover:dark:border-purple-400/60 rounded-3xl p-4 xl:p-5 shadow-sm dark:shadow-xl flex flex-col justify-between space-y-3 overflow-hidden transition-all hover:-translate-y-1 group"
             >
               <div class="flex flex-wrap items-center justify-between min-h-[32px] gap-1.5">
@@ -1424,8 +1458,18 @@ const recentActivities = computed(() => {
                   <span>{{ currentLang === 'km' ? 'លទ្ធផលកម្រងសំណួរ' : 'Quiz performance' }}</span>
                   <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-purple-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                 </div>
-                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30 whitespace-nowrap shrink-0">
-                  {{ props.quizPerformance?.trend === 'No quiz data' ? (currentLang === 'km' ? 'គ្មានទិន្នន័យ' : 'No quiz data') : (props.quizPerformance?.trend || (currentLang === 'km' ? 'គ្មានទិន្នន័យ' : 'No quiz data')) }}
+                <span
+                  v-if="props.quizPerformance?.hasData && props.quizPerformance?.trend"
+                  class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30 whitespace-nowrap shrink-0"
+                >
+                  {{ props.quizPerformance.trend }}
+                </span>
+                <span
+                  v-else-if="!props.quizPerformance?.hasData"
+                  class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 whitespace-nowrap shrink-0"
+                >
+                  <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  <span>{{ currentLang === 'km' ? 'គ្មានទិន្នន័យ' : 'No quiz data' }}</span>
                 </span>
               </div>
 
@@ -1434,14 +1478,17 @@ const recentActivities = computed(() => {
                 <!-- Gauge Circle -->
                 <div class="relative w-[72px] h-[72px] xl:w-[82px] xl:h-[82px] shrink-0 flex items-center justify-center">
                   <svg viewBox="0 0 36 36" class="w-full h-full -rotate-90">
+                    <!-- Dashed gray ring when no quiz data, solid track when data exists -->
                     <path
-                      class="text-[#e1e3e1] dark:text-[#282a2c]"
-                      stroke-width="4"
+                      class="text-slate-300 dark:text-slate-700"
+                      stroke-width="3.5"
+                      :stroke-dasharray="!props.quizPerformance?.hasData ? '3 3' : undefined"
                       stroke="currentColor"
                       fill="none"
                       d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                     />
                     <path
+                      v-if="props.quizPerformance?.hasData"
                       class="text-emerald-500 dark:text-emerald-400 donut-draw"
                       :stroke-dasharray="`${props.quizPerformance?.averageScoreNum ?? 0}, 100`"
                       stroke-width="4"
@@ -1452,34 +1499,45 @@ const recentActivities = computed(() => {
                     />
                   </svg>
                   <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-                    <span class="text-sm font-black text-[#1f1f1f] dark:text-[#e3e3e3] leading-none">{{ props.quizPerformance?.averageScore || props.stats?.averageScore || '0%' }}</span>
+                    <span class="text-sm font-black text-[#1f1f1f] dark:text-[#e3e3e3] leading-none tabular-nums">{{ props.quizPerformance?.hasData ? props.quizPerformance.averageScore : '—' }}</span>
                     <span class="text-[9px] text-[#747775] dark:text-[#8e918f] mt-0.5">{{ currentLang === 'km' ? 'មធ្យមភាគ' : 'Average' }}</span>
                   </div>
                 </div>
 
-                <!-- Aligned Legend (never overflows card) -->
-                <div class="flex-1 min-w-0 space-y-1.5 text-[11px] xl:text-xs text-[#444746] dark:text-[#c4c7c5] font-medium">
+                <!-- Aligned Legend or Take First Quiz CTA -->
+                <div v-if="props.quizPerformance?.hasData" class="flex-1 min-w-0 space-y-1.5 text-[11px] xl:text-xs text-[#444746] dark:text-[#c4c7c5] font-medium">
                   <div class="flex items-center justify-between gap-1.5 min-w-0">
                     <span class="flex items-center gap-1.5 min-w-0 truncate">
                       <span class="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 shrink-0"></span>
                       <span class="truncate">{{ currentLang === 'km' ? 'ត្រឹមត្រូវ' : 'Correct' }}</span>
                     </span>
-                    <span class="font-semibold text-slate-700 dark:text-slate-200 tabular-nums shrink-0">{{ props.quizPerformance?.correctPct || '0%' }}</span>
+                    <span class="font-semibold text-slate-700 dark:text-slate-200 tabular-nums shrink-0">{{ props.quizPerformance.correctPct }}</span>
                   </div>
                   <div class="flex items-center justify-between gap-1.5 min-w-0">
                     <span class="flex items-center gap-1.5 min-w-0 truncate">
                       <span class="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
                       <span class="truncate">{{ currentLang === 'km' ? 'មិនត្រឹមត្រូវ' : 'Incorrect' }}</span>
                     </span>
-                    <span class="font-semibold text-slate-700 dark:text-slate-200 tabular-nums shrink-0">{{ props.quizPerformance?.incorrectPct || '0%' }}</span>
+                    <span class="font-semibold text-slate-700 dark:text-slate-200 tabular-nums shrink-0">{{ props.quizPerformance.incorrectPct }}</span>
                   </div>
+                </div>
+                <div v-else class="flex-1 min-w-0 space-y-1.5">
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                    {{ currentLang === 'km' ? 'មិនទាន់មានលទ្ធផល Quiz ទេ' : 'No attempts recorded yet' }}
+                  </p>
+                  <span class="inline-flex items-center gap-1 text-xs font-semibold text-purple-600 dark:text-purple-400 group-hover:underline">
+                    <span>{{ currentLang === 'km' ? 'ធ្វើ Quiz ដំបូង' : 'Take your first quiz' }}</span>
+                    <span>→</span>
+                  </span>
                 </div>
               </div>
 
               <!-- Bottom summary stat row -->
               <div class="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[12px] text-slate-500 dark:text-slate-400">
                 <span>{{ currentLang === 'km' ? 'ពិន្ទុខ្ពស់បំផុត' : 'Highest score' }}</span>
-                <span class="font-semibold text-emerald-600 dark:text-emerald-400">{{ props.quizPerformance?.highestScore || '0%' }}</span>
+                <span class="font-semibold tabular-nums" :class="props.quizPerformance?.hasData ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'">
+                  {{ props.quizPerformance?.hasData ? props.quizPerformance.highestScore : '—' }}
+                </span>
               </div>
             </Link>
 
@@ -2065,5 +2123,16 @@ const recentActivities = computed(() => {
 }
 :global(.dark) .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #5f6368;
+}
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .donut-draw,
+  .donut-draw-2,
+  .line-chart-draw,
+  .shimmer-sweep,
+  .recent-activity-card {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 </style>

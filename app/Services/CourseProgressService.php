@@ -175,14 +175,14 @@ class CourseProgressService
         $percent = $totalLessons > 0 ? (int) floor(($doneCount / $totalLessons) * 100) : 0;
 
         // State calculation:
-        // no_content = totalLessons === 0
+        // coming_soon = totalLessons === 0
         // completed = done >= total && total > 0
         // in_progress = (done > 0 || anyWatched) && done < total
         // not_started = done == 0 && !anyWatched
         if ($totalLessons === 0) {
-            $state = 'no_content';
+            $state = 'coming_soon';
             $percent = 0;
-            $stateLabel = 'Content Coming Soon';
+            $stateLabel = 'Coming Soon';
         } elseif ($totalLessons > 0 && $doneCount >= $totalLessons) {
             $state = 'completed';
             $percent = 100;

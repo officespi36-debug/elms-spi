@@ -9,6 +9,7 @@ use App\Models\Enrollment;
 use App\Models\LessonProgress;
 use App\Models\QuizAttempt;
 use App\Services\ContinueLearningService;
+use App\Services\DashboardAnalyticsService;
 use App\Services\StudentLearningService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -277,154 +278,70 @@ class DashboardController extends Controller
                 $upcomingEventsList = [];
             }
 
-            // 6. Dynamic Today's Goals (Empty state fallback if no courses enrolled)
-            $todayGoalsList = [
-                'completedCount' => $continueCourseData ? 1 : 0,
-                'totalCount' => $continueCourseData ? 2 : 1,
-                'percentage' => $continueCourseData ? 50 : 0,
-                'items' => $continueCourseData ? [
-                    [
-                        'id' => 1,
-                        'titleEn' => $continueCourseData['title'] . ' - ' . $continueCourseData['lastLesson'],
-                        'titleKm' => $continueCourseData['title'] . ' - ' . $continueCourseData['lastLesson'],
-                        'completed' => true,
-                        'href' => $continueCourseData['href'],
-                    ],
-                    [
-                        'id' => 2,
-                        'titleEn' => 'Practice 10 quiz questions',
-                        'titleKm' => 'អនុវត្តសំណួរ Quiz ចំនួន ១០',
-                        'completed' => false,
-                        'href' => '/student/quizzes/practice',
-                    ],
-                ] : [
-                    [
-                        'id' => 1,
-                        'titleEn' => 'Explore and enroll in your first course',
-                        'titleKm' => 'ស្វែងរក និងចុះឈ្មោះចូលរៀនវគ្គសិក្សាដំបូងរបស់អ្នក',
-                        'completed' => false,
-                        'href' => '/student/browse',
-                    ],
+            // 6. Dynamic Today's Goals (Uses real completed_at status from LessonProgress)
+            $activeLessonCompleted = false;
+            if ($continueCourseData && !empty($currentData['lesson'])) {
+                $activeLessonProgress = LessonProgress::where('user_id', $user->id)
+                    ->where('lesson_id', $currentData['lesson']->id)
+                    ->first();
+                $activeLessonCompleted = $activeLessonProgress && !empty($activeLessonProgress->completed_at);
+            }
+            $todayQuizCompleted = QuizAttempt::where('user_id', $user->id)
+                ->whereDate('submitted_at', now(DashboardAnalyticsService::TIMEZONE)->toDateString())
+                ->exists();
+
+            $goalItems = $continueCourseData ? [
+                [
+                    'id' => 1,
+                    'titleEn' => $continueCourseData['title'] . ' - ' . $continueCourseData['lastLesson'],
+                    'titleKm' => $continueCourseData['title'] . ' - ' . $continueCourseData['lastLesson'],
+                    'completed' => $activeLessonCompleted,
+                    'href' => $continueCourseData['href'],
+                ],
+                [
+                    'id' => 2,
+                    'titleEn' => 'Practice 10 quiz questions',
+                    'titleKm' => 'អនុវត្តសំណួរ Quiz ចំនួន ១០',
+                    'completed' => $todayQuizCompleted,
+                    'href' => '/student/quizzes/practice',
+                ],
+            ] : [
+                [
+                    'id' => 1,
+                    'titleEn' => 'Explore and enroll in your first course',
+                    'titleKm' => 'ស្វែងរក និងចុះឈ្មោះចូលរៀនវគ្គសិក្សាដំបូងរបស់អ្នក',
+                    'completed' => false,
+                    'href' => '/student/browse',
                 ],
             ];
-
-            // 7. Study Time Breakdown computed directly from real database records
-            $totalSeconds = (int) ($statsData['totalSeconds'] ?? 0);
-            $lessonsSec = $totalSeconds;
-            $practiceSec = 0;
-            $quizSec = 0;
-            try {
-                $quizAttempts = QuizAttempt::where('user_id', $user->id)
-                    ->whereNotNull('started_at')
-                    ->whereNotNull('submitted_at')
-                    ->get(['started_at', 'submitted_at']);
-                foreach ($quizAttempts as $qa) {
-                    $secs = max(0, $qa->submitted_at->timestamp - $qa->started_at->timestamp);
-                    $quizSec += min($secs, 10800);
-                }
-            } catch (\Throwable $e) {
-                $quizSec = 0;
-            }
-
-            $totalStudySec = $lessonsSec + $practiceSec + $quizSec;
-            $formatDuration = static function (int $secs): string {
-                $h = (int) floor($secs / 3600);
-                $m = (int) floor(($secs % 3600) / 60);
-                return "{$h}h {$m}m";
-            };
-
-            if ($totalStudySec <= 0) {
-                $studyBreakdown = [
-                    'total' => '0h 0m',
-                    'lessons' => '0h 0m',
-                    'practice' => '0h 0m',
-                    'quiz' => '0h 0m',
-                    'dailyAverage' => '0h / day',
-                    'lessonsPct' => 0,
-                    'practicePct' => 0,
-                    'quizPct' => 0,
-                ];
-            } else {
-                $lessonsPct = (int) round(($lessonsSec / $totalStudySec) * 100);
-                $practicePct = (int) round(($practiceSec / $totalStudySec) * 100);
-                $quizPct = max(0, 100 - $lessonsPct - $practicePct);
-                $avgHoursPerDay = round(($totalStudySec / 3600) / 7, 1);
-                $dailyAvgStr = $avgHoursPerDay >= 0.1
-                    ? "{$avgHoursPerDay}h / day"
-                    : max(1, (int) round(($totalStudySec / 60) / 7)) . 'm / day';
-
-                $studyBreakdown = [
-                    'total' => $formatDuration($totalStudySec),
-                    'lessons' => $formatDuration($lessonsSec),
-                    'practice' => $formatDuration($practiceSec),
-                    'quiz' => $formatDuration($quizSec),
-                    'dailyAverage' => $dailyAvgStr,
-                    'lessonsPct' => $lessonsPct,
-                    'practicePct' => $practicePct,
-                    'quizPct' => $quizPct,
-                ];
-            }
-
-            // 8. Quiz Performance from actual database records
-            $avgNum = $statsData['averageScoreNum'] ?? 0;
-            $maxScore = QuizAttempt::where('user_id', $user->id)->whereNotNull('score')->max('score');
-            $attempts = QuizAttempt::where('user_id', $user->id)->whereNotNull('score')->latest('submitted_at')->take(2)->pluck('score');
-            if ($attempts->count() >= 2) {
-                $diff = round($attempts[0] - $attempts[1]);
-                $trend = ($diff >= 0 ? "+{$diff}%" : "{$diff}%") . " vs last test";
-            } elseif ($attempts->count() === 1) {
-                $trend = 'Initial Test';
-            } else {
-                $trend = 'No quiz data';
-            }
-            $quizPerformanceData = [
-                'averageScore' => "{$avgNum}%",
-                'averageScoreNum' => $avgNum,
-                'correctPct' => "{$avgNum}%",
-                'incorrectPct' => ($avgNum > 0 ? (100 - $avgNum) : 0) . '%',
-                'highestScore' => ($maxScore ? (int) round($maxScore) : $avgNum) . '%',
-                'trend' => $trend,
+            $completedGoalsCount = collect($goalItems)->where('completed', true)->count();
+            $totalGoalsCount = count($goalItems);
+            $todayGoalsList = [
+                'completedCount' => $completedGoalsCount,
+                'totalCount' => $totalGoalsCount,
+                'percentage' => $totalGoalsCount > 0 ? (int) round(($completedGoalsCount / $totalGoalsCount) * 100) : 0,
+                'items' => $goalItems,
             ];
 
-            // 9. Learning Overview Chart data computed from real database activity (7D, 30D, 90D)
-            $computeRangeOverview = static function (int $days) use ($user, $formatDuration): array {
-                try {
-                    $now = now();
-                    $curStart = $now->copy()->subDays($days);
-                    $prevStart = $now->copy()->subDays($days * 2);
+            // 7, 8, 9. Analytics via single source of truth DashboardAnalyticsService (study_daily + quiz_attempts)
+            $analyticsService = app(DashboardAnalyticsService::class);
+            $win7 = $analyticsService->getWindowAnalytics($user, 7);
+            $win30 = $analyticsService->getWindowAnalytics($user, 30);
+            $win90 = $analyticsService->getWindowAnalytics($user, 90);
 
-                    $curSec = (int) LessonProgress::where('user_id', $user->id)
-                        ->where('updated_at', '>=', $curStart)
-                        ->sum('seconds_watched');
-
-                    $prevSec = (int) LessonProgress::where('user_id', $user->id)
-                        ->where('updated_at', '>=', $prevStart)
-                        ->where('updated_at', '<', $curStart)
-                        ->sum('seconds_watched');
-
-                    if ($curSec === 0 && $prevSec === 0) {
-                        $trendStr = '0%';
-                    } elseif ($prevSec === 0) {
-                        $trendStr = '+100% vs last period';
-                    } else {
-                        $pct = (int) round((($curSec - $prevSec) / $prevSec) * 100);
-                        $trendStr = ($pct >= 0 ? "+{$pct}%" : "{$pct}%") . ' vs last period';
-                    }
-
-                    return [
-                        'total' => $formatDuration($curSec),
-                        'trend' => $trendStr,
-                    ];
-                } catch (\Throwable $e) {
-                    return ['total' => '0h 0m', 'trend' => '0%'];
-                }
-            };
-
+            $studyBreakdown = $win7['breakdown'];
+            $quizPerformanceData = $analyticsService->getQuizPerformance($user);
             $learningOverviewData = [
-                'week' => $computeRangeOverview(7),
-                'last_week' => $computeRangeOverview(30),
-                'month' => $computeRangeOverview(90),
+                'week' => $win7,
+                'last_week' => $win30,
+                'month' => $win90,
             ];
+            // Keep KPI stat strip "Study time" synchronized with 7D window from analytics service
+            $statsData['learningTime'] = $win7['total'];
+            $statsData['studyHours'] = (int) floor($win7['totalSeconds'] / 3600);
+            $statsData['studyMinutes'] = (int) floor(($win7['totalSeconds'] % 3600) / 60);
+            $statsData['averageScore'] = $quizPerformanceData['hasData'] ? $quizPerformanceData['averageScore'] : '—';
+            $statsData['averageScoreNum'] = $quizPerformanceData['hasData'] ? $quizPerformanceData['averageScoreNum'] : 0;
 
             // 10. AI Recommendations from real student courses & quiz weaknesses
             $aiRecommendationsData = [];
@@ -484,6 +401,8 @@ class DashboardController extends Controller
             ];
 
             // 11. Achievements status from real database records
+            $totalSeconds = (int) ($statsData['totalSeconds'] ?? 0);
+            $avgNum = (int) ($statsData['averageScoreNum'] ?? 0);
             $hasStreak = $totalSeconds > 0;
             $hasQuick = $computedCompleted >= 1;
             $hasQuizMaster = ($avgNum >= 75 && QuizAttempt::where('user_id', $user->id)->exists()) || QuizAttempt::where('user_id', $user->id)->where('score', '>=', 85)->exists();
@@ -599,30 +518,17 @@ class DashboardController extends Controller
             $certsCount = 0;
         }
 
-        try {
-            $avgScore = QuizAttempt::where('user_id', $user->id)->whereNotNull('score')->avg('score');
-            if ($avgScore !== null) {
-                $avgScoreNum = (int) round($avgScore);
-                $avgScoreFormatted = $avgScoreNum . '%';
-            } else {
-                $avgScoreNum = 0;
-                $avgScoreFormatted = '0%';
-            }
-        } catch (\Throwable $e) {
-            $avgScoreNum = 0;
-            $avgScoreFormatted = '0%';
-        }
+        $analyticsService = app(DashboardAnalyticsService::class);
+        $quiz = $analyticsService->getQuizPerformance($user);
+        $win7 = $analyticsService->getWindowAnalytics($user, 7);
 
-        try {
-            $totalSeconds = (int) LessonProgress::where('user_id', $user->id)->sum('seconds_watched');
-            $studyHours = (int) floor($totalSeconds / 3600);
-            $studyMinutes = (int) floor(($totalSeconds % 3600) / 60);
-            $learningTime = "{$studyHours}h {$studyMinutes}m";
-        } catch (\Throwable $e) {
-            $studyHours = 0;
-            $studyMinutes = 0;
-            $learningTime = '0h 0m';
-        }
+        $avgScoreNum = $quiz['hasData'] ? (int) $quiz['averageScoreNum'] : 0;
+        $avgScoreFormatted = $quiz['hasData'] ? (string) $quiz['averageScore'] : '—';
+
+        $totalSeconds = (int) $win7['totalSeconds'];
+        $studyHours = (int) floor($totalSeconds / 3600);
+        $studyMinutes = (int) floor(($totalSeconds % 3600) / 60);
+        $learningTime = $win7['total'];
 
         return [
             'enrolledCount'     => (int) $enrolledCount,
