@@ -41,9 +41,9 @@ const showCenterNotice = (type: 'info' | 'warning', message: string) => {
 
 const loadingText = computed(() => {
   if (processingMode.value === 'save') {
-    return currentLang.value === 'km' ? 'កំពុងដំណើរការរក្សាទុក...' : 'Processing, please wait...'
+    return currentLang.value === 'km' ? 'កំពុងដំណើរការរក្សាទុក' : 'Processing, please wait'
   }
-  return currentLang.value === 'km' ? 'សូមរង់ចាំ កំពុងដំណើរការ...' : 'Loading, please wait...'
+  return currentLang.value === 'km' ? 'សូមរង់ចាំ កំពុងដំណើរការ' : 'Please wait while loading'
 })
 
 let lastMethod = ''
@@ -195,14 +195,16 @@ watch(
       aria-live="polite"
       class="fixed inset-0 z-[10000] flex items-center justify-center pointer-events-none select-none"
     >
-      <div class="px-6 py-4 rounded-2xl bg-white/95 dark:bg-slate-900/95 text-slate-900 dark:text-slate-100 shadow-2xl border border-purple-200/80 dark:border-purple-500/30 flex flex-col items-center gap-3 min-w-[200px]">
-        <div class="relative w-10 h-10 flex items-center justify-center" aria-hidden="true">
-          <span class="absolute inset-0 rounded-full border-[3.5px] border-purple-200 dark:border-purple-900/60"></span>
-          <span class="absolute inset-0 rounded-full border-[3.5px] border-transparent border-t-purple-600 dark:border-t-purple-400 elms-spinner-ring"></span>
+      <div class="px-7 py-5 rounded-2xl bg-white/95 dark:bg-slate-900/95 text-slate-900 dark:text-slate-100 shadow-2xl border border-purple-200/80 dark:border-purple-500/30 flex flex-col items-center gap-3.5 min-w-[230px]">
+        <div class="flex items-center justify-center gap-3" aria-hidden="true">
+          <span class="elms-dot elms-dot-1"></span>
+          <span class="elms-dot elms-dot-2"></span>
+          <span class="elms-dot elms-dot-3"></span>
+          <span class="elms-dot elms-dot-4"></span>
         </div>
-        <span class="text-xs sm:text-sm font-semibold tracking-wide text-slate-700 dark:text-slate-200">
-          {{ loadingText }}
-        </span>
+        <p class="elms-loading-text text-xs sm:text-sm font-semibold tracking-wide text-slate-700 dark:text-slate-200 flex items-center">
+          <span>{{ loadingText }}</span><span class="elms-ellipsis" aria-hidden="true">...</span>
+        </p>
       </div>
     </div>
   </Transition>
@@ -251,19 +253,63 @@ watch(
 </template>
 
 <style scoped>
-.elms-spinner-ring {
-  animation: elms-ring-spin 0.75s linear infinite;
+.elms-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  background-color: #475569;
+  display: inline-block;
+  animation: elms-dot-travel 0.56s infinite ease-in-out;
 }
+.elms-dot-1 { animation-delay: 0s; }
+.elms-dot-2 { animation-delay: 0.12s; }
+.elms-dot-3 { animation-delay: 0.24s; }
+.elms-dot-4 { animation-delay: 0.36s; }
 
-@media (prefers-reduced-motion: reduce) {
-  .elms-spinner-ring {
-    animation-duration: 3s;
+@keyframes elms-dot-travel {
+  0%, 40%, 100% {
+    background-color: #475569;
+    transform: translateY(0) scale(0.9);
+    opacity: 0.6;
+    box-shadow: none;
+  }
+  20% {
+    background-color: #7c3aed;
+    transform: translateY(-4px) scale(1.24);
+    opacity: 1;
+    box-shadow: 0 0 14px rgba(124, 58, 237, 0.85);
   }
 }
 
-@keyframes elms-ring-spin {
-  to {
-    transform: rotate(360deg);
+.elms-loading-text {
+  animation: elms-text-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes elms-text-pulse {
+  0%, 100% { opacity: 0.78; }
+  50% { opacity: 1; }
+}
+
+.elms-ellipsis {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  width: 0;
+  animation: elms-ellipsis-run 1.2s steps(4, end) infinite;
+}
+
+@keyframes elms-ellipsis-run {
+  to { width: 1.25em; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .elms-dot,
+  .elms-loading-text,
+  .elms-ellipsis {
+    animation: none;
+  }
+  .elms-ellipsis {
+    width: auto;
   }
 }
 </style>
