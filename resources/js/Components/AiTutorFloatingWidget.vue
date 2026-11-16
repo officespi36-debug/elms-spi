@@ -160,21 +160,17 @@ const sendMessage = async () => {
       ></div>
     </Transition>
 
-    <!-- FLOATING TOGGLE BUTTON (56px circular FAB with gentle pulse & hover-expand label) -->
+    <!-- FLOATING TOGGLE BUTTON (Static calm FAB with "AI Tutor" label on hover/focus) -->
     <div v-if="!isOpen" class="fixed bottom-6 right-6 z-50">
       <button
         @click="toggleWidget"
         type="button"
-        class="group relative flex items-center h-14 w-14 hover:w-auto hover:px-4 rounded-full bg-gradient-to-tr from-[#0b57d0] via-indigo-600 to-purple-600 text-white shadow-xl shadow-indigo-600/30 hover:shadow-2xl hover:shadow-indigo-600/50 hover:scale-105 active:scale-95 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer border border-white/20 p-2 overflow-hidden ring-4 ring-indigo-500/20"
-        :title="currentLang === 'km' ? 'បើក SPI AI Tutor 24/7' : 'Open 24/7 AI Tutor'"
-        aria-label="SPI AI Tutor 24/7"
+        class="group relative flex items-center h-12 w-12 hover:w-auto focus-visible:w-auto hover:px-4 focus-visible:px-4 rounded-full bg-[#5b3fd6] dark:bg-[#8b78f0] text-white dark:text-slate-950 shadow-md border border-black/10 dark:border-white/10 p-2 overflow-hidden cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5b3fd6] focus-visible:ring-offset-2 transition-colors"
+        :title="currentLang === 'km' ? 'បើក AI Tutor' : 'AI Tutor'"
+        aria-label="AI Tutor"
       >
-        <!-- Gentle pulse glow effect -->
-        <span class="absolute inset-0 rounded-full bg-indigo-500/25 animate-ping pointer-events-none opacity-40"></span>
-
-        <!-- Icon & Status Dot (56px centered when not hovered) -->
-        <div class="relative flex items-center justify-center w-10 h-10 shrink-0">
-          <svg class="w-6 h-6 text-white group-hover:scale-110 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <div class="relative flex items-center justify-center w-8 h-8 shrink-0">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 8V4H8"></path>
             <rect width="16" height="12" x="4" y="8" rx="2"></rect>
             <path d="M2 14h2"></path>
@@ -182,12 +178,11 @@ const sendMessage = async () => {
             <path d="M15 13v2"></path>
             <path d="M9 13v2"></path>
           </svg>
-          <span class="absolute top-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-slate-900 animate-pulse"></span>
         </div>
 
-        <!-- Hover Reveal Label -->
-        <span class="max-w-0 group-hover:max-w-xs transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden whitespace-nowrap text-xs font-bold tracking-wide text-white ml-0 group-hover:ml-2">
-          SPI AI Tutor 24/7
+        <!-- Hover / Focus Reveal Label -->
+        <span class="max-w-0 group-hover:max-w-xs group-focus-visible:max-w-xs overflow-hidden whitespace-nowrap text-[13px] font-medium ml-0 group-hover:ml-2 group-focus-visible:ml-2">
+          AI Tutor
         </span>
       </button>
     </div>
