@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import StudentLayout from '@/Layouts/StudentLayout.vue'
+import { marked } from 'marked'
+import hljs from 'highlight.js'
+import 'highlight.js/styles/github-dark.css'
 
 interface LessonItem {
   id: number | string
@@ -76,8 +79,17 @@ const props = defineProps<{
   currentUserId?: number
 }>()
 
-// Active tab state
-const activeTab = ref<'overview' | 'content' | 'resources' | 'discussion'>('overview')
+// Active tab state (respects initial ?tab= query parameter)
+const getInitialTab = (): 'overview' | 'content' | 'resources' | 'discussion' => {
+  if (typeof window !== 'undefined') {
+    const p = new URLSearchParams(window.location.search).get('tab')
+    if (p && ['overview', 'content', 'resources', 'discussion'].includes(p)) {
+      return p as any
+    }
+  }
+  return 'overview'
+}
+const activeTab = ref<'overview' | 'content' | 'resources' | 'discussion'>(getInitialTab())
 const isVideoPlaying = ref(false)
 const videoSpeed = ref<'1x' | '1.25x' | '1.5x' | '2x'>('1x')
 const isMuted = ref(false)
@@ -145,6 +157,13 @@ watch(() => props.currentLesson, (newLesson) => {
     localChapters.value.forEach(c => {
       if (Array.isArray(c.lessons) && c.lessons.some(l => l.id === newLesson.id)) {
         c.expanded = true
+      }
+    })
+
+    nextTick(() => {
+      const el = document.getElementById(`sidebar-lesson-${newLesson.id}`)
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
       }
     })
   }
@@ -1123,22 +1142,183 @@ const handleTabKeydown = (e: KeyboardEvent, current: typeof tabList[number]) => 
   }
 }
 
-// ─── Sanitized Lesson Content ───
-const sanitizedContent = computed(() => {
+// ─── Safe Markdown Renderer with Syntax Highlighting & Copy Button ───
+const markdownRenderer = {
+  link({ href, title, text }: { href: string; title?: string | null; text: string }) {
+    const cleanHref = href && href.startsWith('javascript:') ? '#' : href
+    return `<a href="${cleanHref}" target="_blank" rel="noopener nofollow" class="text-purple-600 dark:text-purple-400 hover:underline font-semibold inline-flex items-center gap-1">${text}</a>`
+  },
+  heading({ tokens, depth }: { tokens: any[]; depth: number }) {
+    const text = tokens.map((t: any) => t.raw || t.text).join('')
+    const classes = [
+      '',
+      'text-base sm:text-lg font-extrabold text-slate-900 dark:text-white mt-6 mb-3 tracking-tight pb-2 border-b border-slate-200 dark:border-slate-800',
+      'text-sm sm:text-base font-bold text-slate-900 dark:text-white mt-5 mb-2.5',
+      'text-xs sm:text-sm font-bold text-slate-900 dark:text-white mt-4 mb-2',
+      'text-xs font-semibold text-slate-800 dark:text-slate-200 mt-3 mb-1.5',
+      'text-xs font-semibold text-slate-800 dark:text-slate-200 mt-2 mb-1',
+      'text-xs font-semibold text-slate-700 dark:text-slate-300 mt-2 mb-1'
+    ][depth] || 'text-xs sm:text-sm font-bold text-slate-900 dark:text-white mt-4 mb-2'
+    return `<h${depth} class="${classes}">${text}</h${depth}>`
+  },
+  list({ items, ordered }: { items: any[]; ordered: boolean }) {
+    const tag = ordered ? 'ol' : 'ul'
+    const listClass = ordered ? 'list-decimal list-inside space-y-1.5 my-3' : 'list-disc list-inside space-y-1.5 my-3'
+    const content = items.map((i: any) => `<li class="text-xs text-slate-700 dark:text-slate-300">${i.tokens ? i.tokens.map((t: any) => t.raw || t.text).join('') : i.text}</li>`).join('')
+    return `<${tag} class="${listClass}">${content}</${tag}>`
+  },
+  blockquote({ tokens }: { tokens: any[] }) {
+    const text = tokens.map((t: any) => t.raw || t.text).join('')
+    return `<blockquote class="border-l-4 border-purple-500 pl-4 py-2 my-3 bg-purple-50/50 dark:bg-purple-950/20 text-slate-700 dark:text-slate-300 italic text-xs rounded-r-xl">${text}</blockquote>`
+  },
+  table({ header, rows }: { header: any[]; rows: any[][] }) {
+    let headerHtml = '<tr>'
+    for (const h of header) {
+      headerHtml += `<th class="p-2.5 text-left text-xs font-bold bg-slate-100 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white">${h.tokens?.map((t: any) => t.raw || t.text).join('') || h.text}</th>`
+    }
+    headerHtml += '</tr>'
+
+    let rowsHtml = ''
+    for (const r of rows) {
+      rowsHtml += '<tr class="border-b border-slate-100 dark:border-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">'
+      for (const cell of r) {
+        rowsHtml += `<td class="p-2.5 text-xs text-slate-700 dark:text-slate-300">${cell.tokens?.map((t: any) => t.raw || t.text).join('') || cell.text}</td>`
+      }
+      rowsHtml += '</tr>'
+    }
+
+    return `<div class="overflow-x-auto my-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs"><table class="w-full text-left border-collapse"><thead>${headerHtml}</thead><tbody>${rowsHtml}</tbody></table></div>`
+  },
+  codespan({ text }: { text: string }) {
+    return `<code class="px-1.5 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/40 font-mono text-[11px] font-semibold">${text}</code>`
+  },
+  code({ text, lang }: { text: string; lang?: string }) {
+    const rawTrimmed = (text || '').trim()
+    if (!rawTrimmed) {
+      return `
+<div class="my-4 rounded-2xl overflow-hidden border border-slate-800 bg-slate-950 shadow-xl">
+  <div class="flex items-center justify-between px-4 py-2 bg-slate-900 border-b border-slate-800 text-xs">
+    <span class="font-mono font-bold text-[11px] text-purple-400 uppercase tracking-wider">${(lang || 'code').toUpperCase()}</span>
+  </div>
+  <div class="p-4 text-xs font-mono text-slate-500 italic">Code snippet is empty</div>
+</div>`
+    }
+
+    const cleanLang = (lang || '').toLowerCase().trim()
+    const validLang = cleanLang && hljs.getLanguage(cleanLang) ? cleanLang : null
+    let highlighted = ''
+    try {
+      highlighted = validLang ? hljs.highlight(text, { language: validLang }).value : hljs.highlightAuto(text).value
+    } catch {
+      highlighted = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+    }
+    const displayLang = (cleanLang || 'code').toUpperCase()
+    const encoded = encodeURIComponent(text)
+
+    return `
+<div class="my-4 rounded-2xl overflow-hidden border border-slate-800 bg-slate-950 shadow-xl group">
+  <div class="flex items-center justify-between px-4 py-2 bg-slate-900/95 border-b border-slate-800 text-xs">
+    <div class="flex items-center gap-2">
+      <span class="inline-block w-2.5 h-2.5 rounded-full bg-rose-500/80"></span>
+      <span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-500/80"></span>
+      <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500/80"></span>
+      <span class="font-mono font-bold text-[11px] text-purple-400 uppercase tracking-wider ml-1.5">${displayLang}</span>
+    </div>
+    <button type="button" class="lesson-copy-code-btn flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors text-[11px] font-semibold cursor-pointer" data-code="${encoded}">
+      <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+      <span class="copy-label">Copy</span>
+    </button>
+  </div>
+  <pre class="p-4 text-[13px] font-mono leading-relaxed overflow-x-auto text-slate-200 max-w-full"><code>${highlighted}</code></pre>
+</div>`
+  }
+}
+
+marked.use({ renderer: markdownRenderer })
+
+const parsedContent = computed(() => {
   const raw = props.currentLesson?.content || ''
-  return raw
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/on\w+="[^"]*"/gi, '')
-    .replace(/javascript:[^"']*/gi, '')
+  if (!raw.trim()) return ''
+  try {
+    const html = marked.parse(raw) as string
+    return html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+  } catch {
+    return `<div class="text-rose-500 text-xs">Error parsing content</div>`
+  }
+})
+
+// Event delegation handler for Copy Code button inside rendered markdown
+const handleContentClick = (e: MouseEvent) => {
+  const target = (e.target as HTMLElement).closest('.lesson-copy-code-btn') as HTMLButtonElement | null
+  if (!target) return
+  const rawCode = target.getAttribute('data-code')
+  if (!rawCode) return
+  const decoded = decodeURIComponent(rawCode)
+  navigator.clipboard.writeText(decoded).then(() => {
+    const label = target.querySelector('.copy-label')
+    if (label) {
+      const orig = label.textContent
+      label.textContent = 'Copied!'
+      target.classList.add('bg-emerald-600', 'text-white')
+      setTimeout(() => {
+        label.textContent = orig || 'Copy'
+        target.classList.remove('bg-emerald-600', 'text-white')
+      }, 1500)
+    }
+  }).catch(() => {})
+}
+
+// ─── Real-Time Completion Eligibility Computed Properties ───
+const isEligibleToComplete = computed(() => {
+  if (isLessonCompletedLocally.value) return true
+  if (!currentDuration.value || currentDuration.value <= 0) return true
+  const required = Math.round(currentDuration.value * 0.9)
+  const watched = Math.max(currentSeconds.value, maxWatchedSeconds.value, props.currentLesson?.watched_seconds || 0)
+  return watched >= required
+})
+
+const smartActionLabel = computed(() => {
+  if (isCompleting.value) return 'Saving...'
+  if (isLessonCompletedLocally.value) {
+    return nextLessonItem.value ? 'Next Lesson →' : 'Finish Course 🎓'
+  }
+  if (!isEligibleToComplete.value) {
+    const watched = Math.max(currentSeconds.value, maxWatchedSeconds.value, props.currentLesson?.watched_seconds || 0)
+    const pct = Math.min(100, Math.floor((watched / (currentDuration.value || 1)) * 100))
+    return `Watch 90% to continue (${pct}% / 90%)`
+  }
+  return nextLessonItem.value ? 'Mark Complete & Continue →' : 'Complete & Finish Course 🎓'
+})
+
+const completionNotice = computed(() => {
+  if (isLessonCompletedLocally.value) return ''
+  if (!isEligibleToComplete.value) {
+    const watched = Math.max(currentSeconds.value, maxWatchedSeconds.value, props.currentLesson?.watched_seconds || 0)
+    const pct = Math.floor((watched / (currentDuration.value || 1)) * 100)
+    return `សូមទស្សនាវីដេអូយ៉ាងតិច 90% សិនមុននឹងចុចបញ្ចប់ (ទស្សនាបាន ${pct}%, ត្រូវការ 90%)`
+  }
+  return ''
 })
 
 // ─── Smart Completion Action Handler ───
 const handleSmartAction = () => {
-  if (props.completionAction?.type === 'next') {
-    handleNextNav()
-  } else if (props.completionAction?.type === 'finish') {
-    router.visit(props.completionAction.next_url || `/student/courses/${props.course.id}/overview`)
+  if (isLessonCompletedLocally.value) {
+    if (nextLessonItem.value) {
+      handleNextNav()
+    } else {
+      router.visit(props.completionAction?.next_url || `/student/courses/${props.course.id}/overview`)
+    }
   } else {
+    if (!isEligibleToComplete.value) {
+      toastType.value = 'warning'
+      toastMessage.value = completionNotice.value || 'សូមទស្សនាមេរៀនយ៉ាងហោចណាស់ 90% មុននឹងបញ្ចប់មេរៀន។'
+      showToast.value = true
+      setTimeout(() => { showToast.value = false }, 4000)
+      return
+    }
     handleCompleteAndNext()
   }
 }
@@ -1295,7 +1475,7 @@ onUnmounted(() => {
                 ▶
               </div>
               <div class="min-w-0">
-                <h1 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight truncate">
+                <h1 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight line-clamp-2 leading-snug">
                   {{ currentLesson.title }}
                 </h1>
                 <p class="text-xs text-purple-600 dark:text-purple-400/90 font-medium truncate">
@@ -1515,7 +1695,7 @@ onUnmounted(() => {
             <nav
               role="tablist"
               aria-label="Lesson Details Tabs"
-              class="flex items-center gap-6 text-xs font-semibold"
+              class="flex items-center gap-4 sm:gap-6 text-xs font-semibold overflow-x-auto"
             >
               <button
                 id="tab-overview"
@@ -1527,10 +1707,10 @@ onUnmounted(() => {
                 @keydown="handleTabKeydown($event, 'overview')"
                 :class="[
                   activeTab === 'overview'
-                    ? 'text-purple-600 dark:text-purple-400 font-bold border-b-2 border-purple-500'
+                    ? 'text-purple-600 dark:text-purple-400 font-bold border-b-2 border-purple-600 dark:border-purple-400'
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border-b-2 border-transparent'
                 ]"
-                class="pb-3 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 rounded-t-sm cursor-pointer"
+                class="pb-3 px-1 transition-all outline-none focus:outline-none focus-visible:text-purple-600 dark:focus-visible:text-purple-400 cursor-pointer"
               >
                 Overview
               </button>
@@ -1545,10 +1725,10 @@ onUnmounted(() => {
                 @keydown="handleTabKeydown($event, 'content')"
                 :class="[
                   activeTab === 'content'
-                    ? 'text-purple-600 dark:text-purple-400 font-bold border-b-2 border-purple-500'
+                    ? 'text-purple-600 dark:text-purple-400 font-bold border-b-2 border-purple-600 dark:border-purple-400'
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border-b-2 border-transparent'
                 ]"
-                class="pb-3 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 rounded-t-sm cursor-pointer"
+                class="pb-3 px-1 transition-all outline-none focus:outline-none focus-visible:text-purple-600 dark:focus-visible:text-purple-400 cursor-pointer"
               >
                 Lesson Content
               </button>
@@ -1563,15 +1743,15 @@ onUnmounted(() => {
                 @keydown="handleTabKeydown($event, 'resources')"
                 :class="[
                   activeTab === 'resources'
-                    ? 'text-purple-600 dark:text-purple-400 font-bold border-b-2 border-purple-500'
+                    ? 'text-purple-600 dark:text-purple-400 font-bold border-b-2 border-purple-600 dark:border-purple-400'
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border-b-2 border-transparent'
                 ]"
-                class="pb-3 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 rounded-t-sm cursor-pointer flex items-center gap-1.5"
+                class="pb-3 px-1 transition-all outline-none focus:outline-none focus-visible:text-purple-600 dark:focus-visible:text-purple-400 cursor-pointer flex items-center gap-1.5"
               >
                 <span>Resources</span>
                 <span
                   v-if="localResources && localResources.length > 0"
-                  class="px-1.5 py-0.2 rounded-full text-[10px] bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 font-bold"
+                  class="px-1.5 py-0.5 rounded-full text-[10px] bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 font-bold tabular-nums"
                 >
                   {{ localResources.length }}
                 </span>
@@ -1587,15 +1767,15 @@ onUnmounted(() => {
                 @keydown="handleTabKeydown($event, 'discussion')"
                 :class="[
                   activeTab === 'discussion'
-                    ? 'text-purple-600 dark:text-purple-400 font-bold border-b-2 border-purple-500'
+                    ? 'text-purple-600 dark:text-purple-400 font-bold border-b-2 border-purple-600 dark:border-purple-400'
                     : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border-b-2 border-transparent'
                 ]"
-                class="pb-3 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 rounded-t-sm cursor-pointer flex items-center gap-1.5"
+                class="pb-3 px-1 transition-all outline-none focus:outline-none focus-visible:text-purple-600 dark:focus-visible:text-purple-400 cursor-pointer flex items-center gap-1.5"
               >
                 <span>Discussion</span>
                 <span
                   v-if="localComments && localComments.length > 0"
-                  class="px-1.5 py-0.2 rounded-full text-[10px] bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 font-bold"
+                  class="px-1.5 py-0.5 rounded-full text-[10px] bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 font-bold tabular-nums"
                 >
                   {{ localComments.length }}
                 </span>
@@ -1674,25 +1854,29 @@ onUnmounted(() => {
             class="space-y-4"
           >
             <div
-              v-if="currentLesson.content"
-              class="space-y-4 text-xs text-slate-700 dark:text-slate-300 leading-relaxed bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-2xs font-['Kantumruy_Pro',sans-serif]"
+              v-if="currentLesson.content && currentLesson.content.trim()"
+              class="bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 p-5 sm:p-6 rounded-3xl shadow-2xs space-y-4"
             >
-              <h4 class="text-[18px] font-semibold text-slate-900 dark:text-white capitalize">
-                Lesson content & notes
-              </h4>
+              <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                <h4 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <span>📖</span>
+                  <span>Lesson Content & Notes</span>
+                </h4>
+              </div>
               <div
-                class="prose dark:prose-invert max-w-none text-xs leading-relaxed whitespace-pre-line"
-                v-html="sanitizedContent"
+                @click="handleContentClick"
+                class="lesson-markdown-body text-xs leading-[1.8] text-slate-700 dark:text-slate-300 font-['Kantumruy_Pro',sans-serif] max-w-[75ch] space-y-3"
+                v-html="parsedContent"
               ></div>
             </div>
 
             <div
               v-else
-              class="p-8 text-center text-xs text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900/60 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xs"
+              class="p-8 text-center text-xs text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900/60 border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xs"
             >
               <span class="text-3xl block mb-2">📝</span>
               <p class="font-semibold text-slate-800 dark:text-slate-200">No notes for this lesson yet</p>
-              <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">គ្មានកំណត់ចំណាំសម្រាប់មេរៀននេះនៅឡើយទេ។ You can ask questions in the Discussion tab.</p>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">គ្មានកំណត់ត្រា ឬខ្លឹមសារអត្ថបទសម្រាប់មេរៀននេះនៅឡើយទេ។ You can ask questions in the Discussion tab.</p>
             </div>
           </div>
 
@@ -2395,24 +2579,24 @@ onUnmounted(() => {
             <div class="flex flex-col items-end gap-1 w-full sm:w-auto">
               <button
                 @click="handleSmartAction"
-                :disabled="isCompleting || (completionAction && !completionAction.can_complete)"
+                :disabled="isCompleting || (!isLessonCompletedLocally && !isEligibleToComplete)"
                 aria-label="Smart Complete and Next"
                 type="button"
                 :class="[
-                  isCompleting || (completionAction && !completionAction.can_complete)
+                  isCompleting || (!isLessonCompletedLocally && !isEligibleToComplete)
                     ? 'opacity-50 cursor-not-allowed bg-purple-600/70'
                     : 'bg-purple-600 hover:bg-purple-500 hover:scale-105 active:scale-95 cursor-pointer shadow-lg shadow-purple-600/20',
                   'w-full sm:w-auto px-5 py-2.5 rounded-xl text-white font-bold text-xs flex items-center justify-center gap-2 transition-all'
                 ]"
               >
                 <span v-if="isCompleting">Saving...</span>
-                <span v-else>{{ completionAction?.label || (isLessonCompletedLocally ? 'Next Lesson →' : 'Complete & Next Lesson →') }}</span>
+                <span v-else>{{ smartActionLabel }}</span>
               </button>
               <span
-                v-if="completionAction && !completionAction.can_complete && completionAction.reason"
+                v-if="completionNotice"
                 class="text-[10px] text-amber-500 font-medium"
               >
-                {{ completionAction.reason }}
+                {{ completionNotice }}
               </span>
             </div>
           </div>
@@ -2452,14 +2636,14 @@ onUnmounted(() => {
                 aria-label="Expand or collapse all chapters"
                 class="text-[11px] font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 transition-colors cursor-pointer"
               >
-                Expand All
+                {{ localChapters.length > 0 && localChapters.every(c => c.expanded) ? 'Collapse All' : 'Expand All' }}
               </button>
             </div>
 
-            <!-- Chapter Items List -->
+            <!-- Chapter Items List (Hides empty modules with 0 lessons) -->
             <div class="space-y-2">
               <div
-                v-for="chap in localChapters"
+                v-for="chap in localChapters.filter(c => (c.lessons && c.lessons.length > 0) || (c.total_count && c.total_count > 0))"
                 :key="chap.id"
                 class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-950/60 overflow-hidden"
               >
@@ -2504,6 +2688,7 @@ onUnmounted(() => {
                   <div
                     v-for="lsn in chap.lessons"
                     :key="lsn.id"
+                    :id="'sidebar-lesson-' + lsn.id"
                     @click="!lsn.is_locked && router.visit(`/student/my-courses/${course.id}/lessons/${lsn.id}`)"
                     :class="[
                       lsn.id === currentLesson.id
@@ -2514,7 +2699,7 @@ onUnmounted(() => {
                       'p-2.5 rounded-xl border text-xs flex items-center justify-between transition-colors'
                     ]"
                   >
-                    <div class="flex items-center gap-2.5 truncate">
+                    <div class="flex items-center gap-2.5 min-w-0 pr-2">
                       <!-- Completed Checkmark -->
                       <span
                         v-if="lsn.is_completed"
@@ -2549,7 +2734,7 @@ onUnmounted(() => {
                         ○
                       </span>
 
-                      <span class="truncate">{{ lsn.title }}</span>
+                      <span class="line-clamp-2 text-left leading-snug">{{ lsn.title }}</span>
                     </div>
 
                     <span class="text-[10px] text-slate-500 dark:text-slate-400 shrink-0 tabular-nums font-sans">
@@ -2577,12 +2762,12 @@ onUnmounted(() => {
         </button>
         <button
           @click="handleSmartAction"
-          :disabled="isCompleting || (completionAction && !completionAction.can_complete)"
+          :disabled="isCompleting || (!isLessonCompletedLocally && !isEligibleToComplete)"
           type="button"
           class="flex-1 py-2 rounded-xl bg-purple-600 text-white text-xs font-bold text-center shadow-md shadow-purple-600/30 disabled:opacity-50"
         >
           <span v-if="isCompleting">Saving...</span>
-          <span v-else>{{ completionAction?.label || (isLessonCompletedLocally ? 'Next Lesson →' : 'Complete & Next Lesson →') }}</span>
+          <span v-else>{{ smartActionLabel }}</span>
         </button>
       </div>
 

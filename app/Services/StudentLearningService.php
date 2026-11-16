@@ -144,7 +144,7 @@ class StudentLearningService
      */
     public function getCourseCurriculum(User $user, Course $course): array
     {
-        $cacheKey = "course_{$course->id}_user_{$user->id}_curriculum_v4";
+        $cacheKey = "course_{$course->id}_user_{$user->id}_curriculum_v5";
 
         return Cache::remember($cacheKey, 60, function () use ($user, $course) {
             $course->load([
@@ -276,6 +276,9 @@ class StudentLearningService
                 }
 
                 $chapTotal = count($chapLessonItems);
+                if ($chapTotal === 0) {
+                    continue; // Skip empty modules with 0 lessons
+                }
                 $isChapLocked = $chapTotal > 0 && ($chapLessonItems[0]['is_locked'] ?? false);
 
                 $chapterItems[] = [
