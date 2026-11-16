@@ -709,25 +709,51 @@ class CourseController extends Controller
         $enrollments = Enrollment::where('student_id', $user->id)
             ->where('status', 'completed')
             ->with([
-                'course.teacher:id,name,avatar',
+                'course.teacher:id,name,name_kh,email,avatar',
                 'course.major:id,name',
-                'course.modules.lessons',
-                'course.certificates' => fn($q) => $q->where('student_id', $user->id)
+                'course.modules.lessons:id,module_id,course_id,title,order',
+                'course.lessons:id,course_id,title,order',
             ])
             ->latest('updated_at')
             ->get();
 
-        $completedList = $enrollments->map(function ($enr) use ($user) {
+        $certsByCourse = collect();
+        try {
+            $certsByCourse = Certificate::where('student_id', $user->id)
+                ->get()
+                ->keyBy('course_id');
+        } catch (\Throwable $e) {
+            $certsByCourse = collect();
+        }
+
+        $completedList = $enrollments->map(function ($enr) use ($certsByCourse) {
             $c = $enr->course;
             if (!$c) return null;
 
-            $cert = $c->certificates ? $c->certificates->first() : null;
-            if (!$cert) {
-                $cert = Certificate::where('student_id', $user->id)->where('course_id', $c->id)->first();
-            }
+            $cert = $certsByCourse->get($c->id);
 
-            $lessonsCount = $c->lessons ? $c->lessons->count() : 3;
+            $lessonsCount = $c->lessons ? $c->lessons->count() : 0;
+            if ($lessonsCount === 0 && $c->modules) {
+                $lessonsCount = $c->modules->sum(fn ($m) => $m->lessons ? $m->lessons->count() : 0);
+            }
             $chaptersCount = $c->modules ? $c->modules->count() : 1;
+
+            $completedDate = 'Nov 2026';
+            $completedTs = 0;
+            try {
+                if ($enr->updated_at) {
+                    $dt = \Carbon\Carbon::parse($enr->updated_at);
+                    $completedDate = $dt->format('M d, Y');
+                    $completedTs = $dt->getTimestamp() * 1000;
+                }
+            } catch (\Throwable $e) {}
+
+            $certIssueDate = null;
+            try {
+                if ($cert && $cert->issued_at) {
+                    $certIssueDate = \Carbon\Carbon::parse($cert->issued_at)->format('M d, Y');
+                }
+            } catch (\Throwable $e) {}
 
             return [
                 'id'                     => $c->id,
@@ -738,11 +764,11 @@ class CourseController extends Controller
                 'progress'               => 100,
                 'teacher'                => [
                     'name'   => $c->teacher?->name ?: 'Dr. Mengly Chea',
-                    'avatar' => $c->teacher?->avatar ?: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80',
+                    'avatar' => $c->teacher?->avatar ?: null,
                     'role'   => 'SPI Instructor',
                 ],
-                'completedDate'          => $enr->updated_at ? $enr->updated_at->format('M d, Y') : 'Nov 2026',
-                'completedDateTimestamp' => $enr->updated_at ? $enr->updated_at->getTimestamp() * 1000 : 0,
+                'completedDate'          => $completedDate,
+                'completedDateTimestamp' => $completedTs,
                 'chaptersCount'          => $chaptersCount,
                 'lessonsCount'           => $lessonsCount,
                 'studyTime'              => '18h 20m',
@@ -750,7 +776,7 @@ class CourseController extends Controller
                 'quizScore'              => 90,
                 'hasCertificate'         => $cert !== null,
                 'certificateId'          => $cert?->certificate_number ?: ('SPI-CERT-' . $c->id),
-                'certIssueDate'          => $cert?->issued_at ? $cert->issued_at->format('M d, Y') : null,
+                'certIssueDate'          => $certIssueDate,
                 'medalType'              => 'gold',
                 'illustrationType'       => 'web',
                 'overviewHref'           => "/student/courses/{$c->id}/overview",
