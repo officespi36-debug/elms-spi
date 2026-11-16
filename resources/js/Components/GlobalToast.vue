@@ -238,35 +238,47 @@ watch(
       aria-modal="true"
       class="fixed inset-0 z-[10001] flex items-center justify-center p-4 pointer-events-none"
     >
-      <div class="pointer-events-auto relative w-full max-w-xs px-4 py-4 flex flex-col items-center text-center gap-3">
+      <div class="pointer-events-auto relative w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.35)] border border-slate-200 dark:border-slate-700/80 px-6 py-6 flex flex-col items-center text-center gap-3">
+        <!-- Close button -->
+        <button
+          type="button"
+          @click="dismissCenterNotice"
+          :aria-label="currentLang === 'km' ? 'បិទ' : 'Close'"
+          class="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+        >
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
         <!-- Icon badge -->
         <div
           :class="[
             'w-12 h-12 rounded-full flex items-center justify-center',
             centerNotice.type === 'warning'
-              ? 'text-amber-500'
-              : 'text-purple-500 dark:text-purple-400'
+              ? 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400'
+              : 'bg-purple-100 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400'
           ]"
         >
-          <svg v-if="centerNotice.type === 'warning'" class="w-8 h-8 drop-shadow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <svg v-if="centerNotice.type === 'warning'" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
           </svg>
-          <svg v-else class="w-8 h-8 drop-shadow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <svg v-else class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
           </svg>
         </div>
 
-        <h3 class="text-base font-bold text-slate-900 dark:text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.45)]">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white">
           {{ centerNotice.title }}
         </h3>
-        <p class="text-sm font-medium text-slate-800 dark:text-slate-100 leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.45)]">
+        <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
           {{ centerNotice.message }}
         </p>
 
         <button
           type="button"
           @click="dismissCenterNotice"
-          class="mt-1 px-7 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-[0.98] text-white text-sm font-semibold shadow-lg shadow-purple-500/30 transition-all focus:outline-none focus:ring-2 focus:ring-purple-500"
+          class="mt-1 px-8 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-[0.98] text-white text-sm font-semibold shadow-md shadow-purple-500/25 transition-all focus:outline-none focus:ring-2 focus:ring-purple-500"
         >
           {{ currentLang === 'km' ? 'យល់ព្រម' : 'OK, Got it' }}
         </button>
