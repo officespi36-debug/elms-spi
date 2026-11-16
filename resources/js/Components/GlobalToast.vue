@@ -47,22 +47,39 @@ const loadingText = computed(() => {
 })
 
 let lastMethod = ''
-let showDelayTimer: ReturnType<typeof setTimeout> | null = null
+let loadingShownAt = 0
+let hideDelayTimer: ReturnType<typeof setTimeout> | null = null
 let removeStartListener: (() => void) | null = null
 let removeFinishListener: (() => void) | null = null
 let removeSuccessListener: (() => void) | null = null
 let removeErrorListener: (() => void) | null = null
 
-const hideCenterLoader = () => {
-  if (showDelayTimer) {
-    clearTimeout(showDelayTimer)
-    showDelayTimer = null
+const MIN_LOADER_MS = 450
+
+const hideCenterLoader = (immediate = false) => {
+  if (hideDelayTimer) {
+    clearTimeout(hideDelayTimer)
+    hideDelayTimer = null
   }
-  isGlobalProcessing.value = false
+  if (immediate || !isGlobalProcessing.value) {
+    isGlobalProcessing.value = false
+    return
+  }
+  const elapsed = Date.now() - loadingShownAt
+  const remaining = Math.max(0, MIN_LOADER_MS - elapsed)
+  if (remaining === 0) {
+    isGlobalProcessing.value = false
+  } else {
+    hideDelayTimer = setTimeout(() => {
+      isGlobalProcessing.value = false
+      hideDelayTimer = null
+    }, remaining)
+  }
 }
 
 onMounted(() => {
-  window.addEventListener('pageshow', hideCenterLoader)
+  const forceHide = () => hideCenterLoader(true)
+  window.addEventListener('pageshow', forceHide)
 
   removeStartListener = router.on('start', (event: any) => {
     const visit = event?.detail?.visit
@@ -75,9 +92,9 @@ onMounted(() => {
     // NEVER show center loader for logout
     if (rawUrl.includes('logout')) return
 
-    if (showDelayTimer) {
-      clearTimeout(showDelayTimer)
-      showDelayTimer = null
+    if (hideDelayTimer) {
+      clearTimeout(hideDelayTimer)
+      hideDelayTimer = null
     }
 
     if (method && method !== 'get') {
@@ -85,11 +102,12 @@ onMounted(() => {
     } else {
       processingMode.value = 'nav'
     }
+    loadingShownAt = Date.now()
     isGlobalProcessing.value = true
   })
 
   removeFinishListener = router.on('finish', () => {
-    hideCenterLoader()
+    hideCenterLoader(false)
   })
 
   removeSuccessListener = router.on('success', (event: any) => {
@@ -120,8 +138,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  window.removeEventListener('pageshow', hideCenterLoader)
-  hideCenterLoader()
+  hideCenterLoader(true)
   if (removeStartListener) removeStartListener()
   if (removeFinishListener) removeFinishListener()
   if (removeSuccessListener) removeSuccessListener()
@@ -259,12 +276,12 @@ watch(
   border-radius: 9999px;
   background-color: #475569;
   display: inline-block;
-  animation: elms-dot-travel 0.56s infinite ease-in-out;
+  animation: elms-dot-travel 0.85s infinite ease-in-out;
 }
 .elms-dot-1 { animation-delay: 0s; }
-.elms-dot-2 { animation-delay: 0.12s; }
-.elms-dot-3 { animation-delay: 0.24s; }
-.elms-dot-4 { animation-delay: 0.36s; }
+.elms-dot-2 { animation-delay: 0.15s; }
+.elms-dot-3 { animation-delay: 0.30s; }
+.elms-dot-4 { animation-delay: 0.45s; }
 
 @keyframes elms-dot-travel {
   0%, 40%, 100% {
