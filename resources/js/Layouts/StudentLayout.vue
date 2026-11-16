@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { Head, Link, usePage, router } from '@inertiajs/vue3'
 import { i18n } from '@/Services/i18n'
 import { useTheme, initTheme, playNotificationSound, playClickSound } from '@/composables/useTheme'
@@ -172,6 +172,24 @@ const handleThemeToggle = (e?: MouseEvent) => {
 // --- Top Navbar State & Dropdown Logic ---
 const searchQuery = ref('')
 const isSearchOpen = ref(false)
+const searchInputRef = ref<HTMLInputElement | null>(null)
+
+watch(isSearchOpen, async (open) => {
+  if (open) {
+    await nextTick()
+    searchInputRef.value?.focus()
+  } else {
+    searchQuery.value = ''
+  }
+})
+
+const handleSearchEnter = () => {
+  const first = filteredSearchLinks.value[0]
+  if (first?.href) {
+    isSearchOpen.value = false
+    router.visit(first.href)
+  }
+}
 const isNotificationOpen = ref(false)
 const isProfileOpen = ref(false)
 const isQuickActionOpen = ref(false)
@@ -1627,9 +1645,9 @@ const onIconError = (e: Event) => {
           </nav>
 
           <!-- Google Search Bar (Soft pill) -->
-          <div class="relative hidden md:block">
+          <div class="relative hidden md:block nav-dropdown-scope">
             <button
-              @click="toggleDropdown('search')"
+              @click.stop="toggleDropdown('search')"
               type="button"
               class="flex items-center gap-2.5 px-4 py-2 rounded-full bg-[#f0f4f9] hover:bg-[#e8edf4] dark:bg-[#1e1f20] dark:hover:bg-[#282a2c] text-[#444746] hover:text-[#1f1f1f] dark:text-[#c4c7c5] dark:hover:text-[#e3e3e3] border border-[#dfe3e7] hover:border-[#0b57d0]/40 dark:border-[#2d2f31] dark:hover:border-[#1a73e8] text-xs transition-all w-56 lg:w-72 justify-between shadow-2xs group cursor-pointer"
             >
@@ -1648,7 +1666,7 @@ const onIconError = (e: Event) => {
         <div class="flex items-center gap-1.5 sm:gap-2">
           <!-- Mobile Search Trigger -->
           <button
-            @click="toggleDropdown('search')"
+            @click.stop="toggleDropdown('search')"
             type="button"
             class="p-1.5 text-[#747775] dark:text-slate-400 hover:text-[#1f1f1f] dark:hover:text-white hover:bg-[#f0f4f9] dark:hover:bg-[#1e1f20] rounded-lg md:hidden focus:outline-none transition-colors"
           >
@@ -1916,17 +1934,29 @@ const onIconError = (e: Event) => {
       class="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 bg-slate-950/80 backdrop-blur-md transition-opacity"
       @click.self="isSearchOpen = false"
     >
-      <div class="w-full max-w-xl rounded-3xl bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <div
+        @click.stop
+        class="nav-dropdown-scope w-full max-w-xl rounded-3xl bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+      >
         <div class="p-4 border-b border-[#dfe3e7] dark:border-[#28292a] flex items-center gap-3">
-          <svg class="w-5 h-5 text-[#0b57d0] dark:text-[#8ab4f8]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <svg class="w-5 h-5 text-[#0b57d0] dark:text-[#8ab4f8] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           <input
+            ref="searchInputRef"
             v-model="searchQuery"
             type="text"
+            @keydown.enter.prevent="handleSearchEnter"
             :placeholder="currentLang === 'km' ? 'ស្វែងរកម៉ូឌុលទាំង ១២, កម្រងសំណួរ, វគ្គសិក្សា, ការអនុវត្ត...' : 'Search all 12 modules, quizzes, courses, labs, certificates...'"
             class="w-full bg-transparent text-sm text-[#1f1f1f] dark:text-[#e3e3e3] placeholder-[#747775] dark:placeholder-[#8e918f] focus:outline-none"
-            autofocus
           />
-          <button @click="isSearchOpen = false" class="text-xs text-[#747775] hover:text-[#1f1f1f] dark:hover:text-white font-bold cursor-pointer">
+          <button
+            v-if="searchQuery"
+            type="button"
+            @click="searchQuery = ''; searchInputRef?.focus()"
+            class="text-xs text-[#747775] hover:text-[#1f1f1f] dark:hover:text-white px-1.5 py-0.5 rounded cursor-pointer"
+          >
+            ✕
+          </button>
+          <button type="button" @click="isSearchOpen = false" class="text-xs text-[#747775] hover:text-[#1f1f1f] dark:hover:text-white font-bold cursor-pointer">
             ESC
           </button>
         </div>
