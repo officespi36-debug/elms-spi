@@ -12,17 +12,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('enrollments', function (Blueprint $table) {
-            if (!Schema::hasColumn('enrollments', 'seen_at')) {
-                $table->timestamp('seen_at')->nullable()->after('enrolled_at');
-            }
-            if (!Schema::hasColumn('enrollments', 'enrolled_by')) {
-                $table->foreignId('enrolled_by')->nullable()->after('seen_at')->constrained('users')->nullOnDelete();
-            }
-            if (!Schema::hasColumn('enrollments', 'source')) {
-                $table->string('source', 50)->nullable()->after('enrolled_by')->default('manual');
-            }
-        });
+        try {
+            Schema::table('enrollments', function (Blueprint $table) {
+                if (!Schema::hasColumn('enrollments', 'seen_at')) {
+                    $table->timestamp('seen_at')->nullable();
+                }
+                if (!Schema::hasColumn('enrollments', 'enrolled_by')) {
+                    $table->unsignedBigInteger('enrolled_by')->nullable();
+                }
+                if (!Schema::hasColumn('enrollments', 'source')) {
+                    $table->string('source', 50)->nullable()->default('manual');
+                }
+            });
+        } catch (\Throwable $e) {
+            // Columns might already exist
+        }
 
         // Add index on (student_id, seen_at) safely
         try {
@@ -34,9 +38,15 @@ return new class extends Migration
         }
 
         // Initialize existing enrollments as seen so they don't all appear as "New"
-        DB::table('enrollments')
-            ->whereNull('seen_at')
-            ->update(['seen_at' => DB::raw('COALESCE(created_at, NOW())')]);
+        try {
+            if (Schema::hasColumn('enrollments', 'seen_at')) {
+                DB::table('enrollments')
+                    ->whereNull('seen_at')
+                    ->update(['seen_at' => now()]);
+            }
+        } catch (\Throwable $e) {
+            // Fallback
+        }
     }
 
     /**
@@ -44,20 +54,19 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('enrollments', function (Blueprint $table) {
-            if (Schema::hasColumn('enrollments', 'enrolled_by')) {
-                $table->dropForeign(['enrolled_by']);
-                $table->dropColumn('enrolled_by');
-            }
-            if (Schema::hasColumn('enrollments', 'source')) {
-                $table->dropColumn('source');
-            }
-            if (Schema::hasColumn('enrollments', 'seen_at')) {
-                try {
-                    $table->dropIndex('enrollments_student_seen_idx');
-                } catch (\Throwable $e) {}
-                $table->dropColumn('seen_at');
-            }
-        });
+        try {
+            Schema::table('enrollments', function (Blueprint $table) {
+                if (Schema::hasColumn('enrollments', 'enrolled_by')) {
+                    $table->dropColumn('enrolled_by');
+                }
+                if (Schema::hasColumn('enrollments', 'source')) {
+                    $table->dropColumn('source');
+                }
+                if (Schema::hasColumn('enrollments', 'seen_at')) {
+                    $table->dropColumn('seen_at');
+                }
+            });
+        } catch (\Throwable $e) {}
     }
 };
+

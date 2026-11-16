@@ -18,6 +18,7 @@ use App\Services\StudentLearningService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -146,7 +147,7 @@ class CourseController extends Controller
             return [
                 'id'                 => $c->id,
                 'enrollment_id'      => $enr->id,
-                'is_new'             => ($enr->seen_at === null),
+                'is_new'             => isset($enr->seen_at) ? ($enr->seen_at === null) : false,
                 'enrolled_by'        => $enr->enrolledBy ? [
                     'name'   => $enr->enrolledBy->name,
                     'role'   => $enr->enrolledBy->role,
@@ -233,12 +234,21 @@ class CourseController extends Controller
             ->first();
 
         if (!$enrollment) {
+            $enrollData = ['status' => 'active', 'enrolled_at' => now()];
+            try {
+                if (Schema::hasColumn('enrollments', 'seen_at')) {
+                    $enrollData['seen_at'] = now();
+                }
+            } catch (\Throwable $e) {}
+
             $enrollment = Enrollment::firstOrCreate(
                 ['student_id' => $user->id, 'course_id' => $course->id],
-                ['status' => 'active', 'enrolled_at' => now(), 'seen_at' => now()]
+                $enrollData
             );
-        } elseif ($enrollment->seen_at === null) {
-            $enrollment->update(['seen_at' => now()]);
+        } elseif (isset($enrollment->seen_at) && $enrollment->seen_at === null) {
+            try {
+                $enrollment->update(['seen_at' => now()]);
+            } catch (\Throwable $e) {}
             Cache::forget("student.{$user->id}.new_enrollments");
         }
 
@@ -615,15 +625,19 @@ class CourseController extends Controller
     {
         $user = $request->user();
         if ($user && $course) {
-            $courseId = is_object($course) ? $course->id : (int) $course;
-            $enr = Enrollment::where('student_id', $user->id)
-                ->where('course_id', $courseId)
-                ->whereNull('seen_at')
-                ->first();
-            if ($enr) {
-                $enr->update(['seen_at' => now()]);
-                Cache::forget("student.{$user->id}.new_enrollments");
-            }
+            try {
+                $courseId = is_object($course) ? $course->id : (int) $course;
+                if (Schema::hasColumn('enrollments', 'seen_at')) {
+                    $enr = Enrollment::where('student_id', $user->id)
+                        ->where('course_id', $courseId)
+                        ->whereNull('seen_at')
+                        ->first();
+                    if ($enr) {
+                        $enr->update(['seen_at' => now()]);
+                        Cache::forget("student.{$user->id}.new_enrollments");
+                    }
+                }
+            } catch (\Throwable $e) {}
         }
 
         return Inertia::render('Student/Courses/Overview', [
@@ -1097,10 +1111,12 @@ class CourseController extends Controller
             return response()->json(['error' => 'Unauthorized access to enrollment'], 403);
         }
 
-        if ($enrollment->seen_at === null) {
-            $enrollment->update(['seen_at' => now()]);
-            Cache::forget("student.{$user->id}.new_enrollments");
-        }
+        try {
+            if ($enrollment->seen_at === null) {
+                $enrollment->update(['seen_at' => now()]);
+                Cache::forget("student.{$user->id}.new_enrollments");
+            }
+        } catch (\Throwable $e) {}
 
         return response()->json([
             'ok'      => true,

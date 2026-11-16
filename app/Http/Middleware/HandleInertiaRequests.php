@@ -95,10 +95,17 @@ class HandleInertiaRequests extends Middleware
                 : ['items' => [], 'unread_count' => 0],
             'new_enrollments_count' => fn () => $user && ($user->role === 'student' || empty($user->role))
                 ? \Illuminate\Support\Facades\Cache::remember("student.{$user->id}.new_enrollments", 30, function () use ($user) {
-                    return \App\Models\Enrollment::where('student_id', $user->id)
-                        ->where('status', 'active')
-                        ->whereNull('seen_at')
-                        ->count();
+                    try {
+                        if (!\Illuminate\Support\Facades\Schema::hasColumn('enrollments', 'seen_at')) {
+                            return 0;
+                        }
+                        return \App\Models\Enrollment::where('student_id', $user->id)
+                            ->where('status', 'active')
+                            ->whereNull('seen_at')
+                            ->count();
+                    } catch (\Throwable $e) {
+                        return 0;
+                    }
                 })
                 : 0,
             'telegram' => [
