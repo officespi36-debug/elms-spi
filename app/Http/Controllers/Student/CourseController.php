@@ -67,7 +67,7 @@ class CourseController extends Controller
             : (in_array($savedView, ['grid', 'list'], true) ? $savedView : 'grid');
 
         // 2 & 3. Fetch + compute enrolled courses with 60s user-scoped cache (0 N+1 queries)
-        $allCoursesList = Cache::remember("student_enrolled_{$user->id}", 60, function () use ($user, $progressService) {
+        $cachedItems = Cache::remember("student_enrolled_{$user->id}_v2", 60, function () use ($user, $progressService) {
             $enrollments = Enrollment::where('student_id', $user->id)
                 ->whereIn('status', ['active', 'completed'])
                 ->with([
@@ -82,10 +82,15 @@ class CourseController extends Controller
 
             $computedCollection = $progressService->calculateForEnrollments($user, $enrollments);
 
-            $issuedCertificateCourseIds = \App\Models\Certificate::where('student_id', $user->id)
-                ->whereIn('status', ['issued', 'valid'])
-                ->pluck('course_id')
-                ->all();
+            $issuedCertificateCourseIds = [];
+            try {
+                $issuedCertificateCourseIds = \App\Models\Certificate::where('student_id', $user->id)
+                    ->whereIn('status', ['issued', 'valid'])
+                    ->pluck('course_id')
+                    ->all();
+            } catch (\Throwable $e) {
+                $issuedCertificateCourseIds = [];
+            }
 
             return $computedCollection->map(function ($item) use ($progressService, $issuedCertificateCourseIds) {
                 $enr = $item['enrollment'];
@@ -113,6 +118,26 @@ class CourseController extends Controller
                 $teacherName = $progressService->cleanTeacherName($c->teacher, $c);
                 $hasCert = in_array($c->id, $issuedCertificateCourseIds);
 
+                $enrolledDateStr = '';
+                try {
+                    if ($enr->enrolled_at) {
+                        $enrolledDateStr = \Carbon\Carbon::parse($enr->enrolled_at)->format('j M Y');
+                    } elseif ($enr->created_at) {
+                        $enrolledDateStr = \Carbon\Carbon::parse($enr->created_at)->format('j M Y');
+                    }
+                } catch (\Throwable $e) {
+                    $enrolledDateStr = '';
+                }
+
+                $enrolledRel = 'Recently';
+                try {
+                    if ($enr->created_at) {
+                        $enrolledRel = \Carbon\Carbon::parse($enr->created_at)->diffForHumans();
+                    }
+                } catch (\Throwable $e) {
+                    $enrolledRel = 'Recently';
+                }
+
                 return [
                     'id'                 => $c->id,
                     'enrollment_id'      => $enr->id,
@@ -122,7 +147,7 @@ class CourseController extends Controller
                         'role'   => $enr->enrolledBy->role,
                         'avatar' => $enr->enrolledBy->avatar,
                     ] : null,
-                    'enrolled_relative'  => $enr->created_at ? $enr->created_at->diffForHumans() : 'Recently',
+                    'enrolled_relative'  => $enrolledRel,
                     'source'             => $enr->source ?: 'system',
                     'slug'               => $c->code ?: ('course-' . $c->id),
                     'title'              => $c->title,
@@ -146,7 +171,7 @@ class CourseController extends Controller
                     'remainingTime'      => $item['percent'] >= 100 ? 'Completed' : 'Study in progress',
                     'lastAccessed'       => $item['last_activity_at'] ?: 'Not started yet',
                     'lastAccessedTimeMs' => $item['last_activity_ms'],
-                    'enrolledDate'       => $enr->enrolled_at ? $enr->enrolled_at->format('j M Y') : ($enr->created_at ? $enr->created_at->format('j M Y') : ''),
+                    'enrolledDate'       => $enrolledDateStr,
                     'overviewHref'       => "/student/courses/{$c->id}/overview",
                     'learningHref'       => "/student/my-courses/{$c->id}/continue",
                     'has_certificate'    => $hasCert,
@@ -155,8 +180,10 @@ class CourseController extends Controller
                     'accentGradient'     => $gradient,
                     'illustrationType'   => $illus,
                 ];
-            });
+            })->values()->all();
         });
+
+        $allCoursesList = collect($cachedItems);
 
         // 4. Calculate accurate counts from single unified collection (All = sum of all states)
         $inProgressCount = $allCoursesList->where('status', 'in_progress')->count();

@@ -73,6 +73,7 @@ class DashboardAnalyticsService
         Cache::forget("student_dashboard_payload_{$userId}");
         Cache::forget("student_stats_{$userId}");
         Cache::forget("student_enrolled_{$userId}");
+        Cache::forget("student_enrolled_{$userId}_v2");
     }
 
     /**
