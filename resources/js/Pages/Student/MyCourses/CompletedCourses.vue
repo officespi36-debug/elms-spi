@@ -6,7 +6,7 @@ import { i18n } from '@/Services/i18n'
 
 const page = usePage<any>()
 const currentLang = computed(() => i18n.locale.value)
-const authUser = computed(() => page.props.auth?.user || {})
+const authUser = computed<Record<string, any>>(() => page.props.auth?.user || {})
 
 interface CompletedCourseItem {
   id: number
@@ -17,7 +17,7 @@ interface CompletedCourseItem {
   progress: number
   teacher: {
     name: string
-    avatar: string
+    avatar?: string | null
     role?: string
   }
   completedDate: string
@@ -28,8 +28,8 @@ interface CompletedCourseItem {
   studyTimeMinutes: number
   quizScore: number
   hasCertificate: boolean
-  certificateId?: string
-  certIssueDate?: string
+  certificateId?: string | null
+  certIssueDate?: string | null
   missingCertReason?: string
   medalType: 'gold' | 'silver' | 'bronze'
   illustrationType: 'web' | 'database' | 'python' | 'uiux'
@@ -435,10 +435,17 @@ const navigateToReview = (course: CompletedCourseItem) => {
                       <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400 mt-2">
                         <div class="flex items-center gap-2">
                           <img
+                            v-if="course.teacher.avatar"
                             :src="course.teacher.avatar"
                             :alt="course.teacher.name"
                             class="w-5 h-5 rounded-full object-cover border border-purple-500/40"
                           />
+                          <div
+                            v-else
+                            class="w-5 h-5 rounded-full bg-purple-600/20 text-purple-600 dark:text-purple-300 border border-purple-500/40 flex items-center justify-center text-[9px] font-bold"
+                          >
+                            {{ (course.teacher.name || 'SP').slice(0, 2).toUpperCase() }}
+                          </div>
                           <span class="text-slate-700 dark:text-slate-300 font-medium">{{ course.teacher.name }}</span>
                         </div>
 
