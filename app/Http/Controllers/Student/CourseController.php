@@ -81,7 +81,13 @@ class CourseController extends Controller
         // 3. High-performance unified progress calculation (0 N+1 queries)
         $computedCollection = $progressService->calculateForEnrollments($user, $enrollments);
 
-        $allCoursesList = $computedCollection->map(function ($item) use ($progressService) {
+        // Check actual issued certificates in DB for Auth student
+        $issuedCertificateCourseIds = \App\Models\Certificate::where('student_id', $user->id)
+            ->where('status', 'issued')
+            ->pluck('course_id')
+            ->all();
+
+        $allCoursesList = $computedCollection->map(function ($item) use ($progressService, $issuedCertificateCourseIds) {
             $enr = $item['enrollment'];
             $c = $item['course'];
 
@@ -105,6 +111,7 @@ class CourseController extends Controller
             }
 
             $teacherName = $progressService->cleanTeacherName($c->teacher, $c);
+            $hasCert = in_array($c->id, $issuedCertificateCourseIds);
 
             return [
                 'id'                 => $c->id,
@@ -139,10 +146,11 @@ class CourseController extends Controller
                 'remainingTime'      => $item['percent'] >= 100 ? 'Completed' : 'Study in progress',
                 'lastAccessed'       => $item['last_activity_at'] ?: 'Not started yet',
                 'lastAccessedTimeMs' => $item['last_activity_ms'],
-                'enrolledDate'       => $enr->enrolled_at ? $enr->enrolled_at->format('Y-m-d') : ($enr->created_at ? $enr->created_at->format('Y-m-d') : '2026-08-01'),
+                'enrolledDate'       => $enr->enrolled_at ? $enr->enrolled_at->format('j M Y') : ($enr->created_at ? $enr->created_at->format('j M Y') : '9 Nov 2026'),
                 'overviewHref'       => "/student/courses/{$c->id}/overview",
                 'learningHref'       => "/student/my-courses/{$c->id}/continue",
-                'certificateHref'    => '/student/certificates/my-certificates',
+                'has_certificate'    => $hasCert,
+                'certificateHref'    => $hasCert ? '/student/certificates/my-certificates' : null,
                 'themeColor'         => $themeColor,
                 'accentGradient'     => $gradient,
                 'illustrationType'   => $illus,
@@ -153,7 +161,7 @@ class CourseController extends Controller
         $counts = [
             'all'         => $allCoursesList->count(),
             'in_progress' => $allCoursesList->where('status', 'in_progress')->count(),
-            'not_started' => $allCoursesList->where('status', 'not_started')->count(),
+            'not_started' => $allCoursesList->whereIn('status', ['not_started', 'no_content'])->count(),
             'completed'   => $allCoursesList->where('status', 'completed')->count(),
         ];
 
@@ -162,7 +170,11 @@ class CourseController extends Controller
 
         // 6. Filter by status, category, and search query
         $filtered = $allCoursesList;
-        if ($status !== 'all') {
+        if ($status === 'not_started') {
+            $filtered = $filtered->whereIn('status', ['not_started', 'no_content']);
+        } elseif ($status !== 'all') {
+            $filtered = $filtered->where('status', $status);
+        }
             $filtered = $filtered->where('status', $status);
         }
         if ($category !== 'all') {

@@ -95,11 +95,14 @@ class DashboardController extends Controller
                         }
 
                         // Determine status & progress
-                        if ($enr->status === 'completed' || $calculatedProgress >= 100) {
+                        if ($totalLessons === 0) {
+                            $status = 'no_content';
+                            $progress = 0;
+                        } elseif ($totalLessons > 0 && $calculatedProgress >= 100) {
                             $status = 'completed';
                             $progress = 100;
                             $computedCompleted++;
-                        } elseif ($enr->status === 'active') {
+                        } elseif ($calculatedProgress > 0) {
                             $status = 'in_progress';
                             $progress = $calculatedProgress;
                             $computedActive++;

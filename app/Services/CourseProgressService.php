@@ -175,23 +175,25 @@ class CourseProgressService
         $percent = $totalLessons > 0 ? (int) floor(($doneCount / $totalLessons) * 100) : 0;
 
         // State calculation:
+        // no_content = totalLessons === 0
         // completed = done >= total && total > 0
         // in_progress = (done > 0 || anyWatched) && done < total
         // not_started = done == 0 && !anyWatched
-        if ($totalLessons > 0 && $doneCount >= $totalLessons) {
+        if ($totalLessons === 0) {
+            $state = 'no_content';
+            $percent = 0;
+            $stateLabel = 'Content Coming Soon';
+        } elseif ($totalLessons > 0 && $doneCount >= $totalLessons) {
             $state = 'completed';
             $percent = 100;
+            $stateLabel = 'Completed';
         } elseif ($doneCount > 0 || $anyWatched) {
             $state = 'in_progress';
+            $stateLabel = 'In Progress';
         } else {
             $state = 'not_started';
             $percent = 0;
-        }
-
-        // If enrollment explicitly marked completed, ensure completed state
-        if ($enrollment && $enrollment->status === 'completed') {
-            $state = 'completed';
-            $percent = 100;
+            $stateLabel = 'Not Started';
         }
 
         // Next / Current lesson resolution
@@ -220,14 +222,9 @@ class CourseProgressService
 
         $completedModules = (int) floor($totalModules * ($percent / 100));
 
-        // Format relative last activity
-        $lastActivityRelative = $latestActivity
-            ? $latestActivity->diffForHumans()
-            : ($enrollment && $enrollment->enrolled_at ? $enrollment->enrolled_at->diffForHumans() : null);
-
-        $lastActivityTimestamp = $latestActivity
-            ? $latestActivity->getTimestamp() * 1000
-            : ($enrollment && $enrollment->updated_at ? $enrollment->updated_at->getTimestamp() * 1000 : 0);
+        // Format relative last activity strictly from actual lesson activity
+        $lastActivityRelative = $latestActivity ? $latestActivity->diffForHumans() : null;
+        $lastActivityTimestamp = $latestActivity ? $latestActivity->getTimestamp() * 1000 : 0;
 
         return [
             'course'                 => $course,
@@ -235,7 +232,7 @@ class CourseProgressService
             'lessons_done'           => $doneCount,
             'percent'                => $percent,
             'state'                  => $state,
-            'state_label'            => $state === 'completed' ? 'Completed' : ($state === 'in_progress' ? 'In Progress' : 'Not Started'),
+            'state_label'            => $stateLabel,
             'last_activity_at'       => $lastActivityRelative,
             'last_activity_ms'       => $lastActivityTimestamp,
             'current_module_index'   => $currentModuleIndex,

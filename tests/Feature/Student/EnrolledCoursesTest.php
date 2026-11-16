@@ -121,4 +121,46 @@ class EnrolledCoursesTest extends TestCase
 
         $this->assertEquals('Dr. Mengly Chea', $cleanName);
     }
+
+    public function test_course_with_zero_lessons_has_no_content_state_and_zero_percent(): void
+    {
+        $student = User::factory()->create(['role' => 'student']);
+        $course = Course::factory()->create(['status' => 'published']);
+
+        $enrollment = Enrollment::create([
+            'student_id'  => $student->id,
+            'course_id'   => $course->id,
+            'status'      => 'completed', // Even if enrollment is marked completed by seeder!
+            'enrolled_at' => now(),
+            'source'      => 'admin',
+        ]);
+
+        $progressService = app(CourseProgressService::class);
+        $result = $progressService->calculate($student, $course);
+
+        $this->assertEquals(0, $result['percent']);
+        $this->assertEquals('no_content', $result['state']);
+        $this->assertEquals('Content Coming Soon', $result['state_label']);
+    }
+
+    public function test_course_with_completed_enrollment_status_but_zero_done_is_not_completed(): void
+    {
+        $student = User::factory()->create(['role' => 'student']);
+        $course = Course::factory()->create(['status' => 'published']);
+        Lesson::factory()->create(['course_id' => $course->id]);
+
+        $enrollment = Enrollment::create([
+            'student_id'  => $student->id,
+            'course_id'   => $course->id,
+            'status'      => 'completed', // Legacy or seeder completed
+            'enrolled_at' => now(),
+            'source'      => 'self',
+        ]);
+
+        $progressService = app(CourseProgressService::class);
+        $result = $progressService->calculate($student, $course);
+
+        $this->assertEquals(0, $result['percent']);
+        $this->assertEquals('not_started', $result['state']);
+    }
 }

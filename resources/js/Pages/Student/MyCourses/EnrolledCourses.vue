@@ -19,7 +19,7 @@ interface EnrolledCourseItem {
   title: string
   thumbnail?: string | null
   category: string
-  status: 'in_progress' | 'not_started' | 'completed'
+  status: 'in_progress' | 'not_started' | 'completed' | 'no_content'
   statusLabel: string
   progress: number
   teacher: {
@@ -40,7 +40,8 @@ interface EnrolledCourseItem {
   enrolledDate: string
   overviewHref: string
   learningHref: string
-  certificateHref?: string
+  has_certificate?: boolean
+  certificateHref?: string | null
   themeColor: string
   accentGradient: string
   illustrationType: 'web' | 'database' | 'python' | 'uiux'
@@ -78,6 +79,15 @@ const searchInputRef = ref<HTMLInputElement | null>(null)
 const copyLinkSuccessId = ref<number | null>(null)
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
+const getInitials = (name?: string) => {
+  if (!name) return 'SP'
+  const parts = name.trim().split(/\s+/)
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+  }
+  return name.slice(0, 2).toUpperCase()
+}
+
 // Real Enrolled Courses dynamically computed from Database props
 const courses = computed<EnrolledCourseItem[]>(() => {
   return props.enrollments || []
@@ -89,7 +99,7 @@ const counts = computed(() => {
   }
   const all = courses.value.length
   const in_progress = courses.value.filter(c => c.status === 'in_progress').length
-  const not_started = courses.value.filter(c => c.status === 'not_started').length
+  const not_started = courses.value.filter(c => c.status === 'not_started' || c.status === 'no_content').length
   const completed = courses.value.filter(c => c.status === 'completed').length
   return { all, in_progress, not_started, completed }
 })
@@ -481,108 +491,111 @@ onUnmounted(() => {
             class="bg-white dark:bg-[#0c1222] border border-slate-200/90 dark:border-slate-800 hover:border-purple-400 dark:hover:border-purple-500/40 rounded-3xl overflow-hidden shadow-sm dark:shadow-2xl transition-all duration-200 hover:-translate-y-1 group flex flex-col justify-between cursor-pointer relative"
           >
             <!-- TOP CARD HEADER / THUMBNAIL OR 3D ILLUSTRATION BOX -->
-            <div class="relative w-full h-48 bg-slate-900 dark:bg-slate-950 flex items-center justify-center overflow-hidden border-b border-slate-100 dark:border-slate-800/80">
+            <div class="relative w-full h-48 border-b border-slate-100 dark:border-slate-800/80">
               
-              <!-- Real Image Thumbnail if available -->
-              <div v-if="course.thumbnail" class="w-full h-full relative overflow-hidden">
-                <img
-                  :src="course.thumbnail"
-                  :alt="course.title"
-                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  @error="(e: any) => { e.target.style.display = 'none'; (course as any)._thumbError = true }"
-                />
+              <!-- Inner visual wrapper with overflow-hidden for image & glow -->
+              <div class="absolute inset-0 bg-slate-900 dark:bg-slate-950 flex items-center justify-center overflow-hidden">
+                <!-- Real Image Thumbnail if available -->
+                <div v-if="course.thumbnail" class="w-full h-full relative overflow-hidden">
+                  <img
+                    :src="course.thumbnail"
+                    :alt="course.title"
+                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    @error="(e: any) => { e.target.style.display = 'none'; (course as any)._thumbError = true }"
+                  />
+                </div>
+
+                <!-- Ambient Glow & Radial Gradient Fallback -->
+                <template v-if="!course.thumbnail || (course as any)._thumbError">
+                  <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 dark:from-[#0c1222] via-transparent to-transparent z-10"></div>
+                  <div
+                    class="absolute -inset-10 opacity-30 blur-2xl transition-all group-hover:opacity-50"
+                    :class="[
+                      course.illustrationType === 'web' ? 'bg-purple-600' :
+                      course.illustrationType === 'database' ? 'bg-indigo-600' :
+                      course.illustrationType === 'python' ? 'bg-blue-600' : 'bg-emerald-600'
+                    ]"
+                  ></div>
+
+                  <!-- 1. Web Development (Laptop with HTML, CSS, JS cubes) -->
+                  <div v-if="course.illustrationType === 'web'" class="relative flex items-center justify-center scale-95 group-hover:scale-105 transition-transform duration-300">
+                    <div class="w-44 h-28 rounded-lg bg-slate-900 border-2 border-indigo-500/50 shadow-2xl flex flex-col p-2 relative overflow-hidden bg-radial from-slate-900 to-slate-950">
+                      <div class="flex items-center gap-1 mb-1 border-b border-slate-800 pb-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        <span class="text-[8px] text-slate-500 font-mono ml-1">app.js</span>
+                      </div>
+                      <div class="space-y-1 font-mono text-[8px] text-slate-400">
+                        <div class="text-purple-400">const app = Vue.createApp()</div>
+                        <div class="text-cyan-400">app.use(router).mount('#app')</div>
+                        <div class="text-emerald-400">// Happy Coding!</div>
+                      </div>
+                      <div class="absolute -right-2 top-3 flex flex-col gap-1.5 z-20">
+                        <span class="px-2 py-0.5 bg-orange-600 text-white font-black text-[10px] rounded shadow-lg ring-1 ring-orange-400 transform rotate-6 animate-pulse">HTML</span>
+                        <span class="px-2 py-0.5 bg-blue-600 text-white font-black text-[10px] rounded shadow-lg ring-1 ring-blue-400 transform -rotate-3">CSS</span>
+                        <span class="px-2 py-0.5 bg-amber-500 text-slate-950 font-black text-[10px] rounded shadow-lg ring-1 ring-amber-300 transform rotate-12">JS</span>
+                      </div>
+                    </div>
+                    <div class="absolute -bottom-2 w-52 h-2.5 bg-slate-800 rounded-b-xl border-t border-slate-700 shadow-md"></div>
+                  </div>
+
+                  <!-- 2. Database Systems -->
+                  <div v-else-if="course.illustrationType === 'database'" class="relative flex items-center justify-center gap-4 scale-95 group-hover:scale-105 transition-transform duration-300">
+                    <div class="flex flex-col gap-1 items-center">
+                      <div class="w-16 h-5 rounded-full bg-orange-500/80 border border-orange-400 shadow-lg shadow-orange-500/50 flex items-center justify-center">
+                        <span class="w-2 h-1 bg-white/70 rounded-full"></span>
+                      </div>
+                      <div class="w-16 h-5 rounded-full bg-orange-600/90 border border-orange-500 shadow-md flex items-center justify-center"></div>
+                      <div class="w-16 h-5 rounded-full bg-orange-700 border border-orange-600 shadow-sm flex items-center justify-center"></div>
+                    </div>
+                    <div class="flex flex-col gap-1 items-center">
+                      <div class="w-16 h-5 rounded-full bg-purple-500/80 border border-purple-400 shadow-lg shadow-purple-500/50 flex items-center justify-center">
+                        <span class="w-2 h-1 bg-white/70 rounded-full"></span>
+                      </div>
+                      <div class="w-16 h-5 rounded-full bg-purple-600/90 border border-purple-500 shadow-md flex items-center justify-center"></div>
+                      <div class="w-16 h-5 rounded-full bg-purple-700 border border-purple-600 shadow-sm flex items-center justify-center"></div>
+                    </div>
+                    <div class="flex flex-col gap-1 items-center">
+                      <div class="w-16 h-5 rounded-full bg-cyan-500/80 border border-cyan-400 shadow-lg shadow-cyan-500/50 flex items-center justify-center">
+                        <span class="w-2 h-1 bg-white/70 rounded-full"></span>
+                      </div>
+                      <div class="w-16 h-5 rounded-full bg-cyan-600/90 border border-cyan-500 shadow-md flex items-center justify-center"></div>
+                      <div class="w-16 h-5 rounded-full bg-cyan-700 border border-cyan-600 shadow-sm flex items-center justify-center"></div>
+                    </div>
+                  </div>
+
+                  <!-- 3. Python / AI Programming -->
+                  <div v-else-if="course.illustrationType === 'python'" class="relative flex items-center justify-center scale-100 group-hover:scale-110 transition-transform duration-300">
+                    <div class="relative w-24 h-24 flex items-center justify-center">
+                      <div class="absolute top-1 left-2 w-14 h-12 bg-gradient-to-br from-blue-500 to-blue-700 rounded-t-2xl rounded-l-2xl shadow-lg shadow-blue-500/40 border border-blue-400/50 flex items-start justify-end p-2">
+                        <span class="w-2 h-2 rounded-full bg-white shadow-xs"></span>
+                      </div>
+                      <div class="absolute bottom-1 right-2 w-14 h-12 bg-gradient-to-br from-amber-400 to-amber-600 rounded-b-2xl rounded-r-2xl shadow-lg shadow-amber-500/40 border border-amber-300/50 flex items-end justify-start p-2">
+                        <span class="w-2 h-2 rounded-full bg-slate-900 shadow-xs"></span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 4. UI/UX & Design -->
+                  <div v-else class="relative flex items-center justify-center gap-3 scale-95 group-hover:scale-105 transition-transform duration-300">
+                    <div class="w-20 h-28 rounded-xl bg-slate-900 border-2 border-purple-500/60 shadow-xl p-1.5 flex flex-col justify-between">
+                      <div class="w-4 h-1 bg-slate-700 rounded-full mx-auto"></div>
+                      <div class="w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500 flex items-center justify-center mx-auto text-[9px] text-purple-300 font-bold">
+                        ✓
+                      </div>
+                      <div class="space-y-1">
+                        <div class="w-full h-1 bg-slate-700 rounded"></div>
+                        <div class="w-2/3 h-1 bg-purple-500/40 rounded"></div>
+                      </div>
+                    </div>
+                    <div class="w-28 h-28 rounded-2xl bg-gradient-to-br from-purple-900/60 to-slate-900 border border-purple-500/50 shadow-2xl flex flex-col items-center justify-center p-2">
+                      <span class="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400">UI/UX</span>
+                      <span class="text-[9px] text-purple-300 font-mono mt-1">Design System</span>
+                    </div>
+                  </div>
+                </template>
               </div>
-
-              <!-- Ambient Glow & Radial Gradient Fallback -->
-              <template v-if="!course.thumbnail || (course as any)._thumbError">
-                <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 dark:from-[#0c1222] via-transparent to-transparent z-10"></div>
-                <div
-                  class="absolute -inset-10 opacity-30 blur-2xl transition-all group-hover:opacity-50"
-                  :class="[
-                    course.illustrationType === 'web' ? 'bg-purple-600' :
-                    course.illustrationType === 'database' ? 'bg-indigo-600' :
-                    course.illustrationType === 'python' ? 'bg-blue-600' : 'bg-emerald-600'
-                  ]"
-                ></div>
-
-                <!-- 1. Web Development (Laptop with HTML, CSS, JS cubes) -->
-                <div v-if="course.illustrationType === 'web'" class="relative flex items-center justify-center scale-95 group-hover:scale-105 transition-transform duration-300">
-                  <div class="w-44 h-28 rounded-lg bg-slate-900 border-2 border-indigo-500/50 shadow-2xl flex flex-col p-2 relative overflow-hidden bg-radial from-slate-900 to-slate-950">
-                    <div class="flex items-center gap-1 mb-1 border-b border-slate-800 pb-1">
-                      <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-                      <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                      <span class="text-[8px] text-slate-500 font-mono ml-1">app.js</span>
-                    </div>
-                    <div class="space-y-1 font-mono text-[8px] text-slate-400">
-                      <div class="text-purple-400">const app = Vue.createApp()</div>
-                      <div class="text-cyan-400">app.use(router).mount('#app')</div>
-                      <div class="text-emerald-400">// Happy Coding!</div>
-                    </div>
-                    <div class="absolute -right-2 top-3 flex flex-col gap-1.5 z-20">
-                      <span class="px-2 py-0.5 bg-orange-600 text-white font-black text-[10px] rounded shadow-lg ring-1 ring-orange-400 transform rotate-6 animate-pulse">HTML</span>
-                      <span class="px-2 py-0.5 bg-blue-600 text-white font-black text-[10px] rounded shadow-lg ring-1 ring-blue-400 transform -rotate-3">CSS</span>
-                      <span class="px-2 py-0.5 bg-amber-500 text-slate-950 font-black text-[10px] rounded shadow-lg ring-1 ring-amber-300 transform rotate-12">JS</span>
-                    </div>
-                  </div>
-                  <div class="absolute -bottom-2 w-52 h-2.5 bg-slate-800 rounded-b-xl border-t border-slate-700 shadow-md"></div>
-                </div>
-
-                <!-- 2. Database Systems -->
-                <div v-else-if="course.illustrationType === 'database'" class="relative flex items-center justify-center gap-4 scale-95 group-hover:scale-105 transition-transform duration-300">
-                  <div class="flex flex-col gap-1 items-center">
-                    <div class="w-16 h-5 rounded-full bg-orange-500/80 border border-orange-400 shadow-lg shadow-orange-500/50 flex items-center justify-center">
-                      <span class="w-2 h-1 bg-white/70 rounded-full"></span>
-                    </div>
-                    <div class="w-16 h-5 rounded-full bg-orange-600/90 border border-orange-500 shadow-md flex items-center justify-center"></div>
-                    <div class="w-16 h-5 rounded-full bg-orange-700 border border-orange-600 shadow-sm flex items-center justify-center"></div>
-                  </div>
-                  <div class="flex flex-col gap-1 items-center">
-                    <div class="w-16 h-5 rounded-full bg-purple-500/80 border border-purple-400 shadow-lg shadow-purple-500/50 flex items-center justify-center">
-                      <span class="w-2 h-1 bg-white/70 rounded-full"></span>
-                    </div>
-                    <div class="w-16 h-5 rounded-full bg-purple-600/90 border border-purple-500 shadow-md flex items-center justify-center"></div>
-                    <div class="w-16 h-5 rounded-full bg-purple-700 border border-purple-600 shadow-sm flex items-center justify-center"></div>
-                  </div>
-                  <div class="flex flex-col gap-1 items-center">
-                    <div class="w-16 h-5 rounded-full bg-cyan-500/80 border border-cyan-400 shadow-lg shadow-cyan-500/50 flex items-center justify-center">
-                      <span class="w-2 h-1 bg-white/70 rounded-full"></span>
-                    </div>
-                    <div class="w-16 h-5 rounded-full bg-cyan-600/90 border border-cyan-500 shadow-md flex items-center justify-center"></div>
-                    <div class="w-16 h-5 rounded-full bg-cyan-700 border border-cyan-600 shadow-sm flex items-center justify-center"></div>
-                  </div>
-                </div>
-
-                <!-- 3. Python / AI Programming -->
-                <div v-else-if="course.illustrationType === 'python'" class="relative flex items-center justify-center scale-100 group-hover:scale-110 transition-transform duration-300">
-                  <div class="relative w-24 h-24 flex items-center justify-center">
-                    <div class="absolute top-1 left-2 w-14 h-12 bg-gradient-to-br from-blue-500 to-blue-700 rounded-t-2xl rounded-l-2xl shadow-lg shadow-blue-500/40 border border-blue-400/50 flex items-start justify-end p-2">
-                      <span class="w-2 h-2 rounded-full bg-white shadow-xs"></span>
-                    </div>
-                    <div class="absolute bottom-1 right-2 w-14 h-12 bg-gradient-to-br from-amber-400 to-amber-600 rounded-b-2xl rounded-r-2xl shadow-lg shadow-amber-500/40 border border-amber-300/50 flex items-end justify-start p-2">
-                      <span class="w-2 h-2 rounded-full bg-slate-900 shadow-xs"></span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- 4. UI/UX & Design -->
-                <div v-else class="relative flex items-center justify-center gap-3 scale-95 group-hover:scale-105 transition-transform duration-300">
-                  <div class="w-20 h-28 rounded-xl bg-slate-900 border-2 border-purple-500/60 shadow-xl p-1.5 flex flex-col justify-between">
-                    <div class="w-4 h-1 bg-slate-700 rounded-full mx-auto"></div>
-                    <div class="w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500 flex items-center justify-center mx-auto text-[9px] text-purple-300 font-bold">
-                      ✓
-                    </div>
-                    <div class="space-y-1">
-                      <div class="w-full h-1 bg-slate-700 rounded"></div>
-                      <div class="w-2/3 h-1 bg-purple-500/40 rounded"></div>
-                    </div>
-                  </div>
-                  <div class="w-28 h-28 rounded-2xl bg-gradient-to-br from-purple-900/60 to-slate-900 border border-purple-500/50 shadow-2xl flex flex-col items-center justify-center p-2">
-                    <span class="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400">UI/UX</span>
-                    <span class="text-[9px] text-purple-300 font-mono mt-1">Design System</span>
-                  </div>
-                </div>
-              </template>
 
               <!-- Status Badges (Top-Left) -->
               <div class="absolute top-4 left-4 z-20 flex items-center gap-2">
@@ -595,9 +608,17 @@ onUnmounted(() => {
                   NEW
                 </span>
 
+                <!-- Content Coming Soon Badge (Amber) -->
+                <span
+                  v-if="course.status === 'no_content'"
+                  class="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-md backdrop-blur-md"
+                >
+                  Content Coming Soon
+                </span>
+
                 <!-- Not Started Badge (Slate / Gray) -->
                 <span
-                  v-if="course.status === 'not_started'"
+                  v-else-if="course.status === 'not_started'"
                   class="px-3 py-1 rounded-full text-xs font-bold bg-slate-800/90 text-slate-200 border border-slate-700/60 shadow-md backdrop-blur-md"
                 >
                   Not Started
@@ -621,7 +642,7 @@ onUnmounted(() => {
               </div>
 
               <!-- 3-Dots Context Menu Button (Top-Right) -->
-              <div class="absolute top-4 right-4 z-20" @click.stop>
+              <div class="absolute top-4 right-4 z-30" @click.stop>
                 <button
                   @click="toggleDropdown(course.id, $event)"
                   type="button"
@@ -634,10 +655,10 @@ onUnmounted(() => {
                   </svg>
                 </button>
 
-                <!-- Context Dropdown Menu -->
+                <!-- Context Dropdown Menu (Z-50, Overflow Safe) -->
                 <div
                   v-show="activeDropdownId === course.id"
-                  class="absolute right-0 mt-2 w-56 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-1.5 z-30 space-y-1 text-xs"
+                  class="absolute right-0 mt-2 w-56 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-1.5 z-50 space-y-1 text-xs"
                 >
                   <Link
                     :href="course.overviewHref"
@@ -646,21 +667,25 @@ onUnmounted(() => {
                     <span>ℹ️</span>
                     <span>Course Details</span>
                   </Link>
+
                   <Link
+                    v-if="course.status !== 'no_content'"
                     :href="course.learningHref"
                     class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-600/20 hover:text-purple-600 dark:hover:text-purple-300 font-medium transition-colors"
                   >
                     <span>▶️</span>
-                    <span>{{ course.status === 'not_started' ? 'Start Learning' : 'Continue Learning' }}</span>
+                    <span>{{ course.status === 'not_started' ? 'Start Learning' : (course.status === 'completed' ? 'Review Course' : 'Continue Learning') }}</span>
                   </Link>
+
                   <Link
-                    v-if="course.status === 'completed' && course.certificateHref"
+                    v-if="course.status === 'completed' && course.has_certificate && course.certificateHref"
                     :href="course.certificateHref"
                     class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-600/20 font-medium transition-colors"
                   >
                     <span>🏆</span>
                     <span>Download Certificate</span>
                   </Link>
+
                   <button
                     @click="copyCourseLink(course)"
                     type="button"
@@ -672,16 +697,17 @@ onUnmounted(() => {
                     </span>
                     <span v-if="copyLinkSuccessId === course.id" class="text-purple-600 dark:text-purple-400 font-bold">✓</span>
                   </button>
+
                   <button
-                    @click="handleSaveCourseOffline(course)"
                     type="button"
-                    class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium text-left cursor-pointer transition-colors"
+                    disabled
+                    class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-slate-400 dark:text-slate-500 font-medium text-left cursor-not-allowed transition-colors opacity-70"
+                    title="Offline storage coming soon"
                   >
                     <span class="flex items-center gap-2.5">
                       <span>📥</span>
-                      <span>{{ cachedCourseIds.includes(course.id) ? 'Saved Offline' : 'Save for Offline' }}</span>
+                      <span>Save for Offline (Coming soon)</span>
                     </span>
-                    <span v-if="cachedCourseIds.includes(course.id)" class="text-emerald-600 dark:text-emerald-400 font-bold">✓</span>
                   </button>
                 </div>
               </div>
@@ -699,13 +725,18 @@ onUnmounted(() => {
                   </h3>
 
                   <div class="flex items-center gap-2 mt-2">
-                    <img
-                      :src="course.teacher.avatar"
-                      :alt="course.teacher.name"
-                      loading="lazy"
-                      decoding="async"
-                      class="w-6 h-6 rounded-full object-cover border border-purple-500/40 shrink-0"
-                    />
+                    <div class="w-6 h-6 rounded-full overflow-hidden shrink-0 border border-purple-500/40 flex items-center justify-center bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 text-[10px] font-bold">
+                      <img
+                        v-if="course.teacher.avatar && !(course as any)._avatarError"
+                        :src="course.teacher.avatar"
+                        :alt="course.teacher.name"
+                        loading="lazy"
+                        decoding="async"
+                        class="w-full h-full object-cover"
+                        @error="(course as any)._avatarError = true"
+                      />
+                      <span v-else>{{ getInitials(course.teacher.name) }}</span>
+                    </div>
                     <Link
                       :href="course.overviewHref"
                       @click.stop
@@ -725,12 +756,14 @@ onUnmounted(() => {
                 <div class="space-y-1.5 pt-1">
                   <div class="flex items-center justify-between text-xs font-bold">
                     <span class="text-slate-500 dark:text-slate-400 text-[11px]">
-                      {{ course.status === 'completed' ? 'Course Completed' : (course.status === 'not_started' ? 'Not Started' : 'Progress') }}
+                      {{ course.status === 'no_content' ? 'Content Coming Soon' : (course.status === 'completed' ? 'Course Completed' : (course.status === 'not_started' ? 'Not Started' : 'Progress')) }}
                     </span>
                     <span
                       :class="[
                         course.status === 'completed' ? 'text-emerald-600 dark:text-emerald-400 font-black' :
-                        course.status === 'not_started' ? 'text-slate-500 dark:text-slate-400' : 'text-purple-600 dark:text-purple-400 font-black'
+                        course.status === 'in_progress' ? 'text-purple-600 dark:text-purple-400 font-black' :
+                        course.status === 'no_content' ? 'text-amber-600 dark:text-amber-400 font-bold' :
+                        'text-slate-500 dark:text-slate-400 font-bold'
                       ]"
                     >
                       {{ course.progress }}%
@@ -742,7 +775,7 @@ onUnmounted(() => {
                       :class="[
                         course.status === 'completed'
                           ? 'bg-emerald-500'
-                          : (course.status === 'not_started' ? 'bg-slate-300 dark:bg-slate-700' : 'bg-gradient-to-r from-purple-600 via-indigo-500 to-purple-400'),
+                          : (course.status === 'in_progress' ? 'bg-gradient-to-r from-purple-600 via-indigo-500 to-purple-400' : 'bg-slate-300 dark:bg-slate-700'),
                         'h-full rounded-full transition-all duration-500'
                       ]"
                       :style="{ width: course.progress + '%' }"
@@ -752,18 +785,34 @@ onUnmounted(() => {
 
                 <!-- Metadata Row (Chapter, Lessons, Last Activity) -->
                 <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800/60 mt-2 font-['Kantumruy_Pro',sans-serif]">
-                  <div class="flex items-center gap-1.5">
-                    <span>📖</span>
-                    <span>Module {{ course.currentModuleIndex || 1 }} of {{ course.totalChapters }}</span>
-                  </div>
-                  <div class="flex items-center gap-1.5">
-                    <span>📑</span>
-                    <span>{{ course.completedLessons }} / {{ course.totalLessons }} Lessons</span>
-                  </div>
-                  <div class="flex items-center gap-1.5">
-                    <span>⏱</span>
-                    <span>{{ course.lastAccessed || 'Not started yet' }}</span>
-                  </div>
+                  <template v-if="course.totalLessons === 0">
+                    <div class="flex items-center gap-1.5">
+                      <span>📖</span>
+                      <span>Course Overview</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                      <span>📑</span>
+                      <span>0 Lessons</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                      <span>⏱</span>
+                      <span>Content coming soon</span>
+                    </div>
+                  </template>
+                  <template v-else>
+                    <div class="flex items-center gap-1.5">
+                      <span>📖</span>
+                      <span>Module {{ course.currentModuleIndex || 1 }} of {{ course.totalChapters }}</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                      <span>📑</span>
+                      <span>{{ course.completedLessons }} / {{ course.totalLessons }} Lessons</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                      <span>⏱</span>
+                      <span>{{ course.lastAccessed || 'Not started yet' }}</span>
+                    </div>
+                  </template>
                 </div>
               </div>
 
@@ -772,7 +821,16 @@ onUnmounted(() => {
                 
                 <!-- Main Action Button -->
                 <Link
-                  v-if="course.status === 'in_progress'"
+                  v-if="course.status === 'no_content'"
+                  :href="course.overviewHref"
+                  class="col-span-2 py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-600/20 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all text-center cursor-pointer min-h-[44px]"
+                >
+                  <span>ⓘ</span>
+                  <span>Course Details</span>
+                </Link>
+
+                <Link
+                  v-else-if="course.status === 'in_progress'"
                   :href="course.learningHref"
                   class="py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-600/20 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all text-center cursor-pointer min-h-[44px]"
                 >
@@ -799,23 +857,25 @@ onUnmounted(() => {
                 </Link>
 
                 <!-- Secondary Button (Course Details or Certificate) -->
-                <Link
-                  v-if="course.status === 'completed' && course.certificateHref"
-                  :href="course.certificateHref"
-                  class="py-2.5 px-3 rounded-xl bg-emerald-500/10 dark:bg-emerald-600/20 hover:bg-emerald-500/20 dark:hover:bg-emerald-600/30 text-emerald-700 dark:text-emerald-300 font-bold text-xs border border-emerald-500/30 dark:border-emerald-500/40 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all text-center cursor-pointer min-h-[44px]"
-                >
-                  <span>🏆</span>
-                  <span>Certificate</span>
-                </Link>
+                <template v-if="course.status !== 'no_content'">
+                  <Link
+                    v-if="course.status === 'completed' && course.has_certificate && course.certificateHref"
+                    :href="course.certificateHref"
+                    class="py-2.5 px-3 rounded-xl bg-emerald-500/10 dark:bg-emerald-600/20 hover:bg-emerald-500/20 dark:hover:bg-emerald-600/30 text-emerald-700 dark:text-emerald-300 font-bold text-xs border border-emerald-500/30 dark:border-emerald-500/40 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all text-center cursor-pointer min-h-[44px]"
+                  >
+                    <span>🏆</span>
+                    <span>Certificate</span>
+                  </Link>
 
-                <Link
-                  v-else
-                  :href="course.overviewHref"
-                  class="py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-semibold text-xs border border-slate-200 dark:border-slate-800 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all text-center cursor-pointer min-h-[44px]"
-                >
-                  <span>ⓘ</span>
-                  <span>Course Details</span>
-                </Link>
+                  <Link
+                    v-else
+                    :href="course.overviewHref"
+                    class="py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:white font-semibold text-xs border border-slate-200 dark:border-slate-800 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all text-center cursor-pointer min-h-[44px]"
+                  >
+                    <span>ⓘ</span>
+                    <span>Course Details</span>
+                  </Link>
+                </template>
 
               </div>
 
@@ -856,6 +916,7 @@ onUnmounted(() => {
                   <span
                     :class="[
                       course.status === 'completed' ? 'bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-500/30' :
+                      course.status === 'no_content' ? 'bg-amber-500/10 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30' :
                       course.status === 'not_started' ? 'bg-slate-500/10 dark:bg-slate-500/20 text-slate-700 dark:text-slate-400 border-slate-500/30' : 'bg-purple-500/10 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-500/30',
                       'px-2 py-0.5 rounded-full text-[10px] font-bold border'
                     ]"
@@ -875,7 +936,8 @@ onUnmounted(() => {
                     • {{ formatEnrollmentMeta(course) }}
                   </span>
                   <span>•</span>
-                  <span>{{ course.completedLessons }} / {{ course.totalLessons }} Lessons</span>
+                  <span v-if="course.totalLessons > 0">{{ course.completedLessons }} / {{ course.totalLessons }} Lessons</span>
+                  <span v-else>No lessons yet</span>
                 </div>
               </div>
             </div>
@@ -885,13 +947,13 @@ onUnmounted(() => {
               <div class="w-36 space-y-1">
                 <div class="flex items-center justify-between text-xs font-bold">
                   <span class="text-slate-500 dark:text-slate-400 text-[10px]">Progress</span>
-                  <span :class="course.status === 'completed' ? 'text-emerald-600 dark:text-emerald-400' : (course.status === 'not_started' ? 'text-slate-500' : 'text-purple-600 dark:text-purple-400')">
+                  <span :class="course.status === 'completed' ? 'text-emerald-600 dark:text-emerald-400' : (course.status === 'in_progress' ? 'text-purple-600 dark:text-purple-400' : 'text-slate-500 dark:text-slate-400')">
                     {{ course.progress }}%
                   </span>
                 </div>
                 <div class="w-full h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                   <div
-                    :class="course.status === 'completed' ? 'bg-emerald-500' : (course.status === 'not_started' ? 'bg-slate-300 dark:bg-slate-700' : 'bg-purple-600')"
+                    :class="course.status === 'completed' ? 'bg-emerald-500' : (course.status === 'in_progress' ? 'bg-purple-600' : 'bg-slate-300 dark:bg-slate-700')"
                     class="h-full rounded-full transition-all duration-300"
                     :style="{ width: course.progress + '%' }"
                   ></div>
@@ -900,7 +962,14 @@ onUnmounted(() => {
 
               <div class="flex items-center gap-2">
                 <Link
-                  v-if="course.status === 'in_progress'"
+                  v-if="course.status === 'no_content'"
+                  :href="course.overviewHref"
+                  class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-600/20 cursor-pointer min-h-[38px] flex items-center"
+                >
+                  Details
+                </Link>
+                <Link
+                  v-else-if="course.status === 'in_progress'"
                   :href="course.learningHref"
                   class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-600/20 cursor-pointer min-h-[38px] flex items-center"
                 >
@@ -923,7 +992,7 @@ onUnmounted(() => {
 
                 <Link
                   :href="course.overviewHref"
-                  class="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 cursor-pointer min-w-[38px] min-h-[38px] flex items-center justify-center"
+                  class="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 cursor-pointer min-w-[38px] min-h-[38px] flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                   title="Course Details"
                 >
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
