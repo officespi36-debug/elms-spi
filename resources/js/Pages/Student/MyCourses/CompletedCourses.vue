@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Link, router } from '@inertiajs/vue3'
+import { Link, router, usePage } from '@inertiajs/vue3'
 import StudentLayout from '@/Layouts/StudentLayout.vue'
+import { i18n } from '@/Services/i18n'
+
+const page = usePage<any>()
+const currentLang = computed(() => i18n.locale.value)
+const authUser = computed(() => page.props.auth?.user || {})
 
 interface CompletedCourseItem {
   id: number
@@ -78,13 +83,15 @@ const averageQuizScore = computed(() => {
 })
 
 const quizScoreLabel = computed(() => {
-  if (courses.value.length === 0) return 'No quizzes completed yet'
+  if (courses.value.length === 0) {
+    return currentLang.value === 'km' ? 'មិនទាន់មានកម្រងសំណួរបានបញ្ចប់' : 'No quizzes completed yet'
+  }
   const score = averageQuizScore.value
-  if (score >= 90) return 'Excellent Performance'
-  if (score >= 80) return 'Very Good Performance'
-  if (score >= 70) return 'Good Performance'
-  if (score >= 60) return 'Needs Improvement'
-  return 'Needs Attention'
+  if (score >= 90) return currentLang.value === 'km' ? 'លទ្ធផលល្អប្រសើរ' : 'Excellent Performance'
+  if (score >= 80) return currentLang.value === 'km' ? 'លទ្ធផលល្អណាស់' : 'Very Good Performance'
+  if (score >= 70) return currentLang.value === 'km' ? 'លទ្ធផលល្អ' : 'Good Performance'
+  if (score >= 60) return currentLang.value === 'km' ? 'ត្រូវការកែលម្អ' : 'Needs Improvement'
+  return currentLang.value === 'km' ? 'ត្រូវការយកចិត្តទុកដាក់' : 'Needs Attention'
 })
 
 // Latest Certificate
@@ -139,7 +146,7 @@ const navigateToReview = (course: CompletedCourseItem) => {
 
 <template>
   <StudentLayout
-    title="Completed Courses"
+    :title="currentLang === 'km' ? 'វគ្គសិក្សាដែលបានបញ្ចប់' : 'Completed Courses'"
     :breadcrumbs="[
       { label: 'Dashboard', href: '/student/dashboard' },
       { label: 'My Courses', href: '/student/my-courses/enrolled' },
@@ -153,14 +160,14 @@ const navigateToReview = (course: CompletedCourseItem) => {
         <div>
           <div class="flex items-center gap-2.5">
             <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-              Completed Courses
+              {{ currentLang === 'km' ? 'វគ្គសិក្សាដែលបានបញ្ចប់' : 'Completed Courses' }}
             </h1>
             <span class="w-6 h-6 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 dark:border-emerald-500/40 flex items-center justify-center text-xs font-bold shadow-xs">
               ✓
             </span>
           </div>
           <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
-            Courses you have successfully completed.
+            {{ currentLang === 'km' ? 'វគ្គសិក្សាទាំងអស់ដែលអ្នកបានបញ្ចប់ដោយជោគជ័យ។' : 'Courses you have successfully completed.' }}
           </p>
         </div>
 
@@ -175,7 +182,7 @@ const navigateToReview = (course: CompletedCourseItem) => {
             <input
               v-model="searchQuery"
               type="text"
-              placeholder="Search courses..."
+              :placeholder="currentLang === 'km' ? 'ស្វែងរកវគ្គសិក្សា...' : 'Search courses...'"
               class="w-full pl-10 pr-16 py-2 rounded-xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 focus:border-purple-500 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500/50 shadow-xs dark:shadow-inner transition-all"
             />
             <div class="absolute right-2.5 flex items-center gap-1">
@@ -208,7 +215,7 @@ const navigateToReview = (course: CompletedCourseItem) => {
               'px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-2 transition-all cursor-pointer shadow-xs'
             ]"
           >
-            <span>All Completed</span>
+            <span>{{ currentLang === 'km' ? 'បានបញ្ចប់ទាំងអស់' : 'All Completed' }}</span>
             <span :class="[activeTab === 'all' ? 'bg-purple-700/80 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300', 'px-1.5 py-0.5 rounded-md text-[10px] font-bold']">
               {{ totalCount }}
             </span>
@@ -224,7 +231,7 @@ const navigateToReview = (course: CompletedCourseItem) => {
               'px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-2 transition-all cursor-pointer shadow-xs'
             ]"
           >
-            <span>Certificates Earned</span>
+            <span>{{ currentLang === 'km' ? 'ទទួលបានវិញ្ញាបនបត្រ' : 'Certificates Earned' }}</span>
             <span :class="[activeTab === 'certificates' ? 'bg-purple-700/80 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300', 'px-1.5 py-0.5 rounded-md text-[10px] font-bold']">
               {{ certEarnedCount }}
             </span>
@@ -240,7 +247,7 @@ const navigateToReview = (course: CompletedCourseItem) => {
               'px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-2 transition-all cursor-pointer shadow-xs'
             ]"
           >
-            <span>No Certificate</span>
+            <span>{{ currentLang === 'km' ? 'មិនទាន់មានវិញ្ញាបនបត្រ' : 'No Certificate' }}</span>
             <span :class="[activeTab === 'no_certificate' ? 'bg-purple-700/80 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300', 'px-1.5 py-0.5 rounded-md text-[10px] font-bold']">
               {{ noCertCount }}
             </span>
@@ -254,11 +261,11 @@ const navigateToReview = (course: CompletedCourseItem) => {
               v-model="selectedSort"
               class="appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300 text-xs rounded-xl pl-3 pr-8 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-500/50 cursor-pointer shadow-xs"
             >
-              <option value="newest">Sort by: Newest</option>
-              <option value="oldest">Sort by: Oldest</option>
-              <option value="name">Course Name (A-Z)</option>
-              <option value="highest_score">Highest Quiz Score</option>
-              <option value="most_time">Most Study Time</option>
+              <option value="newest">{{ currentLang === 'km' ? 'តម្រៀប៖ ថ្មីបំផុត' : 'Sort by: Newest' }}</option>
+              <option value="oldest">{{ currentLang === 'km' ? 'តម្រៀប៖ ចាស់បំផុត' : 'Sort by: Oldest' }}</option>
+              <option value="name">{{ currentLang === 'km' ? 'ឈ្មោះវគ្គសិក្សា (A-Z)' : 'Course Name (A-Z)' }}</option>
+              <option value="highest_score">{{ currentLang === 'km' ? 'ពិន្ទុ Quiz ខ្ពស់បំផុត' : 'Highest Quiz Score' }}</option>
+              <option value="most_time">{{ currentLang === 'km' ? 'ម៉ោងសិក្សាច្រើនបំផុត' : 'Most Study Time' }}</option>
             </select>
             <div class="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 dark:text-slate-500 text-xs">
               ▼
@@ -328,7 +335,7 @@ const navigateToReview = (course: CompletedCourseItem) => {
                   <!-- Completed Status Badge (Top-Left) -->
                   <div class="absolute top-3.5 left-3.5 z-20">
                     <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-600 text-white shadow-md shadow-emerald-600/30 backdrop-blur-md flex items-center gap-1">
-                      <span>Completed</span>
+                      <span>{{ currentLang === 'km' ? 'បានបញ្ចប់' : 'Completed' }}</span>
                     </span>
                   </div>
 
@@ -436,8 +443,7 @@ const navigateToReview = (course: CompletedCourseItem) => {
                         </div>
 
                         <div class="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400">
-                          <span>📅</span>
-                          <span>Completed on: {{ course.completedDate }}</span>
+                          <span>{{ currentLang === 'km' ? 'បានបញ្ចប់៖' : 'Completed on:' }} {{ course.completedDate }}</span>
                         </div>
                       </div>
                     </div>
@@ -450,17 +456,14 @@ const navigateToReview = (course: CompletedCourseItem) => {
                     <!-- Metadata Row (Chapters | Lessons | Time) -->
                     <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800/60">
                       <div class="flex items-center gap-1">
-                        <span>📖</span>
-                        <span>{{ course.chaptersCount }} Chapters</span>
+                        <span>{{ course.chaptersCount }} {{ currentLang === 'km' ? 'ជំពូក' : 'Chapters' }}</span>
                       </div>
                       <span class="text-slate-300 dark:text-slate-700">|</span>
                       <div class="flex items-center gap-1">
-                        <span>📑</span>
-                        <span>{{ course.lessonsCount }} Lessons</span>
+                        <span>{{ course.lessonsCount }} {{ currentLang === 'km' ? 'មេរៀន' : 'Lessons' }}</span>
                       </div>
                       <span class="text-slate-300 dark:text-slate-700">|</span>
                       <div class="flex items-center gap-1">
-                        <span>⏱</span>
                         <span>{{ course.studyTime }}</span>
                       </div>
                     </div>
@@ -473,8 +476,7 @@ const navigateToReview = (course: CompletedCourseItem) => {
                       :href="course.overviewHref"
                       class="py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-600/20 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all text-center cursor-pointer"
                     >
-                      <span>👁</span>
-                      <span>Review Course</span>
+                      <span>{{ currentLang === 'km' ? 'ពិនិត្យវគ្គសិក្សា' : 'Review Course' }}</span>
                     </Link>
 
                     <button
@@ -487,8 +489,7 @@ const navigateToReview = (course: CompletedCourseItem) => {
                         'py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all text-center cursor-pointer shadow-xs'
                       ]"
                     >
-                      <span>🏆</span>
-                      <span>Certificate</span>
+                      <span>{{ currentLang === 'km' ? 'វិញ្ញាបនបត្រ' : 'Certificate' }}</span>
                     </button>
 
                   </div>
@@ -512,14 +513,14 @@ const navigateToReview = (course: CompletedCourseItem) => {
                   <div class="min-w-0 space-y-1">
                     <div class="flex items-center gap-2">
                       <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30">
-                        Completed ✓
+                        {{ currentLang === 'km' ? 'បានបញ្ចប់ ✓' : 'Completed ✓' }}
                       </span>
                       <span class="text-xs text-slate-500 dark:text-slate-400">{{ course.completedDate }}</span>
                     </div>
                     <h3 class="text-sm font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors truncate">
                       {{ course.title }}
                     </h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">{{ course.teacher.name }} • {{ course.lessonsCount }} Lessons • {{ course.studyTime }}</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">{{ course.teacher.name }} • {{ course.lessonsCount }} {{ currentLang === 'km' ? 'មេរៀន' : 'Lessons' }} • {{ course.studyTime }}</p>
                   </div>
                 </div>
 
@@ -528,14 +529,14 @@ const navigateToReview = (course: CompletedCourseItem) => {
                     :href="course.overviewHref"
                     class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-xs"
                   >
-                    Review
+                    {{ currentLang === 'km' ? 'ពិនិត្យ' : 'Review' }}
                   </Link>
                   <button
                     @click="handleCertificateClick(course, $event)"
                     type="button"
                     class="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-xs font-semibold cursor-pointer shadow-xs"
                   >
-                    Certificate
+                    {{ currentLang === 'km' ? 'វិញ្ញាបនបត្រ' : 'Certificate' }}
                   </button>
                 </div>
               </div>
@@ -544,7 +545,7 @@ const navigateToReview = (course: CompletedCourseItem) => {
             <!-- Pagination Footer -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-slate-200 dark:border-slate-800/80 text-xs text-slate-500 dark:text-slate-400">
               <div>
-                Showing 1 to {{ filteredCourses.length }} of {{ totalCount }} courses
+                {{ currentLang === 'km' ? `បង្ហាញ 1 ដល់ ${filteredCourses.length} នៃ ${totalCount} វគ្គសិក្សា` : `Showing 1 to ${filteredCourses.length} of ${totalCount} courses` }}
               </div>
 
               <div class="flex items-center gap-1.5 self-center sm:self-auto">
@@ -578,13 +579,17 @@ const navigateToReview = (course: CompletedCourseItem) => {
             v-else
             class="bg-white dark:bg-slate-900/40 border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-4 shadow-xs"
           >
-            <div class="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800/60 flex items-center justify-center mx-auto text-2xl">
-              🔍
+            <div class="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800/60 flex items-center justify-center mx-auto text-slate-400 dark:text-slate-500">
+              <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
             </div>
             <div class="space-y-1">
-              <h3 class="text-base font-bold text-slate-900 dark:text-white">No completed courses match your criteria</h3>
+              <h3 class="text-base font-bold text-slate-900 dark:text-white">
+                {{ currentLang === 'km' ? 'មិនទាន់មានវគ្គសិក្សាដែលបានបញ្ចប់ទេ' : 'No completed courses match your criteria' }}
+              </h3>
               <p class="text-xs text-slate-600 dark:text-slate-400 max-w-sm mx-auto">
-                Try switching between tabs or adjusting your search keywords.
+                {{ currentLang === 'km' ? 'សាកល្បងប្តូរផ្ទាំង ឬស្វែងរកវគ្គសិក្សាថ្មីដើម្បីចាប់ផ្តើមរៀន។' : 'Try switching between tabs or adjusting your search keywords.' }}
               </p>
             </div>
             <button
@@ -592,7 +597,7 @@ const navigateToReview = (course: CompletedCourseItem) => {
               type="button"
               class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs cursor-pointer shadow-md shadow-purple-600/20"
             >
-              Reset Filters
+              {{ currentLang === 'km' ? 'កំណត់តម្រងឡើងវិញ' : 'Reset Filters' }}
             </button>
           </div>
 
@@ -604,7 +609,7 @@ const navigateToReview = (course: CompletedCourseItem) => {
           <!-- WIDGET 1: Completion Overview (Donut Chart) -->
           <div class="bg-white dark:bg-[#0e1424] border border-slate-200/90 dark:border-slate-800 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-4">
             <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-              Completion Overview
+              {{ currentLang === 'km' ? 'ទិដ្ឋភាពទូទៅនៃការបញ្ចប់' : 'Completion Overview' }}
             </h3>
 
             <div class="flex items-center gap-4">
@@ -619,21 +624,23 @@ const navigateToReview = (course: CompletedCourseItem) => {
                     fill="none"
                     d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                   />
-                  <!-- Certificates Earned Arc (75% Emerald) -->
+                  <!-- Certificates Earned Arc -->
                   <path
+                    v-if="certPercent > 0"
                     class="text-emerald-500"
-                    stroke-dasharray="75, 100"
+                    :stroke-dasharray="`${certPercent}, 100`"
                     stroke-width="4"
                     stroke-linecap="round"
                     stroke="currentColor"
                     fill="none"
                     d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                   />
-                  <!-- No Certificate Arc (25% Amber) -->
+                  <!-- No Certificate Arc -->
                   <path
+                    v-if="noCertPercent > 0"
                     class="text-amber-500"
-                    stroke-dashoffset="-75"
-                    stroke-dasharray="25, 100"
+                    :stroke-dashoffset="`-${certPercent}`"
+                    :stroke-dasharray="`${noCertPercent}, 100`"
                     stroke-width="4"
                     stroke-linecap="round"
                     stroke="currentColor"
@@ -643,7 +650,7 @@ const navigateToReview = (course: CompletedCourseItem) => {
                 </svg>
                 <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
                   <span class="text-base font-black text-slate-900 dark:text-white leading-none">{{ totalCount }}</span>
-                  <span class="text-[9px] text-slate-500 dark:text-slate-400 uppercase font-semibold mt-0.5">Total</span>
+                  <span class="text-[9px] text-slate-500 dark:text-slate-400 uppercase font-semibold mt-0.5">{{ currentLang === 'km' ? 'សរុប' : 'Total' }}</span>
                 </div>
               </div>
 
@@ -652,14 +659,14 @@ const navigateToReview = (course: CompletedCourseItem) => {
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                    <span class="text-slate-700 dark:text-slate-300 font-medium">Certificates Earned</span>
+                    <span class="text-slate-700 dark:text-slate-300 font-medium">{{ currentLang === 'km' ? 'មានវិញ្ញាបនបត្រ' : 'Certificates Earned' }}</span>
                   </div>
                   <span class="text-slate-500 dark:text-slate-400 font-mono text-[11px]">{{ certEarnedCount }} ({{ certPercent }}%)</span>
                 </div>
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                    <span class="text-slate-700 dark:text-slate-300 font-medium">No Certificate</span>
+                    <span class="text-slate-700 dark:text-slate-300 font-medium">{{ currentLang === 'km' ? 'មិនទាន់មាន' : 'No Certificate' }}</span>
                   </div>
                   <span class="text-slate-500 dark:text-slate-400 font-mono text-[11px]">{{ noCertCount }} ({{ noCertPercent }}%)</span>
                 </div>
@@ -678,11 +685,11 @@ const navigateToReview = (course: CompletedCourseItem) => {
               </svg>
             </div>
             <div class="min-w-0 flex-1">
-              <p class="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Total Study Time</p>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">{{ currentLang === 'km' ? 'ពេលវេលាសិក្សាសរុប' : 'Total Study Time' }}</p>
               <h4 class="text-xl font-black text-slate-900 dark:text-white mt-0.5 tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-colors">
                 {{ totalStudyTimeFormatted }}
               </h4>
-              <p class="text-[10px] text-slate-500 mt-0.5">Across all completed courses</p>
+              <p class="text-[10px] text-slate-500 mt-0.5">{{ currentLang === 'km' ? 'គ្រប់វគ្គសិក្សាដែលបានបញ្ចប់' : 'Across all completed courses' }}</p>
             </div>
             <span class="text-slate-400 dark:text-slate-600 group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors text-sm">›</span>
           </Link>
@@ -698,7 +705,7 @@ const navigateToReview = (course: CompletedCourseItem) => {
               </svg>
             </div>
             <div class="min-w-0 flex-1">
-              <p class="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Average Quiz Score</p>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">{{ currentLang === 'km' ? 'ពិន្ទុ Quiz មធ្យម' : 'Average Quiz Score' }}</p>
               <h4 class="text-xl font-black text-slate-900 dark:text-white mt-0.5 tracking-tight group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors">
                 {{ averageQuizScore }}%
               </h4>
@@ -719,7 +726,7 @@ const navigateToReview = (course: CompletedCourseItem) => {
           <!-- WIDGET 4: Latest Certificate -->
           <div class="bg-white dark:bg-[#0e1424] border border-slate-200/90 dark:border-slate-800 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-4">
             <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-              Latest Certificate
+              {{ currentLang === 'km' ? 'វិញ្ញាបនបត្រថ្មីៗបំផុត' : 'Latest Certificate' }}
             </h3>
 
             <div v-if="latestCertCourse" class="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800">
@@ -734,13 +741,13 @@ const navigateToReview = (course: CompletedCourseItem) => {
 
               <div class="min-w-0 flex-1 space-y-1">
                 <h4 class="font-bold text-xs text-slate-900 dark:text-white truncate">{{ latestCertCourse.title }}</h4>
-                <p class="text-[10px] text-slate-500 dark:text-slate-400">Earned on: {{ latestCertCourse.certIssueDate || latestCertCourse.completedDate }}</p>
+                <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ currentLang === 'km' ? 'ទទួលបាននៅ៖' : 'Earned on:' }} {{ latestCertCourse.certIssueDate || latestCertCourse.completedDate }}</p>
                 <button
                   @click="handleCertificateClick(latestCertCourse, $event)"
                   type="button"
                   class="mt-1 px-3 py-1 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-bold shadow-xs transition-colors cursor-pointer"
                 >
-                  View Certificate
+                  {{ currentLang === 'km' ? 'មើលវិញ្ញាបនបត្រ' : 'View Certificate' }}
                 </button>
               </div>
             </div>
@@ -751,14 +758,14 @@ const navigateToReview = (course: CompletedCourseItem) => {
                 </svg>
               </div>
               <div class="space-y-0.5">
-                <p class="text-xs font-bold text-slate-700 dark:text-slate-200">No certificates earned yet</p>
-                <p class="text-[11px] text-slate-500 dark:text-slate-400">Complete a course to unlock your certificate.</p>
+                <p class="text-xs font-bold text-slate-700 dark:text-slate-200">{{ currentLang === 'km' ? 'មិនទាន់មានវិញ្ញាបនបត្រនៅឡើយទេ' : 'No certificates earned yet' }}</p>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ currentLang === 'km' ? 'បញ្ចប់វគ្គសិក្សាដើម្បីទទួលបានវិញ្ញាបនបត្រ។' : 'Complete a course to unlock your certificate.' }}</p>
               </div>
               <Link
                 href="/student/browse"
                 class="mt-1 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-purple-600/10 hover:bg-purple-600/20 text-purple-600 dark:text-purple-400 text-[11px] font-semibold transition-colors"
               >
-                Browse Courses ›
+                {{ currentLang === 'km' ? 'ស្វែងរកវគ្គសិក្សា ›' : 'Browse Courses ›' }}
               </Link>
             </div>
           </div>
@@ -767,13 +774,13 @@ const navigateToReview = (course: CompletedCourseItem) => {
           <div class="bg-white dark:bg-[#0e1424] border border-slate-200/90 dark:border-slate-800 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-4">
             <div class="flex items-center justify-between">
               <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                Achievements
+                {{ currentLang === 'km' ? 'សមិទ្ធផល' : 'Achievements' }}
               </h3>
               <Link
                 href="/student/certificates/achievements"
                 class="text-[11px] text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 font-semibold"
               >
-                View All
+                {{ currentLang === 'km' ? 'មើលទាំងអស់' : 'View All' }}
               </Link>
             </div>
 
@@ -786,7 +793,7 @@ const navigateToReview = (course: CompletedCourseItem) => {
                     <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
                   </svg>
                 </div>
-                <span class="text-[10px] font-bold text-slate-700 dark:text-slate-300 leading-tight">Quick Learner</span>
+                <span class="text-[10px] font-bold text-slate-700 dark:text-slate-300 leading-tight">{{ currentLang === 'km' ? 'រៀនរហ័ស' : 'Quick Learner' }}</span>
               </div>
 
               <!-- Badge 2 -->
@@ -796,7 +803,7 @@ const navigateToReview = (course: CompletedCourseItem) => {
                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                   </svg>
                 </div>
-                <span class="text-[10px] font-bold text-slate-700 dark:text-slate-300 leading-tight">Course Master</span>
+                <span class="text-[10px] font-bold text-slate-700 dark:text-slate-300 leading-tight">{{ currentLang === 'km' ? 'ម្ចាស់វគ្គ' : 'Course Master' }}</span>
               </div>
 
               <!-- Badge 3 -->
@@ -806,7 +813,7 @@ const navigateToReview = (course: CompletedCourseItem) => {
                     <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
                   </svg>
                 </div>
-                <span class="text-[10px] font-bold text-slate-700 dark:text-slate-300 leading-tight">Top Performer</span>
+                <span class="text-[10px] font-bold text-slate-700 dark:text-slate-300 leading-tight">{{ currentLang === 'km' ? 'ពូកែបំផុត' : 'Top Performer' }}</span>
               </div>
 
               <!-- Badge 4 -->
@@ -816,7 +823,7 @@ const navigateToReview = (course: CompletedCourseItem) => {
                     <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
                   </svg>
                 </div>
-                <span class="text-[10px] font-bold text-slate-700 dark:text-slate-300 leading-tight">Consistent Learner</span>
+                <span class="text-[10px] font-bold text-slate-700 dark:text-slate-300 leading-tight">{{ currentLang === 'km' ? 'ព្យាយាមរៀន' : 'Consistent Learner' }}</span>
               </div>
             </div>
           </div>
@@ -853,8 +860,8 @@ const navigateToReview = (course: CompletedCourseItem) => {
           </div>
 
           <div class="py-2 border-b border-amber-300 max-w-sm mx-auto">
-            <h4 class="text-lg sm:text-xl font-black text-slate-900">Sok Pisey</h4>
-            <p class="text-[10px] text-slate-500">Student ID: STU2024001</p>
+            <h4 class="text-lg sm:text-xl font-black text-slate-900">{{ authUser.name || 'Student' }}</h4>
+            <p class="text-[10px] text-slate-500">{{ currentLang === 'km' ? 'លេខសម្គាល់និស្សិត៖' : 'Student ID:' }} {{ authUser.student_code || ('STU-' + (authUser.id || '001')) }}</p>
           </div>
 
           <p class="text-xs text-slate-700 max-w-md mx-auto leading-relaxed">
@@ -883,14 +890,14 @@ const navigateToReview = (course: CompletedCourseItem) => {
             :href="`/student/certificates/my-certificates`"
             class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md"
           >
-            Go to My Certificates
+            {{ currentLang === 'km' ? 'ទៅកាន់វិញ្ញាបនបត្ររបស់ខ្ញុំ' : 'Go to My Certificates' }}
           </Link>
           <button
             @click="isCertModalOpen = false"
             type="button"
             class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer"
           >
-            Close
+            {{ currentLang === 'km' ? 'បិទ' : 'Close' }}
           </button>
         </div>
       </div>
@@ -918,31 +925,31 @@ const navigateToReview = (course: CompletedCourseItem) => {
             ⚠️
           </div>
           <div>
-            <h3 class="text-base font-bold text-slate-900 dark:text-white">Certificate Not Yet Available</h3>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white">{{ currentLang === 'km' ? 'មិនទាន់មានវិញ្ញាបនបត្រនៅឡើយទេ' : 'Certificate Not Yet Available' }}</h3>
             <p class="text-xs text-slate-500 dark:text-slate-400">{{ selectedCertCourse.title }}</p>
           </div>
         </div>
 
         <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 space-y-3 text-xs">
-          <p class="font-bold text-slate-800 dark:text-slate-200">Completion Requirements Status:</p>
+          <p class="font-bold text-slate-800 dark:text-slate-200">{{ currentLang === 'km' ? 'ស្ថានភាពលក្ខខណ្ឌបញ្ចប់៖' : 'Completion Requirements Status:' }}</p>
           <div class="space-y-2">
             <div class="flex items-center justify-between text-emerald-600 dark:text-emerald-400">
-              <span>✓ All Lessons Completed ({{ selectedCertCourse.lessonsCount }}/{{ selectedCertCourse.lessonsCount }})</span>
-              <span class="font-bold">Passed</span>
+              <span>✓ {{ currentLang === 'km' ? 'មេរៀនទាំងអស់បានបញ្ចប់' : 'All Lessons Completed' }} ({{ selectedCertCourse.lessonsCount }}/{{ selectedCertCourse.lessonsCount }})</span>
+              <span class="font-bold">{{ currentLang === 'km' ? 'ជាប់' : 'Passed' }}</span>
             </div>
             <div class="flex items-center justify-between text-emerald-600 dark:text-emerald-400">
-              <span>✓ Course Hands-on Labs</span>
-              <span class="font-bold">Passed</span>
+              <span>✓ {{ currentLang === 'km' ? 'ការអនុវត្តផ្ទាល់' : 'Course Hands-on Labs' }}</span>
+              <span class="font-bold">{{ currentLang === 'km' ? 'ជាប់' : 'Passed' }}</span>
             </div>
             <div class="flex items-center justify-between text-rose-600 dark:text-rose-400">
-              <span>✗ Final Assessment (Passing: 70%)</span>
-              <span class="font-bold font-mono">Score: {{ selectedCertCourse.quizScore }}%</span>
+              <span>✗ {{ currentLang === 'km' ? 'ការវាយតម្លៃចុងក្រោយ (កម្រិតជាប់៖ 70%)' : 'Final Assessment (Passing: 70%)' }}</span>
+              <span class="font-bold font-mono">{{ currentLang === 'km' ? 'ពិន្ទុ៖' : 'Score:' }} {{ selectedCertCourse.quizScore }}%</span>
             </div>
           </div>
         </div>
 
         <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-          {{ selectedCertCourse.missingCertReason }} You can retake the assessment at any time to qualify for the official SPI certificate.
+          {{ selectedCertCourse.missingCertReason }} {{ currentLang === 'km' ? 'អ្នកអាចធ្វើតេស្តវាយតម្លៃឡើងវិញគ្រប់ពេល ដើម្បីទទួលបានវិញ្ញាបនបត្រផ្លូវការ។' : 'You can retake the assessment at any time to qualify for the official SPI certificate.' }}
         </p>
 
         <div class="flex items-center justify-end gap-3 pt-2">
@@ -950,14 +957,14 @@ const navigateToReview = (course: CompletedCourseItem) => {
             href="/student/quizzes/post-test"
             class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md flex items-center gap-1.5"
           >
-            <span>🎯 Retake Assessment</span>
+            <span>{{ currentLang === 'km' ? 'ធ្វើតេស្តវាយតម្លៃឡើងវិញ' : 'Retake Assessment' }}</span>
           </Link>
           <button
             @click="isNoCertModalOpen = false"
             type="button"
             class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer"
           >
-            Close
+            {{ currentLang === 'km' ? 'បិទ' : 'Close' }}
           </button>
         </div>
       </div>
