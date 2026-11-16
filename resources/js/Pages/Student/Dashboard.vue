@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { Link, usePage, router } from '@inertiajs/vue3'
 import StudentLayout from '@/Layouts/StudentLayout.vue'
 import TodaysGoalWidget from '@/Components/Student/TodaysGoalWidget.vue'
+import WelcomeBanner from '@/Components/Student/WelcomeBanner.vue'
 import { i18n } from '@/Services/i18n'
 
 const props = defineProps<{
@@ -860,51 +861,13 @@ const recentActivities = computed(() => {
   >
     <div class="student-dashboard space-y-6 pb-28 sm:pb-36 notranslate" translate="no" style="padding-bottom: 112px;">
       
-      <!-- TOP GREETING & QUICK SHORTCUTS ROW (Glassmorphic Hero Header) -->
-      <div class="relative overflow-hidden rounded-3xl bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] p-5 sm:p-6 shadow-sm dark:shadow-xl">
-        <!-- Ambient decorative background glow -->
-        <div class="absolute -right-16 -top-16 w-64 h-64 bg-gradient-to-br from-[#0b57d0]/5 via-purple-500/5 to-transparent rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute -left-10 -bottom-10 w-48 h-48 bg-gradient-to-tr from-[#0b57d0]/5 to-transparent rounded-full blur-2xl pointer-events-none"></div>
-
-        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div class="space-y-1.5">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/15 border border-[#d2e3fc] dark:border-[#1a73e8]/30 text-[11px] font-semibold text-[#0b57d0] dark:text-[#a8c7fa]">
-              <span class="w-2 h-2 rounded-full bg-[#137333] animate-pulse"></span>
-              <span>{{ currentLang === 'km' ? 'SPI Student Portal • ឆមាសសិក្សាថ្មី ២០២៦-២០២៧' : 'SPI Student Portal • Active Academic Term 2026-2027' }}</span>
-            </div>
-            <h1 class="text-xl sm:text-2xl font-black text-[#1f1f1f] dark:text-[#e3e3e3] tracking-normal leading-snug font-sans flex items-center gap-2">
-              <span>{{ currentLang === 'km' ? `សូមស្វាគមន៍ការត្រឡប់មកវិញ, ${user.name || 'Sok Pisey'}!` : `Welcome back, ${user.name || 'Sok Pisey'}!` }}</span>
-              <span class="inline-block animate-bounce text-[#0b57d0]">✨</span>
-            </h1>
-            <p class="text-xs sm:text-sm text-[#444746] dark:text-[#c4c7c5] font-medium max-w-2xl">
-              {{ currentLang === 'km' ? 'បន្តការសិក្សាពីកន្លែងដែលអ្នកបានឈប់ ឬស្វែងរកវគ្គសិក្សាថ្មីៗនៅថ្ងៃនេះ។ បន្តដំណើរទៅមុខជានិច្ចដើម្បីសម្រេចគោលដៅរបស់អ្នក!' : 'Continue where you left off or explore new courses today. Keep moving forward to reach your learning goals!' }}
-            </p>
-          </div>
-
-          <!-- Quick Shortcut Actions with Sleek Badges -->
-          <div class="flex flex-wrap items-center gap-2.5 shrink-0">
-            <Link
-              href="/student/browse"
-              class="px-4 py-2 rounded-full bg-white hover:bg-[#f0f4f9] dark:bg-[#282a2c] dark:hover:bg-[#333538] border border-[#c7c7c7] dark:border-[#3c4043] text-[#1f1f1f] dark:text-[#e3e3e3] font-medium text-xs flex items-center gap-2 transition-all hover:scale-105 shadow-2xs"
-            >
-              <svg class="w-4 h-4 text-[#0b57d0]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-              </svg>
-              <span>{{ currentLang === 'km' ? 'ស្វែងរកវគ្គសិក្សា' : 'Browse Courses' }}</span>
-            </Link>
-
-            <Link
-              href="/student/notifications/announcements"
-              class="px-4 py-2 rounded-full bg-white hover:bg-[#f0f4f9] dark:bg-[#282a2c] dark:hover:bg-[#333538] border border-[#c7c7c7] dark:border-[#3c4043] text-[#1f1f1f] dark:text-[#e3e3e3] font-medium text-xs flex items-center gap-2 transition-all hover:scale-105 shadow-2xs"
-            >
-              <svg class="w-4 h-4 text-[#0b57d0]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-              </svg>
-              <span>{{ currentLang === 'km' ? 'សេចក្តីប្រកាស' : 'Announcements' }}</span>
-            </Link>
-          </div>
-        </div>
-      </div>
+      <!-- TOP GREETING & QUICK SHORTCUTS ROW (Compact WelcomeBanner) -->
+      <WelcomeBanner
+        :student-name="user?.name || 'Student'"
+        academic-term="Active Academic Term 2026-2027"
+        :unread-announcements-count="(page.props as any)?.student_notifications?.unread_count || 0"
+        :current-lang="currentLang"
+      />
 
       <!-- OFFICIAL SPI DASHBOARD LOADING & KPI SYSTEM (DL-01 to DL-08) -->
       <section aria-busy="loading">
