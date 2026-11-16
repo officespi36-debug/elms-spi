@@ -954,7 +954,7 @@ onUnmounted(() => {
                   <span
                     :class="[
                       course.status === 'completed' ? 'bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-500/30' :
-                      course.status === 'no_content' ? 'bg-amber-500/10 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30' :
+                      (course.status === 'coming_soon' || course.status === 'no_content') ? 'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-900/90 dark:text-amber-200 dark:border-amber-700' :
                       course.status === 'not_started' ? 'bg-slate-500/10 dark:bg-slate-500/20 text-slate-700 dark:text-slate-400 border-slate-500/30' : 'bg-purple-500/10 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-500/30',
                       'px-2 py-0.5 rounded-full text-[10px] font-bold border'
                     ]"
