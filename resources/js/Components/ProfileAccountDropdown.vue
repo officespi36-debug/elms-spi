@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { Link } from '@inertiajs/vue3'
 import OfficialVerifiedBadge from '@/Components/OfficialVerifiedBadge.vue'
 import { i18n } from '@/Services/i18n'
@@ -75,9 +75,19 @@ const avatarError = ref(false)
 const userDisplayAvatar = computed(() => {
   const av = currentUser.value?.avatar_url || currentUser.value?.avatar
   if (av && typeof av === 'string' && av.trim().length > 0 && !av.includes('ui-avatars.com')) {
-    return av.startsWith('http') ? av : `/storage/${av.replace(/^\/+/, '')}`
+    if (av.startsWith('http') || av.startsWith('data:') || av.startsWith('/')) {
+      return av
+    }
+    if (av.startsWith('uploads/') || av.startsWith('images/') || av.startsWith('storage/')) {
+      return `/${av}`
+    }
+    return `/storage/${av}`
   }
   return null
+})
+
+watch(userDisplayAvatar, () => {
+  avatarError.value = false
 })
 
 const roleBadgeLabel = computed(() => {

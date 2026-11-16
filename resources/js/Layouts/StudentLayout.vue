@@ -35,9 +35,19 @@ const headerAvatarError = ref(false)
 const userAvatarUrl = computed(() => {
   const av = user.value?.avatar_url || user.value?.avatar
   if (av && typeof av === 'string' && av.trim().length > 0 && !av.includes('ui-avatars.com')) {
-    return av.startsWith('http') ? av : `/storage/${av.replace(/^\/+/, '')}`
+    if (av.startsWith('http') || av.startsWith('data:') || av.startsWith('/')) {
+      return av
+    }
+    if (av.startsWith('uploads/') || av.startsWith('images/') || av.startsWith('storage/')) {
+      return `/${av}`
+    }
+    return `/storage/${av}`
   }
   return null
+})
+
+watch(userAvatarUrl, () => {
+  headerAvatarError.value = false
 })
 
 const getStableAvatarBg = (name: string, id?: number | string) => {
@@ -64,7 +74,11 @@ const headerUserInitial = computed(() => {
 })
 
 const enrolledCoursesCount = computed(() => {
-  return (page.props.stats as any)?.enrolledCount || (page.props.enrollments as any[])?.length || 10
+  const statsCount = (page.props.stats as any)?.enrolledCount
+  if (typeof statsCount === 'number') return statsCount
+  const sharedCount = (page.props as any).enrolled_courses_count
+  if (typeof sharedCount === 'number') return sharedCount
+  return (page.props.enrollments as any[])?.length ?? 0
 })
 
 const avatarInput = ref<HTMLInputElement | null>(null)
