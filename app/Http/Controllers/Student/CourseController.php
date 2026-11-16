@@ -46,9 +46,6 @@ class CourseController extends Controller
     public function enrolled(Request $request, CourseProgressService $progressService)
     {
         $user = $request->user();
-        if (!$user) {
-            return redirect()->route('login');
-        }
 
         // 1. Validation of query parameters
         $status = (string)$request->query('status', 'all');
