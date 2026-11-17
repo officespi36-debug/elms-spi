@@ -416,6 +416,109 @@ html:not(.dark) select option {
 }
 
 /* ==========================================================================
+   Ultra-Modern, High-Contrast Toast Notifications (Student Dashboard Style)
+   ========================================================================== */
+.p-toast {
+  width: 25.5rem !important;
+  max-width: calc(100vw - 2rem) !important;
+  z-index: 99999 !important;
+  font-family: 'Kantumruy Pro', 'Plus Jakarta Sans', sans-serif !important;
+}
+
+@media (max-width: 640px) {
+  .p-toast.p-toast-top-right,
+  .p-toast.p-toast-top-center,
+  .p-toast.p-toast-top-left {
+    top: 1rem !important;
+    right: 1rem !important;
+    left: 1rem !important;
+    width: auto !important;
+  }
+}
+
+/* Reset PrimeVue Aura's default toast message container to eliminate washed-out translucent tints */
+.p-toast .p-toast-message {
+  margin: 0 0 0.875rem 0 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Fallback styling for any default PrimeVue Toast content (if used without custom container) */
+.p-toast .p-toast-message-content {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 0.875rem !important;
+  padding: 1rem 1.125rem !important;
+  border-radius: 1rem !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  border: 1px solid rgba(226, 232, 240, 0.95) !important;
+  box-shadow: 0 16px 36px -6px rgba(15, 23, 42, 0.12), 0 6px 14px -2px rgba(15, 23, 42, 0.06) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+html.dark .p-toast .p-toast-message-content {
+  background: rgba(24, 25, 27, 0.98) !important;
+  border: 1px solid rgba(51, 65, 85, 0.8) !important;
+  box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.65), 0 6px 14px -2px rgba(0, 0, 0, 0.45) !important;
+}
+
+.p-toast .p-toast-summary {
+  font-family: 'Kantumruy Pro', 'Plus Jakarta Sans', sans-serif !important;
+  font-size: 0.875rem !important;
+  font-weight: 700 !important;
+  color: #0f172a !important; /* Deep dark slate in light mode */
+  line-height: 1.3 !important;
+}
+
+html.dark .p-toast .p-toast-summary {
+  color: #ffffff !important;
+}
+
+.p-toast .p-toast-detail {
+  font-family: 'Kantumruy Pro', 'Plus Jakarta Sans', sans-serif !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  color: #475569 !important; /* High contrast, NEVER white in light mode! */
+  line-height: 1.55 !important;
+  margin-top: 0.25rem !important;
+}
+
+html.dark .p-toast .p-toast-detail {
+  color: #cbd5e1 !important;
+}
+
+.p-toast .p-toast-close-button {
+  width: 1.75rem !important;
+  height: 1.75rem !important;
+  border-radius: 0.5rem !important;
+  color: #94a3b8 !important;
+  background: transparent !important;
+  border: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+
+.p-toast .p-toast-close-button:hover {
+  background: #f1f5f9 !important;
+  color: #1e293b !important;
+}
+
+html.dark .p-toast .p-toast-close-button:hover {
+  background: #334155 !important;
+  color: #ffffff !important;
+}
+
+/* ==========================================================================
    Accessibility: Strict Reduced Motion Compliance
    ========================================================================== */
 @media (prefers-reduced-motion: reduce) {
