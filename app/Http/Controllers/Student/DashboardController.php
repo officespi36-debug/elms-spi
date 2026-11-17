@@ -23,6 +23,7 @@ use App\Services\DashboardAnalyticsService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
@@ -290,7 +291,7 @@ class DashboardController extends Controller
      * Compute mathematically consistent real database stats for student dashboard.
      * Strictly from DB via Eloquent for Auth::user() with 0/empty fallbacks.
      */
-    public function computeStats($user, $enrollments = null, $computedProgress = null): array
+    public function computeStats(User $user, ?Collection $enrollments = null, ?Collection $computedProgress = null): array
     {
         try {
             if ($computedProgress === null) {
@@ -468,7 +469,7 @@ class DashboardController extends Controller
         return asset('storage/' . ltrim($thumb, '/'));
     }
 
-    protected function buildCoursesList($computedProgress, CourseProgressService $progressService): array
+    protected function buildCoursesList(Collection $computedProgress, CourseProgressService $progressService): array
     {
         $list = [];
 
@@ -646,7 +647,7 @@ class DashboardController extends Controller
         return $recentActivitiesList;
     }
 
-    protected function buildUpcomingEvents($enrollments): array
+    protected function buildUpcomingEvents(Collection $enrollments): array
     {
         $events = [];
 

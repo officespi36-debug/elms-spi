@@ -168,6 +168,9 @@ const props = defineProps<{
     desc_km?: string
     type: string
     color: string
+    shadowColor?: string
+    progress?: string
+    progress_km?: string
     href: string
     unlocked?: boolean
   }>
@@ -851,7 +854,7 @@ const recentActivities = computed(() => {
       />
 
       <!-- OFFICIAL SPI DASHBOARD LOADING & KPI SYSTEM (DL-01 to DL-08) -->
-      <section aria-busy="loading">
+      <section :aria-busy="loading">
         <!-- 1. SKELETON LOADING STATE WITH SHIMMER (DL-01, DL-02, DL-06) -->
         <div
           v-if="loading && loadingStep === 'skeleton'"
