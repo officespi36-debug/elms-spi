@@ -1,673 +1,321 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Link } from '@inertiajs/vue3'
+import { Link, router } from '@inertiajs/vue3'
 import StudentLayout from '@/Layouts/StudentLayout.vue'
+import { useLanguage } from '@/Services/i18n'
 
-const props = defineProps<{
-  courseId?: string | number
-}>()
-
-interface LessonItem {
+interface OverviewLesson {
+  id?: number
   title: string
   duration: string
   completed?: boolean
-  active?: boolean
-  locked?: boolean
 }
 
-interface ChapterItem {
+interface OverviewChapter {
   id: number
   title: string
   lessonsCount: number
   duration: string
   completed?: boolean
-  active?: boolean
-  locked?: boolean
-  lessons: LessonItem[]
+  lessons: OverviewLesson[]
 }
 
-interface CourseOverviewData {
+interface CourseOverviewPayload {
   id: number
   slug: string
   title: string
-  subtitle: string
-  bannerUrl: string
-  category: string
-  level: string
+  subtitle?: string | null
+  bannerUrl?: string | null
+  category?: string | null
+  categoryKh?: string | null
+  level?: string | null
   mode: string
-  language: string
-  duration: string
+  duration?: string | null
   progress: number
-  status: 'in_progress' | 'not_started' | 'completed'
+  status: 'not_enrolled' | 'not_started' | 'in_progress' | 'completed' | 'coming_soon'
+  isEnrolled: boolean
+  isPendingPayment?: boolean
+  isWishlisted?: boolean
   totalLessons: number
   completedLessons: number
-  lastLessonTitle: string
-  lastLessonHref: string
-  price: string
-  rating: number
+  continueHref: string
+  enrollHref: string
+  checkoutHref: string
+  price: number
+  priceDisplay: string
+  isFree: boolean
+  rating?: number | null
   reviewsCount: number
   instructor: {
-    name: string
-    role: string
-    avatar: string
-    bio: string
+    name?: string | null
+    role?: string | null
+    avatar?: string | null
+    bio?: string | null
   }
-  objectives: string[]
-  chapters: ChapterItem[]
+  chapters: OverviewChapter[]
 }
 
-const allCoursesData: Record<string, CourseOverviewData> = {
-  '1': {
-    id: 1,
-    slug: 'web-dev',
-    title: 'Web Development Fundamentals',
-    subtitle: 'Master Modern Full-Stack Web Development with HTML, CSS, JavaScript, and Modern Tooling',
-    bannerUrl: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=1200&auto=format&fit=crop&q=80',
-    category: 'Web Development',
-    level: 'Beginner to Intermediate',
-    mode: 'Teacher-Led & Self-Paced',
-    language: 'Khmer & English',
-    duration: '18h 30m',
-    progress: 53,
-    status: 'in_progress',
-    totalLessons: 30,
-    completedLessons: 12,
-    lastLessonTitle: 'Chapter 3 - JavaScript Functions',
-    lastLessonHref: '/student/my-courses/current',
-    price: '$30.00',
-    rating: 4.9,
-    reviewsCount: 128,
-    instructor: {
-      name: 'Mr. Sophea Chem',
-      role: 'Senior Software Engineer & SPI Faculty Instructor',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80',
-      bio: 'Over 8 years of software architecture experience across enterprise systems and academic teaching at Saint Paul Institute.'
-    },
-    objectives: [
-      'Understand fundamental Web architecture, HTTP protocol, and DevTools debugging',
-      'Structure clean, accessible semantic web documents using modern HTML5',
-      'Design responsive, mobile-first interfaces using CSS3, Flexbox, and Grid',
-      'Write maintainable JavaScript functions, handle DOM events, and build interactive features'
-    ],
-    chapters: [
-      {
-        id: 1,
-        title: 'Chapter 1: Introduction to Web Development',
-        lessonsCount: 3,
-        duration: '27 mins',
-        completed: true,
-        lessons: [
-          { title: '1.1 Web Basics & HTTP Protocol', duration: '08:20', completed: true },
-          { title: '1.2 Dev Tools & IDE Setup (VS Code)', duration: '12:40', completed: true },
-          { title: '1.3 Course Roadmap Overview', duration: '06:15', completed: true }
-        ]
-      },
-      {
-        id: 2,
-        title: 'Chapter 2: HTML5 Semantic Structure',
-        lessonsCount: 4,
-        duration: '46 mins',
-        completed: true,
-        lessons: [
-          { title: '2.1 Semantic Tags & Page Layout', duration: '10:15', completed: true },
-          { title: '2.2 Accessible Forms and Input Elements', duration: '14:30', completed: true },
-          { title: '2.3 Media & Canvas Elements', duration: '11:20', completed: true },
-          { title: '2.4 HTML5 Best Practices & Validation', duration: '09:45', completed: true }
-        ]
-      },
-      {
-        id: 3,
-        title: 'Chapter 3: JavaScript Programming Basics',
-        lessonsCount: 4,
-        duration: '56 mins',
-        completed: false,
-        active: true,
-        lessons: [
-          { title: '3.1 What is JavaScript & Script Tag Loading', duration: '10:15', completed: true },
-          { title: '3.2 JavaScript Functions & Scope (Current)', duration: '18:20', completed: false, active: true },
-          { title: '3.3 Function Parameters & Default Values', duration: '15:30', completed: false },
-          { title: '3.4 Return Values & Arrow Functions', duration: '12:45', completed: false, locked: true }
-        ]
-      },
-      {
-        id: 4,
-        title: 'Chapter 4: DOM Manipulation & Dynamic UI',
-        lessonsCount: 2,
-        duration: '30 mins',
-        completed: false,
-        locked: true,
-        lessons: [
-          { title: '4.1 Selecting & Traversing DOM Elements', duration: '16:00', locked: true },
-          { title: '4.2 Modifying DOM Nodes & CSS Classes', duration: '14:20', locked: true }
-        ]
-      },
-      {
-        id: 5,
-        title: 'Chapter 5: Event Handling & Capstone Project',
-        lessonsCount: 2,
-        duration: '34 mins',
-        completed: false,
-        locked: true,
-        lessons: [
-          { title: '5.1 Event Listeners & Callback Handlers', duration: '15:10', locked: true },
-          { title: '5.2 Capstone Project: Interactive Application', duration: '18:40', locked: true }
-        ]
-      }
-    ]
-  },
-  '2': {
-    id: 2,
-    slug: 'db-systems',
-    title: 'Database Systems',
-    subtitle: 'Comprehensive Relational Database Architecture, SQL Mastery, Indexing, and Optimization',
-    bannerUrl: 'https://images.unsplash.com/photo-1544383835-bda2bc66a55d?w=1200&auto=format&fit=crop&q=80',
-    category: 'Database Systems',
-    level: 'Intermediate',
-    mode: 'Teacher-Led & Self-Paced',
-    language: 'Khmer & English',
-    duration: '14h 20m',
-    progress: 35,
-    status: 'in_progress',
-    totalLessons: 23,
-    completedLessons: 8,
-    lastLessonTitle: 'Chapter 2 - Relational Schema & Foreign Keys',
-    lastLessonHref: '/student/my-courses/current',
-    price: '$35.00',
-    rating: 4.8,
-    reviewsCount: 94,
-    instructor: {
-      name: 'Mr. Long Dararith',
-      role: 'Database Specialist & SPI Faculty Lecturer',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80',
-      bio: 'Enterprise Database Administrator with deep expertise in MySQL, PostgreSQL, and distributed storage systems.'
-    },
-    objectives: [
-      'Master Entity-Relationship (ER) modeling and schema design',
-      'Write advanced SQL queries, multi-table joins, subqueries, and aggregates',
-      'Understand Database Normalization (1NF to BCNF) and eliminate data redundancy',
-      'Optimize query execution plans with indexing strategies and transaction management'
-    ],
-    chapters: [
-      {
-        id: 1,
-        title: 'Chapter 1: Relational Database Principles & ER Models',
-        lessonsCount: 4,
-        duration: '45 mins',
-        completed: true,
-        lessons: [
-          { title: '1.1 Introduction to DBMS & Relational Model', duration: '10:00', completed: true },
-          { title: '1.2 Entities, Attributes & Relationships', duration: '12:00', completed: true },
-          { title: '1.3 Drawing ER Diagrams with Crow’s Foot Notation', duration: '15:00', completed: true },
-          { title: '1.4 ER to Relational Mapping', duration: '08:00', completed: true }
-        ]
-      },
-      {
-        id: 2,
-        title: 'Chapter 2: SQL DDL & DML Mastery',
-        lessonsCount: 5,
-        duration: '55 mins',
-        completed: false,
-        active: true,
-        lessons: [
-          { title: '2.1 Relational Schema & Foreign Keys (Current)', duration: '14:00', completed: false, active: true },
-          { title: '2.2 Advanced SELECT, Filters & Aggregates', duration: '12:00', completed: false },
-          { title: '2.3 Multi-table INNER & OUTER JOINs', duration: '15:00', completed: false, locked: true },
-          { title: '2.4 Subqueries & Common Table Expressions', duration: '14:00', completed: false, locked: true }
-        ]
-      },
-      {
-        id: 3,
-        title: 'Chapter 3: Normalization & Indexing',
-        lessonsCount: 3,
-        duration: '40 mins',
-        completed: false,
-        locked: true,
-        lessons: [
-          { title: '3.1 Understanding Functional Dependencies', duration: '12:00', locked: true },
-          { title: '3.2 1NF, 2NF, and 3NF Step-by-Step', duration: '16:00', locked: true },
-          { title: '3.3 B-Tree Indexing and Query Performance', duration: '12:00', locked: true }
-        ]
-      }
-    ]
-  },
-  '3': {
-    id: 3,
-    slug: 'python',
-    title: 'Python Programming',
-    subtitle: 'From Foundations to Object-Oriented Programming and Automation Scripts in Modern Python 3',
-    bannerUrl: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=1200&auto=format&fit=crop&q=80',
-    category: 'Programming',
-    level: 'Beginner',
-    mode: 'Self-Paced with AI Tutor',
-    language: 'Khmer & English',
-    duration: '20h 00m',
-    progress: 0,
-    status: 'not_started',
-    totalLessons: 28,
-    completedLessons: 0,
-    lastLessonTitle: 'Chapter 1 - Python Setup & First Script',
-    lastLessonHref: '/student/my-courses/current',
-    price: '$25.00',
-    rating: 4.9,
-    reviewsCount: 156,
-    instructor: {
-      name: 'Mr. Eng Thida',
-      role: 'Python & AI Engineer',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&auto=format&fit=crop&q=80',
-      bio: 'AI Practitioner and Python software developer specializing in data manipulation and algorithm design.'
-    },
-    objectives: [
-      'Set up Python 3 virtual environments and run scripts smoothly',
-      'Understand variables, dynamic typing, control flow, and iterative loops',
-      'Master built-in data structures (Lists, Tuples, Dictionaries, Sets)',
-      'Build modular Object-Oriented programs and handle file I/O operations'
-    ],
-    chapters: [
-      {
-        id: 1,
-        title: 'Chapter 1: Python Environment & Syntax Basics',
-        lessonsCount: 4,
-        duration: '40 mins',
-        completed: false,
-        active: true,
-        lessons: [
-          { title: '1.1 Installing Python & VS Code Extension', duration: '08:00', active: true },
-          { title: '1.2 Variables, Data Types & Print Formatting', duration: '12:00' },
-          { title: '1.3 Arithmetic and Comparison Operators', duration: '10:00' },
-          { title: '1.4 User Input and Type Casting', duration: '10:00' }
-        ]
-      },
-      {
-        id: 2,
-        title: 'Chapter 2: Data Structures & Collections',
-        lessonsCount: 4,
-        duration: '50 mins',
-        locked: true,
-        lessons: [
-          { title: '2.1 Python Lists & Common Operations', duration: '12:00', locked: true },
-          { title: '2.2 Dictionaries & Key-Value Lookups', duration: '15:00', locked: true },
-          { title: '2.3 Tuples and Set Uniqueness', duration: '11:00', locked: true }
-        ]
-      }
-    ]
-  },
-  '4': {
-    id: 4,
-    slug: 'ui-ux',
-    title: 'UI/UX Design Basics',
-    subtitle: 'User Research, Wireframing, Figma Prototyping, and Design System Foundations',
-    bannerUrl: 'https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?w=1200&auto=format&fit=crop&q=80',
-    category: 'UI/UX Design',
-    level: 'Beginner to Intermediate',
-    mode: 'Teacher-Led & Studio Lab',
-    language: 'Khmer & English',
-    duration: '15h 30m',
-    progress: 100,
-    status: 'completed',
-    totalLessons: 20,
-    completedLessons: 20,
-    lastLessonTitle: 'Chapter 4 - Final Design System Showcase',
-    lastLessonHref: '/student/certificates/my-certificates',
-    price: '$30.00',
-    rating: 5.0,
-    reviewsCount: 88,
-    instructor: {
-      name: 'Ms. Nhean Sreymom',
-      role: 'Lead UI/UX Designer & Design Educator',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80',
-      bio: 'Product designer with extensive experience crafting user-centric digital products and mobile design systems.'
-    },
-    objectives: [
-      'Master Design Thinking methodologies and user persona synthesis',
-      'Construct high-fidelity interactive prototypes in Figma using Auto-Layout',
-      'Establish scalable design token systems for typography, spacing, and colors',
-      'Conduct usability testing and iterate based on real feedback'
-    ],
-    chapters: [
-      {
-        id: 1,
-        title: 'Chapter 1: UI/UX Principles & User Research',
-        lessonsCount: 4,
-        duration: '45 mins',
-        completed: true,
-        lessons: [
-          { title: '1.1 Introduction to User Experience Design', duration: '10:00', completed: true },
-          { title: '1.2 Conducting User Interviews & Surveys', duration: '15:00', completed: true },
-          { title: '1.3 Creating Personas and Empathy Maps', duration: '12:00', completed: true },
-          { title: '1.4 Information Architecture & User Flows', duration: '08:00', completed: true }
-        ]
-      },
-      {
-        id: 2,
-        title: 'Chapter 2: Figma & Wireframing Systems',
-        lessonsCount: 5,
-        duration: '50 mins',
-        completed: true,
-        lessons: [
-          { title: '2.1 Figma Workspace & Vector Basics', duration: '10:00', completed: true },
-          { title: '2.2 Low-Fidelity Wireframing', duration: '12:00', completed: true },
-          { title: '2.3 Components and Variants in Figma', duration: '14:00', completed: true },
-          { title: '2.4 Auto-Layout & Responsive Constraints', duration: '14:00', completed: true }
-        ]
-      },
-      {
-        id: 3,
-        title: 'Chapter 3: Color Theory & Typography Tokens',
-        lessonsCount: 5,
-        duration: '45 mins',
-        completed: true,
-        lessons: [
-          { title: '3.1 Visual Hierarchy & Contrast Guidelines', duration: '10:00', completed: true },
-          { title: '3.2 Choosing Typefaces & Spacing Systems', duration: '12:00', completed: true },
-          { title: '3.3 Dark Mode & Accessible Color Palettes', duration: '13:00', completed: true }
-        ]
-      },
-      {
-        id: 4,
-        title: 'Chapter 4: Final Showcase & Usability Testing',
-        lessonsCount: 6,
-        duration: '50 mins',
-        completed: true,
-        lessons: [
-          { title: '4.1 Prototyping Micro-Interactions in Figma', duration: '12:00', completed: true },
-          { title: '4.2 Usability Testing with End-Users', duration: '15:00', completed: true },
-          { title: '4.3 Design System Documentation & Handoff', duration: '13:00', completed: true },
-          { title: '4.4 Final Capstone Project Review', duration: '10:00', completed: true }
-        ]
-      }
-    ]
-  }
-}
+const props = defineProps<{
+  courseId?: string | number
+  courseData?: CourseOverviewPayload | null
+}>()
 
-const courseKey = computed(() => {
-  const cid = String(props.courseId || '1')
-  return allCoursesData[cid] ? cid : '1'
-})
+const { t, currentLang } = useLanguage()
+const expandedChapter = ref<number | null>(props.courseData?.chapters?.[0]?.id ?? null)
+const enrolling = ref(false)
+const avatarFailed = ref(false)
 
-const course = computed(() => allCoursesData[courseKey.value])
-
-const expandedChapter = ref<number | null>(course.value.chapters.find(c => c.active)?.id || 1)
+const course = computed(() => props.courseData || null)
 
 const toggleChapter = (id: number) => {
   expandedChapter.value = expandedChapter.value === id ? null : id
+}
+
+const getInitials = (name?: string | null): string => {
+  if (!name) return 'SP'
+  const parts = name.trim().split(/\s+/)
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+  return name.slice(0, 2).toUpperCase()
+}
+
+const localizedCategory = computed(() => {
+  if (!course.value) return ''
+  return currentLang.value === 'km'
+    ? (course.value.categoryKh || course.value.category || '')
+    : (course.value.category || '')
+})
+
+const handleEnroll = () => {
+  if (!course.value || course.value.status === 'coming_soon' || enrolling.value) return
+  if (!course.value.isFree && course.value.price > 0) {
+    router.visit(course.value.checkoutHref)
+    return
+  }
+  enrolling.value = true
+  router.post(course.value.enrollHref, {}, {
+    preserveScroll: true,
+    onFinish: () => { enrolling.value = false },
+  })
 }
 </script>
 
 <template>
   <StudentLayout
-    :title="`Course Overview — ${course.title}`"
+    :title="course ? course.title : t('overview_curriculum')"
     :breadcrumbs="[
-      { label: 'Dashboard', href: '/student/dashboard' },
-      { label: 'My Courses', href: '/student/my-courses/enrolled' },
-      { label: course.title }
+      { label: t('nav_dashboard'), href: '/student/dashboard' },
+      { label: t('browse_title'), href: '/student/browse' },
+      { label: course ? course.title : '...' }
     ]"
   >
-    <div class="space-y-6 pb-16">
-      
-      <!-- HERO BANNER SECTION -->
-      <div class="relative rounded-3xl overflow-hidden bg-slate-900 border border-slate-800 shadow-2xl">
-        <div class="absolute inset-0 bg-cover bg-center opacity-20" :style="{ backgroundImage: `url(${course.bannerUrl})` }"></div>
-        <div class="absolute inset-0 bg-gradient-to-r from-[#0B0F19] via-[#0B0F19]/90 to-transparent"></div>
+    <div v-if="course" class="space-y-6 pb-24 font-['Inter','Kantumruy_Pro',sans-serif]">
+      <!-- HERO SECTION -->
+      <div class="relative rounded-[20px] overflow-hidden bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] shadow-xs dark:shadow-xl">
+        <div
+          v-if="course.bannerUrl"
+          class="absolute inset-0 bg-cover bg-center opacity-10 dark:opacity-15 pointer-events-none"
+          :style="{ backgroundImage: `url(${course.bannerUrl})` }"
+        ></div>
 
-        <div class="relative z-10 p-6 sm:p-8 md:p-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div class="space-y-3.5 max-w-2xl">
+        <div class="relative z-10 p-6 sm:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div class="space-y-3 max-w-2xl">
             <div class="flex flex-wrap items-center gap-2">
-              <span class="px-3 py-1 rounded-full text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-xs">
-                {{ course.category }}
+              <span v-if="localizedCategory" class="px-3 py-1 rounded-full text-xs font-bold bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-200 border border-purple-200 dark:border-purple-700/50">
+                {{ localizedCategory }}
               </span>
-              <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+              <span v-if="course.level" class="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-[#282a2c] text-slate-700 dark:text-slate-200">
                 {{ course.level }}
               </span>
-              <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-[#282a2c] text-slate-700 dark:text-slate-200">
                 {{ course.mode }}
               </span>
             </div>
 
-            <h1 class="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight leading-tight">
+            <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
               {{ course.title }}
             </h1>
 
-            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            <p v-if="course.subtitle" class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
               {{ course.subtitle }}
             </p>
 
-            <div class="flex flex-wrap items-center gap-4 text-xs text-slate-300 pt-2">
-              <div class="flex items-center gap-1.5">
-                <span class="text-amber-400">★</span>
-                <span class="font-bold text-white">{{ course.rating }}</span>
-                <span class="text-slate-400">({{ course.reviewsCount }} reviews)</span>
-              </div>
-              <span>•</span>
-              <div class="flex items-center gap-1.5">
-                <span>⏱</span>
-                <span>{{ course.duration }} Total</span>
-              </div>
-              <span>•</span>
-              <div class="flex items-center gap-1.5">
-                <span>📚</span>
-                <span>{{ course.totalLessons }} Lessons</span>
-              </div>
+            <div class="flex flex-wrap items-center gap-3 text-xs text-slate-600 dark:text-slate-300 pt-1 tabular-nums">
+              <template v-if="course.reviewsCount >= 3 && course.rating !== null">
+                <span class="font-bold text-amber-500">★ {{ course.rating.toFixed(1) }}</span>
+                <span>({{ course.reviewsCount }})</span>
+                <span aria-hidden="true">·</span>
+              </template>
+              <span v-if="course.duration">{{ course.duration }}</span>
+              <span v-if="course.duration" aria-hidden="true">·</span>
+              <span>{{ course.totalLessons }} {{ course.totalLessons === 1 ? t('browse_lessons_singular') : t('browse_lessons_plural') }}</span>
             </div>
           </div>
 
-          <!-- Action CTA Card on the Banner -->
-          <div class="bg-slate-950/90 backdrop-blur-xl border border-slate-700/80 rounded-2xl p-5 shadow-2xl space-y-4 md:w-80 shrink-0">
-            <div class="space-y-2">
-              <div class="flex items-center justify-between text-xs font-bold">
-                <span class="text-slate-300">Your Progress</span>
-                <span :class="course.progress === 100 ? 'text-emerald-400' : 'text-purple-400'">{{ course.progress }}%</span>
+          <!-- Action CTA Card -->
+          <div class="bg-slate-50 dark:bg-[#131314] border border-[#dfe3e7] dark:border-[#2d2f31] rounded-2xl p-5 space-y-4 lg:w-80 shrink-0">
+            <div class="flex items-center justify-between">
+              <span :class="course.isFree ? 'text-emerald-600 dark:text-emerald-400' : 'text-purple-600 dark:text-purple-400'" class="text-lg font-black tabular-nums">
+                {{ course.isFree ? t('browse_price_free') : course.priceDisplay }}
+              </span>
+              <Link
+                href="/student/browse"
+                class="text-xs text-slate-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 font-semibold"
+              >
+                {{ t('overview_back_browse') }}
+              </Link>
+            </div>
+
+            <div v-if="course.isEnrolled" class="space-y-2">
+              <div class="flex items-center justify-between text-xs font-bold tabular-nums">
+                <span class="text-slate-600 dark:text-slate-300">{{ t('overview_progress') }}</span>
+                <span class="text-purple-600 dark:text-purple-400">{{ course.progress }}%</span>
               </div>
-              <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+              <div class="w-full h-2 rounded-full bg-slate-200 dark:bg-[#282a2c] overflow-hidden">
                 <div
-                  :class="course.progress === 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-purple-500 to-indigo-500'"
-                  class="h-full rounded-full transition-all duration-500"
+                  class="h-full rounded-full transition-all duration-300"
+                  :class="course.progress === 100 ? 'bg-emerald-500' : 'bg-purple-600'"
                   :style="{ width: course.progress + '%' }"
                 ></div>
               </div>
-              <p class="text-[11px] text-slate-400">
-                {{ course.completedLessons }} / {{ course.totalLessons }} Lessons Completed
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 tabular-nums">
+                {{ course.completedLessons }} / {{ course.totalLessons }} {{ t('browse_lessons_plural') }}
               </p>
             </div>
 
             <div class="space-y-2">
-              <Link
-                v-if="course.status === 'in_progress'"
-                :href="course.lastLessonHref"
-                class="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all text-center cursor-pointer"
+              <button
+                v-if="course.status === 'coming_soon'"
+                type="button"
+                disabled
+                class="w-full py-3 rounded-xl bg-slate-200 dark:bg-[#282a2c] text-slate-500 dark:text-slate-400 font-bold text-xs cursor-not-allowed"
               >
-                <span>▶ Continue Learning</span>
-              </Link>
-
+                {{ t('overview_coming_soon') }}
+              </button>
               <Link
-                v-else-if="course.status === 'not_started'"
-                :href="course.lastLessonHref"
-                class="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all text-center cursor-pointer"
+                v-else-if="course.isPendingPayment"
+                :href="course.checkoutHref"
+                class="w-full py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs flex items-center justify-center"
               >
-                <span>🚀 Start Learning</span>
+                {{ t('overview_complete_payment') }}
               </Link>
-
-              <div v-else class="space-y-2">
-                <Link
-                  href="/student/certificates/my-certificates"
-                  class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all text-center cursor-pointer"
-                >
-                  <span>🏆 View Certificate</span>
-                </Link>
-                <Link
-                  href="/student/my-courses/current"
-                  class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 font-semibold text-xs border border-slate-800 flex items-center justify-center gap-2 text-center cursor-pointer"
-                >
-                  <span>👁 Review Course Materials</span>
-                </Link>
-              </div>
+              <Link
+                v-else-if="course.status === 'completed'"
+                :href="course.continueHref"
+                class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center"
+              >
+                {{ t('overview_review_course') }}
+              </Link>
+              <Link
+                v-else-if="course.isEnrolled"
+                :href="course.continueHref"
+                class="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center justify-center"
+              >
+                {{ course.status === 'in_progress' ? t('overview_continue_learning') : t('overview_start_learning') }}
+              </Link>
+              <button
+                v-else
+                @click="handleEnroll"
+                type="button"
+                :disabled="enrolling"
+                class="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs cursor-pointer disabled:opacity-60"
+              >
+                {{ enrolling ? t('browse_cta_enrolling') : (course.isFree ? t('overview_enroll_free') : t('overview_enroll_paid')) }}
+              </button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- MAIN 2-COLUMN GRID (Left Details & Chapters, Right Instructor & Objectives) -->
+      <!-- CURRICULUM & INSTRUCTOR -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        
-        <!-- LEFT 8 COLUMNS: Learning Objectives & Course Curriculum Tree -->
-        <div class="lg:col-span-8 space-y-6">
-          
-          <!-- Learning Objectives -->
-          <div class="bg-[#0e1424] border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
-            <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <span>🎯</span>
-              <span>What You Will Learn in This Course</span>
+        <div class="lg:col-span-8 bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] rounded-[20px] p-6 shadow-xs space-y-4">
+          <div class="border-b border-slate-100 dark:border-[#2d2f31] pb-3">
+            <h2 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+              {{ t('overview_curriculum') }}
             </h2>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-              <div
-                v-for="(obj, idx) in course.objectives"
-                :key="idx"
-                class="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800/80 flex items-start gap-3 text-xs text-slate-300 leading-relaxed"
-              >
-                <span class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">✓</span>
-                <span>{{ obj }}</span>
-              </div>
-            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 tabular-nums">
+              {{ course.chapters.length }} · {{ course.totalLessons }} {{ t('browse_lessons_plural') }}
+              <template v-if="course.duration"> · {{ course.duration }}</template>
+            </p>
           </div>
 
-          <!-- Course Curriculum Accordion -->
-          <div class="bg-[#0e1424] border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-              <div>
-                <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                  <span>📁</span>
-                  <span>Course Curriculum</span>
-                </h2>
-                <p class="text-xs text-slate-400 mt-0.5">{{ course.chapters.length }} Chapters • {{ course.totalLessons }} Lessons • {{ course.duration }} Total</p>
-              </div>
+          <div v-if="course.chapters.length === 0" class="py-8 text-center text-xs text-slate-500 dark:text-slate-400">
+            {{ t('overview_no_lessons') }}
+          </div>
 
-              <span
-                :class="[
-                  course.progress === 100 ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' : 'bg-purple-500/20 text-purple-300 border-purple-500/30',
-                  'px-2.5 py-1 rounded-xl text-xs font-bold border'
-                ]"
+          <div v-else class="space-y-3">
+            <div
+              v-for="chap in course.chapters"
+              :key="chap.id"
+              class="rounded-2xl border border-[#dfe3e7] dark:border-[#2d2f31] overflow-hidden"
+            >
+              <button
+                @click="toggleChapter(chap.id)"
+                type="button"
+                class="w-full p-4 bg-slate-50 dark:bg-[#282a2c]/60 hover:bg-slate-100 dark:hover:bg-[#282a2c] flex items-center justify-between text-left cursor-pointer"
               >
-                {{ course.progress }}% Complete
-              </span>
-            </div>
+                <div>
+                  <h4 class="font-bold text-slate-900 dark:text-white text-xs sm:text-sm">{{ chap.title }}</h4>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 tabular-nums">
+                    {{ chap.lessonsCount }} {{ chap.lessonsCount === 1 ? t('browse_lessons_singular') : t('browse_lessons_plural') }} · {{ chap.duration }}
+                  </p>
+                </div>
+                <span class="text-xs font-mono text-slate-500">{{ expandedChapter === chap.id ? '▾' : '▸' }}</span>
+              </button>
 
-            <!-- Chapter Breakdown Accordion -->
-            <div class="space-y-3 pt-1">
-              <div
-                v-for="chap in course.chapters"
-                :key="chap.id"
-                class="rounded-2xl border border-slate-800/80 bg-slate-950/60 overflow-hidden"
-              >
-                <!-- Chapter Header -->
-                <button
-                  @click="toggleChapter(chap.id)"
-                  type="button"
-                  :class="[
-                    chap.locked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-800/40',
-                    'w-full p-4 flex items-center justify-between text-xs transition-colors'
-                  ]"
+              <div v-show="expandedChapter === chap.id" class="p-3 space-y-1.5 bg-white dark:bg-[#1e1f20] border-t border-slate-100 dark:border-[#2d2f31]">
+                <div
+                  v-for="(lsn, idx) in chap.lessons"
+                  :key="lsn.id || idx"
+                  class="px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-[#131314] flex items-center justify-between text-xs text-slate-700 dark:text-slate-300"
                 >
-                  <div class="flex items-center gap-3 text-left">
-                    <span :class="[expandedChapter === chap.id ? 'rotate-90 text-purple-400' : 'text-slate-500', 'transition-transform font-mono text-sm']">›</span>
-                    <div>
-                      <h4 class="font-bold text-slate-200 text-xs sm:text-sm">{{ chap.title }}</h4>
-                      <p class="text-[11px] text-slate-400 mt-0.5">{{ chap.lessonsCount }} Lessons • {{ chap.duration }}</p>
-                    </div>
+                  <div class="flex items-center gap-2.5 min-w-0">
+                    <span v-if="lsn.completed" class="text-emerald-500 font-bold">✓</span>
+                    <span v-else class="text-slate-400">○</span>
+                    <span class="truncate">{{ lsn.title }}</span>
                   </div>
-
-                  <div class="flex items-center gap-2 shrink-0">
-                    <span v-if="chap.completed" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                      Completed
-                    </span>
-                    <span v-else-if="chap.active" class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                      In Progress
-                    </span>
-                    <span v-else-if="chap.locked" class="text-xs text-slate-500">🔒</span>
-                    <span v-else class="text-xs text-blue-400 font-semibold">Available</span>
-                  </div>
-                </button>
-
-                <!-- Lessons inside Chapter -->
-                <div v-show="expandedChapter === chap.id && !chap.locked" class="border-t border-slate-800/60 p-3 space-y-1.5 bg-slate-950/90">
-                  <div
-                    v-for="lsn in chap.lessons"
-                    :key="lsn.title"
-                    class="p-2.5 rounded-xl border border-slate-800/60 text-xs flex items-center justify-between text-slate-300 bg-slate-900/50"
-                  >
-                    <div class="flex items-center gap-2.5">
-                      <span v-if="lsn.completed" class="text-emerald-400 text-xs font-bold">✓</span>
-                      <span v-else-if="lsn.active" class="text-purple-400 text-xs font-bold">▶</span>
-                      <span v-else-if="lsn.locked" class="text-slate-500 text-xs">🔒</span>
-                      <span v-else class="text-slate-500 text-xs">○</span>
-                      <span :class="[lsn.active ? 'text-purple-300 font-bold' : '']">{{ lsn.title }}</span>
-                    </div>
-                    <span class="text-[11px] text-slate-400 font-mono">{{ lsn.duration }}</span>
-                  </div>
+                  <span class="text-[11px] text-slate-500 font-mono tabular-nums shrink-0">{{ lsn.duration }}</span>
                 </div>
               </div>
             </div>
           </div>
-
         </div>
 
-        <!-- RIGHT 4 COLUMNS: Instructor Profile & Course Requirements -->
-        <div class="lg:col-span-4 space-y-6">
-          
-          <!-- Instructor Profile Card -->
-          <div class="bg-[#0e1424] border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
-            <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <span>👨‍🏫</span>
-              <span>Course Instructor</span>
-            </h3>
-
-            <div class="flex items-center gap-3.5">
-              <img
-                :src="course.instructor.avatar"
-                :alt="course.instructor.name"
-                class="w-12 h-12 rounded-full object-cover border border-purple-500/40 shadow-md"
-              />
-              <div class="min-w-0">
-                <h4 class="font-bold text-white text-xs truncate">{{ course.instructor.name }}</h4>
-                <p class="text-[10px] text-purple-400 font-medium leading-tight mt-0.5">{{ course.instructor.role }}</p>
-              </div>
+        <aside class="lg:col-span-4 bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] rounded-[20px] p-5 shadow-xs space-y-4">
+          <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+            {{ t('overview_instructor') }}
+          </h3>
+          <div v-if="course.instructor?.name" class="flex items-center gap-3">
+            <img
+              v-if="course.instructor.avatar && !avatarFailed"
+              :src="course.instructor.avatar"
+              :alt="course.instructor.name"
+              @error="avatarFailed = true"
+              class="w-12 h-12 rounded-full object-cover border border-purple-200 dark:border-purple-700/50"
+            />
+            <span
+              v-else
+              class="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-200 font-bold text-sm flex items-center justify-center"
+            >
+              {{ getInitials(course.instructor.name) }}
+            </span>
+            <div class="min-w-0">
+              <h4 class="font-bold text-slate-900 dark:text-white text-sm truncate">{{ course.instructor.name }}</h4>
+              <p v-if="course.instructor.role" class="text-xs text-purple-600 dark:text-purple-400">{{ course.instructor.role }}</p>
             </div>
-
-            <p class="text-xs text-slate-300 leading-relaxed bg-slate-950/60 p-3.5 rounded-2xl border border-slate-800/80">
-              {{ course.instructor.bio }}
-            </p>
           </div>
-
-          <!-- Course Features & Resources -->
-          <div class="bg-[#0e1424] border border-slate-800 rounded-3xl p-5 shadow-xl space-y-3 text-xs">
-            <h3 class="text-xs font-bold text-white uppercase tracking-wider">This Course Includes:</h3>
-            <ul class="space-y-2.5 text-slate-300">
-              <li class="flex items-center gap-2.5">
-                <span>📹</span>
-                <span>{{ course.duration }} on-demand high-quality video</span>
-              </li>
-              <li class="flex items-center gap-2.5">
-                <span>📄</span>
-                <span>Downloadable syllabus & slides PDF</span>
-              </li>
-              <li class="flex items-center gap-2.5">
-                <span>💻</span>
-                <span>Interactive practice quizzes & code drills</span>
-              </li>
-              <li class="flex items-center gap-2.5">
-                <span>🤖</span>
-                <span>24/7 AI Study Assistant explanations</span>
-              </li>
-              <li class="flex items-center gap-2.5">
-                <span>🏆</span>
-                <span>Certificate of Completion with QR Verification</span>
-              </li>
-            </ul>
-          </div>
-
-        </div>
-
+          <p v-if="course.instructor?.bio" class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+            {{ course.instructor.bio }}
+          </p>
+        </aside>
       </div>
+    </div>
 
+    <div v-else class="p-12 text-center bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] rounded-[20px] space-y-4">
+      <h2 class="text-base font-bold text-slate-900 dark:text-white">{{ t('browse_empty_filtered_title') }}</h2>
+      <Link href="/student/browse" class="inline-block px-5 py-2.5 rounded-xl bg-purple-600 text-white text-xs font-bold">
+        {{ t('overview_back_browse') }}
+      </Link>
     </div>
   </StudentLayout>
 </template>

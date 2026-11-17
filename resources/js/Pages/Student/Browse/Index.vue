@@ -1,716 +1,831 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
 import StudentLayout from '@/Layouts/StudentLayout.vue'
+import { useLanguage } from '@/Services/i18n'
+
+interface CatalogInstructor {
+  name?: string | null
+  name_kh?: string | null
+  avatar?: string | null
+  role?: string | null
+}
 
 interface CatalogCourse {
   id: number
   slug: string
   title: string
-  category: string
-  categoryKey: string
-  badge: 'Bestseller' | 'New' | 'Popular' | 'Trending'
-  badgeColor: string
-  illustrationType: 'js' | 'python' | 'react' | 'uiux' | 'sql' | 'marketing' | 'mobile' | 'cloud'
-  description: string
-  instructor: {
-    name: string
-    avatar: string
-    role?: string
-  }
-  rating: number
-  reviewsCount: number
-  reviewsCountDisplay: string
-  level: 'Beginner' | 'Intermediate' | 'Advanced'
+  description?: string | null
+  thumbnail?: string | null
+  majorId?: number | null
+  category?: string | null
+  categoryKh?: string | null
+  level?: 'beginner' | 'intermediate' | 'advanced' | null
+  levelLabel?: string | null
   lessonsCount: number
-  duration: string
+  durationSeconds: number
+  duration?: string | null
+  enrollmentsCount: number
   price: number
   priceDisplay: string
   isFree: boolean
-  language: 'English' | 'Khmer'
-  skills: string[]
+  rating?: number | null
+  reviewsCount: number
   isWishlisted: boolean
-  enrollmentStatus: 'not_enrolled' | 'enrolled' | 'completed'
+  isComingSoon: boolean
+  cardState: 'not_enrolled' | 'enrolled' | 'completed' | 'coming_soon' | 'pending_payment'
+  enrollmentStatus: string
+  instructor: CatalogInstructor
   overviewHref: string
+  browseShowHref: string
+  continueHref: string
+  enrollHref: string
+  checkoutHref: string
+}
+
+interface PaginatedCourses {
+  data: CatalogCourse[]
+  from: number | null
+  to: number | null
+  total: number
+  current_page: number
+  last_page: number
+  per_page: number
+  links: Array<{ url: string | null; label: string; active: boolean }>
+}
+
+interface CategoryFacet {
+  id: number
+  name: string
+  name_kh?: string | null
+  count: number
+}
+
+interface LevelFacet {
+  key: 'beginner' | 'intermediate' | 'advanced'
+  count: number
 }
 
 const props = defineProps<{
-  courses?: any
-  filters?: any
+  courses: PaginatedCourses
+  facets: {
+    categories: CategoryFacet[]
+    levels: LevelFacet[]
+    prices: { all: number; free: number; paid: number }
+    totalPublished: number
+  }
+  totalPublished: number
+  filters: {
+    q?: string
+    category?: number[]
+    level?: string[]
+    price?: 'all' | 'free' | 'paid'
+    sort?: 'popular' | 'newest' | 'title' | 'duration'
+    view?: 'grid' | 'list'
+    page?: number
+  }
 }>()
 
-// State
-const searchQuery = ref('')
-const selectedTopCategory = ref('all')
-const selectedCategories = ref<string[]>([])
-const selectedLevels = ref<string[]>([])
-const selectedPrice = ref<'all' | 'free' | 'paid'>('all')
-const selectedLanguage = ref<'all' | 'English' | 'Khmer'>('all')
-const selectedSort = ref<'popular' | 'newest' | 'rating' | 'price_low' | 'price_high' | 'enrolled'>('popular')
-const viewMode = ref<'grid' | 'list'>('grid')
+const { t, currentLang } = useLanguage()
 
-// Wishlist store in localStorage
-const wishlistedIds = ref<number[]>([])
+// Filter states synchronized from server props
+const searchQuery = ref(props.filters?.q || '')
+const selectedCategories = ref<number[]>([...(props.filters?.category || [])].map(Number))
+const selectedLevels = ref<string[]>([...(props.filters?.level || [])])
+const selectedPrice = ref<'all' | 'free' | 'paid'>(props.filters?.price || 'all')
+const selectedSort = ref<'popular' | 'newest' | 'title' | 'duration'>(props.filters?.sort || 'popular')
+const viewMode = ref<'grid' | 'list'>(props.filters?.view === 'list' ? 'list' : 'grid')
 
-// Modals
-const selectedCourseForModal = ref<CatalogCourse | null>(null)
-const isDetailsModalOpen = ref(false)
-const isPaymentModalOpen = ref(false)
-const isSuccessModalOpen = ref(false)
-const enrolledSuccessCourse = ref<CatalogCourse | null>(null)
-
-// Payment State
-const selectedPaymentMethod = ref<'aba' | 'wing' | 'card'>('aba')
-const isProcessingPayment = ref(false)
-const paymentTimer = ref('14:59')
-
-// Top Categories with Icons
-const topCategories = [
-  { key: 'all', name: 'All Categories', icon: '' },
-  { key: 'web', name: 'Web Development', icon: '🏆' },
-  { key: 'data', name: 'Data Science', icon: '🤖' },
-  { key: 'design', name: 'Design', icon: '🎨' },
-  { key: 'business', name: 'Business', icon: '📊' },
-  { key: 'mobile', name: 'Mobile Development', icon: '📱' },
-  { key: 'it', name: 'IT & Software', icon: '💻' }
-]
-
-// Fallback Catalog Courses
-const fallbackCourses: CatalogCourse[] = [
-  {
-    id: 101,
-    slug: 'js-fundamentals',
-    title: 'JavaScript Fundamentals',
-    category: 'Web Development',
-    categoryKey: 'web',
-    badge: 'Bestseller',
-    badgeColor: 'bg-purple-600',
-    illustrationType: 'js',
-    description: 'Learn the core concepts of JavaScript step by step.',
-    instructor: {
-      name: 'Mr. Sophea',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80',
-      role: 'Senior Software Instructor'
-    },
-    rating: 4.8,
-    reviewsCount: 1200,
-    reviewsCountDisplay: '1.2k',
-    level: 'Beginner',
-    lessonsCount: 24,
-    duration: '12h 30m',
-    price: 0,
-    priceDisplay: 'Free',
-    isFree: true,
-    language: 'English',
-    skills: ['JavaScript ES6+', 'Variables & Scope', 'DOM Manipulation', 'Event Loop', 'Async/Await'],
-    isWishlisted: false,
-    enrollmentStatus: 'not_enrolled',
-    overviewHref: '/student/courses/1/overview'
-  },
-  {
-    id: 102,
-    slug: 'python-mastery',
-    title: 'Python Programming Mastery',
-    category: 'IT & Software',
-    categoryKey: 'it',
-    badge: 'New',
-    badgeColor: 'bg-emerald-600',
-    illustrationType: 'python',
-    description: 'Master Python programming from basics to advanced.',
-    instructor: {
-      name: 'Mr. Eng Thida',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&auto=format&fit=crop&q=80',
-      role: 'Python & AI Engineer'
-    },
-    rating: 4.9,
-    reviewsCount: 856,
-    reviewsCountDisplay: '856',
-    level: 'Beginner',
-    lessonsCount: 30,
-    duration: '18h 45m',
-    price: 29.99,
-    priceDisplay: '$29.99',
-    isFree: false,
-    language: 'English',
-    skills: ['Python 3', 'Object-Oriented Programming', 'Modules & Packages', 'File Handling', 'API Basics'],
-    isWishlisted: false,
-    enrollmentStatus: 'not_enrolled',
-    overviewHref: '/student/courses/3/overview'
-  },
-  {
-    id: 103,
-    slug: 'react-guide',
-    title: 'React - The Complete Guide',
-    category: 'Web Development',
-    categoryKey: 'web',
-    badge: 'Popular',
-    badgeColor: 'bg-purple-600',
-    illustrationType: 'react',
-    description: 'Build modern web applications using React.',
-    instructor: {
-      name: 'Ms. Nhean Sreymom',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80',
-      role: 'Frontend Lead & React Specialist'
-    },
-    rating: 4.7,
-    reviewsCount: 972,
-    reviewsCountDisplay: '972',
-    level: 'Intermediate',
-    lessonsCount: 28,
-    duration: '15h 20m',
-    price: 39.99,
-    priceDisplay: '$39.99',
-    isFree: false,
-    language: 'English',
-    skills: ['React Hooks', 'State Management', 'React Router', 'Next.js', 'TailwindCSS'],
-    isWishlisted: false,
-    enrollmentStatus: 'not_enrolled',
-    overviewHref: '/student/courses/1/overview'
-  },
-  {
-    id: 104,
-    slug: 'uiux-fundamentals',
-    title: 'UI/UX Design Fundamentals',
-    category: 'Design',
-    categoryKey: 'design',
-    badge: 'Trending',
-    badgeColor: 'bg-amber-600',
-    illustrationType: 'uiux',
-    description: 'Learn UI/UX design principles and create stunning designs.',
-    instructor: {
-      name: 'Mr. Chan Dara',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80',
-      role: 'Product & UX Designer'
-    },
-    rating: 4.6,
-    reviewsCount: 743,
-    reviewsCountDisplay: '743',
-    level: 'Beginner',
-    lessonsCount: 22,
-    duration: '10h 15m',
-    price: 19.99,
-    priceDisplay: '$19.99',
-    isFree: false,
-    language: 'Khmer',
-    skills: ['Figma Prototyping', 'User Research', 'Design Systems', 'Wireframing', 'Color Theory'],
-    isWishlisted: false,
-    enrollmentStatus: 'not_enrolled',
-    overviewHref: '/student/courses/4/overview'
-  },
-  {
-    id: 105,
-    slug: 'sql-data-analysis',
-    title: 'SQL for Data Analysis',
-    category: 'Data Science',
-    categoryKey: 'data',
-    badge: 'New',
-    badgeColor: 'bg-emerald-600',
-    illustrationType: 'sql',
-    description: 'Learn SQL and analyze data like a pro.',
-    instructor: {
-      name: 'Mr. Long Dararith',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80',
-      role: 'Data Architect & DBA'
-    },
-    rating: 4.8,
-    reviewsCount: 654,
-    reviewsCountDisplay: '654',
-    level: 'Intermediate',
-    lessonsCount: 26,
-    duration: '14h 10m',
-    price: 0,
-    priceDisplay: 'Free',
-    isFree: true,
-    language: 'English',
-    skills: ['PostgreSQL', 'Aggregations', 'Subqueries & CTEs', 'Window Functions', 'Data Modeling'],
-    isWishlisted: false,
-    enrollmentStatus: 'not_enrolled',
-    overviewHref: '/student/courses/2/overview'
-  },
-  {
-    id: 106,
-    slug: 'digital-marketing',
-    title: 'Digital Marketing Strategy',
-    category: 'Business',
-    categoryKey: 'business',
-    badge: 'Bestseller',
-    badgeColor: 'bg-purple-600',
-    illustrationType: 'marketing',
-    description: 'Master digital marketing and grow your business.',
-    instructor: {
-      name: 'Ms. Sokun Pheakdey',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80',
-      role: 'Growth Marketing Strategist'
-    },
-    rating: 4.5,
-    reviewsCount: 521,
-    reviewsCountDisplay: '521',
-    level: 'Beginner',
-    lessonsCount: 18,
-    duration: '8h 30m',
-    price: 24.99,
-    priceDisplay: '$24.99',
-    isFree: false,
-    language: 'Khmer',
-    skills: ['Social Media Ads', 'SEO Optimization', 'Email Campaigns', 'Funnel Analytics', 'Copywriting'],
-    isWishlisted: false,
-    enrollmentStatus: 'not_enrolled',
-    overviewHref: '/student/courses/1/overview'
+watch(() => props.filters, (f) => {
+  if (!f) return
+  searchQuery.value = f.q || ''
+  selectedCategories.value = [...(f.category || [])].map(Number)
+  selectedLevels.value = [...(f.level || [])]
+  selectedPrice.value = f.price || 'all'
+  selectedSort.value = f.sort || 'popular'
+  if (f.view === 'grid' || f.view === 'list') {
+    viewMode.value = f.view
   }
-]
+}, { deep: true })
 
-const enrollmentOverrides = ref<Record<number, 'not_enrolled' | 'enrolled' | 'completed'>>({})
+// UI & interaction state
+const isLoading = ref(false)
+const fetchError = ref(false)
+const enrollingCourseId = ref<number | null>(null)
+const wishlistPending = ref<Record<number, boolean>>({})
+const wishlistOverrides = ref<Record<number, boolean>>({})
+const wishlistErrorMsg = ref<string | null>(null)
+const thumbErrors = ref<Record<number, boolean>>({})
+const avatarErrors = ref<Record<number, boolean>>({})
 
-// Dynamic Catalog Courses bound to Database props
-const catalogCourses = computed<CatalogCourse[]>(() => {
-  const data = props.courses?.data || props.courses
-  const list: CatalogCourse[] = (Array.isArray(data) && data.length > 0) ? data : fallbackCourses
-  return list.map(c => ({
+const searchInputRef = ref<HTMLInputElement | null>(null)
+const filterDrawerRef = ref<HTMLDialogElement | null>(null)
+const filterDrawerSheetRef = ref<HTMLDivElement | null>(null)
+const filterTriggerRef = ref<HTMLButtonElement | null>(null)
+const isDrawerOpen = ref(false)
+
+let debounceTimer: ReturnType<typeof setTimeout> | null = null
+let activeCancelToken: { cancel?: () => void } | null = null
+
+const catalogItems = computed<CatalogCourse[]>(() => {
+  const raw = props.courses?.data || []
+  return raw.map((c) => ({
     ...c,
-    isWishlisted: wishlistedIds.value.includes(c.id),
-    enrollmentStatus: enrollmentOverrides.value[c.id] || c.enrollmentStatus || 'not_enrolled'
+    isWishlisted: Object.prototype.hasOwnProperty.call(wishlistOverrides.value, c.id)
+      ? wishlistOverrides.value[c.id]
+      : Boolean(c.isWishlisted),
   }))
 })
 
-// Filter categories list with counts
-const categoryFilters = [
-  { name: 'Web Development', count: 24, key: 'web' },
-  { name: 'Data Science', count: 18, key: 'data' },
-  { name: 'Design', count: 16, key: 'design' },
-  { name: 'Business', count: 14, key: 'business' },
-  { name: 'Mobile Development', count: 12, key: 'mobile' },
-  { name: 'Marketing', count: 8, key: 'marketing' },
-  { name: 'IT & Software', count: 20, key: 'it' }
-]
+const categoriesList = computed(() => props.facets?.categories || [])
+const levelsList = computed(() => props.facets?.levels || [])
+const priceCounts = computed(() => props.facets?.prices || { all: 0, free: 0, paid: 0 })
 
-const levelFilters = [
-  { name: 'Beginner', count: 42 },
-  { name: 'Intermediate', count: 35 },
-  { name: 'Advanced', count: 19 }
-]
+const activeFilterCount = computed(() => {
+  let count = 0
+  if (searchQuery.value.trim()) count += 1
+  count += selectedCategories.value.length
+  count += selectedLevels.value.length
+  if (selectedPrice.value !== 'all') count += 1
+  return count
+})
 
-// Wishlist methods
-const toggleWishlist = (course: CatalogCourse, e: Event) => {
-  e.stopPropagation()
-  const idx = wishlistedIds.value.indexOf(course.id)
-  if (idx > -1) {
-    wishlistedIds.value.splice(idx, 1)
-  } else {
-    wishlistedIds.value.push(course.id)
-  }
-  try {
-    localStorage.setItem('spi_wishlist', JSON.stringify(wishlistedIds.value))
-  } catch (err) {}
+const hasActiveFilters = computed(() => activeFilterCount.value > 0)
+
+const getCsrfToken = (): string => {
+  if (typeof document === 'undefined') return ''
+  return (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || ''
 }
 
-// Filtered and Sorted Courses
-const filteredCourses = computed(() => {
-  return catalogCourses.value
-    .filter(course => {
-      // Top category pill
-      if (selectedTopCategory.value !== 'all' && course.categoryKey !== selectedTopCategory.value) {
-        return false
-      }
+const getInitials = (name?: string | null): string => {
+  if (!name) return 'SP'
+  const parts = name.trim().split(/\s+/)
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+  }
+  return name.slice(0, 2).toUpperCase()
+}
 
-      // Sidebar categories multi-select
-      if (selectedCategories.value.length > 0 && !selectedCategories.value.includes(course.category)) {
-        return false
-      }
+const localizedCategoryName = (cat?: { name?: string | null; name_kh?: string | null } | null): string => {
+  if (!cat) return ''
+  return currentLang.value === 'km' ? (cat.name_kh || cat.name || '') : (cat.name || '')
+}
 
-      // Level filter
-      if (selectedLevels.value.length > 0 && !selectedLevels.value.includes(course.level)) {
-        return false
-      }
+const localizedCourseCategory = (course: CatalogCourse): string => {
+  if (currentLang.value === 'km') {
+    return course.categoryKh || course.category || ''
+  }
+  return course.category || ''
+}
 
-      // Price filter
-      if (selectedPrice.value === 'free' && !course.isFree) return false
-      if (selectedPrice.value === 'paid' && course.isFree) return false
+const localizedLevelLabel = (lvlKey?: string | null): string => {
+  if (!lvlKey) return ''
+  const key = lvlKey.toLowerCase()
+  if (key === 'beginner') return t('browse_level_beginner')
+  if (key === 'intermediate') return t('browse_level_intermediate')
+  if (key === 'advanced') return t('browse_level_advanced')
+  return lvlKey
+}
 
-      // Language filter
-      if (selectedLanguage.value !== 'all' && course.language !== selectedLanguage.value) return false
+const formatLessonsCount = (count: number): string => {
+  return count === 1
+    ? `1 ${t('browse_lessons_singular')}`
+    : `${count} ${t('browse_lessons_plural')}`
+}
 
-      // Search Query
-      if (searchQuery.value.trim()) {
-        const q = searchQuery.value.toLowerCase().trim()
-        const matchTitle = course.title.toLowerCase().includes(q)
-        const matchDesc = course.description.toLowerCase().includes(q)
-        const matchTeacher = course.instructor.name.toLowerCase().includes(q)
-        const matchCategory = course.category.toLowerCase().includes(q)
-        const matchSkills = course.skills.some(s => s.toLowerCase().includes(q))
-        if (!matchTitle && !matchDesc && !matchTeacher && !matchCategory && !matchSkills) {
-          return false
-        }
-      }
+// Navigation / Server filtering (resets page to 1 by default)
+const fetchCatalog = (targetPage: number | null = 1, customUrl?: string) => {
+  fetchError.value = false
 
-      return true
+  if (customUrl) {
+    isLoading.value = true
+    router.visit(customUrl, {
+      preserveState: true,
+      preserveScroll: true,
+      onCancelToken: (token) => { activeCancelToken = token },
+      onFinish: () => { isLoading.value = false },
+      onError: () => { fetchError.value = true },
     })
-    .sort((a, b) => {
-      if (selectedSort.value === 'popular') return b.reviewsCount - a.reviewsCount
-      if (selectedSort.value === 'rating') return b.rating - a.rating
-      if (selectedSort.value === 'price_low') return a.price - b.price
-      if (selectedSort.value === 'price_high') return b.price - a.price
-      if (selectedSort.value === 'newest') return b.id - a.id
-      if (selectedSort.value === 'enrolled') return b.reviewsCount - a.reviewsCount
-      return 0
-    })
-})
+    return
+  }
+
+  const params: Record<string, any> = {
+    view: viewMode.value,
+    sort: selectedSort.value,
+  }
+  if (searchQuery.value.trim()) {
+    params.q = searchQuery.value.trim()
+  }
+  if (selectedCategories.value.length > 0) {
+    params.category = [...selectedCategories.value]
+  }
+  if (selectedLevels.value.length > 0) {
+    params.level = [...selectedLevels.value]
+  }
+  if (selectedPrice.value !== 'all') {
+    params.price = selectedPrice.value
+  }
+  if (targetPage && targetPage > 1) {
+    params.page = targetPage
+  }
+
+  isLoading.value = true
+  router.get('/student/browse', params, {
+    preserveState: true,
+    replace: true,
+    preserveScroll: true,
+    onCancelToken: (token) => { activeCancelToken = token },
+    onFinish: () => { isLoading.value = false },
+    onError: () => { fetchError.value = true },
+  })
+}
+
+const onSearchInput = () => {
+  if (debounceTimer) clearTimeout(debounceTimer)
+  debounceTimer = setTimeout(() => {
+    fetchCatalog(1)
+  }, 300)
+}
+
+const clearSearch = () => {
+  searchQuery.value = ''
+  if (debounceTimer) clearTimeout(debounceTimer)
+  fetchCatalog(1)
+}
+
+const toggleTopCategory = (categoryId: number | 'all') => {
+  if (categoryId === 'all') {
+    selectedCategories.value = []
+  } else {
+    selectedCategories.value = [categoryId]
+  }
+  fetchCatalog(1)
+}
+
+const onSidebarFilterChange = () => {
+  fetchCatalog(1)
+}
+
+const removeCategoryChip = (catId: number) => {
+  selectedCategories.value = selectedCategories.value.filter((id) => id !== catId)
+  fetchCatalog(1)
+}
+
+const removeLevelChip = (lvl: string) => {
+  selectedLevels.value = selectedLevels.value.filter((l) => l !== lvl)
+  fetchCatalog(1)
+}
+
+const resetPriceFilter = () => {
+  selectedPrice.value = 'all'
+  fetchCatalog(1)
+}
 
 const clearAllFilters = () => {
   searchQuery.value = ''
-  selectedTopCategory.value = 'all'
   selectedCategories.value = []
   selectedLevels.value = []
   selectedPrice.value = 'all'
-  selectedLanguage.value = 'all'
-  selectedSort.value = 'popular'
+  if (debounceTimer) clearTimeout(debounceTimer)
+  fetchCatalog(1)
 }
 
-const openCourseModal = (course: CatalogCourse) => {
-  selectedCourseForModal.value = course
-  isDetailsModalOpen.value = true
+const setViewMode = (mode: 'grid' | 'list') => {
+  if (viewMode.value === mode) return
+  viewMode.value = mode
+  fetchCatalog(props.courses?.current_page || 1)
+
+  try {
+    fetch('/student/preferences', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': getCsrfToken(),
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ courses_view: mode }),
+    }).catch(() => {})
+  } catch (e) {}
 }
 
-// Enrollment Handling
-const handleEnrollAction = (course: CatalogCourse) => {
-  isDetailsModalOpen.value = false
-  if (course.isFree) {
-    // Instant free enrollment
-    enrollmentOverrides.value[course.id] = 'enrolled'
-    enrolledSuccessCourse.value = course
-    isSuccessModalOpen.value = true
-  } else {
-    // Open payment modal
-    selectedCourseForModal.value = course
-    isPaymentModalOpen.value = true
+// Optimistic Wishlist toggle with rollback on failure
+const toggleWishlist = async (course: CatalogCourse) => {
+  if (wishlistPending.value[course.id]) return
+  wishlistErrorMsg.value = null
+
+  const previousState = course.isWishlisted
+  const nextState = !previousState
+
+  wishlistOverrides.value[course.id] = nextState
+  wishlistPending.value[course.id] = true
+
+  try {
+    const res = await fetch(`/student/courses/${course.id}/wishlist`, {
+      method: nextState ? 'POST' : 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': getCsrfToken(),
+        'Accept': 'application/json',
+      },
+      body: nextState ? JSON.stringify({}) : undefined,
+    })
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`)
+    }
+    const payload = await res.json().catch(() => null)
+    if (payload && typeof payload.wishlisted === 'boolean') {
+      wishlistOverrides.value[course.id] = payload.wishlisted
+    }
+  } catch (e) {
+    wishlistOverrides.value[course.id] = previousState
+    wishlistErrorMsg.value = t('browse_wishlist_error')
+  } finally {
+    wishlistPending.value[course.id] = false
   }
 }
 
-const confirmPayment = () => {
-  isProcessingPayment.value = true
-  setTimeout(() => {
-    isProcessingPayment.value = false
-    isPaymentModalOpen.value = false
-    if (selectedCourseForModal.value) {
-      enrollmentOverrides.value[selectedCourseForModal.value.id] = 'enrolled'
-      enrolledSuccessCourse.value = selectedCourseForModal.value
-      isSuccessModalOpen.value = true
-    }
-  }, 1200)
+// Enroll action (Free -> POST enroll, Paid -> Checkout redirect)
+const handleEnroll = (course: CatalogCourse) => {
+  if (course.isComingSoon || enrollingCourseId.value === course.id) return
+
+  if (!course.isFree && course.price > 0) {
+    router.visit(course.checkoutHref)
+    return
+  }
+
+  enrollingCourseId.value = course.id
+  router.post(course.enrollHref, {}, {
+    preserveScroll: true,
+    onFinish: () => {
+      enrollingCourseId.value = null
+    },
+  })
+}
+
+// Mobile Filter Drawer (<dialog>.showModal() per modern-web-guidance)
+const openFilterDrawer = () => {
+  const dlg = filterDrawerRef.value
+  if (!dlg) return
+  isDrawerOpen.value = true
+  if (typeof dlg.showModal === 'function') {
+    if (!dlg.open) dlg.showModal()
+  } else {
+    dlg.setAttribute('open', 'true')
+  }
+}
+
+const closeFilterDrawer = () => {
+  const dlg = filterDrawerRef.value
+  isDrawerOpen.value = false
+  if (dlg && dlg.open && typeof dlg.close === 'function') {
+    dlg.close()
+  } else if (dlg) {
+    dlg.removeAttribute('open')
+  }
+  filterTriggerRef.value?.focus()
+}
+
+const onDrawerBackdropClick = (e: MouseEvent) => {
+  const sheet = filterDrawerSheetRef.value
+  if (sheet && !sheet.contains(e.target as Node)) {
+    closeFilterDrawer()
+  }
+}
+
+const onDrawerCancel = (e: Event) => {
+  e.preventDefault()
+  closeFilterDrawer()
+}
+
+const formatPaginationLabel = (label: string): string => {
+  if (label.includes('Previous') || label.includes('laquo')) return '‹'
+  if (label.includes('Next') || label.includes('raquo')) return '›'
+  return label
+}
+
+const handleGlobalKeyDown = (e: KeyboardEvent) => {
+  const tag = (e.target as HTMLElement)?.tagName
+  if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(tag) && !(e.target as HTMLElement)?.isContentEditable) {
+    e.preventDefault()
+    searchInputRef.value?.focus()
+  }
 }
 
 onMounted(() => {
-  try {
-    const saved = localStorage.getItem('spi_wishlist')
-    if (saved) {
-      wishlistedIds.value = JSON.parse(saved)
-    }
-  } catch (e) {}
+  window.addEventListener('keydown', handleGlobalKeyDown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleGlobalKeyDown)
+  if (debounceTimer) clearTimeout(debounceTimer)
+  if (activeCancelToken?.cancel) activeCancelToken.cancel()
 })
 </script>
 
 <template>
   <StudentLayout
-    title="Browse Catalog"
+    :title="t('browse_title')"
     :breadcrumbs="[
-      { label: 'Dashboard', href: '/student/dashboard' },
-      { label: 'Browse Catalog' }
+      { label: t('nav_dashboard'), href: '/student/dashboard' },
+      { label: t('nav_my_courses'), href: '/student/my-courses/enrolled' },
+      { label: t('browse_title') }
     ]"
   >
-    <div class="space-y-6 pb-16">
-      
-      <!-- 1. PAGE HEADER (Title with Open Book Icon, Subtitle & Global Search Input) -->
+    <div class="space-y-6 pb-24 font-['Inter','Kantumruy_Pro',sans-serif]">
+      <!-- 1. PAGE HEADER + SINGLE SEARCH INPUT -->
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div class="flex items-center gap-2.5">
-            <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              Browse Catalog
-            </h1>
-            <span class="text-xl sm:text-2xl">📖</span>
-          </div>
-          <p class="text-xs sm:text-sm text-slate-400 mt-1">
-            Explore our wide range of courses and start your learning journey.
+          <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+            {{ t('browse_title') }}
+          </h1>
+          <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
+            {{ t('browse_subtitle') }}
           </p>
         </div>
 
-        <!-- Global Search Input with Ctrl K -->
-        <div class="relative w-full md:w-96">
+        <!-- Single In-Page Search Box (shortcut '/') -->
+        <div class="relative w-full md:w-80 shrink-0">
+          <label for="browse-catalog-search" class="sr-only">{{ t('browse_search_placeholder') }}</label>
           <div class="relative flex items-center">
-            <span class="absolute left-3.5 text-slate-400 pointer-events-none">
+            <span class="absolute left-3.5 text-slate-400 pointer-events-none" aria-hidden="true">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </span>
             <input
+              id="browse-catalog-search"
+              ref="searchInputRef"
               v-model="searchQuery"
-              type="text"
-              placeholder="Search courses, skills, topics..."
-              class="w-full pl-10 pr-16 py-2 rounded-xl bg-slate-900/90 border border-slate-800 focus:border-purple-500 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500/50 shadow-inner transition-all"
+              @input="onSearchInput"
+              type="search"
+              maxlength="100"
+              :placeholder="t('browse_search_placeholder')"
+              class="w-full pl-10 pr-12 py-2.5 rounded-xl bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] focus:border-purple-500 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 shadow-xs transition-colors"
             />
             <div class="absolute right-2.5 flex items-center gap-1">
               <button
                 v-if="searchQuery"
-                @click="searchQuery = ''"
+                @click="clearSearch"
                 type="button"
-                class="text-slate-400 hover:text-white p-0.5 text-xs cursor-pointer"
+                class="min-w-[24px] min-h-[24px] flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 cursor-pointer"
+                :aria-label="t('browse_clear_search')"
               >
                 ✕
               </button>
-              <kbd class="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-slate-800 border border-slate-700 rounded shadow-xs">Ctrl K</kbd>
+              <kbd
+                v-else
+                class="hidden sm:inline-flex items-center justify-center w-5 h-5 text-[11px] font-mono font-bold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-[#282a2c] border border-slate-200 dark:border-[#3c4043] rounded"
+                :title="t('browse_search_shortcut_title')"
+                aria-hidden="true"
+              >/</kbd>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- 2. TOP CATEGORIES HORIZONTAL PILLS -->
-      <div class="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-2 pt-1">
+      <!-- 2. TOP CATEGORY PILLS (Real Majors from DB) -->
+      <nav aria-label="Course Categories" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 pt-0.5">
         <button
-          v-for="cat in topCategories"
-          :key="cat.key"
-          @click="selectedTopCategory = cat.key"
+          @click="toggleTopCategory('all')"
           type="button"
+          :aria-pressed="selectedCategories.length === 0 ? 'true' : 'false'"
           :class="[
-            selectedTopCategory === cat.key
-              ? 'bg-purple-600 text-white font-bold shadow-lg shadow-purple-600/30'
-              : 'bg-slate-900/90 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800',
-            'px-4 py-2 rounded-xl text-xs flex items-center gap-2 shrink-0 transition-all cursor-pointer'
+            selectedCategories.length === 0
+              ? 'bg-purple-600 text-white font-bold shadow-md shadow-purple-600/20 border-transparent'
+              : 'bg-white dark:bg-[#1e1f20] hover:bg-slate-50 dark:hover:bg-[#282a2c] text-slate-700 dark:text-slate-300 border-[#dfe3e7] dark:border-[#2d2f31]',
+            'px-4 py-2 rounded-full text-xs border flex items-center gap-2 shrink-0 transition-colors motion-reduce:transition-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#131314]'
           ]"
         >
-          <span v-if="cat.icon" class="text-sm">{{ cat.icon }}</span>
-          <span>{{ cat.name }}</span>
+          <span>{{ t('browse_all_categories') }}</span>
+          <span
+            :class="[
+              selectedCategories.length === 0 ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-[#282a2c] text-slate-600 dark:text-slate-300',
+              'px-1.5 py-0.5 rounded-full text-[10px] font-bold tabular-nums'
+            ]"
+          >
+            {{ priceCounts.all }}
+          </span>
+        </button>
+
+        <button
+          v-for="cat in categoriesList"
+          :key="cat.id"
+          @click="toggleTopCategory(cat.id)"
+          type="button"
+          :aria-pressed="selectedCategories.includes(cat.id) ? 'true' : 'false'"
+          :class="[
+            selectedCategories.includes(cat.id)
+              ? 'bg-purple-600 text-white font-bold shadow-md shadow-purple-600/20 border-transparent'
+              : 'bg-white dark:bg-[#1e1f20] hover:bg-slate-50 dark:hover:bg-[#282a2c] text-slate-700 dark:text-slate-300 border-[#dfe3e7] dark:border-[#2d2f31]',
+            'px-4 py-2 rounded-full text-xs border flex items-center gap-2 shrink-0 transition-colors motion-reduce:transition-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#131314]'
+          ]"
+        >
+          <span>{{ localizedCategoryName(cat) }}</span>
+          <span
+            :class="[
+              selectedCategories.includes(cat.id) ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-[#282a2c] text-slate-600 dark:text-slate-300',
+              'px-1.5 py-0.5 rounded-full text-[10px] font-bold tabular-nums'
+            ]"
+          >
+            {{ cat.count }}
+          </span>
+        </button>
+      </nav>
+
+      <!-- Wishlist optimistic rollback error alert -->
+      <div
+        v-if="wishlistErrorMsg"
+        role="alert"
+        class="flex items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-200 text-xs font-medium"
+      >
+        <span>{{ wishlistErrorMsg }}</span>
+        <button
+          @click="wishlistErrorMsg = null"
+          type="button"
+          class="min-w-[24px] min-h-[24px] flex items-center justify-center rounded hover:bg-rose-100 dark:hover:bg-rose-900 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
+          :aria-label="t('browse_close_filters')"
+        >
+          ✕
         </button>
       </div>
 
-      <!-- 3. MAIN 2-COLUMN LAYOUT (Left Filters Sidebar 3 cols, Right Course Cards Grid 9 cols) -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        
-        <!-- LEFT 3 COLUMNS: FILTER COURSES SIDEBAR -->
-        <aside class="lg:col-span-3 bg-[#0e1424] border border-slate-800 rounded-3xl p-5 shadow-xl space-y-6">
-          
-          <!-- Filter Header & Clear All -->
-          <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
-            <h2 class="text-xs font-bold text-white uppercase tracking-wider">
-              Filter Courses
+      <!-- 3. MAIN 2-COLUMN LAYOUT (280px Sticky Filter Panel on Desktop + Catalog Grid) -->
+      <div class="flex flex-col lg:flex-row gap-6 items-start">
+        <!-- DESKTOP FILTER PANEL (280px Sticky) -->
+        <aside
+          aria-label="Course filters"
+          class="hidden lg:block w-[280px] shrink-0 sticky top-20 bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] rounded-[20px] p-5 shadow-xs dark:shadow-xl space-y-5"
+        >
+          <div class="flex items-center justify-between border-b border-slate-100 dark:border-[#2d2f31] pb-3">
+            <h2 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+              {{ t('browse_filter_courses') }}
             </h2>
             <button
+              v-if="hasActiveFilters"
               @click="clearAllFilters"
               type="button"
-              class="text-xs text-purple-400 hover:text-purple-300 font-semibold cursor-pointer"
+              class="text-xs text-purple-600 dark:text-purple-400 hover:underline font-semibold cursor-pointer rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
             >
-              Clear All
+              {{ t('browse_clear_all') }}
             </button>
           </div>
 
-          <!-- Mini Search inside Filter -->
-          <div class="space-y-1.5">
-            <label class="text-[11px] font-bold text-slate-400 uppercase">Search</label>
-            <div class="relative">
-              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs">🔍</span>
-              <input
-                v-model="searchQuery"
-                type="text"
-                placeholder="Search courses..."
-                class="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-purple-500"
-              />
-            </div>
-          </div>
-
-          <!-- Categories Checkboxes -->
-          <div class="space-y-2.5">
-            <div class="flex items-center justify-between">
-              <label class="text-[11px] font-bold text-slate-400 uppercase">Categories</label>
-              <button
-                @click="selectedCategories = []"
-                class="text-[10px] text-purple-400 hover:underline cursor-pointer"
-              >
-                View All
-              </button>
-            </div>
-
-            <div class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-1">
+          <!-- Categories Filter -->
+          <fieldset class="space-y-2.5">
+            <legend class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              {{ t('browse_categories') }}
+            </legend>
+            <div class="space-y-2 pt-1 max-h-60 overflow-y-auto custom-scrollbar pr-1">
               <label
-                v-for="cat in categoryFilters"
-                :key="cat.name"
-                class="flex items-center justify-between text-xs text-slate-300 hover:text-white cursor-pointer group"
+                v-for="cat in categoriesList"
+                :key="'desk-cat-' + cat.id"
+                class="flex items-center justify-between gap-2 text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer py-0.5"
               >
-                <div class="flex items-center gap-2">
+                <span class="flex items-center gap-2.5 min-w-0">
                   <input
                     type="checkbox"
-                    :value="cat.name"
+                    :value="cat.id"
                     v-model="selectedCategories"
-                    class="rounded border-slate-700 bg-slate-900 text-purple-600 focus:ring-purple-500/50 cursor-pointer"
+                    @change="onSidebarFilterChange"
+                    class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 bg-white dark:bg-[#131314] text-purple-600 focus-visible:ring-2 focus-visible:ring-purple-500 cursor-pointer shrink-0"
                   />
-                  <span>{{ cat.name }}</span>
-                </div>
-                <span class="text-[11px] text-slate-500 group-hover:text-slate-400 font-mono">{{ cat.count }}</span>
+                  <span class="truncate">{{ localizedCategoryName(cat) }}</span>
+                </span>
+                <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium tabular-nums shrink-0">
+                  {{ cat.count }}
+                </span>
               </label>
             </div>
-          </div>
+          </fieldset>
 
           <!-- Level Filter -->
-          <div class="space-y-2.5 border-t border-slate-800/80 pt-4">
-            <label class="text-[11px] font-bold text-slate-400 uppercase">Level</label>
-            <div class="space-y-2">
+          <fieldset class="space-y-2.5 border-t border-slate-100 dark:border-[#2d2f31] pt-4">
+            <legend class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              {{ t('browse_level') }}
+            </legend>
+            <div class="space-y-2 pt-1">
               <label
-                v-for="lvl in levelFilters"
-                :key="lvl.name"
-                class="flex items-center justify-between text-xs text-slate-300 hover:text-white cursor-pointer group"
+                v-for="lvl in levelsList"
+                :key="'desk-lvl-' + lvl.key"
+                class="flex items-center justify-between gap-2 text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer py-0.5"
               >
-                <div class="flex items-center gap-2">
+                <span class="flex items-center gap-2.5">
                   <input
                     type="checkbox"
-                    :value="lvl.name"
+                    :value="lvl.key"
                     v-model="selectedLevels"
-                    class="rounded border-slate-700 bg-slate-900 text-purple-600 focus:ring-purple-500/50 cursor-pointer"
+                    @change="onSidebarFilterChange"
+                    class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 bg-white dark:bg-[#131314] text-purple-600 focus-visible:ring-2 focus-visible:ring-purple-500 cursor-pointer"
                   />
-                  <span>{{ lvl.name }}</span>
-                </div>
-                <span class="text-[11px] text-slate-500 group-hover:text-slate-400 font-mono">{{ lvl.count }}</span>
+                  <span>{{ localizedLevelLabel(lvl.key) }}</span>
+                </span>
+                <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium tabular-nums">
+                  {{ lvl.count }}
+                </span>
               </label>
             </div>
-          </div>
+          </fieldset>
 
           <!-- Price Filter -->
-          <div class="space-y-2.5 border-t border-slate-800/80 pt-4">
-            <label class="text-[11px] font-bold text-slate-400 uppercase">Price</label>
-            <div class="space-y-2 text-xs text-slate-300">
-              <label class="flex items-center justify-between cursor-pointer hover:text-white">
-                <div class="flex items-center gap-2">
+          <fieldset class="space-y-2.5 border-t border-slate-100 dark:border-[#2d2f31] pt-4">
+            <legend class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              {{ t('browse_price') }}
+            </legend>
+            <div class="space-y-2 pt-1 text-xs text-slate-700 dark:text-slate-300">
+              <label class="flex items-center justify-between cursor-pointer hover:text-slate-900 dark:hover:text-white py-0.5">
+                <span class="flex items-center gap-2.5">
                   <input
                     type="radio"
+                    name="desktop_price_filter"
                     value="all"
                     v-model="selectedPrice"
-                    class="text-purple-600 bg-slate-900 border-slate-700 focus:ring-purple-500/50 cursor-pointer"
+                    @change="onSidebarFilterChange"
+                    class="w-4 h-4 text-purple-600 border-slate-300 dark:border-slate-600 bg-white dark:bg-[#131314] focus-visible:ring-2 focus-visible:ring-purple-500 cursor-pointer"
                   />
-                  <span>All</span>
-                </div>
+                  <span>{{ t('browse_price_all') }}</span>
+                </span>
+                <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium tabular-nums">
+                  {{ priceCounts.all }}
+                </span>
               </label>
-              <label class="flex items-center justify-between cursor-pointer hover:text-white">
-                <div class="flex items-center gap-2">
+              <label class="flex items-center justify-between cursor-pointer hover:text-slate-900 dark:hover:text-white py-0.5">
+                <span class="flex items-center gap-2.5">
                   <input
                     type="radio"
+                    name="desktop_price_filter"
                     value="free"
                     v-model="selectedPrice"
-                    class="text-purple-600 bg-slate-900 border-slate-700 focus:ring-purple-500/50 cursor-pointer"
+                    @change="onSidebarFilterChange"
+                    class="w-4 h-4 text-purple-600 border-slate-300 dark:border-slate-600 bg-white dark:bg-[#131314] focus-visible:ring-2 focus-visible:ring-purple-500 cursor-pointer"
                   />
-                  <span>Free</span>
-                </div>
-                <span class="text-[11px] text-slate-500 font-mono">28</span>
+                  <span>{{ t('browse_price_free') }}</span>
+                </span>
+                <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium tabular-nums">
+                  {{ priceCounts.free }}
+                </span>
               </label>
-              <label class="flex items-center justify-between cursor-pointer hover:text-white">
-                <div class="flex items-center gap-2">
+              <label class="flex items-center justify-between cursor-pointer hover:text-slate-900 dark:hover:text-white py-0.5">
+                <span class="flex items-center gap-2.5">
                   <input
                     type="radio"
+                    name="desktop_price_filter"
                     value="paid"
                     v-model="selectedPrice"
-                    class="text-purple-600 bg-slate-900 border-slate-700 focus:ring-purple-500/50 cursor-pointer"
+                    @change="onSidebarFilterChange"
+                    class="w-4 h-4 text-purple-600 border-slate-300 dark:border-slate-600 bg-white dark:bg-[#131314] focus-visible:ring-2 focus-visible:ring-purple-500 cursor-pointer"
                   />
-                  <span>Paid</span>
-                </div>
-                <span class="text-[11px] text-slate-500 font-mono">68</span>
+                  <span>{{ t('browse_price_paid') }}</span>
+                </span>
+                <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium tabular-nums">
+                  {{ priceCounts.paid }}
+                </span>
               </label>
             </div>
-          </div>
-
-          <!-- Language Filter -->
-          <div class="space-y-2.5 border-t border-slate-800/80 pt-4">
-            <label class="text-[11px] font-bold text-slate-400 uppercase">Language</label>
-            <div class="space-y-2 text-xs text-slate-300">
-              <label class="flex items-center justify-between cursor-pointer hover:text-white">
-                <div class="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    value="all"
-                    v-model="selectedLanguage"
-                    class="text-purple-600 bg-slate-900 border-slate-700 focus:ring-purple-500/50 cursor-pointer"
-                  />
-                  <span>All Languages</span>
-                </div>
-              </label>
-              <label class="flex items-center justify-between cursor-pointer hover:text-white">
-                <div class="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    value="English"
-                    v-model="selectedLanguage"
-                    class="text-purple-600 bg-slate-900 border-slate-700 focus:ring-purple-500/50 cursor-pointer"
-                  />
-                  <span>English</span>
-                </div>
-                <span class="text-[11px] text-slate-500 font-mono">85</span>
-              </label>
-              <label class="flex items-center justify-between cursor-pointer hover:text-white">
-                <div class="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    value="Khmer"
-                    v-model="selectedLanguage"
-                    class="text-purple-600 bg-slate-900 border-slate-700 focus:ring-purple-500/50 cursor-pointer"
-                  />
-                  <span>Khmer</span>
-                </div>
-                <span class="text-[11px] text-slate-500 font-mono">11</span>
-              </label>
-            </div>
-          </div>
-
+          </fieldset>
         </aside>
 
-        <!-- RIGHT 9 COLUMNS: COURSE CATALOG GRID & CONTROLS -->
-        <main class="lg:col-span-9 space-y-6">
-          
-          <!-- Top Bar: Results Count, Sort Dropdown, Grid/List Switcher -->
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0e1424] border border-slate-800 rounded-2xl px-5 py-3 shadow-md">
-            <div class="text-xs text-slate-400">
-              Showing <span class="text-white font-bold">1</span> to <span class="text-white font-bold">{{ filteredCourses.length }}</span> of <span class="text-white font-bold">96</span> courses
+        <!-- RIGHT COLUMN: CONTROLS, CHIPS & COURSE CARDS -->
+        <main class="flex-1 min-w-0 w-full space-y-5">
+          <!-- Active Filter Chips Bar -->
+          <div v-if="hasActiveFilters" class="flex flex-wrap items-center gap-2">
+            <button
+              v-if="searchQuery.trim()"
+              @click="clearSearch"
+              type="button"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-200 border border-purple-200 dark:border-purple-700/60 hover:bg-purple-100 dark:hover:bg-purple-900/50 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+            >
+              <span>"{{ searchQuery.trim() }}"</span>
+              <span aria-hidden="true">✕</span>
+            </button>
+
+            <button
+              v-for="catId in selectedCategories"
+              :key="'chip-cat-' + catId"
+              @click="removeCategoryChip(catId)"
+              type="button"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-200 border border-purple-200 dark:border-purple-700/60 hover:bg-purple-100 dark:hover:bg-purple-900/50 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+            >
+              <span>{{ localizedCategoryName(categoriesList.find(c => c.id === catId) || { name: '#' + catId }) }}</span>
+              <span aria-hidden="true">✕</span>
+            </button>
+
+            <button
+              v-for="lvl in selectedLevels"
+              :key="'chip-lvl-' + lvl"
+              @click="removeLevelChip(lvl)"
+              type="button"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-200 border border-purple-200 dark:border-purple-700/60 hover:bg-purple-100 dark:hover:bg-purple-900/50 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+            >
+              <span>{{ localizedLevelLabel(lvl) }}</span>
+              <span aria-hidden="true">✕</span>
+            </button>
+
+            <button
+              v-if="selectedPrice !== 'all'"
+              @click="resetPriceFilter"
+              type="button"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-200 border border-purple-200 dark:border-purple-700/60 hover:bg-purple-100 dark:hover:bg-purple-900/50 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+            >
+              <span>{{ selectedPrice === 'free' ? t('browse_price_free') : t('browse_price_paid') }}</span>
+              <span aria-hidden="true">✕</span>
+            </button>
+
+            <button
+              @click="clearAllFilters"
+              type="button"
+              class="px-3 py-1.5 rounded-full text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400 underline underline-offset-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+            >
+              {{ t('browse_clear_all') }}
+            </button>
+          </div>
+
+          <!-- Top Results & Controls Bar -->
+          <div class="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] rounded-[20px] px-4 sm:px-5 py-3 shadow-xs">
+            <div class="flex items-center gap-3">
+              <!-- Mobile/Tablet Filter Drawer Trigger (<1024px) -->
+              <button
+                ref="filterTriggerRef"
+                @click="openFilterDrawer"
+                type="button"
+                aria-controls="browse-filter-drawer"
+                :aria-expanded="isDrawerOpen ? 'true' : 'false'"
+                class="lg:hidden inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-[#282a2c] hover:bg-slate-100 dark:hover:bg-[#323538] border border-[#dfe3e7] dark:border-[#3c4043] text-xs font-bold text-slate-800 dark:text-slate-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+              >
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L15 12.414V19a1 1 0 01-.553.894l-4 2A1 1 0 019 21v-8.586L3.293 6.707A1 1 0 013 6V4z" />
+                </svg>
+                <span>
+                  {{ t('browse_filters_btn') }}<template v-if="activeFilterCount > 0"> ({{ activeFilterCount }})</template>
+                </span>
+              </button>
+
+              <!-- Real Paginator Total Count -->
+              <div class="text-xs text-slate-600 dark:text-slate-400 tabular-nums">
+                <template v-if="courses.total > 0">
+                  {{ t('browse_showing') }}
+                  <span class="font-bold text-slate-900 dark:text-white">{{ courses.from ?? 1 }}</span>
+                  {{ t('browse_to') }}
+                  <span class="font-bold text-slate-900 dark:text-white">{{ courses.to ?? catalogItems.length }}</span>
+                  {{ t('browse_of') }}
+                  <span class="font-bold text-slate-900 dark:text-white">{{ courses.total }}</span>
+                  {{ t('browse_courses_unit') }}
+                </template>
+                <template v-else>
+                  <span class="font-bold text-slate-900 dark:text-white">{{ t('browse_no_results') }}</span>
+                </template>
+              </div>
             </div>
 
-            <div class="flex items-center gap-3 self-start sm:self-auto">
+            <div class="flex items-center gap-2.5">
               <!-- Sort Dropdown -->
               <div class="flex items-center gap-2">
-                <span class="text-xs text-slate-400 hidden md:inline">Sort by:</span>
+                <label for="browse-sort-select" class="text-xs text-slate-500 dark:text-slate-400 hidden sm:inline">
+                  {{ t('browse_sort_by') }}
+                </label>
                 <div class="relative">
                   <select
+                    id="browse-sort-select"
                     v-model="selectedSort"
-                    class="appearance-none bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-200 text-xs rounded-xl pl-3 pr-8 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-500/50 cursor-pointer shadow-sm font-medium"
+                    @change="fetchCatalog(1)"
+                    class="appearance-none bg-slate-50 dark:bg-[#282a2c] border border-[#dfe3e7] dark:border-[#3c4043] hover:border-purple-400 text-slate-800 dark:text-slate-200 text-xs font-medium rounded-xl pl-3 pr-8 py-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 cursor-pointer"
                   >
-                    <option value="popular">Most Popular</option>
-                    <option value="newest">Newest</option>
-                    <option value="rating">Highest Rated</option>
-                    <option value="price_low">Lowest Price</option>
-                    <option value="price_high">Highest Price</option>
-                    <option value="enrolled">Most Enrolled</option>
+                    <option value="popular">{{ t('browse_sort_popular') }}</option>
+                    <option value="newest">{{ t('browse_sort_newest') }}</option>
+                    <option value="title">{{ t('browse_sort_title') }}</option>
+                    <option value="duration">{{ t('browse_sort_duration') }}</option>
                   </select>
-                  <div class="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 text-xs">
-                    ▼
-                  </div>
+                  <span class="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 text-[10px]" aria-hidden="true">▼</span>
                 </div>
               </div>
 
-              <!-- Grid / List Switcher -->
-              <div class="flex items-center rounded-xl bg-slate-900 border border-slate-800 p-0.5">
+              <!-- Grid / List View Switcher -->
+              <div class="flex items-center rounded-xl bg-slate-50 dark:bg-[#282a2c] border border-[#dfe3e7] dark:border-[#3c4043] p-0.5">
                 <button
-                  @click="viewMode = 'grid'"
+                  @click="setViewMode('grid')"
                   type="button"
+                  :aria-pressed="viewMode === 'grid' ? 'true' : 'false'"
+                  :aria-label="t('browse_grid_view')"
                   :class="[
-                    viewMode === 'grid' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-400 hover:text-slate-200',
-                    'p-1.5 rounded-lg text-xs transition-colors cursor-pointer'
+                    viewMode === 'grid' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white',
+                    'p-1.5 rounded-lg transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500'
                   ]"
-                  title="Grid View"
                 >
-                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                   </svg>
                 </button>
                 <button
-                  @click="viewMode = 'list'"
+                  @click="setViewMode('list')"
                   type="button"
+                  :aria-pressed="viewMode === 'list' ? 'true' : 'false'"
+                  :aria-label="t('browse_list_view')"
                   :class="[
-                    viewMode === 'list' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-400 hover:text-slate-200',
-                    'p-1.5 rounded-lg text-xs transition-colors cursor-pointer'
+                    viewMode === 'list' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white',
+                    'p-1.5 rounded-lg transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500'
                   ]"
-                  title="List View"
                 >
-                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                   </svg>
                 </button>
@@ -718,536 +833,715 @@ onMounted(() => {
             </div>
           </div>
 
-          <!-- Course Cards Container (3x2 Grid or List) -->
-          <div v-if="filteredCourses.length > 0">
-            
-            <!-- 3x2 Grid View (Matching Screenshot) -->
+          <!-- ERROR STATE WITH RETRY -->
+          <div
+            v-if="fetchError"
+            role="alert"
+            class="bg-white dark:bg-[#1e1f20] border border-rose-200 dark:border-rose-800 rounded-[20px] p-10 text-center space-y-4"
+          >
+            <div class="w-12 h-12 rounded-full bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-300 flex items-center justify-center mx-auto">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+              </svg>
+            </div>
+            <div class="space-y-1">
+              <h3 class="text-base font-bold text-slate-900 dark:text-white">{{ t('browse_error_title') }}</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">{{ t('browse_error_desc') }}</p>
+            </div>
+            <button
+              @click="fetchCatalog(courses?.current_page || 1)"
+              type="button"
+              class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+            >
+              {{ t('browse_retry_btn') }}
+            </button>
+          </div>
+
+          <!-- SKELETON LOADING STATE -->
+          <div v-else-if="isLoading" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6" aria-busy="true">
+            <div
+              v-for="n in 6"
+              :key="'skel-' + n"
+              class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] rounded-[20px] overflow-hidden animate-pulse"
+            >
+              <div class="w-full aspect-video bg-slate-200 dark:bg-[#282a2c]"></div>
+              <div class="p-5 space-y-3">
+                <div class="h-3 w-24 rounded bg-slate-200 dark:bg-[#282a2c]"></div>
+                <div class="h-4 w-4/5 rounded bg-slate-200 dark:bg-[#282a2c]"></div>
+                <div class="h-3 w-full rounded bg-slate-200 dark:bg-[#282a2c]"></div>
+                <div class="h-8 w-full rounded-xl bg-slate-200 dark:bg-[#282a2c] mt-2"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- COURSES GRID OR LIST -->
+          <template v-else-if="catalogItems.length > 0">
+            <!-- GRID VIEW (3 cols desktop / 2 cols tablet / 1 col mobile) -->
             <div v-if="viewMode === 'grid'" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-              <div
-                v-for="course in filteredCourses"
+              <article
+                v-for="course in catalogItems"
                 :key="course.id"
-                @click="openCourseModal(course)"
-                class="bg-[#0e1424] border border-slate-800 hover:border-purple-500/40 rounded-3xl overflow-hidden shadow-2xl transition-all duration-200 hover:-translate-y-1 group flex flex-col justify-between cursor-pointer"
+                class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-purple-400 dark:hover:border-purple-500/60 rounded-[20px] overflow-hidden shadow-xs hover:shadow-md dark:shadow-xl transition-transform duration-200 hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0 group flex flex-col justify-between"
               >
-                <!-- TOP CARD 3D ILLUSTRATION BOX -->
-                <div class="relative w-full h-44 bg-slate-950 flex items-center justify-center overflow-hidden border-b border-slate-800/80">
-                  <div class="absolute inset-0 bg-gradient-to-t from-[#0e1424] via-transparent to-transparent z-10"></div>
-                  
-                  <!-- Badge (Top-Left) -->
-                  <div class="absolute top-3.5 left-3.5 z-20">
-                    <span :class="[course.badgeColor, 'px-2.5 py-0.5 rounded-full text-[10px] font-bold text-white shadow-md']">
-                      {{ course.badge }}
-                    </span>
-                  </div>
-
-                  <!-- Wishlist Heart Button (Top-Right) -->
-                  <button
-                    @click="toggleWishlist(course, $event)"
-                    type="button"
-                    class="absolute top-3.5 right-3.5 z-20 w-8 h-8 rounded-full bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-slate-700/60 backdrop-blur-md flex items-center justify-center text-sm transition-transform active:scale-125 cursor-pointer"
-                    :title="course.isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'"
-                  >
-                    <span v-if="course.isWishlisted" class="text-rose-500">❤️</span>
-                    <span v-else class="text-slate-400 hover:text-rose-400">♡</span>
-                  </button>
-
-                  <!-- 3D HIGH-TECH ILLUSTRATIONS (Matching Screenshot) -->
-                  
-                  <!-- 1. JS Fundamentals Cube -->
-                  <div v-if="course.illustrationType === 'js'" class="relative flex items-center justify-center scale-100 group-hover:scale-110 transition-transform">
-                    <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-500 border border-amber-300 shadow-xl shadow-amber-500/30 flex items-center justify-center text-slate-950 font-black text-3xl font-mono">
-                      JS
-                    </div>
-                  </div>
-
-                  <!-- 2. Python Programming 3D Logo -->
-                  <div v-else-if="course.illustrationType === 'python'" class="relative flex items-center justify-center scale-105 group-hover:scale-115 transition-transform">
-                    <div class="relative w-20 h-20 flex items-center justify-center">
-                      <div class="absolute top-0 left-1 w-12 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-t-xl rounded-l-xl shadow-md border border-blue-400/50 flex items-start justify-end p-1.5">
-                        <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
-                      </div>
-                      <div class="absolute bottom-0 right-1 w-12 h-10 bg-gradient-to-br from-amber-400 to-amber-600 rounded-b-xl rounded-r-xl shadow-md border border-amber-300/50 flex items-end justify-start p-1.5">
-                        <span class="w-1.5 h-1.5 rounded-full bg-slate-900"></span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- 3. React Atom Logo -->
-                  <div v-else-if="course.illustrationType === 'react'" class="relative flex items-center justify-center scale-100 group-hover:scale-110 transition-transform">
-                    <div class="relative flex flex-col items-center justify-center">
-                      <div class="w-16 h-16 rounded-full border-2 border-cyan-400/80 shadow-lg shadow-cyan-500/40 flex items-center justify-center animate-spin-slow">
-                        <div class="w-3 h-3 rounded-full bg-cyan-400 shadow-md"></div>
-                      </div>
-                      <span class="text-sm font-black text-cyan-300 font-mono mt-1">React</span>
-                    </div>
-                  </div>
-
-                  <!-- 4. UI/UX Design Mockups -->
-                  <div v-else-if="course.illustrationType === 'uiux'" class="relative flex items-center justify-center gap-2 scale-90 group-hover:scale-95 transition-transform">
-                    <div class="w-14 h-22 rounded-xl bg-slate-900 border-2 border-purple-500/60 shadow-xl p-1 flex flex-col justify-between">
-                      <div class="w-3 h-1 bg-slate-700 rounded-full mx-auto"></div>
-                      <div class="w-6 h-6 rounded-full bg-purple-600/30 border border-purple-500 mx-auto flex items-center justify-center text-[8px] text-purple-300">✓</div>
-                      <div class="w-full h-1 bg-purple-500/40 rounded"></div>
-                    </div>
-                    <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-900/60 to-slate-900 border border-purple-500/50 shadow-2xl flex flex-col items-center justify-center">
-                      <span class="text-base font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-cyan-400">UI/UX</span>
-                    </div>
-                  </div>
-
-                  <!-- 5. SQL for Data Analysis -->
-                  <div v-else-if="course.illustrationType === 'sql'" class="relative flex items-center justify-center gap-3 scale-95 group-hover:scale-105 transition-transform">
-                    <div class="flex flex-col gap-1 items-center">
-                      <div class="w-12 h-4 rounded-full bg-cyan-500 border border-cyan-400 shadow-md"></div>
-                      <div class="w-12 h-4 rounded-full bg-cyan-600 border border-cyan-500"></div>
-                      <div class="w-12 h-4 rounded-full bg-cyan-700"></div>
-                    </div>
-                    <span class="text-xl font-black text-cyan-400 font-mono">SQL</span>
-                  </div>
-
-                  <!-- 6. Digital Marketing Megaphone -->
-                  <div v-else-if="course.illustrationType === 'marketing'" class="relative flex items-center justify-center scale-100 group-hover:scale-110 transition-transform">
-                    <div class="text-4xl filter drop-shadow-lg">
-                      📢
-                    </div>
-                    <div class="absolute -right-2 top-2 flex flex-col gap-1">
-                      <span class="text-xs">👍</span>
-                      <span class="text-xs">❤️</span>
-                    </div>
-                  </div>
-
-                </div>
-
-                <!-- CARD BODY -->
-                <div class="p-5 space-y-3 flex-1 flex flex-col justify-between">
-                  <div class="space-y-2">
-                    <h3 class="text-sm font-bold text-white group-hover:text-purple-300 transition-colors line-clamp-1">
-                      {{ course.title }}
-                    </h3>
-
-                    <p class="text-xs text-slate-400 line-clamp-2 leading-relaxed">
-                      {{ course.description }}
-                    </p>
-
-                    <!-- Instructor & Rating -->
-                    <div class="flex items-center justify-between text-xs pt-1">
-                      <div class="flex items-center gap-2 min-w-0">
-                        <img
-                          :src="course.instructor.avatar"
-                          :alt="course.instructor.name"
-                          class="w-5 h-5 rounded-full object-cover border border-purple-500/40 shrink-0"
-                        />
-                        <span class="text-slate-300 font-medium truncate">{{ course.instructor.name }}</span>
-                      </div>
-
-                      <div class="flex items-center gap-1 text-amber-400 font-semibold shrink-0">
-                        <span>★</span>
-                        <span class="text-white">{{ course.rating }}</span>
-                        <span class="text-[10px] text-slate-500 font-mono">({{ course.reviewsCountDisplay }})</span>
-                      </div>
-                    </div>
-
-                    <!-- Meta info (Level • Lessons • Duration) -->
-                    <div class="text-[11px] text-slate-400 flex items-center gap-2 pt-1 border-t border-slate-800/60">
-                      <span>{{ course.level }}</span>
-                      <span>•</span>
-                      <span>{{ course.lessonsCount }} Lessons</span>
-                      <span>•</span>
-                      <span>{{ course.duration }}</span>
-                    </div>
-                  </div>
-
-                  <!-- PRICE ROW & ACTION -->
-                  <div class="flex items-center justify-between pt-2 border-t border-slate-800/80">
-                    <div>
-                      <span
-                        :class="[
-                          course.isFree ? 'text-emerald-400' : 'text-cyan-400',
-                          'text-sm font-black'
-                        ]"
+                <div>
+                  <!-- 16:9 REAL THUMBNAIL OR GRADIENT FALLBACK -->
+                  <div class="relative w-full aspect-video bg-slate-100 dark:bg-[#131314] overflow-hidden border-b border-slate-100 dark:border-[#2d2f31]">
+                    <Link
+                      :href="course.overviewHref"
+                      class="block w-full h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-purple-500"
+                    >
+                      <img
+                        v-if="course.thumbnail && !thumbErrors[course.id]"
+                        :src="course.thumbnail"
+                        :alt="course.title"
+                        loading="lazy"
+                        @error="thumbErrors[course.id] = true"
+                        class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+                      />
+                      <div
+                        v-else
+                        class="w-full h-full bg-gradient-to-br from-purple-600/90 via-indigo-600 to-slate-800 flex items-center justify-center text-white/80"
                       >
-                        {{ course.priceDisplay }}
+                        <svg class="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                      </div>
+                    </Link>
+
+                    <!-- Status Badge (Top-Left — solid high-contrast badges, no duplicate "Free" badge) -->
+                    <div class="absolute top-3 left-3 z-10 pointer-events-none">
+                      <span
+                        v-if="course.cardState === 'coming_soon'"
+                        class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-300 dark:bg-amber-900 dark:text-amber-100 dark:border-amber-700 shadow-sm"
+                      >
+                        {{ t('browse_badge_coming_soon') }}
+                      </span>
+                      <span
+                        v-else-if="course.cardState === 'completed'"
+                        class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-600 text-white shadow-sm"
+                      >
+                        {{ t('browse_badge_completed') }}
+                      </span>
+                      <span
+                        v-else-if="course.cardState === 'enrolled'"
+                        class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-600 text-white shadow-sm"
+                      >
+                        {{ t('browse_badge_enrolled') }}
+                      </span>
+                      <span
+                        v-else-if="course.cardState === 'pending_payment'"
+                        class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-600 text-white shadow-sm"
+                      >
+                        {{ t('browse_badge_pending_payment') }}
                       </span>
                     </div>
 
+                    <!-- Wishlist Heart Button (Top-Right, >= 36px target) -->
                     <button
-                      @click.stop="openCourseModal(course)"
+                      @click.stop="toggleWishlist(course)"
                       type="button"
-                      class="px-3 py-1.5 rounded-xl bg-purple-600/20 hover:bg-purple-600 text-purple-300 hover:text-white border border-purple-500/30 text-xs font-bold transition-all cursor-pointer"
+                      :disabled="wishlistPending[course.id]"
+                      :aria-pressed="course.isWishlisted ? 'true' : 'false'"
+                      :aria-label="course.isWishlisted ? t('browse_wishlist_remove') : t('browse_wishlist_add')"
+                      class="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-white/95 dark:bg-[#1e1f20]/95 hover:bg-white dark:hover:bg-[#282a2c] border border-slate-200 dark:border-[#3c4043] shadow-sm flex items-center justify-center transition-transform active:scale-110 motion-reduce:active:scale-100 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                     >
-                      View Details
+                      <svg
+                        class="w-4 h-4 transition-colors"
+                        :class="course.isWishlisted ? 'text-rose-500 fill-rose-500' : 'text-slate-500 dark:text-slate-300'"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        aria-hidden="true"
+                      >
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                      </svg>
                     </button>
                   </div>
 
-                </div>
-              </div>
-            </div>
-
-            <!-- List View -->
-            <div v-else class="space-y-4">
-              <div
-                v-for="course in filteredCourses"
-                :key="course.id"
-                @click="openCourseModal(course)"
-                class="bg-[#0e1424] border border-slate-800 hover:border-purple-500/40 rounded-2xl p-4 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer group transition-all"
-              >
-                <div class="flex items-center gap-4 min-w-0">
-                  <div class="w-16 h-16 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center text-2xl shrink-0">
-                    <span>{{ course.illustrationType === 'js' ? '🟨' : (course.illustrationType === 'python' ? '🐍' : (course.illustrationType === 'react' ? '⚛️' : (course.illustrationType === 'uiux' ? '🎨' : (course.illustrationType === 'sql' ? '🗄️' : '📢')))) }}</span>
-                  </div>
-
-                  <div class="min-w-0 space-y-1">
-                    <div class="flex items-center gap-2">
-                      <span :class="[course.badgeColor, 'px-2 py-0.5 rounded text-[9px] font-bold text-white']">
-                        {{ course.badge }}
+                  <!-- CARD BODY -->
+                  <div class="p-5 space-y-2.5">
+                    <div class="flex items-center justify-between gap-2">
+                      <span
+                        v-if="localizedCourseCategory(course)"
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200/70 dark:border-purple-700/50 truncate"
+                      >
+                        {{ localizedCourseCategory(course) }}
                       </span>
-                      <span class="text-xs text-slate-400">{{ course.category }}</span>
                     </div>
-                    <h3 class="text-sm font-bold text-white group-hover:text-purple-300 transition-colors truncate">
-                      {{ course.title }}
+
+                    <h3 class="text-sm font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors line-clamp-2 min-h-[2.5rem]">
+                      <Link
+                        :href="course.overviewHref"
+                        class="focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 rounded"
+                      >
+                        {{ course.title }}
+                      </Link>
                     </h3>
-                    <p class="text-xs text-slate-400 line-clamp-1">{{ course.instructor.name }} • {{ course.lessonsCount }} Lessons • {{ course.duration }}</p>
+
+                    <!-- Real description only (hidden when null) -->
+                    <p
+                      v-if="course.description"
+                      class="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed"
+                    >
+                      {{ course.description }}
+                    </p>
                   </div>
                 </div>
 
-                <div class="flex items-center gap-4 shrink-0" @click.stop>
-                  <span :class="course.isFree ? 'text-emerald-400' : 'text-cyan-400'" class="text-base font-black">
-                    {{ course.priceDisplay }}
-                  </span>
-                  <button
-                    @click="openCourseModal(course)"
-                    type="button"
-                    class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md cursor-pointer"
-                  >
-                    Enroll Now
-                  </button>
+                <!-- CARD FOOTER & META -->
+                <div class="px-5 pb-5 pt-2 space-y-3">
+                  <!-- Teacher + Rating (only >= 3 reviews, else "New") -->
+                  <div class="flex items-center justify-between gap-2 text-xs">
+                    <div v-if="course.instructor?.name" class="flex items-center gap-2 min-w-0">
+                      <img
+                        v-if="course.instructor.avatar && !avatarErrors[course.id]"
+                        :src="course.instructor.avatar"
+                        :alt="course.instructor.name"
+                        @error="avatarErrors[course.id] = true"
+                        class="w-6 h-6 rounded-full object-cover border border-purple-200 dark:border-purple-700/50 shrink-0"
+                      />
+                      <span
+                        v-else
+                        class="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-200 text-[10px] font-bold flex items-center justify-center shrink-0"
+                        aria-hidden="true"
+                      >
+                        {{ getInitials(course.instructor.name) }}
+                      </span>
+                      <span class="text-slate-700 dark:text-slate-300 font-medium truncate">
+                        {{ course.instructor.name }}
+                      </span>
+                    </div>
+
+                    <div v-if="course.reviewsCount >= 3 && course.rating !== null" class="flex items-center gap-1 text-amber-500 font-semibold shrink-0 tabular-nums">
+                      <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20" aria-hidden="true">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                      <span class="text-slate-900 dark:text-white">{{ course.rating.toFixed(1) }}</span>
+                      <span class="text-[11px] text-slate-500 dark:text-slate-400">({{ course.reviewsCount }})</span>
+                    </div>
+                    <span
+                      v-else
+                      class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-[#282a2c] text-slate-600 dark:text-slate-300 shrink-0"
+                    >
+                      {{ t('browse_badge_new') }}
+                    </span>
+                  </div>
+
+                  <!-- Meta: Level (if exists) · Lessons · Duration (if > 0) -->
+                  <div class="text-[11px] text-slate-500 dark:text-slate-400 flex flex-wrap items-center gap-1.5 pt-2.5 border-t border-slate-100 dark:border-[#2d2f31] tabular-nums">
+                    <template v-if="course.level">
+                      <span>{{ localizedLevelLabel(course.level) }}</span>
+                      <span aria-hidden="true">·</span>
+                    </template>
+                    <span>{{ formatLessonsCount(course.lessonsCount) }}</span>
+                    <template v-if="course.duration">
+                      <span aria-hidden="true">·</span>
+                      <span>{{ course.duration }}</span>
+                    </template>
+                  </div>
+
+                  <!-- Price (shown ONCE) & State CTA -->
+                  <div class="flex items-center justify-between gap-2 pt-2.5 border-t border-slate-100 dark:border-[#2d2f31]">
+                    <span
+                      :class="course.isFree ? 'text-emerald-600 dark:text-emerald-400' : 'text-purple-600 dark:text-purple-400'"
+                      class="text-sm font-black tabular-nums"
+                    >
+                      {{ course.isFree ? t('browse_price_free') : course.priceDisplay }}
+                    </span>
+
+                    <div class="flex items-center gap-1.5">
+                      <button
+                        v-if="course.cardState === 'coming_soon'"
+                        type="button"
+                        disabled
+                        class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-[#282a2c] text-slate-500 dark:text-slate-400 text-xs font-bold cursor-not-allowed opacity-80"
+                      >
+                        {{ t('browse_cta_coming_soon') }}
+                      </button>
+
+                      <Link
+                        v-else-if="course.cardState === 'completed'"
+                        :href="course.overviewHref"
+                        class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-xs transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                      >
+                        {{ t('browse_cta_review') }}
+                      </Link>
+
+                      <Link
+                        v-else-if="course.cardState === 'enrolled'"
+                        :href="course.continueHref"
+                        class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-xs transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                      >
+                        {{ t('browse_cta_continue') }}
+                      </Link>
+
+                      <Link
+                        v-else-if="course.cardState === 'pending_payment'"
+                        :href="course.checkoutHref"
+                        class="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow-xs transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                      >
+                        {{ t('browse_cta_complete_payment') }}
+                      </Link>
+
+                      <template v-else>
+                        <Link
+                          :href="course.overviewHref"
+                          class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-[#282a2c] hover:bg-slate-200 dark:hover:bg-[#323538] text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                        >
+                          {{ t('browse_cta_view_details') }}
+                        </Link>
+                        <button
+                          @click="handleEnroll(course)"
+                          type="button"
+                          :disabled="enrollingCourseId === course.id"
+                          class="px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                        >
+                          {{ enrollingCourseId === course.id ? t('browse_cta_enrolling') : t('browse_cta_enroll') }}
+                        </button>
+                      </template>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              </article>
             </div>
 
-            <!-- 4. PAGINATION CONTROLS (Matching Screenshot: < 1 2 3 ... 8 >) -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-slate-800/80 text-xs text-slate-400">
+            <!-- HORIZONTAL LIST VIEW -->
+            <div v-else class="space-y-4">
+              <article
+                v-for="course in catalogItems"
+                :key="'list-' + course.id"
+                class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-purple-400 dark:hover:border-purple-500/60 rounded-[20px] p-4 shadow-xs hover:shadow-md transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4"
+              >
+                <div class="flex flex-col sm:flex-row sm:items-center gap-4 min-w-0 flex-1">
+                  <!-- 16:9 Thumbnail -->
+                  <Link
+                    :href="course.overviewHref"
+                    class="relative w-full sm:w-48 aspect-video rounded-xl overflow-hidden bg-slate-100 dark:bg-[#131314] shrink-0 border border-slate-100 dark:border-[#2d2f31] focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                  >
+                    <img
+                      v-if="course.thumbnail && !thumbErrors[course.id]"
+                      :src="course.thumbnail"
+                      :alt="course.title"
+                      loading="lazy"
+                      @error="thumbErrors[course.id] = true"
+                      class="w-full h-full object-cover"
+                    />
+                    <div
+                      v-else
+                      class="w-full h-full bg-gradient-to-br from-purple-600/90 via-indigo-600 to-slate-800 flex items-center justify-center text-white/80"
+                    >
+                      <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                      </svg>
+                    </div>
+                  </Link>
+
+                  <div class="min-w-0 space-y-1.5 flex-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <span
+                        v-if="localizedCourseCategory(course)"
+                        class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300"
+                      >
+                        {{ localizedCourseCategory(course) }}
+                      </span>
+                      <span
+                        v-if="course.cardState === 'coming_soon'"
+                        class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-300 dark:bg-amber-900 dark:text-amber-100 dark:border-amber-700"
+                      >
+                        {{ t('browse_badge_coming_soon') }}
+                      </span>
+                      <span
+                        v-else-if="course.cardState === 'completed'"
+                        class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-600 text-white"
+                      >
+                        {{ t('browse_badge_completed') }}
+                      </span>
+                      <span
+                        v-else-if="course.cardState === 'enrolled'"
+                        class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-600 text-white"
+                      >
+                        {{ t('browse_badge_enrolled') }}
+                      </span>
+                    </div>
+
+                    <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white line-clamp-2">
+                      <Link
+                        :href="course.overviewHref"
+                        class="hover:text-purple-600 dark:hover:text-purple-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 rounded"
+                      >
+                        {{ course.title }}
+                      </Link>
+                    </h3>
+
+                    <p v-if="course.description" class="text-xs text-slate-600 dark:text-slate-400 line-clamp-2">
+                      {{ course.description }}
+                    </p>
+
+                    <div class="flex flex-wrap items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 tabular-nums">
+                      <span v-if="course.instructor?.name" class="font-medium text-slate-700 dark:text-slate-300">
+                        {{ course.instructor.name }}
+                      </span>
+                      <template v-if="course.level">
+                        <span aria-hidden="true">·</span>
+                        <span>{{ localizedLevelLabel(course.level) }}</span>
+                      </template>
+                      <span aria-hidden="true">·</span>
+                      <span>{{ formatLessonsCount(course.lessonsCount) }}</span>
+                      <template v-if="course.duration">
+                        <span aria-hidden="true">·</span>
+                        <span>{{ course.duration }}</span>
+                      </template>
+                      <template v-if="course.reviewsCount >= 3 && course.rating !== null">
+                        <span aria-hidden="true">·</span>
+                        <span class="text-amber-500 font-semibold">★ {{ course.rating.toFixed(1) }} ({{ course.reviewsCount }})</span>
+                      </template>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Right Action Group -->
+                <div class="flex items-center justify-between md:justify-end gap-3 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-[#2d2f31]">
+                  <span
+                    :class="course.isFree ? 'text-emerald-600 dark:text-emerald-400' : 'text-purple-600 dark:text-purple-400'"
+                    class="text-sm font-black tabular-nums"
+                  >
+                    {{ course.isFree ? t('browse_price_free') : course.priceDisplay }}
+                  </span>
+
+                  <button
+                    @click="toggleWishlist(course)"
+                    type="button"
+                    :disabled="wishlistPending[course.id]"
+                    :aria-pressed="course.isWishlisted ? 'true' : 'false'"
+                    :aria-label="course.isWishlisted ? t('browse_wishlist_remove') : t('browse_wishlist_add')"
+                    class="w-9 h-9 rounded-full bg-slate-50 dark:bg-[#282a2c] hover:bg-slate-100 dark:hover:bg-[#323538] border border-slate-200 dark:border-[#3c4043] flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                  >
+                    <svg
+                      class="w-4 h-4"
+                      :class="course.isWishlisted ? 'text-rose-500 fill-rose-500' : 'text-slate-500 dark:text-slate-300'"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      aria-hidden="true"
+                    >
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                  </button>
+
+                  <button
+                    v-if="course.cardState === 'coming_soon'"
+                    type="button"
+                    disabled
+                    class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-[#282a2c] text-slate-500 dark:text-slate-400 text-xs font-bold cursor-not-allowed"
+                  >
+                    {{ t('browse_cta_coming_soon') }}
+                  </button>
+
+                  <Link
+                    v-else-if="course.cardState === 'completed'"
+                    :href="course.overviewHref"
+                    class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                  >
+                    {{ t('browse_cta_review') }}
+                  </Link>
+
+                  <Link
+                    v-else-if="course.cardState === 'enrolled'"
+                    :href="course.continueHref"
+                    class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                  >
+                    {{ t('browse_cta_continue') }}
+                  </Link>
+
+                  <Link
+                    v-else-if="course.cardState === 'pending_payment'"
+                    :href="course.checkoutHref"
+                    class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                  >
+                    {{ t('browse_cta_complete_payment') }}
+                  </Link>
+
+                  <div v-else class="flex items-center gap-2">
+                    <Link
+                      :href="course.overviewHref"
+                      class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-[#282a2c] hover:bg-slate-200 dark:hover:bg-[#323538] text-slate-700 dark:text-slate-200 text-xs font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                    >
+                      {{ t('browse_cta_view_details') }}
+                    </Link>
+                    <button
+                      @click="handleEnroll(course)"
+                      type="button"
+                      :disabled="enrollingCourseId === course.id"
+                      class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold cursor-pointer disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                    >
+                      {{ enrollingCourseId === course.id ? t('browse_cta_enrolling') : t('browse_cta_enroll') }}
+                    </button>
+                  </div>
+                </div>
+              </article>
+            </div>
+
+            <!-- REAL PAGINATOR -->
+            <nav
+              v-if="courses.last_page > 1"
+              aria-label="Pagination"
+              class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-slate-200 dark:border-[#2d2f31] text-xs text-slate-600 dark:text-slate-400 tabular-nums"
+            >
               <div>
-                Showing 1 to {{ filteredCourses.length }} of 96 courses
+                {{ t('browse_showing') }}
+                <span class="font-bold text-slate-900 dark:text-white">{{ courses.from }}</span>
+                {{ t('browse_to') }}
+                <span class="font-bold text-slate-900 dark:text-white">{{ courses.to }}</span>
+                {{ t('browse_of') }}
+                <span class="font-bold text-slate-900 dark:text-white">{{ courses.total }}</span>
+                {{ t('browse_courses_unit') }}
               </div>
 
-              <div class="flex items-center gap-1.5 self-center sm:self-auto">
-                <button
-                  type="button"
-                  disabled
-                  class="px-2.5 py-1.5 rounded-lg bg-slate-900/60 border border-slate-800/60 text-slate-600 cursor-not-allowed"
-                >
-                  ‹
-                </button>
-                <button
-                  type="button"
-                  class="px-3 py-1.5 rounded-lg bg-purple-600 text-white font-bold shadow-xs cursor-pointer"
-                >
-                  1
-                </button>
-                <button
-                  type="button"
-                  class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 cursor-pointer"
-                >
-                  2
-                </button>
-                <button
-                  type="button"
-                  class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 cursor-pointer"
-                >
-                  3
-                </button>
-                <span class="px-2 text-slate-600">...</span>
-                <button
-                  type="button"
-                  class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 cursor-pointer"
-                >
-                  8
-                </button>
-                <button
-                  type="button"
-                  class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 cursor-pointer"
-                >
-                  ›
-                </button>
+              <div class="flex flex-wrap items-center gap-1.5">
+                <template v-for="(link, idx) in courses.links" :key="'pg-' + idx">
+                  <button
+                    v-if="link.url"
+                    @click="fetchCatalog(null, link.url)"
+                    type="button"
+                    :aria-current="link.active ? 'page' : undefined"
+                    :aria-label="link.label.includes('Previous') ? t('browse_pagination_prev') : (link.label.includes('Next') ? t('browse_pagination_next') : link.label)"
+                    :class="[
+                      link.active
+                        ? 'bg-purple-600 text-white font-bold border-transparent shadow-xs'
+                        : 'bg-white dark:bg-[#1e1f20] hover:bg-slate-50 dark:hover:bg-[#282a2c] text-slate-700 dark:text-slate-300 border-[#dfe3e7] dark:border-[#2d2f31]',
+                      'min-w-[36px] min-h-[36px] px-3 py-1.5 rounded-xl border text-xs transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500'
+                    ]"
+                  >
+                    {{ formatPaginationLabel(link.label) }}
+                  </button>
+                  <span
+                    v-else
+                    class="min-w-[36px] min-h-[36px] px-2.5 py-1.5 inline-flex items-center justify-center rounded-xl bg-slate-50 dark:bg-[#1e1f20]/60 border border-slate-200/70 dark:border-[#2d2f31] text-slate-400 cursor-not-allowed"
+                  >
+                    {{ formatPaginationLabel(link.label) }}
+                  </span>
+                </template>
               </div>
-            </div>
+            </nav>
+          </template>
 
-          </div>
-
-          <!-- Empty Search State -->
+          <!-- EMPTY STATE: NO MATCHING RESULTS -->
           <div
-            v-else
-            class="bg-slate-900/40 border border-dashed border-slate-800 rounded-3xl p-12 text-center space-y-4"
+            v-else-if="totalPublished > 0"
+            class="bg-white dark:bg-[#1e1f20] border border-dashed border-[#dfe3e7] dark:border-[#2d2f31] rounded-[20px] p-12 text-center space-y-4"
           >
-            <div class="w-16 h-16 rounded-full bg-slate-800/60 flex items-center justify-center mx-auto text-2xl">
-              🔍
+            <div class="w-14 h-14 rounded-full bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 flex items-center justify-center mx-auto">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
             </div>
             <div class="space-y-1">
-              <h3 class="text-base font-bold text-white">No courses found</h3>
-              <p class="text-xs text-slate-400 max-w-sm mx-auto">
-                Try searching with a different keyword, skill name, or clear some filter checkboxes.
+              <h3 class="text-base font-bold text-slate-900 dark:text-white">{{ t('browse_empty_filtered_title') }}</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+                {{ t('browse_empty_filtered_desc') }}
               </p>
             </div>
             <button
               @click="clearAllFilters"
               type="button"
-              class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs cursor-pointer"
+              class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
             >
-              Clear All Filters
+              {{ t('browse_clear_filters_btn') }}
             </button>
           </div>
 
+          <!-- EMPTY STATE: ZERO PUBLISHED COURSES IN SYSTEM -->
+          <div
+            v-else
+            class="bg-white dark:bg-[#1e1f20] border border-dashed border-[#dfe3e7] dark:border-[#2d2f31] rounded-[20px] p-12 text-center space-y-4"
+          >
+            <div class="w-14 h-14 rounded-full bg-slate-100 dark:bg-[#282a2c] text-slate-500 dark:text-slate-400 flex items-center justify-center mx-auto">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+            </div>
+            <div class="space-y-1">
+              <h3 class="text-base font-bold text-slate-900 dark:text-white">{{ t('browse_empty_catalog_title') }}</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+                {{ t('browse_empty_catalog_desc') }}
+              </p>
+            </div>
+          </div>
         </main>
-
       </div>
-
     </div>
 
-    <!-- 1. COURSE DETAILS MODAL -->
-    <div
-      v-if="isDetailsModalOpen && selectedCourseForModal"
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md"
-      @click="isDetailsModalOpen = false"
+    <!-- MOBILE/TABLET FILTER DRAWER (<1024px) using native modal <dialog> -->
+    <dialog
+      ref="filterDrawerRef"
+      id="browse-filter-drawer"
+      :aria-label="t('browse_filter_courses')"
+      @click="onDrawerBackdropClick"
+      @cancel="onDrawerCancel"
+      class="browse-drawer"
     >
       <div
-        class="relative w-full max-w-2xl bg-[#0e1424] border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto custom-scrollbar"
-        @click.stop
+        ref="filterDrawerSheetRef"
+        class="w-[min(22rem,85vw)] h-[100svh] bg-white dark:bg-[#1e1f20] text-slate-900 dark:text-white border-r border-[#dfe3e7] dark:border-[#2d2f31] shadow-2xl flex flex-col justify-between overflow-y-auto"
       >
-        <button
-          @click="isDetailsModalOpen = false"
-          class="absolute top-4 right-4 text-slate-400 hover:text-white p-1 text-sm cursor-pointer"
-        >
-          ✕
-        </button>
-
-        <div class="space-y-3">
-          <div class="flex items-center gap-2">
-            <span :class="[selectedCourseForModal.badgeColor, 'px-2.5 py-0.5 rounded-full text-[10px] font-bold text-white']">
-              {{ selectedCourseForModal.badge }}
-            </span>
-            <span class="text-xs text-purple-400 font-semibold">• {{ selectedCourseForModal.category }}</span>
-          </div>
-
-          <h2 class="text-xl sm:text-2xl font-black text-white">
-            {{ selectedCourseForModal.title }}
-          </h2>
-
-          <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
-            {{ selectedCourseForModal.description }} Master essential core concepts with hands-on practice, quizzes, and projects at Saint Paul Institute.
-          </p>
-        </div>
-
-        <!-- Instructor Profile & Meta Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-slate-950/80 border border-slate-800">
-          <div class="flex items-center gap-3">
-            <img
-              :src="selectedCourseForModal.instructor.avatar"
-              :alt="selectedCourseForModal.instructor.name"
-              class="w-10 h-10 rounded-full object-cover border border-purple-500/40"
-            />
-            <div>
-              <p class="text-xs font-bold text-white">{{ selectedCourseForModal.instructor.name }}</p>
-              <p class="text-[10px] text-slate-400">{{ selectedCourseForModal.instructor.role }}</p>
-            </div>
-          </div>
-
-          <div class="flex items-center justify-between sm:justify-end gap-4 text-xs">
-            <div>
-              <p class="text-[10px] text-slate-500">Rating</p>
-              <p class="font-bold text-amber-400">★ {{ selectedCourseForModal.rating }}</p>
-            </div>
-            <div>
-              <p class="text-[10px] text-slate-500">Duration</p>
-              <p class="font-bold text-white">{{ selectedCourseForModal.duration }}</p>
-            </div>
-            <div>
-              <p class="text-[10px] text-slate-500">Lessons</p>
-              <p class="font-bold text-white">{{ selectedCourseForModal.lessonsCount }}</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Skills Covered -->
-        <div class="space-y-2">
-          <h4 class="text-xs font-bold text-slate-300 uppercase">What You Will Learn</h4>
-          <div class="flex flex-wrap gap-2">
-            <span
-              v-for="skill in selectedCourseForModal.skills"
-              :key="skill"
-              class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-purple-300 text-xs font-medium"
-            >
-              ✓ {{ skill }}
-            </span>
-          </div>
-        </div>
-
-        <!-- Price & Action CTA -->
-        <div class="flex items-center justify-between pt-4 border-t border-slate-800">
-          <div>
-            <p class="text-[10px] text-slate-400">Course Price</p>
-            <p :class="selectedCourseForModal.isFree ? 'text-emerald-400' : 'text-cyan-400'" class="text-xl font-black">
-              {{ selectedCourseForModal.priceDisplay }}
-            </p>
-          </div>
-
-          <div class="flex items-center gap-3">
-            <Link
-              :href="selectedCourseForModal.overviewHref"
-              class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-semibold border border-slate-800"
-            >
-              Full Syllabus
-            </Link>
-
+        <div class="p-5 space-y-5">
+          <div class="flex items-center justify-between border-b border-slate-100 dark:border-[#2d2f31] pb-3">
+            <h2 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+              {{ t('browse_filter_courses') }}
+            </h2>
             <button
-              @click="handleEnrollAction(selectedCourseForModal)"
+              @click="closeFilterDrawer"
               type="button"
-              class="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-lg shadow-purple-600/30 cursor-pointer"
+              autofocus
+              :aria-label="t('browse_close_filters')"
+              class="min-w-[36px] min-h-[36px] rounded-xl bg-slate-100 dark:bg-[#282a2c] text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
             >
-              {{ selectedCourseForModal.isFree ? '🚀 Enroll Free' : `💳 Enroll ($${selectedCourseForModal.price})` }}
+              ✕
             </button>
           </div>
-        </div>
-      </div>
-    </div>
 
-    <!-- 2. PAYMENT / CHECKOUT MODAL (For Paid Courses) -->
-    <div
-      v-if="isPaymentModalOpen && selectedCourseForModal"
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md"
-      @click="isPaymentModalOpen = false"
-    >
-      <div
-        class="relative w-full max-w-lg bg-[#0e1424] border border-slate-800 rounded-3xl p-6 sm:p-7 shadow-2xl space-y-5"
-        @click.stop
-      >
-        <button
-          @click="isPaymentModalOpen = false"
-          class="absolute top-4 right-4 text-slate-400 hover:text-white p-1 text-sm cursor-pointer"
-        >
-          ✕
-        </button>
+          <!-- Categories -->
+          <fieldset class="space-y-2.5">
+            <legend class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              {{ t('browse_categories') }}
+            </legend>
+            <div class="space-y-2 pt-1">
+              <label
+                v-for="cat in categoriesList"
+                :key="'mob-cat-' + cat.id"
+                class="flex items-center justify-between gap-2 text-xs text-slate-700 dark:text-slate-300 py-1 cursor-pointer"
+              >
+                <span class="flex items-center gap-2.5">
+                  <input
+                    type="checkbox"
+                    :value="cat.id"
+                    v-model="selectedCategories"
+                    @change="onSidebarFilterChange"
+                    class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-purple-600 focus-visible:ring-2 focus-visible:ring-purple-500"
+                  />
+                  <span>{{ localizedCategoryName(cat) }}</span>
+                </span>
+                <span class="text-[11px] text-slate-500 dark:text-slate-400 tabular-nums">{{ cat.count }}</span>
+              </label>
+            </div>
+          </fieldset>
 
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-indigo-600/20 border border-indigo-500/40 text-indigo-400 flex items-center justify-center text-lg">
-            💳
-          </div>
-          <div>
-            <h3 class="text-base font-bold text-white">Course Checkout</h3>
-            <p class="text-xs text-slate-400">{{ selectedCourseForModal.title }}</p>
-          </div>
-        </div>
+          <!-- Level -->
+          <fieldset class="space-y-2.5 border-t border-slate-100 dark:border-[#2d2f31] pt-4">
+            <legend class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              {{ t('browse_level') }}
+            </legend>
+            <div class="space-y-2 pt-1">
+              <label
+                v-for="lvl in levelsList"
+                :key="'mob-lvl-' + lvl.key"
+                class="flex items-center justify-between gap-2 text-xs text-slate-700 dark:text-slate-300 py-1 cursor-pointer"
+              >
+                <span class="flex items-center gap-2.5">
+                  <input
+                    type="checkbox"
+                    :value="lvl.key"
+                    v-model="selectedLevels"
+                    @change="onSidebarFilterChange"
+                    class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-purple-600 focus-visible:ring-2 focus-visible:ring-purple-500"
+                  />
+                  <span>{{ localizedLevelLabel(lvl.key) }}</span>
+                </span>
+                <span class="text-[11px] text-slate-500 dark:text-slate-400 tabular-nums">{{ lvl.count }}</span>
+              </label>
+            </div>
+          </fieldset>
 
-        <!-- ABA KHQR Code Preview Box -->
-        <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-center space-y-3">
-          <div class="flex items-center justify-between text-xs text-slate-400 border-b border-slate-800 pb-2">
-            <span>ABA KHQR Pay</span>
-            <span class="font-mono text-emerald-400 font-bold">Expires in: {{ paymentTimer }}</span>
-          </div>
-
-          <!-- QR Code Mock with KHQR Frame -->
-          <div class="w-48 h-48 mx-auto bg-white rounded-2xl p-2.5 flex flex-col items-center justify-between shadow-xl">
-            <div class="text-[9px] font-bold text-red-600 font-mono tracking-widest">KHQR • ABA PAY</div>
-            <!-- Dynamic QR Code SVG pattern -->
-            <svg class="w-36 h-36" viewBox="0 0 100 100" fill="currentColor">
-              <rect width="100" height="100" fill="white" />
-              <!-- Top Left Marker -->
-              <rect x="10" y="10" width="25" height="25" fill="#0B0F19" />
-              <rect x="15" y="15" width="15" height="15" fill="white" />
-              <rect x="18" y="18" width="9" height="9" fill="#0B0F19" />
-              <!-- Top Right Marker -->
-              <rect x="65" y="10" width="25" height="25" fill="#0B0F19" />
-              <rect x="70" y="15" width="15" height="15" fill="white" />
-              <rect x="73" y="18" width="9" height="9" fill="#0B0F19" />
-              <!-- Bottom Left Marker -->
-              <rect x="10" y="65" width="25" height="25" fill="#0B0F19" />
-              <rect x="15" y="70" width="15" height="15" fill="white" />
-              <rect x="18" y="73" width="9" height="9" fill="#0B0F19" />
-              <!-- Data Pixels -->
-              <rect x="42" y="12" width="6" height="6" fill="#0B0F19" />
-              <rect x="52" y="18" width="6" height="6" fill="#0B0F19" />
-              <rect x="42" y="30" width="6" height="6" fill="#0B0F19" />
-              <rect x="60" y="45" width="6" height="6" fill="#0B0F19" />
-              <rect x="45" y="55" width="10" height="10" fill="#7C3AED" rx="2" />
-              <rect x="75" y="65" width="6" height="6" fill="#0B0F19" />
-              <rect x="65" y="80" width="6" height="6" fill="#0B0F19" />
-              <rect x="85" y="85" width="6" height="6" fill="#0B0F19" />
-            </svg>
-            <div class="text-[8px] text-slate-700 font-bold">Total: ${{ selectedCourseForModal.price }} USD</div>
-          </div>
-
-          <p class="text-[11px] text-slate-400">
-            Scan this KHQR with your mobile banking app (ABA, ACLEDA, Bakong, Wing)
-          </p>
-        </div>
-
-        <!-- Verification CTA -->
-        <button
-          @click="confirmPayment"
-          :disabled="isProcessingPayment"
-          type="button"
-          class="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-        >
-          <span v-if="isProcessingPayment">Verifying with Bank System...</span>
-          <span v-else>I Have Paid • Complete Enrollment</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- 3. ENROLLMENT SUCCESS MODAL -->
-    <div
-      v-if="isSuccessModalOpen && enrolledSuccessCourse"
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md"
-      @click="isSuccessModalOpen = false"
-    >
-      <div
-        class="relative w-full max-w-md bg-[#0e1424] border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl text-center space-y-5"
-        @click.stop
-      >
-        <div class="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 flex items-center justify-center text-3xl mx-auto shadow-lg shadow-emerald-500/20">
-          🎉
-        </div>
-
-        <div class="space-y-1">
-          <h3 class="text-xl font-black text-white">Enrollment Successful!</h3>
-          <p class="text-xs text-slate-300">
-            You are now enrolled in <span class="text-purple-300 font-bold">{{ enrolledSuccessCourse.title }}</span>.
-          </p>
+          <!-- Price -->
+          <fieldset class="space-y-2.5 border-t border-slate-100 dark:border-[#2d2f31] pt-4">
+            <legend class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              {{ t('browse_price') }}
+            </legend>
+            <div class="space-y-2 pt-1 text-xs text-slate-700 dark:text-slate-300">
+              <label class="flex items-center justify-between py-1 cursor-pointer">
+                <span class="flex items-center gap-2.5">
+                  <input
+                    type="radio"
+                    name="mobile_price_filter"
+                    value="all"
+                    v-model="selectedPrice"
+                    @change="onSidebarFilterChange"
+                    class="w-4 h-4 text-purple-600 focus-visible:ring-2 focus-visible:ring-purple-500"
+                  />
+                  <span>{{ t('browse_price_all') }}</span>
+                </span>
+                <span class="text-[11px] text-slate-500 dark:text-slate-400 tabular-nums">{{ priceCounts.all }}</span>
+              </label>
+              <label class="flex items-center justify-between py-1 cursor-pointer">
+                <span class="flex items-center gap-2.5">
+                  <input
+                    type="radio"
+                    name="mobile_price_filter"
+                    value="free"
+                    v-model="selectedPrice"
+                    @change="onSidebarFilterChange"
+                    class="w-4 h-4 text-purple-600 focus-visible:ring-2 focus-visible:ring-purple-500"
+                  />
+                  <span>{{ t('browse_price_free') }}</span>
+                </span>
+                <span class="text-[11px] text-slate-500 dark:text-slate-400 tabular-nums">{{ priceCounts.free }}</span>
+              </label>
+              <label class="flex items-center justify-between py-1 cursor-pointer">
+                <span class="flex items-center gap-2.5">
+                  <input
+                    type="radio"
+                    name="mobile_price_filter"
+                    value="paid"
+                    v-model="selectedPrice"
+                    @change="onSidebarFilterChange"
+                    class="w-4 h-4 text-purple-600 focus-visible:ring-2 focus-visible:ring-purple-500"
+                  />
+                  <span>{{ t('browse_price_paid') }}</span>
+                </span>
+                <span class="text-[11px] text-slate-500 dark:text-slate-400 tabular-nums">{{ priceCounts.paid }}</span>
+              </label>
+            </div>
+          </fieldset>
         </div>
 
-        <p class="text-xs text-slate-400 leading-relaxed bg-slate-950 p-3.5 rounded-2xl border border-slate-800">
-          Your learning progress is now initialized. You can start watching lessons, accessing downloadable slides, and practicing with your 24/7 AI tutor right away!
-        </p>
-
-        <div class="space-y-2 pt-2">
-          <Link
-            href="/student/my-courses/current"
-            class="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2"
+        <div class="p-4 border-t border-slate-100 dark:border-[#2d2f31] flex items-center gap-2.5 bg-white dark:bg-[#1e1f20] sticky bottom-0">
+          <button
+            @click="clearAllFilters"
+            type="button"
+            class="flex-1 py-2.5 rounded-xl bg-slate-100 dark:bg-[#282a2c] text-slate-700 dark:text-slate-200 text-xs font-bold cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
           >
-            <span>▶ Start Learning Now</span>
-          </Link>
-          <Link
-            href="/student/my-courses/enrolled"
-            class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-semibold border border-slate-800 flex items-center justify-center"
+            {{ t('browse_clear_all') }}
+          </button>
+          <button
+            @click="closeFilterDrawer"
+            type="button"
+            class="flex-1 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
           >
-            View in My Enrolled Courses
-          </Link>
+            {{ t('browse_apply_filters') }}
+          </button>
         </div>
       </div>
-    </div>
-
+    </dialog>
   </StudentLayout>
 </template>
 
 <style scoped>
-@keyframes spin-slow {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.browse-drawer {
+  inset: 0;
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
-.animate-spin-slow {
-  animation: spin-slow 12s linear infinite;
+
+.browse-drawer::backdrop {
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(2px);
 }
 </style>

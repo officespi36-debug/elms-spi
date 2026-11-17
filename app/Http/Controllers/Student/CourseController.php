@@ -868,12 +868,14 @@ class CourseController extends Controller
         ]);
     }
 
-    public function overview(Request $request, $course = null)
+    public function overview(Request $request, CourseProgressService $progressService, $course = null)
     {
         $user = $request->user();
-        if ($user && $course) {
+        $courseId = is_object($course) ? $course->id : ($course ? (int) $course : null);
+        $courseData = null;
+
+        if ($user && $courseId) {
             try {
-                $courseId = is_object($course) ? $course->id : (int) $course;
                 if (Schema::hasColumn('enrollments', 'seen_at')) {
                     $enr = Enrollment::where('student_id', $user->id)
                         ->where('course_id', $courseId)
@@ -887,14 +889,245 @@ class CourseController extends Controller
             } catch (\Throwable $e) {}
         }
 
+        if ($courseId) {
+            $realCourse = Course::with([
+                'teacher:id,name,name_kh,email,avatar,role,qualification,expertise',
+                'major:id,name,name_kh',
+                'modules' => fn ($mq) => $mq->orderBy('order'),
+                'modules.lessons' => fn ($lq) => $lq->orderBy('order'),
+                'lessons' => fn ($lq) => $lq->orderBy('order'),
+            ])->find($courseId);
+
+            if ($realCourse) {
+                $enrollment = $user
+                    ? Enrollment::where('student_id', $user->id)->where('course_id', $realCourse->id)->first()
+                    : null;
+
+                if ($realCourse->status !== 'published' && !$enrollment && $user?->role === 'student') {
+                    abort(404);
+                }
+
+                $allLessons = collect();
+                if ($realCourse->modules && $realCourse->modules->isNotEmpty()) {
+                    foreach ($realCourse->modules as $mod) {
+                        if ($mod->lessons) {
+                            foreach ($mod->lessons as $l) {
+                                $allLessons->push($l);
+                            }
+                        }
+                    }
+                }
+                if ($allLessons->isEmpty()) {
+                    $allLessons = $realCourse->lessons ?? collect();
+                }
+
+                $totalLessons = $allLessons->count();
+                $totalSeconds = (int) $allLessons->sum('duration_seconds');
+                $totalMins = (int) round($totalSeconds / 60);
+                $hours = intdiv($totalMins, 60);
+                $mins = $totalMins % 60;
+                $durationFormatted = $totalSeconds > 0
+                    ? ($hours > 0 ? "{$hours}h " . str_pad((string) $mins, 2, '0', STR_PAD_LEFT) . 'm' : "{$mins}m")
+                    : null;
+
+                $lessonIds = $allLessons->pluck('id')->all();
+                $completedLessonIds = ($user && !empty($lessonIds))
+                    ? LessonProgress::where('user_id', $user->id)
+                        ->whereIn('lesson_id', $lessonIds)
+                        ->where(function ($pq) {
+                            $pq->whereNotNull('completed_at')->orWhere('percent', '>=', 90);
+                        })
+                        ->pluck('lesson_id')
+                        ->all()
+                    : [];
+
+                $progress = $user ? $progressService->calculate($user, $realCourse) : [
+                    'percent'       => 0,
+                    'lessons_done'  => 0,
+                    'lessons_total' => $totalLessons,
+                    'state'         => $totalLessons === 0 ? 'coming_soon' : 'not_started',
+                ];
+
+                $chapters = [];
+                if ($realCourse->modules && $realCourse->modules->isNotEmpty()) {
+                    foreach ($realCourse->modules as $mod) {
+                        $modLessons = $mod->lessons ?? collect();
+                        $modSecs = (int) $modLessons->sum('duration_seconds');
+                        $modMins = max(1, (int) round($modSecs / 60));
+                        $mappedLessons = $modLessons->map(function ($l) use ($completedLessonIds) {
+                            $secs = (int) ($l->duration_seconds ?? 0);
+                            $m = intdiv($secs, 60);
+                            $s = $secs % 60;
+                            return [
+                                'id'        => $l->id,
+                                'title'     => $l->title,
+                                'duration'  => $secs > 0 ? sprintf('%02d:%02d', $m, $s) : '—',
+                                'completed' => in_array($l->id, $completedLessonIds, true),
+                            ];
+                        })->values()->all();
+
+                        $allModDone = $modLessons->isNotEmpty()
+                            && $modLessons->every(fn ($l) => in_array($l->id, $completedLessonIds, true));
+
+                        $chapters[] = [
+                            'id'           => $mod->id,
+                            'title'        => $mod->title,
+                            'lessonsCount' => $modLessons->count(),
+                            'duration'     => $modSecs > 0 ? "{$modMins} mins" : '—',
+                            'completed'    => $allModDone,
+                            'lessons'      => $mappedLessons,
+                        ];
+                    }
+                } elseif ($allLessons->isNotEmpty()) {
+                    $chapters[] = [
+                        'id'           => 1,
+                        'title'        => $realCourse->title,
+                        'lessonsCount' => $allLessons->count(),
+                        'duration'     => $durationFormatted ?: '—',
+                        'completed'    => count($completedLessonIds) >= $allLessons->count(),
+                        'lessons'      => $allLessons->map(function ($l) use ($completedLessonIds) {
+                            $secs = (int) ($l->duration_seconds ?? 0);
+                            return [
+                                'id'        => $l->id,
+                                'title'     => $l->title,
+                                'duration'  => $secs > 0 ? sprintf('%02d:%02d', intdiv($secs, 60), $secs % 60) : '—',
+                                'completed' => in_array($l->id, $completedLessonIds, true),
+                            ];
+                        })->values()->all(),
+                    ];
+                }
+
+                $reviewsCount = Schema::hasTable('course_reviews')
+                    ? \App\Models\CourseReview::where('course_id', $realCourse->id)->count()
+                    : 0;
+                $avgRating = ($reviewsCount >= 3 && Schema::hasTable('course_reviews'))
+                    ? round((float) \App\Models\CourseReview::where('course_id', $realCourse->id)->avg('rating'), 1)
+                    : null;
+
+                $isWishlisted = ($user && Schema::hasTable('course_wishlists'))
+                    ? \App\Models\CourseWishlist::where('user_id', $user->id)->where('course_id', $realCourse->id)->exists()
+                    : false;
+
+                $priceVal = (float) ($realCourse->price ?? 0);
+                $isFree = $priceVal <= 0;
+
+                $thumb = $realCourse->thumbnail ? trim((string) $realCourse->thumbnail) : null;
+                if ($thumb && !str_starts_with($thumb, 'http://') && !str_starts_with($thumb, 'https://') && !str_starts_with($thumb, '/')) {
+                    $thumb = asset('storage/' . ltrim($thumb, '/'));
+                }
+
+                $isEnrolled = $enrollment && in_array($enrollment->status, ['active', 'completed'], true);
+                $overviewStatus = $totalLessons === 0
+                    ? 'coming_soon'
+                    : (($enrollment && $enrollment->status === 'completed') || ($progress['state'] ?? '') === 'completed'
+                        ? 'completed'
+                        : (($isEnrolled && ($progress['lessons_done'] ?? 0) > 0) ? 'in_progress' : ($isEnrolled ? 'not_started' : 'not_enrolled')));
+
+                $courseData = [
+                    'id'               => $realCourse->id,
+                    'slug'             => $realCourse->code ?: ('course-' . $realCourse->id),
+                    'title'            => $realCourse->title,
+                    'subtitle'         => $realCourse->description ?: null,
+                    'bannerUrl'        => $thumb,
+                    'category'         => $realCourse->major?->name ?: null,
+                    'categoryKh'       => $realCourse->major?->name_kh ?: ($realCourse->major?->name ?: null),
+                    'level'            => $realCourse->level ? ucfirst(strtolower($realCourse->level)) : null,
+                    'mode'             => $realCourse->learning_mode === 'instructor_led' ? 'Instructor-Led' : 'Self-Paced',
+                    'duration'         => $durationFormatted,
+                    'progress'         => (int) ($progress['percent'] ?? 0),
+                    'status'           => $overviewStatus,
+                    'isEnrolled'       => $isEnrolled,
+                    'isPendingPayment' => $enrollment?->status === 'pending_payment',
+                    'isWishlisted'     => $isWishlisted,
+                    'totalLessons'     => $totalLessons,
+                    'completedLessons' => (int) ($progress['lessons_done'] ?? 0),
+                    'continueHref'     => "/student/my-courses/{$realCourse->id}/continue",
+                    'enrollHref'       => "/student/courses/{$realCourse->id}/enroll",
+                    'checkoutHref'     => "/student/payments/{$realCourse->id}/upload",
+                    'price'            => $priceVal,
+                    'priceDisplay'     => $isFree ? 'Free' : ('$' . number_format($priceVal, 2)),
+                    'isFree'           => $isFree,
+                    'rating'           => $avgRating,
+                    'reviewsCount'     => $reviewsCount,
+                    'instructor'       => [
+                        'name'   => $realCourse->teacher ? $progressService->cleanTeacherName($realCourse->teacher, $realCourse) : null,
+                        'role'   => $realCourse->teacher?->qualification ?: 'Instructor',
+                        'avatar' => $realCourse->teacher?->avatar_url ?: null,
+                        'bio'    => $realCourse->teacher?->expertise ?: null,
+                    ],
+                    'chapters'         => $chapters,
+                ];
+            }
+        }
+
         return Inertia::render('Student/Courses/Overview', [
-            'courseId' => $course,
+            'courseId'   => $courseId ?? $course,
+            'courseData' => $courseData,
         ]);
     }
 
-    public function wishlist(Request $request)
+    public function wishlist(Request $request, CourseProgressService $progressService)
     {
-        return Inertia::render('Student/MyCourses/Wishlist');
+        $user = $request->user();
+        $items = [];
+
+        if ($user && Schema::hasTable('course_wishlists')) {
+            $wishlists = \App\Models\CourseWishlist::where('user_id', $user->id)
+                ->with([
+                    'course' => fn ($q) => $q->where('status', 'published')
+                        ->with(['teacher:id,name,name_kh,email,avatar', 'major:id,name,name_kh'])
+                        ->withCount('lessons')
+                        ->withSum('lessons as duration_seconds_sum', 'duration_seconds')
+                        ->withCount(['enrollments' => fn ($eq) => $eq->whereIn('status', ['active', 'completed'])]),
+                ])
+                ->latest('created_at')
+                ->get();
+
+            $enrolledIds = Enrollment::where('student_id', $user->id)
+                ->whereIn('status', ['active', 'completed'])
+                ->pluck('course_id')
+                ->all();
+
+            foreach ($wishlists as $w) {
+                $c = $w->course;
+                if (!$c) {
+                    continue;
+                }
+                $priceVal = (float) ($c->price ?? 0);
+                $isFree = $priceVal <= 0;
+                $lessonsCount = (int) ($c->lessons_count ?? 0);
+                $durSec = (int) ($c->duration_seconds_sum ?? 0);
+                $minsTotal = (int) round($durSec / 60);
+                $hrs = intdiv($minsTotal, 60);
+                $mns = $minsTotal % 60;
+                $durLabel = $durSec > 0 ? ($hrs > 0 ? "{$hrs}h " . str_pad((string) $mns, 2, '0', STR_PAD_LEFT) . 'm' : "{$mns}m") : null;
+
+                $items[] = [
+                    'id'               => $c->id,
+                    'title'            => $c->title,
+                    'thumbnail'        => $c->thumbnail ?: null,
+                    'category'         => $c->major?->name ?: null,
+                    'categoryKh'       => $c->major?->name_kh ?: ($c->major?->name ?: null),
+                    'teacher'          => $c->teacher ? $progressService->cleanTeacherName($c->teacher, $c) : null,
+                    'mode'             => $c->learning_mode === 'instructor_led' ? 'Instructor-Led' : 'Self-Paced',
+                    'price'            => $priceVal,
+                    'priceDisplay'     => $isFree ? 'Free' : ('$' . number_format($priceVal, 2)),
+                    'isFree'           => $isFree,
+                    'lessonsCount'     => $lessonsCount,
+                    'duration'         => $durLabel,
+                    'enrollmentsCount' => (int) ($c->enrollments_count ?? 0),
+                    'isEnrolled'       => in_array($c->id, $enrolledIds, true),
+                    'isComingSoon'     => $lessonsCount === 0,
+                    'addedDate'        => $w->created_at ? \Carbon\Carbon::parse($w->created_at)->format('d M Y') : '',
+                    'overviewHref'     => "/student/courses/{$c->id}/overview",
+                    'continueHref'     => "/student/my-courses/{$c->id}/continue",
+                ];
+            }
+        }
+
+        return Inertia::render('Student/MyCourses/Wishlist', [
+            'wishlistedCourses' => $items,
+        ]);
     }
 
     /**

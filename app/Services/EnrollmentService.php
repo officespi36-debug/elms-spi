@@ -62,6 +62,7 @@ class EnrollmentService
                     $existing->save();
 
                     Cache::forget("student.{$student->id}.new_enrollments");
+                    Cache::forget("student_enrolled_{$student->id}_v2");
                     $this->sendNotification($student, $course, $source, $actor, $semesterVal);
                 }
                 return $existing;
@@ -95,10 +96,23 @@ class EnrollmentService
             ]);
 
             Cache::forget("student.{$student->id}.new_enrollments");
+            Cache::forget("student_enrolled_{$student->id}_v2");
 
             // Send notification for third-party enrollments
             if ($status === 'active' && $source !== 'self') {
                 $this->sendNotification($student, $course, $source, $actor, $semesterVal);
+            }
+
+            // Notify teacher when student newly self-enrolls into an active course
+            if ($status === 'active' && $source === 'self') {
+                $teacher = $course->teacher;
+                if ($teacher && (int) $teacher->id !== (int) $student->id) {
+                    try {
+                        $teacher->notify(new \App\Notifications\TeacherStudentJoined($student, $course, $enrollment));
+                    } catch (\Throwable $e) {
+                        // Non-blocking notification fallback
+                    }
+                }
             }
 
             return $enrollment;

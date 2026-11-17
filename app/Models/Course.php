@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null $code
  * @property string|null $description
  * @property string|null $learning_mode
+ * @property string|null $level
  * @property bool $is_paid
  * @property float|null $price
  * @property string $status
@@ -28,7 +29,7 @@ class Course extends Model
 {
     protected $fillable = [
         'major_id', 'subject_id', 'teacher_id', 'title', 'code', 'description',
-        'academic_year', 'semester', 'semester_id', 'learning_mode', 'is_paid', 'price', 'status', 'thumbnail',
+        'academic_year', 'semester', 'semester_id', 'learning_mode', 'level', 'is_paid', 'price', 'status', 'thumbnail',
         'submitted_at', 'reviewed_at', 'rejection_note'
     ];
 
@@ -107,5 +108,15 @@ class Course extends Model
     public function approvalHistories()
     {
         return $this->hasMany(CourseApprovalHistory::class)->latest();
+    }
+
+    public function wishlists()
+    {
+        return $this->hasMany(CourseWishlist::class);
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(CourseReview::class);
     }
 }

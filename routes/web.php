@@ -582,7 +582,15 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/links', [Student\LearningController::class, 'links'])->name('links');
         });
 
-        Route::post('/courses/{course}/enroll', [Student\EnrollmentController::class, 'store'])->name('enroll');
+        Route::post('/courses/{course}/enroll', [Student\EnrollmentController::class, 'store'])
+            ->middleware('throttle:30,1')
+            ->name('enroll');
+        Route::post('/courses/{course}/wishlist', [Student\BrowseController::class, 'storeWishlist'])
+            ->middleware('throttle:60,1')
+            ->name('courses.wishlist.store');
+        Route::delete('/courses/{course}/wishlist', [Student\BrowseController::class, 'destroyWishlist'])
+            ->middleware('throttle:60,1')
+            ->name('courses.wishlist.destroy');
         Route::get('/learn/{course}', [Student\LearningController::class, 'show'])->name('learn');
         Route::post('/learn/progress/{lesson}', [Student\LearningController::class, 'updateProgress'])->name('learn.progress');
         Route::post('/learn/ai-tutor/{lesson}', [Student\LearningController::class, 'askAi'])->name('learn.ai-tutor');
