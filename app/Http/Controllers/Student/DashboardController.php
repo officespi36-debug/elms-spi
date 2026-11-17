@@ -25,12 +25,12 @@ class DashboardController extends Controller
         }
 
         if ($request->has('refresh')) {
-            Cache::forget("student_dashboard_payload_{$user->id}");
+            Cache::forget("student_dashboard_payload_{$user->id}_v3");
             Cache::forget("student_stats_{$user->id}");
         }
 
         // Performance: Cache::remember 300s (scoped to user id) with eager loading & selected columns
-        $payload = Cache::remember("student_dashboard_payload_{$user->id}", 300, function () use ($user) {
+        $payload = Cache::remember("student_dashboard_payload_{$user->id}_v3", 300, function () use ($user) {
             try {
                 $enrollments = Enrollment::where('student_id', $user->id)
                     ->select(['id', 'student_id', 'course_id', 'status', 'enrolled_at', 'updated_at'])
@@ -467,7 +467,20 @@ class DashboardController extends Controller
                 ],
             ];
 
+            // Determine if student has actually studied before or is a brand-new student
+            $hasAnyLessonProgress = !empty($completedLessonMap) || LessonProgress::where('user_id', $user->id)->exists();
+            $hasStudiedBefore = ($statsData['enrolledCount'] > 0) && (
+                $hasAnyLessonProgress ||
+                ($statsData['inProgressCount'] ?? 0) > 0 ||
+                ($statsData['completedCount'] ?? 0) > 0 ||
+                !empty($continueCourseData) ||
+                !empty($recentActivitiesList) ||
+                ($statsData['studyHours'] ?? 0) > 0 ||
+                ($statsData['studyMinutes'] ?? 0) > 0
+            );
+
             return [
+                'hasStudiedBefore'    => $hasStudiedBefore,
                 'enrollments'         => $enrollments,
                 'stats'               => $statsData,
                 'continueCourse'      => $continueCourseData,

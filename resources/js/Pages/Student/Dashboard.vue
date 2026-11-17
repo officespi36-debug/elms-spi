@@ -7,6 +7,7 @@ import WelcomeBanner from '@/Components/Student/WelcomeBanner.vue'
 import { i18n } from '@/Services/i18n'
 
 const props = defineProps<{
+  hasStudiedBefore?: boolean
   stats?: {
     enrolledCount: number
     inProgressCount: number
@@ -133,6 +134,26 @@ const props = defineProps<{
 const page = usePage<any>()
 const user = computed(() => page.props.auth?.user || {})
 const currentLang = computed(() => i18n.locale.value)
+
+// Determine whether student has actually studied before or is a brand-new student
+const hasStudiedBefore = computed<boolean>(() => {
+  if (typeof props.hasStudiedBefore === 'boolean') {
+    return props.hasStudiedBefore
+  }
+
+  // Fallback: Check if student has actual enrolled courses AND learning activity
+  const enrolledCount = props.stats?.enrolledCount ?? props.enrollments?.length ?? props.dbCourses?.length ?? 0
+  if (enrolledCount === 0) return false
+
+  const inProgress = props.stats?.inProgressCount ?? 0
+  const completed = props.stats?.completedCount ?? 0
+  const hasContinue = Boolean(props.continueCourse && props.continueCourse.title)
+  const hasActivities = Boolean(props.recentActivities && props.recentActivities.length > 0)
+  const studyHours = props.stats?.studyHours ?? 0
+  const studyMinutes = props.stats?.studyMinutes ?? 0
+
+  return inProgress > 0 || completed > 0 || hasContinue || hasActivities || studyHours > 0 || studyMinutes > 0
+})
 
 // ─── Official Dashboard Loading & Animation System (DL-01 to DL-08) ───
 const loading = ref(true)
@@ -882,10 +903,11 @@ const recentActivities = computed(() => {
       
       <!-- TOP GREETING & QUICK SHORTCUTS ROW (Compact WelcomeBanner) -->
       <WelcomeBanner
-        :student-name="user?.name || 'Student'"
+        :student-name="currentLang === 'km' ? (user?.name_kh || user?.name || 'និស្សិត') : (user?.name || 'Student')"
         academic-term="Active Academic Term 2026-2027"
         :unread-announcements-count="(page.props as any)?.student_notifications?.unread_count || 0"
         :current-lang="currentLang"
+        :has-studied-before="hasStudiedBefore"
       />
 
       <!-- OFFICIAL SPI DASHBOARD LOADING & KPI SYSTEM (DL-01 to DL-08) -->

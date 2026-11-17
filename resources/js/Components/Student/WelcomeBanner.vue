@@ -9,6 +9,7 @@ const props = withDefaults(
     unreadAnnouncementsCount?: number
     currentLang?: 'km' | 'en'
     isLoading?: boolean
+    hasStudiedBefore?: boolean
     browseCoursesRoute?: string
     announcementsRoute?: string
     onBrowseCourses?: () => void
@@ -19,6 +20,7 @@ const props = withDefaults(
     unreadAnnouncementsCount: 0,
     currentLang: 'en',
     isLoading: false,
+    hasStudiedBefore: false,
     browseCoursesRoute: '/student/browse',
     announcementsRoute: '/student/notifications/announcements',
     onBrowseCourses: undefined,
@@ -38,17 +40,27 @@ const displayTerm = computed(() =>
 )
 
 const greetingText = computed(() => {
-  const safeName = props.studentName?.trim() || 'Student'
+  const safeName = props.studentName?.trim() || (props.currentLang === 'km' ? 'និស្សិត' : 'Student')
+  if (props.hasStudiedBefore) {
+    return props.currentLang === 'km'
+      ? `សូមស្វាគមន៍ការត្រឡប់មកវិញ, ${safeName}!`
+      : `Welcome back, ${safeName}!`
+  }
   return props.currentLang === 'km'
-    ? `សូមស្វាគមន៍ការត្រឡប់មកវិញ, ${safeName}!`
-    : `Welcome back, ${safeName}!`
+    ? `សូមស្វាគមន៍, ${safeName}!`
+    : `Welcome, ${safeName}!`
 })
 
-const subtitleText = computed(() =>
-  props.currentLang === 'km'
-    ? 'បន្តការសិក្សាពីកន្លែងដែលអ្នកបានឈប់ ឬស្វែងរកវគ្គសិក្សាថ្មីៗនៅថ្ងៃនេះ។'
-    : 'Continue where you left off or explore new courses today.'
-)
+const subtitleText = computed(() => {
+  if (props.hasStudiedBefore) {
+    return props.currentLang === 'km'
+      ? 'បន្តការសិក្សាពីកន្លែងដែលអ្នកបានឈប់ ឬស្វែងរកវគ្គសិក្សាថ្មីៗនៅថ្ងៃនេះ។'
+      : 'Continue where you left off or explore new courses today.'
+  }
+  return props.currentLang === 'km'
+    ? 'សូមចាប់ផ្តើមដំណើរការសិក្សារបស់អ្នក ដោយស្វែងរក និងចុះឈ្មោះវគ្គសិក្សាដំបូងរបស់អ្នកនៅថ្ងៃនេះ។'
+    : 'Start your learning journey by exploring and enrolling in your first course today.'
+})
 
 const handleBrowseCourses = () => {
   if (props.onBrowseCourses) {
