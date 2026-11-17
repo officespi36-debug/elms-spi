@@ -13,7 +13,9 @@ use App\Models\LessonProgress;
 use App\Models\LessonResource;
 use App\Models\Major;
 use App\Models\Notification;
+use App\Models\QuizAttempt;
 use App\Models\ReportedContent;
+use App\Models\StudyDaily;
 use App\Services\CertificateService;
 use App\Services\ContinueLearningService;
 use App\Services\CourseProgressService;
@@ -810,84 +812,184 @@ class CourseController extends Controller
     public function completed(Request $request, CourseProgressService $progressService)
     {
         $user = $request->user();
+
+        // 1. Validate query parameters & sync grid/list view preference
+        $status = (string) $request->query('status', 'all');
+        if (!in_array($status, ['all', 'certificates', 'no_certificate'], true)) {
+            $status = 'all';
+        }
+        $sort = (string) $request->query('sort', 'newest');
+        if (!in_array($sort, ['newest', 'oldest', 'highest_score', 'name', 'most_time'], true)) {
+            $sort = 'newest';
+        }
+        $q = substr(trim((string) $request->query('q', '')), 0, 100);
+
+        $savedView = is_array($user->preferences) ? ($user->preferences['courses_view'] ?? 'grid') : 'grid';
+        $urlView = $request->query('view');
+        if (in_array($urlView, ['grid', 'list'], true)) {
+            $view = $urlView;
+            if ($savedView !== $urlView) {
+                try {
+                    $prefs = is_array($user->preferences) ? $user->preferences : [];
+                    $prefs['courses_view'] = $urlView;
+                    $user->preferences = $prefs;
+                    $user->save();
+                } catch (\Throwable $e) {
+                }
+            }
+        } else {
+            $view = in_array($savedView, ['grid', 'list'], true) ? $savedView : 'grid';
+        }
+
+        // 2. Load student's enrollments & compute progress cleanly
         $enrollments = Enrollment::where('student_id', $user->id)
             ->whereIn('status', ['active', 'completed'])
+            ->whereHas('course')
             ->with([
                 'course.teacher:id,name,name_kh,email,avatar,role',
-                'course.major:id,name',
-                'course.modules.lessons:id,module_id,course_id,title,order,duration_seconds',
-                'course.lessons:id,course_id,title,order,duration_seconds',
+                'course.major:id,name,name_kh',
+                'course.modules:id,course_id,title,kh_title,order',
+                'course.modules.chapters:id,module_id,chapter_number,title,kh_title,order',
+                'course.modules.lessons:id,module_id,chapter_id,course_id,title,kh_title,order,duration_seconds',
+                'course.lessons:id,module_id,chapter_id,course_id,title,kh_title,order,duration_seconds',
             ])
             ->latest('updated_at')
             ->get();
 
         $computedCollection = $progressService->calculateForEnrollments($user, $enrollments);
 
-        // Filter to courses that are either explicitly marked 'completed' or have 100% lesson completion
+        // Filter to courses that are either explicitly marked 'completed' or have 100% progress
         $completedItems = $computedCollection->filter(function ($item) {
             $enr = $item['enrollment'];
-            return $enr->status === 'completed' || ($item['state'] ?? '') === 'completed';
+            $pct = (int) ($item['progress_percentage'] ?? $item['percent'] ?? 0);
+            return $enr->status === 'completed' || ($item['state'] ?? '') === 'completed' || $pct >= 100;
         })->values();
 
-        $completedCourseIds = $completedItems->map(fn ($item) => $item['course']->id)->unique()->values()->all();
+        // Sync active enrollments that reached 100% progress to status = 'completed'
+        foreach ($completedItems as $item) {
+            $enr = $item['enrollment'];
+            if ($enr && $enr->status !== 'completed') {
+                try {
+                    $enr->update(['status' => 'completed']);
+                } catch (\Throwable $e) {
+                }
+            }
+        }
 
-        // Batch load real certificates from DB
+        $completedCourseIds = $completedItems->map(fn ($item) => (int) $item['course']->id)->unique()->values()->all();
+
+        // Map all lesson IDs belonging to completed courses -> course_id (works via modules OR direct course_id)
+        $lessonCourseMap = [];
+        foreach ($completedItems as $item) {
+            $c = $item['course'];
+            if ($c->modules) {
+                foreach ($c->modules as $mod) {
+                    if ($mod->lessons) {
+                        foreach ($mod->lessons as $l) {
+                            $lessonCourseMap[(int) $l->id] = (int) $c->id;
+                        }
+                    }
+                }
+            }
+            if ($c->lessons) {
+                foreach ($c->lessons as $l) {
+                    $lessonCourseMap[(int) $l->id] = (int) $c->id;
+                }
+            }
+        }
+
+        // 3. Batch load real certificates for student (both per-course map & latest overall)
+        $allUserCerts = collect();
         $certsByCourse = collect();
         try {
-            if (!empty($completedCourseIds)) {
-                $certsByCourse = Certificate::where('student_id', $user->id)
-                    ->whereIn('course_id', $completedCourseIds)
-                    ->whereIn('status', ['issued', 'valid'])
-                    ->get()
-                    ->keyBy('course_id');
-            }
+            $allUserCerts = Certificate::where('student_id', $user->id)
+                ->whereIn('status', ['issued', 'valid'])
+                ->with(['course:id,title,title_kh,teacher_id,major_id,code', 'course.teacher:id,name,name_kh,email,avatar'])
+                ->orderByDesc('issued_at')
+                ->orderByDesc('id')
+                ->get();
+
+            $certsByCourse = $allUserCerts
+                ->filter(fn ($cert) => $cert->course_id !== null)
+                ->unique('course_id')
+                ->keyBy('course_id');
         } catch (\Throwable $e) {
+            $allUserCerts = collect();
             $certsByCourse = collect();
         }
 
-        // Batch load real study time (LessonProgress.seconds_watched) per course
+        // 4. Batch load real study time & last lesson completion timestamp per completed course
         $secondsByCourse = [];
+        $lastLessonCompletedAtByCourse = [];
         try {
-            if (!empty($completedCourseIds)) {
-                $rows = LessonProgress::query()
-                    ->join('lessons', 'lesson_progress.lesson_id', '=', 'lessons.id')
-                    ->where('lesson_progress.user_id', $user->id)
-                    ->whereIn('lessons.course_id', $completedCourseIds)
-                    ->selectRaw('lessons.course_id, COALESCE(SUM(lesson_progress.seconds_watched), 0) as total_seconds')
-                    ->groupBy('lessons.course_id')
-                    ->get();
-                foreach ($rows as $r) {
-                    $secondsByCourse[(int) $r->course_id] = (int) $r->total_seconds;
+            if (!empty($lessonCourseMap)) {
+                $progressRows = LessonProgress::where('user_id', $user->id)
+                    ->whereIn('lesson_id', array_keys($lessonCourseMap))
+                    ->get(['lesson_id', 'seconds_watched', 'completed_at', 'updated_at']);
+
+                foreach ($progressRows as $pr) {
+                    $cid = $lessonCourseMap[(int) $pr->lesson_id] ?? null;
+                    if (!$cid) {
+                        continue;
+                    }
+                    $secondsByCourse[$cid] = ($secondsByCourse[$cid] ?? 0) + (int) ($pr->seconds_watched ?? 0);
+                    $cand = $pr->completed_at ?: $pr->updated_at;
+                    if ($cand) {
+                        $candDt = Carbon::parse($cand);
+                        if (!isset($lastLessonCompletedAtByCourse[$cid]) || $candDt->gt($lastLessonCompletedAtByCourse[$cid])) {
+                            $lastLessonCompletedAtByCourse[$cid] = $candDt;
+                        }
+                    }
                 }
             }
         } catch (\Throwable $e) {
             $secondsByCourse = [];
+            $lastLessonCompletedAtByCourse = [];
         }
 
-        // Batch load real quiz scores (QuizAttempt.score) per course
+        // 5. Batch load real quiz scores (QuizAttempt) per completed course
         $quizScoresByCourse = [];
+        $quizAttemptCountsByCourse = [];
+        $realQuizAttemptsTotal = 0;
+        $realQuizAttemptWeightedSum = 0.0;
         try {
-            if (!empty($completedCourseIds)) {
-                $rows = \App\Models\QuizAttempt::query()
+            if (!empty($completedCourseIds) && Schema::hasTable('quiz_attempts') && Schema::hasTable('quizzes')) {
+                $rows = QuizAttempt::query()
                     ->join('quizzes', 'quiz_attempts.quiz_id', '=', 'quizzes.id')
                     ->where('quiz_attempts.user_id', $user->id)
                     ->whereIn('quizzes.course_id', $completedCourseIds)
                     ->whereNotNull('quiz_attempts.score')
-                    ->selectRaw('quizzes.course_id, ROUND(AVG(quiz_attempts.score)) as avg_score')
+                    ->selectRaw('quizzes.course_id, AVG(quiz_attempts.score) as avg_score, COUNT(quiz_attempts.id) as attempt_count')
                     ->groupBy('quizzes.course_id')
                     ->get();
                 foreach ($rows as $r) {
-                    $quizScoresByCourse[(int) $r->course_id] = (int) $r->avg_score;
+                    $cid = (int) $r->course_id;
+                    $cnt = (int) $r->attempt_count;
+                    $avg = (float) $r->avg_score;
+                    $quizScoresByCourse[$cid] = (int) round($avg);
+                    $quizAttemptCountsByCourse[$cid] = $cnt;
+                    $realQuizAttemptsTotal += $cnt;
+                    $realQuizAttemptWeightedSum += ($avg * $cnt);
                 }
             }
         } catch (\Throwable $e) {
             $quizScoresByCourse = [];
+            $quizAttemptCountsByCourse = [];
         }
 
-        $completedList = $completedItems->map(function ($item) use ($progressService, $certsByCourse, $secondsByCourse, $quizScoresByCourse) {
+        // 6. Map full unfiltered completed courses list
+        $allCompletedList = $completedItems->map(function ($item) use (
+            $progressService,
+            $certsByCourse,
+            $secondsByCourse,
+            $lastLessonCompletedAtByCourse,
+            $quizScoresByCourse
+        ) {
             $enr = $item['enrollment'];
             $c = $item['course'];
-            if (!$c) return null;
+            if (!$c) {
+                return null;
+            }
 
             $cert = $certsByCourse->get($c->id);
 
@@ -895,20 +997,45 @@ class CourseController extends Controller
             if ($lessonsCount === 0) {
                 $lessonsCount = $c->lessons ? $c->lessons->count() : 0;
             }
-            $chaptersCount = (int) ($item['total_modules'] ?? ($c->modules ? $c->modules->count() : 1));
+            $chaptersCount = (int) ($item['total_chapters'] ?? $item['total_modules'] ?? 1);
 
-            // Real study time from DB (seconds_watched -> fallback to lesson duration_seconds if 0)
-            $totalSeconds = $secondsByCourse[(int) $c->id] ?? 0;
-            if ($totalSeconds <= 0 && $c->lessons) {
-                $totalSeconds = (int) $c->lessons->sum('duration_seconds');
+            // Deduplicate lessons across modules & course relation for duration fallback
+            $uniqueLessons = collect();
+            if ($c->modules) {
+                foreach ($c->modules as $mod) {
+                    if ($mod->lessons) {
+                        foreach ($mod->lessons as $l) {
+                            $uniqueLessons->put($l->id, $l);
+                        }
+                    }
+                }
+            }
+            if ($c->lessons) {
+                foreach ($c->lessons as $l) {
+                    $uniqueLessons->put($l->id, $l);
+                }
+            }
+
+            // Real study time from DB (lesson_progress.seconds_watched -> fallback to lesson duration_seconds if 0)
+            $totalSeconds = (int) ($secondsByCourse[(int) $c->id] ?? 0);
+            if ($totalSeconds <= 0 && $uniqueLessons->isNotEmpty()) {
+                $totalSeconds = (int) $uniqueLessons->sum('duration_seconds');
             }
             $studyMinutes = (int) round($totalSeconds / 60);
             $hours = intdiv($studyMinutes, 60);
             $mins = $studyMinutes % 60;
-            $studyTimeFormatted = $hours > 0 ? "{$hours}h " . str_pad((string) $mins, 2, '0', STR_PAD_LEFT) . 'm' : "{$mins}m";
+            $studyTimeFormatted = $hours > 0
+                ? "{$hours}h " . str_pad((string) $mins, 2, '0', STR_PAD_LEFT) . 'm'
+                : "{$mins}m";
 
-            // Real quiz score from DB
-            $quizScore = $quizScoresByCourse[(int) $c->id] ?? 0;
+            // Real quiz score from QuizAttempt (fallback to certificate.score if present)
+            $hasQuizScore = array_key_exists((int) $c->id, $quizScoresByCourse);
+            $quizScore = $hasQuizScore ? $quizScoresByCourse[(int) $c->id] : 0;
+            if (!$hasQuizScore && $cert && $cert->score !== null) {
+                $quizScore = (int) round((float) $cert->score);
+                $hasQuizScore = true;
+            }
+
             $medalType = $quizScore >= 90 ? 'gold' : ($quizScore >= 75 ? 'silver' : 'bronze');
 
             $titleLower = strtolower($c->title . ' ' . ($c->major->name ?? ''));
@@ -921,55 +1048,368 @@ class CourseController extends Controller
                 $illus = 'uiux';
             }
 
+            $thumb = $c->thumbnail ? trim((string) $c->thumbnail) : null;
+            if ($thumb && !str_starts_with($thumb, 'http://') && !str_starts_with($thumb, 'https://') && !str_starts_with($thumb, '/')) {
+                $thumb = asset('storage/' . ltrim($thumb, '/'));
+            }
+
             $completedDate = '';
             $completedTs = 0;
             try {
-                $dateSource = $enr->completed_at ?? $enr->updated_at ?? $enr->created_at;
+                $dateSource = $lastLessonCompletedAtByCourse[(int) $c->id]
+                    ?? $enr->updated_at
+                    ?? $enr->enrolled_at
+                    ?? $enr->created_at;
                 if ($dateSource) {
-                    $dt = \Carbon\Carbon::parse($dateSource);
+                    $dt = Carbon::parse($dateSource)->timezone(DashboardAnalyticsService::TIMEZONE);
                     $completedDate = $dt->format('M d, Y');
-                    $completedTs = $dt->getTimestamp() * 1000;
+                    $completedTs = $dt->getTimestampMs();
                 }
-            } catch (\Throwable $e) {}
+            } catch (\Throwable $e) {
+            }
 
             $certIssueDate = null;
+            $certIssuedTs = 0;
             try {
-                if ($cert && $cert->issued_at) {
-                    $certIssueDate = \Carbon\Carbon::parse($cert->issued_at)->format('M d, Y');
+                if ($cert && ($cert->issued_at || $cert->created_at)) {
+                    $cdt = Carbon::parse($cert->issued_at ?: $cert->created_at)->timezone(DashboardAnalyticsService::TIMEZONE);
+                    $certIssueDate = $cdt->format('M d, Y');
+                    $certIssuedTs = $cdt->getTimestampMs();
                 }
-            } catch (\Throwable $e) {}
+            } catch (\Throwable $e) {
+            }
+
+            $missingCertReason = null;
+            $missingCertReasonKh = null;
+            if ($cert === null) {
+                if (!$hasQuizScore) {
+                    $missingCertReason = 'Final course assessment has not been completed yet.';
+                    $missingCertReasonKh = 'មិនទាន់បានបញ្ចប់តេស្តវាយតម្លៃចុងក្រោយសម្រាប់វគ្គសិក្សានេះនៅឡើយទេ។';
+                } elseif ($quizScore < 70) {
+                    $missingCertReason = "Current quiz score is {$quizScore}% (minimum 70% required for certificate).";
+                    $missingCertReasonKh = "ពិន្ទុបច្ចុប្បន្ន {$quizScore}% (ត្រូវការយ៉ាងតិច 70% ដើម្បីទទួលបានវិញ្ញាបនបត្រ)។";
+                } else {
+                    $missingCertReason = 'Certificate issuance is pending verification by the academic office.';
+                    $missingCertReasonKh = 'វិញ្ញាបនបត្រកំពុងរង់ចាំការផ្ទៀងផ្ទាត់ និងចេញជូនពីការិយាល័យសិក្សា។';
+                }
+            }
+
+            $grade = $cert?->grade;
+            if (!$grade && $hasQuizScore) {
+                $grade = $quizScore >= 90 ? 'A' : ($quizScore >= 80 ? 'B' : ($quizScore >= 70 ? 'C' : 'D'));
+            }
 
             return [
-                'id'                     => $c->id,
-                'slug'                   => $c->code ?: ('course-' . $c->id),
-                'title'                  => $c->title,
-                'category'               => $c->major?->name ?: 'Academic Studies',
-                'status'                 => 'completed',
-                'progress'               => 100,
-                'teacher'                => [
-                    'name'   => $progressService->cleanTeacherName($c->teacher, $c),
-                    'avatar' => $c->teacher?->avatar ?: null,
-                    'role'   => 'SPI Instructor',
+                'id'                      => (int) $c->id,
+                'enrollmentId'            => (int) $enr->id,
+                'slug'                    => $c->code ?: ('course-' . $c->id),
+                'title'                   => $c->title,
+                'titleKh'                 => $c->title_kh ?: $c->title,
+                'category'                => $c->major?->name ?: 'Academic Studies',
+                'categoryKh'              => $c->major?->name_kh ?: ($c->major?->name ?: 'ការសិក្សាទូទៅ'),
+                'status'                  => 'completed',
+                'progress'                => 100,
+                'progress_percentage'     => 100,
+                'teacher'                 => [
+                    'name'    => $progressService->cleanTeacherName($c->teacher, $c),
+                    'name_kh' => $progressService->cleanTeacherNameKh($c->teacher, $c),
+                    'avatar'  => $c->teacher?->avatar_url ?: null,
+                    'role'    => 'SPI Instructor',
                 ],
-                'completedDate'          => $completedDate,
-                'completedDateTimestamp' => $completedTs,
-                'chaptersCount'          => $chaptersCount,
-                'lessonsCount'           => $lessonsCount,
-                'studyTime'              => $studyTimeFormatted,
-                'studyTimeMinutes'       => $studyMinutes,
-                'quizScore'              => $quizScore,
-                'hasCertificate'         => $cert !== null,
-                'certificateId'          => $cert?->certificate_number ?: null,
-                'certIssueDate'          => $certIssueDate,
-                'medalType'              => $medalType,
-                'illustrationType'       => $illus,
-                'overviewHref'           => "/student/courses/{$c->id}/overview",
+                'completedDate'           => $completedDate,
+                'completedDateTimestamp'  => $completedTs,
+                'chaptersCount'           => $chaptersCount,
+                'lessonsCount'            => $lessonsCount,
+                'studyTime'               => $studyTimeFormatted,
+                'studyTimeMinutes'        => $studyMinutes,
+                'studyTimeSeconds'        => $totalSeconds,
+                'quizScore'               => (int) $quizScore,
+                'hasQuizScore'            => $hasQuizScore,
+                'grade'                   => $grade,
+                'hasCertificate'          => $cert !== null,
+                'certificateDbId'         => $cert?->id ? (int) $cert->id : null,
+                'certificateId'           => $cert?->certificate_number ?: null,
+                'verificationCode'        => $cert?->verification_code ?: null,
+                'certIssueDate'           => $certIssueDate,
+                'certIssuedTimestamp'     => $certIssuedTs,
+                'certificateDownloadHref' => $cert ? "/certificate/download/{$cert->id}" : null,
+                'certificateVerifyHref'   => $cert ? "/certificate/verify/{$cert->certificate_number}" : null,
+                'missingCertReason'       => $missingCertReason,
+                'missingCertReasonKh'     => $missingCertReasonKh,
+                'medalType'               => $medalType,
+                'illustrationType'        => $illus,
+                'thumbnail'               => $thumb ?: null,
+                'overviewHref'            => "/student/courses/{$c->id}/overview",
+                'reviewHref'              => "/student/my-courses/{$c->id}/continue",
             ];
         })->filter()->values();
 
+        // 7. Compute unfiltered counts & sidebar analytics
+        $totalCompleted = $allCompletedList->count();
+        $withCertCount = $allCompletedList->where('hasCertificate', true)->count();
+        $noCertCount = $allCompletedList->where('hasCertificate', false)->count();
+        $certPercent = $totalCompleted > 0 ? (int) round(($withCertCount / $totalCompleted) * 100) : 0;
+        $noCertPercent = $totalCompleted > 0 ? (100 - $certPercent) : 0;
+
+        $totalStudySeconds = (int) $allCompletedList->sum('studyTimeSeconds');
+        $totalStudyMinutes = (int) round($totalStudySeconds / 60);
+        $totalHrs = intdiv($totalStudyMinutes, 60);
+        $totalMns = $totalStudyMinutes % 60;
+        $totalStudyTimeFormatted = "{$totalHrs}h " . str_pad((string) $totalMns, 2, '0', STR_PAD_LEFT) . 'm';
+
+        if ($realQuizAttemptsTotal > 0) {
+            $averageQuizScore = (int) round($realQuizAttemptWeightedSum / $realQuizAttemptsTotal);
+            $completedQuizzesCount = $realQuizAttemptsTotal;
+        } else {
+            $scoredCourses = $allCompletedList->where('hasQuizScore', true);
+            $averageQuizScore = $scoredCourses->isNotEmpty() ? (int) round((float) $scoredCourses->avg('quizScore')) : 0;
+            $completedQuizzesCount = $scoredCourses->count();
+        }
+
+        $counts = [
+            'all'            => $totalCompleted,
+            'certificates'   => $withCertCount,
+            'no_certificate' => $noCertCount,
+        ];
+
+        $stats = [
+            'totalCompleted'          => $totalCompleted,
+            'withCertificateCount'    => $withCertCount,
+            'noCertificateCount'      => $noCertCount,
+            'certPercent'             => $certPercent,
+            'noCertPercent'           => $noCertPercent,
+            'totalStudyMinutes'       => $totalStudyMinutes,
+            'totalStudySeconds'       => $totalStudySeconds,
+            'totalStudyTimeFormatted' => $totalStudyTimeFormatted,
+            'averageQuizScore'        => $averageQuizScore,
+            'completedQuizzesCount'   => $completedQuizzesCount,
+        ];
+
+        // 8. Build real Latest Certificate payload (null if user has 0 issued/valid certificates)
+        $latestCertModel = $allUserCerts->first();
+        $latestCertificate = null;
+        if ($latestCertModel) {
+            $latestIssueStr = '';
+            try {
+                if ($latestCertModel->issued_at || $latestCertModel->created_at) {
+                    $latestIssueStr = Carbon::parse($latestCertModel->issued_at ?: $latestCertModel->created_at)
+                        ->timezone(DashboardAnalyticsService::TIMEZONE)
+                        ->format('M d, Y');
+                }
+            } catch (\Throwable $e) {
+            }
+
+            $certCourse = $latestCertModel->course;
+            $latestCertificate = [
+                'id'               => (int) $latestCertModel->id,
+                'courseId'         => $latestCertModel->course_id ? (int) $latestCertModel->course_id : null,
+                'title'            => $certCourse?->title ?? 'Course Certificate',
+                'titleKh'          => $certCourse?->title_kh ?: ($certCourse?->title ?? 'វិញ្ញាបនបត្រវគ្គសិក្សា'),
+                'certificateId'    => $latestCertModel->certificate_number,
+                'verificationCode' => $latestCertModel->verification_code,
+                'certIssueDate'    => $latestIssueStr,
+                'teacherName'      => $certCourse?->teacher ? $progressService->cleanTeacherName($certCourse->teacher, $certCourse) : 'SPI Instructor',
+                'teacherNameKh'    => $certCourse?->teacher ? $progressService->cleanTeacherNameKh($certCourse->teacher, $certCourse) : 'គ្រូបង្រៀន SPI',
+                'score'            => $latestCertModel->score !== null ? (int) round((float) $latestCertModel->score) : null,
+                'grade'            => $latestCertModel->grade,
+                'downloadHref'     => "/certificate/download/{$latestCertModel->id}",
+                'verifyHref'       => "/certificate/verify/{$latestCertModel->certificate_number}",
+            ];
+        }
+
+        // 9. Build real 4 Achievements Badges from MySQL activity
+        $achievements = $this->buildCompletedAchievements(
+            $user,
+            $completedItems,
+            $lastLessonCompletedAtByCourse,
+            $totalCompleted,
+            $allUserCerts->unique('course_id')->count()
+        );
+
+        // 10. Filter & sort list for active view
+        $filtered = $allCompletedList;
+        if ($status === 'certificates') {
+            $filtered = $filtered->where('hasCertificate', true);
+        } elseif ($status === 'no_certificate') {
+            $filtered = $filtered->where('hasCertificate', false);
+        }
+
+        if ($q !== '') {
+            $qLower = mb_strtolower($q, 'UTF-8');
+            $filtered = $filtered->filter(function ($item) use ($qLower) {
+                return str_contains(mb_strtolower((string) ($item['title'] ?? ''), 'UTF-8'), $qLower)
+                    || str_contains(mb_strtolower((string) ($item['titleKh'] ?? ''), 'UTF-8'), $qLower)
+                    || str_contains(mb_strtolower((string) ($item['category'] ?? ''), 'UTF-8'), $qLower)
+                    || str_contains(mb_strtolower((string) ($item['categoryKh'] ?? ''), 'UTF-8'), $qLower)
+                    || str_contains(mb_strtolower((string) ($item['teacher']['name'] ?? ''), 'UTF-8'), $qLower)
+                    || str_contains(mb_strtolower((string) ($item['teacher']['name_kh'] ?? ''), 'UTF-8'), $qLower)
+                    || str_contains(mb_strtolower((string) ($item['slug'] ?? ''), 'UTF-8'), $qLower)
+                    || str_contains(mb_strtolower((string) ($item['certificateId'] ?? ''), 'UTF-8'), $qLower);
+            });
+        }
+
+        if ($sort === 'oldest') {
+            $filtered = $filtered->sortBy('completedDateTimestamp');
+        } elseif ($sort === 'highest_score') {
+            $filtered = $filtered->sortByDesc('quizScore');
+        } elseif ($sort === 'name') {
+            $filtered = $filtered->sortBy('title', SORT_NATURAL | SORT_FLAG_CASE);
+        } elseif ($sort === 'most_time') {
+            $filtered = $filtered->sortByDesc('studyTimeSeconds');
+        } else {
+            $filtered = $filtered->sortByDesc('completedDateTimestamp');
+        }
+
         return Inertia::render('Student/MyCourses/CompletedCourses', [
-            'enrollments' => $completedList,
+            'enrollments'       => $filtered->values()->all(),
+            'counts'            => $counts,
+            'stats'             => $stats,
+            'latestCertificate' => $latestCertificate,
+            'achievements'      => $achievements,
+            'filters'           => [
+                'status' => $status,
+                'sort'   => $sort,
+                'q'      => $q,
+                'view'   => $view,
+            ],
         ]);
+    }
+
+    /**
+     * Build the 4 Completed Courses Achievements badges strictly from real database records.
+     */
+    protected function buildCompletedAchievements(
+        \App\Models\User $user,
+        \Illuminate\Support\Collection $completedItems,
+        array $lastLessonCompletedAtByCourse,
+        int $totalCompleted,
+        int $totalCertsCount
+    ): array {
+        $completedWithin7Days = false;
+        foreach ($completedItems as $item) {
+            $enr = $item['enrollment'] ?? null;
+            $c = $item['course'] ?? null;
+            if (!$enr || !$c) {
+                continue;
+            }
+            $startRaw = $enr->enrolled_at ?: $enr->created_at;
+            $endRaw = $lastLessonCompletedAtByCourse[(int) $c->id] ?? $enr->updated_at;
+            if ($startRaw && $endRaw) {
+                try {
+                    $startDt = Carbon::parse($startRaw);
+                    $endDt = Carbon::parse($endRaw);
+                    if ($endDt->gte($startDt) && $startDt->diffInDays($endDt) <= 7) {
+                        $completedWithin7Days = true;
+                        break;
+                    }
+                } catch (\Throwable $e) {
+                }
+            }
+        }
+
+        $totalCompletedLessons = 0;
+        $bestQuizScoreOverall = 0;
+        $distinctDaysCount = 0;
+        $overallStudySeconds = 0;
+
+        try {
+            $totalCompletedLessons = LessonProgress::where('user_id', $user->id)
+                ->where(function ($q) {
+                    $q->whereNotNull('completed_at')->orWhere('percent', '>=', 90);
+                })
+                ->count();
+        } catch (\Throwable $e) {
+        }
+
+        try {
+            if (Schema::hasTable('quiz_attempts')) {
+                $bestQuizScoreOverall = (int) round((float) (QuizAttempt::where('user_id', $user->id)->whereNotNull('score')->max('score') ?? 0));
+            }
+        } catch (\Throwable $e) {
+        }
+
+        try {
+            $studyDateSet = [];
+            $studyDailySeconds = 0;
+            if (Schema::hasTable('study_daily')) {
+                $dailyRows = StudyDaily::where('user_id', $user->id)
+                    ->where('seconds', '>', 0)
+                    ->get(['study_date', 'seconds']);
+                foreach ($dailyRows as $dr) {
+                    if ($dr->study_date) {
+                        $studyDateSet[Carbon::parse($dr->study_date)->toDateString()] = true;
+                    }
+                    $studyDailySeconds += (int) $dr->seconds;
+                }
+            }
+
+            $lpRows = LessonProgress::where('user_id', $user->id)
+                ->where(function ($q) {
+                    $q->where('seconds_watched', '>', 0)->orWhere('percent', '>', 0)->orWhereNotNull('completed_at');
+                })
+                ->get(['seconds_watched', 'completed_at', 'updated_at', 'created_at']);
+
+            $lpSeconds = 0;
+            foreach ($lpRows as $lpr) {
+                $lpSeconds += (int) ($lpr->seconds_watched ?? 0);
+                $dtSource = $lpr->completed_at ?: ($lpr->updated_at ?: $lpr->created_at);
+                if ($dtSource) {
+                    $studyDateSet[Carbon::parse($dtSource)->timezone(DashboardAnalyticsService::TIMEZONE)->toDateString()] = true;
+                }
+            }
+
+            $distinctDaysCount = count($studyDateSet);
+            $overallStudySeconds = max($studyDailySeconds, $lpSeconds);
+        } catch (\Throwable $e) {
+        }
+
+        $quickUnlocked = $completedWithin7Days || $totalCompletedLessons >= 3;
+        $courseMasterUnlocked = $totalCompleted >= 1;
+        $topPerformerUnlocked = $bestQuizScoreOverall >= 80 || $totalCertsCount >= 1;
+        $consistentUnlocked = $distinctDaysCount >= 3 || $overallStudySeconds >= 3600;
+
+        return [
+            [
+                'id'          => 'quick_learner',
+                'key'         => 'quick_learner',
+                'title'       => 'Quick Learner',
+                'title_km'    => 'រៀនរហ័ស',
+                'unlocked'    => $quickUnlocked,
+                'progress'    => $completedWithin7Days ? '1/1 course' : (min(3, $totalCompletedLessons) . '/3 lessons'),
+                'progress_km' => $completedWithin7Days ? '១/១ វគ្គ' : (min(3, $totalCompletedLessons) . '/3 មេរៀន'),
+                'theme'       => 'emerald',
+            ],
+            [
+                'id'          => 'course_master',
+                'key'         => 'course_master',
+                'title'       => 'Course Master',
+                'title_km'    => 'ម្ចាស់វគ្គ',
+                'unlocked'    => $courseMasterUnlocked,
+                'progress'    => "{$totalCompleted}/1 course",
+                'progress_km' => "{$totalCompleted}/1 វគ្គ",
+                'theme'       => 'blue',
+            ],
+            [
+                'id'          => 'top_performer',
+                'key'         => 'top_performer',
+                'title'       => 'Top Performer',
+                'title_km'    => 'ពូកែបំផុត',
+                'unlocked'    => $topPerformerUnlocked,
+                'progress'    => $bestQuizScoreOverall > 0 ? "{$bestQuizScoreOverall}% / 80%" : ($totalCertsCount > 0 ? "{$totalCertsCount} cert" : '0% / 80%'),
+                'progress_km' => $bestQuizScoreOverall > 0 ? "{$bestQuizScoreOverall}% / 80%" : ($totalCertsCount > 0 ? "{$totalCertsCount} វិញ្ញាបនបត្រ" : '0% / 80%'),
+                'theme'       => 'orange',
+            ],
+            [
+                'id'          => 'consistent_learner',
+                'key'         => 'consistent_learner',
+                'title'       => 'Consistent Learner',
+                'title_km'    => 'ព្យាយាមរៀន',
+                'unlocked'    => $consistentUnlocked,
+                'progress'    => "{$distinctDaysCount}/3 days",
+                'progress_km' => "{$distinctDaysCount}/3 ថ្ងៃ",
+                'theme'       => 'purple',
+            ],
+        ];
     }
 
     public function overview(Request $request, CourseProgressService $progressService, $course = null)

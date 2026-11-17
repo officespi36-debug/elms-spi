@@ -236,14 +236,14 @@ class CourseProgressService
         }
 
         // State & progress calculation aligned with 0% (not_started), 1-99% (in_progress), 100% (completed)
-        if ($totalLessons === 0) {
-            $state = 'coming_soon';
-            $percent = 0;
-            $stateLabel = 'Coming Soon';
-        } elseif (($totalLessons > 0 && $doneCount >= $totalLessons) || ($enrollment && $enrollment->status === 'completed')) {
+        if (($enrollment && $enrollment->status === 'completed') || ($totalLessons > 0 && $doneCount >= $totalLessons)) {
             $state = 'completed';
             $percent = 100;
             $stateLabel = 'Completed';
+        } elseif ($totalLessons === 0) {
+            $state = 'coming_soon';
+            $percent = 0;
+            $stateLabel = 'Coming Soon';
         } elseif ($doneCount > 0 || $anyWatched) {
             $rawPct = (int) round($watchedPercentSum / $totalLessons);
             $percent = max(1, min(99, $rawPct));
