@@ -59,6 +59,21 @@ const showCenterNotice = (type: 'info' | 'warning', message: string) => {
   centerNotice.value = { type, title, message: localizeNoticeMessage(message) }
 }
 
+const ringDots = [
+  { angle: 0, r: 5.2, opacity: 1 },
+  { angle: 30, r: 4.8, opacity: 0.96 },
+  { angle: 60, r: 4.3, opacity: 0.92 },
+  { angle: 90, r: 3.7, opacity: 0.88 },
+  { angle: 120, r: 3.0, opacity: 0.84 },
+  { angle: 150, r: 2.0, opacity: 0.78 },
+  { angle: 180, r: 1.1, opacity: 0.72 },
+  { angle: 210, r: 1.8, opacity: 0.78 },
+  { angle: 240, r: 2.7, opacity: 0.84 },
+  { angle: 270, r: 3.6, opacity: 0.88 },
+  { angle: 300, r: 4.3, opacity: 0.94 },
+  { angle: 330, r: 4.8, opacity: 0.98 },
+]
+
 const loadingText = computed(() => {
   if (processingMode.value === 'save') {
     return currentLang.value === 'km' ? 'កំពុងដំណើរការរក្សាទុក' : 'Processing, please wait'
@@ -213,14 +228,28 @@ watch(
       v-if="isGlobalProcessing"
       role="status"
       aria-live="polite"
-      class="fixed inset-0 z-[10000] flex items-center justify-center pointer-events-none select-none"
+      class="fixed inset-0 z-[10000] flex flex-col items-center justify-center gap-3 pointer-events-none select-none"
     >
-      <div class="elms-ring-spinner" aria-hidden="true">
-        <span v-for="i in 12" :key="i" class="elms-ring-spoke" :style="{ '--i': i - 1 }">
-          <span class="elms-ring-dot"></span>
-        </span>
-      </div>
-      <span class="sr-only">{{ loadingText }}</span>
+      <svg
+        class="elms-ring-svg w-[60px] h-[60px]"
+        viewBox="0 0 64 64"
+        fill="none"
+        aria-hidden="true"
+      >
+        <circle
+          v-for="dot in ringDots"
+          :key="dot.angle"
+          cx="32"
+          cy="9"
+          :r="dot.r"
+          fill="#0099ff"
+          :fill-opacity="dot.opacity"
+          :transform="`rotate(${dot.angle} 32 32)`"
+        />
+      </svg>
+      <p class="elms-loading-text text-sm sm:text-base font-bold tracking-wide text-slate-900 dark:text-white drop-shadow-[0_2px_10px_rgba(255,255,255,0.85)] dark:drop-shadow-[0_2px_10px_rgba(0,0,0,0.65)] flex items-center">
+        <span>{{ loadingText }}</span><span class="elms-ellipsis" aria-hidden="true">...</span>
+      </p>
     </div>
   </Transition>
   <!-- Centered Screen Notice / Confirmation Card (e.g. Continue Learning when not enrolled yet) -->
@@ -288,46 +317,36 @@ watch(
 </template>
 
 <style scoped>
-.elms-ring-spinner {
-  position: relative;
-  width: 64px;
-  height: 64px;
+.elms-ring-svg {
+  transform-origin: center center;
+  will-change: transform;
+  animation: elms-ring-spin 0.85s linear infinite;
 }
 
-.elms-ring-spoke {
-  position: absolute;
-  inset: 0;
-  transform: rotate(calc(var(--i) * 30deg));
-}
-
-.elms-ring-dot {
-  position: absolute;
-  top: 2px;
-  left: 50%;
-  width: 11px;
-  height: 11px;
-  margin-left: -5.5px;
-  border-radius: 9999px;
-  background-color: #0099ff;
-  will-change: transform, opacity;
-  animation: elms-ring-pulse 1.08s ease-in-out infinite;
-  animation-delay: calc((var(--i) - 12) * 0.09s);
-}
-
-@keyframes elms-ring-pulse {
-  0%, 15%, 100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  55% {
-    transform: scale(0.16);
-    opacity: 0.72;
+@keyframes elms-ring-spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .elms-ring-dot {
-    animation: none;
-  }
+.elms-loading-text {
+  animation: elms-text-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes elms-text-pulse {
+  0%, 100% { opacity: 0.82; }
+  50% { opacity: 1; }
+}
+
+.elms-ellipsis {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  width: 0;
+  animation: elms-ellipsis-run 1.2s steps(4, end) infinite;
+}
+
+@keyframes elms-ellipsis-run {
+  to { width: 1.25em; }
 }
 </style>
