@@ -20,6 +20,7 @@ use App\Models\Notification;
 use App\Models\QuizAttempt;
 use App\Models\ReportedContent;
 use App\Models\StudyDaily;
+use App\Models\User;
 use App\Services\CertificateService;
 use App\Services\ContinueLearningService;
 use App\Services\CourseProgressService;
@@ -28,6 +29,7 @@ use App\Services\EnrollmentService;
 use App\Services\StudentLearningService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
@@ -1283,8 +1285,8 @@ class CourseController extends Controller
      * Build the 4 Completed Courses Achievements badges strictly from real database records.
      */
     protected function buildCompletedAchievements(
-        \App\Models\User $user,
-        \Illuminate\Support\Collection $completedItems,
+        User $user,
+        Collection $completedItems,
         array $lastLessonCompletedAtByCourse,
         int $totalCompleted,
         int $totalCertsCount

@@ -4,10 +4,8 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\Course;
-use App\Models\CourseReview;
 use App\Models\CourseWishlist;
 use App\Models\Enrollment;
-use App\Models\Lesson;
 use App\Models\LessonProgress;
 use App\Models\Major;
 use App\Services\CourseProgressService;
