@@ -9,32 +9,7 @@ const page = usePage<any>()
 const appToast = useAppToast()
 const isGlobalProcessing = ref(false)
 const processingMode = ref<'nav' | 'save'>('nav')
-const centerNotice = ref<{ type: 'info' | 'warning'; title: string; message: string } | null>(null)
 const currentLang = computed(() => i18n.locale.value)
-
-const dismissCenterNotice = () => {
-  centerNotice.value = null
-}
-
-const confirmCenterNotice = () => {
-  const msg = centerNotice.value?.message || ''
-  centerNotice.value = null
-
-  const needsEnroll = msg.includes('ចុះឈ្មោះ') || msg.toLowerCase().includes('enroll')
-  const allCompleted = msg.includes('ទាំងអស់') || msg.toLowerCase().includes('all your courses')
-  const currentPath = (page.url || window.location.pathname).split('?')[0]
-
-  if (needsEnroll) {
-    if (!currentPath.startsWith('/student/browse')) {
-      router.visit('/student/browse')
-    } else {
-      const target = document.querySelector('main') || document.body
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
-  } else if (allCompleted && !currentPath.startsWith('/student/my-courses/completed')) {
-    router.visit('/student/my-courses/completed')
-  }
-}
 
 const localizeNoticeMessage = (raw: string): string => {
   const msg = (raw || '').trim()
@@ -50,13 +25,6 @@ const localizeNoticeMessage = (raw: string): string => {
     }
   }
   return msg
-}
-
-const showCenterNotice = (type: 'info' | 'warning', message: string) => {
-  const title = type === 'warning'
-    ? (currentLang.value === 'km' ? 'ការព្រមាន' : 'Warning')
-    : (currentLang.value === 'km' ? 'សូមជ្រាប' : 'Notice')
-  centerNotice.value = { type, title, message: localizeNoticeMessage(message) }
 }
 
 const ringDots = [
@@ -174,10 +142,10 @@ watch(
       appToast.error(flash.error, currentLang.value === 'km' ? 'បរាជ័យ' : 'Failed')
     }
     if (flash.info) {
-      showCenterNotice('info', flash.info)
+      appToast.info(localizeNoticeMessage(flash.info), currentLang.value === 'km' ? 'ដំណឹង' : 'Notice')
     }
     if (flash.warning || flash.warn) {
-      showCenterNotice('warning', flash.warning || flash.warn)
+      appToast.warn(localizeNoticeMessage(flash.warning || flash.warn), currentLang.value === 'km' ? 'ការព្រមាន' : 'Warning')
     }
     if (flash.status) {
       appToast.info(flash.status, currentLang.value === 'km' ? 'ដំណឹង' : 'Notice')
@@ -250,68 +218,6 @@ watch(
       <p class="elms-loading-text text-sm sm:text-base font-bold tracking-wide text-slate-900 dark:text-white drop-shadow-[0_2px_10px_rgba(255,255,255,0.85)] dark:drop-shadow-[0_2px_10px_rgba(0,0,0,0.65)] flex items-center">
         <span>{{ loadingText }}</span><span class="elms-ellipsis" aria-hidden="true">...</span>
       </p>
-    </div>
-  </Transition>
-  <!-- Centered Screen Notice / Confirmation Card (e.g. Continue Learning when not enrolled yet) -->
-  <Transition
-    enter-active-class="transition duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]"
-    enter-from-class="opacity-0 scale-95"
-    enter-to-class="opacity-100 scale-100"
-    leave-active-class="transition duration-150 ease-out"
-    leave-from-class="opacity-100 scale-100"
-    leave-to-class="opacity-0 scale-95"
-  >
-    <div
-      v-if="centerNotice && !isGlobalProcessing"
-      role="alertdialog"
-      aria-modal="true"
-      class="fixed inset-0 z-[10001] flex items-center justify-center p-4 pointer-events-none"
-    >
-      <div class="pointer-events-auto relative w-full max-w-xs px-4 py-4 flex flex-col items-center text-center gap-3">
-        <!-- Close button -->
-        <button
-          type="button"
-          @click="dismissCenterNotice"
-          :aria-label="currentLang === 'km' ? 'បិទ' : 'Close'"
-          class="absolute top-0 right-0 w-8 h-8 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
-        >
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-
-        <!-- Icon badge -->
-        <div
-          :class="[
-            'w-12 h-12 rounded-full flex items-center justify-center',
-            centerNotice.type === 'warning'
-              ? 'text-amber-500'
-              : 'text-purple-500 dark:text-purple-400'
-          ]"
-        >
-          <svg v-if="centerNotice.type === 'warning'" class="w-8 h-8 drop-shadow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-          </svg>
-          <svg v-else class="w-8 h-8 drop-shadow" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
-          </svg>
-        </div>
-
-        <h3 class="text-base font-bold text-slate-900 dark:text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.45)]">
-          {{ centerNotice.title }}
-        </h3>
-        <p class="text-sm font-medium text-slate-800 dark:text-slate-100 leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.45)]">
-          {{ centerNotice.message }}
-        </p>
-
-        <button
-          type="button"
-          @click="confirmCenterNotice"
-          class="mt-1 px-8 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-[0.98] text-white text-sm font-semibold shadow-md shadow-purple-500/25 transition-all focus:outline-none focus:ring-2 focus:ring-purple-500"
-        >
-          {{ currentLang === 'km' ? 'យល់ព្រម' : 'OK, Got it' }}
-        </button>
-      </div>
     </div>
   </Transition>
 </template>

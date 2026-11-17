@@ -61,22 +61,25 @@ class ContinueLearningService
                 return null;
             }
         } else {
-            // Find active enrollment with the most recent lesson progress
-            $activeEnrollments = Enrollment::where('student_id', $user->id)
-                ->where('status', 'active')
+            // Find active or completed enrollments (prioritize active courses first)
+            $allEnrollments = Enrollment::where('student_id', $user->id)
+                ->whereIn('status', ['active', 'completed'])
                 ->whereHas('course', function ($q) {
                     $q->where('status', 'published');
                 })
                 ->with('course')
                 ->get();
 
-            if ($activeEnrollments->isEmpty()) {
+            if ($allEnrollments->isEmpty()) {
                 return null;
             }
 
-            $courseIds = $activeEnrollments->pluck('course_id')->all();
+            $activeEnrollments = $allEnrollments->where('status', 'active');
+            $candidateEnrollments = $activeEnrollments->isNotEmpty() ? $activeEnrollments : $allEnrollments;
 
-            // Find latest progress among these courses
+            $courseIds = $candidateEnrollments->pluck('course_id')->all();
+
+            // Find latest progress among candidate courses
             $latestProgress = LessonProgress::where('user_id', $user->id)
                 ->whereHas('lesson', function ($q) use ($courseIds) {
                     $q->whereIn('course_id', $courseIds);
@@ -89,7 +92,7 @@ class ContinueLearningService
                 $targetCourse = $latestProgress->lesson->course;
             } else {
                 // Fallback to the latest enrolled course
-                $latestEnrollment = $activeEnrollments->sortByDesc(function ($enr) {
+                $latestEnrollment = $candidateEnrollments->sortByDesc(function ($enr) {
                     return $enr->enrolled_at ? $enr->enrolled_at->timestamp : ($enr->created_at ? $enr->created_at->timestamp : 0);
                 })->first();
 
