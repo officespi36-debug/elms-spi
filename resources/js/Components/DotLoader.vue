@@ -83,7 +83,7 @@ const sizeClass = computed(() => {
   transform-origin: center center;
   will-change: transform;
   filter: drop-shadow(0 2px 8px rgba(0, 153, 255, 0.35));
-  animation: blueRingSpin 0.8s linear infinite;
+  animation: blueRingSpin 1.15s linear infinite;
 }
 
 @keyframes blueRingSpin {

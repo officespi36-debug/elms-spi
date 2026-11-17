@@ -51,6 +51,8 @@ const loadingText = computed(() => {
   return currentLang.value === 'km' ? 'សូមរង់ចាំ កំពុងដំណើរការ' : 'Please wait while loading'
 })
 
+const MIN_LOADER_DISPLAY_MS = 550
+let loaderShownAt = 0
 let lastMethod = ''
 let showDelayTimer: ReturnType<typeof setTimeout> | null = null
 let maxWaitTimer: ReturnType<typeof setTimeout> | null = null
@@ -62,7 +64,7 @@ let removeExceptionListener: (() => void) | null = null
 let removeSuccessListener: (() => void) | null = null
 let removeErrorListener: (() => void) | null = null
 
-const hideCenterLoader = () => {
+const hideCenterLoader = (forceImmediate = false) => {
   if (showDelayTimer) {
     clearTimeout(showDelayTimer)
     showDelayTimer = null
@@ -71,11 +73,26 @@ const hideCenterLoader = () => {
     clearTimeout(maxWaitTimer)
     maxWaitTimer = null
   }
-  isGlobalProcessing.value = false
+  if (forceImmediate || !isGlobalProcessing.value) {
+    isGlobalProcessing.value = false
+    return
+  }
+  const elapsed = Date.now() - loaderShownAt
+  const remaining = Math.max(0, MIN_LOADER_DISPLAY_MS - elapsed)
+  if (remaining === 0) {
+    isGlobalProcessing.value = false
+  } else {
+    showDelayTimer = setTimeout(() => {
+      showDelayTimer = null
+      isGlobalProcessing.value = false
+    }, remaining)
+  }
 }
 
+const handlePageshow = () => hideCenterLoader(true)
+
 onMounted(() => {
-  window.addEventListener('pageshow', hideCenterLoader)
+  window.addEventListener('pageshow', handlePageshow)
 
   removeStartListener = router.on('start', (event: any) => {
     const visit = event?.detail?.visit
@@ -102,9 +119,10 @@ onMounted(() => {
     } else {
       processingMode.value = 'nav'
     }
+    loaderShownAt = Date.now()
     isGlobalProcessing.value = true
     maxWaitTimer = setTimeout(() => {
-      hideCenterLoader()
+      hideCenterLoader(true)
     }, 8000)
   })
 
@@ -153,8 +171,8 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  window.removeEventListener('pageshow', hideCenterLoader)
-  hideCenterLoader()
+  window.removeEventListener('pageshow', handlePageshow)
+  hideCenterLoader(true)
   if (removeStartListener) removeStartListener()
   if (removeFinishListener) removeFinishListener()
   if (removeCancelListener) removeCancelListener()
@@ -221,7 +239,7 @@ watch(
     enter-active-class="transition duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]"
     enter-from-class="opacity-0 scale-95"
     enter-to-class="opacity-100 scale-100"
-    leave-active-class="transition duration-150 ease-out"
+    leave-active-class="transition duration-200 ease-out"
     leave-from-class="opacity-100 scale-100"
     leave-to-class="opacity-0 scale-95"
   >
@@ -280,7 +298,7 @@ watch(
   transform-origin: center center;
   will-change: transform;
   filter: drop-shadow(0 2px 8px rgba(0, 153, 255, 0.35));
-  animation: elms-ring-spin 0.8s linear infinite;
+  animation: elms-ring-spin 1.15s linear infinite;
 }
 
 @keyframes elms-ring-spin {

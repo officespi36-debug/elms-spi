@@ -130,7 +130,7 @@ createInertiaApp({
           setTimeout(() => {
             try { preloader.remove() } catch (e) { }
           }, 250)
-        }, 100)
+        }, 400)
       }
     }
   },

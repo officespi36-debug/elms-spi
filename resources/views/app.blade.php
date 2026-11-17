@@ -250,7 +250,7 @@
         .init-ring-svg {
             transform-origin: center center;
             will-change: transform;
-            animation: initRingSpin 0.85s linear infinite;
+            animation: initRingSpin 1.15s linear infinite;
         }
         @keyframes initRingSpin {
             to {
