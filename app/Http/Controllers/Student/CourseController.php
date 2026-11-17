@@ -67,10 +67,10 @@ class CourseController extends Controller
             : (in_array($savedView, ['grid', 'list'], true) ? $savedView : 'grid');
 
         // 2 & 3. Fetch + compute enrolled courses with 60s user-scoped cache (0 N+1 queries)
-        $cachedItems = Cache::remember("student_enrolled_{$user->id}_v2", 60, function () use ($user, $progressService) {
+        $cachedItems = Cache::remember("student_enrolled_{$user->id}_v3", 60, function () use ($user, $progressService) {
             $withRelations = [
                 'course.teacher:id,name,name_kh,email,avatar,role',
-                'course.major:id,name',
+                'course.major:id,name,name_kh',
                 'course.modules.lessons:id,module_id,course_id,title,order,duration_seconds',
                 'course.lessons:id,course_id,title,order,duration_seconds',
             ];
@@ -159,6 +159,7 @@ class CourseController extends Controller
                     'title'              => $c->title,
                     'thumbnail'          => $c->thumbnail ?: null,
                     'category'           => $c->major?->name ?: 'Academic Studies',
+                    'categoryKh'         => $c->major?->name_kh ?: ($c->major?->name ?: 'ការសិក្សាទូទៅ'),
                     'status'             => $item['state'],
                     'statusLabel'        => $item['state_label'],
                     'progress'           => $item['percent'],

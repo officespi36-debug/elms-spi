@@ -3,6 +3,9 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
 import StudentLayout from '@/Layouts/StudentLayout.vue'
 import { isCourseCachedOffline, saveCourseForOffline, getAllOfflineCourses } from '@/offline/sync'
+import { useLanguage } from '@/Services/i18n'
+
+const { t, currentLang } = useLanguage()
 
 interface EnrolledCourseItem {
   id: number
@@ -19,6 +22,7 @@ interface EnrolledCourseItem {
   title: string
   thumbnail?: string | null
   category: string
+  categoryKh?: string
   status: 'in_progress' | 'not_started' | 'completed' | 'coming_soon' | 'no_content'
   statusLabel: string
   progress: number
@@ -131,6 +135,49 @@ const availableCategories = computed(() => {
   }
   const set = new Set(courses.value.map(c => c.category).filter(Boolean))
   return Array.from(set)
+})
+
+const categoryKhMap = computed<Record<string, string>>(() => {
+  const map: Record<string, string> = {}
+  for (const c of courses.value) {
+    if (c.category && c.categoryKh) {
+      map[c.category] = c.categoryKh
+    }
+  }
+  return map
+})
+
+const localizedCategory = (category: string) => {
+  if (currentLang.value === 'km') {
+    return categoryKhMap.value[category] || (category === 'Academic Studies' ? 'ការសិក្សាទូទៅ' : category)
+  }
+  return category
+}
+
+const localizedCourseCategory = (course: EnrolledCourseItem) => {
+  if (currentLang.value === 'km') {
+    return course.categoryKh || localizedCategory(course.category)
+  }
+  return course.category
+}
+
+const localizedStatusLabel = (course: EnrolledCourseItem) => {
+  if (course.status === 'coming_soon' || course.status === 'no_content') return t('នឹងមកដល់ឆាប់ៗ', 'Coming soon')
+  if (course.status === 'not_started') return t('មិនទាន់ចាប់ផ្តើម', 'Not Started')
+  if (course.status === 'in_progress') return t('កំពុងសិក្សា', 'In Progress')
+  if (course.status === 'completed') return t('បានបញ្ចប់', 'Completed')
+  return course.statusLabel
+}
+
+const localizedLastAccessed = (val?: string) => {
+  if (!val || val === 'Not started yet') {
+    return t('មិនទាន់ចាប់ផ្តើមនៅឡើយ', 'Not started yet')
+  }
+  return val
+}
+
+const hasActiveFilters = computed(() => {
+  return activeTab.value !== 'all' || selectedCategory.value !== 'all' || searchQuery.value.trim().length > 0
 })
 
 const triggerServerFilter = () => {
@@ -291,26 +338,35 @@ const navigateToCourseOverview = (course: EnrolledCourseItem) => {
 const formatEnrollmentMeta = (course: any) => {
   const source = course.source
   const enrolledBy = course.enrolled_by
-  const relative = course.enrolled_relative || 'Recently'
+  const relative = course.enrolled_relative || t('ថ្មីៗនេះ', 'Recently')
   const date = course.enrolledDate || relative
 
   if (source === 'teacher' || source === 'admin') {
     if (enrolledBy?.name) {
-      return `Added by ${enrolledBy.name} · ${relative}`
+      return currentLang.value === 'km'
+        ? `បញ្ចូលដោយ ${enrolledBy.name} · ${relative}`
+        : `Added by ${enrolledBy.name} · ${relative}`
     }
-    return `Added by ${source === 'teacher' ? 'Instructor' : 'Admin'} · ${relative}`
+    const actorRole = source === 'teacher' ? t('គ្រូបង្រៀន', 'Instructor') : t('អ្នកគ្រប់គ្រង', 'Admin')
+    return currentLang.value === 'km'
+      ? `បញ្ចូលដោយ ${actorRole} · ${relative}`
+      : `Added by ${actorRole} · ${relative}`
   }
 
   if (source === 'self') {
-    return `You enrolled · ${relative}`
+    return currentLang.value === 'km'
+      ? `អ្នកបានចុះឈ្មោះ · ${relative}`
+      : `You enrolled · ${relative}`
   }
 
   if (source === 'payment') {
-    return 'Enrolled after payment'
+    return t('បានចុះឈ្មោះក្រោយការបង់ប្រាក់', 'Enrolled after payment')
   }
 
   // Legacy or manual enrollment
-  return `Enrolled · ${date}`
+  return currentLang.value === 'km'
+    ? `បានចុះឈ្មោះ · ${date}`
+    : `Enrolled · ${date}`
 }
 
 const handleGlobalKeyDown = (e: KeyboardEvent) => {
@@ -340,23 +396,23 @@ onUnmounted(() => {
 
 <template>
   <StudentLayout
-    title="Enrolled Courses"
+    :title="t('វគ្គសិក្សាដែលបានចុះឈ្មោះ', 'Enrolled Courses')"
     :breadcrumbs="[
-      { label: 'Dashboard', href: '/student/dashboard' },
-      { label: 'My Courses', href: '/student/my-courses/enrolled' },
-      { label: 'Enrolled Courses' }
+      { label: t('ផ្ទាំងគ្រប់គ្រង', 'Dashboard'), href: '/student/dashboard' },
+      { label: t('វគ្គសិក្សារបស់ខ្ញុំ', 'My Courses'), href: '/student/my-courses/enrolled' },
+      { label: t('វគ្គសិក្សាដែលបានចុះឈ្មោះ', 'Enrolled Courses') }
     ]"
   >
-    <div class="space-y-6 pb-16 font-['Inter',sans-serif]">
+    <div class="space-y-6 pb-24 font-['Inter','Kantumruy_Pro',sans-serif]">
       
       <!-- 1. PAGE HEADER (Title, Subtitle & Search Bar) -->
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-            Enrolled Courses
+            {{ t('វគ្គសិក្សាដែលបានចុះឈ្មោះ', 'Enrolled Courses') }}
           </h1>
           <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 font-['Kantumruy_Pro',sans-serif]">
-            All courses you have successfully enrolled in.
+            {{ t('វគ្គសិក្សាទាំងអស់ដែលអ្នកបានចុះឈ្មោះចូលរៀនដោយជោគជ័យ។', 'All courses you have successfully enrolled in.') }}
           </p>
         </div>
 
@@ -373,7 +429,7 @@ onUnmounted(() => {
               v-model="searchQuery"
               @input="onSearchInput"
               type="text"
-              placeholder="Search courses..."
+              :placeholder="t('ស្វែងរកវគ្គសិក្សា...', 'Search courses...')"
               class="w-full pl-10 pr-12 py-2 rounded-xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 focus:border-purple-500 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500/50 shadow-xs dark:shadow-inner transition-all"
             />
             <div class="absolute right-2.5 flex items-center gap-1">
@@ -382,11 +438,11 @@ onUnmounted(() => {
                 @click="searchQuery = ''; triggerServerFilter()"
                 type="button"
                 class="text-slate-400 hover:text-slate-600 dark:hover:text-white p-0.5 text-xs cursor-pointer"
-                title="Clear Search"
+                :title="t('លុបការស្វែងរក', 'Clear Search')"
               >
                 ✕
               </button>
-              <kbd class="hidden sm:inline-flex items-center justify-center w-5 h-5 text-[11px] font-mono font-bold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded shadow-xs" title="Press '/' to search">/</kbd>
+              <kbd class="hidden sm:inline-flex items-center justify-center w-5 h-5 text-[11px] font-mono font-bold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded shadow-xs" :title="t('ចុច \'/\' ដើម្បីស្វែងរក', 'Press \'/\' to search')">/</kbd>
             </div>
           </div>
         </div>
@@ -407,8 +463,8 @@ onUnmounted(() => {
               'px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-2 transition-all cursor-pointer shadow-xs shrink-0'
             ]"
           >
-            <span>All Courses</span>
-            <span :class="[activeTab === 'all' ? 'bg-purple-700/80 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300', 'px-1.5 py-0.5 rounded-md text-[10px] font-bold']">
+            <span>{{ t('វគ្គសិក្សាទាំងអស់', 'All Courses') }}</span>
+            <span :class="[activeTab === 'all' ? 'bg-purple-700/80 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300', 'px-1.5 py-0.5 rounded-md text-[10px] font-bold tabular-nums']">
               {{ counts.all }}
             </span>
           </button>
@@ -423,8 +479,8 @@ onUnmounted(() => {
               'px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-2 transition-all cursor-pointer shadow-xs shrink-0'
             ]"
           >
-            <span>In Progress</span>
-            <span :class="[activeTab === 'in_progress' ? 'bg-purple-700/80 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300', 'px-1.5 py-0.5 rounded-md text-[10px] font-bold']">
+            <span>{{ t('កំពុងសិក្សា', 'In Progress') }}</span>
+            <span :class="[activeTab === 'in_progress' ? 'bg-purple-700/80 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300', 'px-1.5 py-0.5 rounded-md text-[10px] font-bold tabular-nums']">
               {{ counts.in_progress }}
             </span>
           </button>
@@ -439,8 +495,8 @@ onUnmounted(() => {
               'px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-2 transition-all cursor-pointer shadow-xs shrink-0'
             ]"
           >
-            <span>Not Started</span>
-            <span :class="[activeTab === 'not_started' ? 'bg-purple-700/80 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300', 'px-1.5 py-0.5 rounded-md text-[10px] font-bold']">
+            <span>{{ t('មិនទាន់ចាប់ផ្តើម', 'Not Started') }}</span>
+            <span :class="[activeTab === 'not_started' ? 'bg-purple-700/80 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300', 'px-1.5 py-0.5 rounded-md text-[10px] font-bold tabular-nums']">
               {{ counts.not_started }}
             </span>
           </button>
@@ -455,7 +511,7 @@ onUnmounted(() => {
               'px-3.5 py-1.5 rounded-full text-xs flex items-center gap-2 transition-all cursor-pointer shadow-xs shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500'
             ]"
           >
-            <span>Completed</span>
+            <span>{{ t('បានបញ្ចប់', 'Completed') }}</span>
             <span :class="[activeTab === 'completed' ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300', 'px-1.5 py-0.5 rounded-full text-[10px] font-bold tabular-nums']">
               {{ counts.completed }}
             </span>
@@ -472,7 +528,7 @@ onUnmounted(() => {
               'px-3.5 py-1.5 rounded-full text-xs flex items-center gap-2 transition-all cursor-pointer shadow-xs shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500'
             ]"
           >
-            <span>Coming Soon</span>
+            <span>{{ t('នឹងមកដល់ឆាប់ៗ', 'Coming Soon') }}</span>
             <span :class="[activeTab === 'coming_soon' ? 'bg-white/20 text-white' : 'bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200', 'px-1.5 py-0.5 rounded-full text-[10px] font-bold tabular-nums']">
               {{ counts.coming_soon }}
             </span>
@@ -489,9 +545,9 @@ onUnmounted(() => {
               @change="onCategoryChange"
               class="appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300 text-xs rounded-xl pl-3 pr-8 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-500/50 cursor-pointer shadow-xs"
             >
-              <option value="all">All Categories</option>
+              <option value="all">{{ t('គ្រប់ប្រភេទ', 'All Categories') }}</option>
               <option v-for="cat in availableCategories" :key="cat" :value="cat">
-                {{ cat }}
+                {{ localizedCategory(cat) }}
               </option>
             </select>
             <div class="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 dark:text-slate-500 text-xs">
@@ -506,10 +562,10 @@ onUnmounted(() => {
               @change="onSortChange"
               class="appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300 text-xs rounded-xl pl-3 pr-8 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-500/50 cursor-pointer shadow-xs"
             >
-              <option value="newest">Sort by: Newest</option>
-              <option value="recent">Recently Accessed</option>
-              <option value="progress">Highest Progress</option>
-              <option value="title">Course Name (A-Z)</option>
+              <option value="newest">{{ t('តម្រៀបតាម៖ ថ្មីបំផុត', 'Sort by: Newest') }}</option>
+              <option value="recent">{{ t('ចូលមើលថ្មីៗ', 'Recently Accessed') }}</option>
+              <option value="progress">{{ t('វឌ្ឍនភាពខ្ពស់បំផុត', 'Highest Progress') }}</option>
+              <option value="title">{{ t('ឈ្មោះវគ្គសិក្សា (A-Z)', 'Course Name (A-Z)') }}</option>
             </select>
             <div class="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 dark:text-slate-500 text-xs">
               ▼
@@ -525,7 +581,7 @@ onUnmounted(() => {
                 viewMode === 'grid' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200',
                 'p-1.5 rounded-lg text-xs transition-colors cursor-pointer'
               ]"
-              title="Grid View"
+              :title="t('ទម្រង់ក្រឡា', 'Grid View')"
             >
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -538,7 +594,7 @@ onUnmounted(() => {
                 viewMode === 'list' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200',
                 'p-1.5 rounded-lg text-xs transition-colors cursor-pointer'
               ]"
-              title="List View"
+              :title="t('ទម្រង់បញ្ជី', 'List View')"
             >
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
@@ -676,7 +732,7 @@ onUnmounted(() => {
                   class="px-2.5 py-1 rounded-full text-xs font-black bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-md shadow-pink-600/30 flex items-center gap-1.5 animate-pulse"
                 >
                   <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
-                  NEW
+                  {{ t('ថ្មី', 'NEW') }}
                 </span>
 
                 <!-- Coming Soon Badge (Solid high-contrast Amber) -->
@@ -684,7 +740,7 @@ onUnmounted(() => {
                   v-if="course.status === 'coming_soon' || course.status === 'no_content'"
                   class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300 dark:bg-amber-900/95 dark:text-amber-200 dark:border-amber-700 shadow-md"
                 >
-                  Coming soon
+                  {{ t('នឹងមកដល់ឆាប់ៗ', 'Coming soon') }}
                 </span>
 
                 <!-- Not Started Badge (Slate / Gray) -->
@@ -692,7 +748,7 @@ onUnmounted(() => {
                   v-else-if="course.status === 'not_started'"
                   class="px-3 py-1 rounded-full text-xs font-bold bg-slate-800/90 text-slate-200 border border-slate-700/60 shadow-md backdrop-blur-md"
                 >
-                  Not Started
+                  {{ t('មិនទាន់ចាប់ផ្តើម', 'Not Started') }}
                 </span>
 
                 <!-- In Progress Badge (Purple) -->
@@ -700,7 +756,7 @@ onUnmounted(() => {
                   v-else-if="course.status === 'in_progress'"
                   class="px-3 py-1 rounded-full text-xs font-bold bg-purple-600/95 text-white shadow-md shadow-purple-600/30 backdrop-blur-md"
                 >
-                  In Progress
+                  {{ t('កំពុងសិក្សា', 'In Progress') }}
                 </span>
 
                 <!-- Completed Badge (Emerald Green) -->
@@ -708,7 +764,7 @@ onUnmounted(() => {
                   v-else-if="course.status === 'completed'"
                   class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-600/95 text-white shadow-md shadow-emerald-600/30 backdrop-blur-md"
                 >
-                  Completed
+                  {{ t('បានបញ្ចប់', 'Completed') }}
                 </span>
               </div>
 
@@ -718,7 +774,7 @@ onUnmounted(() => {
                   @click="toggleDropdown(course.id, $event)"
                   type="button"
                   class="p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-700/50 backdrop-blur-md transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center"
-                  title="Course Options"
+                  :title="t('ជម្រើសវគ្គសិក្សា', 'Course Options')"
                   :aria-expanded="activeDropdownId === course.id"
                 >
                   <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -736,7 +792,7 @@ onUnmounted(() => {
                     class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-600/20 hover:text-purple-600 dark:hover:text-purple-300 font-medium transition-colors"
                   >
                     <span>ℹ️</span>
-                    <span>Course Details</span>
+                    <span>{{ t('ព័ត៌មានលម្អិតវគ្គសិក្សា', 'Course Details') }}</span>
                   </Link>
 
                   <Link
@@ -745,7 +801,7 @@ onUnmounted(() => {
                     class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-600/20 hover:text-purple-600 dark:hover:text-purple-300 font-medium transition-colors"
                   >
                     <span>▶️</span>
-                    <span>{{ course.status === 'not_started' ? 'Start Learning' : (course.status === 'completed' ? 'Review Course' : 'Continue Learning') }}</span>
+                    <span>{{ course.status === 'not_started' ? t('ចាប់ផ្តើមរៀន', 'Start Learning') : (course.status === 'completed' ? t('ពិនិត្យវគ្គសិក្សាឡើងវិញ', 'Review Course') : t('បន្តការសិក្សា', 'Continue Learning')) }}</span>
                   </Link>
 
                   <Link
@@ -754,7 +810,7 @@ onUnmounted(() => {
                     class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-600/20 font-medium transition-colors"
                   >
                     <span>🏆</span>
-                    <span>Download Certificate</span>
+                    <span>{{ t('ទាញយកវិញ្ញាបនបត្រ', 'Download Certificate') }}</span>
                   </Link>
 
                   <button
@@ -764,7 +820,7 @@ onUnmounted(() => {
                   >
                     <span class="flex items-center gap-2.5">
                       <span>🔗</span>
-                      <span>{{ copyLinkSuccessId === course.id ? 'Copied to Clipboard!' : 'Copy Course Link' }}</span>
+                      <span>{{ copyLinkSuccessId === course.id ? t('បានចម្លងតំណរួចរាល់!', 'Copied to Clipboard!') : t('ចម្លងតំណវគ្គសិក្សា', 'Copy Course Link') }}</span>
                     </span>
                     <span v-if="copyLinkSuccessId === course.id" class="text-purple-600 dark:text-purple-400 font-bold">✓</span>
                   </button>
@@ -777,7 +833,7 @@ onUnmounted(() => {
                   >
                     <span class="flex items-center gap-2.5">
                       <span>{{ cachedCourseIds.includes(course.id) ? '✅' : '📥' }}</span>
-                      <span>{{ savingOfflineId === course.id ? 'Saving...' : (cachedCourseIds.includes(course.id) ? 'Saved Offline' : 'Save for Offline') }}</span>
+                      <span>{{ savingOfflineId === course.id ? t('កំពុងរក្សាទុក...', 'Saving...') : (cachedCourseIds.includes(course.id) ? t('បានរក្សាទុកសម្រាប់ Offline', 'Saved Offline') : t('រក្សាទុកសម្រាប់ Offline', 'Save for Offline')) }}</span>
                     </span>
                     <span v-if="cachedCourseIds.includes(course.id)" class="text-emerald-600 dark:text-emerald-400 font-bold">✓</span>
                   </button>
@@ -828,7 +884,7 @@ onUnmounted(() => {
                 <div class="space-y-1.5 pt-1">
                   <div class="flex items-center justify-between text-xs font-bold">
                     <span class="text-slate-500 dark:text-slate-400 text-[11px]">
-                      {{ course.status === 'completed' ? 'Course Completed' : (course.status === 'not_started' ? 'Not Started' : 'Progress') }}
+                      {{ course.status === 'completed' ? t('បានបញ្ចប់វគ្គសិក្សា', 'Course Completed') : (course.status === 'not_started' ? t('មិនទាន់ចាប់ផ្តើម', 'Not Started') : t('វឌ្ឍនភាពសិក្សា', 'Progress')) }}
                     </span>
                     <span
                       :class="[
@@ -857,33 +913,33 @@ onUnmounted(() => {
                 </div>
 
                 <!-- Metadata Row (Chapter, Lessons, Last Activity) -->
-                <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800/60 mt-2 font-['Kantumruy_Pro',sans-serif]">
+                <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800/60 mt-2 font-['Kantumruy_Pro',sans-serif] tabular-nums">
                   <template v-if="course.totalLessons === 0">
                     <div class="flex items-center gap-1.5">
                       <span>📖</span>
-                      <span>Course Overview</span>
+                      <span>{{ t('ទិដ្ឋភាពទូទៅវគ្គសិក្សា', 'Course Overview') }}</span>
                     </div>
                     <div class="flex items-center gap-1.5">
                       <span>📑</span>
-                      <span>0 Lessons</span>
+                      <span>{{ t('0 មេរៀន', '0 Lessons') }}</span>
                     </div>
                     <div class="flex items-center gap-1.5">
                       <span>⏱</span>
-                      <span>Not started yet</span>
+                      <span>{{ t('មិនទាន់ចាប់ផ្តើមនៅឡើយ', 'Not started yet') }}</span>
                     </div>
                   </template>
                   <template v-else>
                     <div class="flex items-center gap-1.5">
                       <span>📖</span>
-                      <span>Module {{ course.currentModuleIndex || 1 }} of {{ course.totalChapters }}</span>
+                      <span>{{ currentLang === 'km' ? `ម៉ូឌុលទី ${course.currentModuleIndex || 1} នៃ ${course.totalChapters}` : `Module ${course.currentModuleIndex || 1} of ${course.totalChapters}` }}</span>
                     </div>
                     <div class="flex items-center gap-1.5">
                       <span>📑</span>
-                      <span>{{ course.completedLessons }} / {{ course.totalLessons }} Lessons</span>
+                      <span>{{ course.completedLessons }} / {{ course.totalLessons }} {{ t('មេរៀន', 'Lessons') }}</span>
                     </div>
                     <div class="flex items-center gap-1.5">
                       <span>⏱</span>
-                      <span>{{ course.lastAccessed || 'Not started yet' }}</span>
+                      <span>{{ localizedLastAccessed(course.lastAccessed) }}</span>
                     </div>
                   </template>
                 </div>
@@ -899,7 +955,7 @@ onUnmounted(() => {
                   class="col-span-2 py-2.5 px-3 rounded-xl bg-white dark:bg-[#1e1f20] hover:bg-slate-50 dark:hover:bg-[#282a2c] text-slate-700 dark:text-slate-200 font-semibold text-xs border border-[#dfe3e7] dark:border-[#2d2f31] flex items-center justify-center gap-1.5 transition-all text-center cursor-pointer min-h-[48px] sm:min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                 >
                   <span>ⓘ</span>
-                  <span>Course Details</span>
+                  <span>{{ t('ព័ត៌មានលម្អិតវគ្គសិក្សា', 'Course Details') }}</span>
                 </Link>
 
                 <Link
@@ -908,7 +964,7 @@ onUnmounted(() => {
                   class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:opacity-95 text-white font-bold text-xs shadow-md shadow-purple-600/20 flex items-center justify-center gap-1.5 transition-all text-center cursor-pointer min-h-[48px] sm:min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                 >
                   <span>▶</span>
-                  <span>Continue Learning</span>
+                  <span>{{ t('បន្តការសិក្សា', 'Continue Learning') }}</span>
                 </Link>
 
                 <Link
@@ -917,7 +973,7 @@ onUnmounted(() => {
                   class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:opacity-95 text-white font-bold text-xs shadow-md shadow-purple-600/20 flex items-center justify-center gap-1.5 transition-all text-center cursor-pointer min-h-[48px] sm:min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                 >
                   <span>▶</span>
-                  <span>Start Learning</span>
+                  <span>{{ t('ចាប់ផ្តើមរៀន', 'Start Learning') }}</span>
                 </Link>
 
                 <Link
@@ -926,7 +982,7 @@ onUnmounted(() => {
                   class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:opacity-95 text-white font-bold text-xs shadow-md shadow-purple-600/20 flex items-center justify-center gap-1.5 transition-all text-center cursor-pointer min-h-[48px] sm:min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                 >
                   <span>👁</span>
-                  <span>Review Course</span>
+                  <span>{{ t('ពិនិត្យវគ្គសិក្សាឡើងវិញ', 'Review Course') }}</span>
                 </Link>
 
                 <!-- Secondary Button (Course Details or Certificate) -->
@@ -937,16 +993,16 @@ onUnmounted(() => {
                     class="py-2.5 px-3 rounded-xl bg-emerald-500/10 dark:bg-emerald-600/20 hover:bg-emerald-500/20 dark:hover:bg-emerald-600/30 text-emerald-700 dark:text-emerald-300 font-bold text-xs border border-emerald-500/30 dark:border-emerald-500/40 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all text-center cursor-pointer min-h-[44px]"
                   >
                     <span>🏆</span>
-                    <span>Certificate</span>
+                    <span>{{ t('វិញ្ញាបនបត្រ', 'Certificate') }}</span>
                   </Link>
 
                   <Link
                     v-else
                     :href="course.overviewHref"
-                    class="py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:white font-semibold text-xs border border-slate-200 dark:border-slate-800 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all text-center cursor-pointer min-h-[44px]"
+                    class="py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-semibold text-xs border border-slate-200 dark:border-slate-800 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95 transition-all text-center cursor-pointer min-h-[44px]"
                   >
                     <span>ⓘ</span>
-                    <span>Course Details</span>
+                    <span>{{ t('ព័ត៌មានលម្អិតវគ្គសិក្សា', 'Course Details') }}</span>
                   </Link>
                 </template>
 
@@ -984,7 +1040,7 @@ onUnmounted(() => {
                     v-if="course.is_new"
                     class="px-2 py-0.5 rounded-full text-[10px] font-black bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-xs animate-pulse"
                   >
-                    NEW
+                    {{ t('ថ្មី', 'NEW') }}
                   </span>
                   <span
                     :class="[
@@ -994,23 +1050,23 @@ onUnmounted(() => {
                       'px-2 py-0.5 rounded-full text-[10px] font-bold border'
                     ]"
                   >
-                    {{ course.statusLabel }}
+                    {{ localizedStatusLabel(course) }}
                   </span>
-                  <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">• {{ course.category }}</span>
+                  <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">• {{ localizedCourseCategory(course) }}</span>
                 </div>
 
                 <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors truncate">
                   {{ course.title }}
                 </h3>
 
-                <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400 font-['Kantumruy_Pro',sans-serif]">
-                  <span>Instructor: <Link :href="course.overviewHref" @click.stop class="hover:text-purple-600 dark:hover:text-purple-400 hover:underline font-medium text-slate-700 dark:text-slate-200">{{ course.teacher.name }}</Link></span>
+                <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400 font-['Kantumruy_Pro',sans-serif] tabular-nums">
+                  <span>{{ t('គ្រូបង្រៀន៖', 'Instructor:') }} <Link :href="course.overviewHref" @click.stop class="hover:text-purple-600 dark:hover:text-purple-400 hover:underline font-medium text-slate-700 dark:text-slate-200">{{ course.teacher.name }}</Link></span>
                   <span class="text-purple-600 dark:text-purple-400 font-medium">
                     • {{ formatEnrollmentMeta(course) }}
                   </span>
                   <span>•</span>
-                  <span v-if="course.totalLessons > 0">{{ course.completedLessons }} / {{ course.totalLessons }} Lessons</span>
-                  <span v-else>No lessons yet</span>
+                  <span v-if="course.totalLessons > 0">{{ course.completedLessons }} / {{ course.totalLessons }} {{ t('មេរៀន', 'Lessons') }}</span>
+                  <span v-else>{{ t('មិនទាន់មានមេរៀននៅឡើយទេ', 'No lessons yet') }}</span>
                 </div>
               </div>
             </div>
@@ -1018,8 +1074,8 @@ onUnmounted(() => {
             <!-- Right Progress & Actions -->
             <div class="flex flex-col sm:flex-row sm:items-center gap-4 shrink-0" @click.stop>
               <div class="w-36 space-y-1">
-                <div class="flex items-center justify-between text-xs font-bold">
-                  <span class="text-slate-500 dark:text-slate-400 text-[10px]">Progress</span>
+                <div class="flex items-center justify-between text-xs font-bold tabular-nums">
+                  <span class="text-slate-500 dark:text-slate-400 text-[10px]">{{ t('វឌ្ឍនភាពសិក្សា', 'Progress') }}</span>
                   <span :class="course.status === 'completed' ? 'text-emerald-600 dark:text-emerald-400' : (course.status === 'in_progress' ? 'text-purple-600 dark:text-purple-400' : 'text-slate-500 dark:text-slate-400')">
                     {{ course.progress }}%
                   </span>
@@ -1039,34 +1095,34 @@ onUnmounted(() => {
                   :href="course.overviewHref"
                   class="px-4 py-2 rounded-xl bg-white dark:bg-[#1e1f20] hover:bg-slate-50 dark:hover:bg-[#282a2c] text-slate-700 dark:text-slate-200 font-semibold text-xs border border-[#dfe3e7] dark:border-[#2d2f31] cursor-pointer min-h-[38px] flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                 >
-                  Details
+                  {{ t('ព័ត៌មានលម្អិត', 'Details') }}
                 </Link>
                 <Link
                   v-else-if="course.status === 'in_progress'"
                   :href="course.learningHref"
                   class="px-4 py-2 rounded-xl bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:opacity-95 text-white font-bold text-xs shadow-md shadow-purple-600/20 cursor-pointer min-h-[38px] flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                 >
-                  Continue
+                  {{ t('បន្តរៀន', 'Continue') }}
                 </Link>
                 <Link
                   v-else-if="course.status === 'not_started'"
                   :href="course.learningHref"
                   class="px-4 py-2 rounded-xl bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:opacity-95 text-white font-bold text-xs shadow-md shadow-purple-600/20 cursor-pointer min-h-[38px] flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                 >
-                  Start
+                  {{ t('ចាប់ផ្តើម', 'Start') }}
                 </Link>
                 <Link
                   v-else-if="course.status === 'completed'"
                   :href="course.learningHref"
                   class="px-4 py-2 rounded-xl bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:opacity-95 text-white font-bold text-xs shadow-md shadow-purple-600/20 cursor-pointer min-h-[38px] flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                 >
-                  Review
+                  {{ t('ពិនិត្យឡើងវិញ', 'Review') }}
                 </Link>
 
                 <Link
                   :href="course.overviewHref"
-                  :aria-label="`Course details for ${course.title}`"
-                  title="Course Details"
+                  :aria-label="currentLang === 'km' ? `ព័ត៌មានលម្អិតសម្រាប់ ${course.title}` : `Course details for ${course.title}`"
+                  :title="t('ព័ត៌មានលម្អិតវគ្គសិក្សា', 'Course Details')"
                   class="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 cursor-pointer min-w-[38px] min-h-[38px] flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                 >
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -1079,9 +1135,9 @@ onUnmounted(() => {
         </div>
 
         <!-- 4. PAGINATION FOOTER -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-slate-200 dark:border-slate-800/80 text-xs text-slate-500 dark:text-slate-400">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-slate-200 dark:border-slate-800/80 text-xs text-slate-500 dark:text-slate-400 tabular-nums">
           <div>
-            Showing {{ courses.length }} of {{ counts.all }} courses
+            {{ currentLang === 'km' ? `កំពុងបង្ហាញ ${courses.length} នៃ ${counts.all} វគ្គសិក្សា` : `Showing ${courses.length} of ${counts.all} courses` }}
           </div>
 
           <div class="flex items-center gap-1.5 self-center sm:self-auto">
@@ -1118,19 +1174,51 @@ onUnmounted(() => {
         <div class="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800/60 flex items-center justify-center mx-auto text-2xl">
           🔍
         </div>
-        <div class="space-y-1">
-          <h3 class="text-base font-bold text-slate-900 dark:text-white">No courses match your criteria</h3>
-          <p class="text-xs text-slate-600 dark:text-slate-400 max-w-sm mx-auto font-['Kantumruy_Pro',sans-serif]">
-            Try adjusting your search query or filter criteria to find the enrolled course you are looking for.
-          </p>
-        </div>
-        <button
-          @click="resetFilters"
-          type="button"
-          class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/20 transition-all cursor-pointer"
-        >
-          Reset All Filters
-        </button>
+
+        <template v-if="counts.all === 0">
+          <div class="space-y-1">
+            <h3 class="text-base font-bold text-slate-900 dark:text-white">
+              {{ t('មិនទាន់មានវគ្គសិក្សាដែលបានចុះឈ្មោះនៅឡើយទេ', 'No enrolled courses yet') }}
+            </h3>
+            <p class="text-xs text-slate-600 dark:text-slate-400 max-w-sm mx-auto font-['Kantumruy_Pro',sans-serif]">
+              {{ t('សូមស្វែងរក និងចុះឈ្មោះវគ្គសិក្សាដែលអ្នកចាប់អារម្មណ៍ដើម្បីចាប់ផ្តើមរៀន។', 'Browse our catalog and enroll in courses to start your learning journey.') }}
+            </p>
+          </div>
+          <div class="flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href="/student/browse"
+              class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/20 transition-all cursor-pointer"
+            >
+              {{ t('ស្វែងរកវគ្គសិក្សា', 'Browse Courses') }}
+            </Link>
+            <button
+              v-if="hasActiveFilters"
+              @click="resetFilters"
+              type="button"
+              class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition-all cursor-pointer"
+            >
+              {{ t('កំណត់តម្រងឡើងវិញ', 'Reset All Filters') }}
+            </button>
+          </div>
+        </template>
+
+        <template v-else>
+          <div class="space-y-1">
+            <h3 class="text-base font-bold text-slate-900 dark:text-white">
+              {{ t('រកមិនឃើញវគ្គសិក្សាដែលត្រូវតាមលក្ខខណ្ឌទេ', 'No courses match your criteria') }}
+            </h3>
+            <p class="text-xs text-slate-600 dark:text-slate-400 max-w-sm mx-auto font-['Kantumruy_Pro',sans-serif]">
+              {{ t('សូមសាកល្បងកែប្រែពាក្យស្វែងរក ឬលក្ខខណ្ឌតម្រងដើម្បីស្វែងរកវគ្គសិក្សារបស់អ្នក។', 'Try adjusting your search query or filter criteria to find the enrolled course you are looking for.') }}
+            </p>
+          </div>
+          <button
+            @click="resetFilters"
+            type="button"
+            class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/20 transition-all cursor-pointer"
+          >
+            {{ t('កំណត់តម្រងឡើងវិញ', 'Reset All Filters') }}
+          </button>
+        </template>
       </div>
 
     </div>
