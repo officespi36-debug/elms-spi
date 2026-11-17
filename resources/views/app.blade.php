@@ -14,7 +14,7 @@
             try {
                 var storedTheme = localStorage.getItem('theme');
                 var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-                if (storedTheme === 'dark' || (!storedTheme && prefersDark) || storedTheme === null) {
+                if (storedTheme === 'dark' || (!storedTheme && prefersDark)) {
                     document.documentElement.classList.add('dark');
                     document.documentElement.style.colorScheme = 'dark';
                     document.documentElement.style.backgroundColor = '#0b132b';
@@ -29,17 +29,11 @@
                 }
             } catch (e) {
                 document.documentElement.classList.add('dark');
+                document.documentElement.style.colorScheme = 'dark';
+                document.documentElement.style.backgroundColor = '#0b132b';
             }
 
-            // Instant PWA Legacy Cache Cleanup & Service Worker Sync
             try {
-                if ('serviceWorker' in navigator) {
-                    navigator.serviceWorker.getRegistrations().then(function(regs) {
-                        for (var i = 0; i < regs.length; i++) {
-                            regs[i].update();
-                        }
-                    });
-                }
                 if ('caches' in window) {
                     caches.keys().then(function(keys) {
                         for (var i = 0; i < keys.length; i++) {
@@ -53,7 +47,7 @@
         })();
     </script>
     <style>
-        /* Instant baseline styling to eliminate White Flash / FOUC on reload */
+        /* Instant baseline styling to eliminate White Flash / FOUC / Layout Shift on reload */
         html {
             background-color: #0b132b;
             color-scheme: dark;
@@ -76,11 +70,76 @@
             padding: 0;
             min-height: 100vh;
             overflow-x: hidden;
-            background-color: #0b132b;
         }
 
-        html:not(.dark) body {
+        #initial-page-preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 999999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            pointer-events: none;
+            user-select: none;
+            overflow: hidden;
+            contain: strict;
+            will-change: opacity;
+            transform: translate3d(0, 0, 0);
+            backface-visibility: hidden;
+            opacity: 1;
+            transition: opacity 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        html.dark #initial-page-preloader {
+            background-color: #0b132b;
+            color: #f8fafc;
+        }
+
+        html:not(.dark) #initial-page-preloader {
             background-color: #f8fafc;
+            color: #0f172a;
+        }
+
+        .init-ring-wrap {
+            width: 68px;
+            height: 68px;
+            flex-shrink: 0;
+            will-change: transform;
+            transform: translate3d(0, 0, 0);
+            backface-visibility: hidden;
+            filter: drop-shadow(0 2px 8px rgba(0, 153, 255, 0.35));
+            animation: initRingSpin 1.15s linear infinite;
+        }
+
+        .init-ring-svg {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        @keyframes initRingSpin {
+            to {
+                transform: translate3d(0, 0, 0) rotate(360deg);
+            }
+        }
+
+        #initial-preloader-text {
+            margin: 0;
+            height: 26px;
+            line-height: 26px;
+            font-family: 'Plus Jakarta Sans', 'Kantumruy Pro', system-ui, -apple-system, sans-serif;
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         [v-cloak] {
@@ -205,66 +264,41 @@
     @inertiaHead
 </head>
 
-<body class="font-sans antialiased bg-[#0b132b] text-slate-100 min-h-screen notranslate" translate="no"
-    style="background-color: #0b132b; color: #f8fafc;">
+<body class="font-sans antialiased min-h-screen notranslate" translate="no">
     
-    <!-- Instant Initial Page Preloader (12-Dot Tapered Spinning Blue Ring + Text) -->
-    <div id="initial-page-preloader"
-        style="position: fixed; inset: 0; z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background-color: #0b132b; transition: opacity 0.35s ease-out; pointer-events: none;">
-        <svg class="init-ring-svg" width="60" height="60" viewBox="0 0 64 64" fill="none" aria-hidden="true">
-            <circle cx="32" cy="9" r="5.2" fill="#0099ff" fill-opacity="1" transform="rotate(0 32 32)" />
-            <circle cx="32" cy="9" r="4.8" fill="#0099ff" fill-opacity="0.96" transform="rotate(30 32 32)" />
-            <circle cx="32" cy="9" r="4.3" fill="#0099ff" fill-opacity="0.92" transform="rotate(60 32 32)" />
-            <circle cx="32" cy="9" r="3.7" fill="#0099ff" fill-opacity="0.88" transform="rotate(90 32 32)" />
-            <circle cx="32" cy="9" r="3.0" fill="#0099ff" fill-opacity="0.84" transform="rotate(120 32 32)" />
-            <circle cx="32" cy="9" r="2.0" fill="#0099ff" fill-opacity="0.78" transform="rotate(150 32 32)" />
-            <circle cx="32" cy="9" r="1.1" fill="#0099ff" fill-opacity="0.72" transform="rotate(180 32 32)" />
-            <circle cx="32" cy="9" r="1.8" fill="#0099ff" fill-opacity="0.78" transform="rotate(210 32 32)" />
-            <circle cx="32" cy="9" r="2.7" fill="#0099ff" fill-opacity="0.84" transform="rotate(240 32 32)" />
-            <circle cx="32" cy="9" r="3.6" fill="#0099ff" fill-opacity="0.88" transform="rotate(270 32 32)" />
-            <circle cx="32" cy="9" r="4.3" fill="#0099ff" fill-opacity="0.94" transform="rotate(300 32 32)" />
-            <circle cx="32" cy="9" r="4.8" fill="#0099ff" fill-opacity="0.98" transform="rotate(330 32 32)" />
-        </svg>
-        <p id="initial-preloader-text" class="init-loading-text" style="margin: 0; font-family: 'Plus Jakarta Sans', 'Kantumruy Pro', system-ui, -apple-system, sans-serif; font-size: 15px; font-weight: 700; color: #f1f5f9; letter-spacing: 0.4px;">
+    <!-- Instant Initial Page Preloader (GPU-Composited 12-Dot Spinning Blue Ring + Text) -->
+    <div id="initial-page-preloader" role="status" aria-live="polite">
+        <div class="init-ring-wrap" aria-hidden="true">
+            <svg class="init-ring-svg" width="68" height="68" viewBox="0 0 64 64" fill="none">
+                <circle cx="32" cy="9" r="5.2" fill="#0099ff" fill-opacity="1" transform="rotate(0 32 32)" />
+                <circle cx="32" cy="9" r="4.8" fill="#0099ff" fill-opacity="0.96" transform="rotate(30 32 32)" />
+                <circle cx="32" cy="9" r="4.3" fill="#0099ff" fill-opacity="0.92" transform="rotate(60 32 32)" />
+                <circle cx="32" cy="9" r="3.7" fill="#0099ff" fill-opacity="0.88" transform="rotate(90 32 32)" />
+                <circle cx="32" cy="9" r="3.0" fill="#0099ff" fill-opacity="0.84" transform="rotate(120 32 32)" />
+                <circle cx="32" cy="9" r="2.0" fill="#0099ff" fill-opacity="0.78" transform="rotate(150 32 32)" />
+                <circle cx="32" cy="9" r="1.1" fill="#0099ff" fill-opacity="0.72" transform="rotate(180 32 32)" />
+                <circle cx="32" cy="9" r="1.8" fill="#0099ff" fill-opacity="0.78" transform="rotate(210 32 32)" />
+                <circle cx="32" cy="9" r="2.7" fill="#0099ff" fill-opacity="0.84" transform="rotate(240 32 32)" />
+                <circle cx="32" cy="9" r="3.6" fill="#0099ff" fill-opacity="0.88" transform="rotate(270 32 32)" />
+                <circle cx="32" cy="9" r="4.3" fill="#0099ff" fill-opacity="0.94" transform="rotate(300 32 32)" />
+                <circle cx="32" cy="9" r="4.8" fill="#0099ff" fill-opacity="0.98" transform="rotate(330 32 32)" />
+            </svg>
+        </div>
+        <p id="initial-preloader-text">
             សូមរង់ចាំ កំពុងដំណើរការ...
         </p>
     </div>
     <script>
         (function() {
             try {
-                var el = document.getElementById('initial-page-preloader');
                 var txt = document.getElementById('initial-preloader-text');
-                var isDark = document.documentElement.classList.contains('dark');
-                if (el && !isDark) {
-                    el.style.backgroundColor = '#f8fafc';
-                }
                 if (txt) {
                     var lang = localStorage.getItem('elms_lang') || document.documentElement.lang || 'km';
                     txt.textContent = (lang === 'en') ? 'Please wait while loading...' : 'សូមរង់ចាំ កំពុងដំណើរការ...';
-                    txt.style.color = isDark ? '#f1f5f9' : '#0f172a';
                 }
             } catch(e) {}
         })();
     </script>
-    <style>
-        .init-ring-svg {
-            transform-origin: center center;
-            will-change: transform;
-            animation: initRingSpin 1.15s linear infinite;
-        }
-        @keyframes initRingSpin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-        .init-loading-text {
-            animation: initTextPulse 1.4s ease-in-out infinite;
-        }
-        @keyframes initTextPulse {
-            0%, 100% { opacity: 0.82; }
-            50% { opacity: 1; }
-        }
-    </style>
 
     @inertia
 </body>

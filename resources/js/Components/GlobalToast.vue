@@ -247,26 +247,27 @@ watch(
       v-if="isGlobalProcessing && !isManualLoading"
       role="status"
       aria-live="polite"
-      class="elms-loader-backdrop fixed inset-0 z-[10000] flex flex-col items-center justify-center gap-3.5 pointer-events-none select-none"
+      class="elms-loader-backdrop fixed z-[10000] flex flex-col items-center justify-center gap-3.5 pointer-events-none select-none overflow-hidden"
     >
-      <svg
-        class="elms-ring-svg w-[68px] h-[68px]"
-        viewBox="0 0 64 64"
-        fill="none"
-        aria-hidden="true"
-      >
-        <circle
-          v-for="dot in ringDots"
-          :key="dot.angle"
-          cx="32"
-          cy="9"
-          :r="dot.r"
-          fill="#0099ff"
-          :fill-opacity="dot.opacity"
-          :transform="`rotate(${dot.angle} 32 32)`"
-        />
-      </svg>
-      <p class="elms-loading-text text-base sm:text-[17px] font-extrabold tracking-wide text-slate-900 dark:text-white flex items-center justify-center">
+      <div class="elms-ring-wrap w-[68px] h-[68px] shrink-0" aria-hidden="true">
+        <svg
+          class="block w-full h-full"
+          viewBox="0 0 64 64"
+          fill="none"
+        >
+          <circle
+            v-for="dot in ringDots"
+            :key="dot.angle"
+            cx="32"
+            cy="9"
+            :r="dot.r"
+            fill="#0099ff"
+            :fill-opacity="dot.opacity"
+            :transform="`rotate(${dot.angle} 32 32)`"
+          />
+        </svg>
+      </div>
+      <p class="elms-loading-text h-[26px] leading-[26px] whitespace-nowrap text-base sm:text-[17px] font-extrabold tracking-wide text-slate-900 dark:text-white flex items-center justify-center">
         <span>{{ loadingText }}</span><span class="elms-ellipsis" aria-hidden="true">...</span>
       </p>
     </div>
@@ -275,6 +276,14 @@ watch(
 
 <style scoped>
 .elms-loader-backdrop {
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  contain: strict;
+  will-change: opacity;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
   background: radial-gradient(
     circle at center,
     rgba(248, 250, 252, 0.96) 0%,
@@ -294,31 +303,27 @@ watch(
   );
 }
 
-.elms-ring-svg {
+.elms-ring-wrap {
   transform-origin: center center;
   will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
   filter: drop-shadow(0 2px 8px rgba(0, 153, 255, 0.35));
   animation: elms-ring-spin 1.15s linear infinite;
 }
 
 @keyframes elms-ring-spin {
   to {
-    transform: rotate(360deg);
+    transform: translate3d(0, 0, 0) rotate(360deg);
   }
 }
 
 .elms-loading-text {
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.95), 0 0 14px rgba(255, 255, 255, 0.95);
-  animation: elms-text-pulse 1.4s ease-in-out infinite;
 }
 
 :global(html.dark) .elms-loading-text {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9), 0 0 14px rgba(11, 19, 43, 0.95);
-}
-
-@keyframes elms-text-pulse {
-  0%, 100% { opacity: 0.82; }
-  50% { opacity: 1; }
 }
 
 .elms-ellipsis {

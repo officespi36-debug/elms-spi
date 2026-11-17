@@ -11,18 +11,18 @@ export function initTheme() {
       isDark.value = true
       document.documentElement.classList.add('dark')
       document.documentElement.style.colorScheme = 'dark'
-      document.documentElement.style.backgroundColor = '#131314'
+      document.documentElement.style.backgroundColor = '#0b132b'
     } else {
       isDark.value = false
       document.documentElement.classList.remove('dark')
       document.documentElement.style.colorScheme = 'light'
-      document.documentElement.style.backgroundColor = '#f8fafd'
+      document.documentElement.style.backgroundColor = '#f8fafc'
     }
   } catch (e) {
     isDark.value = true
     document.documentElement.classList.add('dark')
     document.documentElement.style.colorScheme = 'dark'
-    document.documentElement.style.backgroundColor = '#131314'
+    document.documentElement.style.backgroundColor = '#0b132b'
   }
 }
 
@@ -94,12 +94,12 @@ export function useTheme() {
         if (nextDark) {
           document.documentElement.classList.add('dark')
           document.documentElement.style.colorScheme = 'dark'
-          document.documentElement.style.backgroundColor = '#131314'
+          document.documentElement.style.backgroundColor = '#0b132b'
           localStorage.setItem('theme', 'dark')
         } else {
           document.documentElement.classList.remove('dark')
           document.documentElement.style.colorScheme = 'light'
-          document.documentElement.style.backgroundColor = '#f8fafd'
+          document.documentElement.style.backgroundColor = '#f8fafc'
           localStorage.setItem('theme', 'light')
         }
         window.dispatchEvent(new CustomEvent('theme-changed', { detail: { isDark: nextDark } }))

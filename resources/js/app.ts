@@ -125,12 +125,13 @@ createInertiaApp({
       const preloader = document.getElementById('initial-page-preloader')
       if (preloader) {
         setTimeout(() => {
-          preloader.style.transition = 'opacity 0.25s ease-out'
-          preloader.style.opacity = '0'
-          setTimeout(() => {
-            try { preloader.remove() } catch (e) { }
-          }, 250)
-        }, 400)
+          requestAnimationFrame(() => {
+            preloader.style.opacity = '0'
+            setTimeout(() => {
+              try { preloader.remove() } catch (e) { }
+            }, 260)
+          })
+        }, 300)
       }
     }
   },

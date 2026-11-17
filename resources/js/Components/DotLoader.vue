@@ -49,26 +49,27 @@ const sizeClass = computed(() => {
 
 <template>
   <div class="flex flex-col items-center justify-center gap-3.5 select-none text-center">
-    <svg
-      :class="['blue-ring-svg', sizeClass]"
-      viewBox="0 0 64 64"
-      fill="none"
-      aria-hidden="true"
-    >
-      <circle
-        v-for="dot in ringDots"
-        :key="dot.angle"
-        cx="32"
-        cy="9"
-        :r="dot.r"
-        fill="#0099ff"
-        :fill-opacity="dot.opacity"
-        :transform="`rotate(${dot.angle} 32 32)`"
-      />
-    </svg>
+    <div :class="['blue-ring-wrap shrink-0', sizeClass]" aria-hidden="true">
+      <svg
+        class="block w-full h-full"
+        viewBox="0 0 64 64"
+        fill="none"
+      >
+        <circle
+          v-for="dot in ringDots"
+          :key="dot.angle"
+          cx="32"
+          cy="9"
+          :r="dot.r"
+          fill="#0099ff"
+          :fill-opacity="dot.opacity"
+          :transform="`rotate(${dot.angle} 32 32)`"
+        />
+      </svg>
+    </div>
 
     <div class="space-y-0.5">
-      <p class="blue-loading-text text-base sm:text-[17px] font-extrabold tracking-wide text-slate-900 dark:text-white flex items-center justify-center">
+      <p class="blue-loading-text h-[26px] leading-[26px] whitespace-nowrap text-base sm:text-[17px] font-extrabold tracking-wide text-slate-900 dark:text-white flex items-center justify-center">
         <span>{{ displayText }}</span><span class="blue-ellipsis" aria-hidden="true">...</span>
       </p>
       <p v-if="subtext" class="text-xs text-slate-600 dark:text-slate-300 font-medium">
@@ -79,31 +80,27 @@ const sizeClass = computed(() => {
 </template>
 
 <style scoped>
-.blue-ring-svg {
+.blue-ring-wrap {
   transform-origin: center center;
   will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
   filter: drop-shadow(0 2px 8px rgba(0, 153, 255, 0.35));
   animation: blueRingSpin 1.15s linear infinite;
 }
 
 @keyframes blueRingSpin {
   to {
-    transform: rotate(360deg);
+    transform: translate3d(0, 0, 0) rotate(360deg);
   }
 }
 
 .blue-loading-text {
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.95), 0 0 14px rgba(255, 255, 255, 0.95);
-  animation: blueTextPulse 1.4s ease-in-out infinite;
 }
 
 :global(html.dark) .blue-loading-text {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9), 0 0 14px rgba(11, 19, 43, 0.95);
-}
-
-@keyframes blueTextPulse {
-  0%, 100% { opacity: 0.82; }
-  50% { opacity: 1; }
 }
 
 .blue-ellipsis {

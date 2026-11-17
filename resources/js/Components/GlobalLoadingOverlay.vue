@@ -17,7 +17,7 @@ const { isLoading, loadingText } = useLoading()
     >
       <div
         v-if="isLoading"
-        class="elms-overlay-backdrop fixed inset-0 z-[99999] flex items-center justify-center pointer-events-none select-none p-4"
+        class="elms-overlay-backdrop fixed z-[99999] flex items-center justify-center pointer-events-none select-none overflow-hidden p-4"
         role="status"
         aria-live="polite"
       >
@@ -32,6 +32,14 @@ const { isLoading, loadingText } = useLoading()
 
 <style scoped>
 .elms-overlay-backdrop {
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  contain: strict;
+  will-change: opacity;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
   background: radial-gradient(
     circle at center,
     rgba(248, 250, 252, 0.96) 0%,

@@ -10,7 +10,7 @@ import AiTutorFloatingWidget from '@/Components/AiTutorFloatingWidget.vue'
 import LogoutConfirmModal from '@/Components/LogoutConfirmModal.vue'
 import ProfileAccountDropdown from '@/Components/ProfileAccountDropdown.vue'
 
-const { isDark, toggleTheme } = useTheme()
+const { isDark, toggleTheme, setTheme } = useTheme()
 const { showLoading, hideLoading } = useLoading()
 
 const logoUrl = '/images/logo.png'
@@ -1016,9 +1016,10 @@ onMounted(() => {
     }
   }
 
-  if (userPrefs.value.theme && (userPrefs.value.theme === 'dark' || userPrefs.value.theme === 'light')) {
+  const storedLocalTheme = typeof window !== 'undefined' ? localStorage.getItem('theme') : null
+  if (!storedLocalTheme && userPrefs.value.theme && (userPrefs.value.theme === 'dark' || userPrefs.value.theme === 'light')) {
     if ((userPrefs.value.theme === 'dark') !== isDark.value) {
-      toggleTheme()
+      setTheme(userPrefs.value.theme)
     }
   }
 
@@ -1029,7 +1030,6 @@ onMounted(() => {
   }
 
   loadPersistedNotifications()
-  initTheme()
   window.addEventListener('keydown', handleKeydown)
   window.addEventListener('online', updateOnlineStatus)
   window.addEventListener('offline', updateOnlineStatus)
