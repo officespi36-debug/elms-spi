@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\Enrollment;
+use App\Services\DashboardAnalyticsService;
 use App\Services\EnrollmentService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class EnrollmentController extends Controller
 {
@@ -18,7 +20,12 @@ class EnrollmentController extends Controller
             abort(404);
         }
 
-        if ($course->lessons()->count() === 0) {
+        $directLessonsCount = $course->lessons()->count();
+        $totalLessonsCount = $directLessonsCount > 0
+            ? $directLessonsCount
+            : (int) $course->modules()->withCount('lessons')->get()->sum('lessons_count');
+
+        if ($totalLessonsCount === 0) {
             abort(422, 'វគ្គសិក្សានេះមិនទាន់មានមេរៀននៅឡើយទេ (Coming soon).');
         }
 
@@ -36,6 +43,9 @@ class EnrollmentController extends Controller
         }
 
         $enrollment = $enrollmentService->enroll($user, $course, 'self', $user);
+
+        Cache::forget("student.{$user->id}.new_enrollments");
+        app(DashboardAnalyticsService::class)->invalidateUserCache($user->id);
 
         if ($enrollment->status === 'pending_payment') {
             return redirect()->route('student.payments.create', $course->id)

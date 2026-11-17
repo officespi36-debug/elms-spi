@@ -50,20 +50,26 @@ class EnrollmentService
             $semesterVal = $semester ?: ($course->semester ?: 'Semester 1');
 
             if ($existing) {
-                // If inactive and activating via payment or admin/teacher
-                if ($existing->status !== 'active' && in_array($source, ['payment', 'admin', 'teacher'])) {
+                $isFreeSelfReactivation = ($source === 'self' && (float) ($course->price ?? 0) <= 0);
+                // Reactivate inactive/withdrawn/pending enrollment when free self-enroll or admin/teacher/payment activation
+                if (
+                    !in_array($existing->status, ['active', 'completed'], true)
+                    && (in_array($source, ['payment', 'admin', 'teacher'], true) || $isFreeSelfReactivation)
+                ) {
                     $existing->status = 'active';
                     $existing->enrolled_at = now();
                     $existing->source = $source;
                     if ($actor) {
                         $existing->enrolled_by = $actor->id;
                     }
-                    $existing->seen_at = null; // Mark as new for student
+                    $existing->seen_at = ($source === 'self') ? now() : null;
                     $existing->save();
 
                     Cache::forget("student.{$student->id}.new_enrollments");
                     app(DashboardAnalyticsService::class)->invalidateUserCache($student->id);
-                    $this->sendNotification($student, $course, $source, $actor, $semesterVal);
+                    if ($source !== 'self') {
+                        $this->sendNotification($student, $course, $source, $actor, $semesterVal);
+                    }
                 }
                 return $existing;
             }

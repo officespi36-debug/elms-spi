@@ -541,6 +541,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/courses/{course}/continue', [Student\CourseController::class, 'continueCourse']);
         Route::get('/courses/{course}/overview', [Student\CourseController::class, 'overview'])->name('courses.overview');
         Route::get('/courses/{course}/lessons/{lesson}', [Student\CourseController::class, 'showLesson']);
+        Route::get('/courses/{course}', [Student\CourseController::class, 'overview'])
+            ->where('course', '^(?!enrolled$|current$|completed$).*')
+            ->name('courses.show');
+        Route::post('/courses/{course}/reviews', [Student\CourseController::class, 'storeReview'])
+            ->middleware('throttle:20,1')
+            ->name('courses.reviews.store');
 
         // Lesson Progress & Completion API endpoints
         Route::post('/lessons/{lesson}/progress', [Student\CourseController::class, 'saveProgress'])->middleware('throttle:120,1')->name('lessons.progress');

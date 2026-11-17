@@ -274,6 +274,7 @@ class BrowseController extends Controller
             $durationSeconds = (int) ($c->duration_seconds_sum ?? 0);
             $enrollment = $enrollmentsByCourse->get($c->id);
 
+            $lessonsDoneCount = (int) ($completedLessonsByCourse[$c->id] ?? 0);
             $isComingSoon = $lessonsCount === 0;
             $isCompleted = false;
             $isEnrolled = false;
@@ -283,8 +284,7 @@ class BrowseController extends Controller
                 if ($enrollment->status === 'completed') {
                     $isCompleted = true;
                 } elseif ($enrollment->status === 'active') {
-                    $doneCount = $completedLessonsByCourse[$c->id] ?? 0;
-                    if ($lessonsCount > 0 && $doneCount >= $lessonsCount) {
+                    if ($lessonsCount > 0 && $lessonsDoneCount >= $lessonsCount) {
                         $isCompleted = true;
                     } else {
                         $isEnrolled = true;
@@ -333,30 +333,32 @@ class BrowseController extends Controller
                 'categoryKh'       => $c->major?->name_kh ?: ($c->major?->name ?: null),
                 'level'            => $levelKey,
                 'levelLabel'       => $levelKey ? ucfirst($levelKey) : null,
-                'lessonsCount'     => $lessonsCount,
-                'durationSeconds'  => $durationSeconds,
-                'duration'         => $this->formatDuration($durationSeconds),
-                'enrollmentsCount' => (int) ($c->enrollments_count ?? 0),
-                'price'            => $priceVal,
-                'priceDisplay'     => $isFree ? 'Free' : ('$' . number_format($priceVal, 2)),
-                'isFree'           => $isFree,
-                'rating'           => $avgRating,
-                'reviewsCount'     => $reviewsCount,
-                'isWishlisted'     => in_array((int) $c->id, $wishlistedIds, true),
-                'isComingSoon'     => $isComingSoon,
-                'cardState'        => $cardState,
-                'enrollmentStatus' => $isCompleted ? 'completed' : ($isEnrolled ? 'enrolled' : ($isPendingPayment ? 'pending_payment' : 'not_enrolled')),
-                'instructor'       => [
+                'lessonsCount'      => $lessonsCount,
+                'lessonsDoneCount'  => $lessonsDoneCount,
+                'durationSeconds'   => $durationSeconds,
+                'duration'          => $this->formatDuration($durationSeconds),
+                'enrollmentsCount'  => (int) ($c->enrollments_count ?? 0),
+                'price'             => $priceVal,
+                'priceDisplay'      => $isFree ? 'Free' : ('$' . number_format($priceVal, 2)),
+                'isFree'            => $isFree,
+                'rating'            => $avgRating,
+                'reviewsCount'      => $reviewsCount,
+                'isWishlisted'      => in_array((int) $c->id, $wishlistedIds, true),
+                'isComingSoon'      => $isComingSoon,
+                'cardState'         => $cardState,
+                'enrollmentStatus'  => $isCompleted ? 'completed' : ($isEnrolled ? 'enrolled' : ($isPendingPayment ? 'pending_payment' : 'not_enrolled')),
+                'instructor'        => [
                     'name'    => $teacherName,
                     'name_kh' => $teacherNameKh ?: ($c->teacher?->name_kh ?: $teacherName),
                     'avatar'  => $c->teacher?->avatar_url ?: null,
                     'role'    => 'Instructor',
                 ],
-                'overviewHref'     => "/student/courses/{$c->id}/overview",
-                'browseShowHref'   => "/student/browse/{$c->id}",
-                'continueHref'     => "/student/my-courses/{$c->id}/continue",
-                'enrollHref'       => "/student/courses/{$c->id}/enroll",
-                'checkoutHref'     => "/student/payments/{$c->id}/upload",
+                'overviewHref'      => "/student/courses/{$c->id}/overview",
+                'courseDetailsHref' => "/student/courses/{$c->id}",
+                'browseShowHref'    => "/student/browse/{$c->id}",
+                'continueHref'      => "/student/my-courses/{$c->id}/continue",
+                'enrollHref'        => "/student/courses/{$c->id}/enroll",
+                'checkoutHref'      => "/student/payments/{$c->id}/upload",
             ];
         });
 
@@ -379,38 +381,16 @@ class BrowseController extends Controller
     public function show(Request $request, Course $course, CourseProgressService $progressService)
     {
         if ($course->status !== 'published') {
-            abort(404);
+            $user = $request->user();
+            $hasEnrollment = $user
+                ? Enrollment::where('course_id', $course->id)->where('student_id', $user->id)->exists()
+                : false;
+            if (!$hasEnrollment) {
+                abort(404);
+            }
         }
 
-        $course->load(['teacher:id,name,name_kh,email,avatar,role', 'major:id,name,name_kh', 'modules.lessons', 'lessons']);
-
-        $user = $request->user();
-        $enrolled = $user
-            ? Enrollment::where('course_id', $course->id)
-                ->where('student_id', $user->id)
-                ->first()
-            : null;
-
-        $isWishlisted = ($user && Schema::hasTable('course_wishlists'))
-            ? CourseWishlist::where('user_id', $user->id)->where('course_id', $course->id)->exists()
-            : false;
-
-        $reviewsCount = Schema::hasTable('course_reviews')
-            ? CourseReview::where('course_id', $course->id)->count()
-            : 0;
-        $avgRating = ($reviewsCount >= 3 && Schema::hasTable('course_reviews'))
-            ? round((float) CourseReview::where('course_id', $course->id)->avg('rating'), 1)
-            : null;
-
-        return Inertia::render('Student/Browse/Show', [
-            'course'        => $course,
-            'enrolled'      => $enrolled,
-            'isWishlisted'  => $isWishlisted,
-            'rating'        => $avgRating,
-            'reviewsCount'  => $reviewsCount,
-            'teacherName'   => $course->teacher ? $progressService->cleanTeacherName($course->teacher, $course) : null,
-            'teacherNameKh' => $course->teacher ? $progressService->cleanTeacherNameKh($course->teacher, $course) : null,
-        ]);
+        return app(CourseController::class)->overview($request, $progressService, $course);
     }
 
     public function storeWishlist(Request $request, Course $course)

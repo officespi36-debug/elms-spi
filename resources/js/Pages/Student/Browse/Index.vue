@@ -25,6 +25,7 @@ interface CatalogCourse {
   level?: 'beginner' | 'intermediate' | 'advanced' | null
   levelLabel?: string | null
   lessonsCount: number
+  lessonsDoneCount?: number
   durationSeconds: number
   duration?: string | null
   enrollmentsCount: number
@@ -39,6 +40,7 @@ interface CatalogCourse {
   enrollmentStatus: string
   instructor: CatalogInstructor
   overviewHref: string
+  courseDetailsHref?: string
   browseShowHref: string
   continueHref: string
   enrollHref: string
@@ -148,6 +150,7 @@ watch(() => props.filters, (f) => {
 const isLoading = ref(false)
 const fetchError = ref(false)
 const enrollingCourseId = ref<number | null>(null)
+const enrolledOverrides = ref<Record<number, CatalogCourse['cardState']>>({})
 const wishlistPending = ref<Record<number, boolean>>({})
 const wishlistOverrides = ref<Record<number, boolean>>({})
 const wishlistErrorMsg = ref<string | null>(null)
@@ -165,12 +168,18 @@ let activeCancelToken: { cancel?: () => void } | null = null
 
 const catalogItems = computed<CatalogCourse[]>(() => {
   const raw = props.courses?.data || []
-  return raw.map((c) => ({
-    ...c,
-    isWishlisted: Object.prototype.hasOwnProperty.call(wishlistOverrides.value, c.id)
-      ? wishlistOverrides.value[c.id]
-      : Boolean(c.isWishlisted),
-  }))
+  return raw.map((c) => {
+    const resolvedState = Object.prototype.hasOwnProperty.call(enrolledOverrides.value, c.id)
+      ? enrolledOverrides.value[c.id]
+      : c.cardState
+    return {
+      ...c,
+      cardState: resolvedState,
+      isWishlisted: Object.prototype.hasOwnProperty.call(wishlistOverrides.value, c.id)
+        ? wishlistOverrides.value[c.id]
+        : Boolean(c.isWishlisted),
+    }
+  })
 })
 
 const categoriesList = computed(() => props.facets?.categories || [])
@@ -434,6 +443,9 @@ const handleEnroll = (course: CatalogCourse) => {
   enrollingCourseId.value = course.id
   router.post(course.enrollHref, {}, {
     preserveScroll: true,
+    onSuccess: () => {
+      enrolledOverrides.value[course.id] = 'enrolled'
+    },
     onFinish: () => {
       enrollingCourseId.value = null
     },
@@ -483,7 +495,12 @@ const formatPaginationLabel = (label: string): string => {
 
 const handleGlobalKeyDown = (e: KeyboardEvent) => {
   const tag = (e.target as HTMLElement)?.tagName
-  if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(tag) && !(e.target as HTMLElement)?.isContentEditable) {
+  const isTyping = ['INPUT', 'TEXTAREA', 'SELECT'].includes(tag) || Boolean((e.target as HTMLElement)?.isContentEditable)
+
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+    e.preventDefault()
+    searchInputRef.value?.focus()
+  } else if (e.key === '/' && !isTyping) {
     e.preventDefault()
     searchInputRef.value?.focus()
   }
@@ -990,7 +1007,7 @@ onUnmounted(() => {
                         v-else-if="course.cardState === 'enrolled'"
                         class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-600 text-white shadow-sm"
                       >
-                        {{ t('browse_badge_enrolled') }}
+                        {{ currentLang === 'km' ? 'បានចុះឈ្មោះរួច' : 'Enrolled' }}
                       </span>
                       <span
                         v-else-if="course.cardState === 'pending_payment'"
@@ -1143,9 +1160,9 @@ onUnmounted(() => {
                     <Link
                       v-else-if="course.cardState === 'enrolled'"
                       :href="course.continueHref"
-                      class="w-full inline-flex items-center justify-center px-2 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-[11px] sm:text-[11.5px] font-bold shadow-xs transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                      class="w-full inline-flex items-center justify-center px-2 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] sm:text-[11.5px] font-bold shadow-xs transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                     >
-                      {{ t('browse_cta_continue') }}
+                      {{ (course.lessonsDoneCount || 0) > 0 ? t('browse_cta_continue') : (currentLang === 'km' ? 'ចូលរៀន' : 'Start Learning') }}
                     </Link>
 
                     <Link
@@ -1225,7 +1242,7 @@ onUnmounted(() => {
                         v-else-if="course.cardState === 'enrolled'"
                         class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-600 text-white"
                       >
-                        {{ t('browse_badge_enrolled') }}
+                        {{ currentLang === 'km' ? 'បានចុះឈ្មោះរួច' : 'Enrolled' }}
                       </span>
                     </div>
 
@@ -1342,9 +1359,9 @@ onUnmounted(() => {
                     <Link
                       v-else-if="course.cardState === 'enrolled'"
                       :href="course.continueHref"
-                      class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                      class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                     >
-                      {{ t('browse_cta_continue') }}
+                      {{ (course.lessonsDoneCount || 0) > 0 ? t('browse_cta_continue') : (currentLang === 'km' ? 'ចូលរៀន' : 'Start Learning') }}
                     </Link>
 
                     <Link
