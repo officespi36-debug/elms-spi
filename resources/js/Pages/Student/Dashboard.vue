@@ -805,7 +805,8 @@ const achievements = computed(() => {
     return props.achievements.map(a => ({
       ...a,
       title: currentLang.value === 'km' ? (a.title_km || a.title) : a.title,
-      desc: currentLang.value === 'km' ? (a.desc_km || a.desc) : a.desc
+      desc: currentLang.value === 'km' ? (a.desc_km || a.desc) : a.desc,
+      progressText: currentLang.value === 'km' ? (a.progress_km || a.progress) : a.progress
     }))
   }
   return [
@@ -813,44 +814,54 @@ const achievements = computed(() => {
       id: 'streak',
       title: currentLang.value === 'km' ? 'រៀន ៧ ថ្ងៃជាប់' : '7 Days Streak',
       desc: currentLang.value === 'km' ? 'រៀន ៧ ថ្ងៃជាប់គ្នាឥតដាច់' : 'Studied 7 days in a row without breaking streak',
+      progressText: currentLang.value === 'km' ? '០/៧ ថ្ងៃ' : '0/7 Days',
       type: 'flame',
-      color: 'from-orange-500 to-amber-500',
+      color: 'from-amber-500 via-orange-500 to-rose-500',
+      shadowColor: 'shadow-orange-500/30',
       href: '/student/certificates/achievements',
       unlocked: false
     },
     {
       id: 'quick',
       title: currentLang.value === 'km' ? 'រៀនរហ័ស' : 'Quick Learner',
-      desc: currentLang.value === 'km' ? 'បញ្ចប់មេរៀនមុនកាលកំណត់' : 'Completed lessons 30% faster than average',
+      desc: currentLang.value === 'km' ? 'បញ្ចប់វគ្គសិក្សានិងមេរៀនតាមល្បឿនថេរ' : 'Completed lessons at steady pace',
+      progressText: currentLang.value === 'km' ? '០ មេរៀន' : '0 lessons',
       type: 'book',
-      color: 'from-emerald-500 to-teal-500',
+      color: 'from-emerald-400 via-teal-500 to-cyan-600',
+      shadowColor: 'shadow-emerald-500/30',
       href: '/student/certificates/achievements',
       unlocked: false
     },
     {
       id: 'quiz_master',
       title: currentLang.value === 'km' ? 'ជើងខ្លាំង Quiz' : 'Quiz Master',
-      desc: currentLang.value === 'km' ? 'ពិន្ទុ 90%+ លើ Quiz ជំពូក' : 'Scored 90%+ in 5 consecutive quizzes',
+      desc: currentLang.value === 'km' ? 'ទទួលបានពិន្ទុ ៧៥%+ ក្នុង Quiz វគ្គសិក្សា' : 'Scored 75%+ in academic course quizzes',
+      progressText: currentLang.value === 'km' ? '០ Quiz' : '0 Quizzes',
       type: 'star',
-      color: 'from-blue-600 to-indigo-600',
+      color: 'from-violet-600 via-purple-600 to-fuchsia-600',
+      shadowColor: 'shadow-purple-600/35',
       href: '/student/certificates/achievements',
       unlocked: false
     },
     {
       id: 'early_bird',
       title: currentLang.value === 'km' ? 'រៀនព្រលឹម' : 'Early Bird',
-      desc: currentLang.value === 'km' ? 'ចូលរៀនមុនម៉ោង ៨:០០ ព្រឹក' : 'Completed learning session before 8:00 AM',
+      desc: currentLang.value === 'km' ? 'ចូលរួមការសិក្សាពេលព្រលឹមបានទៀងទាត់' : 'Active morning study sessions completed',
+      progressText: currentLang.value === 'km' ? '០ នាទី' : '0 mins',
       type: 'bolt',
-      color: 'from-amber-500 to-yellow-500',
+      color: 'from-amber-400 via-yellow-500 to-amber-600',
+      shadowColor: 'shadow-amber-500/30',
       href: '/student/certificates/achievements',
       unlocked: false
     },
     {
       id: 'top_performer',
       title: currentLang.value === 'km' ? 'លទ្ធផលឆ្នើម' : 'Top Performer',
-      desc: currentLang.value === 'km' ? 'ជាប់ចំណាត់ថ្នាក់ Top 10%' : 'Ranked in the top 10% high achievers',
+      desc: currentLang.value === 'km' ? 'ទទួលបានវិញ្ញាបនបត្រផ្លូវការ និងនិទ្ទេសល្អ' : 'Earned verified certificates and honor grades',
+      progressText: currentLang.value === 'km' ? 'ចំណាត់ថ្នាក់ Top 10%' : 'Rank Top 10%',
       type: 'trophy',
-      color: 'from-yellow-500 to-amber-600',
+      color: 'from-yellow-400 via-amber-500 to-orange-600',
+      shadowColor: 'shadow-amber-600/30',
       href: '/student/certificates/achievements',
       unlocked: false
     }
@@ -1682,9 +1693,9 @@ const recentActivities = computed(() => {
               <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4">
                 <Link
                   v-for="ach in achievements"
-                  :key="ach.title"
+                  :key="ach.id || ach.title"
                   :href="ach.href"
-                  class="relative flex flex-col items-center gap-2.5 p-3 rounded-2xl bg-slate-50/70 dark:bg-white/[0.03] hover:bg-purple-50/60 dark:hover:bg-purple-950/20 border border-transparent hover:border-purple-300 dark:hover:border-purple-500/30 group text-center cursor-pointer transition-all duration-200 hover:-translate-y-1"
+                  class="relative flex flex-col items-center justify-between p-3.5 sm:p-4 rounded-2xl bg-slate-50/70 dark:bg-white/[0.03] hover:bg-white dark:hover:bg-[#252728] border border-slate-200/70 dark:border-white/[0.06] hover:border-purple-400 dark:hover:border-purple-500/40 group text-center cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
                 >
                   <!-- Interactive Floating Tooltip on hover/focus -->
                   <div class="absolute -top-11 left-1/2 -translate-x-1/2 px-2.5 py-1 bg-slate-900 dark:bg-slate-800 text-white text-[11px] font-medium rounded-lg shadow-xl opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 whitespace-nowrap z-30 transform group-hover:-translate-y-1">
@@ -1692,24 +1703,59 @@ const recentActivities = computed(() => {
                     <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900 dark:border-t-slate-800"></div>
                   </div>
 
-                  <!-- Brand Color Badge Icon Container -->
-                  <div :class="['w-12 h-12 rounded-2xl bg-gradient-to-tr', ach.color, 'flex items-center justify-center text-white text-base shadow-md group-hover:scale-110 group-hover:shadow-lg transition-all duration-200 ring-4 ring-white dark:ring-white/10', ach.unlocked === false ? 'opacity-40 grayscale' : '']">
-                    <!-- Flame / Streak SVG -->
-                    <svg v-if="ach.type === 'flame'" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"/></svg>
-                    <!-- Book SVG -->
-                    <svg v-else-if="ach.type === 'book'" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-                    <!-- Star SVG -->
-                    <svg v-else-if="ach.type === 'star'" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/></svg>
-                    <!-- Lightning Bolt SVG -->
-                    <svg v-else-if="ach.type === 'bolt'" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
-                    <!-- Trophy SVG -->
-                    <svg v-else class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.003 0H9.497m5.003 0a3 3 0 002.828-2.002l1.636-4.908A1.125 1.125 0 0017.896 6H6.104a1.125 1.125 0 00-1.068 1.465l1.636 4.908a3 3 0 002.828 2.002z"/></svg>
+                  <!-- Status Pill (Unlocked checkmark vs In-progress lock) -->
+                  <div
+                    v-if="ach.unlocked"
+                    class="absolute top-2 right-2 w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold shadow-xs shadow-emerald-500/50 ring-2 ring-white dark:ring-[#1e1f20] z-10"
+                    :title="currentLang === 'km' ? 'ដោះសោរួច' : 'Unlocked'"
+                  >
+                    ✓
+                  </div>
+                  <div
+                    v-else
+                    class="absolute top-2 right-2 w-5 h-5 rounded-full bg-slate-200/90 dark:bg-white/10 text-slate-500 dark:text-slate-400 flex items-center justify-center text-[9px] ring-2 ring-white dark:ring-[#1e1f20] z-10"
+                    :title="currentLang === 'km' ? 'កំពុងដំណើរការ' : 'In Progress'"
+                  >
+                    <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
                   </div>
 
-                  <!-- Equal min-height label container -->
-                  <div class="min-h-[36px] flex items-center justify-center">
-                    <span class="text-[13.5px] font-semibold text-slate-700 dark:text-[#e2e8f0] leading-tight text-center line-clamp-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                  <!-- Vibrant Glowing Squircle Badge Icon -->
+                  <div :class="['w-13 h-13 sm:w-14 sm:h-14 rounded-[18px] bg-gradient-to-br', ach.color, 'flex items-center justify-center text-white shadow-lg', ach.shadowColor || 'shadow-purple-500/30', 'group-hover:scale-105 group-hover:shadow-xl transition-all duration-300 ring-4 ring-white dark:ring-white/10']">
+                    <!-- Flame / Streak SVG -->
+                    <svg v-if="ach.type === 'flame'" class="w-7 h-7 drop-shadow-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"/></svg>
+
+                    <!-- Book SVG -->
+                    <svg v-else-if="ach.type === 'book'" class="w-7 h-7 drop-shadow-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+
+                    <!-- 4-point Sparkle Star SVG (Matches Image 1 reference precisely) -->
+                    <svg v-else-if="ach.type === 'star'" class="w-7 h-7 drop-shadow-md" viewBox="0 0 24 24" fill="none">
+                      <path d="M12 2C12 7.52285 7.52285 12 2 12C7.52285 12 12 16.4772 12 22C12 16.4772 16.4772 12 22 12C16.4772 12 12 7.52285 12 2Z" fill="url(#quiz-star-gradient)"/>
+                      <defs>
+                        <linearGradient id="quiz-star-gradient" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                          <stop offset="0%" stop-color="#ffffff"/>
+                          <stop offset="45%" stop-color="#fed7aa"/>
+                          <stop offset="100%" stop-color="#f43f5e"/>
+                        </linearGradient>
+                      </defs>
+                    </svg>
+
+                    <!-- Lightning Bolt SVG -->
+                    <svg v-else-if="ach.type === 'bolt'" class="w-7 h-7 drop-shadow-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
+
+                    <!-- Trophy SVG -->
+                    <svg v-else class="w-7 h-7 drop-shadow-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.003 0H9.497m5.003 0a3 3 0 002.828-2.002l1.636-4.908A1.125 1.125 0 0017.896 6H6.104a1.125 1.125 0 00-1.068 1.465l1.636 4.908a3 3 0 002.828 2.002z"/></svg>
+                  </div>
+
+                  <!-- Text Block: Title + Progress chip -->
+                  <div class="mt-2.5 flex flex-col items-center gap-1 w-full">
+                    <span class="text-[13px] font-bold text-slate-800 dark:text-slate-100 leading-tight text-center line-clamp-1 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
                       {{ ach.title }}
+                    </span>
+                    <span
+                      v-if="ach.progressText"
+                      :class="['text-[10px] font-medium px-2 py-0.5 rounded-full inline-block truncate max-w-full tracking-wide', ach.unlocked ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-semibold' : 'bg-slate-100 dark:bg-white/[0.06] text-slate-500 dark:text-slate-400']"
+                    >
+                      {{ ach.progressText }}
                     </span>
                   </div>
                 </Link>

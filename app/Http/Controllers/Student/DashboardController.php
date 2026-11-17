@@ -25,12 +25,12 @@ class DashboardController extends Controller
         }
 
         if ($request->has('refresh')) {
-            Cache::forget("student_dashboard_payload_{$user->id}_v3");
+            Cache::forget("student_dashboard_payload_{$user->id}_v4");
             Cache::forget("student_stats_{$user->id}");
         }
 
         // Performance: Cache::remember 300s (scoped to user id) with eager loading & selected columns
-        $payload = Cache::remember("student_dashboard_payload_{$user->id}_v3", 300, function () use ($user) {
+        $payload = Cache::remember("student_dashboard_payload_{$user->id}_v4", 300, function () use ($user) {
             try {
                 $enrollments = Enrollment::where('student_id', $user->id)
                     ->select(['id', 'student_id', 'course_id', 'status', 'enrolled_at', 'updated_at'])
@@ -403,11 +403,41 @@ class DashboardController extends Controller
             // 11. Achievements status from real database records
             $totalSeconds = (int) ($statsData['totalSeconds'] ?? 0);
             $avgNum = (int) ($statsData['averageScoreNum'] ?? 0);
-            $hasStreak = $totalSeconds > 0;
-            $hasQuick = $computedCompleted >= 1;
-            $hasQuizMaster = ($avgNum >= 75 && QuizAttempt::where('user_id', $user->id)->exists()) || QuizAttempt::where('user_id', $user->id)->where('score', '>=', 85)->exists();
-            $hasEarlyBird = $totalSeconds >= 3600;
-            $hasTopPerformer = ($statsData['certificatesCount'] ?? 0) >= 1 || ($avgNum >= 70 && $computedCompleted >= 1);
+            $completedLessonsCount = count($completedLessonMap);
+
+            // Streak days calculation from study_daily or activity
+            $streakDays = 0;
+            try {
+                $streakDays = \App\Models\StudyDaily::where('user_id', $user->id)
+                    ->where('seconds', '>', 0)
+                    ->distinct('study_date')
+                    ->count('study_date');
+            } catch (\Throwable $e) {
+                $streakDays = 0;
+            }
+            if ($streakDays === 0 && $totalSeconds > 0) {
+                $streakDays = 1;
+            }
+            $hasStreak = $streakDays >= 7 || ($streakDays >= 1 && $totalSeconds >= 1800);
+
+            // Quick learner (completed lessons or courses)
+            $hasQuick = $computedCompleted >= 1 || $completedLessonsCount >= 1;
+
+            // Quiz master (quiz score >= 75 or top attempt)
+            $bestQuizScore = 0;
+            try {
+                $bestQuizScore = (int) round(\App\Models\QuizAttempt::where('user_id', $user->id)->max('score') ?? 0);
+            } catch (\Throwable $e) {
+                $bestQuizScore = 0;
+            }
+            $hasQuizMaster = $bestQuizScore >= 75 || ($avgNum >= 75 && \App\Models\QuizAttempt::where('user_id', $user->id)->exists());
+
+            // Early bird (morning activity or study sessions)
+            $hasEarlyBird = $totalSeconds >= 1800;
+
+            // Top performer (certificates or high score with completions)
+            $certsCount = (int) ($statsData['certificatesCount'] ?? 0);
+            $hasTopPerformer = $certsCount >= 1 || ($avgNum >= 75 && $computedCompleted >= 1);
 
             $achievementsData = [
                 [
@@ -417,7 +447,10 @@ class DashboardController extends Controller
                     'desc' => 'Studied 7 days in a row without breaking streak',
                     'desc_km' => 'រៀន ៧ ថ្ងៃជាប់គ្នាឥតដាច់',
                     'type' => 'flame',
-                    'color' => 'from-orange-500 to-amber-500',
+                    'color' => 'from-amber-500 via-orange-500 to-rose-500',
+                    'shadowColor' => 'shadow-orange-500/30',
+                    'progress' => $streakDays > 0 ? "{$streakDays}/7 Days" : '0/7 Days',
+                    'progress_km' => $streakDays > 0 ? "{$streakDays}/៧ ថ្ងៃ" : '០/៧ ថ្ងៃ',
                     'href' => '/student/certificates/achievements',
                     'unlocked' => $hasStreak,
                 ],
@@ -428,7 +461,10 @@ class DashboardController extends Controller
                     'desc' => 'Completed courses and lessons at steady pace',
                     'desc_km' => 'បញ្ចប់វគ្គសិក្សានិងមេរៀនតាមល្បឿនថេរ',
                     'type' => 'book',
-                    'color' => 'from-emerald-500 to-teal-500',
+                    'color' => 'from-emerald-400 via-teal-500 to-cyan-600',
+                    'shadowColor' => 'shadow-emerald-500/30',
+                    'progress' => $completedLessonsCount > 0 ? "{$completedLessonsCount} " . ($completedLessonsCount === 1 ? 'lesson' : 'lessons') : '0 lessons',
+                    'progress_km' => $completedLessonsCount > 0 ? "{$completedLessonsCount} មេរៀន" : '០ មេរៀន',
                     'href' => '/student/certificates/achievements',
                     'unlocked' => $hasQuick,
                 ],
@@ -436,10 +472,13 @@ class DashboardController extends Controller
                     'id' => 'quiz_master',
                     'title' => 'Quiz Master',
                     'title_km' => 'ជើងខ្លាំង Quiz',
-                    'desc' => 'Scored high in academic course quizzes',
-                    'desc_km' => 'ទទួលបានពិន្ទុខ្ពស់ក្នុង Quiz វគ្គសិក្សា',
+                    'desc' => 'Scored 75%+ in academic course quizzes',
+                    'desc_km' => 'ទទួលបានពិន្ទុ ៧៥%+ ក្នុង Quiz វគ្គសិក្សា',
                     'type' => 'star',
-                    'color' => 'from-blue-600 to-indigo-600',
+                    'color' => 'from-violet-600 via-purple-600 to-fuchsia-600',
+                    'shadowColor' => 'shadow-purple-600/35',
+                    'progress' => $bestQuizScore > 0 ? "Score: {$bestQuizScore}%" : ($avgNum > 0 ? "Avg: {$avgNum}%" : '0 Quizzes'),
+                    'progress_km' => $bestQuizScore > 0 ? "ពិន្ទុ: {$bestQuizScore}%" : ($avgNum > 0 ? "មធ្យម: {$avgNum}%" : '០ Quiz'),
                     'href' => '/student/certificates/achievements',
                     'unlocked' => $hasQuizMaster,
                 ],
@@ -450,7 +489,10 @@ class DashboardController extends Controller
                     'desc' => 'Active morning study sessions completed',
                     'desc_km' => 'ចូលរួមការសិក្សាពេលព្រលឹមបានទៀងទាត់',
                     'type' => 'bolt',
-                    'color' => 'from-amber-500 to-yellow-500',
+                    'color' => 'from-amber-400 via-yellow-500 to-amber-600',
+                    'shadowColor' => 'shadow-amber-500/30',
+                    'progress' => round($totalSeconds / 60) > 0 ? round($totalSeconds / 60) . ' mins' : '0 mins',
+                    'progress_km' => round($totalSeconds / 60) > 0 ? round($totalSeconds / 60) . ' នាទី' : '០ នាទី',
                     'href' => '/student/certificates/achievements',
                     'unlocked' => $hasEarlyBird,
                 ],
@@ -461,7 +503,10 @@ class DashboardController extends Controller
                     'desc' => 'Earned verified certificates and honor grades',
                     'desc_km' => 'ទទួលបានវិញ្ញាបនបត្រផ្លូវការ និងនិទ្ទេសល្អ',
                     'type' => 'trophy',
-                    'color' => 'from-yellow-500 to-amber-600',
+                    'color' => 'from-yellow-400 via-amber-500 to-orange-600',
+                    'shadowColor' => 'shadow-amber-600/30',
+                    'progress' => $certsCount > 0 ? "{$certsCount} " . ($certsCount === 1 ? 'cert' : 'certs') : ($avgNum > 0 ? "Avg: {$avgNum}%" : 'Rank Top 10%'),
+                    'progress_km' => $certsCount > 0 ? "{$certsCount} វិញ្ញាបនបត្រ" : ($avgNum > 0 ? "មធ្យម: {$avgNum}%" : 'ចំណាត់ថ្នាក់ Top 10%'),
                     'href' => '/student/certificates/achievements',
                     'unlocked' => $hasTopPerformer,
                 ],
