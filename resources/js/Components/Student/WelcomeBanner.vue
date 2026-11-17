@@ -6,6 +6,7 @@ const props = withDefaults(
   defineProps<{
     studentName: string
     academicTerm?: string
+    academicTermKm?: string
     unreadAnnouncementsCount?: number
     currentLang?: 'km' | 'en'
     isLoading?: boolean
@@ -16,7 +17,8 @@ const props = withDefaults(
     onOpenAnnouncements?: () => void
   }>(),
   {
-    academicTerm: 'Active Academic Term 2026-2027',
+    academicTerm: '',
+    academicTermKm: '',
     unreadAnnouncementsCount: 0,
     currentLang: 'en',
     isLoading: false,
@@ -33,11 +35,12 @@ const emit = defineEmits<{
   (e: 'open-announcements'): void
 }>()
 
-const displayTerm = computed(() =>
-  props.currentLang === 'km'
-    ? 'SPI Student Portal • ឆមាសសិក្សាថ្មី ២០២៦-២០២៧'
-    : `SPI Student Portal • ${props.academicTerm}`
-)
+const displayTerm = computed(() => {
+  const rawTerm = props.currentLang === 'km'
+    ? (props.academicTermKm || props.academicTerm || '')
+    : (props.academicTerm || props.academicTermKm || '')
+  return rawTerm ? `SPI Student Portal • ${rawTerm}` : 'SPI Student Portal'
+})
 
 const greetingText = computed(() => {
   const safeName = props.studentName?.trim() || (props.currentLang === 'km' ? 'និស្សិត' : 'Student')

@@ -19,10 +19,22 @@ class NotificationController extends Controller
 
     public function announcements(Request $request)
     {
-        $announcements = \Illuminate\Support\Facades\DB::table('announcements')
+        $rows = \Illuminate\Support\Facades\DB::table('announcements')
             ->whereIn('audience_type', ['everyone', 'students', 'All Students & Teachers', 'Active Students'])
-            ->latest()
+            ->orderByDesc('is_pinned')
+            ->latest('id')
             ->get();
+
+        $seen = [];
+        $announcements = [];
+        foreach ($rows as $row) {
+            $dedupeKey = trim((string) ($row->title_en ?: $row->title_kh)) . '|' . trim((string) ($row->body_en ?: $row->body_kh));
+            if (isset($seen[$dedupeKey])) {
+                continue;
+            }
+            $seen[$dedupeKey] = true;
+            $announcements[] = $row;
+        }
 
         return Inertia::render('Student/Notifications/Announcements', [
             'dbAnnouncements' => $announcements,

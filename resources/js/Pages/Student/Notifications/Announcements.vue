@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
 import StudentLayout from '@/Layouts/StudentLayout.vue'
+import { i18n } from '@/Services/i18n'
 
 interface Attachment {
   name: string
@@ -31,205 +32,44 @@ interface Announcement {
   attachments?: Attachment[]
 }
 
-// Baseline mock announcements dataset
-const initialAnnouncements: Announcement[] = [
-  {
-    id: 1,
-    title: 'New Course Available: Data Science Basics',
-    description: 'We are excited to announce that the new course “Data Science Basics” is now available. Enroll now and start learning!',
-    content: 'We are excited to announce that the new course “Data Science Basics” is now officially live on the SPI E-Learning Platform. This comprehensive course covers Python for data analysis, Pandas, NumPy, data visualization with Seaborn, and introductory machine learning algorithms. Enrolled students will gain hands-on experience through interactive coding labs.',
-    sourceType: 'system',
-    source: 'System Announcement',
-    category: 'General',
-    date: 'May 28, 2025',
-    time: '10:30 AM',
-    isUnread: true,
-    isNew: true,
-    isPinned: true,
-    priority: 'high',
-    actionLabel: 'View Course',
-    actionRoute: '/student/courses/browse',
-    attachments: [
-      { name: 'Data_Science_Syllabus_2025.pdf', size: '2.4 MB', type: 'PDF' },
-      { name: 'Course_Prerequisites_Guide.pdf', size: '850 KB', type: 'PDF' },
-    ]
-  },
-  {
-    id: 2,
-    title: 'Assignment #3 Published',
-    description: 'A new assignment has been published for Web Development Fundamentals. Please check the assignment details and submit before the due date.',
-    content: 'Assignment #3: Responsive Web Application with Tailwind CSS has been uploaded. Please review the rubric and criteria carefully. The deadline for submission is June 05, 2025 at 11:59 PM. Late submissions will receive a 10% grade penalty per day.',
-    sourceType: 'teacher',
-    source: 'Web Development Fundamentals',
-    teacherName: 'Mr. Chan Davy',
-    courseName: 'Web Development Fundamentals',
-    category: 'Assignments',
-    date: 'May 27, 2025',
-    time: '03:45 PM',
-    isUnread: true,
-    isNew: false,
-    isPinned: false,
-    priority: 'high',
-    actionLabel: 'View Assignment',
-    actionRoute: '/student/quizzes/assignments',
-    attachments: [
-      { name: 'Assignment_3_Instructions.pdf', size: '1.2 MB', type: 'PDF' },
-      { name: 'Starter_Template_Code.zip', size: '4.8 MB', type: 'ZIP' },
-    ]
-  },
-  {
-    id: 3,
-    title: 'Midterm Exam Schedule Updated',
-    description: 'The Midterm Exam schedule for all courses has been updated. Please check your course page for the new schedule.',
-    content: 'Please take note that the Semester 1 Midterm Exam timetable has been adjusted due to university calendar rescheduling. Exam sessions will take place between June 10, 2025 and June 18, 2025. Room assignments and seating plans are now posted on the live class schedule portal.',
-    sourceType: 'system',
-    source: 'System Announcement',
-    category: 'Academic',
-    date: 'May 26, 2025',
-    time: '09:15 AM',
-    isUnread: true,
-    isNew: false,
-    isPinned: false,
-    priority: 'high',
-    actionLabel: 'View Exam Schedule',
-    actionRoute: '/student/calendar/live-class',
-    attachments: [
-      { name: 'Midterm_Exam_Schedule_Final.pdf', size: '3.1 MB', type: 'PDF' },
-    ]
-  },
-  {
-    id: 4,
-    title: 'Project Submission Reminder',
-    description: 'Don’t forget to submit your final project for Database Systems. The deadline is approaching soon.',
-    content: 'Dear students, please be reminded that your Database Systems Term Project (E-Commerce SQL Schema & Stored Procedures) must be submitted through the assignment portal before May 31, 2025. Ensure your ER diagram and SQL dump files are zipped.',
-    sourceType: 'teacher',
-    source: 'Database Systems',
-    teacherName: 'Mrs. Lin Sokun',
-    courseName: 'Database Systems',
-    category: 'Assignments',
-    date: 'May 26, 2025',
-    time: '11:20 AM',
-    isUnread: true,
-    isNew: false,
-    isPinned: false,
-    priority: 'normal',
-    actionLabel: 'View Assignment',
-    actionRoute: '/student/quizzes/assignments',
-  },
-  {
-    id: 5,
-    title: 'Special Scholarship Opportunity',
-    description: 'Apply now for the SPI Excellence Scholarship 2025. Deadline to apply is June 15, 2025.',
-    content: 'Saint Paul Institute is pleased to announce the opening of applications for the 2025 SPI Excellence in Academic Achievement Scholarships. Full and partial tuition grants are available for students with a GPA of 3.5 or higher. Check eligibility criteria and submit your statement of purpose.',
-    sourceType: 'system',
-    source: 'System Announcement',
-    category: 'Scholarship',
-    date: 'May 24, 2025',
-    time: '02:10 PM',
-    isUnread: false,
-    isNew: false,
-    isPinned: false,
-    priority: 'normal',
-    attachments: [
-      { name: 'SPI_Scholarship_Application_Form.pdf', size: '920 KB', type: 'PDF' },
-    ]
-  },
-  {
-    id: 6,
-    title: 'System Maintenance Notice',
-    description: 'The system will be under maintenance on May 30, 2025 from 11:00 PM to 02:00 AM. During this time, the platform may be temporarily unavailable.',
-    content: 'Our infrastructure engineering team will be performing core database upgrades and security patches on Friday, May 30, 2025 starting at 11:00 PM UTC+7. The maintenance window is scheduled for 3 hours. We apologize for any inconvenience caused.',
-    sourceType: 'system',
-    source: 'System Announcement',
-    category: 'Maintenance',
-    date: 'May 23, 2025',
-    time: '04:00 PM',
-    isUnread: false,
-    isNew: false,
-    isPinned: false,
-    priority: 'low',
-  },
-  // Additional announcements for realistic multi-page pagination
-  {
-    id: 7,
-    title: 'Guest Lecture: Artificial Intelligence & Future Careers',
-    description: 'Join us this Friday for a guest lecture with industry experts discussing real-world applications of Large Language Models.',
-    content: 'We welcome Dr. K. Visal from Tech Cambodia for a 2-hour interactive workshop on LLM prompting, autonomous agents, and career pathways in modern AI software development.',
-    sourceType: 'system',
-    source: 'System Announcement',
-    category: 'Academic',
-    date: 'May 20, 2025',
-    time: '02:00 PM',
-    isUnread: false,
-    isPinned: false,
-  },
-  {
-    id: 8,
-    title: 'Quiz #2 Results Released: C Programming',
-    description: 'Scores and automated code reviews for Quiz #2 have been computed. Check your results in the quiz dashboard.',
-    content: 'All submissions for Quiz #2 have been graded. Review your score breakdown, mistakes, and model solutions in the Quiz & Assessment module.',
-    sourceType: 'teacher',
-    source: 'C Programming Basics',
-    teacherName: 'Mr. Sophea',
-    courseName: 'C Programming Basics',
-    category: 'Exams',
-    date: 'May 18, 2025',
-    time: '10:00 AM',
-    isUnread: false,
-    isPinned: false,
-    actionLabel: 'View Results',
-    actionRoute: '/student/quizzes/scores',
-  },
-  {
-    id: 9,
-    title: 'Course Materials Updated for Chapter 4',
-    description: 'Lecture slides, code samples, and lab exercises for Chapter 4 are now ready for download.',
-    content: 'Download the newly uploaded PDF slides and Jupyter notebooks from the course resources section.',
-    sourceType: 'teacher',
-    source: 'Python Programming',
-    teacherName: 'Mr. Sokheng',
-    courseName: 'Python Programming',
-    category: 'Course Updates',
-    date: 'May 15, 2025',
-    time: '01:30 PM',
-    isUnread: false,
-    isPinned: false,
-    actionLabel: 'View Course',
-    actionRoute: '/student/courses/enrolled',
-  }
-]
-
 const props = defineProps<{
   dbAnnouncements?: any[]
 }>()
 
+const currentLang = computed(() => i18n.locale.value)
+
 const mappedDbAnnouncements = computed<Announcement[]>(() => {
   if (!props.dbAnnouncements || props.dbAnnouncements.length === 0) return []
+  const isKm = currentLang.value === 'km'
   return props.dbAnnouncements.map((a: any) => ({
     id: a.id,
-    title: a.title_kh || a.title_en || 'Announcement',
-    description: a.body_kh || a.body_en || '',
-    content: a.body_kh || a.body_en || '',
-    sourceType: 'system' as const,
-    source: 'SPI Official Announcement',
+    title: isKm ? (a.title_kh || a.title_en || 'សេចក្តីប្រកាស') : (a.title_en || a.title_kh || 'Announcement'),
+    description: isKm ? (a.body_kh || a.body_en || '') : (a.body_en || a.body_kh || ''),
+    content: isKm ? (a.body_kh || a.body_en || '') : (a.body_en || a.body_kh || ''),
+    sourceType: (a.audience_type === 'students' ? 'teacher' : 'system') as 'system' | 'teacher',
+    source: isKm ? 'សេចក្តីប្រកាសផ្លូវការ SPI' : 'SPI Official Announcement',
     category: 'Academic',
-    date: new Date(a.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-    time: new Date(a.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+    date: a.created_at ? new Date(a.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '',
+    time: a.created_at ? new Date(a.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '',
     isUnread: true,
     isNew: true,
     isPinned: Boolean(a.is_pinned),
     priority: (a.priority === 'urgent' || a.priority === 'high') ? 'high' : 'normal',
-    actionLabel: 'View Course',
+    actionLabel: isKm ? 'មើលវគ្គសិក្សា' : 'View Courses',
     actionRoute: '/student/my-courses/enrolled',
   }))
 })
 
-// Reactive announcements list
-const announcements = ref<Announcement[]>(
-  mappedDbAnnouncements.value.length > 0
-    ? [...mappedDbAnnouncements.value, ...initialAnnouncements]
-    : initialAnnouncements
-)
+// Reactive announcements list (100% real DB records)
+const announcements = ref<Announcement[]>([...mappedDbAnnouncements.value])
+
+watch(mappedDbAnnouncements, (nextList) => {
+  const prevReadMap = new Map(announcements.value.map(a => [a.id, a.isUnread]))
+  announcements.value = nextList.map(item => ({
+    ...item,
+    isUnread: prevReadMap.has(item.id) ? Boolean(prevReadMap.get(item.id)) : item.isUnread,
+  }))
+})
 
 // Active Source Tab: 'all' | 'system' | 'teacher'
 type SourceTab = 'all' | 'system' | 'teacher'
@@ -267,7 +107,7 @@ const preferences = ref({
   examAlerts: true,
 })
 
-// Dynamic Categories with Counts
+// Dynamic Categories with Counts from real announcements
 const categoryCounts = computed(() => {
   const counts: Record<string, number> = {
     'General': 0,
@@ -277,12 +117,10 @@ const categoryCounts = computed(() => {
     'Exams': 0,
   }
 
-  // Pre-seed realistic numbers matching design
-  counts['General'] = 8
-  counts['Academic'] = 6
-  counts['Course Updates'] = 5
-  counts['Assignments'] = 3
-  counts['Exams'] = 2
+  for (const item of announcements.value) {
+    const key = item.category || 'General'
+    counts[key] = (counts[key] ?? 0) + 1
+  }
 
   return counts
 })

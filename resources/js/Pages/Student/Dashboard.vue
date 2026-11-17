@@ -7,6 +7,33 @@ import WelcomeBanner from '@/Components/Student/WelcomeBanner.vue'
 import { i18n } from '@/Services/i18n'
 
 const props = defineProps<{
+  studentProfile?: {
+    id: number
+    name: string
+    name_kh?: string
+  }
+  academicTerm?: {
+    id?: number | null
+    code?: string | null
+    name?: string | null
+    semesterName?: string | null
+    semesterNum?: string | null
+    en: string
+    km: string
+  }
+  announcements?: Array<{
+    id: number
+    title_en: string
+    title_kh: string
+    body_en: string
+    body_kh: string
+    priority?: string
+    is_pinned?: boolean
+    is_read?: boolean
+    created_at?: string
+    href?: string
+  }>
+  unreadAnnouncementsCount?: number
   hasStudiedBefore?: boolean
   stats?: {
     enrolledCount: number
@@ -20,27 +47,35 @@ const props = defineProps<{
     averageScoreNum?: number
   }
   continueCourse?: {
+    id?: number
     title: string
+    title_kh?: string
     chapter: string
+    chapter_kh?: string
     teacher: string
+    teacher_kh?: string
     progress: number
     lastLesson: string
+    lastLesson_kh?: string
     timeLeft: string
-    thumbnail?: string
+    thumbnail?: string | null
     href: string
-  }
+    overviewHref?: string
+  } | null
   dbCourses?: Array<{
     id: number
     title: string
+    title_kh?: string
     teacher: string
+    teacher_kh?: string
     progress: number
-    status: 'in_progress' | 'completed' | 'not_started'
+    status: 'in_progress' | 'completed' | 'not_started' | 'no_content'
     statusLabel: string
     badgeClass: string
     iconType: string
     iconColor: string
     bgGradient?: string
-    thumbnail?: string
+    thumbnail?: string | null
     href: string
   }>
   recentActivities?: Array<{
@@ -50,6 +85,7 @@ const props = defineProps<{
     title: string
     title_km?: string
     course: string
+    course_km?: string
     time: string
     href: string
     progress?: number
@@ -59,24 +95,30 @@ const props = defineProps<{
     actionLabel?: string
   }>
   upcomingEvents?: Array<{
-    id: number
+    id: string | number
     type: 'quiz' | 'live' | 'assignment'
     title: string
+    title_km?: string
     course: string
+    course_km?: string
     date: string
     time: string
     href: string
   }>
-    todayGoals?: {
+  todayGoals?: {
     completedCount: number
     totalCount: number
     percentage: number
     items: Array<{
-      id: number
-      titleEn: string
-      titleKm: string
-      completed: boolean
-      href: string
+      id: string | number
+      titleEn?: string
+      titleKm?: string
+      title?: string
+      completed?: boolean
+      isCompleted?: boolean
+      href?: string
+      targetRoute?: string
+      createdAt?: number
     }>
   }
   enrollments?: any[]
@@ -326,17 +368,6 @@ async function loadDashboard() {
 onMounted(() => {
   loadDashboard()
   if (typeof window !== 'undefined') {
-    try {
-      const key = 'student_today_goals_' + (user.value?.id || 'default')
-      const saved = localStorage.getItem(key)
-      if (saved) {
-        const parsed = JSON.parse(saved)
-        if (parsed && Array.isArray(parsed.items) && parsed.items.length > 0) {
-          todayGoal.value = parsed
-        }
-      }
-    } catch {}
-
     if ('IntersectionObserver' in window) {
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -360,13 +391,17 @@ onMounted(() => {
 // 6 Top Stats Metrics styled like the Admin Dashboard with vibrant gradients & sparklines
 const statsCards = computed(() => {
   const activeStats = liveStats.value || props.stats || {}
+  const hasQuizAvg = Boolean(
+    props.quizPerformance?.hasData ??
+      (activeStats.averageScore && activeStats.averageScore !== '—' && activeStats.averageScore !== '-')
+  )
 
   let enrolledDisplay = (activeStats.enrolledCount ?? 0).toString()
   let inProgressDisplay = (activeStats.inProgressCount ?? 0).toString()
   let completedDisplay = (activeStats.completedCount ?? 0).toString()
   let certsDisplay = (activeStats.certificatesCount ?? 0).toString()
   let studyTimeDisplay = activeStats.learningTime || '0h 0m'
-  let quizAvgDisplay = activeStats.averageScore || '0%'
+  let quizAvgDisplay = hasQuizAvg ? (activeStats.averageScore || '0%') : '—'
 
   if (loadingStep.value === 'counting') {
     enrolledDisplay = animatedEnrolled.value.toString()
@@ -374,7 +409,7 @@ const statsCards = computed(() => {
     completedDisplay = animatedCompleted.value.toString()
     certsDisplay = animatedCertificates.value.toString()
     studyTimeDisplay = `${animatedStudyHours.value}h ${animatedStudyMinutes.value}m`
-    quizAvgDisplay = `${animatedQuizAvg.value}%`
+    quizAvgDisplay = hasQuizAvg ? `${animatedQuizAvg.value}%` : '—'
   }
 
   return [
@@ -448,78 +483,19 @@ const continueCourseData = computed(() => {
 
 // Today's Goal state & persistence are encapsulated inside TodaysGoalWidget.vue
 
-// AI Recommended For You Widget Data (Connected to Database)
+// AI Recommended For You Widget Data (Strictly connected to `ai_recommendations` in Database)
 const aiRecommendations = computed(() => {
-  if (props.aiRecommendations && props.aiRecommendations.length > 0) {
-    return props.aiRecommendations.map(r => ({
-      ...r,
-      title: currentLang.value === 'km' ? (r.title_km || r.title) : r.title,
-      badge: currentLang.value === 'km' ? (r.badge_km || r.badge) : r.badge,
-      desc: currentLang.value === 'km' ? (r.desc_km || r.desc) : r.desc,
-      actionLabel: currentLang.value === 'km' ? (r.actionLabel_km || r.actionLabel) : r.actionLabel,
-    }))
+  if (!props.aiRecommendations || props.aiRecommendations.length === 0) {
+    return []
   }
-  return [
-    {
-      id: 1,
-      type: 'weak_topic',
-      title: continueCourseData.value ? (currentLang.value === 'km' ? `រំលឹកឡើងវិញ ${continueCourseData.value.title}` : `Review ${continueCourseData.value.title}`) : (currentLang.value === 'km' ? 'រំលឹកមេរៀនវគ្គសិក្សា' : 'Review Course Lessons'),
-      badge: currentLang.value === 'km' ? 'វគ្គកំពុងរៀន' : 'Active Course',
-      desc: continueCourseData.value ? (currentLang.value === 'km' ? `ផ្ដោតលើមេរៀន ${continueCourseData.value.lastLesson} ដើម្បីរក្សាសន្ទុះនៃការរៀន។` : `Focus on ${continueCourseData.value.lastLesson} to maintain steady pace.`) : (currentLang.value === 'km' ? 'ពង្រឹងទស្សនទានគ្រឹះមុនពេលប្រឡងតេស្តបន្ទាប់។' : 'Reinforce core academic concepts before next assessments.'),
-      actionLabel: currentLang.value === 'km' ? 'រំលឹកមេរៀន' : 'Review Lesson',
-      actionHref: continueCourseData.value?.href || '/student/my-courses/enrolled',
-    },
-    {
-      id: 2,
-      type: 'practice_drill',
-      title: currentLang.value === 'km' ? 'អនុវត្តសំណួរ AI ចំនួន ៥' : 'Practice 5 AI Questions',
-      badge: currentLang.value === 'km' ? 'ផ្ដោតលើ: AI Drill' : 'Focus: AI Drill',
-      desc: currentLang.value === 'km' ? 'ការហ្វឹកហាត់សំណួរ AI ឆ្លាតវៃដើម្បីបង្កើនការយល់ដឹង និងភាពត្រឹមត្រូវ។' : 'Customized drill to improve your understanding and accuracy.',
-      actionLabel: currentLang.value === 'km' ? 'អនុវត្តជាមួយ AI' : 'Practice with AI',
-      actionHref: '/student/quizzes/practice',
-    }
-  ]
+  return props.aiRecommendations.map(r => ({
+    ...r,
+    title: currentLang.value === 'km' ? (r.title_km || r.title) : r.title,
+    badge: currentLang.value === 'km' ? (r.badge_km || r.badge) : r.badge,
+    desc: currentLang.value === 'km' ? (r.desc_km || r.desc) : r.desc,
+    actionLabel: currentLang.value === 'km' ? (r.actionLabel_km || r.actionLabel) : r.actionLabel,
+  }))
 })
-
-// Curated Representative Course Cover Images (High-Resolution Professional Thematic Imagery)
-const getCourseFallbackImage = (course: any) => {
-  if (course?.thumbnail) return course.thumbnail
-  const title = (course?.title || '').toLowerCase()
-  if (title.includes('business english') || (title.includes('english') && title.includes('communication'))) {
-    return 'https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=600&q=80'
-  }
-  if (title.includes('english') || title.includes('grammar') || title.includes('language')) {
-    return 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=600&q=80'
-  }
-  if (title.includes('crop') || title.includes('agronomy')) {
-    return 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=600&q=80'
-  }
-  if (title.includes('plant') || title.includes('botany')) {
-    return 'https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?auto=format&fit=crop&w=600&q=80'
-  }
-  if (title.includes('agriculture') || title.includes('organic')) {
-    return 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?auto=format&fit=crop&w=600&q=80'
-  }
-  if (title.includes('tourism') || title.includes('hospitality') || title.includes('hotel')) {
-    return 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80'
-  }
-  if (title.includes('social') || title.includes('community') || title.includes('advocacy')) {
-    return 'https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?auto=format&fit=crop&w=600&q=80'
-  }
-  if (title.includes('mobile') || title.includes('flutter')) {
-    return 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=600&q=80'
-  }
-  if (title.includes('c program') || title.includes('dsa') || title.includes('algorithm')) {
-    return 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=600&q=80'
-  }
-  if (title.includes('machine learning') || title.includes('ai')) {
-    return 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=600&q=80'
-  }
-  if (title.includes('vue') || title.includes('laravel') || title.includes('web')) {
-    return 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=600&q=80'
-  }
-  return 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=600&q=80'
-}
 
 // Course status badge styling helper - Solid high contrast backgrounds (WCAG AA compliant)
 const getCourseStatusBadgeClass = (status: string) => {
@@ -550,89 +526,8 @@ const getEventDateBadge = (item: { date?: string }) => {
   }
 }
 
-// My Courses Filter and List - 6 Representative Courses for 2 full clean rows
+// My Courses Filter and List (100% Database Driven)
 const selectedCourseFilter = ref<'all' | 'in_progress' | 'completed' | 'not_started'>('all')
-
-const fallbackCoursesList = computed(() => [
-  {
-    id: 1,
-    title: currentLang.value === 'km' ? 'មូលដ្ឋានគ្រឹះ Web Development' : 'Web Development Fundamentals',
-    teacher: 'Mr. Sophea Chem',
-    progress: 53,
-    status: 'in_progress' as const,
-    statusLabel: currentLang.value === 'km' ? 'កំពុងសិក្សា' : 'In Progress',
-    badgeClass: 'bg-blue-600/95 text-white border-blue-400/40 shadow-sm',
-    iconType: 'code',
-    iconColor: 'from-blue-600 to-purple-600',
-    thumbnail: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=600&q=80',
-    href: '/student/courses/1/overview'
-  },
-  {
-    id: 2,
-    title: currentLang.value === 'km' ? 'ប្រព័ន្ធមូលដ្ឋានទិន្នន័យ (Database)' : 'Database Systems',
-    teacher: 'Mr. Long Dararith',
-    progress: 35,
-    status: 'in_progress' as const,
-    statusLabel: currentLang.value === 'km' ? 'កំពុងសិក្សា' : 'In Progress',
-    badgeClass: 'bg-blue-600/95 text-white border-blue-400/40 shadow-sm',
-    iconType: 'db',
-    iconColor: 'from-purple-600 to-indigo-600',
-    thumbnail: 'https://images.unsplash.com/photo-1544383835-bda2bc66a55d?auto=format&fit=crop&w=600&q=80',
-    href: '/student/courses/2/overview'
-  },
-  {
-    id: 3,
-    title: currentLang.value === 'km' ? 'ការសរសេរកម្មវិធី Python' : 'Python Programming',
-    teacher: 'Mr. Eng Thida',
-    progress: 0,
-    status: 'not_started' as const,
-    statusLabel: currentLang.value === 'km' ? 'មិនទាន់ចាប់ផ្ដើម' : 'Not Started',
-    badgeClass: 'bg-slate-800/90 text-white border-white/20 shadow-sm',
-    iconType: 'python',
-    iconColor: 'from-amber-600 to-yellow-600',
-    thumbnail: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&w=600&q=80',
-    href: '/student/courses/3/overview'
-  },
-  {
-    id: 4,
-    title: currentLang.value === 'km' ? 'មូលដ្ឋានគ្រឹះ UI/UX Design' : 'UI/UX Design Basics',
-    teacher: 'Ms. Nhean Sreymom',
-    progress: 100,
-    status: 'completed' as const,
-    statusLabel: currentLang.value === 'km' ? 'បានបញ្ចប់' : 'Completed',
-    badgeClass: 'bg-emerald-600/95 text-white border-emerald-400/40 shadow-sm',
-    iconType: 'design',
-    iconColor: 'from-pink-600 to-purple-600',
-    thumbnail: 'https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?auto=format&fit=crop&w=600&q=80',
-    href: '/student/courses/4/overview'
-  },
-  {
-    id: 5,
-    title: currentLang.value === 'km' ? 'បច្ចេកវិទ្យា Cloud & សុវត្ថិភាពបណ្តាញ' : 'Cloud & Network Security',
-    teacher: 'Mr. Chea Sovann',
-    progress: 82,
-    status: 'in_progress' as const,
-    statusLabel: currentLang.value === 'km' ? 'កំពុងសិក្សា' : 'In Progress',
-    badgeClass: 'bg-blue-600/95 text-white border-blue-400/40 shadow-sm',
-    iconType: 'cloud',
-    iconColor: 'from-sky-600 to-indigo-600',
-    thumbnail: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=600&q=80',
-    href: '/student/courses/5/overview'
-  },
-  {
-    id: 6,
-    title: currentLang.value === 'km' ? 'ភាសាអង់គ្លេសសម្រាប់ទំនាក់ទំនងការងារ' : 'Business English Communication',
-    teacher: 'Dr. Virak Chea',
-    progress: 100,
-    status: 'completed' as const,
-    statusLabel: currentLang.value === 'km' ? 'បានបញ្ចប់' : 'Completed',
-    badgeClass: 'bg-emerald-600/95 text-white border-emerald-400/40 shadow-sm',
-    iconType: 'english',
-    iconColor: 'from-emerald-600 to-teal-600',
-    thumbnail: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=600&q=80',
-    href: '/student/courses/6/overview'
-  }
-])
 
 // Pure Eloquent Courses List (Empty array if no courses enrolled)
 const coursesToDisplay = computed(() => {
@@ -773,11 +668,12 @@ const handleSendAiPrompt = async (promptText: string) => {
         time: isKm ? 'ឥឡូវនេះ' : 'Now'
       })
     } else if (qLower.includes('study') || qLower.includes('រៀន') || qLower.includes('recommend') || qLower.includes('plan')) {
+      const avgLabel = props.stats?.averageScore && props.stats.averageScore !== '—' ? props.stats.averageScore : '—'
       aiMessages.value.push({
         role: 'ai',
         text: isKm
-          ? `ផ្អែកលើការវិភាគទិន្នន័យសិក្សាពិតរបស់អ្នកក្នុង Database:\n1. **បន្តរៀន ${lessonTitle}** ក្នុងវគ្គ "${courseTitle}" (វឌ្ឍនភាព ${continueCourseData.value?.progress || 0}%)។\n2. **រំលឹកចំណុចខ្សោយ** ក្នុង Quiz ដើម្បីបង្កើនពិន្ទុមធ្យម ${props.stats?.averageScore || '72%'}។\n3. **អនុវត្តសំណួរ ៥ សំណួរ** មុននឹងឈានទៅមេរៀនបន្ទាប់!`
-          : `Based on your real database analytics:\n1. **Continue ${lessonTitle}** in "${courseTitle}" (${continueCourseData.value?.progress || 0}% watched).\n2. **Review weak areas** to raise your academic score beyond ${props.stats?.averageScore || '72%'}.\n3. **Practice 5 drill questions** before your next milestone!`,
+          ? `ផ្អែកលើការវិភាគទិន្នន័យសិក្សាពិតរបស់អ្នកក្នុង Database:\n1. **បន្តរៀន ${lessonTitle}** ក្នុងវគ្គ "${courseTitle}" (វឌ្ឍនភាព ${continueCourseData.value?.progress || 0}%)។\n2. **រំលឹកចំណុចខ្សោយ** ក្នុង Quiz ដើម្បីបង្កើនពិន្ទុមធ្យម (${avgLabel})។\n3. **អនុវត្តសំណួរ ៥ សំណួរ** មុននឹងឈានទៅមេរៀនបន្ទាប់!`
+          : `Based on your real database analytics:\n1. **Continue ${lessonTitle}** in "${courseTitle}" (${continueCourseData.value?.progress || 0}% watched).\n2. **Review weak areas** to raise your academic score (${avgLabel}).\n3. **Practice 5 drill questions** before your next milestone!`,
         time: isKm ? 'ឥឡូវនេះ' : 'Now'
       })
     } else if (qLower.includes('explain') || qLower.includes('ពន្យល់')) {
@@ -881,7 +777,7 @@ const achievements = computed(() => {
       id: 'top_performer',
       title: currentLang.value === 'km' ? 'លទ្ធផលឆ្នើម' : 'Top Performer',
       desc: currentLang.value === 'km' ? 'ទទួលបានវិញ្ញាបនបត្រផ្លូវការ និងនិទ្ទេសល្អ' : 'Earned verified certificates and honor grades',
-      progressText: currentLang.value === 'km' ? 'ចំណាត់ថ្នាក់ Top 10%' : 'Rank Top 10%',
+      progressText: currentLang.value === 'km' ? '០ វិញ្ញាបនបត្រ' : '0 certs',
       type: 'trophy',
       color: 'from-yellow-400 via-amber-500 to-orange-600',
       shadowColor: 'shadow-amber-600/30',
@@ -898,7 +794,7 @@ const recentActivities = computed(() => {
   }
   const rawList = props.recentActivities
 
-  return rawList.map((a, index) => {
+  return rawList.map((a) => {
     const rawTitle = (currentLang.value === 'km' && a.title_km) ? a.title_km : (a.title || '')
     // Strip prefixes like "Watched:", "បានទស្សនា:", etc. completely
     const cleanTitle = rawTitle.replace(/^(Watched:\s*|បានទស្សនា:\s*|Completed Quiz:\s*|បានបញ្ចប់ Quiz:\s*|Downloaded:\s*|បានទាញយក:\s*)/i, '').trim()
@@ -912,10 +808,9 @@ const recentActivities = computed(() => {
       category = currentLang.value === 'km' ? 'ការអនុវត្ត' : 'Lab'
     }
 
-    const defaultProgressSteps = [35, 60, 80]
-    const p = (a as any).progress ?? (a as any).percent ?? defaultProgressSteps[index % defaultProgressSteps.length]
+    const p = (a as any).progress ?? (a as any).percent ?? 0
 
-    const rawTime = a.time || (currentLang.value === 'km' ? '៦ ម៉ោងមុន' : '6 hours ago')
+    const rawTime = a.time || ''
     const shortTime = rawTime
       .replace(/(\d+)\s*hours?\s*ago/i, '$1h ago')
       .replace(/(\d+)\s*days?\s*ago/i, '$1d ago')
@@ -925,11 +820,12 @@ const recentActivities = computed(() => {
 
     return {
       ...a,
+      courseDisplay: currentLang.value === 'km' ? (a.course_km || a.course) : a.course,
       cleanTitle,
       category,
       time: rawTime,
       shortTime,
-      progress: Math.min(100, Math.max(5, Math.round(p)))
+      progress: Math.min(100, Math.max(0, Math.round(p)))
     }
   })
 })
@@ -946,9 +842,10 @@ const recentActivities = computed(() => {
       
       <!-- TOP GREETING & QUICK SHORTCUTS ROW (Compact WelcomeBanner) -->
       <WelcomeBanner
-        :student-name="currentLang === 'km' ? (user?.name_kh || (user?.name === 'Mengly Khun' ? 'ម៉េងលី ឃុន' : (user?.name || 'និស្សិត'))) : (user?.name || 'Student')"
-        academic-term="Active Academic Term 2026-2027"
-        :unread-announcements-count="(page.props as any)?.student_notifications?.unread_count || 0"
+        :student-name="currentLang === 'km' ? (props.studentProfile?.name_kh || user?.name_kh || props.studentProfile?.name || user?.name || '') : (props.studentProfile?.name || user?.name || '')"
+        :academic-term="props.academicTerm?.en || ''"
+        :academic-term-km="props.academicTerm?.km || ''"
+        :unread-announcements-count="props.unreadAnnouncementsCount ?? (page.props as any)?.student_notifications?.unread_count ?? 0"
         :current-lang="currentLang"
         :has-studied-before="hasStudiedBefore"
       />
@@ -1124,17 +1021,21 @@ const recentActivities = computed(() => {
             <div v-if="continueCourseData" class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-[#0b57d0] hover:shadow-md hover:dark:border-[#1a73e8]/70 rounded-3xl p-6 shadow-sm dark:shadow-xl flex flex-col md:flex-row items-center gap-5 sm:gap-6 relative overflow-hidden transition-all duration-300">
               
               <!-- Real Course Thumbnail for Continue Learning -->
-              <div class="relative w-full md:w-36 h-28 rounded-2xl overflow-hidden shrink-0 flex-shrink-0 shadow-md bg-slate-900 border border-[#dfe3e7] dark:border-[#2d2f31]">
+              <div class="relative w-full md:w-36 h-28 rounded-2xl overflow-hidden shrink-0 flex-shrink-0 shadow-md bg-gradient-to-br from-purple-600/90 via-indigo-600 to-slate-800 border border-[#dfe3e7] dark:border-[#2d2f31] flex items-center justify-center">
                 <img
-                  :src="continueCourseData.thumbnail || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=600&q=80'"
-                  :alt="continueCourseData.title"
+                  v-if="continueCourseData.thumbnail"
+                  :src="continueCourseData.thumbnail"
+                  :alt="currentLang === 'km' ? (continueCourseData.title_kh || continueCourseData.title) : continueCourseData.title"
                   class="w-full h-full object-cover"
                   loading="lazy"
                 />
+                <svg v-else class="w-9 h-9 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
                 <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-2">
                   <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-400 text-slate-950 font-black text-[10px] shadow-sm">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
-                    <span>Active</span>
+                    <span>{{ currentLang === 'km' ? 'សកម្ម' : 'Active' }}</span>
                   </span>
                 </div>
               </div>
@@ -1143,13 +1044,13 @@ const recentActivities = computed(() => {
               <div class="flex-1 w-full space-y-3 min-w-0">
                 <div class="space-y-1">
                   <span class="px-2.5 py-0.5 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/15 text-[#475569] dark:text-[#a8c7fa] text-[13px] font-semibold border border-[#d2e3fc] dark:border-[#1a73e8]/30 inline-block">
-                    {{ currentLang === 'km' ? 'គ្រូបង្រៀន: ' : 'Teacher: ' }}{{ continueCourseData.teacher }}
+                    {{ currentLang === 'km' ? 'គ្រូបង្រៀន: ' : 'Teacher: ' }}{{ currentLang === 'km' ? (continueCourseData.teacher_kh || continueCourseData.teacher) : continueCourseData.teacher }}
                   </span>
                   <h3 class="text-base font-bold text-[#1f1f1f] dark:text-[#e3e3e3] leading-tight truncate">
-                    {{ continueCourseData.title }}
+                    {{ currentLang === 'km' ? (continueCourseData.title_kh || continueCourseData.title) : continueCourseData.title }}
                   </h3>
                   <p class="text-[13.5px] text-[#475569] dark:text-[#c4c7c5] font-medium truncate">
-                    {{ continueCourseData.chapter }}
+                    {{ currentLang === 'km' ? (continueCourseData.chapter_kh || continueCourseData.chapter) : continueCourseData.chapter }}
                   </p>
                 </div>
 
@@ -1159,7 +1060,7 @@ const recentActivities = computed(() => {
                     <div class="h-full bg-[#0b57d0] dark:bg-[#a8c7fa] rounded-full transition-all duration-900 ease-out" :style="{ width: continueCourseData.progress + '%' }"></div>
                   </div>
                   <div class="flex items-center justify-between text-[13.5px] text-[#475569] dark:text-[#c4c7c5] font-medium min-w-0">
-                    <span class="truncate min-w-0 flex-1 mr-3">{{ currentLang === 'km' ? 'មេរៀនចុងក្រោយ: ' : 'Last lesson: ' }}{{ continueCourseData.lastLesson }}</span>
+                    <span class="truncate min-w-0 flex-1 mr-3">{{ currentLang === 'km' ? 'មេរៀនចុងក្រោយ: ' : 'Last lesson: ' }}{{ currentLang === 'km' ? (continueCourseData.lastLesson_kh || continueCourseData.lastLesson) : continueCourseData.lastLesson }}</span>
                     <span class="tabular-nums font-semibold flex items-center gap-1 shrink-0 flex-shrink-0 whitespace-nowrap">
                       <svg class="w-3.5 h-3.5 text-[#0b57d0] dark:text-[#8ab4f8]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       {{ continueCourseData.timeLeft }}
@@ -1254,13 +1155,17 @@ const recentActivities = computed(() => {
                 class="course-card-scroll bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-[#0b57d0] hover:dark:border-[#1a73e8]/70 hover:dark:bg-[#232426] rounded-2xl p-4.5 sm:p-5 shadow-xs dark:shadow-xl flex flex-col justify-between space-y-3.5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md group"
               >
                 <!-- Real Representative Course Thumbnail Image -->
-                <div class="relative w-full h-36 rounded-2xl overflow-hidden bg-slate-900 border border-[#dfe3e7] dark:border-[#2d2f31] shadow-xs">
+                <div class="relative w-full h-36 rounded-2xl overflow-hidden bg-gradient-to-br from-purple-600/90 via-indigo-600 to-slate-800 border border-[#dfe3e7] dark:border-[#2d2f31] shadow-xs flex items-center justify-center">
                   <img
-                    :src="c.thumbnail || getCourseFallbackImage(c)"
-                    :alt="c.title"
+                    v-if="c.thumbnail"
+                    :src="c.thumbnail"
+                    :alt="currentLang === 'km' ? (c.title_kh || c.title) : c.title"
                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     loading="lazy"
                   />
+                  <svg v-else class="w-10 h-10 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
                   <!-- Vignette gradient overlay for text and badge contrast -->
                   <div class="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/20 pointer-events-none"></div>
 
@@ -1277,12 +1182,12 @@ const recentActivities = computed(() => {
 
                 <!-- Course Title & Instructor (4px gap between title and teacher) -->
                 <div class="space-y-1">
-                  <h4 class="text-[15px] font-bold text-slate-900 dark:text-[#e2e8f0] group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors line-clamp-2 min-h-[2.5rem] leading-snug" :title="c.title">
-                    {{ c.title }}
+                  <h4 class="text-[15px] font-bold text-slate-900 dark:text-[#e2e8f0] group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors line-clamp-2 min-h-[2.5rem] leading-snug" :title="currentLang === 'km' ? (c.title_kh || c.title) : c.title">
+                    {{ currentLang === 'km' ? (c.title_kh || c.title) : c.title }}
                   </h4>
                   <p class="text-[13px] text-[#475569] dark:text-[#94a3b8] flex items-center gap-1.5 font-medium">
                     <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
-                    <span class="truncate">{{ c.teacher }}</span>
+                    <span class="truncate">{{ currentLang === 'km' ? (c.teacher_kh || c.teacher) : c.teacher }}</span>
                   </p>
                 </div>
 
@@ -1674,7 +1579,7 @@ const recentActivities = computed(() => {
 
                   <!-- បន្ទាត់ទី ៣: ឈ្មោះវគ្គសិក្សា (14px #475569, 1 ជួរ truncate) -->
                   <p class="text-[14px] text-[#475569] dark:text-slate-400 truncate font-medium">
-                    {{ act.course }}
+                    {{ act.courseDisplay }}
                   </p>
 
                   <!-- Progress bar តូច (4px) បង្ហាញដំណាក់កាលមេរៀន (ឧ. 35% watched) -->
@@ -1827,18 +1732,18 @@ const recentActivities = computed(() => {
             </div>
 
             <p class="text-[14px] text-slate-600 dark:text-slate-300 font-medium">
-              {{ currentLang === 'km' ? 'ផ្អែកលើពិន្ទុ Quiz ថ្មីៗ និងល្បឿននៃការរៀនរបស់អ្នក:' : 'Based on your recent quiz scores & learning pace:' }}
+              {{ currentLang === 'km' ? 'ផ្អែកលើទិន្នន័យសិក្សា និងលទ្ធផល Quiz របស់អ្នកក្នុង Database:' : 'Based on your real quiz scores & learning progress:' }}
             </p>
 
-            <div class="space-y-2.5">
+            <div v-if="aiRecommendations.length > 0" class="space-y-2.5">
               <div
                 v-for="rec in aiRecommendations"
                 :key="rec.id"
                 class="p-3.5 rounded-2xl bg-[#f8fafd] dark:bg-[#131314] border border-[#dfe3e7] dark:border-[#2d2f31] space-y-2"
               >
-                <div class="flex items-center justify-between">
+                <div class="flex items-center justify-between gap-2">
                   <h4 class="font-bold text-slate-900 dark:text-slate-100 text-[15px] leading-snug">{{ rec.title }}</h4>
-                  <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#d3e3fd] text-[#041e49] border border-[#0b57d0]/20 dark:bg-[#1a73e8]/20 dark:text-[#a8c7fa] dark:border-[#1a73e8]/30">
+                  <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#d3e3fd] text-[#041e49] border border-[#0b57d0]/20 dark:bg-[#1a73e8]/20 dark:text-[#a8c7fa] dark:border-[#1a73e8]/30 shrink-0 whitespace-nowrap">
                     {{ rec.badge }}
                   </span>
                 </div>
@@ -1863,6 +1768,23 @@ const recentActivities = computed(() => {
                   </div>
                 </div>
               </div>
+            </div>
+
+            <!-- Empty State when no rows exist in `ai_recommendations` for this student -->
+            <div v-else class="p-5 rounded-2xl bg-[#f8fafd] dark:bg-[#131314] border border-dashed border-[#dfe3e7] dark:border-[#2d2f31] text-center space-y-2.5">
+              <p class="text-xs font-medium text-slate-600 dark:text-slate-300">
+                {{ currentLang === 'km' ? 'មិនទាន់មានការណែនាំពី AI សម្រាប់គណនីរបស់អ្នកនៅឡើយទេ។' : 'No AI study recommendations generated for your account yet.' }}
+              </p>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                {{ currentLang === 'km' ? 'សូមចូលរៀនមេរៀន ឬធ្វើ Quiz ដើម្បីឲ្យ AI វិភាគ និងណែនាំ។' : 'Complete lessons or quizzes so AI can analyze and recommend next steps.' }}
+              </p>
+              <Link
+                href="/student/browse"
+                class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-[#6366f1] to-[#7c3aed] text-white shadow-sm hover:opacity-95 transition"
+              >
+                <span>{{ currentLang === 'km' ? 'ស្វែងរកវគ្គសិក្សា' : 'Browse Courses' }}</span>
+                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+              </Link>
             </div>
           </div>
 
@@ -1907,11 +1829,11 @@ const recentActivities = computed(() => {
                     </span>
                     <span class="text-xs text-[#444746] dark:text-[#c4c7c5] tabular-nums font-medium">• {{ item.time }}</span>
                   </div>
-                  <h4 class="font-bold text-slate-900 dark:text-slate-100 text-[14px] leading-snug line-clamp-2 group-hover:text-[#0b57d0] dark:group-hover:text-[#8ab4f8] transition-colors" :title="item.title">
-                    {{ item.title }}
+                  <h4 class="font-bold text-slate-900 dark:text-slate-100 text-[14px] leading-snug line-clamp-2 group-hover:text-[#0b57d0] dark:group-hover:text-[#8ab4f8] transition-colors" :title="currentLang === 'km' ? (item.title_km || item.title) : item.title">
+                    {{ currentLang === 'km' ? (item.title_km || item.title) : item.title }}
                   </h4>
                   <p class="text-[13px] text-slate-500 dark:text-slate-400 truncate font-medium">
-                    {{ item.course }}
+                    {{ currentLang === 'km' ? (item.course_km || item.course) : item.course }}
                   </p>
                 </div>
               </Link>

@@ -718,6 +718,12 @@ Route::middleware(['auth'])->group(function () {
 
         // 15. Student Preferences (sidebar_collapsed, theme, locale)
         Route::patch('/preferences', [Student\PreferenceController::class, 'update'])->name('preferences.update');
+
+        // 16. Student Daily Goals (Database CRUD)
+        Route::get('/goals', [Student\DashboardController::class, 'getGoals'])->name('goals.index');
+        Route::post('/goals', [Student\DashboardController::class, 'storeGoal'])->name('goals.store');
+        Route::patch('/goals/{goal}', [Student\DashboardController::class, 'toggleGoal'])->name('goals.toggle');
+        Route::delete('/goals/{goal}', [Student\DashboardController::class, 'destroyGoal'])->name('goals.destroy');
     });
 });
 

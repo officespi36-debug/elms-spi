@@ -241,7 +241,7 @@ class CourseProgressService
             $state = 'coming_soon';
             $percent = 0;
             $stateLabel = 'Coming Soon';
-        } elseif ($totalLessons > 0 && $doneCount >= $totalLessons) {
+        } elseif (($totalLessons > 0 && $doneCount >= $totalLessons) || ($enrollment && $enrollment->status === 'completed')) {
             $state = 'completed';
             $percent = 100;
             $stateLabel = 'Completed';

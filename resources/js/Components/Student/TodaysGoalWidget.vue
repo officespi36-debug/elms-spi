@@ -21,10 +21,9 @@ interface LegacyGoalPayload {
     isCompleted?: boolean
     href?: string
     targetRoute?: string
+    createdAt?: number
   }>
 }
-
-const STORAGE_KEY = 'spi_lms_todays_goals'
 
 const props = withDefaults(
   defineProps<{
@@ -47,107 +46,74 @@ const emit = defineEmits<{
   (e: 'open-task', task: GoalItem): void
 }>()
 
-const storageKey = computed(() =>
-  props.userId ? `${STORAGE_KEY}_${props.userId}` : STORAGE_KEY
-)
-
-const buildDefaultGoals = (): GoalItem[] => {
-  if (Array.isArray(props.initialGoals) && props.initialGoals.length > 0) {
-    return props.initialGoals.map((item, index) => ({
-      id: String(item.id ?? `goal-${Date.now()}-${index}`),
-      title: item.title,
-      titleKm: item.titleKm,
+const mapGoalPayload = (payload: LegacyGoalPayload | GoalItem[] | null | undefined): GoalItem[] => {
+  if (Array.isArray(payload)) {
+    return payload.map((item, index) => ({
+      id: String(item.id ?? index),
+      title: String(item.title ?? ''),
+      titleKm: item.titleKm ? String(item.titleKm) : undefined,
       isCompleted: Boolean(item.isCompleted),
       targetRoute: item.targetRoute || '/student/my-courses/enrolled',
       createdAt: Number(item.createdAt || Date.now()),
     }))
   }
 
-  if (
-    props.initialGoals &&
-    !Array.isArray(props.initialGoals) &&
-    Array.isArray(props.initialGoals.items) &&
-    props.initialGoals.items.length > 0
-  ) {
-    return props.initialGoals.items.map((item, index) => ({
-      id: String(item.id ?? `goal-${Date.now()}-${index}`),
-      title: item.titleEn || item.title || item.titleKm || 'Study Goal',
+  if (payload && Array.isArray(payload.items)) {
+    return payload.items.map((item, index) => ({
+      id: String(item.id ?? index),
+      title: item.titleEn || item.title || item.titleKm || '',
       titleKm: item.titleKm || item.titleEn || item.title,
       isCompleted: Boolean(item.isCompleted ?? item.completed),
       targetRoute: item.targetRoute || item.href || '/student/my-courses/enrolled',
-      createdAt: Date.now() + index,
+      createdAt: Number(item.createdAt || Date.now()),
     }))
   }
 
-  return [
-    {
-      id: 'default-1',
-      title: 'Modern Crop Agronomy - Lesson 1.2: Advanced Applications',
-      titleKm: 'Modern Crop Agronomy - មេរៀន ១.២៖ ការអនុវត្តកម្រិតខ្ពស់',
-      isCompleted: true,
-      targetRoute: '/student/my-courses/current',
-      createdAt: Date.now(),
-    },
-    {
-      id: 'default-2',
-      title: 'Practice 10 quiz questions',
-      titleKm: 'អនុវត្តសំណួរ Quiz ចំនួន ១០',
-      isCompleted: false,
-      targetRoute: '/student/quizzes/practice',
-      createdAt: Date.now() + 1,
-    },
-  ]
+  return []
 }
 
-const goals = ref<GoalItem[]>([])
+const goals = ref<GoalItem[]>(mapGoalPayload(props.initialGoals))
 const isAddingGoal = ref(false)
+const isSaving = ref(false)
+const pendingIds = ref<Record<string, boolean>>({})
+const goalError = ref<string | null>(null)
 const newGoalTitle = ref('')
 const goalInputRef = ref<HTMLInputElement | null>(null)
 
-const loadGoals = () => {
-  if (typeof window !== 'undefined') {
-    try {
-      const raw = localStorage.getItem(storageKey.value)
-      if (raw) {
-        const parsed = JSON.parse(raw)
-        if (Array.isArray(parsed)) {
-          goals.value = parsed.map((item, idx) => ({
-            id: String(item.id ?? `goal-${idx}`),
-            title: String(item.title ?? ''),
-            titleKm: item.titleKm ? String(item.titleKm) : undefined,
-            isCompleted: Boolean(item.isCompleted),
-            targetRoute: item.targetRoute ? String(item.targetRoute) : undefined,
-            createdAt: Number(item.createdAt || Date.now()),
-          }))
-          return
-        }
+const getCsrfHeaders = (): Record<string, string> => {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest',
+  }
+  if (typeof document !== 'undefined') {
+    const meta = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content
+    if (meta) {
+      headers['X-CSRF-TOKEN'] = meta
+    } else {
+      const xsrfMatch = document.cookie.match(/XSRF-TOKEN=([^;]+)/)
+      if (xsrfMatch) {
+        headers['X-XSRF-TOKEN'] = decodeURIComponent(xsrfMatch[1])
       }
-    } catch {
-      // Fallback to initialGoals if localStorage is malformed
     }
   }
-  goals.value = buildDefaultGoals()
+  return headers
 }
 
-const persistGoals = () => {
-  if (typeof window !== 'undefined') {
-    try {
-      localStorage.setItem(storageKey.value, JSON.stringify(goals.value))
-    } catch {
-      // Ignore quota errors
-    }
-  }
+const syncFromProps = () => {
+  goals.value = mapGoalPayload(props.initialGoals)
 }
 
 onMounted(() => {
-  loadGoals()
+  syncFromProps()
 })
 
 watch(
-  () => storageKey.value,
+  () => props.initialGoals,
   () => {
-    loadGoals()
-  }
+    syncFromProps()
+  },
+  { deep: true }
 )
 
 const totalCount = computed(() => goals.value.length)
@@ -156,20 +122,76 @@ const progressPercent = computed(() =>
   totalCount.value === 0 ? 0 : Math.round((completedCount.value / totalCount.value) * 100)
 )
 
-const toggleGoal = (goalId: string) => {
+const toggleGoal = async (goalId: string) => {
   const target = goals.value.find(g => g.id === goalId)
-  if (!target) return
-  target.isCompleted = !target.isCompleted
-  persistGoals()
+  if (!target || pendingIds.value[goalId]) return
+
+  goalError.value = null
+  const previous = target.isCompleted
+  target.isCompleted = !previous
+  pendingIds.value[goalId] = true
+
+  try {
+    const response = await fetch(`/student/goals/${encodeURIComponent(goalId)}`, {
+      method: 'PATCH',
+      credentials: 'same-origin',
+      headers: getCsrfHeaders(),
+      body: JSON.stringify({ is_completed: target.isCompleted }),
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`)
+    }
+
+    const data = await response.json().catch(() => null)
+    if (data?.todayGoals) {
+      goals.value = mapGoalPayload(data.todayGoals)
+    }
+  } catch {
+    target.isCompleted = previous
+    goalError.value = props.currentLang === 'km'
+      ? 'មិនអាចរក្សាទុកការផ្លាស់ប្តូរគោលដៅបានទេ'
+      : 'Could not update study goal'
+  } finally {
+    pendingIds.value[goalId] = false
+  }
 }
 
-const deleteGoal = (goalId: string) => {
+const deleteGoal = async (goalId: string) => {
+  if (pendingIds.value[goalId]) return
+  goalError.value = null
+  const snapshot = [...goals.value]
   goals.value = goals.value.filter(g => g.id !== goalId)
-  persistGoals()
+  pendingIds.value[goalId] = true
+
+  try {
+    const response = await fetch(`/student/goals/${encodeURIComponent(goalId)}`, {
+      method: 'DELETE',
+      credentials: 'same-origin',
+      headers: getCsrfHeaders(),
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`)
+    }
+
+    const data = await response.json().catch(() => null)
+    if (data?.todayGoals) {
+      goals.value = mapGoalPayload(data.todayGoals)
+    }
+  } catch {
+    goals.value = snapshot
+    goalError.value = props.currentLang === 'km'
+      ? 'មិនអាចលុបគោលដៅបានទេ'
+      : 'Could not delete study goal'
+  } finally {
+    pendingIds.value[goalId] = false
+  }
 }
 
 const openAddInput = async () => {
   isAddingGoal.value = !isAddingGoal.value
+  goalError.value = null
   if (isAddingGoal.value) {
     await nextTick()
     goalInputRef.value?.focus()
@@ -180,25 +202,49 @@ const openAddInput = async () => {
 
 const cancelAddGoal = () => {
   newGoalTitle.value = ''
+  goalError.value = null
   isAddingGoal.value = false
 }
 
-const saveNewGoal = () => {
+const saveNewGoal = async () => {
   const trimmed = newGoalTitle.value.trim()
-  if (!trimmed) return
+  if (!trimmed || isSaving.value) return
 
-  goals.value.push({
-    id: `goal-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-    title: trimmed,
-    titleKm: trimmed,
-    isCompleted: false,
-    targetRoute: '/student/my-courses/enrolled',
-    createdAt: Date.now(),
-  })
+  isSaving.value = true
+  goalError.value = null
 
-  newGoalTitle.value = ''
-  isAddingGoal.value = false
-  persistGoals()
+  try {
+    const response = await fetch('/student/goals', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: getCsrfHeaders(),
+      body: JSON.stringify({
+        title: trimmed,
+        title_km: trimmed,
+        target_route: '/student/my-courses/enrolled',
+      }),
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`)
+    }
+
+    const data = await response.json().catch(() => null)
+    if (data?.todayGoals) {
+      goals.value = mapGoalPayload(data.todayGoals)
+    } else if (data?.goal) {
+      goals.value.push(data.goal)
+    }
+
+    newGoalTitle.value = ''
+    isAddingGoal.value = false
+  } catch {
+    goalError.value = props.currentLang === 'km'
+      ? 'មិនអាចរក្សាទុកគោលដៅទៅ Database បានទេ'
+      : 'Could not save study goal to database'
+  } finally {
+    isSaving.value = false
+  }
 }
 
 const handleOpenTask = (task: GoalItem) => {
@@ -299,13 +345,21 @@ const handleOpenTask = (task: GoalItem) => {
           <button
             @click="saveNewGoal"
             type="button"
-            :disabled="!newGoalTitle.trim()"
+            :disabled="!newGoalTitle.trim() || isSaving"
             class="px-3 py-1 rounded-lg bg-gradient-to-r from-[#2563EB] via-[#4F46E5] to-[#7C3AED] text-white text-xs font-semibold shadow-xs hover:opacity-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition"
           >
-            {{ currentLang === 'km' ? 'រក្សាទុក' : 'Save' }}
+            {{ isSaving ? (currentLang === 'km' ? 'កំពុងរក្សាទុក...' : 'Saving...') : (currentLang === 'km' ? 'រក្សាទុក' : 'Save') }}
           </button>
         </div>
       </div>
+
+      <p
+        v-if="goalError"
+        role="alert"
+        class="mt-2.5 text-xs font-medium text-rose-600 dark:text-rose-400"
+      >
+        {{ goalError }}
+      </p>
 
       <!-- Progress Section -->
       <div class="mt-4">
