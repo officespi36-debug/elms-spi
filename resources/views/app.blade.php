@@ -265,7 +265,8 @@
 </head>
 
 <body class="font-sans antialiased min-h-screen notranslate" translate="no">
-    
+    <x-system-notice />
+
     <!-- Instant Initial Page Preloader (GPU-Composited 12-Dot Spinning Blue Ring + Text) -->
     <div id="initial-page-preloader" role="status" aria-live="polite">
         <div class="init-ring-wrap" aria-hidden="true">
