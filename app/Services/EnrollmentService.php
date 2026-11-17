@@ -62,8 +62,7 @@ class EnrollmentService
                     $existing->save();
 
                     Cache::forget("student.{$student->id}.new_enrollments");
-                    Cache::forget("student_enrolled_{$student->id}_v2");
-                    Cache::forget("student_enrolled_{$student->id}_v3");
+                    app(DashboardAnalyticsService::class)->invalidateUserCache($student->id);
                     $this->sendNotification($student, $course, $source, $actor, $semesterVal);
                 }
                 return $existing;
@@ -97,8 +96,7 @@ class EnrollmentService
             ]);
 
             Cache::forget("student.{$student->id}.new_enrollments");
-            Cache::forget("student_enrolled_{$student->id}_v2");
-            Cache::forget("student_enrolled_{$student->id}_v3");
+            app(DashboardAnalyticsService::class)->invalidateUserCache($student->id);
 
             // Send notification for third-party enrollments
             if ($status === 'active' && $source !== 'self') {

@@ -27,10 +27,11 @@ interface EnrolledCourseItem {
   status: 'in_progress' | 'not_started' | 'completed' | 'coming_soon' | 'no_content'
   statusLabel: string
   progress: number
+  progress_percentage?: number
   teacher: {
     name: string
     name_kh?: string
-    avatar: string
+    avatar?: string | null
     role?: string
   }
   currentChapter: string
@@ -38,6 +39,7 @@ interface EnrolledCourseItem {
   totalChapters: number
   completedChapters: number
   currentLesson: string
+  currentLessonKh?: string
   completedLessons: number
   totalLessons: number
   remainingTime: string
@@ -63,6 +65,11 @@ const props = defineProps<{
     coming_soon?: number
   }
   categories?: string[]
+  categoryOptions?: Array<{
+    value: string
+    label_en: string
+    label_km: string
+  }>
   savedOfflineCourseIds?: number[]
   filters?: {
     status?: string
@@ -82,14 +89,22 @@ const selectedSort = ref(props.filters?.sort || 'newest')
 const resolveInitialViewMode = (): 'grid' | 'list' => {
   if (typeof window !== 'undefined') {
     const urlView = new URLSearchParams(window.location.search).get('view')
-    if (urlView === 'grid' || urlView === 'list') return urlView
+    if (urlView === 'grid' || urlView === 'list') {
+      try { localStorage.setItem('elms_courses_view', urlView) } catch (e) {}
+      return urlView
+    }
+  }
+  if (props.filters?.view === 'grid' || props.filters?.view === 'list') {
+    if (typeof window !== 'undefined') {
+      try { localStorage.setItem('elms_courses_view', props.filters.view) } catch (e) {}
+    }
+    return props.filters.view
+  }
+  if (typeof window !== 'undefined') {
     try {
       const savedLocal = localStorage.getItem('elms_courses_view')
       if (savedLocal === 'grid' || savedLocal === 'list') return savedLocal
     } catch (e) {}
-  }
-  if (props.filters?.view === 'grid' || props.filters?.view === 'list') {
-    return props.filters.view
   }
   return 'grid'
 }
@@ -97,14 +112,19 @@ const resolveInitialViewMode = (): 'grid' | 'list' => {
 const viewMode = ref<'grid' | 'list'>(resolveInitialViewMode())
 
 watch(() => props.filters?.view, (v) => {
-  if (typeof window === 'undefined') return
-  const urlView = new URLSearchParams(window.location.search).get('view')
-  if ((urlView === 'grid' || urlView === 'list') && urlView !== viewMode.value) {
-    viewMode.value = urlView
-    return
+  if (typeof window !== 'undefined') {
+    const urlView = new URLSearchParams(window.location.search).get('view')
+    if (urlView === 'grid' || urlView === 'list') {
+      if (urlView !== viewMode.value) viewMode.value = urlView
+      try { localStorage.setItem('elms_courses_view', urlView) } catch (e) {}
+      return
+    }
   }
-  if ((v === 'grid' || v === 'list') && urlView === v && v !== viewMode.value) {
+  if ((v === 'grid' || v === 'list') && v !== viewMode.value) {
     viewMode.value = v
+    if (typeof window !== 'undefined') {
+      try { localStorage.setItem('elms_courses_view', v) } catch (e) {}
+    }
   }
 })
 watch(() => props.filters?.status, (s) => {
@@ -152,22 +172,33 @@ const counts = computed(() => {
   return { all, in_progress, not_started, completed, coming_soon }
 })
 
-const availableCategories = computed(() => {
-  if (props.categories && props.categories.length > 0) {
-    return props.categories
-  }
-  const set = new Set(courses.value.map(c => c.category).filter(Boolean))
-  return Array.from(set)
-})
-
 const categoryKhMap = computed<Record<string, string>>(() => {
   const map: Record<string, string> = {}
+  for (const opt of props.categoryOptions || []) {
+    if (opt.value && opt.label_km) {
+      map[opt.value] = opt.label_km
+    }
+  }
   for (const c of courses.value) {
     if (c.category && c.categoryKh) {
       map[c.category] = c.categoryKh
     }
   }
   return map
+})
+
+const availableCategoryOptions = computed(() => {
+  if (props.categoryOptions && props.categoryOptions.length > 0) {
+    return props.categoryOptions
+  }
+  const list = props.categories && props.categories.length > 0
+    ? props.categories
+    : Array.from(new Set(courses.value.map(c => c.category).filter(Boolean)))
+  return list.map(cat => ({
+    value: cat,
+    label_en: cat,
+    label_km: categoryKhMap.value[cat] || (cat === 'Academic Studies' ? 'ការសិក្សាទូទៅ' : cat),
+  }))
 })
 
 const localizedCategory = (category: string) => {
@@ -595,8 +626,8 @@ onUnmounted(() => {
               class="appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300 text-xs rounded-xl pl-3 pr-8 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-500/50 cursor-pointer shadow-xs"
             >
               <option value="all">{{ t('គ្រប់ប្រភេទ', 'All Categories') }}</option>
-              <option v-for="cat in availableCategories" :key="cat" :value="cat">
-                {{ localizedCategory(cat) }}
+              <option v-for="cat in availableCategoryOptions" :key="cat.value" :value="cat.value">
+                {{ currentLang === 'km' ? (cat.label_km || cat.label_en) : cat.label_en }}
               </option>
             </select>
             <div class="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 dark:text-slate-500 text-xs">
@@ -612,9 +643,10 @@ onUnmounted(() => {
               class="appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300 text-xs rounded-xl pl-3 pr-8 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-500/50 cursor-pointer shadow-xs"
             >
               <option value="newest">{{ t('តម្រៀបតាម៖ ថ្មីបំផុត', 'Sort by: Newest') }}</option>
-              <option value="recent">{{ t('ចូលមើលថ្មីៗ', 'Recently Accessed') }}</option>
+              <option value="oldest">{{ t('តម្រៀបតាម៖ ចាស់បំផុត', 'Sort by: Oldest') }}</option>
               <option value="progress">{{ t('វឌ្ឍនភាពខ្ពស់បំផុត', 'Highest Progress') }}</option>
               <option value="title">{{ t('ឈ្មោះវគ្គសិក្សា (A-Z)', 'Course Name (A-Z)') }}</option>
+              <option value="recent">{{ t('ចូលមើលថ្មីៗ', 'Recently Accessed') }}</option>
             </select>
             <div class="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 dark:text-slate-500 text-xs">
               ▼
@@ -950,7 +982,7 @@ onUnmounted(() => {
                       ]"
                       class="tabular-nums"
                     >
-                      {{ course.progress }}%
+                      {{ course.progress_percentage ?? course.progress }}%
                     </span>
                   </div>
 
@@ -962,7 +994,7 @@ onUnmounted(() => {
                           : (course.status === 'in_progress' ? 'bg-gradient-to-r from-purple-600 via-indigo-500 to-purple-400' : 'bg-slate-300 dark:bg-slate-700'),
                         'h-full rounded-full transition-all duration-500'
                       ]"
-                      :style="{ width: course.progress + '%' }"
+                      :style="{ width: (course.progress_percentage ?? course.progress) + '%' }"
                     ></div>
                   </div>
                 </div>
@@ -986,7 +1018,7 @@ onUnmounted(() => {
                   <template v-else>
                     <div class="flex items-center gap-1.5">
                       <span>📖</span>
-                      <span>{{ currentLang === 'km' ? `ម៉ូឌុលទី ${course.currentModuleIndex || 1} នៃ ${course.totalChapters}` : `Module ${course.currentModuleIndex || 1} of ${course.totalChapters}` }}</span>
+                      <span>{{ currentLang === 'km' ? `ជំពូក/ម៉ូឌុល ${course.currentModuleIndex || 1} នៃ ${course.totalChapters}` : `Chapter/Module ${course.currentModuleIndex || 1} of ${course.totalChapters}` }}</span>
                     </div>
                     <div class="flex items-center gap-1.5">
                       <span>📑</span>
@@ -1028,7 +1060,7 @@ onUnmounted(() => {
                   class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:opacity-95 text-white font-bold text-xs shadow-md shadow-purple-600/20 flex items-center justify-center gap-1.5 transition-all text-center cursor-pointer min-h-[48px] sm:min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                 >
                   <span>▶</span>
-                  <span>{{ t('ចាប់ផ្តើមរៀន', 'Start Learning') }}</span>
+                  <span>{{ t('ចូលរៀន', 'Start Learning') }}</span>
                 </Link>
 
                 <Link
@@ -1133,14 +1165,14 @@ onUnmounted(() => {
                 <div class="flex items-center justify-between text-xs font-bold tabular-nums">
                   <span class="text-slate-500 dark:text-slate-400 text-[10px]">{{ t('វឌ្ឍនភាពសិក្សា', 'Progress') }}</span>
                   <span :class="course.status === 'completed' ? 'text-emerald-600 dark:text-emerald-400' : (course.status === 'in_progress' ? 'text-purple-600 dark:text-purple-400' : 'text-slate-500 dark:text-slate-400')">
-                    {{ course.progress }}%
+                    {{ course.progress_percentage ?? course.progress }}%
                   </span>
                 </div>
                 <div class="w-full h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                   <div
                     :class="course.status === 'completed' ? 'bg-emerald-500' : (course.status === 'in_progress' ? 'bg-purple-600' : 'bg-slate-300 dark:bg-slate-700')"
                     class="h-full rounded-full transition-all duration-300"
-                    :style="{ width: course.progress + '%' }"
+                    :style="{ width: (course.progress_percentage ?? course.progress) + '%' }"
                   ></div>
                 </div>
               </div>
@@ -1156,21 +1188,21 @@ onUnmounted(() => {
                 <Link
                   v-else-if="course.status === 'in_progress'"
                   :href="course.learningHref"
-                  class="px-4 py-2 rounded-xl bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:opacity-95 text-white font-bold text-xs shadow-md shadow-purple-600/20 cursor-pointer min-h-[38px] flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                  class="px-4 py-2 rounded-xl bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:opacity-95 text-white font-bold text-xs shadow-md shadow-purple-600/20 cursor-pointer min-h-[38px] flex items-center whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                 >
-                  {{ t('បន្តរៀន', 'Continue') }}
+                  {{ t('បន្តការសិក្សា', 'Continue Learning') }}
                 </Link>
                 <Link
                   v-else-if="course.status === 'not_started'"
                   :href="course.learningHref"
-                  class="px-4 py-2 rounded-xl bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:opacity-95 text-white font-bold text-xs shadow-md shadow-purple-600/20 cursor-pointer min-h-[38px] flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                  class="px-4 py-2 rounded-xl bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:opacity-95 text-white font-bold text-xs shadow-md shadow-purple-600/20 cursor-pointer min-h-[38px] flex items-center whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                 >
-                  {{ t('ចាប់ផ្តើម', 'Start') }}
+                  {{ t('ចូលរៀន', 'Start Learning') }}
                 </Link>
                 <Link
                   v-else-if="course.status === 'completed'"
                   :href="course.learningHref"
-                  class="px-4 py-2 rounded-xl bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:opacity-95 text-white font-bold text-xs shadow-md shadow-purple-600/20 cursor-pointer min-h-[38px] flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                  class="px-4 py-2 rounded-xl bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:opacity-95 text-white font-bold text-xs shadow-md shadow-purple-600/20 cursor-pointer min-h-[38px] flex items-center whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                 >
                   {{ t('ពិនិត្យឡើងវិញ', 'Review') }}
                 </Link>
@@ -1178,7 +1210,7 @@ onUnmounted(() => {
                 <Link
                   v-if="course.status === 'completed' && course.has_certificate && course.certificateHref"
                   :href="course.certificateHref"
-                  class="px-3.5 py-2 rounded-xl bg-emerald-500/10 dark:bg-emerald-600/20 hover:bg-emerald-500/20 dark:hover:bg-emerald-600/30 text-emerald-700 dark:text-emerald-300 font-bold text-xs border border-emerald-500/30 dark:border-emerald-500/40 cursor-pointer min-h-[38px] flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                  class="px-3.5 py-2 rounded-xl bg-emerald-500/10 dark:bg-emerald-600/20 hover:bg-emerald-500/20 dark:hover:bg-emerald-600/30 text-emerald-700 dark:text-emerald-300 font-bold text-xs border border-emerald-500/30 dark:border-emerald-500/40 cursor-pointer min-h-[38px] flex items-center gap-1 whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                 >
                   <span>🏆</span>
                   <span>{{ t('វិញ្ញាបនបត្រ', 'Certificate') }}</span>
@@ -1186,7 +1218,7 @@ onUnmounted(() => {
 
                 <Link
                   :href="course.overviewHref"
-                  :aria-label="currentLang === 'km' ? `ព័ត៌មានលម្អិតសម្រាប់ ${course.title}` : `Course details for ${course.title}`"
+                  :aria-label="currentLang === 'km' ? `ព័ត៌មានលម្អិតសម្រាប់ ${localizedCourseTitle(course)}` : `Course details for ${localizedCourseTitle(course)}`"
                   :title="t('ព័ត៌មានលម្អិតវគ្គសិក្សា', 'Course Details')"
                   class="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 cursor-pointer min-w-[38px] min-h-[38px] flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                 >

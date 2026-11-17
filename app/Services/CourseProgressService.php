@@ -207,6 +207,7 @@ class CourseProgressService
         $totalLessons = count($lessonIds);
 
         $doneCount = 0;
+        $watchedPercentSum = 0;
         $anyWatched = false;
         $latestActivity = null;
 
@@ -217,6 +218,11 @@ class CourseProgressService
                 $isDone = ($p->percent >= 90 || !empty($p->completed_at));
                 if ($isDone) {
                     $doneCount++;
+                    $watchedPercentSum += 100;
+                } elseif ((int) $p->percent > 0) {
+                    $watchedPercentSum += min(99, (int) $p->percent);
+                } elseif ((int) $p->seconds_watched > 0) {
+                    $watchedPercentSum += 5;
                 }
                 if ($p->percent > 0 || (int)$p->seconds_watched > 0) {
                     $anyWatched = true;
@@ -229,14 +235,7 @@ class CourseProgressService
             }
         }
 
-        // Percent calculation: floor(done / total * 100); 0 if total is 0
-        $percent = $totalLessons > 0 ? (int) floor(($doneCount / $totalLessons) * 100) : 0;
-
-        // State calculation:
-        // coming_soon = totalLessons === 0
-        // completed = done >= total && total > 0
-        // in_progress = (done > 0 || anyWatched) && done < total
-        // not_started = done == 0 && !anyWatched
+        // State & progress calculation aligned with 0% (not_started), 1-99% (in_progress), 100% (completed)
         if ($totalLessons === 0) {
             $state = 'coming_soon';
             $percent = 0;
@@ -246,6 +245,8 @@ class CourseProgressService
             $percent = 100;
             $stateLabel = 'Completed';
         } elseif ($doneCount > 0 || $anyWatched) {
+            $rawPct = (int) round($watchedPercentSum / $totalLessons);
+            $percent = max(1, min(99, $rawPct));
             $state = 'in_progress';
             $stateLabel = 'In Progress';
         } else {
@@ -280,6 +281,21 @@ class CourseProgressService
 
         $completedModules = (int) floor($totalModules * ($percent / 100));
 
+        $totalChapters = 0;
+        if ($modules->isNotEmpty()) {
+            foreach ($modules as $mod) {
+                if ($mod->relationLoaded('chapters')) {
+                    $totalChapters += $mod->chapters->count();
+                }
+            }
+        }
+        if ($totalChapters === 0 && $course->relationLoaded('chapters')) {
+            $totalChapters = $course->chapters->count();
+        }
+        if ($totalChapters === 0) {
+            $totalChapters = $totalModules;
+        }
+
         // Format relative last activity strictly from actual lesson activity
         $lastActivityRelative = $latestActivity ? $latestActivity->diffForHumans() : null;
         $lastActivityTimestamp = $latestActivity ? $latestActivity->getTimestamp() * 1000 : 0;
@@ -289,6 +305,7 @@ class CourseProgressService
             'lessons_total'          => $totalLessons,
             'lessons_done'           => $doneCount,
             'percent'                => $percent,
+            'progress_percentage'    => $percent,
             'state'                  => $state,
             'state_label'            => $stateLabel,
             'last_activity_at'       => $lastActivityRelative,
@@ -297,6 +314,7 @@ class CourseProgressService
             'current_module_title'   => $currentModuleTitle,
             'completed_modules'      => $completedModules,
             'total_modules'          => $totalModules,
+            'total_chapters'         => $totalChapters,
             'current_lesson'         => $nextLesson,
             'current_lesson_title'   => $nextLesson?->title ?: 'Lesson 1',
         ];

@@ -65,6 +65,11 @@ class Course extends Model
         return $this->hasMany(Module::class)->orderBy('order');
     }
 
+    public function chapters()
+    {
+        return $this->hasManyThrough(Chapter::class, Module::class);
+    }
+
     public function lessons()
     {
         return $this->hasMany(Lesson::class)->orderBy('order');

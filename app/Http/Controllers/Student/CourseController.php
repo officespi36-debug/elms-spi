@@ -11,6 +11,7 @@ use App\Models\LessonComment;
 use App\Models\LessonCommentLike;
 use App\Models\LessonProgress;
 use App\Models\LessonResource;
+use App\Models\Major;
 use App\Models\Notification;
 use App\Models\ReportedContent;
 use App\Services\CertificateService;
@@ -19,6 +20,7 @@ use App\Services\CourseProgressService;
 use App\Services\DashboardAnalyticsService;
 use App\Services\EnrollmentService;
 use App\Services\StudentLearningService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -49,30 +51,53 @@ class CourseController extends Controller
         $user = $request->user();
 
         // 1. Validation of query parameters
-        $status = (string)$request->query('status', 'all');
-        if (!in_array($status, ['all', 'in_progress', 'not_started', 'completed', 'coming_soon'])) {
+        $status = (string) $request->query('status', 'all');
+        if (!in_array($status, ['all', 'in_progress', 'not_started', 'completed', 'coming_soon'], true)) {
             $status = 'all';
         }
-        $category = (string)$request->query('category', 'all');
-        $sort = (string)$request->query('sort', 'newest');
-        if (!in_array($sort, ['newest', 'recent', 'progress', 'title'])) {
+        $category = (string) $request->query('category', 'all');
+        $sort = (string) $request->query('sort', 'newest');
+        if (!in_array($sort, ['newest', 'oldest', 'recent', 'progress', 'title'], true)) {
             $sort = 'newest';
         }
-        $q = substr(trim((string)$request->query('q', '')), 0, 100);
+        $q = substr(trim((string) $request->query('q', '')), 0, 100);
 
         $savedView = is_array($user->preferences) ? ($user->preferences['courses_view'] ?? 'grid') : 'grid';
         $urlView = $request->query('view');
-        $view = in_array($urlView, ['grid', 'list'], true)
-            ? $urlView
-            : (in_array($savedView, ['grid', 'list'], true) ? $savedView : 'grid');
+        if (in_array($urlView, ['grid', 'list'], true)) {
+            $view = $urlView;
+            if ($savedView !== $urlView) {
+                try {
+                    $prefs = is_array($user->preferences) ? $user->preferences : [];
+                    $prefs['courses_view'] = $urlView;
+                    $user->preferences = $prefs;
+                    $user->save();
+                } catch (\Throwable $e) {
+                }
+            }
+        } else {
+            $view = in_array($savedView, ['grid', 'list'], true) ? $savedView : 'grid';
+        }
 
-        // 2 & 3. Fetch + compute enrolled courses with 60s user-scoped cache (0 N+1 queries)
-        $cachedItems = Cache::remember("student_enrolled_{$user->id}_v4", 60, function () use ($user, $progressService) {
+        // 2 & 3. Dynamic state stamp so new enrollments or progress never show stale cache
+        $enrMeta = Enrollment::where('student_id', $user->id)
+            ->whereIn('status', ['active', 'completed'])
+            ->selectRaw('COUNT(*) as cnt, MAX(updated_at) as max_upd')
+            ->first();
+        $lpMeta = LessonProgress::where('user_id', $user->id)
+            ->selectRaw('COUNT(*) as cnt, MAX(updated_at) as max_upd')
+            ->first();
+        $stateStamp = ($enrMeta->cnt ?? 0) . ':' . ($enrMeta->max_upd ?? '') . ':' . ($lpMeta->cnt ?? 0) . ':' . ($lpMeta->max_upd ?? '');
+        $cacheKey = "student_enrolled_{$user->id}_v5_" . md5($stateStamp);
+
+        $cachedItems = Cache::remember($cacheKey, 60, function () use ($user, $progressService) {
             $withRelations = [
                 'course.teacher:id,name,name_kh,email,avatar,role',
                 'course.major:id,name,name_kh',
-                'course.modules.lessons:id,module_id,course_id,title,order,duration_seconds',
-                'course.lessons:id,course_id,title,order,duration_seconds',
+                'course.modules:id,course_id,title,kh_title,order',
+                'course.modules.chapters:id,module_id,chapter_number,title,kh_title,order',
+                'course.modules.lessons:id,module_id,chapter_id,course_id,title,kh_title,order,duration_seconds',
+                'course.lessons:id,module_id,chapter_id,course_id,title,kh_title,order,duration_seconds',
             ];
             if (Schema::hasColumn('enrollments', 'enrolled_by')) {
                 $withRelations[] = 'enrolledBy:id,name,role,avatar';
@@ -80,6 +105,7 @@ class CourseController extends Controller
 
             $enrollments = Enrollment::where('student_id', $user->id)
                 ->whereIn('status', ['active', 'completed'])
+                ->whereHas('course')
                 ->with($withRelations)
                 ->latest('updated_at')
                 ->get();
@@ -88,7 +114,7 @@ class CourseController extends Controller
 
             $issuedCertificateCourseIds = [];
             try {
-                $issuedCertificateCourseIds = \App\Models\Certificate::where('student_id', $user->id)
+                $issuedCertificateCourseIds = Certificate::where('student_id', $user->id)
                     ->whereIn('status', ['issued', 'valid'])
                     ->pluck('course_id')
                     ->all();
@@ -120,14 +146,19 @@ class CourseController extends Controller
                 }
 
                 $teacherName = $progressService->cleanTeacherName($c->teacher, $c);
-                $hasCert = in_array($c->id, $issuedCertificateCourseIds);
+                $hasCert = in_array($c->id, $issuedCertificateCourseIds, true);
+
+                $thumb = $c->thumbnail ? trim((string) $c->thumbnail) : null;
+                if ($thumb && !str_starts_with($thumb, 'http://') && !str_starts_with($thumb, 'https://') && !str_starts_with($thumb, '/')) {
+                    $thumb = asset('storage/' . ltrim($thumb, '/'));
+                }
 
                 $enrolledDateStr = '';
                 try {
                     if ($enr->enrolled_at) {
-                        $enrolledDateStr = \Carbon\Carbon::parse($enr->enrolled_at)->format('j M Y');
+                        $enrolledDateStr = Carbon::parse($enr->enrolled_at)->format('j M Y');
                     } elseif ($enr->created_at) {
-                        $enrolledDateStr = \Carbon\Carbon::parse($enr->created_at)->format('j M Y');
+                        $enrolledDateStr = Carbon::parse($enr->created_at)->format('j M Y');
                     }
                 } catch (\Throwable $e) {
                     $enrolledDateStr = '';
@@ -135,66 +166,89 @@ class CourseController extends Controller
 
                 $enrolledRel = 'Recently';
                 try {
-                    if ($enr->created_at) {
-                        $enrolledRel = \Carbon\Carbon::parse($enr->created_at)->diffForHumans();
+                    if ($enr->enrolled_at) {
+                        $enrolledRel = Carbon::parse($enr->enrolled_at)->diffForHumans();
+                    } elseif ($enr->created_at) {
+                        $enrolledRel = Carbon::parse($enr->created_at)->diffForHumans();
                     }
                 } catch (\Throwable $e) {
                     $enrolledRel = 'Recently';
                 }
 
+                $enrolledTimestampMs = 0;
+                try {
+                    if ($enr->enrolled_at) {
+                        $enrolledTimestampMs = Carbon::parse($enr->enrolled_at)->getTimestampMs();
+                    } elseif ($enr->created_at) {
+                        $enrolledTimestampMs = Carbon::parse($enr->created_at)->getTimestampMs();
+                    } else {
+                        $enrolledTimestampMs = ((int) $enr->id) * 1000;
+                    }
+                } catch (\Throwable $e) {
+                    $enrolledTimestampMs = ((int) $enr->id) * 1000;
+                }
+
                 $hasEnrolledBy = $enr->relationLoaded('enrolledBy') && $enr->enrolledBy;
+                $currentLesson = $item['current_lesson'] ?? null;
+                $learningHref = !empty($currentLesson?->id)
+                    ? "/student/my-courses/{$c->id}/lessons/{$currentLesson->id}"
+                    : "/student/my-courses/{$c->id}/continue";
 
                 return [
-                    'id'                 => $c->id,
-                    'enrollment_id'      => $enr->id,
-                    'is_new'             => array_key_exists('seen_at', $enr->getAttributes()) ? ($enr->seen_at === null) : false,
-                    'enrolled_by'        => $hasEnrolledBy ? [
+                    'id'                  => $c->id,
+                    'enrollment_id'       => $enr->id,
+                    'enrolledTimestampMs' => $enrolledTimestampMs,
+                    'is_new'              => array_key_exists('seen_at', $enr->getAttributes()) ? ($enr->seen_at === null) : false,
+                    'enrolled_by'         => $hasEnrolledBy ? [
                         'name'   => $enr->enrolledBy->name,
                         'role'   => $enr->enrolledBy->role,
                         'avatar' => $enr->enrolledBy->avatar,
                     ] : null,
-                    'enrolled_relative'  => $enrolledRel,
-                    'source'             => $enr->source ?: 'system',
-                    'slug'               => $c->code ?: ('course-' . $c->id),
-                    'title'              => $c->title,
-                    'titleKh'            => $c->title_kh ?: $c->title,
-                    'thumbnail'          => $c->thumbnail ?: null,
-                    'category'           => $c->major?->name ?: 'Academic Studies',
-                    'categoryKh'         => $c->major?->name_kh ?: ($c->major?->name ?: 'ការសិក្សាទូទៅ'),
-                    'status'             => $item['state'],
-                    'statusLabel'        => $item['state_label'],
-                    'progress'           => $item['percent'],
-                    'teacher'            => [
+                    'enrolled_relative'   => $enrolledRel,
+                    'source'              => $enr->source ?: 'system',
+                    'slug'                => $c->code ?: ('course-' . $c->id),
+                    'title'               => $c->title,
+                    'titleKh'             => $c->title_kh ?: $c->title,
+                    'thumbnail'           => $thumb ?: null,
+                    'category'            => $c->major?->name ?: 'Academic Studies',
+                    'categoryKh'          => $c->major?->name_kh ?: ($c->major?->name ?: 'ការសិក្សាទូទៅ'),
+                    'status'              => $item['state'],
+                    'statusLabel'         => $item['state_label'],
+                    'progress'            => (int) $item['percent'],
+                    'progress_percentage' => (int) ($item['progress_percentage'] ?? $item['percent']),
+                    'teacher'             => [
                         'name'    => $teacherName,
                         'name_kh' => $progressService->cleanTeacherNameKh($c->teacher, $c),
-                        'avatar'  => $c->teacher?->avatar ?: null,
+                        'avatar'  => $c->teacher?->avatar_url ?: null,
                         'role'    => 'SPI Instructor',
                     ],
-                    'currentChapter'     => $item['current_module_title'],
-                    'currentModuleIndex' => $item['current_module_index'],
-                    'completedChapters'  => $item['completed_modules'],
-                    'totalChapters'      => $item['total_modules'],
-                    'currentLesson'      => $item['current_lesson_title'],
-                    'completedLessons'   => $item['lessons_done'],
-                    'totalLessons'       => $item['lessons_total'],
-                    'remainingTime'      => $item['percent'] >= 100 ? 'Completed' : 'Study in progress',
-                    'lastAccessed'       => $item['last_activity_at'] ?: 'Not started yet',
-                    'lastAccessedTimeMs' => $item['last_activity_ms'],
-                    'enrolledDate'       => $enrolledDateStr,
-                    'overviewHref'       => "/student/courses/{$c->id}/overview",
-                    'learningHref'       => "/student/my-courses/{$c->id}/continue",
-                    'has_certificate'    => $hasCert,
-                    'certificateHref'    => $hasCert ? '/student/certificates/my-certificates' : null,
-                    'themeColor'         => $themeColor,
-                    'accentGradient'     => $gradient,
-                    'illustrationType'   => $illus,
+                    'currentChapter'      => $item['current_module_title'],
+                    'currentModuleIndex'  => $item['current_module_index'],
+                    'completedChapters'   => $item['completed_modules'],
+                    'totalChapters'       => $item['total_chapters'] ?? $item['total_modules'],
+                    'currentLesson'       => $item['current_lesson_title'],
+                    'currentLessonKh'     => $currentLesson?->kh_title ?: $item['current_lesson_title'],
+                    'completedLessons'    => $item['lessons_done'],
+                    'totalLessons'        => $item['lessons_total'],
+                    'remainingTime'       => $item['percent'] >= 100 ? 'Completed' : 'Study in progress',
+                    'lastAccessed'        => $item['last_activity_at'] ?: 'Not started yet',
+                    'lastAccessedTimeMs'  => $item['last_activity_ms'],
+                    'enrolledDate'        => $enrolledDateStr,
+                    'overviewHref'        => "/student/courses/{$c->id}/overview",
+                    'learningHref'        => $learningHref,
+                    'has_certificate'     => $hasCert,
+                    'certificateHref'     => $hasCert ? '/student/certificates/my-certificates' : null,
+                    'themeColor'          => $themeColor,
+                    'accentGradient'      => $gradient,
+                    'illustrationType'    => $illus,
                 ];
             })->values()->all();
         });
 
         $allCoursesList = collect($cachedItems);
 
-        // 4. Calculate accurate counts from single unified collection (All = sum of all states)
+        // 4. Calculate accurate counts strictly matching:
+        //    in_progress (1-99%), not_started (0%), completed (100%)
         $inProgressCount = $allCoursesList->where('status', 'in_progress')->count();
         $notStartedCount = $allCoursesList->where('status', 'not_started')->count();
         $completedCount = $allCoursesList->where('status', 'completed')->count();
@@ -208,24 +262,66 @@ class CourseController extends Controller
             'coming_soon' => $comingSoonCount,
         ];
 
-        // 5. Distinct categories from user courses
-        $distinctCategories = $allCoursesList->pluck('category')->unique()->filter()->values()->all();
+        // 5. Real categories from `majors` table merged with any category present on enrolled courses
+        $categoryOptionsMap = [];
+        try {
+            $majors = Major::query()->select(['id', 'name', 'name_kh'])->orderBy('id')->get();
+            foreach ($majors as $m) {
+                $val = trim((string) ($m->name ?? ''));
+                if ($val === '') {
+                    continue;
+                }
+                $key = mb_strtolower($val, 'UTF-8');
+                if (!isset($categoryOptionsMap[$key])) {
+                    $categoryOptionsMap[$key] = [
+                        'value'    => $val,
+                        'label_en' => $val,
+                        'label_km' => trim((string) ($m->name_kh ?: $val)),
+                    ];
+                }
+            }
+        } catch (\Throwable $e) {
+        }
+        foreach ($allCoursesList as $cItem) {
+            $val = trim((string) ($cItem['category'] ?? ''));
+            if ($val === '') {
+                continue;
+            }
+            $key = mb_strtolower($val, 'UTF-8');
+            if (!isset($categoryOptionsMap[$key])) {
+                $categoryOptionsMap[$key] = [
+                    'value'    => $val,
+                    'label_en' => $val,
+                    'label_km' => trim((string) ($cItem['categoryKh'] ?: $val)),
+                ];
+            }
+        }
+        $categoryOptions = array_values($categoryOptionsMap);
+        $distinctCategories = array_map(fn ($o) => $o['value'], $categoryOptions);
 
-        // 6. Filter by status, category, and search query
+        // 6. Filter by status, category, and multilingual search query
         $filtered = $allCoursesList;
         if ($status !== 'all') {
             $filtered = $filtered->where('status', $status);
         }
         if ($category !== 'all') {
-            $filtered = $filtered->where('category', $category);
+            $catLower = mb_strtolower($category, 'UTF-8');
+            $filtered = $filtered->filter(function ($item) use ($catLower) {
+                return mb_strtolower((string) ($item['category'] ?? ''), 'UTF-8') === $catLower
+                    || mb_strtolower((string) ($item['categoryKh'] ?? ''), 'UTF-8') === $catLower;
+            });
         }
-        if (!empty($q)) {
-            $qLower = strtolower($q);
+        if ($q !== '') {
+            $qLower = mb_strtolower($q, 'UTF-8');
             $filtered = $filtered->filter(function ($item) use ($qLower) {
-                return str_contains(strtolower((string) ($item['title'] ?? '')), $qLower)
-                    || str_contains(strtolower((string) ($item['teacher']['name'] ?? '')), $qLower)
-                    || str_contains(strtolower((string) ($item['category'] ?? '')), $qLower)
-                    || str_contains(strtolower((string) ($item['currentLesson'] ?? '')), $qLower);
+                return str_contains(mb_strtolower((string) ($item['title'] ?? ''), 'UTF-8'), $qLower)
+                    || str_contains(mb_strtolower((string) ($item['titleKh'] ?? ''), 'UTF-8'), $qLower)
+                    || str_contains(mb_strtolower((string) ($item['teacher']['name'] ?? ''), 'UTF-8'), $qLower)
+                    || str_contains(mb_strtolower((string) ($item['teacher']['name_kh'] ?? ''), 'UTF-8'), $qLower)
+                    || str_contains(mb_strtolower((string) ($item['category'] ?? ''), 'UTF-8'), $qLower)
+                    || str_contains(mb_strtolower((string) ($item['categoryKh'] ?? ''), 'UTF-8'), $qLower)
+                    || str_contains(mb_strtolower((string) ($item['currentLesson'] ?? ''), 'UTF-8'), $qLower)
+                    || str_contains(mb_strtolower((string) ($item['currentChapter'] ?? ''), 'UTF-8'), $qLower);
             });
         }
 
@@ -236,8 +332,10 @@ class CourseController extends Controller
             $filtered = $filtered->sortByDesc('progress');
         } elseif ($sort === 'title') {
             $filtered = $filtered->sortBy('title', SORT_NATURAL | SORT_FLAG_CASE);
+        } elseif ($sort === 'oldest') {
+            $filtered = $filtered->sortBy('enrolledTimestampMs');
         } else { // 'newest'
-            $filtered = $filtered->sortByDesc('enrollment_id');
+            $filtered = $filtered->sortByDesc('enrolledTimestampMs');
         }
 
         $savedOfflineIds = is_array($user->preferences) && is_array($user->preferences['offline_course_ids'] ?? null)
@@ -248,6 +346,7 @@ class CourseController extends Controller
             'enrollments'           => $filtered->values()->all(),
             'counts'                => $counts,
             'categories'            => $distinctCategories,
+            'categoryOptions'       => $categoryOptions,
             'savedOfflineCourseIds' => $savedOfflineIds,
             'filters'               => [
                 'status'   => $status,
@@ -287,7 +386,7 @@ class CourseController extends Controller
     }
 
     /**
-     * Resolve and 302 redirect to the first incomplete lesson for a specific course.
+     * Resolve and 302 redirect to the first incomplete lesson (or first lesson if completed) for a specific course.
      */
     public function continueCourse(Request $request, Course $course, ContinueLearningService $continueService)
     {
@@ -305,11 +404,7 @@ class CourseController extends Controller
                 return redirect()->route('student.my-courses.enrolled')
                     ->with('error', 'វគ្គសិក្សាមិនទាន់ត្រូវបានដាក់ឱ្យដំណើរការនៅឡើយទេ (Course is not published).');
             }
-        } elseif ($enrollment->status !== 'active') {
-            if ($enrollment->status === 'completed') {
-                return redirect()->to("/student/courses/{$course->id}/overview")
-                    ->with('info', 'អ្នកបានបញ្ចប់វគ្គសិក្សានេះរួចរាល់ហើយ! (You have completed this course!)');
-            }
+        } elseif (!in_array($enrollment->status, ['active', 'completed'], true)) {
             return redirect()->route('student.my-courses.enrolled')
                 ->with('warning', 'ស្ថានភាពចុះឈ្មោះមិនទាន់សកម្មទេ (Enrollment is not active).');
         }
@@ -322,18 +417,37 @@ class CourseController extends Controller
             }
         } catch (\Throwable $e) {}
 
+        $firstLesson = $course->lessons()->orderBy('order')->orderBy('id')->first();
+
+        if ($enrollment->status === 'completed') {
+            if ($firstLesson) {
+                return redirect()->to("/student/my-courses/{$course->id}/lessons/{$firstLesson->id}");
+            }
+            return redirect()->to("/student/courses/{$course->id}/overview");
+        }
+
         $resolved = $continueService->resolve($user, $course);
 
-        if (!$resolved || !empty($resolved['all_completed'])) {
-            return redirect()->to("/student/courses/{$course->id}/overview")
-                ->with('info', 'អ្នកបានបញ្ចប់វគ្គសិក្សានេះរួចរាល់ហើយ! (You have completed this course!)');
+        if (!$resolved) {
+            return $firstLesson
+                ? redirect()->to("/student/my-courses/{$course->id}/lessons/{$firstLesson->id}")
+                : redirect()->to("/student/courses/{$course->id}/overview");
+        }
+
+        if (!empty($resolved['all_completed'])) {
+            $reviewLesson = $resolved['lesson'] ?? $firstLesson;
+            return $reviewLesson
+                ? redirect()->to("/student/my-courses/{$course->id}/lessons/{$reviewLesson->id}")
+                : redirect()->to("/student/courses/{$course->id}/overview");
         }
 
         if (!empty($resolved['lesson'])) {
             return redirect()->to("/student/my-courses/{$course->id}/lessons/{$resolved['lesson']->id}");
         }
 
-        return redirect()->to("/student/courses/{$course->id}/overview");
+        return $firstLesson
+            ? redirect()->to("/student/my-courses/{$course->id}/lessons/{$firstLesson->id}")
+            : redirect()->to("/student/courses/{$course->id}/overview");
     }
 
     /**
