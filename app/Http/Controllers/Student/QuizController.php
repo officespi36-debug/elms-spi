@@ -202,6 +202,8 @@ class QuizController extends Controller
             'submitted_at'   => now(),
         ]);
 
+        app(\App\Services\DashboardAnalyticsService::class)->invalidateUserCache($request->user()->id);
+
         return response()->json([
             'score' => $score, 'passed' => $passed, 'breakdown' => $breakdown,
         ]);

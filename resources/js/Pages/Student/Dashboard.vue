@@ -164,6 +164,29 @@ const formatStudyDuration = (timeStr?: string | null): string => {
     .trim()
 }
 
+const formatCompactDuration = (timeStr?: string | null): string => {
+  const { hours, minutes } = parseStudyTime(timeStr || '0h 0m')
+  if (currentLang.value === 'km') {
+    if (hours === 0 && minutes === 0) return '0 នាទី'
+    if (hours === 0) return `${minutes} នាទី`
+    if (minutes === 0) return `${hours} ម៉ោង`
+    return `${hours}ម៉ ${minutes}នាទី`
+  }
+  if (hours === 0 && minutes === 0) return '0h 0m'
+  if (hours === 0) return `${minutes}m`
+  if (minutes === 0) return `${hours}h`
+  return `${hours}h ${minutes}m`
+}
+
+const formatDailyAverage = (avgStr?: string | null): string => {
+  if (!avgStr) return currentLang.value === 'km' ? '0 នាទី / ថ្ងៃ' : '0h / day'
+  if (currentLang.value !== 'km') return avgStr
+  if (avgStr === '0h / day' || avgStr === '0m / day') return '0 នាទី / ថ្ងៃ'
+  return avgStr
+    .replace(/([\d.]+)\s*h\s*\/\s*day/i, '$1 ម៉ោង / ថ្ងៃ')
+    .replace(/([\d.]+)\s*m\s*\/\s*day/i, '$1 នាទី / ថ្ងៃ')
+}
+
 // ─── Official Dashboard Loading & Animation System (DL-01 to DL-08) ───
 const loading = ref(true)
 const loadingStep = ref<'skeleton' | 'counting' | 'ready'>('skeleton')
@@ -1451,34 +1474,34 @@ const recentActivities = computed(() => {
                       d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                     />
                   </svg>
-                  <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-1">
-                    <span class="text-[11px] xl:text-xs font-black text-[#1f1f1f] dark:text-[#e3e3e3] leading-none tabular-nums">{{ formatStudyDuration(props.studyTimeBreakdown?.total || props.stats?.learningTime || '0h 0m') }}</span>
+                  <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-1.5">
+                    <span class="text-[11px] font-extrabold text-[#1f1f1f] dark:text-[#e3e3e3] leading-tight tabular-nums">{{ formatCompactDuration(props.studyTimeBreakdown?.total || props.stats?.learningTime || '0h 0m') }}</span>
                     <span class="text-[9px] text-[#444746] dark:text-[#c4c7c5] mt-0.5">{{ currentLang === 'km' ? 'សរុប' : 'Total' }}</span>
                   </div>
                 </div>
 
-                <!-- Aligned Legend (never overflows card) -->
+                <!-- Aligned Legend (never truncates Khmer labels) -->
                 <div class="flex-1 min-w-0 space-y-1.5 text-[11px] xl:text-xs text-[#444746] dark:text-[#c4c7c5] font-medium">
                   <div class="flex items-center justify-between gap-1.5 min-w-0">
-                    <span class="flex items-center gap-1.5 min-w-0 truncate">
+                    <span class="flex items-center gap-1.5 min-w-0">
                       <span class="w-2 h-2 rounded-full bg-[#6366f1] shrink-0"></span>
-                      <span class="truncate">{{ currentLang === 'km' ? 'មេរៀន' : 'Lessons' }}</span>
+                      <span class="whitespace-nowrap">{{ currentLang === 'km' ? 'មេរៀន' : 'Lessons' }}</span>
                     </span>
-                    <span class="font-semibold text-slate-700 dark:text-slate-200 tabular-nums shrink-0">{{ formatStudyDuration(props.studyTimeBreakdown?.lessons || '0h 0m') }}</span>
+                    <span class="font-semibold text-slate-700 dark:text-slate-200 tabular-nums shrink-0 whitespace-nowrap">{{ formatCompactDuration(props.studyTimeBreakdown?.lessons || '0h 0m') }}</span>
                   </div>
                   <div class="flex items-center justify-between gap-1.5 min-w-0">
-                    <span class="flex items-center gap-1.5 min-w-0 truncate">
+                    <span class="flex items-center gap-1.5 min-w-0">
                       <span class="w-2 h-2 rounded-full bg-purple-400 dark:bg-[#a78bfa] shrink-0"></span>
-                      <span class="truncate">{{ currentLang === 'km' ? 'ការអនុវត្ត' : 'Practice' }}</span>
+                      <span class="whitespace-nowrap">{{ currentLang === 'km' ? 'ការអនុវត្ត' : 'Practice' }}</span>
                     </span>
-                    <span class="font-semibold text-slate-700 dark:text-slate-200 tabular-nums shrink-0">{{ formatStudyDuration(props.studyTimeBreakdown?.practice || '0h 0m') }}</span>
+                    <span class="font-semibold text-slate-700 dark:text-slate-200 tabular-nums shrink-0 whitespace-nowrap">{{ formatCompactDuration(props.studyTimeBreakdown?.practice || '0h 0m') }}</span>
                   </div>
                   <div class="flex items-center justify-between gap-1.5 min-w-0">
-                    <span class="flex items-center gap-1.5 min-w-0 truncate">
+                    <span class="flex items-center gap-1.5 min-w-0">
                       <span class="w-2 h-2 rounded-full bg-cyan-500 dark:bg-cyan-400 shrink-0"></span>
-                      <span class="truncate">{{ currentLang === 'km' ? 'កម្រងសំណួរ' : 'Quiz' }}</span>
+                      <span class="whitespace-nowrap">{{ currentLang === 'km' ? 'កម្រងសំណួរ' : 'Quiz' }}</span>
                     </span>
-                    <span class="font-semibold text-slate-700 dark:text-slate-200 tabular-nums shrink-0">{{ formatStudyDuration(props.studyTimeBreakdown?.quiz || '0h 0m') }}</span>
+                    <span class="font-semibold text-slate-700 dark:text-slate-200 tabular-nums shrink-0 whitespace-nowrap">{{ formatCompactDuration(props.studyTimeBreakdown?.quiz || '0h 0m') }}</span>
                   </div>
                 </div>
               </div>
@@ -1486,7 +1509,7 @@ const recentActivities = computed(() => {
               <!-- Bottom summary stat row -->
               <div class="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[12px] text-slate-500 dark:text-slate-400">
                 <span>{{ currentLang === 'km' ? 'មធ្យមភាគប្រចាំថ្ងៃ' : 'Daily average' }}</span>
-                <span class="font-semibold text-slate-700 dark:text-slate-300">{{ props.studyTimeBreakdown?.dailyAverage || (currentLang === 'km' ? '០h / ថ្ងៃ' : '0h / day') }}</span>
+                <span class="font-semibold text-slate-700 dark:text-slate-300">{{ formatDailyAverage(props.studyTimeBreakdown?.dailyAverage) }}</span>
               </div>
             </Link>
 

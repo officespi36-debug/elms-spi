@@ -652,6 +652,7 @@ class CourseController extends Controller
         $prog->save();
 
         $learningService->invalidateCourseCache($user->id, $course->id);
+        app(DashboardAnalyticsService::class)->invalidateUserCache($user->id);
 
         // Compute updated progress
         $curriculum = $learningService->getCourseCurriculum($user, $course);

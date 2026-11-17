@@ -25,12 +25,12 @@ class DashboardController extends Controller
         }
 
         if ($request->has('refresh')) {
-            Cache::forget("student_dashboard_payload_{$user->id}_v4");
+            Cache::forget("student_dashboard_payload_{$user->id}_v5");
             Cache::forget("student_stats_{$user->id}");
         }
 
         // Performance: Cache::remember 300s (scoped to user id) with eager loading & selected columns
-        $payload = Cache::remember("student_dashboard_payload_{$user->id}_v4", 300, function () use ($user) {
+        $payload = Cache::remember("student_dashboard_payload_{$user->id}_v5", 300, function () use ($user) {
             try {
                 $enrollments = Enrollment::where('student_id', $user->id)
                     ->select(['id', 'student_id', 'course_id', 'status', 'enrolled_at', 'updated_at'])

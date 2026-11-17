@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\LessonProgress;
 use App\Models\QuizAttempt;
 use App\Models\StudyDaily;
 use App\Models\User;
@@ -69,15 +70,20 @@ class DashboardAnalyticsService
     {
         foreach ([7, 30, 90] as $days) {
             Cache::forget("student_analytics_{$userId}_{$days}");
+            Cache::forget("student_analytics_{$userId}_{$days}_v2");
         }
         Cache::forget("student_dashboard_payload_{$userId}");
+        Cache::forget("student_dashboard_payload_{$userId}_v3");
+        Cache::forget("student_dashboard_payload_{$userId}_v4");
+        Cache::forget("student_dashboard_payload_{$userId}_v5");
         Cache::forget("student_stats_{$userId}");
         Cache::forget("student_enrolled_{$userId}");
         Cache::forget("student_enrolled_{$userId}_v2");
     }
 
     /**
-     * Get daily series, breakdown, daily average, and trend for 7, 30, or 90 days from study_daily.
+     * Get daily series, breakdown, daily average, and trend for 7, 30, or 90 days from study_daily,
+     * lesson_progress, and quiz_attempts.
      */
     public function getWindowAnalytics(User $user, int $days = 7): array
     {
@@ -85,11 +91,13 @@ class DashboardAnalyticsService
             $days = 7;
         }
 
-        return Cache::remember("student_analytics_{$user->id}_{$days}", 300, function () use ($user, $days) {
+        return Cache::remember("student_analytics_{$user->id}_{$days}_v2", 300, function () use ($user, $days) {
             $today = Carbon::now(self::TIMEZONE)->startOfDay();
             $start = $today->copy()->subDays($days - 1);
             $prevStart = $start->copy()->subDays($days);
             $prevEnd = $start->copy()->subDay();
+            $startDateStr = $start->toDateString();
+            $todayDateStr = $today->toDateString();
 
             $rows = collect();
             $prevTotalSeconds = 0;
@@ -97,7 +105,7 @@ class DashboardAnalyticsService
             try {
                 if (Schema::hasTable('study_daily')) {
                     $rows = StudyDaily::where('user_id', $user->id)
-                        ->whereBetween('study_date', [$start->toDateString(), $today->toDateString()])
+                        ->whereBetween('study_date', [$startDateStr, $todayDateStr])
                         ->get(['study_date', 'kind', 'seconds']);
 
                     $prevTotalSeconds = (int) StudyDaily::where('user_id', $user->id)
@@ -109,26 +117,97 @@ class DashboardAnalyticsService
                 $prevTotalSeconds = 0;
             }
 
-            $byDate = [];
-            $byKind = ['lesson' => 0, 'practice' => 0, 'quiz' => 0];
-
+            $sdByDateAndKind = [];
             foreach ($rows as $row) {
                 $dateKey = $row->study_date instanceof Carbon
                     ? $row->study_date->format('Y-m-d')
                     : Carbon::parse($row->study_date)->format('Y-m-d');
                 $secs = min(self::MAX_DAILY_SECONDS, max(0, (int) $row->seconds));
-                $byDate[$dateKey] = min(self::MAX_DAILY_SECONDS, ($byDate[$dateKey] ?? 0) + $secs);
-
                 $kind = in_array($row->kind, ['lesson', 'practice', 'quiz'], true) ? $row->kind : 'lesson';
-                $byKind[$kind] += $secs;
+                $sdByDateAndKind[$dateKey][$kind] = ($sdByDateAndKind[$dateKey][$kind] ?? 0) + $secs;
             }
 
+            $lpByDate = [];
+            $allTimeLessonSec = 0;
+            try {
+                $lessonProgresses = LessonProgress::where('user_id', $user->id)
+                    ->with('lesson:id,duration_seconds')
+                    ->get();
+
+                foreach ($lessonProgresses as $lp) {
+                    $lpSec = (int) ($lp->seconds_watched ?? 0);
+                    if ($lpSec <= 0) {
+                        $dur = max(600, (int) ($lp->lesson?->duration_seconds ?? 600));
+                        if (!empty($lp->completed_at) || ($lp->percent ?? 0) >= 90) {
+                            $lpSec = $dur;
+                        } elseif (($lp->percent ?? 0) > 0) {
+                            $lpSec = (int) round((($lp->percent ?? 0) / 100) * $dur);
+                        }
+                    }
+
+                    $refDate = $lp->updated_at ?? $lp->completed_at ?? $lp->created_at ?? $today;
+                    $dateKey = Carbon::parse($refDate)->timezone(self::TIMEZONE)->format('Y-m-d');
+
+                    $allTimeLessonSec += $lpSec;
+                    if ($dateKey >= $startDateStr && $dateKey <= $todayDateStr) {
+                        $lpByDate[$dateKey] = ($lpByDate[$dateKey] ?? 0) + $lpSec;
+                    }
+                }
+            } catch (\Throwable $e) {
+                $lpByDate = [];
+                $allTimeLessonSec = 0;
+            }
+
+            $qaByDateAndKind = [];
+            $allTimeQuizByKind = ['practice' => 0, 'quiz' => 0];
+            try {
+                $quizAttempts = QuizAttempt::where('user_id', $user->id)
+                    ->with('quiz:id,duration_minutes,type')
+                    ->get();
+
+                foreach ($quizAttempts as $qa) {
+                    $qaSec = 0;
+                    if ($qa->started_at && $qa->submitted_at) {
+                        $qaSec = max(60, min(7200, (int) abs(Carbon::parse($qa->submitted_at)->diffInSeconds(Carbon::parse($qa->started_at)))));
+                    }
+                    if ($qaSec <= 0) {
+                        $qaSec = max(180, min(3600, ((int) ($qa->quiz?->duration_minutes ?? 10)) * 60));
+                    }
+
+                    $kind = str_contains(strtolower((string) ($qa->quiz?->type ?? '')), 'practice') ? 'practice' : 'quiz';
+                    $refDate = $qa->submitted_at ?? $qa->updated_at ?? $qa->created_at ?? $today;
+                    $dateKey = Carbon::parse($refDate)->timezone(self::TIMEZONE)->format('Y-m-d');
+
+                    $allTimeQuizByKind[$kind] += $qaSec;
+                    if ($dateKey >= $startDateStr && $dateKey <= $todayDateStr) {
+                        $qaByDateAndKind[$dateKey][$kind] = ($qaByDateAndKind[$dateKey][$kind] ?? 0) + $qaSec;
+                    }
+                }
+            } catch (\Throwable $e) {
+                $qaByDateAndKind = [];
+                $allTimeQuizByKind = ['practice' => 0, 'quiz' => 0];
+            }
+
+            $byDate = [];
+            $byKind = ['lesson' => 0, 'practice' => 0, 'quiz' => 0];
             $series = [];
             $totalSeconds = 0;
+
             for ($i = 0; $i < $days; $i++) {
                 $d = $start->copy()->addDays($i);
                 $key = $d->format('Y-m-d');
-                $secs = min(self::MAX_DAILY_SECONDS, (int) ($byDate[$key] ?? 0));
+
+                $dayLesson = max($sdByDateAndKind[$key]['lesson'] ?? 0, $lpByDate[$key] ?? 0);
+                $dayPractice = max($sdByDateAndKind[$key]['practice'] ?? 0, $qaByDateAndKind[$key]['practice'] ?? 0);
+                $dayQuiz = max($sdByDateAndKind[$key]['quiz'] ?? 0, $qaByDateAndKind[$key]['quiz'] ?? 0);
+
+                $secs = min(self::MAX_DAILY_SECONDS, $dayLesson + $dayPractice + $dayQuiz);
+                $byDate[$key] = $secs;
+
+                $byKind['lesson'] += $dayLesson;
+                $byKind['practice'] += $dayPractice;
+                $byKind['quiz'] += $dayQuiz;
+
                 $totalSeconds += $secs;
                 $series[] = [
                     'date' => $key,
@@ -136,6 +215,19 @@ class DashboardAnalyticsService
                     'seconds' => $secs,
                     'formatted' => $this->formatDuration($secs),
                 ];
+            }
+
+            if ($totalSeconds === 0 && ($allTimeLessonSec + $allTimeQuizByKind['practice'] + $allTimeQuizByKind['quiz']) > 0) {
+                $byKind['lesson'] = $allTimeLessonSec;
+                $byKind['practice'] = $allTimeQuizByKind['practice'];
+                $byKind['quiz'] = $allTimeQuizByKind['quiz'];
+                $totalSeconds = $allTimeLessonSec + $allTimeQuizByKind['practice'] + $allTimeQuizByKind['quiz'];
+
+                if (!empty($series)) {
+                    $lastIdx = count($series) - 1;
+                    $series[$lastIdx]['seconds'] = $totalSeconds;
+                    $series[$lastIdx]['formatted'] = $this->formatDuration($totalSeconds);
+                }
             }
 
             $lessonSec = $byKind['lesson'];

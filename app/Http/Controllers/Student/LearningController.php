@@ -192,6 +192,8 @@ class LearningController extends Controller
         $prog->client_updated_at = now();
         $prog->save();
 
+        app(\App\Services\DashboardAnalyticsService::class)->invalidateUserCache($user->id);
+
         // Calculate Course Overall Progress
         $course = $lesson->course ?: Course::find($lesson->course_id);
         $courseProgress = 0;
