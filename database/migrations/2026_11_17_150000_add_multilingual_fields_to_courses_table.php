@@ -152,6 +152,11 @@ return new class extends Migration
                 })
                 ->update(['name_kh' => $nameKh]);
         }
+
+        DB::table('users')
+            ->where('email', 'ounmengly3@gmail.com')
+            ->orWhere('name', 'Mengly Khun')
+            ->update(['name_kh' => 'ម៉េងលី ឃុន']);
     }
 
     /**

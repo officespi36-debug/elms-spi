@@ -155,6 +155,15 @@ const hasStudiedBefore = computed<boolean>(() => {
   return inProgress > 0 || completed > 0 || hasContinue || hasActivities || studyHours > 0 || studyMinutes > 0
 })
 
+const formatStudyDuration = (timeStr?: string | null): string => {
+  if (!timeStr) return currentLang.value === 'km' ? '0 ម៉ោង 0 នាទី' : '0h 0m'
+  if (currentLang.value !== 'km') return timeStr
+  return timeStr
+    .replace(/(\d+)\s*h/g, '$1 ម៉ោង')
+    .replace(/(\d+)\s*m/g, '$1 នាទី')
+    .trim()
+}
+
 // ─── Official Dashboard Loading & Animation System (DL-01 to DL-08) ───
 const loading = ref(true)
 const loadingStep = ref<'skeleton' | 'counting' | 'ready'>('skeleton')
@@ -389,7 +398,7 @@ const statsCards = computed(() => {
     {
       type: 'study_time',
       title: currentLang.value === 'km' ? 'ម៉ោងសិក្សា' : 'STUDY TIME',
-      value: studyTimeDisplay,
+      value: formatStudyDuration(studyTimeDisplay),
       subtitle: currentLang.value === 'km' ? 'ម៉ោងសិក្សាសរុប' : 'Total Hours Spent',
       gradient: 'from-blue-700 to-indigo-800',
       wavePath: 'M0 19 Q 25 10, 50 18 T 80 8 T 100 12 L 100 25 L 0 25 Z',
@@ -903,7 +912,7 @@ const recentActivities = computed(() => {
       
       <!-- TOP GREETING & QUICK SHORTCUTS ROW (Compact WelcomeBanner) -->
       <WelcomeBanner
-        :student-name="currentLang === 'km' ? (user?.name_kh || user?.name || 'និស្សិត') : (user?.name || 'Student')"
+        :student-name="currentLang === 'km' ? (user?.name_kh || (user?.name === 'Mengly Khun' ? 'ម៉េងលី ឃុន' : (user?.name || 'និស្សិត'))) : (user?.name || 'Student')"
         academic-term="Active Academic Term 2026-2027"
         :unread-announcements-count="(page.props as any)?.student_notifications?.unread_count || 0"
         :current-lang="currentLang"
@@ -1432,7 +1441,7 @@ const recentActivities = computed(() => {
                     />
                   </svg>
                   <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-1">
-                    <span class="text-[11px] xl:text-xs font-black text-[#1f1f1f] dark:text-[#e3e3e3] leading-none tabular-nums">{{ props.studyTimeBreakdown?.total || props.stats?.learningTime || (currentLang === 'km' ? '0h 0m' : '0h 0m') }}</span>
+                    <span class="text-[11px] xl:text-xs font-black text-[#1f1f1f] dark:text-[#e3e3e3] leading-none tabular-nums">{{ formatStudyDuration(props.studyTimeBreakdown?.total || props.stats?.learningTime || '0h 0m') }}</span>
                     <span class="text-[9px] text-[#444746] dark:text-[#c4c7c5] mt-0.5">{{ currentLang === 'km' ? 'សរុប' : 'Total' }}</span>
                   </div>
                 </div>
@@ -1444,21 +1453,21 @@ const recentActivities = computed(() => {
                       <span class="w-2 h-2 rounded-full bg-[#6366f1] shrink-0"></span>
                       <span class="truncate">{{ currentLang === 'km' ? 'មេរៀន' : 'Lessons' }}</span>
                     </span>
-                    <span class="font-semibold text-slate-700 dark:text-slate-200 tabular-nums shrink-0">{{ props.studyTimeBreakdown?.lessons || '0h 0m' }}</span>
+                    <span class="font-semibold text-slate-700 dark:text-slate-200 tabular-nums shrink-0">{{ formatStudyDuration(props.studyTimeBreakdown?.lessons || '0h 0m') }}</span>
                   </div>
                   <div class="flex items-center justify-between gap-1.5 min-w-0">
                     <span class="flex items-center gap-1.5 min-w-0 truncate">
                       <span class="w-2 h-2 rounded-full bg-purple-400 dark:bg-[#a78bfa] shrink-0"></span>
                       <span class="truncate">{{ currentLang === 'km' ? 'ការអនុវត្ត' : 'Practice' }}</span>
                     </span>
-                    <span class="font-semibold text-slate-700 dark:text-slate-200 tabular-nums shrink-0">{{ props.studyTimeBreakdown?.practice || '0h 0m' }}</span>
+                    <span class="font-semibold text-slate-700 dark:text-slate-200 tabular-nums shrink-0">{{ formatStudyDuration(props.studyTimeBreakdown?.practice || '0h 0m') }}</span>
                   </div>
                   <div class="flex items-center justify-between gap-1.5 min-w-0">
                     <span class="flex items-center gap-1.5 min-w-0 truncate">
                       <span class="w-2 h-2 rounded-full bg-cyan-500 dark:bg-cyan-400 shrink-0"></span>
                       <span class="truncate">{{ currentLang === 'km' ? 'កម្រងសំណួរ' : 'Quiz' }}</span>
                     </span>
-                    <span class="font-semibold text-slate-700 dark:text-slate-200 tabular-nums shrink-0">{{ props.studyTimeBreakdown?.quiz || '0h 0m' }}</span>
+                    <span class="font-semibold text-slate-700 dark:text-slate-200 tabular-nums shrink-0">{{ formatStudyDuration(props.studyTimeBreakdown?.quiz || '0h 0m') }}</span>
                   </div>
                 </div>
               </div>

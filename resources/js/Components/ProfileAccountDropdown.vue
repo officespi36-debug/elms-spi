@@ -33,7 +33,12 @@ const effectiveRole = computed(() => {
 })
 
 const userDisplayName = computed(() => {
-  return currentUser.value?.name || (isKhmer.value ? 'គណនីនិស្សិត' : 'Student User')
+  if (isKhmer.value) {
+    if (currentUser.value?.name_kh) return currentUser.value.name_kh
+    if (currentUser.value?.name === 'Mengly Khun') return 'ម៉េងលី ឃុន'
+    return currentUser.value?.name || 'គណនីនិស្សិត'
+  }
+  return currentUser.value?.name || 'Student User'
 })
 
 const userDisplayEmail = computed(() => {

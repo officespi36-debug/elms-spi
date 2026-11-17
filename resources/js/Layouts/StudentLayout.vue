@@ -28,7 +28,12 @@ const user = computed(() => page.props.auth?.user || {})
 const userPrefs = computed(() => (user.value?.preferences as Record<string, any>) || {})
 
 const studentDisplayName = computed(() => {
-  return user.value?.name || (currentLang.value === 'km' ? 'និស្សិត' : 'Student')
+  if (currentLang.value === 'km') {
+    if (user.value?.name_kh) return user.value.name_kh
+    if (user.value?.name === 'Mengly Khun') return 'ម៉េងលី ឃុន'
+    return user.value?.name || 'និស្សិត'
+  }
+  return user.value?.name || 'Student'
 })
 
 const headerAvatarError = ref(false)
@@ -696,26 +701,153 @@ const handleDocumentClick = (e: MouseEvent) => {
 }
 
 // Global Command Search Links for Student (Covering 12 modules)
-const searchableLinks = computed(() => [
-  { name: 'Dashboard (ផ្ទាំងគ្រប់គ្រងដើម)', category: 'Dashboard', href: '/student/dashboard', iconUrl: '/images/nav/dashboard.svg' },
-  { name: 'My Courses (Enrolled & Current)', category: 'My Courses', href: '/student/my-courses/enrolled', iconUrl: '/images/nav/courses.svg' },
-  { name: 'Browse & Filter Courses', category: 'My Courses', href: '/student/browse', iconUrl: '/images/nav/sub/all-courses.svg' },
-  { name: 'Learning Content (Videos, PDFs, Slides, Notes)', category: 'Content', href: '/student/content', iconUrl: '/images/nav/content.svg' },
-  { name: 'Quiz & Assessment (Pre, Practice, Post, Assignments)', category: 'Assessment', href: '/student/quizzes', iconUrl: '/images/nav/quiz.svg' },
-  { name: 'AI Learning Path (Personalized Path)', category: 'AI Path', href: '/student/ai-path', iconUrl: '/images/nav/ai.svg' },
-  { name: 'AI Assistant / Tutor (English, 24/7 Chat, Feedback)', category: 'AI Assistant', href: '/student/ai-tutor', iconUrl: '/images/nav/ai.svg' },
-  { name: 'Practice Lab (IT, Tourism, English, Agronomy, Social Work)', category: 'Practice Lab', href: '/student/practice-lab', iconUrl: '/images/nav/sub/import-export.svg' },
-  { name: 'Progress Tracking & Badges', category: 'Progress', href: '/student/progress/overview', iconUrl: '/images/nav/progress.svg' },
-  { name: 'Certificates (View, Download, QR Verify)', category: 'Certificates', href: '/student/certificates/my-certificates', iconUrl: '/images/nav/certificate.svg' },
-  { name: 'Notifications & Alerts', category: 'Notifications', href: '/student/notifications/announcements', iconUrl: '/images/nav/notification.svg' },
-  { name: 'Calendar & Schedule (Quiz dates, Deadlines)', category: 'Calendar', href: '/student/calendar/live-class', iconUrl: '/images/nav/calendar.svg' },
-  { name: 'Profile Settings & Academic Info', category: 'Profile', href: '/student/profile?tab=personal', iconUrl: '/images/nav/sub/students.svg' },
-])
+const searchableLinks = computed(() => {
+  const isKm = currentLang.value === 'km'
+  return [
+    {
+      name: isKm ? 'ផ្ទាំងគ្រប់គ្រង (Dashboard)' : 'Dashboard (Overview)',
+      nameEn: 'Dashboard (Overview)',
+      nameKm: 'ផ្ទាំងគ្រប់គ្រង (Dashboard)',
+      category: isKm ? 'ផ្ទាំងគ្រប់គ្រង' : 'Dashboard',
+      categoryEn: 'Dashboard',
+      categoryKm: 'ផ្ទាំងគ្រប់គ្រង',
+      href: '/student/dashboard',
+      iconUrl: '/images/nav/dashboard.svg'
+    },
+    {
+      name: isKm ? 'វគ្គសិក្សារបស់ខ្ញុំ (បានចុះឈ្មោះ & កំពុងរៀន)' : 'My Courses (Enrolled & Current)',
+      nameEn: 'My Courses (Enrolled & Current)',
+      nameKm: 'វគ្គសិក្សារបស់ខ្ញុំ (បានចុះឈ្មោះ & កំពុងរៀន)',
+      category: isKm ? 'វគ្គសិក្សារបស់ខ្ញុំ' : 'My Courses',
+      categoryEn: 'My Courses',
+      categoryKm: 'វគ្គសិក្សារបស់ខ្ញុំ',
+      href: '/student/my-courses/enrolled',
+      iconUrl: '/images/nav/courses.svg'
+    },
+    {
+      name: isKm ? 'ស្វែងរក និងជ្រើសរើសវគ្គសិក្សា' : 'Browse & Filter Courses',
+      nameEn: 'Browse & Filter Courses',
+      nameKm: 'ស្វែងរក និងជ្រើសរើសវគ្គសិក្សា',
+      category: isKm ? 'វគ្គសិក្សា' : 'Browse Courses',
+      categoryEn: 'Browse Courses',
+      categoryKm: 'វគ្គសិក្សា',
+      href: '/student/browse',
+      iconUrl: '/images/nav/sub/all-courses.svg'
+    },
+    {
+      name: isKm ? 'មាតិកាសិក្សា (វីដេអូ, PDF, ស្លាយ, កំណត់ត្រា)' : 'Learning Content (Videos, PDFs, Slides, Notes)',
+      nameEn: 'Learning Content (Videos, PDFs, Slides, Notes)',
+      nameKm: 'មាតិកាសិក្សា (វីដេអូ, PDF, ស្លាយ, កំណត់ត្រា)',
+      category: isKm ? 'មាតិកា' : 'Content',
+      categoryEn: 'Content',
+      categoryKm: 'មាតិកា',
+      href: '/student/content',
+      iconUrl: '/images/nav/content.svg'
+    },
+    {
+      name: isKm ? 'កម្រងសំណួរ & ការវាយតម្លៃ (Pre, Practice, Post, កិច្ចការ)' : 'Quiz & Assessment (Pre, Practice, Post, Assignments)',
+      nameEn: 'Quiz & Assessment (Pre, Practice, Post, Assignments)',
+      nameKm: 'កម្រងសំណួរ & ការវាយតម្លៃ (Pre, Practice, Post, កិច្ចការ)',
+      category: isKm ? 'ការវាយតម្លៃ' : 'Assessment',
+      categoryEn: 'Assessment',
+      categoryKm: 'ការវាយតម្លៃ',
+      href: '/student/quizzes',
+      iconUrl: '/images/nav/quiz.svg'
+    },
+    {
+      name: isKm ? 'គន្លងសិក្សា AI (Personalized Path)' : 'AI Learning Path (Personalized Path)',
+      nameEn: 'AI Learning Path (Personalized Path)',
+      nameKm: 'គន្លងសិក្សា AI (Personalized Path)',
+      category: isKm ? 'គន្លង AI' : 'AI Path',
+      categoryEn: 'AI Path',
+      categoryKm: 'គន្លង AI',
+      href: '/student/ai-path',
+      iconUrl: '/images/nav/ai.svg'
+    },
+    {
+      name: isKm ? 'ជំនួយការ AI / គ្រូបង្រៀនផ្ទាល់ខ្លួន (24/7 Chat & Feedback)' : 'AI Assistant / Tutor (English, 24/7 Chat, Feedback)',
+      nameEn: 'AI Assistant / Tutor (English, 24/7 Chat, Feedback)',
+      nameKm: 'ជំនួយការ AI / គ្រូបង្រៀនផ្ទាល់ខ្លួន (24/7 Chat & Feedback)',
+      category: isKm ? 'ជំនួយការ AI' : 'AI Assistant',
+      categoryEn: 'AI Assistant',
+      categoryKm: 'ជំនួយការ AI',
+      href: '/student/ai-tutor',
+      iconUrl: '/images/nav/ai.svg'
+    },
+    {
+      name: isKm ? 'បន្ទប់អនុវត្តជាក់ស្តែង (IT, ទេសចរណ៍, អង់គ្លេស, កសិកម្ម, ការងារសង្គម)' : 'Practice Lab (IT, Tourism, English, Agronomy, Social Work)',
+      nameEn: 'Practice Lab (IT, Tourism, English, Agronomy, Social Work)',
+      nameKm: 'បន្ទប់អនុវត្តជាក់ស្តែង (IT, ទេសចរណ៍, អង់គ្លេស, កសិកម្ម, ការងារសង្គម)',
+      category: isKm ? 'បន្ទប់អនុវត្ត' : 'Practice Lab',
+      categoryEn: 'Practice Lab',
+      categoryKm: 'បន្ទប់អនុវត្ត',
+      href: '/student/practice-lab',
+      iconUrl: '/images/nav/sub/import-export.svg'
+    },
+    {
+      name: isKm ? 'តាមដានវឌ្ឍនភាពសិក្សា & មេដាយកិត្តិយស' : 'Progress Tracking & Badges',
+      nameEn: 'Progress Tracking & Badges',
+      nameKm: 'តាមដានវឌ្ឍនភាពសិក្សា & មេដាយកិត្តិយស',
+      category: isKm ? 'វឌ្ឍនភាព' : 'Progress',
+      categoryEn: 'Progress',
+      categoryKm: 'វឌ្ឍនភាព',
+      href: '/student/progress/overview',
+      iconUrl: '/images/nav/progress.svg'
+    },
+    {
+      name: isKm ? 'វិញ្ញាបនបត្រ (មើល, ទាញយក, ផ្ទៀងផ្ទាត់ QR)' : 'Certificates (View, Download, QR Verify)',
+      nameEn: 'Certificates (View, Download, QR Verify)',
+      nameKm: 'វិញ្ញាបនបត្រ (មើល, ទាញយក, ផ្ទៀងផ្ទាត់ QR)',
+      category: isKm ? 'វិញ្ញាបនបត្រ' : 'Certificates',
+      categoryEn: 'Certificates',
+      categoryKm: 'វិញ្ញាបនបត្រ',
+      href: '/student/certificates/my-certificates',
+      iconUrl: '/images/nav/certificate.svg'
+    },
+    {
+      name: isKm ? 'ការជូនដំណឹង & សេចក្តីប្រកាស' : 'Notifications & Alerts',
+      nameEn: 'Notifications & Alerts',
+      nameKm: 'ការជូនដំណឹង & សេចក្តីប្រកាស',
+      category: isKm ? 'ការជូនដំណឹង' : 'Notifications',
+      categoryEn: 'Notifications',
+      categoryKm: 'ការជូនដំណឹង',
+      href: '/student/notifications/announcements',
+      iconUrl: '/images/nav/notification.svg'
+    },
+    {
+      name: isKm ? 'កាលវិភាគ & ប្រតិទិន (កាលបរិច្ឆេទ Quiz, ថ្ងៃកំណត់)' : 'Calendar & Schedule (Quiz dates, Deadlines)',
+      nameEn: 'Calendar & Schedule (Quiz dates, Deadlines)',
+      nameKm: 'កាលវិភាគ & ប្រតិទិន (កាលបរិច្ឆេទ Quiz, ថ្ងៃកំណត់)',
+      category: isKm ? 'ប្រតិទិន' : 'Calendar',
+      categoryEn: 'Calendar',
+      categoryKm: 'ប្រតិទិន',
+      href: '/student/calendar/live-class',
+      iconUrl: '/images/nav/calendar.svg'
+    },
+    {
+      name: isKm ? 'ការកំណត់គណនី & ព័ត៌មានសិក្សា' : 'Profile Settings & Academic Info',
+      nameEn: 'Profile Settings & Academic Info',
+      nameKm: 'ការកំណត់គណនី & ព័ត៌មានសិក្សា',
+      category: isKm ? 'គណនី' : 'Profile',
+      categoryEn: 'Profile',
+      categoryKm: 'គណនី',
+      href: '/student/profile?tab=personal',
+      iconUrl: '/images/nav/sub/students.svg'
+    },
+  ]
+})
 
 const filteredSearchLinks = computed(() => {
   if (!searchQuery.value.trim()) return searchableLinks.value
   const q = searchQuery.value.toLowerCase()
-  return searchableLinks.value.filter(l => l.name.toLowerCase().includes(q) || l.category.toLowerCase().includes(q))
+  return searchableLinks.value.filter(l =>
+    l.name.toLowerCase().includes(q) ||
+    l.nameEn.toLowerCase().includes(q) ||
+    l.nameKm.toLowerCase().includes(q) ||
+    l.category.toLowerCase().includes(q) ||
+    l.categoryEn.toLowerCase().includes(q) ||
+    l.categoryKm.toLowerCase().includes(q)
+  )
 })
 
 interface NavSubItem {

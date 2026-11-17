@@ -157,8 +157,9 @@ class CourseMultilingualSeeder extends Seeder
                 ->update(['name_kh' => $khName]);
         }
 
-        // Also ensure specific IDs
+        // Also ensure specific IDs & known accounts
         DB::table('users')->where('id', 21)->update(['name_kh' => 'បណ្ឌិត ម៉េងលី ជា']);
         DB::table('users')->where('id', 45)->update(['name_kh' => 'លោក សេង វុទ្ធី']);
+        DB::table('users')->where('email', 'ounmengly3@gmail.com')->orWhere('name', 'Mengly Khun')->update(['name_kh' => 'ម៉េងលី ឃុន']);
     }
 }
