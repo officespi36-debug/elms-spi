@@ -28,7 +28,7 @@ use Illuminate\Database\Eloquent\Model;
 class Course extends Model
 {
     protected $fillable = [
-        'major_id', 'subject_id', 'teacher_id', 'title', 'code', 'description',
+        'major_id', 'subject_id', 'teacher_id', 'title', 'title_kh', 'code', 'description', 'description_kh',
         'academic_year', 'semester', 'semester_id', 'learning_mode', 'level', 'is_paid', 'price', 'status', 'thumbnail',
         'submitted_at', 'reviewed_at', 'rejection_note'
     ];

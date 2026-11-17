@@ -67,7 +67,7 @@ class CourseController extends Controller
             : (in_array($savedView, ['grid', 'list'], true) ? $savedView : 'grid');
 
         // 2 & 3. Fetch + compute enrolled courses with 60s user-scoped cache (0 N+1 queries)
-        $cachedItems = Cache::remember("student_enrolled_{$user->id}_v3", 60, function () use ($user, $progressService) {
+        $cachedItems = Cache::remember("student_enrolled_{$user->id}_v4", 60, function () use ($user, $progressService) {
             $withRelations = [
                 'course.teacher:id,name,name_kh,email,avatar,role',
                 'course.major:id,name,name_kh',
@@ -157,6 +157,7 @@ class CourseController extends Controller
                     'source'             => $enr->source ?: 'system',
                     'slug'               => $c->code ?: ('course-' . $c->id),
                     'title'              => $c->title,
+                    'titleKh'            => $c->title_kh ?: $c->title,
                     'thumbnail'          => $c->thumbnail ?: null,
                     'category'           => $c->major?->name ?: 'Academic Studies',
                     'categoryKh'         => $c->major?->name_kh ?: ($c->major?->name ?: 'ការសិក្សាទូទៅ'),
@@ -164,9 +165,10 @@ class CourseController extends Controller
                     'statusLabel'        => $item['state_label'],
                     'progress'           => $item['percent'],
                     'teacher'            => [
-                        'name'   => $teacherName,
-                        'avatar' => $c->teacher?->avatar ?: null,
-                        'role'   => 'SPI Instructor',
+                        'name'    => $teacherName,
+                        'name_kh' => $progressService->cleanTeacherNameKh($c->teacher, $c),
+                        'avatar'  => $c->teacher?->avatar ?: null,
+                        'role'    => 'SPI Instructor',
                     ],
                     'currentChapter'     => $item['current_module_title'],
                     'currentModuleIndex' => $item['current_module_index'],
@@ -1014,7 +1016,9 @@ class CourseController extends Controller
                     'id'               => $realCourse->id,
                     'slug'             => $realCourse->code ?: ('course-' . $realCourse->id),
                     'title'            => $realCourse->title,
+                    'titleKh'          => $realCourse->title_kh ?: $realCourse->title,
                     'subtitle'         => $realCourse->description ?: null,
+                    'subtitleKh'       => $realCourse->description_kh ?: ($realCourse->description ?: null),
                     'bannerUrl'        => $thumb,
                     'category'         => $realCourse->major?->name ?: null,
                     'categoryKh'       => $realCourse->major?->name_kh ?: ($realCourse->major?->name ?: null),
@@ -1037,10 +1041,11 @@ class CourseController extends Controller
                     'rating'           => $avgRating,
                     'reviewsCount'     => $reviewsCount,
                     'instructor'       => [
-                        'name'   => $realCourse->teacher ? $progressService->cleanTeacherName($realCourse->teacher, $realCourse) : null,
-                        'role'   => $realCourse->teacher?->qualification ?: 'Instructor',
-                        'avatar' => $realCourse->teacher?->avatar_url ?: null,
-                        'bio'    => $realCourse->teacher?->expertise ?: null,
+                        'name'    => $realCourse->teacher ? $progressService->cleanTeacherName($realCourse->teacher, $realCourse) : null,
+                        'name_kh' => $realCourse->teacher ? $progressService->cleanTeacherNameKh($realCourse->teacher, $realCourse) : null,
+                        'role'    => $realCourse->teacher?->qualification ?: 'Instructor',
+                        'avatar'  => $realCourse->teacher?->avatar_url ?: null,
+                        'bio'     => $realCourse->teacher?->expertise ?: null,
                     ],
                     'chapters'         => $chapters,
                 ];

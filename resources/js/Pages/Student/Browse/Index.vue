@@ -15,7 +15,9 @@ interface CatalogCourse {
   id: number
   slug: string
   title: string
+  titleKh?: string | null
   description?: string | null
+  descriptionKh?: string | null
   thumbnail?: string | null
   majorId?: number | null
   category?: string | null
@@ -198,6 +200,37 @@ const localizedCourseCategory = (course: CatalogCourse): string => {
     return course.categoryKh || course.category || ''
   }
   return course.category || ''
+}
+
+const localizedCourseTitle = (course: CatalogCourse): string => {
+  if (currentLang.value === 'km') {
+    return course.titleKh || course.title
+  }
+  return course.title
+}
+
+const localizedCourseDescription = (course: CatalogCourse): string => {
+  if (currentLang.value === 'km') {
+    return course.descriptionKh || course.description || ''
+  }
+  return course.description || ''
+}
+
+const localizedInstructorName = (instructor?: CatalogInstructor | null): string => {
+  if (!instructor) return ''
+  if (currentLang.value === 'km') {
+    return instructor.name_kh || instructor.name || ''
+  }
+  return instructor.name || ''
+}
+
+const localizedDuration = (duration?: string | null): string => {
+  if (!duration) return ''
+  if (currentLang.value !== 'km') return duration
+  return duration
+    .replace(/(\d+)\s*h/g, '$1 ម៉ោង')
+    .replace(/(\d+)\s*m/g, '$1 នាទី')
+    .trim()
 }
 
 const localizedLevelLabel = (lvlKey?: string | null): string => {
@@ -912,7 +945,7 @@ onUnmounted(() => {
                       <img
                         v-if="course.thumbnail && !thumbErrors[course.id]"
                         :src="course.thumbnail"
-                        :alt="course.title"
+                        :alt="localizedCourseTitle(course)"
                         loading="lazy"
                         @error="thumbErrors[course.id] = true"
                         class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
@@ -994,16 +1027,16 @@ onUnmounted(() => {
                         :href="course.overviewHref"
                         class="focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 rounded"
                       >
-                        {{ course.title }}
+                        {{ localizedCourseTitle(course) }}
                       </Link>
                     </h3>
 
                     <!-- Real description only (hidden when null) -->
                     <p
-                      v-if="course.description"
+                      v-if="localizedCourseDescription(course)"
                       class="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed"
                     >
-                      {{ course.description }}
+                      {{ localizedCourseDescription(course) }}
                     </p>
                   </div>
                 </div>
@@ -1012,11 +1045,11 @@ onUnmounted(() => {
                 <div class="px-5 pb-5 pt-2 space-y-3">
                   <!-- Teacher + Rating (only >= 3 reviews, else "New") -->
                   <div class="flex items-center justify-between gap-2 text-xs">
-                    <div v-if="course.instructor?.name" class="flex items-center gap-2 min-w-0">
+                    <div v-if="localizedInstructorName(course.instructor)" class="flex items-center gap-2 min-w-0">
                       <img
                         v-if="course.instructor.avatar && !avatarErrors[course.id]"
                         :src="course.instructor.avatar"
-                        :alt="course.instructor.name"
+                        :alt="localizedInstructorName(course.instructor)"
                         @error="avatarErrors[course.id] = true"
                         class="w-6 h-6 rounded-full object-cover border border-purple-200 dark:border-purple-700/50 shrink-0"
                       />
@@ -1025,10 +1058,10 @@ onUnmounted(() => {
                         class="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-200 text-[10px] font-bold flex items-center justify-center shrink-0"
                         aria-hidden="true"
                       >
-                        {{ getInitials(course.instructor.name) }}
+                        {{ getInitials(localizedInstructorName(course.instructor)) }}
                       </span>
                       <span class="text-slate-700 dark:text-slate-300 font-medium truncate">
-                        {{ course.instructor.name }}
+                        {{ localizedInstructorName(course.instructor) }}
                       </span>
                     </div>
 
@@ -1056,7 +1089,7 @@ onUnmounted(() => {
                     <span>{{ formatLessonsCount(course.lessonsCount) }}</span>
                     <template v-if="course.duration">
                       <span aria-hidden="true">·</span>
-                      <span>{{ course.duration }}</span>
+                      <span>{{ localizedDuration(course.duration) }}</span>
                     </template>
                   </div>
 
@@ -1141,7 +1174,7 @@ onUnmounted(() => {
                     <img
                       v-if="course.thumbnail && !thumbErrors[course.id]"
                       :src="course.thumbnail"
-                      :alt="course.title"
+                      :alt="localizedCourseTitle(course)"
                       loading="lazy"
                       @error="thumbErrors[course.id] = true"
                       class="w-full h-full object-cover"
@@ -1189,17 +1222,17 @@ onUnmounted(() => {
                         :href="course.overviewHref"
                         class="hover:text-purple-600 dark:hover:text-purple-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 rounded"
                       >
-                        {{ course.title }}
+                        {{ localizedCourseTitle(course) }}
                       </Link>
                     </h3>
 
-                    <p v-if="course.description" class="text-xs text-slate-600 dark:text-slate-400 line-clamp-2">
-                      {{ course.description }}
+                    <p v-if="localizedCourseDescription(course)" class="text-xs text-slate-600 dark:text-slate-400 line-clamp-2">
+                      {{ localizedCourseDescription(course) }}
                     </p>
 
                     <div class="flex flex-wrap items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 tabular-nums">
-                      <span v-if="course.instructor?.name" class="font-medium text-slate-700 dark:text-slate-300">
-                        {{ course.instructor.name }}
+                      <span v-if="localizedInstructorName(course.instructor)" class="font-medium text-slate-700 dark:text-slate-300">
+                        {{ localizedInstructorName(course.instructor) }}
                       </span>
                       <template v-if="course.level">
                         <span aria-hidden="true">·</span>
@@ -1209,7 +1242,7 @@ onUnmounted(() => {
                       <span>{{ formatLessonsCount(course.lessonsCount) }}</span>
                       <template v-if="course.duration">
                         <span aria-hidden="true">·</span>
-                        <span>{{ course.duration }}</span>
+                        <span>{{ localizedDuration(course.duration) }}</span>
                       </template>
                       <template v-if="course.reviewsCount >= 3 && course.rating !== null">
                         <span aria-hidden="true">·</span>

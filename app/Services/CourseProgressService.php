@@ -41,6 +41,32 @@ class CourseProgressService
     }
 
     /**
+     * Clean and standardize teacher Khmer display name.
+     */
+    public function cleanTeacherNameKh(?User $teacher, ?Course $course = null): string
+    {
+        if (!$teacher) {
+            return 'បណ្ឌិត ម៉េងលី ជា';
+        }
+
+        if (!empty($teacher->name_kh)) {
+            return trim($teacher->name_kh);
+        }
+
+        $email = strtolower($teacher->email ?? '');
+        $rawName = trim($teacher->name ?? '');
+
+        if (($course && (int)$course->teacher_id === 21) || (int)$teacher->id === 21 || str_contains($email, 'pitaja')) {
+            return 'បណ្ឌិត ម៉េងលី ជា';
+        }
+        if ((int)$teacher->id === 45) {
+            return 'លោក សេង វុទ្ធី';
+        }
+
+        return $rawName ?: 'សាស្រ្តាចារ្យ SPI';
+    }
+
+    /**
      * Calculate single course progress for a student.
      */
     public function calculate(User $user, Course $course): array

@@ -283,6 +283,7 @@ class DatabaseSeeder extends Seeder
             DashboardRealDataSeeder::class,
             LessonContentSeeder::class,
             StudentDashboardSeeder::class,
+            CourseMultilingualSeeder::class,
         ]);
     }
 }

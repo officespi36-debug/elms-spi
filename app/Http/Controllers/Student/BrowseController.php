@@ -302,6 +302,9 @@ class BrowseController extends Controller
             $teacherName = $c->teacher
                 ? $progressService->cleanTeacherName($c->teacher, $c)
                 : null;
+            $teacherNameKh = $c->teacher
+                ? $progressService->cleanTeacherNameKh($c->teacher, $c)
+                : null;
 
             $levelKey = $c->level ? strtolower(trim((string) $c->level)) : null;
 
@@ -309,7 +312,9 @@ class BrowseController extends Controller
                 'id'               => $c->id,
                 'slug'             => $c->code ?: ('course-' . $c->id),
                 'title'            => $c->title,
+                'titleKh'          => $c->title_kh ?: $c->title,
                 'description'      => $c->description ? trim((string) $c->description) : null,
+                'descriptionKh'    => $c->description_kh ? trim((string) $c->description_kh) : ($c->description ? trim((string) $c->description) : null),
                 'thumbnail'        => $thumb ?: null,
                 'majorId'          => $c->major_id ? (int) $c->major_id : null,
                 'category'         => $c->major?->name ?: null,
@@ -331,7 +336,7 @@ class BrowseController extends Controller
                 'enrollmentStatus' => $isCompleted ? 'completed' : ($isEnrolled ? 'enrolled' : ($isPendingPayment ? 'pending_payment' : 'not_enrolled')),
                 'instructor'       => [
                     'name'    => $teacherName,
-                    'name_kh' => $c->teacher?->name_kh ?: null,
+                    'name_kh' => $teacherNameKh ?: ($c->teacher?->name_kh ?: $teacherName),
                     'avatar'  => $c->teacher?->avatar_url ?: null,
                     'role'    => 'Instructor',
                 ],
@@ -386,12 +391,13 @@ class BrowseController extends Controller
             : null;
 
         return Inertia::render('Student/Browse/Show', [
-            'course'       => $course,
-            'enrolled'     => $enrolled,
-            'isWishlisted' => $isWishlisted,
-            'rating'       => $avgRating,
-            'reviewsCount' => $reviewsCount,
-            'teacherName'  => $course->teacher ? $progressService->cleanTeacherName($course->teacher, $course) : null,
+            'course'        => $course,
+            'enrolled'      => $enrolled,
+            'isWishlisted'  => $isWishlisted,
+            'rating'        => $avgRating,
+            'reviewsCount'  => $reviewsCount,
+            'teacherName'   => $course->teacher ? $progressService->cleanTeacherName($course->teacher, $course) : null,
+            'teacherNameKh' => $course->teacher ? $progressService->cleanTeacherNameKh($course->teacher, $course) : null,
         ]);
     }
 
@@ -468,7 +474,9 @@ class BrowseController extends Controller
             $like = "%{$escaped}%";
             $query->where(function (Builder $sub) use ($like) {
                 $sub->where('courses.title', 'like', $like)
+                    ->orWhere('courses.title_kh', 'like', $like)
                     ->orWhere('courses.description', 'like', $like)
+                    ->orWhere('courses.description_kh', 'like', $like)
                     ->orWhere('courses.code', 'like', $like)
                     ->orWhereHas('teacher', function (Builder $tq) use ($like) {
                         $tq->where('name', 'like', $like)

@@ -20,6 +20,7 @@ interface EnrolledCourseItem {
   source?: string
   slug: string
   title: string
+  titleKh?: string
   thumbnail?: string | null
   category: string
   categoryKh?: string
@@ -28,6 +29,7 @@ interface EnrolledCourseItem {
   progress: number
   teacher: {
     name: string
+    name_kh?: string
     avatar: string
     role?: string
   }
@@ -180,6 +182,21 @@ const localizedCourseCategory = (course: EnrolledCourseItem) => {
     return course.categoryKh || localizedCategory(course.category)
   }
   return course.category
+}
+
+const localizedCourseTitle = (course: EnrolledCourseItem): string => {
+  if (currentLang.value === 'km') {
+    return course.titleKh || course.title
+  }
+  return course.title
+}
+
+const localizedTeacherName = (teacher?: { name: string; name_kh?: string } | null): string => {
+  if (!teacher) return ''
+  if (currentLang.value === 'km') {
+    return teacher.name_kh || teacher.name
+  }
+  return teacher.name
 }
 
 const localizedStatusLabel = (course: EnrolledCourseItem) => {
@@ -663,7 +680,7 @@ onUnmounted(() => {
                 <div v-if="course.thumbnail" class="w-full h-full relative overflow-hidden">
                   <img
                     :src="course.thumbnail"
-                    :alt="course.title"
+                    :alt="localizedCourseTitle(course)"
                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     @error="(e: any) => { e.target.style.display = 'none'; (course as any)._thumbError = true }"
                   />
@@ -887,7 +904,7 @@ onUnmounted(() => {
                 <!-- Title & Teacher Row -->
                 <div>
                   <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors leading-snug line-clamp-2">
-                    {{ course.title }}
+                    {{ localizedCourseTitle(course) }}
                   </h3>
 
                   <div class="flex items-center gap-2 mt-2">
@@ -895,20 +912,20 @@ onUnmounted(() => {
                       <img
                         v-if="course.teacher.avatar && !(course as any)._avatarError"
                         :src="course.teacher.avatar"
-                        :alt="course.teacher.name"
+                        :alt="localizedTeacherName(course.teacher)"
                         loading="lazy"
                         decoding="async"
                         class="w-full h-full object-cover"
                         @error="(course as any)._avatarError = true"
                       />
-                      <span v-else>{{ getInitials(course.teacher.name) }}</span>
+                      <span v-else>{{ getInitials(localizedTeacherName(course.teacher)) }}</span>
                     </div>
                     <Link
                       :href="course.overviewHref"
                       @click.stop
                       class="text-xs text-slate-600 dark:text-slate-300 font-medium hover:text-purple-600 dark:hover:text-purple-400 hover:underline transition-colors truncate max-w-[150px]"
                     >
-                      {{ course.teacher.name }}
+                      {{ localizedTeacherName(course.teacher) }}
                     </Link>
                     <span
                       class="text-[11px] text-purple-600 dark:text-purple-400 font-medium ml-auto flex items-center gap-1 shrink-0 font-['Kantumruy_Pro',sans-serif]"
@@ -1064,7 +1081,7 @@ onUnmounted(() => {
                 <img
                   v-if="course.thumbnail && !(course as any)._thumbError"
                   :src="course.thumbnail"
-                  :alt="course.title"
+                  :alt="localizedCourseTitle(course)"
                   class="w-full h-full object-cover"
                   @error="(e: any) => { e.target.style.display = 'none'; (course as any)._thumbError = true }"
                 />
@@ -1095,11 +1112,11 @@ onUnmounted(() => {
                 </div>
 
                 <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors truncate">
-                  {{ course.title }}
+                  {{ localizedCourseTitle(course) }}
                 </h3>
 
                 <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400 font-['Kantumruy_Pro',sans-serif] tabular-nums">
-                  <span>{{ t('គ្រូបង្រៀន៖', 'Instructor:') }} <Link :href="course.overviewHref" @click.stop class="hover:text-purple-600 dark:hover:text-purple-400 hover:underline font-medium text-slate-700 dark:text-slate-200">{{ course.teacher.name }}</Link></span>
+                  <span>{{ t('គ្រូបង្រៀន៖', 'Instructor:') }} <Link :href="course.overviewHref" @click.stop class="hover:text-purple-600 dark:hover:text-purple-400 hover:underline font-medium text-slate-700 dark:text-slate-200">{{ localizedTeacherName(course.teacher) }}</Link></span>
                   <span class="text-purple-600 dark:text-purple-400 font-medium">
                     • {{ formatEnrollmentMeta(course) }}
                   </span>
