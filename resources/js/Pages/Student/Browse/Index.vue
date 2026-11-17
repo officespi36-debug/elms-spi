@@ -857,23 +857,6 @@ onUnmounted(() => {
             </button>
           </div>
 
-          <!-- SKELETON LOADING STATE -->
-          <div v-else-if="isLoading" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6" aria-busy="true">
-            <div
-              v-for="n in 6"
-              :key="'skel-' + n"
-              class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] rounded-[20px] overflow-hidden animate-pulse"
-            >
-              <div class="w-full aspect-video bg-slate-200 dark:bg-[#282a2c]"></div>
-              <div class="p-5 space-y-3">
-                <div class="h-3 w-24 rounded bg-slate-200 dark:bg-[#282a2c]"></div>
-                <div class="h-4 w-4/5 rounded bg-slate-200 dark:bg-[#282a2c]"></div>
-                <div class="h-3 w-full rounded bg-slate-200 dark:bg-[#282a2c]"></div>
-                <div class="h-8 w-full rounded-xl bg-slate-200 dark:bg-[#282a2c] mt-2"></div>
-              </div>
-            </div>
-          </div>
-
           <!-- COURSES GRID OR LIST -->
           <template v-else-if="catalogItems.length > 0">
             <!-- GRID VIEW (3 cols desktop / 2 cols tablet / 1 col mobile) -->

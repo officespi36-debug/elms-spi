@@ -208,78 +208,70 @@
 <body class="font-sans antialiased bg-[#0b132b] text-slate-100 min-h-screen notranslate" translate="no"
     style="background-color: #0b132b; color: #f8fafc;">
     
-    <!-- Instant Initial Page Preloader (4 colorful glowing dots + animated text) -->
+    <!-- Instant Initial Page Preloader (12-Dot Circular Blue Ring Spinner) -->
     <div id="initial-page-preloader"
-        style="position: fixed; inset: 0; z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; background-color: #0b132b; transition: opacity 0.35s ease-out; pointer-events: none;">
-        <div style="display: flex; align-items: center; justify-content: center; gap: 14px;">
-            <span class="init-dot init-dot-1"></span>
-            <span class="init-dot init-dot-2"></span>
-            <span class="init-dot init-dot-3"></span>
-            <span class="init-dot init-dot-4"></span>
+        style="position: fixed; inset: 0; z-index: 999999; display: flex; align-items: center; justify-content: center; background-color: #0b132b; transition: opacity 0.35s ease-out; pointer-events: none;">
+        <div class="init-ring-spinner" aria-hidden="true">
+            <span class="init-ring-spoke" style="--i:0"><span class="init-ring-dot"></span></span>
+            <span class="init-ring-spoke" style="--i:1"><span class="init-ring-dot"></span></span>
+            <span class="init-ring-spoke" style="--i:2"><span class="init-ring-dot"></span></span>
+            <span class="init-ring-spoke" style="--i:3"><span class="init-ring-dot"></span></span>
+            <span class="init-ring-spoke" style="--i:4"><span class="init-ring-dot"></span></span>
+            <span class="init-ring-spoke" style="--i:5"><span class="init-ring-dot"></span></span>
+            <span class="init-ring-spoke" style="--i:6"><span class="init-ring-dot"></span></span>
+            <span class="init-ring-spoke" style="--i:7"><span class="init-ring-dot"></span></span>
+            <span class="init-ring-spoke" style="--i:8"><span class="init-ring-dot"></span></span>
+            <span class="init-ring-spoke" style="--i:9"><span class="init-ring-dot"></span></span>
+            <span class="init-ring-spoke" style="--i:10"><span class="init-ring-dot"></span></span>
+            <span class="init-ring-spoke" style="--i:11"><span class="init-ring-dot"></span></span>
         </div>
-        <p id="initial-preloader-text" class="init-loading-text" style="margin: 0; font-family: 'Plus Jakarta Sans', 'Kantumruy Pro', system-ui, -apple-system, sans-serif; font-size: 15px; font-weight: 700; color: #f1f5f9; letter-spacing: 0.4px; text-shadow: 0 2px 8px rgba(0,0,0,0.35);">
-            សូមរង់ចាំ កំពុងដំណើរការ...
-        </p>
     </div>
     <script>
         (function() {
             try {
-                var lang = localStorage.getItem('elms_lang') || document.documentElement.lang || 'km';
-                var el = document.getElementById('initial-preloader-text');
-                if (el) {
-                    el.textContent = (lang === 'en') ? 'Please wait while loading...' : 'សូមរង់ចាំ កំពុងដំណើរការ...';
+                var el = document.getElementById('initial-page-preloader');
+                if (el && !document.documentElement.classList.contains('dark')) {
+                    el.style.backgroundColor = '#f8fafc';
                 }
             } catch(e) {}
         })();
     </script>
     <style>
-        .init-dot {
-            width: 15px;
-            height: 15px;
+        .init-ring-spinner {
+            position: relative;
+            width: 64px;
+            height: 64px;
+        }
+        .init-ring-spoke {
+            position: absolute;
+            inset: 0;
+            transform: rotate(calc(var(--i) * 30deg));
+        }
+        .init-ring-dot {
+            position: absolute;
+            top: 2px;
+            left: 50%;
+            width: 11px;
+            height: 11px;
+            margin-left: -5.5px;
             border-radius: 9999px;
-            display: inline-block;
+            background-color: #0099ff;
             will-change: transform, opacity;
-            animation: initDotTravel 0.72s infinite cubic-bezier(0.4, 0, 0.2, 1);
+            animation: initRingPulse 1.08s ease-in-out infinite;
+            animation-delay: calc((var(--i) - 12) * 0.09s);
         }
-        .init-dot-1 {
-            background: linear-gradient(135deg, #a855f7, #7c3aed);
-            box-shadow: 0 0 14px rgba(168, 85, 247, 0.85);
-            animation-delay: 0s;
-        }
-        .init-dot-2 {
-            background: linear-gradient(135deg, #6366f1, #3b82f6);
-            box-shadow: 0 0 14px rgba(99, 102, 241, 0.85);
-            animation-delay: 0.12s;
-        }
-        .init-dot-3 {
-            background: linear-gradient(135deg, #ec4899, #f43f5e);
-            box-shadow: 0 0 14px rgba(236, 72, 153, 0.85);
-            animation-delay: 0.24s;
-        }
-        .init-dot-4 {
-            background: linear-gradient(135deg, #06b6d4, #10b981);
-            box-shadow: 0 0 14px rgba(6, 182, 212, 0.85);
-            animation-delay: 0.36s;
-        }
-        .init-loading-text {
-            animation: initTextPulse 1.4s ease-in-out infinite;
-        }
-        @keyframes initDotTravel {
-            0%, 70%, 100% {
-                transform: translateY(0) scale(0.9);
-                opacity: 0.7;
-            }
-            35% {
-                transform: translateY(-14px) scale(1.25);
+        @keyframes initRingPulse {
+            0%, 15%, 100% {
+                transform: scale(1);
                 opacity: 1;
             }
-        }
-        @keyframes initTextPulse {
-            0%, 100% { opacity: 0.78; }
-            50% { opacity: 1; }
+            55% {
+                transform: scale(0.16);
+                opacity: 0.72;
+            }
         }
         @media (prefers-reduced-motion: reduce) {
-            .init-dot, .init-loading-text { animation: none; }
+            .init-ring-dot { animation: none; }
         }
     </style>
 

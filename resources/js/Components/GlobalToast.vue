@@ -213,17 +213,14 @@ watch(
       v-if="isGlobalProcessing"
       role="status"
       aria-live="polite"
-      class="fixed inset-0 z-[10000] flex flex-col items-center justify-center gap-3.5 pointer-events-none select-none"
+      class="fixed inset-0 z-[10000] flex items-center justify-center pointer-events-none select-none"
     >
-      <div class="flex items-center justify-center gap-3.5" aria-hidden="true">
-        <span class="elms-dot elms-dot-1"></span>
-        <span class="elms-dot elms-dot-2"></span>
-        <span class="elms-dot elms-dot-3"></span>
-        <span class="elms-dot elms-dot-4"></span>
+      <div class="elms-ring-spinner" aria-hidden="true">
+        <span v-for="i in 12" :key="i" class="elms-ring-spoke" :style="{ '--i': i - 1 }">
+          <span class="elms-ring-dot"></span>
+        </span>
       </div>
-      <p class="elms-loading-text text-sm sm:text-base font-bold tracking-wide text-slate-900 dark:text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)] flex items-center">
-        <span>{{ loadingText }}</span><span class="elms-ellipsis" aria-hidden="true">...</span>
-      </p>
+      <span class="sr-only">{{ loadingText }}</span>
     </div>
   </Transition>
   <!-- Centered Screen Notice / Confirmation Card (e.g. Continue Learning when not enrolled yet) -->
@@ -291,98 +288,46 @@ watch(
 </template>
 
 <style scoped>
-.elms-dot {
-  width: 15px;
-  height: 15px;
-  border-radius: 9999px;
-  display: inline-block;
-  will-change: transform, opacity;
-  animation: elms-dot-travel 0.72s infinite cubic-bezier(0.4, 0, 0.2, 1);
-}
-.elms-dot-1 {
-  background: linear-gradient(135deg, #a855f7, #7c3aed);
-  box-shadow: 0 0 14px rgba(168, 85, 247, 0.85);
-  animation-delay: 0s;
-}
-.elms-dot-2 {
-  background: linear-gradient(135deg, #6366f1, #3b82f6);
-  box-shadow: 0 0 14px rgba(99, 102, 241, 0.85);
-  animation-delay: 0.12s;
-}
-.elms-dot-3 {
-  background: linear-gradient(135deg, #ec4899, #f43f5e);
-  box-shadow: 0 0 14px rgba(236, 72, 153, 0.85);
-  animation-delay: 0.24s;
-}
-.elms-dot-4 {
-  background: linear-gradient(135deg, #06b6d4, #10b981);
-  box-shadow: 0 0 14px rgba(6, 182, 212, 0.85);
-  animation-delay: 0.36s;
+.elms-ring-spinner {
+  position: relative;
+  width: 64px;
+  height: 64px;
 }
 
-@keyframes elms-dot-travel {
-  0%, 70%, 100% {
-    transform: translateY(0) scale(0.9);
-    opacity: 0.7;
-  }
-  35% {
-    transform: translateY(-14px) scale(1.25);
+.elms-ring-spoke {
+  position: absolute;
+  inset: 0;
+  transform: rotate(calc(var(--i) * 30deg));
+}
+
+.elms-ring-dot {
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  width: 11px;
+  height: 11px;
+  margin-left: -5.5px;
+  border-radius: 9999px;
+  background-color: #0099ff;
+  will-change: transform, opacity;
+  animation: elms-ring-pulse 1.08s ease-in-out infinite;
+  animation-delay: calc((var(--i) - 12) * 0.09s);
+}
+
+@keyframes elms-ring-pulse {
+  0%, 15%, 100% {
+    transform: scale(1);
     opacity: 1;
   }
-}
-
-.elms-loading-text {
-  animation: elms-text-pulse 1.4s ease-in-out infinite;
-}
-
-@keyframes elms-text-pulse {
-  0%, 100% { opacity: 0.78; }
-  50% { opacity: 1; }
-}
-
-.elms-ellipsis {
-  display: inline-block;
-  overflow: hidden;
-  vertical-align: bottom;
-  width: 0;
-  animation: elms-ellipsis-run 1.2s steps(4, end) infinite;
-}
-
-@keyframes elms-ellipsis-run {
-  to { width: 1.25em; }
-}
-
-.elms-frame-runner {
-  position: absolute;
-  inset: -60%;
-  background: conic-gradient(
-    from 0deg,
-    #a855f7,
-    #6366f1,
-    #ec4899,
-    #06b6d4,
-    transparent 45%,
-    #a855f7
-  );
-  will-change: transform;
-  animation: elms-frame-spin 3.2s linear infinite;
-}
-
-@keyframes elms-frame-spin {
-  to {
-    transform: rotate(360deg);
+  55% {
+    transform: scale(0.16);
+    opacity: 0.72;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .elms-dot,
-  .elms-loading-text,
-  .elms-ellipsis,
-  .elms-frame-runner {
+  .elms-ring-dot {
     animation: none;
-  }
-  .elms-ellipsis {
-    width: auto;
   }
 }
 </style>
