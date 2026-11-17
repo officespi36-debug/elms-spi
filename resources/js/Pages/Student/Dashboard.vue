@@ -1024,7 +1024,7 @@ const recentActivities = computed(() => {
             <div v-if="continueCourseData" class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-[#0b57d0] hover:shadow-md hover:dark:border-[#1a73e8]/70 rounded-3xl p-6 shadow-sm dark:shadow-xl flex flex-col md:flex-row items-center gap-5 sm:gap-6 relative overflow-hidden transition-all duration-300">
               
               <!-- Real Course Thumbnail for Continue Learning -->
-              <div class="relative w-full md:w-36 h-28 rounded-2xl overflow-hidden shrink-0 flex-shrink-0 shadow-md bg-gradient-to-br from-purple-600/90 via-indigo-600 to-slate-800 border border-[#dfe3e7] dark:border-[#2d2f31] flex items-center justify-center">
+              <div class="relative w-full md:w-36 h-28 rounded-2xl overflow-hidden shrink-0 shadow-md bg-gradient-to-br from-purple-600/90 via-indigo-600 to-slate-800 border border-[#dfe3e7] dark:border-[#2d2f31] flex items-center justify-center">
                 <img
                   v-if="continueCourseData.thumbnail"
                   :src="continueCourseData.thumbnail"
@@ -1064,7 +1064,7 @@ const recentActivities = computed(() => {
                   </div>
                   <div class="flex items-center justify-between text-[13.5px] text-[#475569] dark:text-[#c4c7c5] font-medium min-w-0">
                     <span class="truncate min-w-0 flex-1 mr-3">{{ currentLang === 'km' ? 'មេរៀនចុងក្រោយ: ' : 'Last lesson: ' }}{{ currentLang === 'km' ? (continueCourseData.lastLesson_kh || continueCourseData.lastLesson) : continueCourseData.lastLesson }}</span>
-                    <span class="tabular-nums font-semibold flex items-center gap-1 shrink-0 flex-shrink-0 whitespace-nowrap">
+                    <span class="tabular-nums font-semibold flex items-center gap-1 shrink-0 whitespace-nowrap">
                       <svg class="w-3.5 h-3.5 text-[#0b57d0] dark:text-[#8ab4f8]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       {{ continueCourseData.timeLeft }}
                     </span>
@@ -1073,13 +1073,13 @@ const recentActivities = computed(() => {
               </div>
 
               <!-- CTA Button (Gradient Purple-Blue with White Text) with safe padding 24px & flex-shrink 0 -->
-              <div class="w-full md:w-auto shrink-0 flex-shrink-0 py-1">
+              <div class="w-full md:w-auto shrink-0 py-1">
                 <Link
                   :href="continueCourseData.href"
-                  class="w-full md:w-auto px-6 py-3.5 rounded-full bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:from-[#4f46e5] hover:to-[#6d28d9] text-white font-semibold text-[13.5px] shadow-md shadow-indigo-500/25 flex items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all text-center cursor-pointer whitespace-nowrap shrink-0 flex-shrink-0"
+                  class="w-full md:w-auto px-6 py-3.5 rounded-full bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:from-[#4f46e5] hover:to-[#6d28d9] text-white font-semibold text-[13.5px] shadow-md shadow-indigo-500/25 flex items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all text-center cursor-pointer whitespace-nowrap shrink-0"
                 >
                   <span>{{ currentLang === 'km' ? 'បន្តការសិក្សា' : 'Continue Learning' }}</span>
-                  <svg class="w-3.5 h-3.5 shrink-0 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                  <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                 </Link>
               </div>
 
@@ -1535,7 +1535,7 @@ const recentActivities = computed(() => {
             </div>
 
             <!-- ៥. Layout (grid minmax 300px, gap 16px, 1 col mobile) -->
-            <div v-if="recentActivities.length > 0" class="grid grid-cols-1 gap-4 [grid-template-columns:repeat(auto-fit,minmax(280px,1fr))]">
+            <div v-if="recentActivities.length > 0" class="grid grid-cols-1 sm:[grid-template-columns:repeat(auto-fit,minmax(280px,1fr))] gap-4">
               <!-- ២. Card ទាំងមូលចុចបាន (cursor: pointer, link ទៅមេរៀន, hover translateY(-3px), border #a78bfa, shadow, Resume ›) -->
               <div
                 v-for="(act, idx) in recentActivities"
@@ -1711,7 +1711,7 @@ const recentActivities = computed(() => {
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <!-- Google Gemini 4-Point Sparkle Icon -->
-                <div class="w-6 h-6 rounded-lg bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-xs shrink-0 flex-shrink-0">
+                <div class="w-6 h-6 rounded-lg bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-xs shrink-0">
                   <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
                     <defs>
                       <linearGradient id="geminiSparkleHead" x1="0" y1="0" x2="1" y2="1">
