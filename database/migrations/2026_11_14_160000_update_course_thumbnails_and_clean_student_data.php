@@ -67,6 +67,9 @@ return new class extends Migration
 
             // Ensure active courses (Web Dev 68%, Tourism 50%)
             foreach ($activeCourseIds as $idx => $cId) {
+                if (!Course::where('id', $cId)->exists()) {
+                    continue;
+                }
                 Enrollment::updateOrCreate(
                     ['student_id' => $user->id, 'course_id' => $cId],
                     ['semester' => 'Semester 1', 'status' => 'active', 'enrolled_at' => now()->subDays(25 - $idx * 5)]
@@ -89,6 +92,9 @@ return new class extends Migration
 
             // Ensure completed courses (100% progress, verified certificate, passed quiz)
             foreach ($completedCourseIds as $idx => $cId) {
+                if (!Course::where('id', $cId)->exists()) {
+                    continue;
+                }
                 Enrollment::updateOrCreate(
                     ['student_id' => $user->id, 'course_id' => $cId],
                     ['semester' => 'Semester 1', 'status' => 'completed', 'enrolled_at' => now()->subDays(45 - $idx * 5)]

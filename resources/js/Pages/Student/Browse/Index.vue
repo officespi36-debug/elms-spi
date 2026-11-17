@@ -1097,25 +1097,32 @@ onUnmounted(() => {
                   <div class="flex items-center justify-between gap-2 pt-2.5 border-t border-slate-100 dark:border-[#2d2f31]">
                     <span
                       :class="course.isFree ? 'text-emerald-600 dark:text-emerald-400' : 'text-purple-600 dark:text-purple-400'"
-                      class="text-sm font-black tabular-nums"
+                      class="text-[13px] sm:text-sm font-black tabular-nums whitespace-nowrap shrink-0"
                     >
                       {{ course.isFree ? t('browse_price_free') : course.priceDisplay }}
                     </span>
 
-                    <div class="flex items-center gap-1.5">
-                      <button
-                        v-if="course.cardState === 'coming_soon'"
-                        type="button"
-                        disabled
-                        class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-[#282a2c] text-slate-500 dark:text-slate-400 text-xs font-bold cursor-not-allowed opacity-80"
-                      >
-                        {{ t('browse_cta_coming_soon') }}
-                      </button>
+                    <div class="flex items-center gap-1.5 min-w-0 justify-end">
+                      <template v-if="course.cardState === 'coming_soon'">
+                        <Link
+                          :href="course.overviewHref"
+                          class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-[#282a2c] hover:bg-slate-200 dark:hover:bg-[#323538] text-slate-700 dark:text-slate-200 text-[11.5px] font-semibold transition-colors whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                        >
+                          {{ t('browse_cta_view_details') }}
+                        </Link>
+                        <button
+                          type="button"
+                          disabled
+                          class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-[#282a2c] text-slate-500 dark:text-slate-400 text-[11.5px] font-bold cursor-not-allowed opacity-80 whitespace-nowrap shrink-0"
+                        >
+                          {{ t('browse_cta_coming_soon') }}
+                        </button>
+                      </template>
 
                       <Link
                         v-else-if="course.cardState === 'completed'"
                         :href="course.overviewHref"
-                        class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-xs transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                        class="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[11.5px] font-bold shadow-xs transition-colors whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                       >
                         {{ t('browse_cta_review') }}
                       </Link>
@@ -1123,7 +1130,7 @@ onUnmounted(() => {
                       <Link
                         v-else-if="course.cardState === 'enrolled'"
                         :href="course.continueHref"
-                        class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-xs transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                        class="px-2.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-[11.5px] font-bold shadow-xs transition-colors whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                       >
                         {{ t('browse_cta_continue') }}
                       </Link>
@@ -1131,7 +1138,7 @@ onUnmounted(() => {
                       <Link
                         v-else-if="course.cardState === 'pending_payment'"
                         :href="course.checkoutHref"
-                        class="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow-xs transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                        class="px-2.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-[11.5px] font-bold shadow-xs transition-colors whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                       >
                         {{ t('browse_cta_complete_payment') }}
                       </Link>
@@ -1139,7 +1146,7 @@ onUnmounted(() => {
                       <template v-else>
                         <Link
                           :href="course.overviewHref"
-                          class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-[#282a2c] hover:bg-slate-200 dark:hover:bg-[#323538] text-slate-700 dark:text-slate-200 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                          class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-[#282a2c] hover:bg-slate-200 dark:hover:bg-[#323538] text-slate-700 dark:text-slate-200 text-[11.5px] font-semibold transition-colors whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                         >
                           {{ t('browse_cta_view_details') }}
                         </Link>
@@ -1147,7 +1154,7 @@ onUnmounted(() => {
                           @click="handleEnroll(course)"
                           type="button"
                           :disabled="enrollingCourseId === course.id"
-                          class="px-3 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                          class="px-2.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-[11.5px] font-bold shadow-xs transition-colors cursor-pointer disabled:opacity-60 whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                         >
                           {{ enrollingCourseId === course.id ? t('browse_cta_enrolling') : t('browse_cta_enroll') }}
                         </button>
@@ -1231,8 +1238,22 @@ onUnmounted(() => {
                     </p>
 
                     <div class="flex flex-wrap items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 tabular-nums">
-                      <span v-if="localizedInstructorName(course.instructor)" class="font-medium text-slate-700 dark:text-slate-300">
-                        {{ localizedInstructorName(course.instructor) }}
+                      <span v-if="localizedInstructorName(course.instructor)" class="inline-flex items-center gap-1.5 font-medium text-slate-700 dark:text-slate-300">
+                        <img
+                          v-if="course.instructor.avatar && !avatarErrors[course.id]"
+                          :src="course.instructor.avatar"
+                          :alt="localizedInstructorName(course.instructor)"
+                          @error="avatarErrors[course.id] = true"
+                          class="w-5 h-5 rounded-full object-cover border border-purple-200 dark:border-purple-700/50 shrink-0"
+                        />
+                        <span
+                          v-else
+                          class="w-5 h-5 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-200 text-[9px] font-bold flex items-center justify-center shrink-0"
+                          aria-hidden="true"
+                        >
+                          {{ getInitials(localizedInstructorName(course.instructor)) }}
+                        </span>
+                        <span>{{ localizedInstructorName(course.instructor) }}</span>
                       </span>
                       <template v-if="course.level">
                         <span aria-hidden="true">·</span>
@@ -1248,15 +1269,21 @@ onUnmounted(() => {
                         <span aria-hidden="true">·</span>
                         <span class="text-amber-500 font-semibold">★ {{ course.rating.toFixed(1) }} ({{ course.reviewsCount }})</span>
                       </template>
+                      <template v-else>
+                        <span aria-hidden="true">·</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-[#282a2c] text-slate-600 dark:text-slate-300">
+                          {{ t('browse_badge_new') }}
+                        </span>
+                      </template>
                     </div>
                   </div>
                 </div>
 
                 <!-- Right Action Group -->
-                <div class="flex items-center justify-between md:justify-end gap-3 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-[#2d2f31]">
+                <div class="flex flex-wrap sm:flex-nowrap items-center justify-between md:justify-end gap-2.5 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-[#2d2f31]">
                   <span
                     :class="course.isFree ? 'text-emerald-600 dark:text-emerald-400' : 'text-purple-600 dark:text-purple-400'"
-                    class="text-sm font-black tabular-nums"
+                    class="text-sm font-black tabular-nums whitespace-nowrap shrink-0"
                   >
                     {{ course.isFree ? t('browse_price_free') : course.priceDisplay }}
                   </span>
@@ -1267,7 +1294,7 @@ onUnmounted(() => {
                     :disabled="wishlistPending[course.id]"
                     :aria-pressed="course.isWishlisted ? 'true' : 'false'"
                     :aria-label="course.isWishlisted ? t('browse_wishlist_remove') : t('browse_wishlist_add')"
-                    class="w-9 h-9 rounded-full bg-slate-50 dark:bg-[#282a2c] hover:bg-slate-100 dark:hover:bg-[#323538] border border-slate-200 dark:border-[#3c4043] flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                    class="w-9 h-9 rounded-full bg-slate-50 dark:bg-[#282a2c] hover:bg-slate-100 dark:hover:bg-[#323538] border border-slate-200 dark:border-[#3c4043] flex items-center justify-center shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                   >
                     <svg
                       class="w-4 h-4"
@@ -1282,19 +1309,26 @@ onUnmounted(() => {
                     </svg>
                   </button>
 
-                  <button
-                    v-if="course.cardState === 'coming_soon'"
-                    type="button"
-                    disabled
-                    class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-[#282a2c] text-slate-500 dark:text-slate-400 text-xs font-bold cursor-not-allowed"
-                  >
-                    {{ t('browse_cta_coming_soon') }}
-                  </button>
+                  <div v-if="course.cardState === 'coming_soon'" class="flex items-center gap-2 shrink-0">
+                    <Link
+                      :href="course.overviewHref"
+                      class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-[#282a2c] hover:bg-slate-200 dark:hover:bg-[#323538] text-slate-700 dark:text-slate-200 text-xs font-semibold whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                    >
+                      {{ t('browse_cta_view_details') }}
+                    </Link>
+                    <button
+                      type="button"
+                      disabled
+                      class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-[#282a2c] text-slate-500 dark:text-slate-400 text-xs font-bold cursor-not-allowed whitespace-nowrap shrink-0"
+                    >
+                      {{ t('browse_cta_coming_soon') }}
+                    </button>
+                  </div>
 
                   <Link
                     v-else-if="course.cardState === 'completed'"
                     :href="course.overviewHref"
-                    class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                    class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                   >
                     {{ t('browse_cta_review') }}
                   </Link>
@@ -1302,7 +1336,7 @@ onUnmounted(() => {
                   <Link
                     v-else-if="course.cardState === 'enrolled'"
                     :href="course.continueHref"
-                    class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                    class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                   >
                     {{ t('browse_cta_continue') }}
                   </Link>
@@ -1310,15 +1344,15 @@ onUnmounted(() => {
                   <Link
                     v-else-if="course.cardState === 'pending_payment'"
                     :href="course.checkoutHref"
-                    class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                    class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                   >
                     {{ t('browse_cta_complete_payment') }}
                   </Link>
 
-                  <div v-else class="flex items-center gap-2">
+                  <div v-else class="flex items-center gap-2 shrink-0">
                     <Link
                       :href="course.overviewHref"
-                      class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-[#282a2c] hover:bg-slate-200 dark:hover:bg-[#323538] text-slate-700 dark:text-slate-200 text-xs font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                      class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-[#282a2c] hover:bg-slate-200 dark:hover:bg-[#323538] text-slate-700 dark:text-slate-200 text-xs font-semibold whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                     >
                       {{ t('browse_cta_view_details') }}
                     </Link>
@@ -1326,7 +1360,7 @@ onUnmounted(() => {
                       @click="handleEnroll(course)"
                       type="button"
                       :disabled="enrollingCourseId === course.id"
-                      class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold cursor-pointer disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                      class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold cursor-pointer disabled:opacity-60 whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                     >
                       {{ enrollingCourseId === course.id ? t('browse_cta_enrolling') : t('browse_cta_enroll') }}
                     </button>

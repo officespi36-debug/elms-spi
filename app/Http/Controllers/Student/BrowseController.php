@@ -97,7 +97,7 @@ class BrowseController extends Controller
         ]));
 
         // Self-excluding facet counts cached for 60s by filter hash
-        $facets = Cache::remember("browse_facets_v1_{$filterHash}", 60, function () use ($q, $selectedCategories, $selectedLevels, $price, $totalPublished) {
+        $facets = Cache::remember("browse_facets_v2_{$filterHash}", 60, function () use ($q, $selectedCategories, $selectedLevels, $price, $totalPublished) {
             // 1. Category (major) facet counts (excluding self filter: category)
             $catBase = $this->baseCatalogQuery($q, [], $selectedLevels, $price);
             $catCounts = $catBase

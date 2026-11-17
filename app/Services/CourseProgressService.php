@@ -24,6 +24,10 @@ class CourseProgressService
         $rawName = trim($teacher->name ?? '');
         $email = strtolower($teacher->email ?? '');
 
+        if (strcasecmp($rawName, 'Mr. Sophea') === 0 || strcasecmp($rawName, 'Sophea Teacher') === 0) {
+            return 'Mr. Sophea Chea';
+        }
+
         // Check for test username or pitaja artifact
         if (
             empty($rawName) ||
@@ -49,21 +53,49 @@ class CourseProgressService
             return 'បណ្ឌិត ម៉េងលី ជា';
         }
 
-        if (!empty($teacher->name_kh)) {
-            return trim($teacher->name_kh);
+        $nameKh = trim($teacher->name_kh ?? '');
+        if ($nameKh !== '' && !str_contains(strtolower($nameKh), 'pitaja') && !str_contains($nameKh, '@')) {
+            return $nameKh;
         }
 
         $email = strtolower($teacher->email ?? '');
         $rawName = trim($teacher->name ?? '');
+        $lowerRaw = strtolower($rawName);
 
-        if (($course && (int)$course->teacher_id === 21) || (int)$teacher->id === 21 || str_contains($email, 'pitaja')) {
+        if (
+            str_contains($lowerRaw, 'pitaja') ||
+            str_contains($email, 'pitaja') ||
+            (int) $teacher->id === 21 ||
+            ($course && (int) $course->teacher_id === 21)
+        ) {
             return 'បណ្ឌិត ម៉េងលី ជា';
         }
-        if ((int)$teacher->id === 45) {
+        if ((int) $teacher->id === 45) {
             return 'លោក សេង វុទ្ធី';
         }
 
-        return $rawName ?: 'សាស្រ្តាចារ្យ SPI';
+        $knownMap = [
+            'dr. mengly chea'   => 'បណ្ឌិត ម៉េងលី ជា',
+            'mr. vuthy seng'    => 'លោក សេង វុទ្ធី',
+            'dr. sokha meas'    => 'បណ្ឌិត មាស សុខា',
+            'dr. meas sokha'    => 'បណ្ឌិត មាស សុខា',
+            'mr. sophea chea'   => 'លោក ជា សុភា',
+            'mr. chea sothea'   => 'លោក ជា សុភា',
+            'mr. sophea'        => 'លោក ជា សុភា',
+            'sophea teacher'    => 'លោក ជា សុភា',
+            'ms. sreyneang pich'=> 'អ្នកគ្រូ ពេជ្រ ស្រីនាង',
+            'mrs. pich sreyneng'=> 'អ្នកគ្រូ ពេជ្រ ស្រីនាង',
+            'ms. linda meng'    => 'អ្នកគ្រូ ម៉េង លីនដា',
+            'mrs. meng linda'   => 'អ្នកគ្រូ ម៉េង លីនដា',
+            'dr. virak chea'    => 'បណ្ឌិត ជា វីរៈ',
+            'dr. chea virak'    => 'បណ្ឌិត ជា វីរៈ',
+        ];
+
+        if (isset($knownMap[$lowerRaw])) {
+            return $knownMap[$lowerRaw];
+        }
+
+        return 'បណ្ឌិត ម៉េងលី ជា';
     }
 
     /**

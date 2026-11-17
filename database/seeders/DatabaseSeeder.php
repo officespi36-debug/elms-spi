@@ -70,12 +70,12 @@ class DatabaseSeeder extends Seeder
             ->update([
                 'name'    => 'kosal sensok',
                 'name_kh' => 'កុសល សែនសុខ',
-                'email'   => 'kosalsensok582@gmail.com',
                 'avatar'  => null,
             ]);
 
         $teacher = User::updateOrCreate(['email' => 'teacher@elms.com'], [
             'name'           => 'Sophea Teacher',
+            'name_kh'        => 'លោក ជា សុភា',
             'password'       => 'password',
             'role'           => 'teacher',
             'phone'          => '098765432',
