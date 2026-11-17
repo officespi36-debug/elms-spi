@@ -17,7 +17,7 @@ const props = withDefaults(defineProps<{
 const { currentLang } = useLanguage()
 
 const displayText = computed(() => {
-  if (props.text) return props.text
+  if (props.text) return props.text.replace(/\.+$/, '').trim()
   return currentLang.value === 'km'
     ? 'សូមរង់ចាំ កំពុងដំណើរការ'
     : 'Please wait while loading'
@@ -42,13 +42,13 @@ const sizeClass = computed(() => {
   switch (props.dotSize) {
     case 'sm': return 'w-10 h-10'
     case 'lg': return 'w-20 h-20'
-    default: return 'w-[60px] h-[60px]'
+    default: return 'w-[68px] h-[68px]'
   }
 })
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center gap-3 select-none text-center">
+  <div class="flex flex-col items-center justify-center gap-3.5 select-none text-center">
     <svg
       :class="['blue-ring-svg', sizeClass]"
       viewBox="0 0 64 64"
@@ -68,7 +68,7 @@ const sizeClass = computed(() => {
     </svg>
 
     <div class="space-y-0.5">
-      <p class="blue-loading-text text-sm sm:text-base font-bold tracking-wide text-slate-900 dark:text-white drop-shadow-[0_2px_10px_rgba(255,255,255,0.85)] dark:drop-shadow-[0_2px_10px_rgba(0,0,0,0.65)] flex items-center justify-center">
+      <p class="blue-loading-text text-base sm:text-[17px] font-extrabold tracking-wide text-slate-900 dark:text-white flex items-center justify-center">
         <span>{{ displayText }}</span><span class="blue-ellipsis" aria-hidden="true">...</span>
       </p>
       <p v-if="subtext" class="text-xs text-slate-600 dark:text-slate-300 font-medium">
@@ -82,7 +82,8 @@ const sizeClass = computed(() => {
 .blue-ring-svg {
   transform-origin: center center;
   will-change: transform;
-  animation: blueRingSpin 0.85s linear infinite;
+  filter: drop-shadow(0 2px 8px rgba(0, 153, 255, 0.35));
+  animation: blueRingSpin 0.8s linear infinite;
 }
 
 @keyframes blueRingSpin {
@@ -92,7 +93,12 @@ const sizeClass = computed(() => {
 }
 
 .blue-loading-text {
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.95), 0 0 14px rgba(255, 255, 255, 0.95);
   animation: blueTextPulse 1.4s ease-in-out infinite;
+}
+
+:global(html.dark) .blue-loading-text {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9), 0 0 14px rgba(11, 19, 43, 0.95);
 }
 
 @keyframes blueTextPulse {

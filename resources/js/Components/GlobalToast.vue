@@ -3,10 +3,12 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { usePage, router } from '@inertiajs/vue3'
 import Toast from 'primevue/toast'
 import { useAppToast } from '@/composables/useAppToast'
+import { useLoading } from '@/composables/useLoading'
 import { i18n } from '@/Services/i18n'
 
 const page = usePage<any>()
 const appToast = useAppToast()
+const { isLoading: isManualLoading } = useLoading()
 const isGlobalProcessing = ref(false)
 const processingMode = ref<'nav' | 'save'>('nav')
 const currentLang = computed(() => i18n.locale.value)
@@ -51,8 +53,12 @@ const loadingText = computed(() => {
 
 let lastMethod = ''
 let showDelayTimer: ReturnType<typeof setTimeout> | null = null
+let maxWaitTimer: ReturnType<typeof setTimeout> | null = null
 let removeStartListener: (() => void) | null = null
 let removeFinishListener: (() => void) | null = null
+let removeCancelListener: (() => void) | null = null
+let removeInvalidListener: (() => void) | null = null
+let removeExceptionListener: (() => void) | null = null
 let removeSuccessListener: (() => void) | null = null
 let removeErrorListener: (() => void) | null = null
 
@@ -60,6 +66,10 @@ const hideCenterLoader = () => {
   if (showDelayTimer) {
     clearTimeout(showDelayTimer)
     showDelayTimer = null
+  }
+  if (maxWaitTimer) {
+    clearTimeout(maxWaitTimer)
+    maxWaitTimer = null
   }
   isGlobalProcessing.value = false
 }
@@ -82,6 +92,10 @@ onMounted(() => {
       clearTimeout(showDelayTimer)
       showDelayTimer = null
     }
+    if (maxWaitTimer) {
+      clearTimeout(maxWaitTimer)
+      maxWaitTimer = null
+    }
 
     if (method && method !== 'get') {
       processingMode.value = 'save'
@@ -89,9 +103,24 @@ onMounted(() => {
       processingMode.value = 'nav'
     }
     isGlobalProcessing.value = true
+    maxWaitTimer = setTimeout(() => {
+      hideCenterLoader()
+    }, 8000)
   })
 
   removeFinishListener = router.on('finish', () => {
+    hideCenterLoader()
+  })
+
+  removeCancelListener = router.on('cancel', () => {
+    hideCenterLoader()
+  })
+
+  removeInvalidListener = router.on('invalid', () => {
+    hideCenterLoader()
+  })
+
+  removeExceptionListener = router.on('exception', () => {
     hideCenterLoader()
   })
 
@@ -111,6 +140,7 @@ onMounted(() => {
   })
 
   removeErrorListener = router.on('error', (event: any) => {
+    hideCenterLoader()
     const errs = event?.detail?.errors || {}
     const keys = Object.keys(errs)
     if (keys.length > 0) {
@@ -127,6 +157,9 @@ onUnmounted(() => {
   hideCenterLoader()
   if (removeStartListener) removeStartListener()
   if (removeFinishListener) removeFinishListener()
+  if (removeCancelListener) removeCancelListener()
+  if (removeInvalidListener) removeInvalidListener()
+  if (removeExceptionListener) removeExceptionListener()
   if (removeSuccessListener) removeSuccessListener()
   if (removeErrorListener) removeErrorListener()
 })
@@ -193,13 +226,13 @@ watch(
     leave-to-class="opacity-0 scale-95"
   >
     <div
-      v-if="isGlobalProcessing"
+      v-if="isGlobalProcessing && !isManualLoading"
       role="status"
       aria-live="polite"
-      class="fixed inset-0 z-[10000] flex flex-col items-center justify-center gap-3 pointer-events-none select-none"
+      class="elms-loader-backdrop fixed inset-0 z-[10000] flex flex-col items-center justify-center gap-3.5 pointer-events-none select-none"
     >
       <svg
-        class="elms-ring-svg w-[60px] h-[60px]"
+        class="elms-ring-svg w-[68px] h-[68px]"
         viewBox="0 0 64 64"
         fill="none"
         aria-hidden="true"
@@ -215,7 +248,7 @@ watch(
           :transform="`rotate(${dot.angle} 32 32)`"
         />
       </svg>
-      <p class="elms-loading-text text-sm sm:text-base font-bold tracking-wide text-slate-900 dark:text-white drop-shadow-[0_2px_10px_rgba(255,255,255,0.85)] dark:drop-shadow-[0_2px_10px_rgba(0,0,0,0.65)] flex items-center">
+      <p class="elms-loading-text text-base sm:text-[17px] font-extrabold tracking-wide text-slate-900 dark:text-white flex items-center justify-center">
         <span>{{ loadingText }}</span><span class="elms-ellipsis" aria-hidden="true">...</span>
       </p>
     </div>
@@ -223,10 +256,31 @@ watch(
 </template>
 
 <style scoped>
+.elms-loader-backdrop {
+  background: radial-gradient(
+    circle at center,
+    rgba(248, 250, 252, 0.96) 0%,
+    rgba(248, 250, 252, 0.86) 32%,
+    rgba(248, 250, 252, 0.72) 100%
+  );
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+:global(html.dark) .elms-loader-backdrop {
+  background: radial-gradient(
+    circle at center,
+    rgba(11, 19, 43, 0.96) 0%,
+    rgba(11, 19, 43, 0.86) 32%,
+    rgba(11, 19, 43, 0.74) 100%
+  );
+}
+
 .elms-ring-svg {
   transform-origin: center center;
   will-change: transform;
-  animation: elms-ring-spin 0.85s linear infinite;
+  filter: drop-shadow(0 2px 8px rgba(0, 153, 255, 0.35));
+  animation: elms-ring-spin 0.8s linear infinite;
 }
 
 @keyframes elms-ring-spin {
@@ -236,7 +290,12 @@ watch(
 }
 
 .elms-loading-text {
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.95), 0 0 14px rgba(255, 255, 255, 0.95);
   animation: elms-text-pulse 1.4s ease-in-out infinite;
+}
+
+:global(html.dark) .elms-loading-text {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9), 0 0 14px rgba(11, 19, 43, 0.95);
 }
 
 @keyframes elms-text-pulse {

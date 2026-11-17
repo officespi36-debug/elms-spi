@@ -17,7 +17,7 @@ const { isLoading, loadingText } = useLoading()
     >
       <div
         v-if="isLoading"
-        class="fixed inset-0 z-[99999] flex items-center justify-center pointer-events-none select-none p-4"
+        class="elms-overlay-backdrop fixed inset-0 z-[99999] flex items-center justify-center pointer-events-none select-none p-4"
         role="status"
         aria-live="polite"
       >
@@ -29,3 +29,25 @@ const { isLoading, loadingText } = useLoading()
     </Transition>
   </Teleport>
 </template>
+
+<style scoped>
+.elms-overlay-backdrop {
+  background: radial-gradient(
+    circle at center,
+    rgba(248, 250, 252, 0.96) 0%,
+    rgba(248, 250, 252, 0.86) 32%,
+    rgba(248, 250, 252, 0.72) 100%
+  );
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+:global(html.dark) .elms-overlay-backdrop {
+  background: radial-gradient(
+    circle at center,
+    rgba(11, 19, 43, 0.96) 0%,
+    rgba(11, 19, 43, 0.86) 32%,
+    rgba(11, 19, 43, 0.74) 100%
+  );
+}
+</style>
