@@ -99,14 +99,22 @@ const selectedSort = ref<'popular' | 'newest' | 'title' | 'duration'>(props.filt
 const resolveInitialViewMode = (): 'grid' | 'list' => {
   if (typeof window !== 'undefined') {
     const urlView = new URLSearchParams(window.location.search).get('view')
-    if (urlView === 'grid' || urlView === 'list') return urlView
+    if (urlView === 'grid' || urlView === 'list') {
+      try { localStorage.setItem('elms_courses_view', urlView) } catch (e) {}
+      return urlView
+    }
+  }
+  if (props.filters?.view === 'grid' || props.filters?.view === 'list') {
+    if (typeof window !== 'undefined') {
+      try { localStorage.setItem('elms_courses_view', props.filters.view) } catch (e) {}
+    }
+    return props.filters.view
+  }
+  if (typeof window !== 'undefined') {
     try {
       const savedLocal = localStorage.getItem('elms_courses_view')
       if (savedLocal === 'grid' || savedLocal === 'list') return savedLocal
     } catch (e) {}
-  }
-  if (props.filters?.view === 'grid' || props.filters?.view === 'list') {
-    return props.filters.view
   }
   return 'grid'
 }
@@ -122,12 +130,16 @@ watch(() => props.filters, (f) => {
   selectedSort.value = f.sort || 'popular'
   if (typeof window !== 'undefined') {
     const urlView = new URLSearchParams(window.location.search).get('view')
-    if ((urlView === 'grid' || urlView === 'list') && urlView !== viewMode.value) {
-      viewMode.value = urlView
+    if (urlView === 'grid' || urlView === 'list') {
+      if (urlView !== viewMode.value) viewMode.value = urlView
+      try { localStorage.setItem('elms_courses_view', urlView) } catch (e) {}
       return
     }
-    if ((f.view === 'grid' || f.view === 'list') && urlView === f.view && f.view !== viewMode.value) {
-      viewMode.value = f.view
+  }
+  if ((f.view === 'grid' || f.view === 'list') && f.view !== viewMode.value) {
+    viewMode.value = f.view
+    if (typeof window !== 'undefined') {
+      try { localStorage.setItem('elms_courses_view', f.view) } catch (e) {}
     }
   }
 }, { deep: true })
@@ -1080,86 +1092,79 @@ onUnmounted(() => {
                     </span>
                   </div>
 
-                  <!-- Meta: Level (if exists) · Lessons · Duration (if > 0) -->
-                  <div class="text-[11px] text-slate-500 dark:text-slate-400 flex flex-wrap items-center gap-1.5 pt-2.5 border-t border-slate-100 dark:border-[#2d2f31] tabular-nums">
-                    <template v-if="course.level">
-                      <span>{{ localizedLevelLabel(course.level) }}</span>
-                      <span aria-hidden="true">·</span>
-                    </template>
-                    <span>{{ formatLessonsCount(course.lessonsCount) }}</span>
-                    <template v-if="course.duration">
-                      <span aria-hidden="true">·</span>
-                      <span>{{ localizedDuration(course.duration) }}</span>
-                    </template>
-                  </div>
-
-                  <!-- Price (shown ONCE) & State CTA -->
+                  <!-- Meta: Level (if exists) · Lessons · Duration (if > 0) & Price -->
                   <div class="flex items-center justify-between gap-2 pt-2.5 border-t border-slate-100 dark:border-[#2d2f31]">
+                    <div class="text-[11px] text-slate-500 dark:text-slate-400 flex flex-wrap items-center gap-1 min-w-0 tabular-nums">
+                      <template v-if="course.level">
+                        <span>{{ localizedLevelLabel(course.level) }}</span>
+                        <span aria-hidden="true">·</span>
+                      </template>
+                      <span>{{ formatLessonsCount(course.lessonsCount) }}</span>
+                      <template v-if="course.duration">
+                        <span aria-hidden="true">·</span>
+                        <span>{{ localizedDuration(course.duration) }}</span>
+                      </template>
+                    </div>
+
                     <span
                       :class="course.isFree ? 'text-emerald-600 dark:text-emerald-400' : 'text-purple-600 dark:text-purple-400'"
-                      class="text-[13px] sm:text-sm font-black tabular-nums whitespace-nowrap shrink-0"
+                      class="text-xs sm:text-[13px] font-black tabular-nums whitespace-nowrap shrink-0"
                     >
                       {{ course.isFree ? t('browse_price_free') : course.priceDisplay }}
                     </span>
+                  </div>
 
-                    <div class="flex items-center gap-1.5 min-w-0 justify-end">
-                      <template v-if="course.cardState === 'coming_soon'">
-                        <Link
-                          :href="course.overviewHref"
-                          class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-[#282a2c] hover:bg-slate-200 dark:hover:bg-[#323538] text-slate-700 dark:text-slate-200 text-[11.5px] font-semibold transition-colors whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
-                        >
-                          {{ t('browse_cta_view_details') }}
-                        </Link>
-                        <button
-                          type="button"
-                          disabled
-                          class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-[#282a2c] text-slate-500 dark:text-slate-400 text-[11.5px] font-bold cursor-not-allowed opacity-80 whitespace-nowrap shrink-0"
-                        >
-                          {{ t('browse_cta_coming_soon') }}
-                        </button>
-                      </template>
+                  <!-- Action Buttons (Full-width 2-column grid to prevent overlap) -->
+                  <div class="grid grid-cols-2 gap-2 pt-2.5 border-t border-slate-100 dark:border-[#2d2f31]">
+                    <Link
+                      :href="course.overviewHref"
+                      class="w-full inline-flex items-center justify-center px-2 py-2 rounded-xl bg-slate-100 dark:bg-[#282a2c] hover:bg-slate-200 dark:hover:bg-[#323538] text-slate-700 dark:text-slate-200 text-[11px] sm:text-[11.5px] font-semibold transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                    >
+                      {{ t('browse_cta_view_details') }}
+                    </Link>
 
-                      <Link
-                        v-else-if="course.cardState === 'completed'"
-                        :href="course.overviewHref"
-                        class="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[11.5px] font-bold shadow-xs transition-colors whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-                      >
-                        {{ t('browse_cta_review') }}
-                      </Link>
+                    <button
+                      v-if="course.cardState === 'coming_soon'"
+                      type="button"
+                      disabled
+                      class="w-full inline-flex items-center justify-center px-2 py-2 rounded-xl bg-slate-100 dark:bg-[#282a2c] text-slate-500 dark:text-slate-400 text-[11px] sm:text-[11.5px] font-bold cursor-not-allowed opacity-80 whitespace-nowrap"
+                    >
+                      {{ t('browse_cta_coming_soon') }}
+                    </button>
 
-                      <Link
-                        v-else-if="course.cardState === 'enrolled'"
-                        :href="course.continueHref"
-                        class="px-2.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-[11.5px] font-bold shadow-xs transition-colors whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
-                      >
-                        {{ t('browse_cta_continue') }}
-                      </Link>
+                    <Link
+                      v-else-if="course.cardState === 'completed'"
+                      :href="course.overviewHref"
+                      class="w-full inline-flex items-center justify-center px-2 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] sm:text-[11.5px] font-bold shadow-xs transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                    >
+                      {{ t('browse_cta_review') }}
+                    </Link>
 
-                      <Link
-                        v-else-if="course.cardState === 'pending_payment'"
-                        :href="course.checkoutHref"
-                        class="px-2.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-[11.5px] font-bold shadow-xs transition-colors whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                      >
-                        {{ t('browse_cta_complete_payment') }}
-                      </Link>
+                    <Link
+                      v-else-if="course.cardState === 'enrolled'"
+                      :href="course.continueHref"
+                      class="w-full inline-flex items-center justify-center px-2 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-[11px] sm:text-[11.5px] font-bold shadow-xs transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                    >
+                      {{ t('browse_cta_continue') }}
+                    </Link>
 
-                      <template v-else>
-                        <Link
-                          :href="course.overviewHref"
-                          class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-[#282a2c] hover:bg-slate-200 dark:hover:bg-[#323538] text-slate-700 dark:text-slate-200 text-[11.5px] font-semibold transition-colors whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
-                        >
-                          {{ t('browse_cta_view_details') }}
-                        </Link>
-                        <button
-                          @click="handleEnroll(course)"
-                          type="button"
-                          :disabled="enrollingCourseId === course.id"
-                          class="px-2.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-[11.5px] font-bold shadow-xs transition-colors cursor-pointer disabled:opacity-60 whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
-                        >
-                          {{ enrollingCourseId === course.id ? t('browse_cta_enrolling') : t('browse_cta_enroll') }}
-                        </button>
-                      </template>
-                    </div>
+                    <Link
+                      v-else-if="course.cardState === 'pending_payment'"
+                      :href="course.checkoutHref"
+                      class="w-full inline-flex items-center justify-center px-2 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-[11px] sm:text-[11.5px] font-bold shadow-xs transition-colors whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                    >
+                      {{ t('browse_cta_complete_payment') }}
+                    </Link>
+
+                    <button
+                      v-else
+                      @click="handleEnroll(course)"
+                      type="button"
+                      :disabled="enrollingCourseId === course.id"
+                      class="w-full inline-flex items-center justify-center px-2 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-[11px] sm:text-[11.5px] font-bold shadow-xs transition-colors cursor-pointer disabled:opacity-60 whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                    >
+                      {{ enrollingCourseId === course.id ? t('browse_cta_enrolling') : t('browse_cta_enroll') }}
+                    </button>
                   </div>
                 </div>
               </article>
@@ -1309,54 +1314,49 @@ onUnmounted(() => {
                     </svg>
                   </button>
 
-                  <div v-if="course.cardState === 'coming_soon'" class="flex items-center gap-2 shrink-0">
+                  <div class="flex items-center gap-2 shrink-0">
                     <Link
                       :href="course.overviewHref"
                       class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-[#282a2c] hover:bg-slate-200 dark:hover:bg-[#323538] text-slate-700 dark:text-slate-200 text-xs font-semibold whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                     >
                       {{ t('browse_cta_view_details') }}
                     </Link>
+
                     <button
+                      v-if="course.cardState === 'coming_soon'"
                       type="button"
                       disabled
                       class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-[#282a2c] text-slate-500 dark:text-slate-400 text-xs font-bold cursor-not-allowed whitespace-nowrap shrink-0"
                     >
                       {{ t('browse_cta_coming_soon') }}
                     </button>
-                  </div>
 
-                  <Link
-                    v-else-if="course.cardState === 'completed'"
-                    :href="course.overviewHref"
-                    class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-                  >
-                    {{ t('browse_cta_review') }}
-                  </Link>
-
-                  <Link
-                    v-else-if="course.cardState === 'enrolled'"
-                    :href="course.continueHref"
-                    class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
-                  >
-                    {{ t('browse_cta_continue') }}
-                  </Link>
-
-                  <Link
-                    v-else-if="course.cardState === 'pending_payment'"
-                    :href="course.checkoutHref"
-                    class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-                  >
-                    {{ t('browse_cta_complete_payment') }}
-                  </Link>
-
-                  <div v-else class="flex items-center gap-2 shrink-0">
                     <Link
+                      v-else-if="course.cardState === 'completed'"
                       :href="course.overviewHref"
-                      class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-[#282a2c] hover:bg-slate-200 dark:hover:bg-[#323538] text-slate-700 dark:text-slate-200 text-xs font-semibold whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                      class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                     >
-                      {{ t('browse_cta_view_details') }}
+                      {{ t('browse_cta_review') }}
                     </Link>
+
+                    <Link
+                      v-else-if="course.cardState === 'enrolled'"
+                      :href="course.continueHref"
+                      class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                    >
+                      {{ t('browse_cta_continue') }}
+                    </Link>
+
+                    <Link
+                      v-else-if="course.cardState === 'pending_payment'"
+                      :href="course.checkoutHref"
+                      class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                    >
+                      {{ t('browse_cta_complete_payment') }}
+                    </Link>
+
                     <button
+                      v-else
                       @click="handleEnroll(course)"
                       type="button"
                       :disabled="enrollingCourseId === course.id"

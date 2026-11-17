@@ -74,9 +74,21 @@ class BrowseController extends Controller
 
         $savedView = is_array($user?->preferences) ? ($user->preferences['courses_view'] ?? 'grid') : 'grid';
         $urlView = $validated['view'] ?? null;
-        $view = in_array($urlView, ['grid', 'list'], true)
-            ? $urlView
-            : (in_array($savedView, ['grid', 'list'], true) ? $savedView : 'grid');
+        if (in_array($urlView, ['grid', 'list'], true)) {
+            $view = $urlView;
+            if ($user && $savedView !== $urlView) {
+                try {
+                    $prefs = is_array($user->preferences) ? $user->preferences : [];
+                    $prefs['courses_view'] = $urlView;
+                    $user->preferences = $prefs;
+                    $user->save();
+                } catch (\Throwable $e) {
+                    // Fail silently if column/schema is read-only
+                }
+            }
+        } else {
+            $view = in_array($savedView, ['grid', 'list'], true) ? $savedView : 'grid';
+        }
 
         $hasReviewsTable = Schema::hasTable('course_reviews');
         $hasWishlistsTable = Schema::hasTable('course_wishlists');
