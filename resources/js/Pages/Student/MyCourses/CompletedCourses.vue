@@ -33,6 +33,7 @@ interface CompletedCourseItem {
   missingCertReason?: string
   medalType: 'gold' | 'silver' | 'bronze'
   illustrationType: 'web' | 'database' | 'python' | 'uiux'
+  thumbnail?: string | null
   overviewHref: string
 }
 
@@ -43,7 +44,51 @@ const props = defineProps<{
 const activeTab = ref<'all' | 'certificates' | 'no_certificate'>('all')
 const searchQuery = ref('')
 const selectedSort = ref('newest')
-const viewMode = ref<'grid' | 'list'>('grid')
+const resolveInitialViewMode = (): 'grid' | 'list' => {
+  if (typeof window !== 'undefined') {
+    const urlView = new URLSearchParams(window.location.search).get('view')
+    if (urlView === 'grid' || urlView === 'list') return urlView
+    try {
+      const savedLocal = localStorage.getItem('elms_courses_view')
+      if (savedLocal === 'grid' || savedLocal === 'list') return savedLocal
+    } catch (e) {}
+  }
+  const savedPref = (page.props.auth?.user?.preferences as any)?.courses_view
+  if (savedPref === 'grid' || savedPref === 'list') return savedPref
+  return 'grid'
+}
+
+const viewMode = ref<'grid' | 'list'>(resolveInitialViewMode())
+const thumbErrors = ref<Record<number, boolean>>({})
+
+const setViewMode = (mode: 'grid' | 'list') => {
+  if (viewMode.value === mode) return
+  viewMode.value = mode
+
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem('elms_courses_view', mode)
+    } catch (e) {}
+    try {
+      const url = new URL(window.location.href)
+      url.searchParams.set('view', mode)
+      window.history.replaceState(window.history.state, '', url.toString())
+    } catch (e) {}
+  }
+
+  try {
+    const csrf = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || ''
+    fetch('/student/preferences', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': csrf,
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ courses_view: mode }),
+    }).catch(() => {})
+  } catch (e) {}
+}
 
 // Modals
 const isCertModalOpen = ref(false)
@@ -272,30 +317,36 @@ const navigateToReview = (course: CompletedCourseItem) => {
             </div>
           </div>
 
-          <div class="flex items-center rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-0.5 shadow-xs">
+          <div class="inline-flex items-center gap-0.5 rounded-xl bg-slate-100 dark:bg-[#282a2c] border border-slate-200/90 dark:border-[#3c4043] p-1 shadow-2xs shrink-0">
             <button
-              @click="viewMode = 'grid'"
+              @click="setViewMode('grid')"
+              @mouseup="($event.currentTarget as HTMLElement)?.blur()"
               type="button"
+              :aria-pressed="viewMode === 'grid' ? 'true' : 'false'"
+              :aria-label="currentLang === 'km' ? 'ទម្រង់ក្រឡា' : 'Grid View'"
               :class="[
-                viewMode === 'grid' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200',
-                'p-1.5 rounded-lg text-xs transition-colors cursor-pointer'
+                viewMode === 'grid' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white',
+                'w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500/70'
               ]"
-              title="Grid View"
+              :title="currentLang === 'km' ? 'ទម្រង់ក្រឡា' : 'Grid View'"
             >
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
               </svg>
             </button>
             <button
-              @click="viewMode = 'list'"
+              @click="setViewMode('list')"
+              @mouseup="($event.currentTarget as HTMLElement)?.blur()"
               type="button"
+              :aria-pressed="viewMode === 'list' ? 'true' : 'false'"
+              :aria-label="currentLang === 'km' ? 'ទម្រង់បញ្ជី' : 'List View'"
               :class="[
-                viewMode === 'list' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200',
-                'p-1.5 rounded-lg text-xs transition-colors cursor-pointer'
+                viewMode === 'list' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white',
+                'w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500/70'
               ]"
-              title="List View"
+              :title="currentLang === 'km' ? 'ទម្រង់បញ្ជី' : 'List View'"
             >
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
@@ -514,8 +565,15 @@ const navigateToReview = (course: CompletedCourseItem) => {
                 class="bg-white dark:bg-[#0e1424] border border-slate-200/90 dark:border-slate-800 hover:border-purple-400 dark:hover:border-purple-500/40 rounded-2xl p-4 shadow-sm dark:shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer group transition-all"
               >
                 <div class="flex items-center gap-3.5 min-w-0">
-                  <div class="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-xl shrink-0">
-                    <span>{{ course.medalType === 'gold' ? '🏆' : (course.medalType === 'silver' ? '🥈' : '🏅') }}</span>
+                  <div class="w-16 h-12 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-xl shrink-0 overflow-hidden">
+                    <img
+                      v-if="course.thumbnail && !thumbErrors[course.id]"
+                      :src="course.thumbnail"
+                      :alt="course.title"
+                      class="w-full h-full object-cover"
+                      @error="thumbErrors[course.id] = true"
+                    />
+                    <span v-else>{{ course.medalType === 'gold' ? '🏆' : (course.medalType === 'silver' ? '🥈' : '🏅') }}</span>
                   </div>
                   <div class="min-w-0 space-y-1">
                     <div class="flex items-center gap-2">

@@ -77,10 +77,31 @@ const activeTab = ref<'all' | 'in_progress' | 'not_started' | 'completed' | 'com
 const searchQuery = ref(props.filters?.q || '')
 const selectedCategory = ref(props.filters?.category || 'all')
 const selectedSort = ref(props.filters?.sort || 'newest')
-const viewMode = ref<'grid' | 'list'>((props.filters?.view as any) || 'grid')
+const resolveInitialViewMode = (): 'grid' | 'list' => {
+  if (typeof window !== 'undefined') {
+    const urlView = new URLSearchParams(window.location.search).get('view')
+    if (urlView === 'grid' || urlView === 'list') return urlView
+    try {
+      const savedLocal = localStorage.getItem('elms_courses_view')
+      if (savedLocal === 'grid' || savedLocal === 'list') return savedLocal
+    } catch (e) {}
+  }
+  if (props.filters?.view === 'grid' || props.filters?.view === 'list') {
+    return props.filters.view
+  }
+  return 'grid'
+}
+
+const viewMode = ref<'grid' | 'list'>(resolveInitialViewMode())
 
 watch(() => props.filters?.view, (v) => {
-  if (v === 'grid' || v === 'list') {
+  if (typeof window === 'undefined') return
+  const urlView = new URLSearchParams(window.location.search).get('view')
+  if ((urlView === 'grid' || urlView === 'list') && urlView !== viewMode.value) {
+    viewMode.value = urlView
+    return
+  }
+  if ((v === 'grid' || v === 'list') && urlView === v && v !== viewMode.value) {
     viewMode.value = v
   }
 })
@@ -219,8 +240,19 @@ const onSortChange = () => {
 }
 
 const setViewMode = (mode: 'grid' | 'list') => {
+  if (viewMode.value === mode) return
   viewMode.value = mode
-  triggerServerFilter()
+
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem('elms_courses_view', mode)
+    } catch (e) {}
+    try {
+      const url = new URL(window.location.href)
+      url.searchParams.set('view', mode)
+      window.history.replaceState(window.history.state, '', url.toString())
+    } catch (e) {}
+  }
 
   // Save view preference to database via PATCH /student/preferences
   try {
@@ -573,30 +605,36 @@ onUnmounted(() => {
           </div>
 
           <!-- Grid / List Switcher -->
-          <div class="flex items-center rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-0.5 shadow-xs">
+          <div class="inline-flex items-center gap-0.5 rounded-xl bg-slate-100 dark:bg-[#282a2c] border border-slate-200/90 dark:border-[#3c4043] p-1 shadow-2xs shrink-0">
             <button
               @click="setViewMode('grid')"
+              @mouseup="($event.currentTarget as HTMLElement)?.blur()"
               type="button"
+              :aria-pressed="viewMode === 'grid' ? 'true' : 'false'"
+              :aria-label="t('ទម្រង់ក្រឡា', 'Grid View')"
               :class="[
-                viewMode === 'grid' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200',
-                'p-1.5 rounded-lg text-xs transition-colors cursor-pointer'
+                viewMode === 'grid' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white',
+                'w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500/70'
               ]"
               :title="t('ទម្រង់ក្រឡា', 'Grid View')"
             >
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
               </svg>
             </button>
             <button
               @click="setViewMode('list')"
+              @mouseup="($event.currentTarget as HTMLElement)?.blur()"
               type="button"
+              :aria-pressed="viewMode === 'list' ? 'true' : 'false'"
+              :aria-label="t('ទម្រង់បញ្ជី', 'List View')"
               :class="[
-                viewMode === 'list' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200',
-                'p-1.5 rounded-lg text-xs transition-colors cursor-pointer'
+                viewMode === 'list' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white',
+                'w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500/70'
               ]"
               :title="t('ទម្រង់បញ្ជី', 'List View')"
             >
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
@@ -1021,13 +1059,14 @@ onUnmounted(() => {
             class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-purple-400 hover:dark:border-purple-400/60 rounded-3xl p-4 sm:p-5 shadow-sm dark:shadow-xl transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer group"
           >
             <!-- Left Info -->
-            <div class="flex items-center gap-4 min-w-0">
-              <div class="w-16 h-16 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-center shrink-0 overflow-hidden">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-4 min-w-0 flex-1">
+              <div class="w-full sm:w-44 aspect-video rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-center shrink-0 overflow-hidden">
                 <img
-                  v-if="course.thumbnail"
+                  v-if="course.thumbnail && !(course as any)._thumbError"
                   :src="course.thumbnail"
                   :alt="course.title"
                   class="w-full h-full object-cover"
+                  @error="(e: any) => { e.target.style.display = 'none'; (course as any)._thumbError = true }"
                 />
                 <span v-else class="text-2xl">
                   {{ course.illustrationType === 'web' ? '💻' : (course.illustrationType === 'database' ? '🗄' : (course.illustrationType === 'python' ? '🐍' : '🎨')) }}
@@ -1117,6 +1156,15 @@ onUnmounted(() => {
                   class="px-4 py-2 rounded-xl bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:opacity-95 text-white font-bold text-xs shadow-md shadow-purple-600/20 cursor-pointer min-h-[38px] flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                 >
                   {{ t('ពិនិត្យឡើងវិញ', 'Review') }}
+                </Link>
+
+                <Link
+                  v-if="course.status === 'completed' && course.has_certificate && course.certificateHref"
+                  :href="course.certificateHref"
+                  class="px-3.5 py-2 rounded-xl bg-emerald-500/10 dark:bg-emerald-600/20 hover:bg-emerald-500/20 dark:hover:bg-emerald-600/30 text-emerald-700 dark:text-emerald-300 font-bold text-xs border border-emerald-500/30 dark:border-emerald-500/40 cursor-pointer min-h-[38px] flex items-center gap-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                >
+                  <span>🏆</span>
+                  <span>{{ t('វិញ្ញាបនបត្រ', 'Certificate') }}</span>
                 </Link>
 
                 <Link

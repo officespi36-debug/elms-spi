@@ -94,7 +94,22 @@ const selectedCategories = ref<number[]>([...(props.filters?.category || [])].ma
 const selectedLevels = ref<string[]>([...(props.filters?.level || [])])
 const selectedPrice = ref<'all' | 'free' | 'paid'>(props.filters?.price || 'all')
 const selectedSort = ref<'popular' | 'newest' | 'title' | 'duration'>(props.filters?.sort || 'popular')
-const viewMode = ref<'grid' | 'list'>(props.filters?.view === 'list' ? 'list' : 'grid')
+const resolveInitialViewMode = (): 'grid' | 'list' => {
+  if (typeof window !== 'undefined') {
+    const urlView = new URLSearchParams(window.location.search).get('view')
+    if (urlView === 'grid' || urlView === 'list') return urlView
+    try {
+      const savedLocal = localStorage.getItem('elms_courses_view')
+      if (savedLocal === 'grid' || savedLocal === 'list') return savedLocal
+    } catch (e) {}
+  }
+  if (props.filters?.view === 'grid' || props.filters?.view === 'list') {
+    return props.filters.view
+  }
+  return 'grid'
+}
+
+const viewMode = ref<'grid' | 'list'>(resolveInitialViewMode())
 
 watch(() => props.filters, (f) => {
   if (!f) return
@@ -103,8 +118,15 @@ watch(() => props.filters, (f) => {
   selectedLevels.value = [...(f.level || [])]
   selectedPrice.value = f.price || 'all'
   selectedSort.value = f.sort || 'popular'
-  if (f.view === 'grid' || f.view === 'list') {
-    viewMode.value = f.view
+  if (typeof window !== 'undefined') {
+    const urlView = new URLSearchParams(window.location.search).get('view')
+    if ((urlView === 'grid' || urlView === 'list') && urlView !== viewMode.value) {
+      viewMode.value = urlView
+      return
+    }
+    if ((f.view === 'grid' || f.view === 'list') && urlView === f.view && f.view !== viewMode.value) {
+      viewMode.value = f.view
+    }
   }
 }, { deep: true })
 
@@ -293,7 +315,17 @@ const clearAllFilters = () => {
 const setViewMode = (mode: 'grid' | 'list') => {
   if (viewMode.value === mode) return
   viewMode.value = mode
-  fetchCatalog(props.courses?.current_page || 1)
+
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem('elms_courses_view', mode)
+    } catch (e) {}
+    try {
+      const url = new URL(window.location.href)
+      url.searchParams.set('view', mode)
+      window.history.replaceState(window.history.state, '', url.toString())
+    } catch (e) {}
+  }
 
   try {
     fetch('/student/preferences', {
@@ -800,15 +832,17 @@ onUnmounted(() => {
               </div>
 
               <!-- Grid / List View Switcher -->
-              <div class="flex items-center rounded-xl bg-slate-50 dark:bg-[#282a2c] border border-[#dfe3e7] dark:border-[#3c4043] p-0.5">
+              <div class="inline-flex items-center gap-0.5 rounded-xl bg-slate-100 dark:bg-[#282a2c] border border-slate-200/90 dark:border-[#3c4043] p-1 shadow-2xs shrink-0">
                 <button
                   @click="setViewMode('grid')"
+                  @mouseup="($event.currentTarget as HTMLElement)?.blur()"
                   type="button"
                   :aria-pressed="viewMode === 'grid' ? 'true' : 'false'"
                   :aria-label="t('browse_grid_view')"
+                  :title="t('browse_grid_view')"
                   :class="[
                     viewMode === 'grid' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white',
-                    'p-1.5 rounded-lg transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500'
+                    'w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500/70'
                   ]"
                 >
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -817,12 +851,14 @@ onUnmounted(() => {
                 </button>
                 <button
                   @click="setViewMode('list')"
+                  @mouseup="($event.currentTarget as HTMLElement)?.blur()"
                   type="button"
                   :aria-pressed="viewMode === 'list' ? 'true' : 'false'"
                   :aria-label="t('browse_list_view')"
+                  :title="t('browse_list_view')"
                   :class="[
                     viewMode === 'list' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white',
-                    'p-1.5 rounded-lg transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500'
+                    'w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500/70'
                   ]"
                 >
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
