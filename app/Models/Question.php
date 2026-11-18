@@ -19,7 +19,7 @@ use Illuminate\Database\Eloquent\Model;
 class Question extends Model
 {
     protected $fillable = [
-        'quiz_id', 'type', 'question', 'options', 'correct_answer', 'points'
+        'quiz_id', 'topic_id', 'type', 'question', 'options', 'correct_answer', 'points'
     ];
 
     protected $casts = [
@@ -30,5 +30,15 @@ class Question extends Model
     public function quiz()
     {
         return $this->belongsTo(Quiz::class);
+    }
+
+    public function topic()
+    {
+        return $this->belongsTo(Topic::class);
+    }
+
+    public function attemptAnswers()
+    {
+        return $this->hasMany(QuizAttemptAnswer::class, 'question_id');
     }
 }

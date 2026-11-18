@@ -22,6 +22,7 @@ use App\Services\ContinueLearningService;
 use App\Services\CourseProgressService;
 use App\Services\DashboardAnalyticsService;
 use App\Services\PathProgressService;
+use App\Services\WeakTopicService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -59,12 +60,12 @@ class AiPathController extends Controller
         );
     }
 
-    public function weakTopics(Request $request)
+    public function weakTopics(Request $request, WeakTopicService $weakTopicService)
     {
-        return Inertia::render(
-            'Student/AiLearningPath/WeakTopics',
-            $this->buildAiPathPayload($request->user(), $request)
-        );
+        return Inertia::render('Student/AiLearningPath/WeakTopics', [
+            'weakTopicsData' => $weakTopicService->getWeakTopicsPayload($request->user()),
+            'csrfToken'      => $request->session()->token(),
+        ]);
     }
 
     public function nextModule(Request $request)
@@ -144,6 +145,165 @@ class AiPathController extends Controller
         return response()->json([
             'ok'      => true,
             'roadmap' => $pathProgressService->getRoadmapPayload($user),
+        ]);
+    }
+
+    /**
+     * POST /student/ai-path/weak-topics/{topic}/practice-quiz - Generate a 5-question practice drill from real Question Bank.
+     */
+    public function practiceQuiz(Request $request, \App\Models\Topic $topic)
+    {
+        $user = $request->user();
+        if (!$user) abort(401);
+
+        // Fetch up to 5 real questions strictly from Question Bank belonging to this topic
+        $questions = \App\Models\Question::where('topic_id', $topic->id)
+            ->whereIn('type', ['mcq', 'true_false', 'fill_blank'])
+            ->inRandomOrder()
+            ->take(5)
+            ->get();
+
+        if ($questions->isEmpty()) {
+            return response()->json([
+                'ok'      => false,
+                'message' => 'No questions available for this topic yet.',
+            ], 422);
+        }
+
+        return response()->json([
+            'ok'        => true,
+            'topic'     => [
+                'id'       => $topic->id,
+                'title'    => $topic->title_kh ?: $topic->title,
+                'title_en' => $topic->title,
+            ],
+            'questions' => $questions->map(fn ($q) => [
+                'id'       => $q->id,
+                'type'     => $q->type,
+                'question' => $q->question,
+                'options'  => $q->options,
+                'points'   => $q->points,
+            ]),
+        ]);
+    }
+
+    /**
+     * POST /student/ai-path/weak-topics/study-plan - Create or activate student's study plan (idempotent).
+     */
+    public function startStudyPlan(Request $request, WeakTopicService $weakTopicService): JsonResponse
+    {
+        $user = $request->user();
+        if (!$user) abort(401);
+
+        // Check for existing active plan
+        $plan = \App\Models\StudyPlan::where('user_id', $user->id)
+            ->where('status', 'active')
+            ->first();
+
+        if (!$plan) {
+            $payload = $weakTopicService->getWeakTopicsPayload($user);
+            $topics = $payload['topics'] ?? [];
+
+            if (empty($topics)) {
+                return response()->json([
+                    'ok'      => false,
+                    'message' => 'No weak topics available to generate a study plan.',
+                ], 422);
+            }
+
+            $plan = \App\Models\StudyPlan::create([
+                'user_id'   => $user->id,
+                'status'    => 'active',
+                'starts_on' => now()->toDateString(),
+            ]);
+
+            // Create plan items up to 4 days
+            $selectedTopics = array_slice($topics, 0, 4);
+            foreach ($selectedTopics as $idx => $t) {
+                \App\Models\StudyPlanItem::create([
+                    'plan_id'   => $plan->id,
+                    'day_index' => $idx + 1,
+                    'topic_id'  => $t['id'],
+                    'minutes'   => $t['recommendedMins'] ?? 45,
+                    'kind'      => $idx === 3 ? 'practice' : 'review',
+                ]);
+            }
+        }
+
+        WeakTopicService::invalidateForUser($user->id);
+
+        return response()->json([
+            'ok'        => true,
+            'message'   => 'Study plan activated successfully.',
+            'studyPlan' => $weakTopicService->getWeakTopicsPayload($user)['studyPlan'],
+        ]);
+    }
+
+    /**
+     * PATCH /student/ai-path/weak-topics/study-plan/items/{item} - Mark item done/undone.
+     */
+    public function toggleStudyPlanItem(Request $request, \App\Models\StudyPlanItem $item, WeakTopicService $weakTopicService): JsonResponse
+    {
+        $user = $request->user();
+        if (!$user || $item->plan->user_id !== $user->id) abort(403);
+
+        $item->done_at = $item->done_at ? null : now();
+        $item->save();
+
+        WeakTopicService::invalidateForUser($user->id);
+
+        return response()->json([
+            'ok'        => true,
+            'is_done'   => $item->done_at !== null,
+            'studyPlan' => $weakTopicService->getWeakTopicsPayload($user)['studyPlan'],
+        ]);
+    }
+
+    /**
+     * GET /student/ai-path/weak-topics/{topic}/resources - Get real lesson resources for topic.
+     */
+    public function topicResources(Request $request, \App\Models\Topic $topic): JsonResponse
+    {
+        $user = $request->user();
+        if (!$user) abort(401);
+
+        $resources = [];
+        if ($topic->lesson_id) {
+            $lessonRes = \App\Models\LessonResource::where('lesson_id', $topic->lesson_id)
+                ->orderBy('sort_order')
+                ->get();
+            foreach ($lessonRes as $r) {
+                $resources[] = [
+                    'id'       => $r->id,
+                    'title'    => $r->title,
+                    'type'     => $r->mime,
+                    'url'      => $r->disk_path ? asset($r->disk_path) : null,
+                    'is_local' => true,
+                ];
+            }
+        }
+
+        $courseMaterials = \App\Models\CourseMaterial::where('course_id', $topic->course_id)
+            ->where(function ($q) use ($topic) {
+                $q->whereNull('lesson_id')->orWhere('lesson_id', $topic->lesson_id);
+            })
+            ->take(5)
+            ->get();
+
+        foreach ($courseMaterials as $m) {
+            $resources[] = [
+                'id'       => $m->id,
+                'title'    => $m->title,
+                'type'     => $m->type,
+                'url'      => $m->file_url ?: ($m->file_path ? asset($m->file_path) : null),
+                'is_local' => !empty($m->file_path),
+            ];
+        }
+
+        return response()->json([
+            'ok'        => true,
+            'topic'     => $topic->title_kh ?: $topic->title,
+            'resources' => $resources,
         ]);
     }
 

@@ -343,6 +343,42 @@ class QuizController extends Controller
             'submitted_at'   => $submittedAt,
         ]);
 
+        // Record individual question answers for fine-grained weak topic analytics
+        if (!empty($breakdown) && is_array($breakdown)) {
+            foreach ($breakdown as $qId => $info) {
+                $userAns = $data['answers'][$qId] ?? $data['answers'][(string) $qId] ?? null;
+                $isCorr = (bool) ($info['correct'] ?? false);
+                $pts = (float) ($info['points'] ?? 0);
+
+                \App\Models\QuizAttemptAnswer::create([
+                    'attempt_id'      => $attempt->id,
+                    'question_id'     => (int) $qId,
+                    'selected_answer' => is_array($userAns) ? $userAns : ($userAns !== null ? [$userAns] : null),
+                    'is_correct'      => $isCorr,
+                    'points_earned'   => $isCorr ? $pts : 0,
+                    'answered_at'     => $submittedAt,
+                ]);
+
+                // Update topic_mastery cache if question is linked to a topic
+                $questionObj = \App\Models\Question::find($qId);
+                if ($questionObj && $questionObj->topic_id) {
+                    $mastery = \App\Models\TopicMastery::firstOrNew([
+                        'user_id'  => $user->id,
+                        'topic_id' => $questionObj->topic_id,
+                    ]);
+                    $mastery->answered_count = ($mastery->answered_count ?? 0) + 1;
+                    if ($isCorr) {
+                        $mastery->correct_count = ($mastery->correct_count ?? 0) + 1;
+                    }
+                    $mastery->score = $mastery->answered_count > 0
+                        ? round(($mastery->correct_count / $mastery->answered_count) * 100, 2)
+                        : 0;
+                    $mastery->last_attempt_at = $submittedAt;
+                    $mastery->save();
+                }
+            }
+        }
+
         // Record quiz study time & invalidate user analytics cache
         $analyticsService = app(DashboardAnalyticsService::class);
         $kind = str_contains(strtolower((string) $quiz->type), 'practice') ? 'practice' : 'quiz';

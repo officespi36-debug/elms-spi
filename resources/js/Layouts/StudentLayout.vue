@@ -2210,7 +2210,7 @@ const onIconError = (e: Event) => {
     </main>
 
     <!-- 24/7 AI Tutor Assistant Floating Button & Drawer -->
-    <AiTutorFloatingWidget v-if="!$page.url.startsWith('/student/ai-tutor') && !$page.url.startsWith('/student/ai-path/next-course')" />
+    <AiTutorFloatingWidget v-if="!$page.url.startsWith('/student/ai-tutor') && !$page.url.startsWith('/student/ai-path/next-course') && !$page.url.startsWith('/student/ai-path/weak-topics')" />
 
     <!-- Logout Confirmation Modal (Centered, Glassmorphic, Modern) -->
     <LogoutConfirmModal
