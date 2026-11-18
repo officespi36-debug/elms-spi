@@ -631,6 +631,10 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/reanalyze', [Student\AiPathController::class, 'reanalyze'])->middleware('throttle:10,1')->name('reanalyze');
             Route::get('/review', [Student\AiPathController::class, 'review'])->name('review');
             Route::get('/weak-topics', [Student\AiPathController::class, 'weakTopics'])->name('weak-topics');
+            Route::post('/weak-topics/{topic}/practice-quiz', [Student\AiPathController::class, 'practiceQuiz'])->middleware('throttle:30,1')->name('weak-topics.practice-quiz');
+            Route::post('/weak-topics/study-plan', [Student\AiPathController::class, 'startStudyPlan'])->middleware('throttle:20,1')->name('weak-topics.study-plan');
+            Route::patch('/weak-topics/study-plan/items/{item}', [Student\AiPathController::class, 'toggleStudyPlanItem'])->middleware('throttle:60,1')->name('weak-topics.study-plan.item');
+            Route::get('/weak-topics/{topic}/resources', [Student\AiPathController::class, 'topicResources'])->middleware('throttle:60,1')->name('weak-topics.resources');
             Route::get('/next-module', [Student\AiPathController::class, 'nextModule'])->name('next-module');
             Route::get('/next-course', [Student\AiPathController::class, 'nextCourse'])->name('next-course');
             Route::get('/goal', [Student\AiPathController::class, 'showGoal'])->middleware('throttle:30,1')->name('goal.show');
@@ -665,6 +669,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/progress', [Student\ProgressController::class, 'index'])->name('progress');
         Route::prefix('progress')->name('progress.')->group(function () {
             Route::get('/overview', [Student\ProgressController::class, 'overview'])->name('overview');
+            Route::post('/goal', [Student\ProgressController::class, 'updateGoal'])->middleware('throttle:30,1')->name('goal.update');
             Route::get('/learning-time', [Student\ProgressController::class, 'learningTime'])->name('learning-time');
             Route::get('/weekly', [Student\ProgressController::class, 'weeklyProgress'])->name('weekly');
             Route::get('/achievements', [Student\ProgressController::class, 'achievementsBadges'])->name('achievements');
