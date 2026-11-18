@@ -9,12 +9,12 @@ use App\Models\QuizAttempt;
 use App\Models\StudyDaily;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class AiContextService
 {
     public function __construct(
-        protected ContinueLearningService $continueLearningService,
         protected CourseProgressService $courseProgressService
     ) {}
 
@@ -23,10 +23,15 @@ class AiContextService
      */
     public function isCourseEnrolled(User $user, int $courseId): bool
     {
-        return Enrollment::where('student_id', $user->id)
-            ->where('course_id', $courseId)
-            ->whereIn('status', ['active', 'completed'])
-            ->exists();
+        try {
+            return Enrollment::where('student_id', $user->id)
+                ->where('course_id', $courseId)
+                ->whereIn('status', ['active', 'completed'])
+                ->exists();
+        } catch (\Throwable $e) {
+            Log::warning('AI Tutor enrollment check warning: ' . $e->getMessage());
+            return false;
+        }
     }
 
     /**
@@ -34,91 +39,98 @@ class AiContextService
      */
     public function getStudentContext(User $user, ?int $selectedCourseId = null): array
     {
-        $enrollments = Enrollment::where('student_id', $user->id)
-            ->whereIn('status', ['active', 'completed'])
-            ->whereHas('course')
-            ->with([
-                'course:id,code,title,title_kh,level,major_id',
-                'course.modules:id,course_id,title,kh_title,order',
-                'course.modules.lessons:id,module_id,course_id,title,kh_title,order,duration_seconds,summary,content',
-                'course.lessons:id,module_id,course_id,title,kh_title,order,duration_seconds,summary,content',
-            ])
-            ->latest('updated_at')
-            ->get();
-
         $recentActivity = $this->buildRecentActivity($user);
 
-        if ($enrollments->isEmpty()) {
-            return [
-                'has_course'       => false,
-                'active_course'    => null,
-                'enrolled_courses' => [],
-                'recent_activity'  => $recentActivity,
-            ];
-        }
-
-        $progressItems = $this->courseProgressService->calculateForEnrollments($user, $enrollments);
-
-        $enrolledCourses = $progressItems->map(function (array $item) {
-            /** @var Course $course */
-            $course = $item['course'];
-            $lesson = $item['current_lesson'] ?? null;
-
-            $moduleTitle = $item['current_module_title'] ?? null;
-            if ($lesson && $course->relationLoaded('modules')) {
-                $mod = $course->modules->firstWhere('id', $lesson->module_id);
-                if ($mod) {
-                    $moduleTitle = $mod->kh_title ?: $mod->title;
-                }
-            }
-
-            $rawLessonBody = strip_tags((string) ($lesson?->summary ?: $lesson?->content ?: ''));
-            $lessonExcerpt = Str::limit(trim(preg_replace('/\s+/u', ' ', $rawLessonBody) ?? ''), 500);
-
-            return [
-                'id'               => (int) $course->id,
-                'code'             => $course->code ?: mb_strtoupper(mb_substr($course->title, 0, 2)),
-                'title'            => $course->title,
-                'title_kh'         => $course->title_kh ?: $course->title,
-                'module_title'     => $moduleTitle,
-                'lesson_id'        => $lesson?->id ? (int) $lesson->id : null,
-                'lesson_title'     => $lesson?->title,
-                'lesson_title_kh'  => $lesson?->kh_title ?: $lesson?->title,
-                'lesson_excerpt'   => $lessonExcerpt,
-                'progress_percent' => (int) ($item['percent'] ?? 0),
-                'lessons_done'     => (int) ($item['lessons_done'] ?? 0),
-                'lessons_total'    => (int) ($item['lessons_total'] ?? 0),
-                'last_activity_ms' => (int) ($item['last_activity_ms'] ?? 0),
-                'state'            => (string) ($item['state'] ?? 'not_started'),
-            ];
-        })->values();
-
-        $activeCourse = null;
-        if ($selectedCourseId !== null) {
-            $activeCourse = $enrolledCourses->firstWhere('id', $selectedCourseId);
-        }
-
-        // Derive continue-learning active course directly from already computed $progressItems to avoid duplicate queries
-        if (!$activeCourse) {
-            $activeCourse = $enrolledCourses
-                ->filter(fn (array $c) => ($c['state'] ?? '') !== 'completed' && ($c['last_activity_ms'] ?? 0) > 0)
-                ->sortByDesc('last_activity_ms')
-                ->first()
-                ?? $enrolledCourses->first(fn (array $c) => ($c['state'] ?? '') !== 'completed')
-                ?? $enrolledCourses->first();
-        }
-
-        $stripMeta = static function (array $course): array {
-            unset($course['last_activity_ms'], $course['state']);
-            return $course;
-        };
-
-        return [
-            'has_course'       => $activeCourse !== null,
-            'active_course'    => $activeCourse ? $stripMeta($activeCourse) : null,
-            'enrolled_courses' => $enrolledCourses->map($stripMeta)->all(),
+        $emptyFallback = [
+            'has_course'       => false,
+            'active_course'    => null,
+            'enrolled_courses' => [],
             'recent_activity'  => $recentActivity,
         ];
+
+        try {
+            $enrollments = Enrollment::where('student_id', $user->id)
+                ->whereIn('status', ['active', 'completed'])
+                ->whereHas('course')
+                ->with([
+                    'course',
+                    'course.modules',
+                    'course.modules.lessons',
+                    'course.lessons',
+                ])
+                ->latest('updated_at')
+                ->get();
+
+            if ($enrollments->isEmpty()) {
+                return $emptyFallback;
+            }
+
+            $progressItems = $this->courseProgressService->calculateForEnrollments($user, $enrollments);
+
+            $enrolledCourses = $progressItems->map(function (array $item) {
+                /** @var Course $course */
+                $course = $item['course'];
+                $lesson = $item['current_lesson'] ?? null;
+
+                $moduleTitle = $item['current_module_title'] ?? null;
+                if ($lesson && $course->relationLoaded('modules')) {
+                    $mod = $course->modules->firstWhere('id', $lesson->module_id);
+                    if ($mod) {
+                        $moduleTitle = $mod->kh_title ?: $mod->title;
+                    }
+                }
+
+                $rawLessonBody = strip_tags((string) ($lesson?->summary ?: $lesson?->content ?: ''));
+                $lessonExcerpt = Str::limit(trim(preg_replace('/\s+/u', ' ', $rawLessonBody) ?? ''), 500);
+
+                return [
+                    'id'               => (int) $course->id,
+                    'code'             => $course->code ?: mb_strtoupper(mb_substr($course->title, 0, 2)),
+                    'title'            => $course->title,
+                    'title_kh'         => $course->title_kh ?: $course->title,
+                    'module_title'     => $moduleTitle,
+                    'lesson_id'        => $lesson?->id ? (int) $lesson->id : null,
+                    'lesson_title'     => $lesson?->title,
+                    'lesson_title_kh'  => $lesson?->kh_title ?: $lesson?->title,
+                    'lesson_excerpt'   => $lessonExcerpt,
+                    'progress_percent' => (int) ($item['percent'] ?? 0),
+                    'lessons_done'     => (int) ($item['lessons_done'] ?? 0),
+                    'lessons_total'    => (int) ($item['lessons_total'] ?? 0),
+                    'last_activity_ms' => (int) ($item['last_activity_ms'] ?? 0),
+                    'state'            => (string) ($item['state'] ?? 'not_started'),
+                ];
+            })->values();
+
+            $activeCourse = null;
+            if ($selectedCourseId !== null) {
+                $activeCourse = $enrolledCourses->firstWhere('id', $selectedCourseId);
+            }
+
+            // Derive continue-learning active course directly from already computed $progressItems to avoid duplicate queries
+            if (!$activeCourse) {
+                $activeCourse = $enrolledCourses
+                    ->filter(fn (array $c) => ($c['state'] ?? '') !== 'completed' && ($c['last_activity_ms'] ?? 0) > 0)
+                    ->sortByDesc('last_activity_ms')
+                    ->first()
+                    ?? $enrolledCourses->first(fn (array $c) => ($c['state'] ?? '') !== 'completed')
+                    ?? $enrolledCourses->first();
+            }
+
+            $stripMeta = static function (array $course): array {
+                unset($course['last_activity_ms'], $course['state']);
+                return $course;
+            };
+
+            return [
+                'has_course'       => $activeCourse !== null,
+                'active_course'    => $activeCourse ? $stripMeta($activeCourse) : null,
+                'enrolled_courses' => $enrolledCourses->map($stripMeta)->all(),
+                'recent_activity'  => $recentActivity,
+            ];
+        } catch (\Throwable $e) {
+            Log::warning('AI Tutor student context query warning: ' . $e->getMessage());
+            return $emptyFallback;
+        }
     }
 
     /**
@@ -147,39 +159,47 @@ class AiContextService
     {
         $items = [];
 
-        $recentLessons = LessonProgress::with('lesson:id,title,kh_title')
-            ->where('user_id', $user->id)
-            ->where(function ($q) {
-                $q->where('percent', '>', 0)->orWhereNotNull('completed_at');
-            })
-            ->latest('updated_at')
-            ->limit(2)
-            ->get();
+        try {
+            $recentLessons = LessonProgress::with('lesson')
+                ->where('user_id', $user->id)
+                ->where(function ($q) {
+                    $q->where('percent', '>', 0)->orWhereNotNull('completed_at');
+                })
+                ->latest('updated_at')
+                ->limit(2)
+                ->get();
 
-        foreach ($recentLessons as $lp) {
-            $lessonTitle = $lp->lesson?->kh_title ?: ($lp->lesson?->title ?? 'Lesson');
-            $isDone = $lp->completed_at !== null || (int) $lp->percent >= 90;
-            $items[] = [
-                'type'     => 'lesson',
-                'title_km' => ($isDone ? 'បានបញ្ចប់មេរៀន៖ ' : 'បានមើលមេរៀន៖ ') . $lessonTitle,
-                'title_en' => ($isDone ? 'Completed: ' : 'Viewed: ') . ($lp->lesson?->title ?: $lessonTitle),
-                'time'     => $lp->updated_at ? Carbon::parse($lp->updated_at)->diffForHumans() : '',
-            ];
+            foreach ($recentLessons as $lp) {
+                $lessonTitle = $lp->lesson?->kh_title ?: ($lp->lesson?->title ?? 'Lesson');
+                $isDone = $lp->completed_at !== null || (int) $lp->percent >= 90;
+                $items[] = [
+                    'type'     => 'lesson',
+                    'title_km' => ($isDone ? 'បានបញ្ចប់មេរៀន៖ ' : 'បានមើលមេរៀន៖ ') . $lessonTitle,
+                    'title_en' => ($isDone ? 'Completed: ' : 'Viewed: ') . ($lp->lesson?->title ?: $lessonTitle),
+                    'time'     => $lp->updated_at ? Carbon::parse($lp->updated_at)->diffForHumans() : '',
+                ];
+            }
+        } catch (\Throwable $e) {
+            Log::warning('AI Tutor recent lessons query warning: ' . $e->getMessage());
         }
 
-        $recentQuiz = QuizAttempt::with('quiz:id,title')
-            ->where('user_id', $user->id)
-            ->whereNotNull('score')
-            ->latest('submitted_at')
-            ->first();
+        try {
+            $recentQuiz = QuizAttempt::with('quiz')
+                ->where('user_id', $user->id)
+                ->whereNotNull('score')
+                ->latest('submitted_at')
+                ->first();
 
-        if ($recentQuiz && $recentQuiz->quiz) {
-            $items[] = [
-                'type'     => 'quiz',
-                'title_km' => 'បានធ្វើកម្រងសំណួរ៖ ' . $recentQuiz->quiz->title,
-                'title_en' => 'Completed Quiz: ' . $recentQuiz->quiz->title,
-                'time'     => $recentQuiz->submitted_at ? Carbon::parse($recentQuiz->submitted_at)->diffForHumans() : '',
-            ];
+            if ($recentQuiz && $recentQuiz->quiz) {
+                $items[] = [
+                    'type'     => 'quiz',
+                    'title_km' => 'បានធ្វើកម្រងសំណួរ៖ ' . $recentQuiz->quiz->title,
+                    'title_en' => 'Completed Quiz: ' . $recentQuiz->quiz->title,
+                    'time'     => $recentQuiz->submitted_at ? Carbon::parse($recentQuiz->submitted_at)->diffForHumans() : '',
+                ];
+            }
+        } catch (\Throwable $e) {
+            Log::warning('AI Tutor recent quiz query warning: ' . $e->getMessage());
         }
 
         $weekSeconds = 0;
@@ -192,9 +212,13 @@ class AiContextService
         }
 
         if ($weekSeconds === 0) {
-            $weekSeconds = (int) LessonProgress::where('user_id', $user->id)
-                ->where('updated_at', '>=', now()->startOfWeek())
-                ->sum('seconds_watched');
+            try {
+                $weekSeconds = (int) LessonProgress::where('user_id', $user->id)
+                    ->where('updated_at', '>=', now()->startOfWeek())
+                    ->sum('seconds_watched');
+            } catch (\Throwable $e) {
+                $weekSeconds = 0;
+            }
         }
 
         if ($weekSeconds > 0) {

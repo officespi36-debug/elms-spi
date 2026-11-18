@@ -32,32 +32,42 @@ class AiTutorController extends Controller
 
         $context = $contextService->getStudentContext($user, $selectedCourseId);
 
-        $conversationsCollection = AiConversation::where('user_id', $user->id)
-            ->with('course:id,code,title,title_kh')
-            ->orderByDesc('last_message_at')
-            ->orderByDesc('id')
-            ->limit(10)
-            ->get();
-
-        $requestedConvId = $request->query('conversation');
-        $activeConvModel = null;
-        if (is_numeric($requestedConvId)) {
-            $activeConvModel = $conversationsCollection->firstWhere('id', (int) $requestedConvId)
-                ?: AiConversation::where('user_id', $user->id)
-                    ->with('course:id,code,title,title_kh')
-                    ->find((int) $requestedConvId);
-        }
-        if (!$activeConvModel) {
-            $activeConvModel = $conversationsCollection->first();
-        }
-
+        $conversationsCollection = collect();
         $activeConversation = null;
-        if ($activeConvModel) {
-            $activeConvModel->load([
-                'messages' => fn ($q) => $q->orderBy('id'),
-                'messages.feedbacks' => fn ($q) => $q->where('user_id', $user->id),
-            ]);
-            $activeConversation = $this->serializeConversation($activeConvModel, $chatService, true);
+
+        if ($chatService->ensureTablesExist()) {
+            try {
+                $conversationsCollection = AiConversation::where('user_id', $user->id)
+                    ->with('course')
+                    ->orderByDesc('last_message_at')
+                    ->orderByDesc('id')
+                    ->limit(10)
+                    ->get();
+
+                $requestedConvId = $request->query('conversation');
+                $activeConvModel = null;
+                if (is_numeric($requestedConvId)) {
+                    $activeConvModel = $conversationsCollection->firstWhere('id', (int) $requestedConvId)
+                        ?: AiConversation::where('user_id', $user->id)
+                            ->with('course')
+                            ->find((int) $requestedConvId);
+                }
+                if (!$activeConvModel) {
+                    $activeConvModel = $conversationsCollection->first();
+                }
+
+                if ($activeConvModel) {
+                    $activeConvModel->load([
+                        'messages' => fn ($q) => $q->orderBy('id'),
+                        'messages.feedbacks' => fn ($q) => $q->where('user_id', $user->id),
+                    ]);
+                    $activeConversation = $this->serializeConversation($activeConvModel, $chatService, true);
+                }
+            } catch (\Throwable $e) {
+                Log::warning('AI Tutor index query warning: ' . $e->getMessage());
+                $conversationsCollection = collect();
+                $activeConversation = null;
+            }
         }
 
         return Inertia::render('Student/AiTutor/Index', [
@@ -69,8 +79,13 @@ class AiTutorController extends Controller
         ]);
     }
 
-    public function storeConversation(Request $request, AiContextService $contextService)
-    {
+    public function storeConversation(
+        Request $request,
+        AiContextService $contextService,
+        AiTutorChatService $chatService
+    ) {
+        $chatService->ensureTablesExist();
+
         /** @var User $user */
         $user = $request->user();
         $data = $request->validate([
@@ -90,12 +105,12 @@ class AiTutorController extends Controller
             'last_message_at' => now(),
         ]);
 
-        $conversation->load('course:id,code,title,title_kh');
+        $conversation->load('course');
         $conversation->setRelation('messages', collect());
 
         return response()->json([
             'ok'           => true,
-            'conversation' => $this->serializeConversation($conversation, app(AiTutorChatService::class), true),
+            'conversation' => $this->serializeConversation($conversation, $chatService, true),
         ], 201);
     }
 
@@ -104,12 +119,14 @@ class AiTutorController extends Controller
         AiConversation $conversation,
         AiTutorChatService $chatService
     ) {
+        $chatService->ensureTablesExist();
+
         /** @var User $user */
         $user = $request->user();
         Gate::forUser($user)->authorize('view', $conversation);
 
         $conversation->load([
-            'course:id,code,title,title_kh',
+            'course',
             'messages' => fn ($q) => $q->orderBy('id'),
             'messages.feedbacks' => fn ($q) => $q->where('user_id', $user->id),
         ]);
@@ -120,8 +137,13 @@ class AiTutorController extends Controller
         ]);
     }
 
-    public function destroyConversation(Request $request, AiConversation $conversation)
-    {
+    public function destroyConversation(
+        Request $request,
+        AiConversation $conversation,
+        AiTutorChatService $chatService
+    ) {
+        $chatService->ensureTablesExist();
+
         /** @var User $user */
         $user = $request->user();
         Gate::forUser($user)->authorize('delete', $conversation);
@@ -139,6 +161,7 @@ class AiTutorController extends Controller
         AiContextService $contextService,
         AiTutorChatService $chatService
     ) {
+        $chatService->ensureTablesExist();
         /** @var User $user */
         $user = $request->user();
         Gate::forUser($user)->authorize('update', $conversation);
@@ -262,7 +285,7 @@ class AiTutorController extends Controller
             return [$userMsg, $assistantMsg];
         });
 
-        $conversation->load('course:id,code,title,title_kh');
+        $conversation->load('course');
         $userMsg->setRelation('feedbacks', collect());
         $assistantMsg->setRelation('feedbacks', collect());
 
@@ -275,8 +298,9 @@ class AiTutorController extends Controller
         ]);
     }
 
-    public function storeFeedback(Request $request, AiMessage $message)
+    public function storeFeedback(Request $request, AiMessage $message, AiTutorChatService $chatService)
     {
+        $chatService->ensureTablesExist();
         /** @var User $user */
         $user = $request->user();
         $message->load('conversation');

@@ -32,10 +32,18 @@ return new class extends Migration
                     ->constrained('lesson_comments')
                     ->onDelete('set null');
             }
-
-            $table->index(['lesson_id', 'parent_id', 'created_at']);
-            $table->index(['lesson_id', 'is_answered']);
         });
+
+        foreach ([
+            ['lesson_id', 'parent_id', 'created_at'],
+            ['lesson_id', 'is_answered'],
+        ] as $columns) {
+            try {
+                Schema::table('lesson_comments', fn (Blueprint $table) => $table->index($columns));
+            } catch (\Throwable $e) {
+                // Index may already exist
+            }
+        }
 
         // 2. Create lesson_comment_likes table
         if (!Schema::hasTable('lesson_comment_likes')) {

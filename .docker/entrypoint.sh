@@ -16,8 +16,12 @@ php artisan route:clear || true
 php artisan view:clear || true
 php artisan cache:clear || true
 
-# Run database migrations, seeding, and storage link
-php artisan migrate --force || true
+# Run database migrations with retry (handles transient DB connection limits on rolling deploy), seeding, and storage link
+for attempt in 1 2 3 4 5; do
+    php artisan migrate --force && break
+    echo "Migration attempt $attempt failed; retrying in 3s..."
+    sleep 3
+done
 php artisan db:seed --force || true
 php artisan storage:link || true
 

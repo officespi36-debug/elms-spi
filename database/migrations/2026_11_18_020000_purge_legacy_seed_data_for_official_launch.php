@@ -5,6 +5,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -16,24 +17,38 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $superAdminEmail = 'kosalsensok065@gmail.com';
+        Schema::disableForeignKeyConstraints();
+        try {
+            $superAdminEmail = 'kosalsensok065@gmail.com';
 
-        // 1. Ensure the 1 official Super Admin account exists & is active
-        if (Schema::hasTable('users')) {
-            $superAdmin = User::firstOrNew(['email' => $superAdminEmail]);
-            $superAdmin->name = $superAdmin->name ?: 'kosal sensok';
-            $superAdmin->name_kh = $superAdmin->name_kh ?: 'កុសល សែនសុខ';
-            $superAdmin->role = 'admin';
-            $superAdmin->status = 'active';
-            $superAdmin->is_active = true;
-            $superAdmin->login_attempts = 0;
+            // 1. Ensure the 1 official Super Admin account exists & is active
+            if (Schema::hasTable('users')) {
+                $superAdmin = User::firstOrNew(['email' => $superAdminEmail]);
+                $superAdmin->name = $superAdmin->name ?: 'kosal sensok';
+                if (Schema::hasColumn('users', 'name_kh')) {
+                    $superAdmin->name_kh = $superAdmin->name_kh ?: 'កុសល សែនសុខ';
+                }
+                if (Schema::hasColumn('users', 'role')) {
+                    $superAdmin->role = 'admin';
+                }
+                if (Schema::hasColumn('users', 'status')) {
+                    $superAdmin->status = 'active';
+                }
+                if (Schema::hasColumn('users', 'is_active')) {
+                    $superAdmin->is_active = true;
+                }
+                if (Schema::hasColumn('users', 'login_attempts')) {
+                    $superAdmin->login_attempts = 0;
+                }
 
-            if (!$superAdmin->exists) {
-                $superAdmin->password = Hash::make('Kosalsensokpk@12pk');
-                $superAdmin->email_verified_at = now();
+                if (!$superAdmin->exists) {
+                    $superAdmin->password = Hash::make('Kosalsensokpk@12pk');
+                    if (Schema::hasColumn('users', 'email_verified_at')) {
+                        $superAdmin->email_verified_at = now();
+                    }
+                }
+                $superAdmin->save();
             }
-            $superAdmin->save();
-        }
 
         // 2. Purge all legacy seeded / dummy courses & dependent learning records
         $seededCourseCodes = [
@@ -290,10 +305,15 @@ return new class extends Migration
             }
         }
 
-        try {
-            Cache::flush();
+            try {
+                Cache::flush();
+            } catch (\Throwable $e) {
+                // Ignore cache flush errors during CLI migration
+            }
         } catch (\Throwable $e) {
-            // Ignore cache flush errors during CLI migration
+            Log::warning('Official launch purge migration warning: ' . $e->getMessage());
+        } finally {
+            Schema::enableForeignKeyConstraints();
         }
     }
 
