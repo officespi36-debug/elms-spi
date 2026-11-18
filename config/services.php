@@ -71,6 +71,11 @@ return [
         'secret' => env('TURNSTILE_SECRET_KEY', '0x4AAAAAAEXbfkIFYCt1IyL5NESxUocpEvo'),
     ],
 
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY'),
+        'model'   => env('GEMINI_MODEL', 'gemini-2.5-flash'),
+    ],
+
     'cloudflare' => [
         'account_id'    => env('CLOUDFLARE_ACCOUNT_ID'),
         'ai_token'      => env('CLOUDFLARE_AI_TOKEN'),

@@ -641,6 +641,13 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/chat', [Student\AiTutorController::class, 'chat'])->name('chat');
             Route::get('/feedback', [Student\AiTutorController::class, 'feedback'])->name('feedback');
         });
+        Route::prefix('ai')->name('ai.')->group(function () {
+            Route::post('/conversations', [Student\AiTutorController::class, 'storeConversation'])->middleware('throttle:30,1')->name('conversations.store');
+            Route::get('/conversations/{conversation}', [Student\AiTutorController::class, 'showConversation'])->middleware('throttle:60,1')->name('conversations.show');
+            Route::delete('/conversations/{conversation}', [Student\AiTutorController::class, 'destroyConversation'])->middleware('throttle:30,1')->name('conversations.destroy');
+            Route::post('/conversations/{conversation}/messages', [Student\AiTutorController::class, 'storeMessage'])->middleware('throttle:12,1')->name('conversations.messages.store');
+            Route::post('/messages/{message}/feedback', [Student\AiTutorController::class, 'storeFeedback'])->middleware('throttle:30,1')->name('messages.feedback.store');
+        });
 
         // 7. Practice Lab (dynamic 5 Majors)
         Route::get('/practice-lab', [Student\PracticeLabController::class, 'index'])->name('practice-lab');
