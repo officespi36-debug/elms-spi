@@ -76,6 +76,16 @@ return [
         'model'   => env('GEMINI_MODEL', 'gemini-2.5-flash'),
     ],
 
+    'openai' => [
+        'api_key'  => env('OPENAI_API_KEY'),
+        'model'    => env('OPENAI_MODEL', 'gpt-4o-mini'),
+        'base_url' => env('OPENAI_BASE_URL', 'https://api.openai.com/v1'),
+    ],
+
+    'ai_tutor' => [
+        'daily_quota' => (int) env('AI_TUTOR_DAILY_QUOTA', 60),
+    ],
+
     'cloudflare' => [
         'account_id'    => env('CLOUDFLARE_ACCOUNT_ID'),
         'ai_token'      => env('CLOUDFLARE_AI_TOKEN'),

@@ -6,6 +6,7 @@ use App\Models\AiRecommendation;
 use App\Models\Lesson;
 use App\Models\LessonProgress;
 use App\Models\QuizAttempt;
+use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 
@@ -26,10 +27,31 @@ class AiRecommendationService
         $this->cfAi = $cfAi ?: app(CloudflareAIService::class);
     }
 
+    /**
+     * Load active Admin AI rules from cache or MySQL settings table.
+     */
+    public function getActiveRules(): array
+    {
+        $customRules = Cache::get('ai_rules');
+
+        if (!is_array($customRules)) {
+            try {
+                $dbRules = Setting::get('ai_rules', []);
+                $customRules = is_array($dbRules) ? $dbRules : [];
+                if (!empty($customRules)) {
+                    Cache::put('ai_rules', $customRules);
+                }
+            } catch (\Throwable $e) {
+                $customRules = [];
+            }
+        }
+
+        return array_merge($this->rules, $customRules);
+    }
+
     public function analyzeAndRecommend(User $user): void
     {
-        $customRules = Cache::get('ai_rules', []);
-        $rules = array_merge($this->rules, $customRules);
+        $rules = $this->getActiveRules();
 
         // 1. Check weak topics (based on quiz scores < 50%)
         $weakTopics = $this->detectWeakTopics($user);
@@ -124,5 +146,10 @@ class AiRecommendationService
     public function updateRules(array $newRules): void
     {
         Cache::put('ai_rules', $newRules);
+        try {
+            Setting::set('ai_rules', $newRules);
+        } catch (\Throwable $e) {
+            // Non-blocking fallback when settings table is unavailable during test bootstrap
+        }
     }
 }

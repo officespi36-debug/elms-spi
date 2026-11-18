@@ -9,11 +9,9 @@ use App\Models\AiMessage;
 use App\Models\User;
 use App\Services\AiContextService;
 use App\Services\AiTutorChatService;
-use App\Services\CloudflareAIService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -29,8 +27,10 @@ class AiTutorController extends Controller
         $user = $request->user();
         $courseParam = $request->query('course');
         $selectedCourseId = is_numeric($courseParam) ? (int) $courseParam : null;
+        $lessonParam = $request->query('lesson');
+        $selectedLessonId = is_numeric($lessonParam) ? (int) $lessonParam : null;
 
-        $context = $contextService->getStudentContext($user, $selectedCourseId);
+        $context = $contextService->getStudentContext($user, $selectedCourseId, $selectedLessonId);
 
         $conversationsCollection = collect();
         $activeConversation = null;
@@ -38,6 +38,7 @@ class AiTutorController extends Controller
         if ($chatService->ensureTablesExist()) {
             try {
                 $conversationsCollection = AiConversation::where('user_id', $user->id)
+                    ->whereHas('messages')
                     ->with('course')
                     ->orderByDesc('last_message_at')
                     ->orderByDesc('id')
@@ -170,6 +171,7 @@ class AiTutorController extends Controller
             'quick_action' => 'nullable|string|in:explain_lesson,generate_quiz,summarize_topic,give_example',
             'message'      => 'required_without:quick_action|nullable|string|min:2|max:1000',
             'course_id'    => 'nullable|integer',
+            'lesson_id'    => 'nullable|integer',
             'lang'         => 'nullable|string|in:km,en',
         ]);
 
@@ -184,7 +186,7 @@ class AiTutorController extends Controller
             return response()->json([
                 'ok'         => false,
                 'error_code' => 'quota_exceeded',
-                'message'    => 'អ្នកបានប្រើប្រាស់គ្រប់កូតា 60 សារសម្រាប់ថ្ងៃនេះហើយ។',
+                'message'    => "អ្នកបានប្រើប្រាស់គ្រប់កូតា {$quota['limit']} សារសម្រាប់ថ្ងៃនេះហើយ។ សូមត្រឡប់មកវិញនៅថ្ងៃស្អែក។",
                 'quota'      => $quota,
             ], 429);
         }
@@ -192,8 +194,11 @@ class AiTutorController extends Controller
         $effectiveCourseId = isset($data['course_id']) && $data['course_id'] !== null
             ? (int) $data['course_id']
             : ($conversation->course_id ? (int) $conversation->course_id : null);
+        $selectedLessonId = isset($data['lesson_id']) && $data['lesson_id'] !== null
+            ? (int) $data['lesson_id']
+            : null;
 
-        $context = $contextService->getStudentContext($user, $effectiveCourseId);
+        $context = $contextService->getStudentContext($user, $effectiveCourseId, $selectedLessonId);
         $lang = $data['lang'] ?? 'km';
 
         if (!empty($data['quick_action'])) {
@@ -349,62 +354,43 @@ class AiTutorController extends Controller
         return Inertia::render('Student/AiTutor/InstantFeedback');
     }
 
-    public function askTutor(Request $request, CloudflareAIService $aiService)
+    public function askTutor(Request $request, AiTutorChatService $chatService)
     {
         $request->validate([
-            'message'        => 'required|string|max:2000',
+            'message'        => 'required|string|min:2|max:2000',
             'context_course' => 'nullable|string|max:255',
             'major'          => 'nullable|string|max:100',
         ]);
 
-        $message = trim($request->input('message'));
-        $course = $request->input('context_course', 'General Academic Study');
-        $major = $request->input('major', 'General');
+        $message = $chatService->scrubPii(trim((string) $request->input('message')));
+        $course = trim((string) $request->input('context_course', ''));
+        $major = trim((string) $request->input('major', ''));
 
-        $systemPrompt = "You are the 24/7 AI Academic Tutor for Saint Paul Institute E-LMS. Course Context: {$course} (Major: {$major}). Provide concise, structured, friendly, and practical explanations in Khmer and English when helpful.";
+        $safeContext = $course !== ''
+            ? [
+                'course_title' => $course,
+                'module_title' => $major !== '' ? $major : null,
+            ]
+            : null;
 
         try {
-            $reply = $aiService->chatWithTutor($message, [
-                ['role' => 'system', 'content' => $systemPrompt],
-            ]);
+            $aiResult = $chatService->generateReply([], $message, $safeContext);
 
             return response()->json([
-                'success' => true,
-                'reply'   => $reply,
-                'model'   => config('services.cloudflare.default_model', '@cf/meta/llama-3.1-8b-instruct'),
+                'success'  => true,
+                'reply'    => $aiResult['body'],
+                'html'     => $chatService->renderSafeHtml($aiResult['body']),
+                'provider' => $aiResult['provider'],
+                'model'    => $aiResult['model'],
             ]);
         } catch (\Throwable $e) {
-            Log::warning('AI Tutor chat fallback triggered: ' . $e->getMessage());
-
-            try {
-                $accountId = config('services.cloudflare.account_id');
-                $gateway = config('services.cloudflare.ai_gateway');
-                $token = config('services.cloudflare.ai_token');
-                $model = config('services.cloudflare.default_model', '@cf/meta/llama-3.1-8b-instruct');
-
-                $res = Http::withToken($token)
-                    ->timeout(12)
-                    ->post("https://gateway.ai.cloudflare.com/v1/{$accountId}/{$gateway}/workers-ai/{$model}", [
-                        'messages' => [
-                            ['role' => 'system', 'content' => $systemPrompt],
-                            ['role' => 'user', 'content' => $message],
-                        ],
-                    ]);
-
-                if ($res->successful()) {
-                    return response()->json([
-                        'success' => true,
-                        'reply'   => $res->json('result.response') ?? $res->json('response'),
-                    ]);
-                }
-            } catch (\Throwable $ex) {
-                // fallback below
-            }
+            Log::warning('AI Tutor endpoint unavailable: ' . $e->getMessage());
 
             return response()->json([
-                'success' => true,
-                'reply'   => "សូមអរគុណសម្រាប់សំណួររបស់អ្នក! ទាក់ទងនឹងមេរៀន {$course} សូមរំលឹកចំណុចគន្លឹះក្នុងស្លាយមេរៀន ឬសាកល្បងសួរម្តងទៀត។",
-            ]);
+                'success'    => false,
+                'error_code' => 'provider_unavailable',
+                'message'    => 'សេវា AI បច្ចុប្បន្នមិនអាចឆ្លើយតបបានទេ សូមសាកល្បងម្ដងទៀត។',
+            ], 503);
         }
     }
 

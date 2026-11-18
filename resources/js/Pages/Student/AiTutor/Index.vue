@@ -11,7 +11,6 @@ import {
   ThumbsUp,
   ThumbsDown,
   BookOpen,
-  ChevronDown,
   RotateCcw,
   PanelRightOpen,
   X,
@@ -25,16 +24,26 @@ import {
 import StudentLayout from '@/Layouts/StudentLayout.vue'
 import { i18n } from '@/Services/i18n'
 
+interface CourseLessonOption {
+  id: number
+  title: string
+  title_kh: string
+  module_title: string | null
+  chapter_title: string | null
+}
+
 interface EnrolledCourseItem {
   id: number
   code: string
   title: string
   title_kh: string
   module_title: string | null
+  chapter_title?: string | null
   lesson_id: number | null
   lesson_title: string | null
   lesson_title_kh: string | null
   lesson_excerpt?: string
+  lessons?: CourseLessonOption[]
   progress_percent: number
   lessons_done: number
   lessons_total: number
@@ -131,12 +140,14 @@ const activeConversation = ref<ConversationItem | null>(
 const activeMessages = computed<AiMessageItem[]>(() => activeConversation.value?.messages || [])
 
 const selectedCourse = ref<EnrolledCourseItem | null>(props.context?.active_course || null)
+const selectedLessonId = ref<number | null>(
+  props.context?.active_course?.lesson_id ?? props.context?.active_course?.lessons?.[0]?.id ?? null
+)
 const quotaState = ref<QuotaStatus>({ ...(props.quota || { limit: 60, used: 0, remaining: 60 }) })
 
 const questionInput = ref('')
 const isSending = ref(false)
 const isLoadingConv = ref(false)
-const isCourseDropdownOpen = ref(false)
 const isMobileDrawerOpen = ref(false)
 const copiedKey = ref<string | null>(null)
 const pendingFeedbackId = ref<number | null>(null)
@@ -147,7 +158,6 @@ const isDeleting = ref(false)
 
 const chatContainerRef = ref<HTMLElement | null>(null)
 const composerRef = ref<HTMLTextAreaElement | null>(null)
-const courseDropdownRef = ref<HTMLElement | null>(null)
 
 const labels = computed(() => isKm.value
   ? {
@@ -175,6 +185,8 @@ const labels = computed(() => isKm.value
       helpful: 'មានប្រយោជន៍',
       notHelpful: 'មិនសូវមានប្រយោជន៍',
       contextTitle: 'បរិបទសិក្សារបស់អ្នក',
+      selectCourseLabel: 'ជ្រើសរើសវគ្គសិក្សា',
+      selectLessonLabel: 'ជ្រើសរើសមេរៀន / ជំពូក',
       currentCourse: 'វគ្គសិក្សាបច្ចុប្បន្ន',
       switchCourse: 'ប្តូរវគ្គ',
       progress: 'វឌ្ឍនភាព',
@@ -182,6 +194,8 @@ const labels = computed(() => isKm.value
       noCourseDesc: 'អ្នកអាចសួរសំណួរទូទៅបាន ឬស្វែងរកវគ្គសិក្សាដើម្បីរៀនជាមួយមេរៀនផ្ទាល់។',
       browseCourses: 'ស្វែងរកវគ្គសិក្សា',
       recentActivity: 'សកម្មភាពសិក្សាថ្មីៗ',
+      noRecentActivity: 'មិនទាន់មានសកម្មភាពសិក្សាក្នុងសប្តាហ៍នេះទេ។',
+      quotaExhaustedMsg: `អ្នកបានប្រើប្រាស់គ្រប់កូតា ${quotaState.value.limit}/${quotaState.value.limit} សារសម្រាប់ថ្ងៃនេះហើយ។ សូមត្រឡប់មកវិញនៅថ្ងៃស្អែក។`,
       quickActionsTitle: 'សកម្មភាពរហ័ស',
       quickNoCourseHint: 'សូមចុះឈ្មោះវគ្គសិក្សាជាមុនសិន ដើម្បីប្រើសកម្មភាពរហ័សតាមមេរៀន។',
       recentConversations: 'ប្រវត្តិសន្ទនាថ្មីៗ',
@@ -226,6 +240,8 @@ const labels = computed(() => isKm.value
       helpful: 'Helpful',
       notHelpful: 'Not helpful',
       contextTitle: 'Your Learning Context',
+      selectCourseLabel: 'Select Course',
+      selectLessonLabel: 'Select Lesson / Chapter',
       currentCourse: 'Current Course',
       switchCourse: 'Switch',
       progress: 'Progress',
@@ -233,6 +249,8 @@ const labels = computed(() => isKm.value
       noCourseDesc: 'You can still ask general study questions, or browse the catalog to start a course.',
       browseCourses: 'Browse Catalog',
       recentActivity: 'Recent Activity',
+      noRecentActivity: 'No study activity recorded this week yet.',
+      quotaExhaustedMsg: `Daily limit of ${quotaState.value.limit}/${quotaState.value.limit} messages reached. Please come back tomorrow.`,
       quickActionsTitle: 'Quick Actions',
       quickNoCourseHint: 'Please enroll or select a course first to run lesson quick actions.',
       recentConversations: 'Recent Conversations',
@@ -260,6 +278,17 @@ const quickActions = computed(() => [
   { key: 'give_example', title: labels.value.quickExampleTitle, sub: labels.value.quickExampleSub, icon: Code2 },
 ])
 
+const availableLessons = computed<CourseLessonOption[]>(() => selectedCourse.value?.lessons || [])
+
+const selectedLessonObj = computed<CourseLessonOption | null>(() => {
+  if (!availableLessons.value.length) return null
+  if (selectedLessonId.value !== null) {
+    const hit = availableLessons.value.find(l => l.id === selectedLessonId.value)
+    if (hit) return hit
+  }
+  return availableLessons.value[0] || null
+})
+
 const displayedCourseTitle = computed(() => {
   if (!selectedCourse.value) return ''
   return isKm.value
@@ -268,10 +297,21 @@ const displayedCourseTitle = computed(() => {
 })
 
 const displayedLessonTitle = computed(() => {
+  if (selectedLessonObj.value) {
+    return isKm.value
+      ? (selectedLessonObj.value.title_kh || selectedLessonObj.value.title)
+      : (selectedLessonObj.value.title || selectedLessonObj.value.title_kh)
+  }
   if (!selectedCourse.value) return ''
   return isKm.value
     ? (selectedCourse.value.lesson_title_kh || selectedCourse.value.lesson_title || selectedCourse.value.module_title || '')
     : (selectedCourse.value.lesson_title || selectedCourse.value.lesson_title_kh || selectedCourse.value.module_title || '')
+})
+
+const displayedChapterTitle = computed(() => {
+  if (selectedLessonObj.value?.chapter_title) return selectedLessonObj.value.chapter_title
+  if (selectedLessonObj.value?.module_title) return selectedLessonObj.value.module_title
+  return selectedCourse.value?.chapter_title || selectedCourse.value?.module_title || ''
 })
 
 // CSRF helper matching existing app conventions
@@ -349,7 +389,18 @@ const copyText = async (text: string, key: string) => {
   }
 }
 
-const createConversationRecord = async (courseId: number | null): Promise<ConversationItem> => {
+const selectCourseById = (id: number) => {
+  const found = (props.context?.enrolled_courses || []).find(c => c.id === id)
+  if (found) {
+    selectedCourse.value = found
+    selectedLessonId.value = found.lesson_id ?? found.lessons?.[0]?.id ?? null
+  }
+}
+
+const createConversationRecord = async (
+  courseId: number | null,
+  initialMessages: AiMessageItem[] = []
+): Promise<ConversationItem> => {
   const res = await fetch('/student/ai/conversations', {
     method: 'POST',
     credentials: 'same-origin',
@@ -362,22 +413,19 @@ const createConversationRecord = async (courseId: number | null): Promise<Conver
   if (!res.ok || !data?.conversation) {
     throw new Error(data?.message || 'Unable to create conversation.')
   }
-  const created: ConversationItem = { ...data.conversation, messages: [] }
+  const created: ConversationItem = { ...data.conversation, messages: initialMessages }
   conversations.value = [created, ...conversations.value.filter(c => c.id !== created.id)].slice(0, 10)
   activeConversation.value = created
   return created
 }
 
-const startNewChat = async () => {
+const startNewChat = () => {
   if (isSending.value) return
   errorBanner.value = null
-  try {
-    await createConversationRecord(selectedCourse.value?.id ?? null)
-    isMobileDrawerOpen.value = false
-    nextTick(() => composerRef.value?.focus())
-  } catch (e: any) {
-    errorBanner.value = { message: e?.message || 'Failed to start new chat.' }
-  }
+  activeConversation.value = null
+  questionInput.value = ''
+  isMobileDrawerOpen.value = false
+  nextTick(() => composerRef.value?.focus())
 }
 
 const selectConversation = async (conv: ConversationItem) => {
@@ -398,6 +446,9 @@ const selectConversation = async (conv: ConversationItem) => {
       throw new Error(data?.message || 'Unable to load conversation.')
     }
     activeConversation.value = data.conversation
+    if (data.conversation.course_id) {
+      selectCourseById(Number(data.conversation.course_id))
+    }
     isMobileDrawerOpen.value = false
     scrollToBottom()
   } catch (e: any) {
@@ -441,6 +492,11 @@ const confirmDeleteConversation = async () => {
 
 const dispatchChatRequest = async (opts: { text?: string; quickAction?: string }) => {
   if (isSending.value) return
+  if (quotaState.value.remaining <= 0) {
+    errorBanner.value = { message: labels.value.quotaExhaustedMsg }
+    return
+  }
+
   const trimmed = (opts.text || '').trim()
   if (!opts.quickAction && trimmed.length < 2) return
 
@@ -454,14 +510,65 @@ const dispatchChatRequest = async (opts: { text?: string; quickAction?: string }
   isMobileDrawerOpen.value = false
 
   const courseId = selectedCourse.value?.id ?? null
+  const lessonId = selectedLessonObj.value?.id ?? selectedLessonId.value ?? null
+  const optimisticText = opts.quickAction
+    ? (quickActions.value.find(q => q.key === opts.quickAction)?.title || opts.quickAction)
+    : trimmed
+
+  if (!opts.quickAction) {
+    questionInput.value = ''
+  }
+
+  const tempMsgId = -Date.now()
+  const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+  const optimisticUserMsg: AiMessageItem = {
+    id: tempMsgId,
+    role: 'user',
+    body: optimisticText,
+    html: null,
+    my_rating: null,
+    created_at_iso: null,
+    time_label: nowTime,
+  }
+
+  const hadExistingConv = !!(activeConversation.value && activeConversation.value.id > 0)
+  if (!activeConversation.value) {
+    activeConversation.value = {
+      id: 0,
+      course_id: courseId,
+      course_title: selectedCourse.value?.title ?? null,
+      course_title_kh: selectedCourse.value?.title_kh ?? null,
+      title: optimisticText.slice(0, 20),
+      last_message_at: null,
+      relative_time: '',
+      messages: [optimisticUserMsg],
+    }
+  } else {
+    activeConversation.value.messages = [...(activeConversation.value.messages || []), optimisticUserMsg]
+  }
+  scrollToBottom()
+
+  const rollbackOptimistic = () => {
+    if (!activeConversation.value) return
+    const cleaned = (activeConversation.value.messages || []).filter(m => m.id !== tempMsgId)
+    if (activeConversation.value.id === 0 && cleaned.length === 0) {
+      activeConversation.value = null
+    } else {
+      activeConversation.value.messages = cleaned
+    }
+    if (!opts.quickAction && trimmed.length >= 2) {
+      questionInput.value = trimmed
+    }
+  }
 
   try {
-    let conv = activeConversation.value
-    if (!conv) {
-      conv = await createConversationRecord(courseId)
+    let targetConvId = hadExistingConv ? activeConversation.value!.id : 0
+    if (!targetConvId) {
+      const created = await createConversationRecord(courseId, [optimisticUserMsg])
+      targetConvId = created.id
     }
 
-    const res = await fetch(`/student/ai/conversations/${conv.id}/messages`, {
+    const res = await fetch(`/student/ai/conversations/${targetConvId}/messages`, {
       method: 'POST',
       credentials: 'same-origin',
       headers: buildHeaders(),
@@ -469,12 +576,14 @@ const dispatchChatRequest = async (opts: { text?: string; quickAction?: string }
         message: opts.quickAction ? undefined : trimmed,
         quick_action: opts.quickAction || undefined,
         course_id: courseId,
+        lesson_id: lessonId,
         lang: i18n.locale.value,
       }),
     })
 
     const data = await res.json().catch(() => ({}))
     if (!res.ok || !data?.ok) {
+      rollbackOptimistic()
       if (data?.quota) {
         quotaState.value = data.quota
       }
@@ -485,12 +594,8 @@ const dispatchChatRequest = async (opts: { text?: string; quickAction?: string }
       return
     }
 
-    if (!opts.quickAction) {
-      questionInput.value = ''
-    }
-
     if (activeConversation.value) {
-      const currentMsgs = activeConversation.value.messages || []
+      const currentMsgs = (activeConversation.value.messages || []).filter(m => m.id !== tempMsgId)
       activeConversation.value = {
         ...data.conversation,
         messages: [...currentMsgs, data.user_message, data.assistant_message],
@@ -512,6 +617,7 @@ const dispatchChatRequest = async (opts: { text?: string; quickAction?: string }
 
     scrollToBottom()
   } catch {
+    rollbackOptimistic()
     errorBanner.value = {
       message: isKm.value ? 'បញ្ហាការតភ្ជាប់បណ្ដាញ។ សូមសាកល្បងម្ដងទៀត។' : 'Network error. Please retry.',
       retryPayload: opts,
@@ -532,12 +638,14 @@ const handleQuickAction = (actionKey: string) => {
 const handleComposerKeydown = (e: KeyboardEvent) => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
     e.preventDefault()
-    handleSend()
+    if (quotaState.value.remaining > 0) {
+      handleSend()
+    }
   }
 }
 
 const submitFeedback = async (msg: AiMessageItem, rating: 'up' | 'down') => {
-  if (pendingFeedbackId.value === msg.id) return
+  if (pendingFeedbackId.value === msg.id || msg.id <= 0) return
   const prev = msg.my_rating
   pendingFeedbackId.value = msg.id
   msg.my_rating = rating
@@ -558,19 +666,7 @@ const submitFeedback = async (msg: AiMessageItem, rating: 'up' | 'down') => {
   }
 }
 
-const switchCourse = (course: EnrolledCourseItem) => {
-  selectedCourse.value = course
-  isCourseDropdownOpen.value = false
-}
-
-const handleClickOutside = (e: MouseEvent) => {
-  if (courseDropdownRef.value && !courseDropdownRef.value.contains(e.target as Node)) {
-    isCourseDropdownOpen.value = false
-  }
-}
-
 onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
   scrollToBottom()
   const promptParam = new URLSearchParams(window.location.search).get('prompt')
   if (promptParam && promptParam.trim().length >= 2) {
@@ -579,7 +675,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
+  // Cleanup hook preserved
 })
 </script>
 
@@ -692,8 +788,8 @@ onUnmounted(() => {
                   :key="qa.key"
                   @click="handleQuickAction(qa.key)"
                   type="button"
-                  :disabled="isSending"
-                  class="flex items-center gap-3 p-3 rounded-2xl border border-slate-200 dark:border-[#2d2f31] bg-white dark:bg-[#1e1f20] hover:border-purple-400 dark:hover:border-purple-500/50 text-left transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 cursor-pointer"
+                  :disabled="isSending || quotaState.remaining <= 0"
+                  class="flex items-center gap-3 p-3 rounded-2xl border border-slate-200 dark:border-[#2d2f31] bg-white dark:bg-[#1e1f20] hover:border-purple-400 dark:hover:border-purple-500/50 text-left transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   <component :is="qa.icon" class="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
                   <div class="min-w-0">
@@ -872,6 +968,14 @@ onUnmounted(() => {
 
           <!-- Composer Footer (No attachment button; clean contrast disclaimer) -->
           <div class="p-4 border-t border-slate-200 dark:border-[#2d2f31] bg-white dark:bg-[#1e1f20] space-y-2.5">
+            <div
+              v-if="quotaState.remaining <= 0"
+              role="status"
+              class="rounded-xl border border-amber-200 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10 px-3.5 py-2 text-xs font-medium text-amber-800 dark:text-amber-200"
+            >
+              {{ labels.quotaExhaustedMsg }}
+            </div>
+
             <form @submit.prevent="handleSend" class="flex items-end gap-2.5">
               <textarea
                 ref="composerRef"
@@ -879,9 +983,9 @@ onUnmounted(() => {
                 @keydown="handleComposerKeydown"
                 rows="2"
                 maxlength="1000"
-                :disabled="isSending"
+                :disabled="isSending || quotaState.remaining <= 0"
                 :placeholder="labels.placeholder"
-                class="flex-1 resize-none rounded-2xl border border-slate-300 dark:border-[#3c4043] bg-slate-50 dark:bg-[#131314] px-4 py-3 text-sm text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus:border-purple-500 disabled:opacity-60"
+                class="flex-1 resize-none rounded-2xl border border-slate-300 dark:border-[#3c4043] bg-slate-50 dark:bg-[#131314] px-4 py-3 text-sm text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus:border-purple-500 disabled:opacity-60 disabled:cursor-not-allowed"
               ></textarea>
 
               <button
@@ -908,46 +1012,39 @@ onUnmounted(() => {
               <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-100">
                 {{ labels.contextTitle }}
               </h3>
-
-              <!-- Course Switch Dropdown (only real enrolled courses) -->
-              <div v-if="context.enrolled_courses.length > 1" ref="courseDropdownRef" class="relative">
-                <button
-                  @click="isCourseDropdownOpen = !isCourseDropdownOpen"
-                  type="button"
-                  class="inline-flex items-center gap-1 text-xs font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 rounded-lg px-2 py-1 cursor-pointer"
-                >
-                  <span>{{ labels.switchCourse }}</span>
-                  <ChevronDown class="w-3.5 h-3.5" />
-                </button>
-
-                <div
-                  v-if="isCourseDropdownOpen"
-                  class="absolute right-0 top-full mt-1.5 w-64 rounded-2xl border border-slate-200 dark:border-[#3c4043] bg-white dark:bg-[#282a2c] shadow-xl p-1.5 z-30 space-y-1"
-                >
-                  <button
-                    v-for="c in context.enrolled_courses"
-                    :key="c.id"
-                    @click="switchCourse(c)"
-                    type="button"
-                    :class="[
-                      selectedCourse?.id === c.id
-                        ? 'bg-purple-50 dark:bg-purple-500/20 text-purple-700 dark:text-purple-200 font-bold'
-                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#323437]',
-                      'w-full text-left px-3 py-2 rounded-xl text-xs flex items-center justify-between gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 cursor-pointer'
-                    ]"
-                  >
-                    <span class="truncate">{{ isKm ? (c.title_kh || c.title) : c.title }}</span>
-                    <span class="text-[11px] font-semibold shrink-0">{{ c.progress_percent }}%</span>
-                  </button>
-                </div>
-              </div>
             </div>
 
-            <!-- Real Current Course -->
+            <!-- Real Current Course & Lesson/Chapter Dropdowns -->
             <div v-if="context.has_course && selectedCourse" class="space-y-3">
-              <p class="text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400">
-                {{ labels.currentCourse }}
-              </p>
+              <div class="space-y-1.5">
+                <label class="block text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400">
+                  {{ labels.selectCourseLabel }}
+                </label>
+                <select
+                  :value="selectedCourse.id"
+                  @change="selectCourseById(Number(($event.target as HTMLSelectElement).value))"
+                  class="w-full rounded-xl border border-slate-200 dark:border-[#3c4043] bg-slate-50 dark:bg-[#131314] px-3 py-2 text-xs font-semibold text-slate-900 dark:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 cursor-pointer"
+                >
+                  <option v-for="c in context.enrolled_courses" :key="c.id" :value="c.id">
+                    {{ isKm ? (c.title_kh || c.title) : (c.title || c.title_kh) }} ({{ c.progress_percent }}%)
+                  </option>
+                </select>
+              </div>
+
+              <div v-if="availableLessons.length > 0" class="space-y-1.5">
+                <label class="block text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400">
+                  {{ labels.selectLessonLabel }}
+                </label>
+                <select
+                  v-model.number="selectedLessonId"
+                  class="w-full rounded-xl border border-slate-200 dark:border-[#3c4043] bg-slate-50 dark:bg-[#131314] px-3 py-2 text-xs text-slate-800 dark:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 cursor-pointer"
+                >
+                  <option v-for="l in availableLessons" :key="l.id" :value="l.id">
+                    {{ isKm ? (l.title_kh || l.title) : (l.title || l.title_kh) }}{{ l.chapter_title ? ` — ${l.chapter_title}` : '' }}
+                  </option>
+                </select>
+              </div>
+
               <div class="p-3.5 rounded-2xl border border-slate-200 dark:border-[#2d2f31] bg-slate-50 dark:bg-[#131314] space-y-2.5">
                 <div class="flex items-start gap-3">
                   <div class="w-10 h-10 rounded-xl bg-purple-600/15 text-purple-700 dark:text-purple-300 font-bold text-xs flex items-center justify-center shrink-0">
@@ -957,6 +1054,9 @@ onUnmounted(() => {
                     <h4 class="text-xs font-bold text-slate-900 dark:text-white truncate">
                       {{ displayedCourseTitle }}
                     </h4>
+                    <p v-if="displayedChapterTitle" class="text-[11px] font-medium text-purple-700 dark:text-purple-300 truncate mt-0.5">
+                      {{ displayedChapterTitle }}
+                    </p>
                     <p v-if="displayedLessonTitle" class="text-[11px] text-slate-600 dark:text-slate-400 truncate mt-0.5">
                       {{ displayedLessonTitle }}
                     </p>
@@ -991,12 +1091,12 @@ onUnmounted(() => {
               </Link>
             </div>
 
-            <!-- Real Recent Activity (Hidden completely when 0 items) -->
-            <div v-if="context.recent_activity && context.recent_activity.length > 0" class="pt-3 border-t border-slate-100 dark:border-[#2d2f31] space-y-2">
+            <!-- Real Recent Activity -->
+            <div class="pt-3 border-t border-slate-100 dark:border-[#2d2f31] space-y-2">
               <p class="text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400">
                 {{ labels.recentActivity }}
               </p>
-              <ul class="space-y-2">
+              <ul v-if="context.recent_activity && context.recent_activity.length > 0" class="space-y-2">
                 <li
                   v-for="(act, aIdx) in context.recent_activity"
                   :key="aIdx"
@@ -1009,6 +1109,9 @@ onUnmounted(() => {
                   </div>
                 </li>
               </ul>
+              <p v-else class="text-xs text-slate-500 dark:text-slate-400">
+                {{ labels.noRecentActivity }}
+              </p>
             </div>
           </div>
 
@@ -1023,7 +1126,7 @@ onUnmounted(() => {
                 :key="qa.key"
                 @click="handleQuickAction(qa.key)"
                 type="button"
-                :disabled="isSending || !context.has_course"
+                :disabled="isSending || !context.has_course || quotaState.remaining <= 0"
                 class="w-full min-h-[48px] p-3 rounded-2xl border border-slate-200 dark:border-[#2d2f31] bg-slate-50/70 dark:bg-[#131314] hover:border-purple-400 dark:hover:border-purple-500/50 text-left flex items-center gap-3 transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 <component :is="qa.icon" class="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
@@ -1111,13 +1214,12 @@ onUnmounted(() => {
 
         <!-- Mobile Course Context -->
         <div v-if="context.has_course && selectedCourse" class="space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">{{ labels.currentCourse }}</span>
+          <div class="space-y-1.5">
+            <label class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400">{{ labels.selectCourseLabel }}</label>
             <select
-              v-if="context.enrolled_courses.length > 1"
               :value="selectedCourse.id"
-              @change="selectedCourse = context.enrolled_courses.find(c => c.id === Number(($event.target as HTMLSelectElement).value)) || selectedCourse"
-              class="text-xs rounded-xl border border-slate-300 dark:border-[#3c4043] bg-slate-50 dark:bg-[#131314] px-2.5 py-1.5 text-slate-900 dark:text-white"
+              @change="selectCourseById(Number(($event.target as HTMLSelectElement).value))"
+              class="w-full text-xs rounded-xl border border-slate-300 dark:border-[#3c4043] bg-slate-50 dark:bg-[#131314] px-3 py-2 font-semibold text-slate-900 dark:text-white"
             >
               <option v-for="c in context.enrolled_courses" :key="c.id" :value="c.id">
                 {{ isKm ? (c.title_kh || c.title) : c.title }} ({{ c.progress_percent }}%)
@@ -1125,8 +1227,21 @@ onUnmounted(() => {
             </select>
           </div>
 
+          <div v-if="availableLessons.length > 0" class="space-y-1.5">
+            <label class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400">{{ labels.selectLessonLabel }}</label>
+            <select
+              v-model.number="selectedLessonId"
+              class="w-full text-xs rounded-xl border border-slate-300 dark:border-[#3c4043] bg-slate-50 dark:bg-[#131314] px-3 py-2 text-slate-900 dark:text-white"
+            >
+              <option v-for="l in availableLessons" :key="l.id" :value="l.id">
+                {{ isKm ? (l.title_kh || l.title) : (l.title || l.title_kh) }}{{ l.chapter_title ? ` — ${l.chapter_title}` : '' }}
+              </option>
+            </select>
+          </div>
+
           <div class="p-3.5 rounded-2xl border border-slate-200 dark:border-[#2d2f31] bg-slate-50 dark:bg-[#131314] space-y-2">
             <p class="text-xs font-bold text-slate-900 dark:text-white">{{ displayedCourseTitle }}</p>
+            <p v-if="displayedChapterTitle" class="text-[11px] font-medium text-purple-700 dark:text-purple-300">{{ displayedChapterTitle }}</p>
             <p v-if="displayedLessonTitle" class="text-[11px] text-slate-600 dark:text-slate-400">{{ displayedLessonTitle }}</p>
             <div class="w-full h-2 rounded-full bg-slate-200 dark:bg-[#282a2c] overflow-hidden">
               <div class="h-full bg-purple-600 rounded-full" :style="{ width: `${selectedCourse.progress_percent}%` }"></div>
@@ -1144,12 +1259,13 @@ onUnmounted(() => {
           </Link>
         </div>
 
-        <!-- Mobile Recent Activity (hidden if empty) -->
-        <div v-if="context.recent_activity && context.recent_activity.length > 0" class="space-y-2">
+        <!-- Mobile Recent Activity -->
+        <div class="space-y-2">
           <p class="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">{{ labels.recentActivity }}</p>
-          <ul class="space-y-1.5 text-xs text-slate-700 dark:text-slate-300">
+          <ul v-if="context.recent_activity && context.recent_activity.length > 0" class="space-y-1.5 text-xs text-slate-700 dark:text-slate-300">
             <li v-for="(act, aIdx) in context.recent_activity" :key="aIdx">• {{ isKm ? act.title_km : act.title_en }}</li>
           </ul>
+          <p v-else class="text-xs text-slate-500 dark:text-slate-400">{{ labels.noRecentActivity }}</p>
         </div>
 
         <!-- Mobile Quick Actions -->
@@ -1160,7 +1276,7 @@ onUnmounted(() => {
             :key="qa.key"
             @click="handleQuickAction(qa.key)"
             type="button"
-            :disabled="isSending || !context.has_course"
+            :disabled="isSending || !context.has_course || quotaState.remaining <= 0"
             class="w-full min-h-[48px] p-3 rounded-2xl border border-slate-200 dark:border-[#2d2f31] bg-slate-50 dark:bg-[#131314] text-left flex items-center gap-3 text-xs font-bold text-slate-900 dark:text-white disabled:opacity-50"
           >
             <component :is="qa.icon" class="w-4 h-4 text-purple-600 shrink-0" />
@@ -1256,6 +1372,51 @@ onUnmounted(() => {
   background-color: rgba(147, 51, 234, 0.1);
 }
 .ai-markdown-prose :deep(strong) {
+  font-weight: 700;
+}
+.ai-markdown-prose :deep(h1),
+.ai-markdown-prose :deep(h2),
+.ai-markdown-prose :deep(h3),
+.ai-markdown-prose :deep(h4) {
+  font-weight: 700;
+  margin-top: 0.75rem;
+  margin-bottom: 0.35rem;
+  line-height: 1.35;
+}
+.ai-markdown-prose :deep(blockquote) {
+  margin: 0.6rem 0;
+  padding: 0.4rem 0.75rem;
+  border-left: 3px solid rgb(147, 51, 234);
+  background-color: rgba(147, 51, 234, 0.06);
+  border-radius: 0.375rem;
+}
+.ai-markdown-prose :deep(hr) {
+  margin: 0.75rem 0;
+  border-color: rgba(148, 163, 184, 0.3);
+}
+.ai-markdown-prose :deep(a) {
+  color: rgb(147, 51, 234);
+  text-decoration: underline;
+}
+.ai-markdown-prose :deep(table) {
+  width: 100%;
+  margin: 0.75rem 0;
+  border-collapse: collapse;
+  font-size: 0.85em;
+  display: block;
+  overflow-x: auto;
+}
+.ai-markdown-prose :deep(thead) {
+  background-color: rgba(147, 51, 234, 0.08);
+}
+.ai-markdown-prose :deep(th),
+.ai-markdown-prose :deep(td) {
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  padding: 0.45rem 0.65rem;
+  text-align: left;
+  vertical-align: top;
+}
+.ai-markdown-prose :deep(th) {
   font-weight: 700;
 }
 </style>
