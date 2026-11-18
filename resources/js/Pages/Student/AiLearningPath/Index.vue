@@ -26,10 +26,10 @@ watch(() => props.activeTab, (newTab) => {
 
 <template>
   <div>
-    <RecommendedLesson v-if="currentTab === 'recommended'" />
-    <ReviewLesson v-else-if="currentTab === 'review'" />
-    <WeakTopics v-else-if="currentTab === 'weak-topics'" />
-    <NextModule v-else-if="currentTab === 'next-module'" />
-    <RecommendedLesson v-else />
+    <RecommendedLesson v-if="currentTab === 'recommended'" v-bind="$page.props" />
+    <ReviewLesson v-else-if="currentTab === 'review'" v-bind="$page.props" />
+    <WeakTopics v-else-if="currentTab === 'weak-topics'" v-bind="$page.props" />
+    <NextModule v-else-if="currentTab === 'next-module'" v-bind="$page.props" />
+    <RecommendedLesson v-else v-bind="$page.props" />
   </div>
 </template>

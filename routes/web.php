@@ -628,6 +628,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/ai-path', [Student\AiPathController::class, 'index'])->name('ai-path');
         Route::prefix('ai-path')->name('ai-path.')->group(function () {
             Route::get('/recommended', [Student\AiPathController::class, 'recommended'])->name('recommended');
+            Route::post('/reanalyze', [Student\AiPathController::class, 'reanalyze'])->middleware('throttle:10,1')->name('reanalyze');
             Route::get('/review', [Student\AiPathController::class, 'review'])->name('review');
             Route::get('/weak-topics', [Student\AiPathController::class, 'weakTopics'])->name('weak-topics');
             Route::get('/next-module', [Student\AiPathController::class, 'nextModule'])->name('next-module');
