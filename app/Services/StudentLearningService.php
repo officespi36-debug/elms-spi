@@ -21,40 +21,34 @@ class StudentLearningService
      */
     public function resolveCurrentLesson(User $user, ?Course $course = null): ?array
     {
-        // 1. Determine Course
+        // 1. Determine Course (strictly enrolled courses only — no silent auto-enrollment)
         if ($course) {
             $isEnrolled = Enrollment::where('student_id', $user->id)
                 ->where('course_id', $course->id)
+                ->whereIn('status', ['active', 'completed'])
                 ->exists();
 
             if (!$isEnrolled) {
-                app(EnrollmentService::class)->enroll($user, $course, 'self', $user);
+                return null;
             }
             $targetCourse = $course;
         } else {
             // Find most recently updated active enrollment
             $enrollment = Enrollment::where('student_id', $user->id)
                 ->where('status', 'active')
+                ->whereHas('course')
+                ->with('course')
                 ->latest('updated_at')
                 ->first();
 
             if (!$enrollment) {
-                // Fallback to any enrollment
+                // Fallback to completed enrollment
                 $enrollment = Enrollment::where('student_id', $user->id)
+                    ->where('status', 'completed')
+                    ->whereHas('course')
+                    ->with('course')
                     ->latest('updated_at')
                     ->first();
-            }
-
-            // If no enrollment, auto-enroll user into primary published course
-            if (!$enrollment || !$enrollment->course) {
-                $defaultCourse = Course::where('status', 'published')
-                    ->whereHas('lessons')
-                    ->first()
-                    ?: Course::where('status', 'published')->first();
-
-                if ($defaultCourse) {
-                    $enrollment = app(EnrollmentService::class)->enroll($user, $defaultCourse, 'self', $user);
-                }
             }
 
             if (!$enrollment || !$enrollment->course) {
@@ -66,16 +60,6 @@ class StudentLearningService
         // 2. Fetch full curriculum for this course
         $curriculum = $this->getCourseCurriculum($user, $targetCourse);
         if (empty($curriculum['lessons'])) {
-            // Fallback to alternative published course that has lessons
-            $altCourse = Course::where('status', 'published')
-                ->where('id', '!=', $targetCourse->id)
-                ->whereHas('lessons')
-                ->first();
-
-            if ($altCourse) {
-                $altEnrollment = app(EnrollmentService::class)->enroll($user, $altCourse, 'self', $user);
-                return $this->resolveCurrentLesson($user, $altCourse);
-            }
             return null;
         }
 
@@ -111,8 +95,8 @@ class StudentLearningService
             return null;
         }
 
-        $watchedSeconds = $currentLessonItem['watched_seconds'] ?? 0;
-        $durationSeconds = $currentLessonItem['duration_seconds'] ?? 1100;
+        $watchedSeconds = (int) ($currentLessonItem['watched_seconds'] ?? 0);
+        $durationSeconds = (int) ($currentLessonItem['duration_seconds'] ?? 0);
         $secondsLeft = max(0, $durationSeconds - $watchedSeconds);
 
         return [
@@ -135,7 +119,7 @@ class StudentLearningService
      */
     public function getCourseCurriculum(User $user, Course $course): array
     {
-        $cacheKey = "course_{$course->id}_user_{$user->id}_curriculum_v5";
+        $cacheKey = "course_{$course->id}_user_{$user->id}_curriculum_v6";
 
         return Cache::remember($cacheKey, 60, function () use ($user, $course) {
             $course->load([
@@ -216,7 +200,7 @@ class StudentLearningService
 
                 $isLocked = !$previousCompleted && ($idx > 0);
 
-                $duration = $l->duration_seconds ?: 1100;
+                $duration = (int) ($l->duration_seconds ?? 0);
 
                 $flattenedLessons[] = [
                     'id'               => $l->id,
@@ -312,6 +296,7 @@ class StudentLearningService
      */
     public function invalidateCourseCache(int $userId, int $courseId): void
     {
+        Cache::forget("course_{$courseId}_user_{$userId}_curriculum_v6");
         Cache::forget("course_{$courseId}_user_{$userId}_curriculum_v5");
         Cache::forget("course_{$courseId}_user_{$userId}_curriculum_v4");
         Cache::forget("course_{$courseId}_user_{$userId}_curriculum_v3");

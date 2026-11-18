@@ -29,11 +29,9 @@ const userPrefs = computed(() => (user.value?.preferences as Record<string, any>
 
 const studentDisplayName = computed(() => {
   if (currentLang.value === 'km') {
-    if (user.value?.name_kh) return user.value.name_kh
-    if (user.value?.name === 'Mengly Khun') return 'ម៉េងលី ឃុន'
-    return user.value?.name || 'និស្សិត'
+    return user.value?.name_kh || user.value?.name || 'និស្សិត'
   }
-  return user.value?.name || 'Student'
+  return user.value?.name || user.value?.name_kh || 'Student'
 })
 
 const headerAvatarError = ref(false)
@@ -121,15 +119,17 @@ const handleAvatarChange = (e: Event) => {
 }
 
 const studentId = computed(() => {
-  return user.value?.student_id || user.value?.student_code || 'STU2026001'
+  return user.value?.student_code || user.value?.student_id || '—'
 })
 
 const studentMajor = computed(() => {
-  return user.value?.major?.name || user.value?.major || 'Information Technology'
+  if (typeof user.value?.major === 'string' && user.value.major.trim()) return user.value.major
+  return user.value?.major?.name || '—'
 })
 
 const studentDepartment = computed(() => {
-  return user.value?.department?.name || user.value?.department || 'Computer Science'
+  if (typeof user.value?.department === 'string' && user.value.department.trim()) return user.value.department
+  return user.value?.major?.department?.name || user.value?.department?.name || '—'
 })
 
 const newEnrollmentsCount = computed<number>(() => {
@@ -459,36 +459,64 @@ const dynamicBreadcrumbs = computed(() => {
   if (url.startsWith('/student/notifications/announcements')) {
     return [
       { label: 'Dashboard', href: '/student/dashboard' },
-      { label: 'Notifications', href: '/student/notifications/announcements' },
-      { label: 'System & Teacher Announcements' }
+      { label: 'Notifications', href: '/student/notifications' },
+      { label: 'Announcements' }
     ]
   }
-  if (url.startsWith('/student/notifications/course-updates')) {
+  if (url.startsWith('/student/notifications/ai-alerts')) {
     return [
       { label: 'Dashboard', href: '/student/dashboard' },
-      { label: 'Notifications', href: '/student/notifications/announcements' },
-      { label: 'Course Updates' }
+      { label: 'Notifications', href: '/student/notifications' },
+      { label: 'AI Study Alerts' }
     ]
   }
-  if (url.startsWith('/student/notifications/assignments')) {
+  if (url.startsWith('/student/notifications/feedback')) {
     return [
       { label: 'Dashboard', href: '/student/dashboard' },
-      { label: 'Notifications', href: '/student/notifications/announcements' },
-      { label: 'Assignment Alerts' }
+      { label: 'Notifications', href: '/student/notifications' },
+      { label: 'Teacher Feedback' }
     ]
   }
-  if (url.startsWith('/student/notifications/exams')) {
+  if (url.startsWith('/student/notifications/payment-alerts')) {
     return [
       { label: 'Dashboard', href: '/student/dashboard' },
-      { label: 'Notifications', href: '/student/notifications/announcements' },
-      { label: 'Exam & Quiz Alerts' }
+      { label: 'Notifications', href: '/student/notifications' },
+      { label: 'Payment Alerts' }
     ]
   }
   if (url.startsWith('/student/notifications')) {
     return [
       { label: 'Dashboard', href: '/student/dashboard' },
-      { label: 'Notifications', href: '/student/notifications/announcements' },
+      { label: 'Notifications', href: '/student/notifications' },
       { label: 'All Notifications' }
+    ]
+  }
+  if (url.startsWith('/student/calendar/live-class')) {
+    return [
+      { label: 'Dashboard', href: '/student/dashboard' },
+      { label: 'Calendar & Schedule', href: '/student/calendar' },
+      { label: 'Live Class Schedule' }
+    ]
+  }
+  if (url.startsWith('/student/calendar/upcoming-quiz')) {
+    return [
+      { label: 'Dashboard', href: '/student/dashboard' },
+      { label: 'Calendar & Schedule', href: '/student/calendar' },
+      { label: 'Upcoming Quizzes' }
+    ]
+  }
+  if (url.startsWith('/student/calendar/assignment-due')) {
+    return [
+      { label: 'Dashboard', href: '/student/dashboard' },
+      { label: 'Calendar & Schedule', href: '/student/calendar' },
+      { label: 'Assignments Due' }
+    ]
+  }
+  if (url.startsWith('/student/calendar/academic-events')) {
+    return [
+      { label: 'Dashboard', href: '/student/dashboard' },
+      { label: 'Calendar & Schedule', href: '/student/calendar' },
+      { label: 'Academic Events' }
     ]
   }
   if (url.startsWith('/student/calendar')) {
@@ -511,8 +539,7 @@ const dynamicBreadcrumbs = computed(() => {
 const breadcrumbTranslations: Record<string, { km: string; en: string }> = {
   'Dashboard': { km: 'ផ្ទាំងគ្រប់គ្រង', en: 'Dashboard' },
   'My Courses': { km: 'វគ្គសិក្សារបស់ខ្ញុំ', en: 'My Courses' },
-  'Web Development': { km: 'ការអភិវឌ្ឍគេហទំព័រ', en: 'Web Development' },
-  'Chapter 3 - JavaScript Functions': { km: 'ជំពូកទី ៣ - JavaScript Functions', en: 'Chapter 3 - JavaScript Functions' },
+  'Continue Learning': { km: 'រៀនបន្ត', en: 'Continue Learning' },
   'Enrolled Courses': { km: 'វគ្គសិក្សាដែលបានចុះឈ្មោះ', en: 'Enrolled Courses' },
   'Completed Courses': { km: 'វគ្គសិក្សាដែលបានបញ្ចប់', en: 'Completed Courses' },
   'Browse Catalog': { km: 'ស្វែងរកវគ្គសិក្សា', en: 'Browse Catalog' },
@@ -536,12 +563,18 @@ const breadcrumbTranslations: Record<string, { km: string; en: string }> = {
   'Available Certificates': { km: 'វិញ្ញាបនបត្រដែលអាចទាញយកបាន', en: 'Available Certificates' },
   'Certificate Verification': { km: 'ផ្ទៀងផ្ទាត់វិញ្ញាបនបត្រ', en: 'Certificate Verification' },
   'Notifications': { km: 'ការជូនដំណឹង', en: 'Notifications' },
+  'Announcements': { km: 'សេចក្តីប្រកាសព័ត៌មាន', en: 'Announcements' },
   'System & Teacher Announcements': { km: 'សេចក្តីប្រកាសពីប្រព័ន្ធ & គ្រូ', en: 'System & Teacher Announcements' },
-  'Course Updates': { km: 'បច្ចុប្បន្នភាពវគ្គសិក្សា', en: 'Course Updates' },
-  'Assignment Alerts': { km: 'ការដាស់តឿនកិច្ចការផ្ទះ', en: 'Assignment Alerts' },
-  'Exam & Quiz Alerts': { km: 'ការដាស់តឿនការប្រឡង & Quiz', en: 'Exam & Quiz Alerts' },
+  'AI Study Alerts': { km: 'ការដាស់តឿនពី AI', en: 'AI Study Alerts' },
+  'AI Alerts': { km: 'ការដាស់តឿនពី AI', en: 'AI Alerts' },
+  'Teacher Feedback': { km: 'មតិយោបល់ពីគ្រូបង្រៀន', en: 'Teacher Feedback' },
+  'Payment Alerts': { km: 'ការជូនដំណឹងពីការបង់ប្រាក់', en: 'Payment Alerts' },
   'All Notifications': { km: 'ការជូនដំណឹងទាំងអស់', en: 'All Notifications' },
   'Calendar & Schedule': { km: 'កាលវិភាគ & ប្រតិទិន', en: 'Calendar & Schedule' },
+  'Live Class Schedule': { km: 'កាលវិភាគថ្នាក់ផ្ទាល់ (Live)', en: 'Live Class Schedule' },
+  'Upcoming Quizzes': { km: 'កាលបរិច្ឆេទប្រឡង Quiz', en: 'Upcoming Quizzes' },
+  'Assignments Due': { km: 'ថ្ងៃកំណត់កិច្ចការផ្ទះ', en: 'Assignments Due' },
+  'Academic Events': { km: 'ព្រឹត្តិការណ៍សិក្សាធិការ', en: 'Academic Events' },
   'Profile & Settings': { km: 'គណនី & ការកំណត់', en: 'Profile & Settings' },
 }
 
@@ -570,13 +603,14 @@ const quickActions = [
 
 interface NotificationItem {
   id: number
+  key?: string
   title_km: string
   title_en: string
   desc_km: string
   desc_en: string
   time_km: string
   time_en: string
-  type: 'quiz' | 'ai' | 'lesson' | 'announcement'
+  type: 'quiz' | 'ai' | 'lesson' | 'announcement' | 'discussion'
   defaultRead?: boolean
   read: boolean
   link: string
@@ -644,6 +678,7 @@ const handleNotificationToggle = () => {
 const markAllAsRead = async () => {
   playClickSound()
   const allIds = notifications.value.map(n => n.id)
+  const allKeys = notifications.value.map(n => n.key).filter(Boolean)
   notifications.value.forEach(n => { n.read = true })
   savePersistedReadIds()
   try {
@@ -655,7 +690,7 @@ const markAllAsRead = async () => {
         'X-CSRF-TOKEN': token,
         'Accept': 'application/json'
       },
-      body: JSON.stringify({ ids: allIds })
+      body: JSON.stringify({ ids: allIds, keys: allKeys })
     })
   } catch {}
 }
@@ -674,7 +709,7 @@ const markNotificationRead = async (id: number) => {
           'X-CSRF-TOKEN': token,
           'Accept': 'application/json'
         },
-        body: JSON.stringify({ id })
+        body: JSON.stringify({ id, key: item.key })
       })
     } catch {}
   }
@@ -811,7 +846,7 @@ const searchableLinks = computed(() => {
       category: isKm ? 'ការជូនដំណឹង' : 'Notifications',
       categoryEn: 'Notifications',
       categoryKm: 'ការជូនដំណឹង',
-      href: '/student/notifications/announcements',
+      href: '/student/notifications',
       iconUrl: '/images/nav/notification.svg'
     },
     {
@@ -821,7 +856,7 @@ const searchableLinks = computed(() => {
       category: isKm ? 'ប្រតិទិន' : 'Calendar',
       categoryEn: 'Calendar',
       categoryKm: 'ប្រតិទិន',
-      href: '/student/calendar/live-class',
+      href: '/student/calendar',
       iconUrl: '/images/nav/calendar.svg'
     },
     {
@@ -879,6 +914,7 @@ const expandedModules = ref<Record<string, boolean>>({
   quizzes: false,
   certificates: false,
   notificationsModule: false,
+  calendar: false,
 })
 
 const isLogoutModalOpen = ref(false)
@@ -995,22 +1031,27 @@ const studentNav: NavItem[] = [
     khName: 'ការជូនដំណឹង',
     iconUrl: '/images/nav/notification.svg',
     icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9',
-    badge: { text: '3', colorClass: 'bg-rose-500 text-white' },
     children: [
       { name: 'All Notifications', khName: 'ការជូនដំណឹងទាំងអស់', href: '/student/notifications', iconUrl: '/images/nav/notification.svg' },
-      { name: 'System & Teacher Announcements', khName: 'សេចក្តីប្រកាសពីប្រព័ន្ធ & គ្រូ', href: '/student/notifications/announcements', iconUrl: '/images/actions/announcement.svg' },
-      { name: 'Course Updates', khName: 'បច្ចុប្បន្នភាពវគ្គសិក្សា', href: '/student/notifications/course-updates', iconUrl: '/images/nav/sub/semesters.svg' },
-      { name: 'Assignment Alerts', khName: 'ការដាស់តឿនកិច្ចការផ្ទះ', href: '/student/notifications/assignments', iconUrl: '/images/nav/analytics.svg' },
-      { name: 'Exam & Quiz Alerts', khName: 'ការដាស់តឿនការប្រឡង & Quiz', href: '/student/notifications/exams', iconUrl: '/images/nav/quiz.svg' },
+      { name: 'Announcements', khName: 'សេចក្តីប្រកាសព័ត៌មាន', href: '/student/notifications/announcements', iconUrl: '/images/actions/announcement.svg' },
+      { name: 'AI Study Alerts', khName: 'ការដាស់តឿនពី AI', href: '/student/notifications/ai-alerts', iconUrl: '/images/nav/ai.svg' },
+      { name: 'Teacher Feedback', khName: 'មតិយោបល់ពីគ្រូបង្រៀន', href: '/student/notifications/feedback', iconUrl: '/images/nav/sub/overview.svg' },
+      { name: 'Payment Alerts', khName: 'ការជូនដំណឹងពីការបង់ប្រាក់', href: '/student/notifications/payment-alerts', iconUrl: '/images/nav/sub/semesters.svg' },
     ]
   },
   {
     key: 'calendar',
     name: 'Calendar & Schedule',
     khName: 'កាលវិភាគ & ប្រតិទិន',
-    href: '/student/calendar/live-class',
     iconUrl: '/images/nav/calendar.svg',
-    icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'
+    icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
+    children: [
+      { name: 'Calendar Overview', khName: 'ប្រតិទិនរួម', href: '/student/calendar', iconUrl: '/images/nav/calendar.svg' },
+      { name: 'Live Class Schedule', khName: 'កាលវិភាគថ្នាក់ផ្ទាល់ (Live)', href: '/student/calendar/live-class', iconUrl: '/images/nav/calendar.svg' },
+      { name: 'Upcoming Quizzes', khName: 'កាលបរិច្ឆេទប្រឡង Quiz', href: '/student/calendar/upcoming-quiz', iconUrl: '/images/nav/quiz.svg' },
+      { name: 'Assignments Due', khName: 'ថ្ងៃកំណត់កិច្ចការផ្ទះ', href: '/student/calendar/assignment-due', iconUrl: '/images/nav/analytics.svg' },
+      { name: 'Academic Events', khName: 'ព្រឹត្តិការណ៍សិក្សាធិការ', href: '/student/calendar/academic-events', iconUrl: '/images/nav/sub/semesters.svg' },
+    ]
   },
   {
     key: 'profile',
@@ -1390,6 +1431,10 @@ const onIconError = (e: Event) => {
                     <svg v-else-if="item.key === 'notificationsModule'" :class="[isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4', isChildActive(item.children) ? 'text-purple-600 dark:text-purple-400' : 'text-[#64748b] dark:text-slate-400 group-hover:text-[#1f1f1f] dark:group-hover:text-slate-200', 'shrink-0 transition-colors']" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
                     </svg>
+                    <!-- Lucide Calendar (Calendar Grid) -->
+                    <svg v-else-if="item.key === 'calendar'" :class="[isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4', isChildActive(item.children) ? 'text-purple-600 dark:text-purple-400' : 'text-[#64748b] dark:text-slate-400 group-hover:text-[#1f1f1f] dark:group-hover:text-slate-200', 'shrink-0 transition-colors']" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/>
+                    </svg>
 
                     <!-- Collapsed Notification Indicator Dot -->
                     <span
@@ -1679,6 +1724,10 @@ const onIconError = (e: Event) => {
                 <svg v-else-if="item.key === 'notificationsModule'" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
                 </svg>
+                <!-- Lucide Calendar (Calendar Grid) -->
+                <svg v-else-if="item.key === 'calendar'" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/>
+                </svg>
                 <span class="truncate">{{ currentLang === 'km' ? item.khName : item.name }}</span>
               </div>
               <div class="flex items-center gap-1">
@@ -1959,7 +2008,7 @@ const onIconError = (e: Event) => {
 
                 <div class="p-2 border-t border-[#dfe3e7] dark:border-[#28292a] bg-[#f8fafd] dark:bg-[#131314] text-center">
                   <Link
-                    href="/student/notifications/announcements"
+                    href="/student/notifications"
                     @click="isNotificationOpen = false; playClickSound()"
                     class="text-xs font-semibold text-[#0b57d0] dark:text-[#8ab4f8] hover:underline transition-colors"
                   >

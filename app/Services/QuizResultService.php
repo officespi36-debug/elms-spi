@@ -2,291 +2,288 @@
 
 namespace App\Services;
 
-use App\Models\Quiz;
 use App\Models\QuizAttempt;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
 
 class QuizResultService
 {
     /**
-     * Get aggregated Quiz Results analytics and history table.
+     * Get aggregated Quiz Results analytics and history table from 100% real QuizAttempt records.
      */
-    public function getQuizResultsData(?User $user = null, string $status = 'all', string $course = 'all', string $category = 'all', string $difficulty = 'all', string $dateRange = 'all', string $search = '', int $page = 1, int $perPage = 8): array
-    {
-        $realAttempts = collect();
-        if ($user) {
-            try {
-                $realAttempts = QuizAttempt::where('user_id', $user->id)
-                    ->with('quiz.course')
-                    ->latest()
-                    ->get();
-            } catch (\Throwable $e) {
-                \Log::warning('QuizResultService DB error: ' . $e->getMessage());
-            }
+    public function getQuizResultsData(
+        ?User $user = null,
+        string $status = 'all',
+        string $course = 'all',
+        string $category = 'all',
+        string $difficulty = 'all',
+        string $dateRange = 'all',
+        string $search = '',
+        int $page = 1,
+        int $perPage = 8
+    ): array {
+        if (!$user) {
+            return $this->emptyPayload($page, $perPage);
         }
 
-        return $this->buildResultsPayload($user, $realAttempts, $status, $course, $category, $difficulty, $dateRange, $search, $page, $perPage);
-    }
+        $query = QuizAttempt::where('user_id', $user->id)
+            ->with(['quiz.course.major', 'quiz.questions'])
+            ->orderByDesc('submitted_at')
+            ->orderByDesc('id');
 
-    /**
-     * Build the structured payload for Quiz Results dashboard.
-     */
-    protected function buildResultsPayload(?User $user, Collection $realAttempts, string $status, string $course, string $category, string $difficulty, string $dateRange, string $search, int $page, int $perPage): array
-    {
-        // 1. Summary Cards
+        if ($dateRange === '7d') {
+            $query->where('created_at', '>=', now()->subDays(7));
+        } elseif ($dateRange === '30d') {
+            $query->where('created_at', '>=', now()->subDays(30));
+        } elseif ($dateRange === 'this_month') {
+            $query->where('created_at', '>=', now()->startOfMonth());
+        }
+
+        $realAttempts = $query->get();
+
+        if ($realAttempts->isEmpty()) {
+            return $this->emptyPayload($page, $perPage);
+        }
+
+        $gradingService = app(GradingService::class);
+
+        $totalTaken = $realAttempts->count();
+        $avgScore = (int) round((float) $realAttempts->avg('score'));
+        $highestAttempt = $realAttempts->sortByDesc('score')->first();
+        $lowestAttempt = $realAttempts->sortBy('score')->first();
+        $passedCount = $realAttempts->where('passed', true)->count();
+        $failedCount = $realAttempts->where('passed', false)->whereNotNull('submitted_at')->count();
+        $inProgressCount = $realAttempts->whereNull('submitted_at')->count();
+        $passRate = $totalTaken > 0 ? (int) round(($passedCount / $totalTaken) * 100) : 0;
+
+        // Month comparison
+        $now = Carbon::now('Asia/Phnom_Penh');
+        $thisMonthAttempts = $realAttempts->filter(fn ($a) => ($a->submitted_at ?? $a->created_at)?->gte($now->copy()->startOfMonth()));
+        $lastMonthAttempts = $realAttempts->filter(function ($a) use ($now) {
+            $dt = $a->submitted_at ?? $a->created_at;
+            return $dt && $dt->between($now->copy()->subMonth()->startOfMonth(), $now->copy()->subMonth()->endOfMonth());
+        });
+
+        $thisMonthAvg = $thisMonthAttempts->isNotEmpty() ? (int) round((float) $thisMonthAttempts->avg('score')) : $avgScore;
+        $lastMonthAvg = $lastMonthAttempts->isNotEmpty() ? (int) round((float) $lastMonthAttempts->avg('score')) : 0;
+        $monthDiff = $lastMonthAttempts->isNotEmpty() ? ($thisMonthAvg - $lastMonthAvg) : 0;
+        $takenDiff = $thisMonthAttempts->count() - $lastMonthAttempts->count();
+
         $summary = [
-            'average_score' => 72,
-            'average_note'  => 'Good job! Keep it up.',
-            'highest_score' => 95,
-            'highest_title' => 'JavaScript Advanced Quiz',
-            'lowest_score'  => 35,
-            'lowest_title'  => 'SQL JOINS Quiz',
-            'quizzes_taken' => 12,
-            'taken_trend'   => '+3 vs last month',
-            'passed_count'  => 8,
-            'passed_note'   => '67% pass rate',
+            'average_score' => $avgScore,
+            'average_note'  => $avgScore >= 70 ? 'Good job! Keep it up.' : 'Keep practicing!',
+            'highest_score' => (int) round((float) ($highestAttempt?->score ?? 0)),
+            'highest_title' => $highestAttempt?->quiz?->title ?? '-',
+            'lowest_score'  => (int) round((float) ($lowestAttempt?->score ?? 0)),
+            'lowest_title'  => $lowestAttempt?->quiz?->title ?? '-',
+            'quizzes_taken' => $totalTaken,
+            'taken_trend'   => ($takenDiff >= 0 ? "+{$takenDiff}" : (string) $takenDiff) . ' vs last month',
+            'passed_count'  => $passedCount,
+            'passed_note'   => "{$passRate}% pass rate",
         ];
 
-        // 2. Performance Overview Donut
+        $b90 = $realAttempts->filter(fn ($a) => (float) $a->score >= 90)->count();
+        $b70 = $realAttempts->filter(fn ($a) => (float) $a->score >= 70 && (float) $a->score < 90)->count();
+        $b50 = $realAttempts->filter(fn ($a) => (float) $a->score >= 50 && (float) $a->score < 70)->count();
+        $bLow = $realAttempts->filter(fn ($a) => (float) $a->score < 50)->count();
+
         $performanceOverview = [
-            'average_score' => 72,
+            'average_score' => $avgScore,
             'distribution'  => [
-                ['label' => '90 - 100%', 'count' => 2, 'percentage' => 17, 'color' => '#10B981', 'class' => 'text-emerald-400'],
-                ['label' => '70 - 89%',  'count' => 6, 'percentage' => 50, 'color' => '#3B82F6', 'class' => 'text-blue-400'],
-                ['label' => '50 - 69%',  'count' => 3, 'percentage' => 25, 'color' => '#F59E0B', 'class' => 'text-amber-400'],
-                ['label' => 'Below 50%', 'count' => 1, 'percentage' => 8,  'color' => '#EF4444', 'class' => 'text-rose-400'],
+                ['label' => '90 - 100%', 'count' => $b90,  'percentage' => (int) round(($b90 / $totalTaken) * 100),  'color' => '#10B981', 'class' => 'text-emerald-400'],
+                ['label' => '70 - 89%',  'count' => $b70,  'percentage' => (int) round(($b70 / $totalTaken) * 100),  'color' => '#3B82F6', 'class' => 'text-blue-400'],
+                ['label' => '50 - 69%',  'count' => $b50,  'percentage' => (int) round(($b50 / $totalTaken) * 100),  'color' => '#F59E0B', 'class' => 'text-amber-400'],
+                ['label' => 'Below 50%', 'count' => $bLow, 'percentage' => (int) round(($bLow / $totalTaken) * 100), 'color' => '#EF4444', 'class' => 'text-rose-400'],
             ],
         ];
 
-        // 3. Score Trend Line Chart
+        $chronological = $realAttempts->reverse()->values()->take(-6);
+        $trendPoints = $chronological->map(function (QuizAttempt $a) {
+            $dt = $a->submitted_at ?? $a->created_at;
+            return [
+                'date'       => $dt ? Carbon::parse($dt)->format('M j') : 'Quiz',
+                'percentage' => (int) round((float) $a->score),
+            ];
+        })->values()->all();
+
+        $latestForHighlight = $chronological->last();
         $scoreTrend = [
-            'points' => [
-                ['date' => 'May 1',  'percentage' => 50],
-                ['date' => 'May 8',  'percentage' => 35],
-                ['date' => 'May 15', 'percentage' => 55],
-                ['date' => 'May 22', 'percentage' => 40],
-                ['date' => 'May 29', 'percentage' => 75],
-                ['date' => 'Jun 1',  'percentage' => 95],
-            ],
-            'highlight' => [
-                'date'       => 'May 24, 2025',
-                'score_text' => 'Score: 75%',
+            'points'    => $trendPoints,
+            'highlight' => $latestForHighlight ? [
+                'date'       => ($latestForHighlight->submitted_at ?? $latestForHighlight->created_at)?->format('M j, Y') ?? 'Latest',
+                'score_text' => 'Score: ' . (int) round((float) $latestForHighlight->score) . '%',
                 'x_percent'  => 65,
                 'y_percent'  => 38,
-            ]
+            ] : null,
         ];
 
-        // 4. Score by Course
-        $scoreByCourse = [
-            ['course' => 'JavaScript Advanced',   'percentage' => 85, 'color' => 'from-cyan-400 to-blue-500'],
-            ['course' => 'React.js Fundamentals', 'percentage' => 68, 'color' => 'from-cyan-400 to-blue-500'],
-            ['course' => 'Database Design',       'percentage' => 45, 'color' => 'from-amber-400 to-orange-500'],
-            ['course' => 'Web Development',       'percentage' => 78, 'color' => 'from-cyan-400 to-blue-500'],
-            ['course' => 'Python Programming',    'percentage' => 70, 'color' => 'from-cyan-400 to-blue-500'],
-        ];
+        // Score by course
+        $byCourse = $realAttempts->groupBy(fn (QuizAttempt $a) => $a->quiz?->course?->title ?? 'Course');
+        $scoreByCourse = [];
+        foreach ($byCourse as $courseTitle => $group) {
+            $cAvg = (int) round((float) $group->avg('score'));
+            $scoreByCourse[] = [
+                'course'     => $courseTitle,
+                'percentage' => $cAvg,
+                'color'      => $cAvg >= 70 ? 'from-cyan-400 to-blue-500' : 'from-amber-400 to-orange-500',
+            ];
+        }
 
-        // 5. Result Distribution
         $resultDistribution = [
-            'total_quizzes' => 12,
-            'items' => [
-                ['label' => 'Passed',      'count' => 8, 'percentage' => 67, 'color' => '#10B981'],
-                ['label' => 'Failed',      'count' => 3, 'percentage' => 25, 'color' => '#EF4444'],
-                ['label' => 'In Progress', 'count' => 1, 'percentage' => 8,  'color' => '#F59E0B'],
-            ]
+            'total_quizzes' => $totalTaken,
+            'items'         => [
+                ['label' => 'Passed',      'count' => $passedCount,     'percentage' => (int) round(($passedCount / $totalTaken) * 100),     'color' => '#10B981'],
+                ['label' => 'Failed',      'count' => $failedCount,     'percentage' => (int) round(($failedCount / $totalTaken) * 100),     'color' => '#EF4444'],
+                ['label' => 'In Progress', 'count' => $inProgressCount, 'percentage' => (int) round(($inProgressCount / $totalTaken) * 100), 'color' => '#F59E0B'],
+            ],
         ];
 
-        // 6. Average Score Comparison
         $scoreComparison = [
-            'this_month'  => 72,
-            'last_month'  => 64,
-            'trend_text'  => '+8% vs last month',
-            'is_improved' => true,
+            'this_month'  => $thisMonthAvg,
+            'last_month'  => $lastMonthAvg,
+            'trend_text'  => ($monthDiff >= 0 ? "+{$monthDiff}%" : "{$monthDiff}%") . ' vs last month',
+            'is_improved' => $monthDiff >= 0,
         ];
 
-        // 7. Recent Achievements
-        $recentAchievements = [
-            [
+        // Dynamic real achievements earned from quiz attempts
+        $recentAchievements = [];
+        $perfectAttempt = $realAttempts->first(fn (QuizAttempt $a) => (float) $a->score >= 100);
+        if ($perfectAttempt) {
+            $recentAchievements[] = [
                 'id'       => 1,
                 'title'    => 'Perfect Score',
-                'subtitle' => 'Scored 100% in a quiz',
-                'date'     => 'May 28, 2025',
-                'icon'     => '🛡️',
+                'subtitle' => 'Scored 100% in ' . ($perfectAttempt->quiz?->title ?? 'a quiz'),
+                'date'     => ($perfectAttempt->submitted_at ?? $perfectAttempt->created_at)?->format('M j, Y') ?? '',
+                'icon'     => '🏆',
                 'icon_bg'  => 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-300',
-            ],
-            [
+            ];
+        }
+        if ($passedCount >= 1) {
+            $firstPass = $realAttempts->where('passed', true)->last();
+            $recentAchievements[] = [
                 'id'       => 2,
-                'title'    => 'Quiz Master',
-                'subtitle' => 'Completed 10 quizzes',
-                'date'     => 'May 25, 2025',
+                'title'    => $passedCount >= 10 ? 'Quiz Master' : 'Quiz Achiever',
+                'subtitle' => "Passed {$passedCount} quiz" . ($passedCount === 1 ? '' : 'zes'),
+                'date'     => ($firstPass?->submitted_at ?? $firstPass?->created_at)?->format('M j, Y') ?? '',
                 'icon'     => '🛡️',
                 'icon_bg'  => 'bg-purple-500/20 border border-purple-500/30 text-purple-300',
-            ],
-            [
-                'id'       => 3,
-                'title'    => 'Consistent Learner',
-                'subtitle' => '7 days quiz streak',
-                'date'     => 'May 22, 2025',
-                'icon'     => '🔥',
-                'icon_bg'  => 'bg-orange-500/20 border border-orange-500/30 text-orange-300',
-            ],
-        ];
+            ];
+        }
 
-        // 8. Need Improvement Topics
-        $weakTopics = [
-            'SQL JOINS',
-            'Database Queries',
-            'React Hooks',
-        ];
+        $weakTopics = $realAttempts
+            ->filter(fn (QuizAttempt $a) => !$a->passed || (float) $a->score < 70)
+            ->map(fn (QuizAttempt $a) => $a->quiz?->title)
+            ->filter()
+            ->unique()
+            ->take(5)
+            ->values()
+            ->all();
 
-        // 9. Results Table (8 items matching reference)
-        $resultsTable = [
-            [
-                'id'            => 1,
-                'title'         => 'JavaScript Advanced Quiz',
-                'subtitle'      => 'Advanced JavaScript concepts',
-                'course'        => 'JavaScript Advanced',
-                'score'         => '19 / 20',
-                'percentage'    => 95,
-                'correct_total' => '19 / 20',
-                'time_taken'    => '28m 15s',
-                'completed_on'  => 'Jun 1, 2025 10:30 AM',
-                'result'        => 'Passed',
-                'result_type'   => 'passed',
-                'code'          => 'JS',
-                'icon_bg'       => 'from-amber-400 to-amber-500 text-slate-950',
-                'questions'     => [
-                    ['q' => 'What is a JavaScript Closure?', 'user_ans' => 'A function with access to its parent scope', 'correct_ans' => 'A function with access to its parent scope', 'is_correct' => true, 'points' => 5],
-                    ['q' => 'What does Promise.race() do?', 'user_ans' => 'Resolves as soon as the first promise resolves', 'correct_ans' => 'Resolves as soon as the first promise resolves', 'is_correct' => true, 'points' => 5],
-                ],
-            ],
-            [
-                'id'            => 2,
-                'title'         => 'React Components Quiz',
-                'subtitle'      => 'React.js Fundamentals',
-                'course'        => 'React.js Fundamentals',
-                'score'         => '17 / 25',
-                'percentage'    => 68,
-                'correct_total' => '17 / 25',
-                'time_taken'    => '32m 45s',
-                'completed_on'  => 'Jun 1, 2025 09:15 AM',
-                'result'        => 'Passed',
-                'result_type'   => 'passed',
-                'code'          => '⚛️',
-                'icon_bg'       => 'from-cyan-400 to-blue-500 text-white',
-            ],
-            [
-                'id'            => 3,
-                'title'         => 'SQL JOINS Quiz',
-                'subtitle'      => 'Database Systems',
-                'course'        => 'Database Design',
-                'score'         => '7 / 20',
-                'percentage'    => 35,
-                'correct_total' => '7 / 20',
-                'time_taken'    => '25m 10s',
-                'completed_on'  => 'May 31, 2025 08:45 PM',
-                'result'        => 'Failed',
-                'result_type'   => 'failed',
-                'code'          => '🗄️',
-                'icon_bg'       => 'from-blue-500 to-indigo-600 text-white',
-            ],
-            [
-                'id'            => 4,
-                'title'         => 'HTML & CSS Quiz',
-                'subtitle'      => 'Web Development',
-                'course'        => 'Web Development',
-                'score'         => '22 / 25',
-                'percentage'    => 88,
-                'correct_total' => '22 / 25',
-                'time_taken'    => '30m 00s',
-                'completed_on'  => 'May 31, 2025 04:20 PM',
-                'result'        => 'Passed',
-                'result_type'   => 'passed',
-                'code'          => '5',
-                'icon_bg'       => 'from-orange-500 to-amber-500 text-white',
-            ],
-            [
-                'id'            => 5,
-                'title'         => 'Node.js Basics Quiz',
-                'subtitle'      => 'Node.js Fundamentals',
-                'course'        => 'Backend Development',
-                'score'         => '15 / 25',
-                'percentage'    => 60,
-                'correct_total' => '15 / 25',
-                'time_taken'    => '35m 45s',
-                'completed_on'  => 'May 30, 2025 07:30 PM',
-                'result'        => 'Passed',
-                'result_type'   => 'passed',
-                'code'          => '🟢',
-                'icon_bg'       => 'from-emerald-500 to-teal-600 text-white',
-            ],
-            [
-                'id'            => 6,
-                'title'         => 'Python Functions Quiz',
-                'subtitle'      => 'Python Programming',
-                'course'        => 'Python Programming',
-                'score'         => '18 / 20',
-                'percentage'    => 90,
-                'correct_total' => '18 / 20',
-                'time_taken'    => '22m 30s',
-                'completed_on'  => 'May 30, 2025 02:10 PM',
-                'result'        => 'Passed',
-                'result_type'   => 'passed',
-                'code'          => '🐍',
-                'icon_bg'       => 'from-blue-400 to-amber-400 text-white',
-            ],
-            [
-                'id'            => 7,
-                'title'         => 'Git & GitHub Quiz',
-                'subtitle'      => 'Version Control',
-                'course'        => 'DevOps Tools',
-                'score'         => '8 / 15',
-                'percentage'    => 53,
-                'correct_total' => '8 / 15',
-                'time_taken'    => '18m 20s',
-                'completed_on'  => 'May 29, 2025 09:05 AM',
-                'result'        => 'Failed',
-                'result_type'   => 'failed',
-                'code'          => '🐙',
-                'icon_bg'       => 'from-rose-500 to-orange-500 text-white',
-            ],
-            [
-                'id'            => 8,
-                'title'         => 'JavaScript Functions Quiz',
-                'subtitle'      => 'Functions and Scope',
-                'course'        => 'JavaScript Basics',
-                'score'         => '14 / 20',
-                'percentage'    => 70,
-                'correct_total' => '14 / 20',
-                'time_taken'    => '25m 30s',
-                'completed_on'  => 'May 28, 2025 06:45 PM',
-                'result'        => 'Passed',
-                'result_type'   => 'passed',
-                'code'          => 'JS',
-                'icon_bg'       => 'from-amber-400 to-amber-500 text-slate-950',
-            ],
-        ];
+        $coursesList = $realAttempts->map(fn ($a) => $a->quiz?->course?->title)->filter()->unique()->values()->all();
+        $categoriesList = $realAttempts->map(fn ($a) => $a->quiz?->course?->major?->name)->filter()->unique()->values()->all();
 
-        // Filter by status tab
+        $allRows = $realAttempts->map(function (QuizAttempt $a) use ($gradingService) {
+            $quiz = $a->quiz;
+            $courseTitle = $quiz?->course?->title ?? 'Course';
+            $categoryName = $quiz?->course?->major?->name ?? 'General';
+            $difficultyLabel = match (strtolower((string) ($quiz?->course?->level ?? ''))) {
+                'beginner', 'easy' => 'Easy',
+                'advanced', 'hard' => 'Hard',
+                default            => 'Medium',
+            };
+
+            $questions = $quiz?->questions ?? collect();
+            $totalQ = $questions->count();
+            $answers = is_array($a->answers) ? $a->answers : [];
+
+            $correctCount = 0;
+            $questionBreakdown = [];
+
+            if ($quiz && $totalQ > 0) {
+                [, , $breakdown] = $gradingService->grade($quiz, $answers);
+                foreach ($questions as $q) {
+                    $qRes = $breakdown[$q->id] ?? ['correct' => false, 'points' => $q->points ?? 1];
+                    $isCorrect = $qRes['correct'] === true;
+                    if ($isCorrect) {
+                        $correctCount++;
+                    }
+                    $rawUserAns = $answers[$q->id] ?? $answers[(string) $q->id] ?? null;
+                    $userAnsStr = is_array($rawUserAns) ? implode(', ', $rawUserAns) : (string) ($rawUserAns ?? 'Not answered');
+                    $rawCorr = $q->correct_answer;
+                    $corrStr = is_array($rawCorr) ? implode(', ', $rawCorr) : (string) ($rawCorr ?? '');
+
+                    $questionBreakdown[] = [
+                        'q'           => $q->question,
+                        'user_ans'    => $userAnsStr !== '' ? $userAnsStr : 'Not answered',
+                        'correct_ans' => $corrStr,
+                        'is_correct'  => $isCorrect,
+                        'points'      => $isCorrect ? (float) ($q->points ?? 1) : 0,
+                    ];
+                }
+            }
+
+            $pct = (int) round((float) $a->score);
+            $timeTaken = '-';
+            if ($a->started_at && $a->submitted_at) {
+                $secs = max(1, (int) abs($a->submitted_at->diffInSeconds($a->started_at)));
+                $m = intdiv($secs, 60);
+                $s = $secs % 60;
+                $timeTaken = "{$m}m {$s}s";
+            }
+
+            $dt = $a->submitted_at ?? $a->created_at;
+            $code = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $quiz?->course?->code ?: $courseTitle), 0, 2) ?: 'QZ');
+
+            return [
+                'id'            => $a->id,
+                'quiz_id'       => $a->quiz_id,
+                'title'         => $quiz?->title ?? 'Quiz',
+                'subtitle'      => $courseTitle,
+                'course'        => $courseTitle,
+                'category'      => $categoryName,
+                'difficulty'    => $difficultyLabel,
+                'score'         => $totalQ > 0 ? "{$correctCount} / {$totalQ}" : "{$pct}%",
+                'percentage'    => $pct,
+                'correct_total' => $totalQ > 0 ? "{$correctCount} / {$totalQ}" : '-',
+                'time_taken'    => $timeTaken,
+                'completed_on'  => $dt ? Carbon::parse($dt)->format('M j, Y h:i A') : '-',
+                'result'        => $a->passed ? 'Passed' : 'Failed',
+                'result_type'   => $a->passed ? 'passed' : 'failed',
+                'code'          => $code,
+                'icon_bg'       => 'from-purple-500 to-indigo-600 text-white',
+                'questions'     => $questionBreakdown,
+            ];
+        })->values()->all();
+
         if ($status !== 'all') {
             if ($status === 'needs_improvement') {
-                $resultsTable = array_values(array_filter($resultsTable, fn($r) => $r['percentage'] < 70));
+                $allRows = array_values(array_filter($allRows, fn ($r) => $r['percentage'] < 70));
             } else {
-                $resultsTable = array_values(array_filter($resultsTable, fn($r) => strtolower($r['result_type']) === strtolower($status)));
+                $allRows = array_values(array_filter($allRows, fn ($r) => strcasecmp($r['result_type'], $status) === 0));
             }
         }
 
-        // Filter by course
         if ($course !== 'all') {
-            $resultsTable = array_values(array_filter($resultsTable, fn($r) => strtolower($r['course']) === strtolower($course)));
+            $allRows = array_values(array_filter($allRows, fn ($r) => strcasecmp($r['course'], $course) === 0));
         }
 
-        // Filter by search
-        if (!empty($search)) {
-            $s = strtolower($search);
-            $resultsTable = array_values(array_filter($resultsTable, fn($r) => str_contains(strtolower($r['title']), $s) || str_contains(strtolower($r['course']), $s)));
+        if ($category !== 'all') {
+            $allRows = array_values(array_filter($allRows, fn ($r) => strcasecmp($r['category'] ?? '', $category) === 0));
         }
+
+        if ($difficulty !== 'all') {
+            $allRows = array_values(array_filter($allRows, fn ($r) => strcasecmp($r['difficulty'] ?? '', $difficulty) === 0));
+        }
+
+        if ($search !== '') {
+            $s = mb_strtolower(trim($search), 'UTF-8');
+            $allRows = array_values(array_filter($allRows, fn ($r) => str_contains(mb_strtolower($r['title'], 'UTF-8'), $s) || str_contains(mb_strtolower($r['course'], 'UTF-8'), $s)));
+        }
+
+        $filteredTotal = count($allRows);
+        $safePage = max(1, $page);
+        $offset = ($safePage - 1) * $perPage;
+        $pagedRows = array_slice($allRows, $offset, $perPage);
 
         return [
             'summary'              => $summary,
@@ -297,10 +294,66 @@ class QuizResultService
             'score_comparison'     => $scoreComparison,
             'recent_achievements'  => $recentAchievements,
             'weak_topics'          => $weakTopics,
-            'results'              => $resultsTable,
-            'total_count'          => 12,
+            'results'              => $pagedRows,
+            'total_count'          => $filteredTotal,
+            'current_page'         => $safePage,
+            'per_page'             => $perPage,
+            'courses'              => $coursesList,
+            'categories'           => $categoriesList,
+        ];
+    }
+
+    protected function emptyPayload(int $page = 1, int $perPage = 8): array
+    {
+        return [
+            'summary'              => [
+                'average_score' => 0,
+                'average_note'  => 'No quiz results yet',
+                'highest_score' => 0,
+                'highest_title' => '-',
+                'lowest_score'  => 0,
+                'lowest_title'  => '-',
+                'quizzes_taken' => 0,
+                'taken_trend'   => '0 vs last month',
+                'passed_count'  => 0,
+                'passed_note'   => '0% pass rate',
+            ],
+            'performance_overview' => [
+                'average_score' => 0,
+                'distribution'  => [
+                    ['label' => '90 - 100%', 'count' => 0, 'percentage' => 0, 'color' => '#10B981', 'class' => 'text-emerald-400'],
+                    ['label' => '70 - 89%',  'count' => 0, 'percentage' => 0, 'color' => '#3B82F6', 'class' => 'text-blue-400'],
+                    ['label' => '50 - 69%',  'count' => 0, 'percentage' => 0, 'color' => '#F59E0B', 'class' => 'text-amber-400'],
+                    ['label' => 'Below 50%', 'count' => 0, 'percentage' => 0, 'color' => '#EF4444', 'class' => 'text-rose-400'],
+                ],
+            ],
+            'score_trend'          => [
+                'points'    => [],
+                'highlight' => null,
+            ],
+            'score_by_course'      => [],
+            'result_distribution'  => [
+                'total_quizzes' => 0,
+                'items'         => [
+                    ['label' => 'Passed',      'count' => 0, 'percentage' => 0, 'color' => '#10B981'],
+                    ['label' => 'Failed',      'count' => 0, 'percentage' => 0, 'color' => '#EF4444'],
+                    ['label' => 'In Progress', 'count' => 0, 'percentage' => 0, 'color' => '#F59E0B'],
+                ],
+            ],
+            'score_comparison'     => [
+                'this_month'  => 0,
+                'last_month'  => 0,
+                'trend_text'  => '0% vs last month',
+                'is_improved' => true,
+            ],
+            'recent_achievements'  => [],
+            'weak_topics'          => [],
+            'results'              => [],
+            'total_count'          => 0,
             'current_page'         => $page,
             'per_page'             => $perPage,
+            'courses'              => [],
+            'categories'           => [],
         ];
     }
 }

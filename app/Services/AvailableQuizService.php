@@ -2,295 +2,380 @@
 
 namespace App\Services;
 
-use App\Models\Course;
+use App\Models\Deadline;
+use App\Models\Enrollment;
 use App\Models\Quiz;
 use App\Models\QuizAttempt;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
 
 class AvailableQuizService
 {
     /**
-     * Get available quizzes and analytics data.
+     * Get available quizzes and analytics data from 100% real database records.
      */
-    public function getAvailableQuizzesData(?User $user = null, string $category = 'all', string $course = 'all', string $difficulty = 'all', string $status = 'available', string $search = ''): array
-    {
-        $realQuizzes = collect();
-        $realAttempts = collect();
-
-        if ($user) {
-            try {
-                $realQuizzes = Quiz::with('course')->get();
-                $realAttempts = QuizAttempt::where('user_id', $user->id)->get();
-            } catch (\Throwable $e) {
-                \Log::warning('AvailableQuizService DB error: ' . $e->getMessage());
-            }
+    public function getAvailableQuizzesData(
+        ?User $user = null,
+        string $category = 'all',
+        string $course = 'all',
+        string $difficulty = 'all',
+        string $status = 'available',
+        string $search = ''
+    ): array {
+        if (!$user) {
+            return $this->emptyPayload();
         }
 
-        return $this->buildAvailableQuizzesPayload($user, $realQuizzes, $realAttempts, $category, $course, $difficulty, $status, $search);
-    }
+        $enrolledCourseIds = Enrollment::where('student_id', $user->id)
+            ->whereIn('status', ['active', 'completed'])
+            ->pluck('course_id')
+            ->unique()
+            ->filter()
+            ->values()
+            ->all();
 
-    /**
-     * Build aggregated available quizzes dataset.
-     */
-    protected function buildAvailableQuizzesPayload(?User $user, Collection $realQuizzes, Collection $realAttempts, string $category, string $course, string $difficulty, string $status, string $search): array
-    {
-        // 1. Summary Cards
+        $attempts = QuizAttempt::where('user_id', $user->id)
+            ->with('quiz.course')
+            ->orderByDesc('submitted_at')
+            ->orderByDesc('id')
+            ->get();
+
+        $quizStreak = $this->buildQuizStreak($attempts);
+        $quizProgress = $this->buildQuizProgress($attempts);
+        $recommendedQuizzes = $this->buildRecommendedQuizzes($attempts);
+
+        if (empty($enrolledCourseIds)) {
+            return [
+                'summary'             => [
+                    'available_quizzes' => 0,
+                    'available_note'    => 'Quizzes ready to take',
+                    'practice_quizzes'  => 0,
+                    'practice_note'     => 'Improve your skills',
+                    'assessments'       => 0,
+                    'assessments_note'  => 'Test your knowledge',
+                    'total_points'      => 0,
+                    'points_note'       => 'Points you can earn',
+                ],
+                'practice_quizzes'    => [],
+                'assessments'         => [],
+                'upcoming_quizzes'    => [],
+                'quiz_progress'       => $quizProgress,
+                'recommended_quizzes' => $recommendedQuizzes,
+                'quiz_streak'         => $quizStreak,
+                'courses'             => [],
+                'categories'          => [],
+            ];
+        }
+
+        $allCourseQuizzes = Quiz::whereIn('course_id', $enrolledCourseIds)
+            ->where('title', '!=', 'General Question Bank Vault')
+            ->with(['course.major', 'module'])
+            ->withCount('questions')
+            ->withSum('questions', 'points')
+            ->latest()
+            ->get();
+
+        $coursesList = $allCourseQuizzes
+            ->map(fn (Quiz $q) => $q->course?->title)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        $categoriesList = $allCourseQuizzes
+            ->map(fn (Quiz $q) => $q->course?->major?->name)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        $attemptsByQuiz = $attempts->groupBy('quiz_id');
+
+        $publishedQuizzes = $allCourseQuizzes->filter(function (Quiz $q) {
+            return ($q->status === 'published' || $q->status === null) && $q->type !== 'assignment';
+        })->values();
+
+        $practiceRaw = $publishedQuizzes->filter(fn (Quiz $q) => in_array($q->type, ['practice', 'quiz', null, ''], true))->values();
+        $assessmentRaw = $publishedQuizzes->filter(fn (Quiz $q) => in_array($q->type, ['pre_test', 'post_test'], true))->values();
+
+        $totalPoints = (int) $publishedQuizzes->sum(function (Quiz $q) {
+            $pts = (float) ($q->questions_sum_points ?? 0);
+            return $pts > 0 ? $pts : ((int) $q->questions_count * 5);
+        });
+
         $summary = [
-            'available_quizzes' => 24,
-            'available_note'    => 'Quizzes ready to take',
-            'practice_quizzes'  => 18,
+            'available_quizzes' => $publishedQuizzes->count(),
+            'available_note'    => $publishedQuizzes->count() > 0 ? 'Quizzes ready to take' : 'No quizzes available yet',
+            'practice_quizzes'  => $practiceRaw->count(),
             'practice_note'     => 'Improve your skills',
-            'assessments'       => 6,
-            'assessments_note'  => 'Test your knowledge',
-            'total_points'      => 1450,
+            'assessments'       => $assessmentRaw->count(),
+            'assessments_note'  => 'Pre-test & Post-test exams',
+            'total_points'      => $totalPoints,
             'points_note'       => 'Points you can earn',
         ];
 
-        // 2. Practice Quizzes Catalog
-        $practiceQuizzes = [
-            [
-                'id'              => 1,
-                'title'           => 'JavaScript Basics Quiz',
-                'course'          => 'JavaScript Fundamentals',
-                'category'        => 'Front-End',
-                'difficulty'      => 'Easy',
-                'questions_count' => 20,
-                'time_limit'      => 20,
-                'passing_score'   => 70,
-                'points'          => 100,
-                'code'            => 'JS',
-                'icon_bg'         => 'from-amber-400 to-amber-500 text-slate-950',
-                'badge_color'     => 'emerald',
-                'description'     => 'Test your understanding of JavaScript basics including variables, data types.',
-                'instructions'    => 'You will have 20 minutes to complete 20 multiple-choice questions. Score 70% or higher to earn 100 Points.',
-                'status'          => 'available',
-            ],
-            [
-                'id'              => 2,
-                'title'           => 'React Components Quiz',
-                'course'          => 'React.js Fundamentals',
-                'category'        => 'Front-End',
-                'difficulty'      => 'Medium',
-                'questions_count' => 25,
-                'time_limit'      => 30,
-                'passing_score'   => 70,
-                'points'          => 125,
-                'code'            => '⚛️',
-                'icon_bg'         => 'from-cyan-400 to-blue-500 text-white',
-                'badge_color'     => 'amber',
-                'description'     => 'Test your knowledge of React components, props, and state management.',
-                'instructions'    => '25 conceptual questions on functional components, useState, useEffect, and prop drilling.',
-                'status'          => 'available',
-            ],
-            [
-                'id'              => 3,
-                'title'           => 'HTML & CSS Quiz',
-                'course'          => 'Web Development',
-                'category'        => 'Front-End',
-                'difficulty'      => 'Easy',
-                'questions_count' => 15,
-                'time_limit'      => 20,
-                'passing_score'   => 70,
-                'points'          => 75,
-                'code'            => '5',
-                'icon_bg'         => 'from-orange-500 to-amber-500 text-white',
-                'badge_color'     => 'emerald',
-                'description'     => 'Test your HTML and CSS knowledge including tags, selectors, and layout.',
-                'instructions'    => '15 questions covering semantic HTML5 tags, flexbox layout, and CSS grid selectors.',
-                'status'          => 'available',
-            ],
-            [
-                'id'              => 4,
-                'title'           => 'SQL Queries Quiz',
-                'course'          => 'Database Systems',
-                'category'        => 'Database',
-                'difficulty'      => 'Hard',
-                'questions_count' => 30,
-                'time_limit'      => 35,
-                'passing_score'   => 75,
-                'points'          => 150,
-                'code'            => '🗄️',
-                'icon_bg'         => 'from-blue-500 to-indigo-600 text-white',
-                'badge_color'     => 'rose',
-                'description'     => 'Test your SQL skills including SELECT, JOIN, WHERE, and GROUP BY.',
-                'instructions'    => '30 query-analysis problems involving subqueries, aggregate grouping, and indexing.',
-                'status'          => 'available',
-            ],
-        ];
+        $mapQuizCard = function (Quiz $q, bool $isAssessment = false) use ($attemptsByQuiz): array {
+            $courseTitle = $q->course?->title ?? 'Course';
+            $catName = $q->course?->major?->name ?? ($q->course?->level ? ucfirst($q->course->level) : 'General');
+            $qCount = (int) ($q->questions_count ?? 0);
+            $points = (int) round((float) ($q->questions_sum_points ?? 0));
+            if ($points <= 0 && $qCount > 0) {
+                $points = $qCount * 5;
+            }
 
-        // 3. Assessments Catalog
-        $assessments = [
-            [
-                'id'              => 101,
-                'title'           => 'JavaScript Assessment',
-                'course'          => 'Advanced JavaScript',
-                'category'        => 'Front-End',
-                'difficulty'      => 'Hard',
-                'questions_count' => 50,
-                'time_limit'      => 60,
-                'passing_score'   => 80,
-                'points'          => 250,
-                'icon'            => '🛡️',
-                'icon_bg'         => 'from-purple-600 to-indigo-600',
-                'badge_color'     => 'rose',
-                'description'     => 'Comprehensive assessment covering advanced JavaScript concepts.',
-                'instructions'    => 'Official midterm assessment for Advanced JavaScript. Requires 80% passing grade.',
-                'status'          => 'available',
-            ],
-            [
-                'id'              => 102,
-                'title'           => 'Full Stack Assessment',
-                'course'          => 'Full Stack Development',
-                'category'        => 'Full Stack',
-                'difficulty'      => 'Expert',
-                'questions_count' => 100,
-                'time_limit'      => 120,
-                'passing_score'   => 85,
-                'points'          => 500,
-                'icon'            => '</>',
-                'icon_bg'         => 'from-emerald-500 to-teal-600',
-                'badge_color'     => 'amber',
-                'description'     => 'Complete full stack assessment covering frontend, backend, and database.',
-                'instructions'    => 'Comprehensive 100-question full stack certification exam.',
-                'status'          => 'available',
-            ],
-            [
-                'id'              => 103,
-                'title'           => 'React Developer Test',
-                'course'          => 'React Development',
-                'category'        => 'Front-End',
-                'difficulty'      => 'Hard',
-                'questions_count' => 60,
-                'time_limit'      => 75,
-                'passing_score'   => 80,
-                'points'          => 300,
-                'icon'            => '🛡️',
-                'icon_bg'         => 'from-blue-600 to-indigo-600',
-                'badge_color'     => 'rose',
-                'description'     => 'Test your React development skills and best practices.',
-                'instructions'    => 'Covers Redux Toolkit, Context API, SSR hydration, and performance memoization.',
-                'status'          => 'available',
-            ],
-        ];
+            $difficultyLabel = match (strtolower((string) ($q->course?->level ?? ''))) {
+                'beginner', 'easy' => 'Easy',
+                'advanced', 'hard' => 'Hard',
+                'expert'           => 'Expert',
+                default            => ($isAssessment ? 'Hard' : 'Medium'),
+            };
 
-        // 4. Upcoming Quizzes
-        $upcomingQuizzes = [
-            [
-                'id'           => 201,
-                'title'        => 'TypeScript Basics Quiz',
-                'course'       => 'TypeScript Fundamentals',
-                'available_in' => '2 days',
-                'points'       => 50,
+            $quizAttempts = $attemptsByQuiz->get($q->id, collect());
+            $attemptsUsed = $quizAttempts->count();
+            $maxAttempts = $q->max_attempts !== null && (int) $q->max_attempts > 0 ? (int) $q->max_attempts : null;
+            $isExhausted = $maxAttempts !== null && $attemptsUsed >= $maxAttempts;
+
+            $code = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $q->course?->code ?: $courseTitle), 0, 2) ?: 'QZ');
+
+            return [
+                'id'              => $q->id,
+                'title'           => $q->title,
+                'course'          => $courseTitle,
+                'category'        => $catName,
+                'difficulty'      => $difficultyLabel,
+                'questions_count' => $qCount,
+                'time_limit'      => (int) ($q->time_limit_minutes ?? 0),
+                'passing_score'   => (int) round((float) ($q->passing_score ?? 50)),
+                'points'          => $points,
+                'attempts_used'   => $attemptsUsed,
+                'max_attempts'    => $maxAttempts,
+                'can_attempt'     => !$isExhausted,
+                'code'            => $code,
+                'icon'            => $q->type === 'pre_test' ? '🟦' : ($q->type === 'post_test' ? '🟥' : '🛡️'),
+                'icon_bg'         => $isAssessment ? 'from-purple-600 to-indigo-600' : 'from-cyan-500 to-indigo-600 text-white',
+                'badge_color'     => $difficultyLabel === 'Easy' ? 'emerald' : ($difficultyLabel === 'Medium' ? 'amber' : 'rose'),
+                'description'     => $q->module?->title
+                    ? "{$q->module->title} — {$courseTitle}"
+                    : "Course quiz for {$courseTitle}",
+                'instructions'    => ($q->time_limit_minutes ? "Time limit: {$q->time_limit_minutes} minutes. " : 'Untimed quiz. ')
+                    . 'Passing score: ' . (int) round((float) ($q->passing_score ?? 50)) . '%.',
+                'status'          => 'available',
+            ];
+        };
+
+        $practiceQuizzes = $practiceRaw->map(fn (Quiz $q) => $mapQuizCard($q, false))->values()->all();
+        $assessments = $assessmentRaw->map(fn (Quiz $q) => $mapQuizCard($q, true))->values()->all();
+
+        $filterCards = function (array $cards) use ($search, $category, $course, $difficulty, $status): array {
+            if ($status === 'upcoming') {
+                return [];
+            }
+            if ($search !== '') {
+                $s = mb_strtolower(trim($search), 'UTF-8');
+                $cards = array_values(array_filter($cards, function ($item) use ($s) {
+                    return str_contains(mb_strtolower($item['title'], 'UTF-8'), $s)
+                        || str_contains(mb_strtolower($item['course'], 'UTF-8'), $s)
+                        || str_contains(mb_strtolower($item['description'], 'UTF-8'), $s);
+                }));
+            }
+            if ($category !== 'all') {
+                $cards = array_values(array_filter($cards, fn ($item) => strcasecmp($item['category'] ?? '', $category) === 0));
+            }
+            if ($course !== 'all') {
+                $cards = array_values(array_filter($cards, fn ($item) => strcasecmp($item['course'] ?? '', $course) === 0));
+            }
+            if ($difficulty !== 'all') {
+                $cards = array_values(array_filter($cards, fn ($item) => strcasecmp($item['difficulty'] ?? '', $difficulty) === 0));
+            }
+            return $cards;
+        };
+
+        $practiceQuizzes = $filterCards($practiceQuizzes);
+        $assessments = $filterCards($assessments);
+
+        // Upcoming quizzes from future Deadlines on enrolled courses
+        $upcomingDeadlines = Deadline::whereIn('course_id', $enrolledCourseIds)
+            ->where('due_at', '>', now())
+            ->where(function ($q) {
+                $q->where('linked_type', 'quiz')
+                  ->orWhereIn('deadline_type', ['quiz', 'exam', 'pre_test', 'post_test']);
+            })
+            ->with('course:id,title')
+            ->orderBy('due_at')
+            ->take(6)
+            ->get();
+
+        $upcomingQuizzes = $upcomingDeadlines->map(function (Deadline $dl) {
+            return [
+                'id'           => $dl->linked_id ?: $dl->id,
+                'title'        => $dl->title,
+                'course'       => $dl->course?->title ?? 'Course',
+                'available_in' => $dl->due_at ? $dl->due_at->diffForHumans(null, true) : 'Soon',
+                'points'       => 0,
                 'icon'         => '📅',
                 'icon_bg'      => 'bg-blue-500/20 text-blue-300 border border-blue-500/30',
-            ],
-            [
-                'id'           => 202,
-                'title'        => 'Node.js Quiz',
-                'course'       => 'Backend Development',
-                'available_in' => '5 days',
-                'points'       => 100,
-                'icon'         => '🟢',
-                'icon_bg'      => 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30',
-            ],
-            [
-                'id'           => 203,
-                'title'        => 'API Development Quiz',
-                'course'       => 'Backend Development',
-                'available_in' => '1 week',
-                'points'       => 125,
-                'icon'         => '🔥',
-                'icon_bg'      => 'bg-orange-500/20 text-orange-300 border border-orange-500/30',
-            ],
-        ];
+            ];
+        })->values()->all();
 
-        // 5. Your Quiz Progress (Right Widget 1)
-        $quizProgress = [
-            'average_score'      => 72,
-            'quizzes_count'      => 16,
-            'quizzes_trend'      => '+4 this month',
-            'correct_answers'    => 78,
-            'correct_trend'      => '+6%',
+        return [
+            'summary'             => $summary,
+            'practice_quizzes'    => $practiceQuizzes,
+            'assessments'         => $assessments,
+            'upcoming_quizzes'    => $upcomingQuizzes,
+            'quiz_progress'       => $quizProgress,
+            'recommended_quizzes' => $recommendedQuizzes,
+            'quiz_streak'         => $quizStreak,
+            'courses'             => $coursesList,
+            'categories'          => $categoriesList,
         ];
+    }
 
-        // 6. Recommended For You (Weak Topics)
-        $recommendedQuizzes = [
-            [
-                'id'          => 301,
-                'title'       => 'JavaScript Functions Quiz',
-                'note'        => 'Low score in Functions',
-                'score'       => 28,
-                'color_class' => 'text-rose-400 font-bold',
-                'icon'        => '📙',
-            ],
-            [
-                'id'          => 302,
-                'title'       => 'DOM Manipulation Quiz',
-                'note'        => 'Improve DOM skills',
-                'score'       => 35,
-                'color_class' => 'text-rose-400 font-bold',
-                'icon'        => '💻',
-            ],
-            [
-                'id'          => 303,
-                'title'       => 'Array Methods Quiz',
-                'note'        => 'Practice array methods',
-                'score'       => 42,
-                'color_class' => 'text-amber-400 font-bold',
-                'icon'        => '📙',
-            ],
-            [
-                'id'          => 304,
-                'title'       => 'Async JavaScript Quiz',
-                'note'        => 'Learn async concepts',
-                'score'       => 50,
-                'color_class' => 'text-amber-400 font-bold',
-                'icon'        => '🟢',
-            ],
-        ];
-
-        // 7. Quiz Streak
-        $quizStreak = [
-            'streak_days' => 7,
-            'days' => [
-                ['label' => 'May 26', 'date' => '26', 'active' => true],
-                ['label' => 'May 27', 'date' => '27', 'active' => true],
-                ['label' => 'May 28', 'date' => '28', 'active' => true],
-                ['label' => 'May 29', 'date' => '29', 'active' => true],
-                ['label' => 'May 30', 'date' => '30', 'active' => true],
-                ['label' => 'May 31', 'date' => '31', 'active' => true],
-                ['label' => 'Jun 1',  'date' => '1',  'active' => true],
-            ]
-        ];
-
-        // Filter practice quizzes by search/category/difficulty if provided
-        if (!empty($search)) {
-            $s = strtolower($search);
-            $practiceQuizzes = array_values(array_filter($practiceQuizzes, function ($q) use ($s) {
-                return str_contains(strtolower($q['title']), $s) ||
-                       str_contains(strtolower($q['course']), $s) ||
-                       str_contains(strtolower($q['description']), $s);
-            }));
+    protected function buildQuizProgress($attempts): array
+    {
+        $totalCount = $attempts->count();
+        if ($totalCount === 0) {
+            return [
+                'average_score'   => 0,
+                'quizzes_count'   => 0,
+                'quizzes_trend'   => '0 this month',
+                'correct_answers' => 0,
+                'correct_trend'   => '0%',
+            ];
         }
 
-        if ($category !== 'all') {
-            $practiceQuizzes = array_values(array_filter($practiceQuizzes, fn($q) => strtolower($q['category']) === strtolower($category)));
-        }
+        $avgScore = (int) round((float) $attempts->avg('score'));
+        $now = Carbon::now('Asia/Phnom_Penh');
+        $startOfMonth = $now->copy()->startOfMonth();
+        $startOfLastMonth = $now->copy()->subMonth()->startOfMonth();
+        $endOfLastMonth = $now->copy()->subMonth()->endOfMonth();
 
-        if ($difficulty !== 'all') {
-            $practiceQuizzes = array_values(array_filter($practiceQuizzes, fn($q) => strtolower($q['difficulty']) === strtolower($difficulty)));
+        $thisMonthAttempts = $attempts->filter(function ($a) use ($startOfMonth) {
+            $dt = $a->submitted_at ?? $a->created_at;
+            return $dt && Carbon::parse($dt)->gte($startOfMonth);
+        });
+
+        $lastMonthAttempts = $attempts->filter(function ($a) use ($startOfLastMonth, $endOfLastMonth) {
+            $dt = $a->submitted_at ?? $a->created_at;
+            return $dt && Carbon::parse($dt)->between($startOfLastMonth, $endOfLastMonth);
+        });
+
+        $thisMonthCount = $thisMonthAttempts->count();
+        $trendDiff = 0;
+        if ($thisMonthAttempts->isNotEmpty() && $lastMonthAttempts->isNotEmpty()) {
+            $trendDiff = (int) round((float) $thisMonthAttempts->avg('score') - (float) $lastMonthAttempts->avg('score'));
         }
 
         return [
-            'summary'              => $summary,
-            'practice_quizzes'     => $practiceQuizzes,
-            'assessments'          => $assessments,
-            'upcoming_quizzes'     => $upcomingQuizzes,
-            'quiz_progress'        => $quizProgress,
-            'recommended_quizzes'  => $recommendedQuizzes,
-            'quiz_streak'          => $quizStreak,
+            'average_score'   => $avgScore,
+            'quizzes_count'   => $totalCount,
+            'quizzes_trend'   => "+{$thisMonthCount} this month",
+            'correct_answers' => $avgScore,
+            'correct_trend'   => ($trendDiff >= 0 ? "+{$trendDiff}%" : "{$trendDiff}%"),
+        ];
+    }
+
+    protected function buildRecommendedQuizzes($attempts): array
+    {
+        if ($attempts->isEmpty()) {
+            return [];
+        }
+
+        $byQuiz = $attempts->groupBy('quiz_id');
+        $weak = [];
+
+        foreach ($byQuiz as $quizId => $group) {
+            $latest = $group->first();
+            $quiz = $latest?->quiz;
+            if (!$quiz) {
+                continue;
+            }
+            $bestScore = (int) round((float) $group->max('score'));
+            $passing = (int) round((float) ($quiz->passing_score ?? 70));
+
+            if ($bestScore < $passing) {
+                $weak[] = [
+                    'id'          => $quiz->id,
+                    'title'       => $quiz->title,
+                    'note'        => $quiz->course?->title ?? 'Review recommended',
+                    'score'       => $bestScore,
+                    'color_class' => $bestScore < 50 ? 'text-rose-400 font-bold' : 'text-amber-400 font-bold',
+                    'icon'        => '📙',
+                ];
+            }
+        }
+
+        usort($weak, fn ($a, $b) => $a['score'] <=> $b['score']);
+        return array_slice($weak, 0, 4);
+    }
+
+    protected function buildQuizStreak($attempts): array
+    {
+        $tz = 'Asia/Phnom_Penh';
+        $today = Carbon::now($tz)->startOfDay();
+
+        $activeDates = [];
+        foreach ($attempts as $a) {
+            $dt = $a->submitted_at ?? $a->created_at;
+            if ($dt) {
+                $key = Carbon::parse($dt)->timezone($tz)->format('Y-m-d');
+                $activeDates[$key] = true;
+            }
+        }
+
+        $days = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $d = $today->copy()->subDays($i);
+            $key = $d->format('Y-m-d');
+            $days[] = [
+                'label'  => $d->format('M j'),
+                'date'   => $d->format('j'),
+                'active' => isset($activeDates[$key]),
+            ];
+        }
+
+        $streak = 0;
+        $cursor = isset($activeDates[$today->format('Y-m-d')])
+            ? $today->copy()
+            : $today->copy()->subDay();
+
+        while (isset($activeDates[$cursor->format('Y-m-d')])) {
+            $streak++;
+            $cursor->subDay();
+        }
+
+        return [
+            'streak_days' => $streak,
+            'days'        => $days,
+        ];
+    }
+
+    protected function emptyPayload(): array
+    {
+        return [
+            'summary'             => [
+                'available_quizzes' => 0,
+                'available_note'    => 'No quizzes available yet',
+                'practice_quizzes'  => 0,
+                'practice_note'     => 'Improve your skills',
+                'assessments'       => 0,
+                'assessments_note'  => 'Test your knowledge',
+                'total_points'      => 0,
+                'points_note'       => 'Points you can earn',
+            ],
+            'practice_quizzes'    => [],
+            'assessments'         => [],
+            'upcoming_quizzes'    => [],
+            'quiz_progress'       => [
+                'average_score'   => 0,
+                'quizzes_count'   => 0,
+                'quizzes_trend'   => '0 this month',
+                'correct_answers' => 0,
+                'correct_trend'   => '0%',
+            ],
+            'recommended_quizzes' => [],
+            'quiz_streak'         => $this->buildQuizStreak(collect()),
+            'courses'             => [],
+            'categories'          => [],
         ];
     }
 }

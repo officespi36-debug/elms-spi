@@ -2,647 +2,652 @@
 
 namespace App\Services;
 
-use App\Models\Course;
+use App\Models\Enrollment;
 use App\Models\Payment;
+use App\Models\Setting;
 use App\Models\User;
 
 class CourseFeeInvoiceService
 {
+    private const USD_TO_KHR = 4000;
+
     /**
-     * Get structured Course Fees & Invoices dashboard data.
+     * Get structured Course Fees & Invoices dashboard data from real database records.
      */
-    public function getMyPaymentsData(?User $user = null, string $status = 'all', string $course = 'all', string $dateRange = 'all', string $search = '', int $page = 1, int $perPage = 10): array
-    {
-        // 1. Top 5 Summary Cards
+    public function getMyPaymentsData(
+        ?User $user = null,
+        string $status = 'all',
+        string $course = 'all',
+        string $dateRange = 'all',
+        string $search = '',
+        int $page = 1,
+        int $perPage = 10
+    ): array {
+        if (!$user) {
+            return $this->emptyMyPayments($page, $perPage);
+        }
+
+        $paymentsQuery = Payment::with('course')
+            ->where('student_id', $user->id)
+            ->orderByDesc('created_at');
+
+        if ($dateRange === 'this_month') {
+            $paymentsQuery->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year);
+        } elseif ($dateRange === 'last_3_months') {
+            $paymentsQuery->where('created_at', '>=', now()->subMonths(3));
+        } elseif ($dateRange === 'this_year') {
+            $paymentsQuery->whereYear('created_at', now()->year);
+        }
+
+        $allPayments = $paymentsQuery->get();
+
+        // Also include unpaid pending_payment enrollments that do not yet have a Payment row
+        $paidOrTrackedCourseIds = $allPayments->pluck('course_id')->filter()->unique()->all();
+        $unpaidEnrollments = Enrollment::with('course')
+            ->where('student_id', $user->id)
+            ->where('status', 'pending_payment')
+            ->when(!empty($paidOrTrackedCourseIds), fn ($q) => $q->whereNotIn('course_id', $paidOrTrackedCourseIds))
+            ->get();
+
+        $allInvoices = [];
+
+        foreach ($allPayments as $payment) {
+            $statusType = match ($payment->status) {
+                'paid', 'approved', 'completed' => 'paid',
+                'rejected', 'failed'            => 'overdue',
+                default                         => 'pending',
+            };
+            $statusLabel = match ($statusType) {
+                'paid'    => 'Paid',
+                'overdue' => 'Overdue',
+                default   => 'Pending',
+            };
+
+            $amountUsd = $this->normalizeUsd((float) $payment->amount, (string) ($payment->currency ?? 'USD'));
+            $createdAt = $payment->created_at ?? now();
+            $dueDate = $createdAt->copy()->addDays(7);
+            $invNo = sprintf('INV-%s-%04d', $createdAt->format('Y'), $payment->id);
+            $courseTitle = $payment->course?->title_kh ?: ($payment->course?->title ?? 'Course Tuition');
+
+            $allInvoices[] = [
+                'id'                 => $payment->id,
+                'invoice_number'     => $invNo,
+                'course_id'          => $payment->course_id,
+                'course_name'        => $courseTitle,
+                'invoice_date'       => $createdAt->format('M d, Y'),
+                'due_date'           => $dueDate->format('M d, Y'),
+                'due_date_raw'       => $dueDate,
+                'created_at_raw'     => $createdAt,
+                'amount'             => '$' . number_format($amountUsd, 2),
+                'amount_raw'         => round($amountUsd, 2),
+                'status'             => $statusLabel,
+                'status_type'        => $statusType,
+                'payment_method'     => $payment->aba_transaction_id ? 'ABA KHQR' : ($payment->payment_slip ? 'Bank Slip' : '—'),
+                'payment_method_sub' => $payment->aba_transaction_id ? ('#' . substr($payment->aba_transaction_id, -6)) : '',
+                'transaction_id'     => $payment->aba_transaction_id,
+                'receipt_number'     => $statusType === 'paid' ? sprintf('REC-%s-%04d', $createdAt->format('Y'), $payment->id) : null,
+            ];
+        }
+
+        foreach ($unpaidEnrollments as $enr) {
+            if (!$enr->course) {
+                continue;
+            }
+            $amountUsd = (float) ($enr->course->price ?? 0);
+            $createdAt = $enr->enrolled_at ?? $enr->created_at ?? now();
+            $dueDate = $createdAt->copy()->addDays(7);
+            $isOverdue = $dueDate->isPast();
+            $invNo = sprintf('INV-ENR-%04d', $enr->id);
+            $courseTitle = $enr->course->title_kh ?: $enr->course->title;
+
+            $allInvoices[] = [
+                'id'                 => 100000 + $enr->id,
+                'invoice_number'     => $invNo,
+                'course_id'          => $enr->course_id,
+                'course_name'        => $courseTitle,
+                'invoice_date'       => $createdAt->format('M d, Y'),
+                'due_date'           => $dueDate->format('M d, Y'),
+                'due_date_raw'       => $dueDate,
+                'created_at_raw'     => $createdAt,
+                'amount'             => '$' . number_format($amountUsd, 2),
+                'amount_raw'         => round($amountUsd, 2),
+                'status'             => $isOverdue ? 'Overdue' : 'Pending',
+                'status_type'        => $isOverdue ? 'overdue' : 'pending',
+                'payment_method'     => '—',
+                'payment_method_sub' => '',
+                'transaction_id'     => null,
+                'receipt_number'     => null,
+            ];
+        }
+
+        $paidAmount = 0.0;
+        $pendingAmount = 0.0;
+        $overdueAmount = 0.0;
+        $paidCount = 0;
+        $pendingCount = 0;
+
+        foreach ($allInvoices as $inv) {
+            if ($inv['status_type'] === 'paid') {
+                $paidAmount += $inv['amount_raw'];
+                $paidCount++;
+            } elseif ($inv['status_type'] === 'overdue') {
+                $overdueAmount += $inv['amount_raw'];
+                $pendingCount++;
+            } else {
+                $pendingAmount += $inv['amount_raw'];
+                $pendingCount++;
+            }
+        }
+
+        $totalDue = $pendingAmount + $overdueAmount;
+        $grandTotal = $paidAmount + $totalDue;
+        $totalInvoicesCount = count($allInvoices);
+
         $summary = [
-            'total_due'         => '$180.00',
-            'total_due_raw'     => 180.00,
-            'total_due_note'    => 'Outstanding balance',
-            'paid_amount'       => '$1,320.00',
-            'paid_amount_raw'   => 1320.00,
-            'paid_amount_note'  => 'Total paid',
-            'total_invoices'    => 12,
-            'total_inv_note'    => 'All invoices',
-            'paid_invoices'     => 9,
-            'paid_inv_note'     => 'Paid successfully',
-            'pending_invoices'  => 3,
-            'pending_inv_note'  => 'Awaiting payment',
+            'total_due'        => '$' . number_format($totalDue, 2),
+            'total_due_raw'    => round($totalDue, 2),
+            'total_due_note'   => 'Outstanding balance',
+            'paid_amount'      => '$' . number_format($paidAmount, 2),
+            'paid_amount_raw'  => round($paidAmount, 2),
+            'paid_amount_note' => 'Total paid',
+            'total_invoices'   => $totalInvoicesCount,
+            'total_inv_note'   => 'All invoices',
+            'paid_invoices'    => $paidCount,
+            'paid_inv_note'    => 'Paid successfully',
+            'pending_invoices' => $pendingCount,
+            'pending_inv_note' => 'Awaiting payment',
         ];
 
-        // 2. Payment Summary Donut Chart
+        $paidPct = $grandTotal > 0 ? (int) round(($paidAmount / $grandTotal) * 100) : 0;
+        $pendingPct = $grandTotal > 0 ? (int) round(($pendingAmount / $grandTotal) * 100) : 0;
+        $overduePct = $grandTotal > 0 ? max(0, 100 - $paidPct - $pendingPct) : 0;
+
         $paymentSummary = [
-            'total_amount' => '$1,500',
+            'total_amount' => '$' . number_format($grandTotal, 2),
             'total_note'   => 'All time',
             'items'        => [
-                ['label' => 'Paid',    'amount' => '$1,320.00', 'percentage' => 88, 'color' => '#10B981'],
-                ['label' => 'Pending', 'amount' => '$280.00',   'percentage' => 12, 'color' => '#F59E0B'],
-                ['label' => 'Overdue', 'amount' => '$180.00',   'percentage' => 8,  'color' => '#EF4444'],
-            ]
-        ];
-
-        // 3. Upcoming Payments Widget
-        $upcomingPayments = [
-            [
-                'id'          => 1,
-                'course'      => 'UI/UX Design Basics',
-                'due_date'    => 'Due on May 20, 2025',
-                'amount'      => '$120.00',
-                'status'      => 'Pending',
-                'status_type' => 'pending',
-                'color'       => 'amber',
-            ],
-            [
-                'id'          => 2,
-                'course'      => 'Node.js Backend',
-                'due_date'    => 'Due on May 08, 2025',
-                'amount'      => '$180.00',
-                'status'      => 'Pending',
-                'status_type' => 'pending',
-                'color'       => 'amber',
-            ],
-            [
-                'id'          => 3,
-                'course'      => 'JavaScript Advanced',
-                'due_date'    => 'Due on May 15, 2025',
-                'amount'      => '$180.00',
-                'status'      => 'Overdue',
-                'status_type' => 'overdue',
-                'color'       => 'rose',
+                ['label' => 'Paid',    'amount' => '$' . number_format($paidAmount, 2),    'percentage' => $paidPct,    'color' => '#10B981'],
+                ['label' => 'Pending', 'amount' => '$' . number_format($pendingAmount, 2), 'percentage' => $pendingPct, 'color' => '#F59E0B'],
+                ['label' => 'Overdue', 'amount' => '$' . number_format($overdueAmount, 2), 'percentage' => $overduePct, 'color' => '#EF4444'],
             ],
         ];
 
-        // 4. Recent Transactions Widget
-        $recentTransactions = [
-            [
-                'id'             => 1,
-                'title'          => 'Payment Received',
-                'date'           => 'May 28, 2025 10:30 AM',
-                'amount'         => '+$120.00',
-                'amount_type'    => 'positive',
-                'invoice_number' => 'INV-2025-0012',
-                'method'         => 'ABA Bank',
-            ],
-            [
-                'id'             => 2,
-                'title'          => 'Payment Received',
-                'date'           => 'May 25, 2025 09:15 AM',
-                'amount'         => '+$150.00',
-                'amount_type'    => 'positive',
-                'invoice_number' => 'INV-2025-0011',
-                'method'         => 'Visa Card',
-            ],
-            [
-                'id'             => 3,
-                'title'          => 'Payment Received',
-                'date'           => 'May 20, 2025 02:45 PM',
-                'amount'         => '+$100.00',
-                'amount_type'    => 'positive',
-                'invoice_number' => 'INV-2025-0010',
-                'method'         => 'ABA Bank',
-            ],
-            [
-                'id'             => 4,
-                'title'          => 'Payment Pending',
-                'date'           => 'May 10, 2025 11:20 AM',
-                'amount'         => '-$120.00',
-                'amount_type'    => 'negative',
-                'invoice_number' => 'INV-2025-0008',
-                'method'         => 'Pending',
-            ],
-        ];
+        $upcomingPayments = collect($allInvoices)
+            ->whereIn('status_type', ['pending', 'overdue'])
+            ->take(5)
+            ->map(fn ($inv) => [
+                'id'          => $inv['id'],
+                'course'      => $inv['course_name'],
+                'due_date'    => 'Due on ' . $inv['due_date'],
+                'amount'      => $inv['amount'],
+                'status'      => $inv['status'],
+                'status_type' => $inv['status_type'],
+                'color'       => $inv['status_type'] === 'overdue' ? 'rose' : 'amber',
+            ])
+            ->values()
+            ->all();
 
-        // 5. Invoices Catalog (10 items matching reference screenshot)
-        $invoices = [
-            [
-                'id'                 => 1,
-                'invoice_number'     => 'INV-2025-0012',
-                'course_name'        => 'Web Development Fundamentals',
-                'invoice_date'       => 'May 28, 2025',
-                'due_date'           => 'Jun 07, 2025',
-                'amount'             => '$120.00',
-                'amount_raw'         => 120.00,
-                'status'             => 'Paid',
-                'status_type'        => 'paid',
-                'payment_method'     => 'ABA Bank',
-                'payment_method_sub' => '•••• 4567',
-                'transaction_id'     => 'TXN-ABA-98421045',
-                'receipt_number'     => 'REC-2025-0012',
-            ],
-            [
-                'id'                 => 2,
-                'invoice_number'     => 'INV-2025-0011',
-                'course_name'        => 'React Development',
-                'invoice_date'       => 'May 25, 2025',
-                'due_date'           => 'Jun 04, 2025',
-                'amount'             => '$150.00',
-                'amount_raw'         => 150.00,
-                'status'             => 'Paid',
-                'status_type'        => 'paid',
-                'payment_method'     => 'Visa Card',
-                'payment_method_sub' => '•••• 7890',
-                'transaction_id'     => 'TXN-VISA-67210982',
-                'receipt_number'     => 'REC-2025-0011',
-            ],
-            [
-                'id'                 => 3,
-                'invoice_number'     => 'INV-2025-0010',
-                'course_name'        => 'Database Design',
-                'invoice_date'       => 'May 20, 2025',
-                'due_date'           => 'May 30, 2025',
-                'amount'             => '$100.00',
-                'amount_raw'         => 100.00,
-                'status'             => 'Paid',
-                'status_type'        => 'paid',
-                'payment_method'     => 'ABA Bank',
-                'payment_method_sub' => '•••• 4567',
-                'transaction_id'     => 'TXN-ABA-54120984',
-                'receipt_number'     => 'REC-2025-0010',
-            ],
-            [
-                'id'                 => 4,
-                'invoice_number'     => 'INV-2025-0009',
-                'course_name'        => 'Python Programming',
-                'invoice_date'       => 'May 15, 2025',
-                'due_date'           => 'May 25, 2025',
-                'amount'             => '$150.00',
-                'amount_raw'         => 150.00,
-                'status'             => 'Paid',
-                'status_type'        => 'paid',
-                'payment_method'     => 'Wing',
-                'payment_method_sub' => '•••• 1234',
-                'transaction_id'     => 'TXN-WING-45129871',
-                'receipt_number'     => 'REC-2025-0009',
-            ],
-            [
-                'id'                 => 5,
-                'invoice_number'     => 'INV-2025-0008',
-                'course_name'        => 'UI/UX Design Basics',
-                'invoice_date'       => 'May 10, 2025',
-                'due_date'           => 'May 20, 2025',
-                'amount'             => '$120.00',
-                'amount_raw'         => 120.00,
-                'status'             => 'Pending',
-                'status_type'        => 'pending',
-                'payment_method'     => '—',
-                'payment_method_sub' => '',
-                'transaction_id'     => null,
-                'receipt_number'     => null,
-            ],
-            [
-                'id'                 => 6,
-                'invoice_number'     => 'INV-2025-0007',
-                'course_name'        => 'JavaScript Advanced',
-                'invoice_date'       => 'May 05, 2025',
-                'due_date'           => 'May 15, 2025',
-                'amount'             => '$180.00',
-                'amount_raw'         => 180.00,
-                'status'             => 'Overdue',
-                'status_type'        => 'overdue',
-                'payment_method'     => '—',
-                'payment_method_sub' => '',
-                'transaction_id'     => null,
-                'receipt_number'     => null,
-            ],
-            [
-                'id'                 => 7,
-                'invoice_number'     => 'INV-2025-0006',
-                'course_name'        => 'Node.js Backend',
-                'invoice_date'       => 'Apr 28, 2025',
-                'due_date'           => 'May 08, 2025',
-                'amount'             => '$180.00',
-                'amount_raw'         => 180.00,
-                'status'             => 'Pending',
-                'status_type'        => 'pending',
-                'payment_method'     => '—',
-                'payment_method_sub' => '',
-                'transaction_id'     => null,
-                'receipt_number'     => null,
-            ],
-            [
-                'id'                 => 8,
-                'invoice_number'     => 'INV-2025-0005',
-                'course_name'        => 'Data Science Basics',
-                'invoice_date'       => 'Apr 20, 2025',
-                'due_date'           => 'Apr 30, 2025',
-                'amount'             => '$150.00',
-                'amount_raw'         => 150.00,
-                'status'             => 'Paid',
-                'status_type'        => 'paid',
-                'payment_method'     => 'ABA Bank',
-                'payment_method_sub' => '•••• 4567',
-                'transaction_id'     => 'TXN-ABA-34120985',
-                'receipt_number'     => 'REC-2025-0005',
-            ],
-            [
-                'id'                 => 9,
-                'invoice_number'     => 'INV-2025-0004',
-                'course_name'        => 'Git & GitHub',
-                'invoice_date'       => 'Apr 15, 2025',
-                'due_date'           => 'Apr 25, 2025',
-                'amount'             => '$100.00',
-                'amount_raw'         => 100.00,
-                'status'             => 'Paid',
-                'status_type'        => 'paid',
-                'payment_method'     => 'Visa Card',
-                'payment_method_sub' => '•••• 7890',
-                'transaction_id'     => 'TXN-VISA-23109842',
-                'receipt_number'     => 'REC-2025-0004',
-            ],
-            [
-                'id'                 => 10,
-                'invoice_number'     => 'INV-2025-0003',
-                'course_name'        => 'HTML & CSS Essentials',
-                'invoice_date'       => 'Apr 10, 2025',
-                'due_date'           => 'Apr 20, 2025',
-                'amount'             => '$100.00',
-                'amount_raw'         => 100.00,
-                'status'             => 'Paid',
-                'status_type'        => 'paid',
-                'payment_method'     => 'Wing',
-                'payment_method_sub' => '•••• 1234',
-                'transaction_id'     => 'TXN-WING-12908341',
-                'receipt_number'     => 'REC-2025-0003',
-            ],
-        ];
+        $recentTransactions = collect($allInvoices)
+            ->take(5)
+            ->map(fn ($inv) => [
+                'id'             => $inv['id'],
+                'title'          => $inv['status_type'] === 'paid' ? 'Payment Verified' : 'Payment Pending',
+                'date'           => $inv['created_at_raw']->format('M d, Y h:i A'),
+                'amount'         => ($inv['status_type'] === 'paid' ? '+' : '') . $inv['amount'],
+                'amount_type'    => $inv['status_type'] === 'paid' ? 'positive' : 'negative',
+                'invoice_number' => $inv['invoice_number'],
+                'method'         => $inv['payment_method'] !== '—' ? $inv['payment_method'] : 'Pending',
+            ])
+            ->values()
+            ->all();
 
-        // Filter by status tab
+        // Filter catalog
+        $filtered = $allInvoices;
         if ($status !== 'all') {
-            $invoices = array_values(array_filter($invoices, fn($inv) => strtolower($inv['status_type']) === strtolower($status)));
+            $filtered = array_values(array_filter($filtered, fn ($inv) => strtolower($inv['status_type']) === strtolower($status)));
         }
-
-        // Filter by course
         if ($course !== 'all') {
-            $invoices = array_values(array_filter($invoices, fn($inv) => strtolower($inv['course_name']) === strtolower($course)));
+            $filtered = array_values(array_filter($filtered, fn ($inv) => strtolower($inv['course_name']) === strtolower($course)));
+        }
+        if ($search !== '') {
+            $s = mb_strtolower($search);
+            $filtered = array_values(array_filter(
+                $filtered,
+                fn ($inv) => str_contains(mb_strtolower($inv['invoice_number']), $s)
+                    || str_contains(mb_strtolower($inv['course_name']), $s)
+            ));
         }
 
-        // Filter by search
-        if (!empty($search)) {
-            $s = strtolower($search);
-            $invoices = array_values(array_filter($invoices, fn($inv) => str_contains(strtolower($inv['invoice_number']), $s) || str_contains(strtolower($inv['course_name']), $s)));
-        }
+        // Strip internal Carbon fields before JSON serialization
+        $cleanInvoices = array_map(function ($inv) {
+            unset($inv['due_date_raw'], $inv['created_at_raw']);
+            return $inv;
+        }, $filtered);
+
+        $totalFiltered = count($cleanInvoices);
+        $offset = max(0, ($page - 1) * $perPage);
+        $pagedInvoices = array_slice($cleanInvoices, $offset, $perPage);
 
         return [
             'summary'             => $summary,
             'payment_summary'     => $paymentSummary,
             'upcoming_payments'   => $upcomingPayments,
             'recent_transactions' => $recentTransactions,
-            'invoices'            => $invoices,
-            'total_count'         => 12,
+            'invoices'            => $pagedInvoices,
+            'total_count'         => $totalFiltered,
             'current_page'        => $page,
             'per_page'            => $perPage,
         ];
     }
 
     /**
-     * Get ABA KHQR Payment Session data for pending invoice.
+     * Get ABA KHQR Payment Session data for a real pending invoice or enrollment.
      */
     public function getAbaPaymentSessionData(?string $invoiceNumber = null, ?User $user = null): array
     {
-        $invoiceNo = $invoiceNumber ?: 'INV-2025-0012';
+        $merchantName = Setting::where('key', 'site_name')->value('value') ?: 'Saint Paul Institute';
+        $paymentRow = null;
+        $enrollmentRow = null;
+
+        if ($user) {
+            if ($invoiceNumber && preg_match('/^INV-\d{4}-(\d+)$/', $invoiceNumber, $m)) {
+                $paymentRow = Payment::with('course')
+                    ->where('student_id', $user->id)
+                    ->where('id', (int) $m[1])
+                    ->first();
+            } elseif ($invoiceNumber && preg_match('/^INV-ENR-(\d+)$/', $invoiceNumber, $m)) {
+                $enrollmentRow = Enrollment::with('course')
+                    ->where('student_id', $user->id)
+                    ->where('id', (int) $m[1])
+                    ->first();
+            }
+
+            if (!$paymentRow && !$enrollmentRow) {
+                $paymentRow = Payment::with('course')
+                    ->where('student_id', $user->id)
+                    ->whereIn('status', ['pending', 'verifying'])
+                    ->latest()
+                    ->first();
+            }
+
+            if (!$paymentRow && !$enrollmentRow) {
+                $enrollmentRow = Enrollment::with('course')
+                    ->where('student_id', $user->id)
+                    ->where('status', 'pending_payment')
+                    ->latest()
+                    ->first();
+            }
+        }
+
+        if (!$paymentRow && !$enrollmentRow) {
+            return [
+                'session_id'         => null,
+                'invoice_number'     => null,
+                'course_name'        => null,
+                'course_type'        => null,
+                'student_name'       => $user?->name_kh ?: ($user?->name ?? ''),
+                'student_id'         => $user?->student_code ?? '',
+                'amount_khr'         => '0 KHR',
+                'amount_khr_raw'     => 0,
+                'amount_usd'         => '$0.00 USD',
+                'amount_usd_raw'     => 0.0,
+                'merchant_name'      => $merchantName,
+                'merchant_id'        => '',
+                'due_date'           => null,
+                'due_date_iso'       => null,
+                'payment_method'     => 'ABA KHQR',
+                'qr_code_url'        => null,
+                'expires_in_seconds' => 0,
+                'status'             => 'NO_PENDING_INVOICE',
+            ];
+        }
+
+        $course = $paymentRow?->course ?? $enrollmentRow?->course;
+        $amountUsd = $paymentRow
+            ? $this->normalizeUsd((float) $paymentRow->amount, (string) ($paymentRow->currency ?? 'USD'))
+            : (float) ($course?->price ?? 0);
+        $amountKhr = (int) round($amountUsd * self::USD_TO_KHR);
+        $createdAt = $paymentRow?->created_at ?? $enrollmentRow?->enrolled_at ?? now();
+        $dueDate = $createdAt->copy()->addDays(7);
+        $invNo = $paymentRow
+            ? sprintf('INV-%s-%04d', $createdAt->format('Y'), $paymentRow->id)
+            : sprintf('INV-ENR-%04d', $enrollmentRow->id);
 
         return [
-            'session_id'         => 'PAY-SESSION-2025-000124',
-            'invoice_number'     => $invoiceNo,
-            'course_name'        => 'Web Development Fundamentals',
-            'course_type'        => 'Self-Paced Course',
-            'student_name'       => $user?->name ?: 'Sok Pisey',
-            'student_id'         => 'STU2024001',
-            'amount_khr'         => '120,000 KHR',
-            'amount_khr_raw'     => 120000,
-            'amount_usd'         => '≈ $30.00 USD',
-            'amount_usd_raw'     => 30.00,
-            'merchant_name'      => 'Saint Paul Institute',
-            'merchant_id'        => '002 328 456',
-            'due_date'           => 'June 07, 2025',
-            'due_date_iso'       => '2025-06-07',
+            'session_id'         => 'PAY-' . $invNo,
+            'invoice_number'     => $invNo,
+            'course_id'          => $course?->id,
+            'course_name'        => $course?->title_kh ?: ($course?->title ?? 'Course Tuition'),
+            'course_type'        => ($course?->learning_mode === 'self_paced') ? 'Self-Paced Course' : 'Instructor-Led Course',
+            'student_name'       => $user?->name_kh ?: ($user?->name ?? ''),
+            'student_id'         => $user?->student_code ?: ('ID-' . $user?->id),
+            'amount_khr'         => number_format($amountKhr) . ' KHR',
+            'amount_khr_raw'     => $amountKhr,
+            'amount_usd'         => '$' . number_format($amountUsd, 2) . ' USD',
+            'amount_usd_raw'     => round($amountUsd, 2),
+            'merchant_name'      => $merchantName,
+            'merchant_id'        => Setting::where('key', 'aba_merchant_id')->value('value') ?: '',
+            'due_date'           => $dueDate->format('F d, Y'),
+            'due_date_iso'       => $dueDate->format('Y-m-d'),
             'payment_method'     => 'ABA KHQR',
-            'qr_code_url'        => 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=ABA_KHQR_SPI_INV20250012_120000KHR',
-            'expires_in_seconds' => 588, // 09:48
-            'status'             => 'WAITING_FOR_PAYMENT',
+            'qr_code_url'        => Setting::where('key', 'aba_qr_image')->value('value') ?: null,
+            'expires_in_seconds' => 600,
+            'status'             => $paymentRow?->status === 'verifying' ? 'VERIFYING' : 'WAITING_FOR_PAYMENT',
         ];
     }
 
     /**
-     * Get structured Student Transaction History data.
+     * Get structured Student Transaction History data from real payments.
      */
-    public function getTransactionHistoryData(?User $user = null, string $status = 'all', string $method = 'all', string $sort = 'newest', string $search = '', int $page = 1, int $perPage = 10): array
-    {
-        // 1. Top 4 Summary Cards
-        $summary = [
-            'total_transactions'   => 12,
-            'total_tx_note'        => 'All payment records',
-            'successful_payments'  => 10,
-            'successful_note'      => 'Completed transactions',
-            'pending_payments'     => 2,
-            'pending_note'         => 'Awaiting confirmation',
-            'total_paid'           => '1,250,000 KHR',
-            'total_paid_note'      => 'Total successful payments',
-        ];
+    public function getTransactionHistoryData(
+        ?User $user = null,
+        string $status = 'all',
+        string $method = 'all',
+        string $sort = 'newest',
+        string $search = '',
+        int $page = 1,
+        int $perPage = 10
+    ): array {
+        if (!$user) {
+            return $this->emptyTransactions($page, $perPage);
+        }
 
-        // 2. Right Sidebar Payment Summary
-        $paymentSummary = [
-            'total_paid'       => '1,250,000 KHR',
-            'progress_percent' => 83,
-            'successful_count' => 10,
-            'pending_count'    => 2,
-            'failed_count'     => 0,
-        ];
+        $query = Payment::with('course')->where('student_id', $user->id);
+        if ($sort === 'oldest') {
+            $query->orderBy('created_at');
+        } elseif ($sort === 'amount_high') {
+            $query->orderByDesc('amount');
+        } elseif ($sort === 'amount_low') {
+            $query->orderBy('amount');
+        } else {
+            $query->orderByDesc('created_at');
+        }
 
-        // 3. Right Sidebar Latest Payment
-        $latestPayment = [
-            'course_name'    => 'Web Development Fundamentals',
-            'amount'         => '120,000 KHR',
-            'status'         => 'Payment Successful',
-            'status_type'    => 'successful',
-            'date_text'      => 'Today • 09:45 AM',
-            'invoice_number' => 'INV-2025-0012',
-            'transaction_id' => 'TRX-2025-00124',
-        ];
+        $payments = $query->get();
 
-        // 4. Transactions List (10 items)
-        $transactions = [
-            [
-                'id'             => 1,
-                'transaction_id' => 'TRX-2025-00124',
-                'invoice_number' => 'INV-2025-0012',
-                'course_name'    => 'Web Development Fundamentals',
-                'payment_method' => 'ABA KHQR',
-                'method_type'    => 'aba',
-                'amount_khr'     => '120,000 KHR',
-                'amount_raw'     => 120000,
-                'date_formatted' => 'May 28, 2025',
-                'time_formatted' => '09:45 AM',
-                'date_time_text' => 'May 28, 2025 • 09:45 AM',
-                'status'         => 'Successful',
-                'status_type'    => 'successful',
-                'reference_code' => 'REF-ABA-98421045',
-            ],
-            [
-                'id'             => 2,
-                'transaction_id' => 'TRX-2025-00123',
-                'invoice_number' => 'INV-2025-0010',
-                'course_name'    => 'Database Systems',
-                'payment_method' => 'ABA KHQR',
-                'method_type'    => 'aba',
-                'amount_khr'     => '95,000 KHR',
-                'amount_raw'     => 95000,
-                'date_formatted' => 'May 20, 2025',
-                'time_formatted' => '02:30 PM',
-                'date_time_text' => 'May 20, 2025 • 02:30 PM',
-                'status'         => 'Successful',
-                'status_type'    => 'successful',
-                'reference_code' => 'REF-ABA-54120984',
-            ],
-            [
-                'id'             => 3,
-                'transaction_id' => 'TRX-2025-00122',
-                'invoice_number' => 'INV-2025-0009',
-                'course_name'    => 'Python Programming',
-                'payment_method' => 'ABA KHQR',
-                'method_type'    => 'aba',
-                'amount_khr'     => '80,000 KHR',
-                'amount_raw'     => 80000,
-                'date_formatted' => 'May 18, 2025',
-                'time_formatted' => '11:15 AM',
-                'date_time_text' => 'May 18, 2025 • 11:15 AM',
-                'status'         => 'Pending',
-                'status_type'    => 'pending',
-                'reference_code' => 'REF-ABA-45129871',
-            ],
-            [
-                'id'             => 4,
-                'transaction_id' => 'TRX-2025-00121',
-                'invoice_number' => 'INV-2025-0011',
-                'course_name'    => 'React Development',
-                'payment_method' => 'Card Payment',
-                'method_type'    => 'card',
-                'amount_khr'     => '150,000 KHR',
-                'amount_raw'     => 150000,
-                'date_formatted' => 'May 15, 2025',
-                'time_formatted' => '10:00 AM',
-                'date_time_text' => 'May 15, 2025 • 10:00 AM',
-                'status'         => 'Successful',
-                'status_type'    => 'successful',
-                'reference_code' => 'REF-VISA-67210982',
-            ],
-            [
-                'id'             => 5,
-                'transaction_id' => 'TRX-2025-00120',
-                'invoice_number' => 'INV-2025-0008',
-                'course_name'    => 'UI/UX Design Basics',
-                'payment_method' => 'Bank Transfer',
-                'method_type'    => 'bank',
-                'amount_khr'     => '120,000 KHR',
-                'amount_raw'     => 120000,
-                'date_formatted' => 'May 10, 2025',
-                'time_formatted' => '04:20 PM',
-                'date_time_text' => 'May 10, 2025 • 04:20 PM',
-                'status'         => 'Pending',
-                'status_type'    => 'pending',
-                'reference_code' => 'REF-BANK-38910245',
-            ],
-            [
-                'id'             => 6,
-                'transaction_id' => 'TRX-2025-00119',
-                'invoice_number' => 'INV-2025-0007',
-                'course_name'    => 'JavaScript Advanced',
-                'payment_method' => 'Wing',
-                'method_type'    => 'wing',
-                'amount_khr'     => '180,000 KHR',
-                'amount_raw'     => 180000,
-                'date_formatted' => 'May 05, 2025',
-                'time_formatted' => '01:10 PM',
-                'date_time_text' => 'May 05, 2025 • 01:10 PM',
-                'status'         => 'Successful',
-                'status_type'    => 'successful',
-                'reference_code' => 'REF-WING-78451290',
-            ],
-            [
-                'id'             => 7,
-                'transaction_id' => 'TRX-2025-00118',
-                'invoice_number' => 'INV-2025-0006',
-                'course_name'    => 'Node.js Backend',
-                'payment_method' => 'ABA KHQR',
-                'method_type'    => 'aba',
-                'amount_khr'     => '180,000 KHR',
-                'amount_raw'     => 180000,
-                'date_formatted' => 'Apr 28, 2025',
-                'time_formatted' => '08:50 AM',
-                'date_time_text' => 'Apr 28, 2025 • 08:50 AM',
-                'status'         => 'Successful',
-                'status_type'    => 'successful',
-                'reference_code' => 'REF-ABA-98124578',
-            ],
-            [
-                'id'             => 8,
-                'transaction_id' => 'TRX-2025-00117',
-                'invoice_number' => 'INV-2025-0005',
-                'course_name'    => 'Data Science Basics',
-                'payment_method' => 'ABA KHQR',
-                'method_type'    => 'aba',
-                'amount_khr'     => '150,000 KHR',
-                'amount_raw'     => 150000,
-                'date_formatted' => 'Apr 20, 2025',
-                'time_formatted' => '03:40 PM',
-                'date_time_text' => 'Apr 20, 2025 • 03:40 PM',
-                'status'         => 'Successful',
-                'status_type'    => 'successful',
-                'reference_code' => 'REF-ABA-34120985',
-            ],
-            [
-                'id'             => 9,
-                'transaction_id' => 'TRX-2025-00116',
-                'invoice_number' => 'INV-2025-0004',
-                'course_name'    => 'Git & GitHub',
-                'payment_method' => 'Card Payment',
-                'method_type'    => 'card',
-                'amount_khr'     => '100,000 KHR',
-                'amount_raw'     => 100000,
-                'date_formatted' => 'Apr 15, 2025',
-                'time_formatted' => '09:30 AM',
-                'date_time_text' => 'Apr 15, 2025 • 09:30 AM',
-                'status'         => 'Successful',
-                'status_type'    => 'successful',
-                'reference_code' => 'REF-VISA-23109842',
-            ],
-            [
-                'id'             => 10,
-                'transaction_id' => 'TRX-2025-00115',
-                'invoice_number' => 'INV-2025-0003',
-                'course_name'    => 'HTML & CSS Essentials',
-                'payment_method' => 'Wing',
-                'method_type'    => 'wing',
-                'amount_khr'     => '100,000 KHR',
-                'amount_raw'     => 100000,
-                'date_formatted' => 'Apr 10, 2025',
-                'time_formatted' => '02:15 PM',
-                'date_time_text' => 'Apr 10, 2025 • 02:15 PM',
-                'status'         => 'Successful',
-                'status_type'    => 'successful',
-                'reference_code' => 'REF-WING-12908341',
-            ],
-        ];
+        $allTx = [];
+        $successfulCount = 0;
+        $pendingCount = 0;
+        $failedCount = 0;
+        $totalPaidKhr = 0;
 
-        // Filter by status
+        foreach ($payments as $p) {
+            $statusType = match ($p->status) {
+                'paid', 'approved', 'completed' => 'successful',
+                'rejected', 'failed'            => 'failed',
+                default                         => 'pending',
+            };
+            $statusLabel = match ($statusType) {
+                'successful' => 'Successful',
+                'failed'     => 'Failed',
+                default      => 'Pending',
+            };
+
+            $amountUsd = $this->normalizeUsd((float) $p->amount, (string) ($p->currency ?? 'USD'));
+            $amountKhr = (int) round($amountUsd * self::USD_TO_KHR);
+
+            if ($statusType === 'successful') {
+                $successfulCount++;
+                $totalPaidKhr += $amountKhr;
+            } elseif ($statusType === 'failed') {
+                $failedCount++;
+            } else {
+                $pendingCount++;
+            }
+
+            $createdAt = $p->created_at ?? now();
+            $methodType = $p->aba_transaction_id ? 'aba' : 'bank';
+            $methodLabel = $p->aba_transaction_id ? 'ABA KHQR' : 'Bank Slip';
+
+            $allTx[] = [
+                'id'             => $p->id,
+                'transaction_id' => $p->aba_transaction_id ?: sprintf('TRX-%s-%05d', $createdAt->format('Y'), $p->id),
+                'invoice_number' => sprintf('INV-%s-%04d', $createdAt->format('Y'), $p->id),
+                'course_name'    => $p->course?->title_kh ?: ($p->course?->title ?? 'Course Tuition'),
+                'payment_method' => $methodLabel,
+                'method_type'    => $methodType,
+                'amount_khr'     => number_format($amountKhr) . ' KHR',
+                'amount_usd'     => '$' . number_format($amountUsd, 2),
+                'amount_raw'     => $amountKhr,
+                'date_formatted' => $createdAt->format('M d, Y'),
+                'time_formatted' => $createdAt->format('h:i A'),
+                'date_time_text' => $createdAt->format('M d, Y • h:i A'),
+                'status'         => $statusLabel,
+                'status_type'    => $statusType,
+                'reference_code' => $p->aba_transaction_id ?: ('SLIP-' . $p->id),
+                'payment_slip'   => $p->payment_slip ? asset('storage/' . ltrim($p->payment_slip, '/')) : null,
+            ];
+        }
+
+        $totalCountAll = count($allTx);
+        $progressPct = $totalCountAll > 0 ? (int) round(($successfulCount / $totalCountAll) * 100) : 0;
+
+        $latest = $allTx[0] ?? null;
+        $latestPayment = $latest ? [
+            'course_name'    => $latest['course_name'],
+            'amount'         => $latest['amount_khr'],
+            'status'         => 'Payment ' . $latest['status'],
+            'status_type'    => $latest['status_type'],
+            'date_text'      => $latest['date_time_text'],
+            'invoice_number' => $latest['invoice_number'],
+            'transaction_id' => $latest['transaction_id'],
+        ] : null;
+
+        $filtered = $allTx;
         if ($status !== 'all') {
-            $transactions = array_values(array_filter($transactions, fn($tx) => strtolower($tx['status_type']) === strtolower($status)));
+            $filtered = array_values(array_filter($filtered, fn ($tx) => strtolower($tx['status_type']) === strtolower($status)));
         }
-
-        // Filter by method
         if ($method !== 'all') {
-            $transactions = array_values(array_filter($transactions, fn($tx) => strtolower($tx['method_type']) === strtolower($method)));
+            $filtered = array_values(array_filter($filtered, fn ($tx) => strtolower($tx['method_type']) === strtolower($method)));
+        }
+        if ($search !== '') {
+            $s = mb_strtolower($search);
+            $filtered = array_values(array_filter(
+                $filtered,
+                fn ($tx) => str_contains(mb_strtolower($tx['transaction_id']), $s)
+                    || str_contains(mb_strtolower($tx['invoice_number']), $s)
+                    || str_contains(mb_strtolower($tx['course_name']), $s)
+            ));
         }
 
-        // Filter by search
-        if (!empty($search)) {
-            $s = strtolower($search);
-            $transactions = array_values(array_filter($transactions, fn($tx) => str_contains(strtolower($tx['transaction_id']), $s) || str_contains(strtolower($tx['invoice_number']), $s) || str_contains(strtolower($tx['course_name']), $s)));
-        }
+        $totalFiltered = count($filtered);
+        $offset = max(0, ($page - 1) * $perPage);
+        $paged = array_slice($filtered, $offset, $perPage);
 
         return [
-            'summary'             => $summary,
-            'payment_summary'     => $paymentSummary,
-            'latest_payment'      => $latestPayment,
-            'transactions'        => $transactions,
-            'total_count'         => 12,
-            'current_page'        => $page,
-            'per_page'            => $perPage,
+            'summary' => [
+                'total_transactions'  => $totalCountAll,
+                'total_tx_note'       => 'All payment records',
+                'successful_payments' => $successfulCount,
+                'successful_note'     => 'Completed transactions',
+                'pending_payments'    => $pendingCount,
+                'pending_note'        => 'Awaiting confirmation',
+                'total_paid'          => number_format($totalPaidKhr) . ' KHR',
+                'total_paid_note'     => 'Total successful payments',
+            ],
+            'payment_summary' => [
+                'total_paid'       => number_format($totalPaidKhr) . ' KHR',
+                'progress_percent' => $progressPct,
+                'successful_count' => $successfulCount,
+                'pending_count'    => $pendingCount,
+                'failed_count'     => $failedCount,
+            ],
+            'latest_payment' => $latestPayment,
+            'transactions'   => $paged,
+            'total_count'    => $totalFiltered,
+            'current_page'   => $page,
+            'per_page'       => $perPage,
         ];
     }
 
     /**
-     * Get structured Student Payment Settings data.
+     * Get structured Student Payment Settings data from real user preferences & payments.
      */
     public function getPaymentSettingsData(?User $user = null): array
     {
+        if (!$user) {
+            return [
+                'saved_methods'    => [],
+                'auto_pay'         => ['enabled' => false, 'currency' => 'KHR', 'threshold' => '0', 'reminder' => '1 day before'],
+                'history_summary'  => [
+                    'total_paid'          => '0 KHR',
+                    'total_paid_period'   => 'All Time',
+                    'last_payment'        => '0 KHR',
+                    'last_payment_date'   => '—',
+                    'successful_payments' => 0,
+                    'successful_period'   => 'All Time',
+                    'failed_payments'     => 0,
+                    'failed_period'       => 'All Time',
+                ],
+                'billing_summary'  => [
+                    'total_invoices'      => 0,
+                    'paid_invoices'       => 0,
+                    'pending_invoices'    => 0,
+                    'outstanding_balance' => '$0.00',
+                ],
+                'default_currency' => 'KHR',
+                'security'         => [
+                    'two_factor_enabled' => false,
+                    'encryption_active'  => true,
+                    'fraud_protection'   => true,
+                    'monitoring_active'  => true,
+                ],
+                'notifications'    => [
+                    'payment_successful' => true,
+                    'payment_pending'    => true,
+                    'payment_failed'     => true,
+                    'invoice_reminder'   => true,
+                    'due_date_reminder'  => true,
+                ],
+            ];
+        }
+
+        $txData = $this->getTransactionHistoryData($user);
+        $invData = $this->getMyPaymentsData($user);
+        $prefs = $user->preferences()->pluck('value', 'key');
+
+        $latestPaid = Payment::where('student_id', $user->id)
+            ->whereIn('status', ['paid', 'approved', 'completed'])
+            ->latest()
+            ->first();
+
+        $lastPaymentAmt = '0 KHR';
+        $lastPaymentDate = '—';
+        if ($latestPaid) {
+            $usd = $this->normalizeUsd((float) $latestPaid->amount, (string) ($latestPaid->currency ?? 'USD'));
+            $lastPaymentAmt = number_format((int) round($usd * self::USD_TO_KHR)) . ' KHR';
+            $lastPaymentDate = ($latestPaid->verified_at ?? $latestPaid->created_at)?->format('M d, Y') ?? '—';
+        }
+
         return [
-            'saved_methods' => [
-                [
-                    'id'             => 1,
-                    'provider'       => 'aba',
-                    'name'           => 'ABA KHQR',
-                    'account_holder' => $user?->name ?: 'Sok Pisey',
-                    'account_number' => '002 348 567',
-                    'masked_info'    => '002 348 567',
-                    'is_primary'     => true,
-                    'status'         => 'Verified',
-                    'added_date'     => 'May 10, 2025',
-                ],
-                [
-                    'id'             => 2,
-                    'provider'       => 'wing',
-                    'name'           => 'Wing Account',
-                    'account_holder' => $user?->name ?: 'Sok Pisey',
-                    'account_number' => '092 345 678',
-                    'masked_info'    => '092 345 678',
-                    'is_primary'     => false,
-                    'status'         => 'Verified',
-                    'added_date'     => 'Apr 28, 2025',
-                ],
-                [
-                    'id'             => 3,
-                    'provider'       => 'visa',
-                    'name'           => 'Visa Card',
-                    'account_holder' => $user?->name ?: 'Sok Pisey',
-                    'account_number' => '•••• 4567',
-                    'masked_info'    => '•••• 4567',
-                    'expiry'         => '08/27',
-                    'is_primary'     => false,
-                    'status'         => 'Verified',
-                    'added_date'     => 'Apr 15, 2025',
-                ],
-                [
-                    'id'             => 4,
-                    'provider'       => 'mastercard',
-                    'name'           => 'Mastercard',
-                    'account_holder' => $user?->name ?: 'Sok Pisey',
-                    'account_number' => '•••• 7890',
-                    'masked_info'    => '•••• 7890',
-                    'expiry'         => '11/26',
-                    'is_primary'     => false,
-                    'status'         => 'Verified',
-                    'added_date'     => 'Apr 12, 2025',
-                ],
+            'saved_methods'    => [],
+            'auto_pay'         => [
+                'enabled'   => ($prefs['payment_autopay'] ?? '0') === '1',
+                'currency'  => $prefs['payment_currency'] ?? 'KHR',
+                'threshold' => $prefs['payment_threshold'] ?? '0',
+                'reminder'  => $prefs['payment_reminder'] ?? '1 day before',
             ],
-            'auto_pay' => [
-                'enabled'   => true,
-                'currency'  => 'KHR',
-                'threshold' => '50,000',
-                'reminder'  => '1 day before',
+            'history_summary'  => [
+                'total_paid'          => $txData['payment_summary']['total_paid'],
+                'total_paid_period'   => 'All Time',
+                'last_payment'        => $lastPaymentAmt,
+                'last_payment_date'   => $lastPaymentDate,
+                'successful_payments' => $txData['payment_summary']['successful_count'],
+                'successful_period'   => 'All Time',
+                'failed_payments'     => $txData['payment_summary']['failed_count'],
+                'failed_period'       => 'All Time',
             ],
-            'history_summary' => [
-                'total_paid'          => '1,320.00 KHR',
-                'total_paid_period'   => 'This Year',
-                'last_payment'        => '120.00 KHR',
-                'last_payment_date'   => 'May 28, 2025',
-                'successful_payments' => 9,
-                'successful_period'   => 'This Year',
-                'failed_payments'     => 0,
-                'failed_period'       => 'This Year',
+            'billing_summary'  => [
+                'total_invoices'      => $invData['summary']['total_invoices'],
+                'paid_invoices'       => $invData['summary']['paid_invoices'],
+                'pending_invoices'    => $invData['summary']['pending_invoices'],
+                'outstanding_balance' => $invData['summary']['total_due'],
             ],
-            'billing_summary' => [
-                'total_invoices'      => 12,
-                'paid_invoices'       => 9,
-                'pending_invoices'    => 3,
-                'outstanding_balance' => '180.00 KHR',
-            ],
-            'default_currency' => 'KHR',
-            'security' => [
-                'two_factor_enabled' => true,
+            'default_currency' => $prefs['payment_currency'] ?? 'KHR',
+            'security'         => [
+                'two_factor_enabled' => (bool) ($user->two_factor_enabled ?? false),
                 'encryption_active'  => true,
                 'fraud_protection'   => true,
                 'monitoring_active'  => true,
             ],
-            'notifications' => [
-                'payment_successful' => true,
-                'payment_pending'    => true,
-                'payment_failed'     => true,
-                'invoice_reminder'   => true,
-                'due_date_reminder'  => true,
+            'notifications'    => [
+                'payment_successful' => ($prefs['notify_payment_successful'] ?? '1') === '1',
+                'payment_pending'    => ($prefs['notify_payment_pending'] ?? '1') === '1',
+                'payment_failed'     => ($prefs['notify_payment_failed'] ?? '1') === '1',
+                'invoice_reminder'   => ($prefs['notify_invoice_reminder'] ?? '1') === '1',
+                'due_date_reminder'  => ($prefs['notify_due_date_reminder'] ?? '1') === '1',
             ],
         ];
     }
+
+    private function normalizeUsd(float $amount, string $currency): float
+    {
+        if (strtoupper($currency) === 'KHR') {
+            return $amount / self::USD_TO_KHR;
+        }
+        return $amount;
+    }
+
+    private function emptyMyPayments(int $page, int $perPage): array
+    {
+        return [
+            'summary' => [
+                'total_due'        => '$0.00',
+                'total_due_raw'    => 0.0,
+                'total_due_note'   => 'Outstanding balance',
+                'paid_amount'      => '$0.00',
+                'paid_amount_raw'  => 0.0,
+                'paid_amount_note' => 'Total paid',
+                'total_invoices'   => 0,
+                'total_inv_note'   => 'All invoices',
+                'paid_invoices'    => 0,
+                'paid_inv_note'    => 'Paid successfully',
+                'pending_invoices' => 0,
+                'pending_inv_note' => 'Awaiting payment',
+            ],
+            'payment_summary' => [
+                'total_amount' => '$0.00',
+                'total_note'   => 'All time',
+                'items'        => [
+                    ['label' => 'Paid',    'amount' => '$0.00', 'percentage' => 0, 'color' => '#10B981'],
+                    ['label' => 'Pending', 'amount' => '$0.00', 'percentage' => 0, 'color' => '#F59E0B'],
+                    ['label' => 'Overdue', 'amount' => '$0.00', 'percentage' => 0, 'color' => '#EF4444'],
+                ],
+            ],
+            'upcoming_payments'   => [],
+            'recent_transactions' => [],
+            'invoices'            => [],
+            'total_count'         => 0,
+            'current_page'        => $page,
+            'per_page'            => $perPage,
+        ];
+    }
+
+    private function emptyTransactions(int $page, int $perPage): array
+    {
+        return [
+            'summary' => [
+                'total_transactions'  => 0,
+                'total_tx_note'       => 'All payment records',
+                'successful_payments' => 0,
+                'successful_note'     => 'Completed transactions',
+                'pending_payments'    => 0,
+                'pending_note'        => 'Awaiting confirmation',
+                'total_paid'          => '0 KHR',
+                'total_paid_note'     => 'Total successful payments',
+            ],
+            'payment_summary' => [
+                'total_paid'       => '0 KHR',
+                'progress_percent' => 0,
+                'successful_count' => 0,
+                'pending_count'    => 0,
+                'failed_count'     => 0,
+            ],
+            'latest_payment' => null,
+            'transactions'   => [],
+            'total_count'    => 0,
+            'current_page'   => $page,
+            'per_page'       => $perPage,
+        ];
+    }
 }
-
-
-

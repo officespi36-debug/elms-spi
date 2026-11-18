@@ -12,7 +12,7 @@ interface VerificationHistoryItem {
 }
 
 interface VerificationPayload {
-  status: 'valid' | 'invalid' | 'not_found' | 'revoked'
+  status: 'idle' | 'valid' | 'invalid' | 'not_found' | 'revoked'
   certificate_id?: string
   student_name?: string
   course_name?: string
@@ -25,6 +25,8 @@ interface VerificationPayload {
   verification_count?: number
   verified_on?: string
   verification_url?: string
+  download_url?: string | null
+  can_download?: boolean
   topics?: string[]
   director_name?: string
   director_title?: string
@@ -41,9 +43,9 @@ const props = defineProps<{
 // Active Verification Tab: 'id' | 'link' | 'qr'
 const activeTab = ref<'id' | 'link' | 'qr'>((props.initialTab as any) || 'id')
 
-// Input fields
-const certificateIdInput = ref<string>(props.initialQuery || 'SPI-CERT-2025-00124')
-const verificationLinkInput = ref<string>('https://spilms.tech/verify/SPI-CERT-2025-00124')
+// Input fields (no hardcoded fake certificate IDs)
+const certificateIdInput = ref<string>(props.initialQuery || '')
+const verificationLinkInput = ref<string>(props.initialQuery?.startsWith('http') ? props.initialQuery : '')
 const qrUploadFile = ref<File | null>(null)
 
 // UI States
@@ -52,56 +54,12 @@ const isShareModalOpen = ref<boolean>(false)
 const copyFeedback = ref<string>('')
 const downloadFeedback = ref<string>('')
 
-// Default Sample Data (matching screenshot pixel-for-pixel)
-const defaultData: VerificationPayload = {
-  status: 'valid',
-  certificate_id: 'SPI-CERT-2025-00124',
-  student_name: 'Sok Pisey',
-  course_name: 'Web Development Fundamentals',
-  issuer: 'Saint Paul Institute',
-  completion_date: 'May 28, 2025',
-  issue_date: 'May 28, 2025',
-  final_score: '92%',
-  grade: 'A',
-  certificate_status: 'Valid',
-  verification_count: 12,
-  verified_on: 'June 5, 2025 at 10:30 AM',
-  verification_url: 'https://spilms.tech/verify/SPI-CERT-2025-00124',
-  topics: [
-    'HTML',
-    'CSS',
-    'JavaScript',
-    'Responsive Design',
-    'Modern Web Development Practices',
-  ],
-  director_name: 'Dr. John Smith',
-  director_title: 'Director of Education',
-  history: [
-    {
-      date: 'June 5, 2025 10:30 AM',
-      verified_by: 'Public Verification',
-      ip_address: '119.75.xxx.xxx',
-      location: 'Phnom Penh, Cambodia',
-      result: 'VALID',
-    },
-    {
-      date: 'June 2, 2025 04:15 PM',
-      verified_by: 'Public Verification',
-      ip_address: '203.144.xxx.xxx',
-      location: 'Phnom Penh, Cambodia',
-      result: 'VALID',
-    },
-    {
-      date: 'May 29, 2025 09:10 AM',
-      verified_by: 'Public Verification',
-      ip_address: '119.75.xxx.xxx',
-      location: 'Phnom Penh, Cambodia',
-      result: 'VALID',
-    }
-  ]
+const idleData: VerificationPayload = {
+  status: 'idle',
+  history: [],
 }
 
-const currentResult = computed<VerificationPayload>(() => props.verificationData || defaultData)
+const currentResult = computed<VerificationPayload>(() => props.verificationData || idleData)
 
 // Execute verification
 const handleVerify = (queryValue?: string) => {
@@ -109,7 +67,7 @@ const handleVerify = (queryValue?: string) => {
   if (!query) {
     if (activeTab.value === 'id') query = certificateIdInput.value
     else if (activeTab.value === 'link') query = verificationLinkInput.value
-    else query = 'SPI-CERT-2025-00124'
+    else query = certificateIdInput.value
   }
 
   if (!query?.trim()) return
@@ -127,43 +85,35 @@ const handleVerify = (queryValue?: string) => {
   })
 }
 
-// QR Upload Simulation
+// QR Upload handler (extracts code from filename if present)
 const onQrFileChange = (e: Event) => {
   const target = e.target as HTMLInputElement
   if (target.files && target.files[0]) {
     qrUploadFile.value = target.files[0]
-    isLoading.value = true
-    setTimeout(() => {
-      certificateIdInput.value = 'SPI-CERT-2025-00124'
+    const stem = target.files[0].name.replace(/\.[^.]+$/, '').trim()
+    if (stem) {
+      certificateIdInput.value = stem
       activeTab.value = 'id'
-      handleVerify('SPI-CERT-2025-00124')
-    }, 1200)
+      handleVerify(stem)
+    }
   }
 }
 
 // Copy verification link
 const copyVerificationLink = () => {
-  const url = currentResult.value.verification_url || 'https://spilms.tech/verify/SPI-CERT-2025-00124'
+  const url = currentResult.value.verification_url || window.location.href
   navigator.clipboard.writeText(url)
   copyFeedback.value = 'Verification link copied successfully!'
   setTimeout(() => copyFeedback.value = '', 3000)
 }
 
-// Download PDF flow
+// Real Download PDF flow
 const downloadCertificate = () => {
-  downloadFeedback.value = 'Generating official PDF certificate...'
-  setTimeout(() => {
-    downloadFeedback.value = 'Certificate downloaded successfully.'
-    // Trigger virtual file download
-    const element = document.createElement('a')
-    const file = new Blob([`SPI Official Certificate: ${currentResult.value.certificate_id} - ${currentResult.value.student_name}`], {type: 'text/plain'})
-    element.href = URL.createObjectURL(file)
-    element.download = `${currentResult.value.certificate_id}.pdf`
-    document.body.appendChild(element)
-    element.click()
-    document.body.removeChild(element)
-    setTimeout(() => downloadFeedback.value = '', 4000)
-  }, 1200)
+  if (currentResult.value.download_url) {
+    window.open(currentResult.value.download_url, '_blank')
+    return
+  }
+  window.print()
 }
 
 // Print Certificate flow
@@ -173,9 +123,9 @@ const printCertificate = () => {
 
 // Reset / Try Again
 const resetSearch = () => {
-  certificateIdInput.value = 'SPI-CERT-2025-00124'
-  verificationLinkInput.value = 'https://spilms.tech/verify/SPI-CERT-2025-00124'
-  handleVerify('SPI-CERT-2025-00124')
+  certificateIdInput.value = ''
+  verificationLinkInput.value = ''
+  router.get('/student/certificates/verify', {}, { preserveState: false })
 }
 </script>
 
@@ -338,12 +288,6 @@ const resetSearch = () => {
                     <span>Select QR Image</span>
                     <input type="file" accept="image/*" class="hidden" @change="onQrFileChange" />
                   </label>
-                  <button
-                    @click="handleVerify('SPI-CERT-2025-00124')"
-                    class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
-                  >
-                    Simulate Camera Scan
-                  </button>
                 </div>
               </div>
             </div>
@@ -354,7 +298,18 @@ const resetSearch = () => {
           <div v-if="isLoading" class="bg-white dark:bg-[#0F172A]/90 border border-purple-500/40 rounded-3xl p-10 text-center space-y-3 shadow-sm dark:shadow-xl">
             <div class="w-12 h-12 rounded-full border-4 border-purple-500/20 border-t-purple-500 animate-spin mx-auto"></div>
             <h3 class="text-base font-bold text-slate-900 dark:text-white">Verifying Certificate Authenticity...</h3>
-            <p class="text-xs text-slate-600 dark:text-slate-400">Querying official blockchain records and registry database</p>
+            <p class="text-xs text-slate-600 dark:text-slate-400">Querying official registry database</p>
+          </div>
+
+          <!-- IDLE STATE: AWAITING INPUT -->
+          <div v-else-if="currentResult.status === 'idle'" class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-10 text-center space-y-3 shadow-sm dark:shadow-xl">
+            <div class="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/30 text-purple-600 dark:text-purple-400 flex items-center justify-center text-2xl mx-auto">
+              🛡️
+            </div>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white">ផ្ទៀងផ្ទាត់វិញ្ញាបនបត្រផ្លូវការ</h3>
+            <p class="text-xs text-slate-600 dark:text-slate-400 max-w-md mx-auto">
+              សូមបញ្ចូលលេខកូដវិញ្ញាបនបត្រ ឬតំណភ្ជាប់ផ្ទៀងផ្ទាត់ខាងលើ ដើម្បីត្រួតពិនិត្យភាពត្រឹមត្រូវចេញពីប្រព័ន្ធទិន្នន័យពិតប្រាកដ។
+            </p>
           </div>
 
           <!-- ERROR STATE: NOT FOUND / INVALID -->
@@ -365,7 +320,7 @@ const resetSearch = () => {
               </div>
               <div class="space-y-1">
                 <h3 class="text-lg font-black text-rose-600 dark:text-rose-400">
-                  {{ currentResult.status === 'not_found' ? 'Certificate Not Found' : 'Certificate Not Valid / Revoked' }}
+                  {{ currentResult.status === 'not_found' ? 'រកមិនឃើញវិញ្ញាបនបត្រទេ' : 'វិញ្ញាបនបត្រមិនមានសុពលភាព' }}
                 </h3>
                 <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                   {{ currentResult.message || 'We could not verify the authenticity of the certificate ID provided.' }}
@@ -373,19 +328,12 @@ const resetSearch = () => {
               </div>
             </div>
 
-            <div class="p-4 bg-slate-50 dark:bg-slate-950/80 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-400 space-y-1">
-              <p class="font-bold text-slate-900 dark:text-white">Possible Reasons:</p>
-              <p>• Certificate ID was mistyped or does not exist</p>
-              <p>• Certificate has been officially revoked or expired</p>
-              <p>• Verification QR code or link was altered</p>
-            </div>
-
             <div class="flex items-center gap-3 pt-1">
               <button
                 @click="resetSearch"
                 class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md cursor-pointer"
               >
-                Try Sample Specimen
+                ស្វែងរកម្ដងទៀត
               </button>
               <a
                 href="mailto:support@spilms.tech"
@@ -540,9 +488,13 @@ const resetSearch = () => {
                 🛡️
               </div>
               <div class="space-y-0.5">
-                <h4 class="text-base font-black text-emerald-600 dark:text-emerald-400 tracking-wide">VALID CERTIFICATE</h4>
-                <p class="text-xs text-slate-600 dark:text-slate-300">This certificate is authentic and valid.</p>
-                <p class="text-[10px] text-slate-400 dark:text-slate-400 font-mono pt-0.5">Verified on {{ currentResult.verified_on }}</p>
+                <h4 class="text-base font-black tracking-wide" :class="currentResult.status === 'valid' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300'">
+                  {{ currentResult.status === 'valid' ? 'VALID CERTIFICATE' : (currentResult.status === 'idle' ? 'AWAITING VERIFICATION' : 'NOT VERIFIED') }}
+                </h4>
+                <p class="text-xs text-slate-600 dark:text-slate-300">
+                  {{ currentResult.status === 'valid' ? 'This certificate is authentic and valid.' : 'បញ្ចូលលេខសម្គាល់វិញ្ញាបនបត្រដើម្បីពិនិត្យ។' }}
+                </p>
+                <p v-if="currentResult.verified_on" class="text-[10px] text-slate-400 dark:text-slate-400 font-mono pt-0.5">Verified on {{ currentResult.verified_on }}</p>
               </div>
             </div>
           </div>

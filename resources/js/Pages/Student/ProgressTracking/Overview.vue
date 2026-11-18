@@ -3,6 +3,10 @@ import { ref, computed } from 'vue'
 import { Link } from '@inertiajs/vue3'
 import StudentLayout from '@/Layouts/StudentLayout.vue'
 
+const props = defineProps<{
+  overviewData?: Record<string, any>
+}>()
+
 // Search Input
 const searchQuery = ref('')
 
@@ -15,194 +19,76 @@ const isEditGoalOpen = ref(false)
 const showToast = ref(false)
 const toastMessage = ref('')
 
-// Learning Goal Model
-const learningGoal = ref({
-  title: 'Become a Full Stack Web Developer',
-  progress: 58,
-  targetDate: 'Dec 31, 2025',
-  timeRemaining: '7 months',
+// Learning Goal Model (bound to real DB prop)
+const learningGoal = ref(props.overviewData?.learningGoal || {
+  title: 'កំណត់គោលដៅសិក្សារបស់អ្នក',
+  progress: 0,
+  targetDate: '—',
+  timeRemaining: '—',
   weeklyTargetHours: 10
 })
 
 const editGoalForm = ref({
-  title: 'Become a Full Stack Web Developer',
-  targetDate: '2025-12-31',
-  weeklyTargetHours: 10
+  title: learningGoal.value.title,
+  targetDate: '',
+  weeklyTargetHours: learningGoal.value.weeklyTargetHours || 10
 })
 
-// Top Metrics Summary
-const topMetrics = ref({
-  overallProgress: 62,
-  completedItems: 28,
-  totalItems: 45,
-  overallTrend: '+12% this month',
-  coursesEnrolled: 6,
-  upcomingCompletions: 2,
-  totalStudyTime: '48h 30m',
-  weeklyStudyIncrease: '+8h 20m this week',
-  certificatesEarned: 3,
-  nextCertificate: 'Full Stack Developer'
+// Top Metrics Summary (100% real DB)
+const topMetrics = computed(() => props.overviewData?.topMetrics || {
+  overallProgress: 0,
+  completedItems: 0,
+  totalItems: 0,
+  overallTrend: '0% completed',
+  coursesEnrolled: 0,
+  upcomingCompletions: 0,
+  totalStudyTime: '0h 00m',
+  weeklyStudyIncrease: '0h 00m this week',
+  certificatesEarned: 0,
+  nextCertificate: '—'
 })
 
 // Weekly Goal
-const weeklyGoal = ref({
-  percent: 75,
-  currentHours: '7h 30m',
+const weeklyGoal = computed(() => props.overviewData?.weeklyGoal || {
+  percent: 0,
+  currentHours: '0h 00m',
   targetHours: '10h',
   targetDescription: 'Study 10 hours this week'
 })
 
 // Progress by Category
-const categories = ref([
-  { name: 'Courses', percent: 65, color: '#8b5cf6', strokeDash: '163.36', strokeOffset: '57.17' },
-  { name: 'Quizzes', percent: 58, color: '#3b82f6', strokeDash: '163.36', strokeOffset: '68.61' },
-  { name: 'Assignments', percent: 70, color: '#eab308', strokeDash: '163.36', strokeOffset: '49.00' },
-  { name: 'Projects', percent: 60, color: '#10b981', strokeDash: '163.36', strokeOffset: '65.34' },
-  { name: 'Others', percent: 40, color: '#94a3b8', strokeDash: '163.36', strokeOffset: '98.01' }
+const categories = computed(() => props.overviewData?.categories || [
+  { name: 'Courses', percent: 0, color: '#8b5cf6', strokeDash: '163.36', strokeOffset: '163.36' },
+  { name: 'Quizzes', percent: 0, color: '#3b82f6', strokeDash: '163.36', strokeOffset: '163.36' },
+  { name: 'Certificates', percent: 0, color: '#10b981', strokeDash: '163.36', strokeOffset: '163.36' }
 ])
 
 // Recent Activity List
-const recentActivities = ref([
-  {
-    id: 1,
-    title: 'Completed lesson',
-    detail: 'JavaScript Functions',
-    time: '2 hours ago',
-    icon: '✓',
-    iconBg: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-  },
-  {
-    id: 2,
-    title: 'Scored 85% on Quiz',
-    detail: 'JavaScript Basics Quiz',
-    time: 'Yesterday',
-    icon: '📑',
-    iconBg: 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-  },
-  {
-    id: 3,
-    title: 'Started new course',
-    detail: 'React.js Fundamentals',
-    time: '2 days ago',
-    icon: '📘',
-    iconBg: 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-  },
-  {
-    id: 4,
-    title: 'Submitted assignment',
-    detail: 'HTML & CSS Project',
-    time: '3 days ago',
-    icon: '📝',
-    iconBg: 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-  },
-  {
-    id: 5,
-    title: 'Earned certificate',
-    detail: 'Web Development Basics',
-    time: '5 days ago',
-    icon: '🎓',
-    iconBg: 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
-  }
-])
+const recentActivities = computed(() => props.overviewData?.recentActivities || [])
 
 // Course Progress List
-const courseProgressList = ref([
-  {
-    id: 1,
-    title: 'JavaScript Fundamentals',
-    level: 'Intermediate',
-    lessonsCount: 24,
-    progress: 65,
-    icon: 'JS',
-    iconBg: 'from-amber-400 to-amber-500 text-slate-950',
-    status: 'in_progress',
-    href: '/student/my-courses/current'
-  },
-  {
-    id: 2,
-    title: 'React.js Fundamentals',
-    level: 'Beginner',
-    lessonsCount: 18,
-    progress: 40,
-    icon: '⚛️',
-    iconBg: 'from-cyan-500 to-blue-600 text-white',
-    status: 'in_progress',
-    href: '/student/my-courses/current'
-  },
-  {
-    id: 3,
-    title: 'Node.js & Express',
-    level: 'Intermediate',
-    lessonsCount: 20,
-    progress: 20,
-    icon: 'node',
-    iconBg: 'from-emerald-500 to-green-600 text-white',
-    status: 'in_progress',
-    href: '/student/my-courses/current'
-  },
-  {
-    id: 4,
-    title: 'HTML & CSS',
-    level: 'Beginner',
-    lessonsCount: 16,
-    progress: 100,
-    icon: '5',
-    iconBg: 'from-orange-500 to-red-600 text-white',
-    status: 'completed',
-    href: '/student/my-courses/overview'
-  }
-])
+const courseProgressList = computed(() => props.overviewData?.courseProgressList || [])
 
 // Skills Progress List
-const skillsProgressList = ref([
-  { name: 'JavaScript', icon: 'JS', iconBg: 'from-amber-400 to-amber-500 text-slate-950', percent: 70, segments: 10, activeSegments: 7 },
-  { name: 'HTML & CSS', icon: '5', iconBg: 'from-orange-500 to-red-600 text-white', percent: 90, segments: 10, activeSegments: 9 },
-  { name: 'React.js', icon: '⚛️', iconBg: 'from-cyan-500 to-blue-600 text-white', percent: 40, segments: 10, activeSegments: 4 },
-  { name: 'Node.js', icon: 'node', iconBg: 'from-emerald-500 to-green-600 text-white', percent: 30, segments: 10, activeSegments: 3 },
-  { name: 'Problem Solving', icon: '🧠', iconBg: 'from-purple-600 to-indigo-600 text-white', percent: 60, segments: 10, activeSegments: 6 }
-])
+const skillsProgressList = computed(() => props.overviewData?.skillsProgressList || [])
 
 // Achievements Badges
-const achievements = ref([
-  {
-    id: 1,
-    title: 'Consistent Learner',
-    subtitle: '7 Days Streak',
-    icon: '⭐',
-    shieldBg: 'from-emerald-500/30 to-emerald-800/40 border-emerald-500 text-emerald-400'
-  },
-  {
-    id: 2,
-    title: 'Quick Learner',
-    subtitle: '5 Courses Started',
-    icon: '⚡',
-    shieldBg: 'from-purple-500/30 to-purple-800/40 border-purple-500 text-purple-300'
-  },
-  {
-    id: 3,
-    title: 'High Performer',
-    subtitle: '85% Avg Score',
-    icon: '👑',
-    shieldBg: 'from-amber-500/30 to-amber-800/40 border-amber-500 text-amber-400'
-  }
-])
+const achievements = computed(() => props.overviewData?.achievements || [])
 
 // Quiz Performance Summary
-const quizStats = ref({
-  averageScore: 72,
-  averageTrend: '+8% this month',
-  quizzesTaken: 24,
-  quizzesTrend: '+6 this month',
-  highestScore: 95,
-  highestScoreQuiz: 'JavaScript Advanced Quiz',
-  lowestScore: 35,
-  lowestScoreQuiz: 'SQL JOIN Operations Quiz'
+const quizStats = computed(() => props.overviewData?.quizStats || {
+  averageScore: 0,
+  averageTrend: '0 attempts',
+  quizzesTaken: 0,
+  quizzesTrend: 'All time',
+  highestScore: 0,
+  highestScoreQuiz: '—',
+  lowestScore: 0,
+  lowestScoreQuiz: '—'
 })
 
-// Bar Chart Mock Data for May 1 - May 31 (31 bars)
-const quizBarData = [
-  45, 60, 75, 50, 85, 90, 65, 70, 80, 95, 60, 55, 70, 85, 90, 65, 80, 85, 70, 75, 90, 60, 75, 85, 95, 70, 65, 80, 90, 85, 95
-]
+// Real 31-day Quiz Bar Chart Data
+const quizBarData = computed<number[]>(() => props.overviewData?.quizBarData || Array(31).fill(0))
 
 // Methods
 const saveGoal = () => {

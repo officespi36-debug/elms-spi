@@ -34,11 +34,9 @@ const effectiveRole = computed(() => {
 
 const userDisplayName = computed(() => {
   if (isKhmer.value) {
-    if (currentUser.value?.name_kh) return currentUser.value.name_kh
-    if (currentUser.value?.name === 'Mengly Khun') return 'ម៉េងលី ឃុន'
-    return currentUser.value?.name || 'គណនីនិស្សិត'
+    return currentUser.value?.name_kh || currentUser.value?.name || 'គណនីនិស្សិត'
   }
-  return currentUser.value?.name || 'Student User'
+  return currentUser.value?.name || currentUser.value?.name_kh || 'Student User'
 })
 
 const userDisplayEmail = computed(() => {

@@ -36,26 +36,39 @@ class ContinueLearningService
         $targetCourse = $course;
 
         if ($targetCourse) {
-            // Verify active enrollment or auto-enroll if published course
+            // Verify enrollment without silent auto-enrolling
             $enrollment = Enrollment::where('student_id', $user->id)
                 ->where('course_id', $targetCourse->id)
                 ->first();
 
-            if (!$enrollment && $targetCourse->status === 'published') {
-                $enrollment = app(EnrollmentService::class)->enroll($user, $targetCourse, 'self', $user);
+            if (!$enrollment) {
+                return null;
             }
 
-            if (!$enrollment || $enrollment->status !== 'active') {
-                // If enrolled but completed
-                if ($enrollment && $enrollment->status === 'completed') {
+            if ($enrollment->status !== 'active') {
+                // If enrolled and completed, return real lesson counts from curriculum
+                if ($enrollment->status === 'completed') {
+                    $curriculum = $this->studentLearningService->getCourseCurriculum($user, $targetCourse);
+                    $allLessons = collect($curriculum['lessons'] ?? []);
+                    $totalLessons = $allLessons->count();
+                    $completedLessons = $allLessons->where('is_completed', true)->count();
+                    if ($completedLessons === 0 && $totalLessons > 0) {
+                        $completedLessons = $totalLessons;
+                    }
+                    $lastLesson = $allLessons->last();
+                    $lastLessonModel = $lastLesson ? Lesson::find($lastLesson['id']) : null;
+
                     return [
                         'course'                  => $targetCourse,
-                        'lesson'                  => null,
+                        'lesson'                  => $lastLessonModel,
+                        'lesson_item'             => $lastLesson,
                         'all_completed'           => true,
                         'progress_percent'        => 100,
-                        'completed_lessons_count' => 0,
-                        'total_lessons_count'     => 0,
+                        'completed_lessons_count' => $completedLessons,
+                        'total_lessons_count'     => $totalLessons,
+                        'time_left'               => 'Completed',
                         'next_lesson_url'         => "/student/courses/{$targetCourse->id}/overview",
+                        'curriculum'              => $curriculum,
                     ];
                 }
                 return null;
@@ -155,7 +168,7 @@ class ContinueLearningService
         }
 
         $watchedSeconds = (int) ($firstIncomplete['watched_seconds'] ?? 0);
-        $durationSeconds = (int) ($firstIncomplete['duration_seconds'] ?? 600);
+        $durationSeconds = (int) ($firstIncomplete['duration_seconds'] ?? 0);
         $secondsLeft = max(0, $durationSeconds - $watchedSeconds);
 
         return [

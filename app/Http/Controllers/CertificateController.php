@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Certificate;
 use App\Services\CertificateService;
-use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Inertia\Inertia;
 
 class CertificateController extends Controller
@@ -18,15 +18,45 @@ class CertificateController extends Controller
 
     public function verify(?string $code = null)
     {
-        $code = $code ?: request()->route('code') ?: request()->route('uuid') ?: request()->query('q') ?: 'STU-2024-089';
-        $ip = request()->ip();
-        $source = request()->query('source', 'manual_id');
+        $rawCode = $code
+            ?: request()->route('code')
+            ?: request()->route('uuid')
+            ?: request()->query('q')
+            ?: request()->query('code')
+            ?: '';
+        $cleanCode = trim((string) $rawCode);
 
-        $result = $this->certificateService->logVerification($code, $ip, $source);
+        if ($cleanCode === '') {
+            return Inertia::render('Certificate/Verify', [
+                'initialCode'        => '',
+                'status'             => 'idle',
+                'is_student_id'      => false,
+                'student_name'       => null,
+                'student_name_kh'    => null,
+                'student_id'         => null,
+                'course_name'        => null,
+                'major_name'         => null,
+                'faculty_name'       => null,
+                'grade'              => null,
+                'score'              => null,
+                'issued_at'          => null,
+                'certificate_number' => null,
+                'revoked_at'         => null,
+                'revocation_reason'  => null,
+                'status_label'       => null,
+                'institution'        => 'Saint Paul Institute (វិទ្យាស្ថាន សន្តប៉ូល)',
+                'checked_at'         => null,
+            ]);
+        }
+
+        $ip = request()->ip();
+        $source = (string) request()->query('source', 'manual_id');
+
+        $result = $this->certificateService->logVerification($cleanCode, $ip, $source);
 
         return Inertia::render('Certificate/Verify', [
-            'initialCode'        => $code,
-            'status'             => $result['status'], // valid, revoked, not_found, pending
+            'initialCode'        => $cleanCode,
+            'status'             => $result['status'],
             'is_student_id'      => $result['is_student_id'] ?? false,
             'student_name'       => $result['student_name'] ?? null,
             'student_name_kh'    => $result['student_name_kh'] ?? null,
@@ -37,7 +67,7 @@ class CertificateController extends Controller
             'grade'              => $result['grade'] ?? null,
             'score'              => $result['score'] ?? null,
             'issued_at'          => $result['issued_at'] ?? null,
-            'certificate_number' => $result['certificate_number'] ?? $code,
+            'certificate_number' => $result['certificate_number'] ?? $cleanCode,
             'revoked_at'         => $result['revoked_at'] ?? null,
             'revocation_reason'  => $result['revocation_reason'] ?? null,
             'status_label'       => $result['status_label'] ?? null,
@@ -52,12 +82,16 @@ class CertificateController extends Controller
             abort(403);
         }
 
+        if ($certificate->status === 'revoked') {
+            abort(403, 'This certificate has been revoked and cannot be downloaded.');
+        }
+
         $certificate->load(['student', 'course']);
         $certificate->increment('downloads_count');
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.certificate', [
-            'student_name' => $certificate->student?->name ?? 'Chan Dara',
-            'course_name'  => $certificate->course?->title ?? 'C Programming Basics',
+        $pdf = Pdf::loadView('pdf.certificate', [
+            'student_name' => $certificate->student?->name ?? 'Student',
+            'course_name'  => $certificate->course?->title ?? 'Course',
             'issued_at'    => $certificate->issued_at ? $certificate->issued_at->format('F d, Y') : now()->format('F d, Y'),
             'cert_number'  => $certificate->certificate_number,
         ])->setPaper('a4', 'landscape');

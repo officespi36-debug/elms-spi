@@ -2,6 +2,9 @@
 import { ref, computed } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
 import StudentLayout from '@/Layouts/StudentLayout.vue'
+import { useLanguage } from '@/Services/i18n'
+
+const { t } = useLanguage()
 
 interface RequirementItem {
   label: string
@@ -12,14 +15,18 @@ interface RequirementItem {
 interface AvailableCertificate {
   id: number
   title: string
+  title_kh?: string | null
   issuer: string
   description: string
   progress: number
   level: string
   category: string
+  major_id?: number | null
   status_type: 'in_progress' | 'almost_there' | 'not_started'
   badge_color: string
   bar_color: string
+  is_enrolled?: boolean
+  course_url?: string
   requirements: RequirementItem[]
 }
 
@@ -33,8 +40,14 @@ interface OverviewSegment {
 interface CategoryItem {
   id: number
   name: string
+  name_kh?: string | null
   count: number
   color: string
+}
+
+interface CourseOption {
+  id: number | string
+  title: string
 }
 
 const props = defineProps<{
@@ -60,6 +73,12 @@ const props = defineProps<{
     total_count: number
     current_page: number
     per_page: number
+    last_page?: number
+    filter_options?: {
+      categories?: string[]
+      courses?: CourseOption[]
+      levels?: string[]
+    }
   }
   filters?: {
     status: string
@@ -72,180 +91,79 @@ const props = defineProps<{
   }
 }>()
 
-// Baseline default fallback data
 const defaultSummary = {
-  total_available: 15,
+  total_available: 0,
   total_note: 'Certificates available',
-  in_progress: 6,
+  in_progress: 0,
   in_progress_note: 'You are working on',
-  almost_there: 4,
+  almost_there: 0,
   almost_note: '80% or more completed',
-  not_started: 5,
+  not_started: 0,
   not_started_note: 'Ready to begin',
-  earned_this_year: 5,
+  earned_this_year: 0,
   earned_note: 'Certificates earned',
 }
 
 const defaultProgressOverview = {
-  total: 15,
+  total: 0,
   items: [
-    { label: 'In Progress',  count: 6, percentage: 40, color: '#3B82F6' },
-    { label: 'Almost There', count: 4, percentage: 27, color: '#10B981' },
-    { label: 'Not Started',  count: 5, percentage: 33, color: '#F59E0B' },
-  ]
+    { label: 'In Progress',  count: 0, percentage: 0, color: '#3B82F6' },
+    { label: 'Almost There', count: 0, percentage: 0, color: '#10B981' },
+    { label: 'Not Started',  count: 0, percentage: 0, color: '#F59E0B' },
+  ],
 }
-
-const defaultPopularCategories: CategoryItem[] = [
-  { id: 1, name: 'Programming',     count: 6, color: 'bg-purple-600/20 text-purple-300 border-purple-500/30' },
-  { id: 2, name: 'Web Development', count: 4, color: 'bg-blue-600/20 text-blue-300 border-blue-500/30' },
-  { id: 3, name: 'Data Science',    count: 2, color: 'bg-emerald-600/20 text-emerald-300 border-emerald-500/30' },
-  { id: 4, name: 'Design',          count: 2, color: 'bg-amber-600/20 text-amber-300 border-amber-500/30' },
-  { id: 5, name: 'Database',        count: 1, color: 'bg-rose-600/20 text-rose-300 border-rose-500/30' },
-]
-
-const defaultCertificates: AvailableCertificate[] = [
-  {
-    id: 1,
-    title: 'JavaScript Advanced',
-    issuer: 'SPI E-Learning Platform',
-    description: 'Master advanced JavaScript concepts, ES6+, and modern development.',
-    progress: 80,
-    level: 'Intermediate',
-    category: 'Programming',
-    status_type: 'almost_there',
-    badge_color: 'bg-purple-600 text-white',
-    bar_color: 'bg-emerald-500',
-    requirements: [
-      { label: 'Lessons Completed', value: '10 / 12 (83%)', done: true },
-      { label: 'Quizzes Passed', value: '2 / 2 (100%)', done: true },
-      { label: 'Assignments Submitted', value: '1 / 1 (100%)', done: true },
-    ]
-  },
-  {
-    id: 2,
-    title: 'React Development',
-    issuer: 'SPI E-Learning Platform',
-    description: 'Build modern web applications with React, Hooks, and Context API.',
-    progress: 65,
-    level: 'Intermediate',
-    category: 'Web Development',
-    status_type: 'in_progress',
-    badge_color: 'bg-blue-600 text-white',
-    bar_color: 'bg-blue-500',
-    requirements: [
-      { label: 'Lessons Completed', value: '8 / 12 (67%)', done: false },
-      { label: 'Quizzes Passed', value: '1 / 2 (50%)', done: false },
-      { label: 'Assignments Submitted', value: '0 / 1 (0%)', done: false },
-    ]
-  },
-  {
-    id: 3,
-    title: 'Node.js Fundamentals',
-    issuer: 'SPI E-Learning Platform',
-    description: 'Learn backend development with Node.js, Express, and APIs.',
-    progress: 90,
-    level: 'Beginner',
-    category: 'Web Development',
-    status_type: 'almost_there',
-    badge_color: 'bg-emerald-600 text-white',
-    bar_color: 'bg-emerald-500',
-    requirements: [
-      { label: 'Lessons Completed', value: '9 / 10 (90%)', done: true },
-      { label: 'Quizzes Passed', value: '2 / 2 (100%)', done: true },
-      { label: 'Assignments Submitted', value: '1 / 1 (100%)', done: true },
-    ]
-  },
-  {
-    id: 4,
-    title: 'Python Programming',
-    issuer: 'SPI E-Learning Platform',
-    description: 'Learn Python from basics to advanced programming concepts.',
-    progress: 30,
-    level: 'Beginner',
-    category: 'Programming',
-    status_type: 'in_progress',
-    badge_color: 'bg-amber-600 text-white',
-    bar_color: 'bg-amber-500',
-    requirements: [
-      { label: 'Lessons Completed', value: '3 / 10 (30%)', done: false },
-      { label: 'Quizzes Passed', value: '0 / 2 (0%)', done: false },
-      { label: 'Assignments Submitted', value: '0 / 1 (0%)', done: false },
-    ]
-  },
-  {
-    id: 5,
-    title: 'Database Design',
-    issuer: 'SPI E-Learning Platform',
-    description: 'Design efficient databases and understand normalization.',
-    progress: 75,
-    level: 'Intermediate',
-    category: 'Database',
-    status_type: 'in_progress',
-    badge_color: 'bg-rose-600 text-white',
-    bar_color: 'bg-rose-500',
-    requirements: [
-      { label: 'Lessons Completed', value: '6 / 8 (75%)', done: true },
-      { label: 'Quizzes Passed', value: '1 / 2 (50%)', done: false },
-      { label: 'Assignments Submitted', value: '1 / 1 (100%)', done: true },
-    ]
-  },
-  {
-    id: 6,
-    title: 'UI/UX Design Basics',
-    issuer: 'SPI E-Learning Platform',
-    description: 'Learn the fundamentals of UI/UX design and user research.',
-    progress: 40,
-    level: 'Beginner',
-    category: 'Design',
-    status_type: 'in_progress',
-    badge_color: 'bg-cyan-600 text-white',
-    bar_color: 'bg-cyan-500',
-    requirements: [
-      { label: 'Lessons Completed', value: '4 / 10 (40%)', done: false },
-      { label: 'Quizzes Passed', value: '1 / 1 (100%)', done: true },
-      { label: 'Assignments Submitted', value: '0 / 1 (0%)', done: false },
-    ]
-  },
-  {
-    id: 7,
-    title: 'HTML & CSS Essentials',
-    issuer: 'SPI E-Learning Platform',
-    description: 'Build responsive websites using HTML5 and modern CSS.',
-    progress: 10,
-    level: 'Beginner',
-    category: 'Web Development',
-    status_type: 'in_progress',
-    badge_color: 'bg-purple-600 text-white',
-    bar_color: 'bg-purple-500',
-    requirements: [
-      { label: 'Lessons Completed', value: '1 / 10 (10%)', done: false },
-      { label: 'Quizzes Passed', value: '0 / 2 (0%)', done: false },
-      { label: 'Assignments Submitted', value: '0 / 1 (0%)', done: false },
-    ]
-  },
-  {
-    id: 8,
-    title: 'Git & GitHub',
-    issuer: 'SPI E-Learning Platform',
-    description: 'Master version control and collaborative development.',
-    progress: 0,
-    level: 'Beginner',
-    category: 'Programming',
-    status_type: 'not_started',
-    badge_color: 'bg-slate-700 text-white',
-    bar_color: 'bg-slate-600',
-    requirements: [
-      { label: 'Lessons Completed', value: '0 / 6 (0%)', done: false },
-      { label: 'Quizzes Passed', value: '0 / 1 (0%)', done: false },
-      { label: 'Assignments Submitted', value: '0 / 1 (0%)', done: false },
-    ]
-  },
-]
 
 const summary = computed(() => props.analytics?.summary || defaultSummary)
 const progressOverview = computed(() => props.analytics?.progress_overview || defaultProgressOverview)
-const popularCategories = computed(() => props.analytics?.popular_categories || defaultPopularCategories)
-const certificates = computed(() => props.analytics?.certificates || defaultCertificates)
+const popularCategories = computed<CategoryItem[]>(() => props.analytics?.popular_categories || [])
+const certificates = computed<AvailableCertificate[]>(() => props.analytics?.certificates || [])
+const totalCount = computed(() => props.analytics?.total_count ?? certificates.value.length)
+const currentPage = computed(() => props.analytics?.current_page ?? 1)
+const perPage = computed(() => props.analytics?.per_page ?? 8)
+const lastPage = computed(() => props.analytics?.last_page ?? Math.max(1, Math.ceil(totalCount.value / Math.max(1, perPage.value))))
+
+const showingFrom = computed(() => (totalCount.value === 0 ? 0 : (currentPage.value - 1) * perPage.value + 1))
+const showingTo = computed(() => (totalCount.value === 0 ? 0 : Math.min(totalCount.value, currentPage.value * perPage.value)))
+
+// Dynamic SVG Donut segments
+const donutSegments = computed(() => {
+  if (!progressOverview.value.total || progressOverview.value.total <= 0) return []
+  let cumulative = 0
+  return progressOverview.value.items
+    .filter((item) => item.percentage > 0)
+    .map((item) => {
+      const seg = {
+        label: item.label,
+        color: item.color,
+        dashArray: `${item.percentage} ${Math.max(0, 100 - item.percentage)}`,
+        dashOffset: -cumulative,
+      }
+      cumulative += item.percentage
+      return seg
+    })
+})
+
+// Dynamic Filter Options
+const categoryOptions = computed<string[]>(() => {
+  const fromProps = props.analytics?.filter_options?.categories
+  if (Array.isArray(fromProps) && fromProps.length > 0) return fromProps
+  if (popularCategories.value.length > 0) {
+    return Array.from(new Set(popularCategories.value.map((c) => c.name).filter(Boolean)))
+  }
+  return Array.from(new Set(certificates.value.map((c) => c.category).filter(Boolean)))
+})
+
+const courseOptions = computed<CourseOption[]>(() => {
+  const fromProps = props.analytics?.filter_options?.courses
+  if (Array.isArray(fromProps) && fromProps.length > 0) return fromProps
+  return certificates.value.map((c) => ({ id: c.id, title: c.title }))
+})
+
+const levelOptions = computed<string[]>(() => {
+  const fromProps = props.analytics?.filter_options?.levels
+  if (Array.isArray(fromProps) && fromProps.length > 0) return fromProps
+  return Array.from(new Set(certificates.value.map((c) => c.level).filter(Boolean)))
+})
 
 // Filter & View States
 const activeStatusTab = ref<string>(props.filters?.status || 'all')
@@ -256,6 +174,16 @@ const selectedLevel = ref<string>(props.filters?.level || 'all')
 const selectedSort = ref<string>(props.filters?.sort || 'progress')
 const isGridView = ref(true)
 
+const hasActiveFilters = computed(() => {
+  return (
+    activeStatusTab.value !== 'all' ||
+    selectedCategory.value !== 'all' ||
+    selectedCourse.value !== 'all' ||
+    selectedLevel.value !== 'all' ||
+    searchQuery.value.trim() !== ''
+  )
+})
+
 // Modals State
 const selectedCertForModal = ref<AvailableCertificate | null>(null)
 const isRequirementsModalOpen = ref(false)
@@ -265,8 +193,8 @@ const openRequirementsModal = (cert: AvailableCertificate) => {
   isRequirementsModalOpen.value = true
 }
 
-const handleFilterChange = (overrideTab?: string) => {
-  if (overrideTab) {
+const handleFilterChange = (overrideTab?: string, targetPage = 1) => {
+  if (overrideTab !== undefined) {
     activeStatusTab.value = overrideTab
   }
   router.get('/student/certificates/download-share', {
@@ -276,11 +204,36 @@ const handleFilterChange = (overrideTab?: string) => {
     level: selectedLevel.value,
     sort: selectedSort.value,
     search: searchQuery.value,
-    page: 1,
+    page: targetPage,
   }, {
     preserveState: true,
     preserveScroll: true,
   })
+}
+
+const goToPage = (pageNum: number) => {
+  if (pageNum < 1 || pageNum > lastPage.value || pageNum === currentPage.value) return
+  handleFilterChange(undefined, pageNum)
+}
+
+const visiblePages = computed<number[]>(() => {
+  const pages: number[] = []
+  const start = Math.max(1, currentPage.value - 2)
+  const end = Math.min(lastPage.value, start + 4)
+  for (let p = start; p <= end; p++) {
+    pages.push(p)
+  }
+  return pages
+})
+
+const resetFilters = () => {
+  activeStatusTab.value = 'all'
+  selectedCategory.value = 'all'
+  selectedCourse.value = 'all'
+  selectedLevel.value = 'all'
+  searchQuery.value = ''
+  selectedSort.value = 'progress'
+  handleFilterChange('all', 1)
 }
 </script>
 
@@ -292,22 +245,22 @@ const handleFilterChange = (overrideTab?: string) => {
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
-            <span>Available Certificates</span>
+            <span>{{ t('វិញ្ញាបនបត្រដែលអាចទទួលបាន', 'Available Certificates') }}</span>
             <span class="inline-flex p-1.5 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-600 dark:text-purple-400 text-lg">📄</span>
           </h1>
           <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">
-            Explore all certificates you can earn. Complete courses and unlock your achievements.
+            {{ t('ស្វែងយល់ពីវគ្គសិក្សាដែលផ្តល់វិញ្ញាបនបត្រ និងតាមដានលក្ខខណ្ឌបញ្ចប់ការសិក្សារបស់អ្នក។', 'Explore certificates you can earn and track your course completion requirements.') }}
           </p>
         </div>
       </div>
 
       <!-- ================= 2. 5 TOP SUMMARY METRIC CARDS ================= -->
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-        
+
         <!-- Card 1: Total Available -->
         <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm dark:shadow-xl flex items-center justify-between group hover:border-purple-500/30 transition-all">
           <div class="space-y-0.5">
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Total Available</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{{ t('វិញ្ញាបនបត្រអាចទទួលបាន', 'Total Available') }}</p>
             <p class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ summary.total_available }}</p>
             <p class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">{{ summary.total_note }}</p>
           </div>
@@ -319,7 +272,7 @@ const handleFilterChange = (overrideTab?: string) => {
         <!-- Card 2: In Progress -->
         <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm dark:shadow-xl flex items-center justify-between group hover:border-blue-500/30 transition-all">
           <div class="space-y-0.5">
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">In Progress</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{{ t('កំពុងសិក្សា', 'In Progress') }}</p>
             <p class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ summary.in_progress }}</p>
             <p class="text-[10px] text-blue-600 dark:text-blue-400 font-medium font-mono">{{ summary.in_progress_note }}</p>
           </div>
@@ -331,7 +284,7 @@ const handleFilterChange = (overrideTab?: string) => {
         <!-- Card 3: Almost There -->
         <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm dark:shadow-xl flex items-center justify-between group hover:border-emerald-500/30 transition-all">
           <div class="space-y-0.5">
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Almost There</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{{ t('ជិតបញ្ចប់', 'Almost There') }}</p>
             <p class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ summary.almost_there }}</p>
             <p class="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium font-mono">{{ summary.almost_note }}</p>
           </div>
@@ -343,7 +296,7 @@ const handleFilterChange = (overrideTab?: string) => {
         <!-- Card 4: Not Started -->
         <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm dark:shadow-xl flex items-center justify-between group hover:border-amber-500/30 transition-all">
           <div class="space-y-0.5">
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Not Started</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{{ t('មិនទាន់ចាប់ផ្តើម', 'Not Started') }}</p>
             <p class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ summary.not_started }}</p>
             <p class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">{{ summary.not_started_note }}</p>
           </div>
@@ -355,7 +308,7 @@ const handleFilterChange = (overrideTab?: string) => {
         <!-- Card 5: Earned This Year -->
         <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm dark:shadow-xl flex items-center justify-between group hover:border-purple-500/30 transition-all">
           <div class="space-y-0.5">
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Earned This Year</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{{ t('ទទួលបានក្នុងឆ្នាំនេះ', 'Earned This Year') }}</p>
             <p class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ summary.earned_this_year }}</p>
             <p class="text-[10px] text-purple-600 dark:text-purple-400 font-medium font-mono">{{ summary.earned_note }}</p>
           </div>
@@ -374,14 +327,14 @@ const handleFilterChange = (overrideTab?: string) => {
 
           <!-- SEARCH & FILTER CONTROLS BAR -->
           <div class="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-[#0F172A]/80 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-3 shadow-sm dark:shadow-lg">
-            
+
             <!-- Search Input -->
             <div class="relative flex-1 min-w-[180px]">
               <input
                 type="text"
                 v-model="searchQuery"
                 @keyup.enter="handleFilterChange()"
-                placeholder="Search certificates..."
+                :placeholder="t('ស្វែងរកវគ្គសិក្សា...', 'Search certificates...')"
                 class="w-full bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700/80 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 shadow-xs"
               />
               <span class="absolute left-3 top-2 text-xs text-slate-400 dark:text-slate-500">🔍</span>
@@ -394,11 +347,8 @@ const handleFilterChange = (overrideTab?: string) => {
                 @change="handleFilterChange()"
                 class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 text-xs font-semibold text-slate-700 dark:text-slate-200 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-purple-500 cursor-pointer shadow-xs"
               >
-                <option value="all">All Categories</option>
-                <option value="Programming">Programming</option>
-                <option value="Web Development">Web Development</option>
-                <option value="Database">Database</option>
-                <option value="Design">Design</option>
+                <option value="all">{{ t('គ្រប់ជំនាញទាំងអស់', 'All Categories') }}</option>
+                <option v-for="cat in categoryOptions" :key="cat" :value="cat">{{ cat }}</option>
               </select>
 
               <select
@@ -406,11 +356,8 @@ const handleFilterChange = (overrideTab?: string) => {
                 @change="handleFilterChange()"
                 class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 text-xs font-semibold text-slate-700 dark:text-slate-200 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-purple-500 cursor-pointer shadow-xs"
               >
-                <option value="all">All Courses</option>
-                <option value="JavaScript Advanced">JavaScript Advanced</option>
-                <option value="React Development">React Development</option>
-                <option value="Node.js Fundamentals">Node.js Fundamentals</option>
-                <option value="Python Programming">Python Programming</option>
+                <option value="all">{{ t('គ្រប់វគ្គសិក្សាទាំងអស់', 'All Courses') }}</option>
+                <option v-for="c in courseOptions" :key="c.id" :value="String(c.id)">{{ c.title }}</option>
               </select>
 
               <select
@@ -418,10 +365,8 @@ const handleFilterChange = (overrideTab?: string) => {
                 @change="handleFilterChange()"
                 class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 text-xs font-semibold text-slate-700 dark:text-slate-200 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-purple-500 cursor-pointer shadow-xs"
               >
-                <option value="all">All Levels</option>
-                <option value="Beginner">Beginner</option>
-                <option value="Intermediate">Intermediate</option>
-                <option value="Advanced">Advanced</option>
+                <option value="all">{{ t('គ្រប់កម្រិតសិក្សា', 'All Levels') }}</option>
+                <option v-for="lvl in levelOptions" :key="lvl" :value="lvl">{{ lvl }}</option>
               </select>
 
               <select
@@ -429,8 +374,8 @@ const handleFilterChange = (overrideTab?: string) => {
                 @change="handleFilterChange()"
                 class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 text-xs font-semibold text-slate-700 dark:text-slate-200 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-purple-500 cursor-pointer shadow-xs"
               >
-                <option value="progress">Sort by Progress</option>
-                <option value="title">Sort by Name</option>
+                <option value="progress">{{ t('តម្រៀបតាមវឌ្ឍនភាព', 'Sort by Progress') }}</option>
+                <option value="title">{{ t('តម្រៀបតាមឈ្មោះ', 'Sort by Name') }}</option>
               </select>
 
               <!-- View Switch -->
@@ -458,13 +403,13 @@ const handleFilterChange = (overrideTab?: string) => {
           <div class="flex items-center gap-1.5 bg-white dark:bg-[#0F172A]/80 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-1.5 shadow-sm dark:shadow-lg overflow-x-auto custom-scrollbar">
             <button
               v-for="tab in [
-                { key: 'all', label: 'All Certificates' },
-                { key: 'in_progress', label: 'In Progress' },
-                { key: 'almost_there', label: 'Almost There' },
-                { key: 'not_started', label: 'Not Started' }
+                { key: 'all', label: t('ទាំងអស់', 'All Certificates') },
+                { key: 'in_progress', label: t('កំពុងសិក្សា', 'In Progress') },
+                { key: 'almost_there', label: t('ជិតបញ្ចប់', 'Almost There') },
+                { key: 'not_started', label: t('មិនទាន់ចាប់ផ្តើម', 'Not Started') }
               ]"
               :key="tab.key"
-              @click="handleFilterChange(tab.key)"
+              @click="handleFilterChange(tab.key, 1)"
               :class="[
                 activeStatusTab === tab.key
                   ? 'bg-purple-600 text-white shadow-md shadow-purple-900/20'
@@ -476,8 +421,48 @@ const handleFilterChange = (overrideTab?: string) => {
             </button>
           </div>
 
-          <!-- CERTIFICATES CATALOG (4x2 Grid) -->
-          <div :class="[isGridView ? 'grid grid-cols-1 sm:grid-cols-2 gap-4' : 'space-y-3']">
+          <!-- BILINGUAL EMPTY STATE -->
+          <div
+            v-if="certificates.length === 0"
+            class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-10 text-center space-y-4 shadow-sm dark:shadow-xl"
+          >
+            <div class="w-16 h-16 rounded-2xl bg-purple-500/10 dark:bg-purple-600/20 border border-purple-500/30 text-purple-600 dark:text-purple-300 flex items-center justify-center text-3xl mx-auto shadow-inner">
+              📄
+            </div>
+            <div class="space-y-1.5 max-w-md mx-auto">
+              <h3 class="text-base sm:text-lg font-black text-slate-900 dark:text-white">
+                {{ hasActiveFilters
+                  ? 'រកមិនឃើញវគ្គសិក្សាតាមលក្ខខណ្ឌស្វែងរក · No Matching Courses'
+                  : 'មិនទាន់មានវគ្គសិក្សាសម្រាប់ទទួលវិញ្ញាបនបត្រនៅឡើយទេ · No Available Certificates Yet'
+                }}
+              </h3>
+              <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                {{ hasActiveFilters
+                  ? t('សូមសាកល្បងផ្លាស់ប្តូរ ឬកំណត់ឡើងវិញនូវតម្រងស្វែងរករបស់អ្នក។', 'Try adjusting or resetting your search filters to find courses.')
+                  : t('វគ្គសិក្សាដែលបានបោះពុម្ពផ្សាយ និងអាចទទួលបានវិញ្ញាបនបត្រនឹងបង្ហាញនៅទីនេះ។', 'Published courses eligible for official certificates will appear here once available.')
+                }}
+              </p>
+            </div>
+            <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <button
+                v-if="hasActiveFilters"
+                @click="resetFilters"
+                class="px-5 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
+              >
+                {{ t('កំណត់តម្រងឡើងវិញ', 'Reset Filters') }}
+              </button>
+              <Link
+                href="/student/browse"
+                class="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-purple-950/20 flex items-center gap-2 transition-all"
+              >
+                <span>📚</span>
+                <span>{{ t('ស្វែងរកវគ្គសិក្សា · Browse Courses', 'Browse Courses · ស្វែងរកវគ្គសិក្សា') }}</span>
+              </Link>
+            </div>
+          </div>
+
+          <!-- CERTIFICATES CATALOG -->
+          <div v-else :class="[isGridView ? 'grid grid-cols-1 sm:grid-cols-2 gap-4' : 'space-y-3']">
             <div
               v-for="cert in certificates"
               :key="cert.id"
@@ -486,8 +471,7 @@ const handleFilterChange = (overrideTab?: string) => {
             >
               <!-- TOP: MINI CERTIFICATE PREVIEW CANVAS + PROGRESS BADGE -->
               <div class="relative w-full aspect-[16/10] bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden shadow-inner flex flex-col items-center justify-between p-3 text-center group-hover:scale-[1.01] transition-transform">
-                
-                <!-- Ornamental Border -->
+
                 <div class="absolute inset-1.5 border border-amber-500/30 rounded-xl pointer-events-none"></div>
 
                 <!-- Top Right Percentage Pill -->
@@ -512,7 +496,7 @@ const handleFilterChange = (overrideTab?: string) => {
 
                 <!-- Bottom Seal -->
                 <div class="relative z-10 w-full flex items-center justify-between px-2 text-[6.5px] text-slate-400">
-                  <p>SPI Platform</p>
+                  <p>{{ cert.category }}</p>
                   <div class="w-5 h-5 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 flex items-center justify-center font-bold text-[7px]">
                     ★
                   </div>
@@ -536,7 +520,7 @@ const handleFilterChange = (overrideTab?: string) => {
                 <!-- Progress Bar -->
                 <div class="space-y-1 pt-1">
                   <div class="flex items-center justify-between text-[10px]">
-                    <span class="text-slate-500 dark:text-slate-400 font-medium">Progress</span>
+                    <span class="text-slate-500 dark:text-slate-400 font-medium">{{ t('វឌ្ឍនភាព', 'Progress') }}</span>
                     <span class="font-bold text-slate-900 dark:text-white font-mono">{{ cert.progress }}%</span>
                   </div>
                   <div class="w-full h-1.5 bg-slate-100 dark:bg-slate-950 rounded-full overflow-hidden">
@@ -557,33 +541,62 @@ const handleFilterChange = (overrideTab?: string) => {
                 </span>
                 <span class="flex items-center gap-1 font-medium text-purple-600 dark:text-purple-300">
                   <span>📄</span>
-                  <span>Certificate</span>
+                  <span>{{ cert.is_enrolled ? t('បានចុះឈ្មោះ', 'Enrolled') : t('មើលលក្ខខណ្ឌ', 'Requirements') }}</span>
                 </span>
               </div>
 
             </div>
           </div>
 
-          <!-- PAGINATION -->
-          <div class="p-4 bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs shadow-xs dark:shadow-md">
+          <!-- DYNAMIC PAGINATION -->
+          <div
+            v-if="totalCount > 0"
+            class="p-4 bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs shadow-xs dark:shadow-md"
+          >
             <span class="text-slate-500 dark:text-slate-400 text-[11px]">
-              Showing 1 to 8 of 15 certificates
+              Showing {{ showingFrom }} to {{ showingTo }} of {{ totalCount }} certificates
             </span>
 
             <div class="flex items-center gap-1.5">
-              <button class="w-7 h-7 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white flex items-center justify-center font-bold text-xs disabled:opacity-40 cursor-pointer">
+              <button
+                @click="goToPage(1)"
+                :disabled="currentPage <= 1"
+                class="w-7 h-7 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white flex items-center justify-center font-bold text-xs disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+              >
                 «
               </button>
-              <button class="w-7 h-7 rounded-lg bg-purple-600 text-white font-bold text-xs shadow-xs">
-                1
+              <button
+                @click="goToPage(currentPage - 1)"
+                :disabled="currentPage <= 1"
+                class="w-7 h-7 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white flex items-center justify-center font-bold text-xs disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+              >
+                ‹
               </button>
-              <button class="w-7 h-7 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white flex items-center justify-center font-bold text-xs cursor-pointer">
-                2
+              <button
+                v-for="p in visiblePages"
+                :key="p"
+                @click="goToPage(p)"
+                :class="[
+                  p === currentPage
+                    ? 'bg-purple-600 text-white shadow-xs'
+                    : 'bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white cursor-pointer',
+                  'w-7 h-7 rounded-lg font-bold text-xs flex items-center justify-center'
+                ]"
+              >
+                {{ p }}
               </button>
-              <button class="w-7 h-7 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white flex items-center justify-center font-bold text-xs cursor-pointer">
+              <button
+                @click="goToPage(currentPage + 1)"
+                :disabled="currentPage >= lastPage"
+                class="w-7 h-7 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white flex items-center justify-center font-bold text-xs disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+              >
                 ›
               </button>
-              <button class="w-7 h-7 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white flex items-center justify-center font-bold text-xs cursor-pointer">
+              <button
+                @click="goToPage(lastPage)"
+                :disabled="currentPage >= lastPage"
+                class="w-7 h-7 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white flex items-center justify-center font-bold text-xs disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+              >
                 »
               </button>
             </div>
@@ -597,25 +610,31 @@ const handleFilterChange = (overrideTab?: string) => {
           <!-- WIDGET 1: Certificate Progress Overview Donut Chart -->
           <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-4">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/60 pb-3">
-              <h3 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">Certificate Progress Overview</h3>
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">{{ t('ទិដ្ឋភាពវឌ្ឍនភាពវិញ្ញាបនបត្រ', 'Certificate Progress Overview') }}</h3>
             </div>
 
             <div class="flex items-center justify-between gap-4">
-              <!-- Donut Chart -->
+              <!-- Dynamic SVG Donut Chart -->
               <div class="relative w-24 h-24 flex items-center justify-center shrink-0">
                 <svg class="w-24 h-24 -rotate-90 transform" viewBox="0 0 36 36">
                   <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#E2E8F0" class="dark:stroke-slate-800" stroke-width="4.5" />
-                  <!-- In Progress: 40% -->
-                  <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#3B82F6" stroke-width="4.5" stroke-dasharray="40, 100" stroke-dashoffset="0" />
-                  <!-- Almost There: 27% -->
-                  <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#10B981" stroke-width="4.5" stroke-dasharray="27, 100" stroke-dashoffset="-40" />
-                  <!-- Not Started: 33% -->
-                  <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#F59E0B" stroke-width="4.5" stroke-dasharray="33, 100" stroke-dashoffset="-67" />
+                  <circle
+                    v-for="seg in donutSegments"
+                    :key="seg.label"
+                    cx="18"
+                    cy="18"
+                    r="15.9155"
+                    fill="none"
+                    :stroke="seg.color"
+                    stroke-width="4.5"
+                    :stroke-dasharray="seg.dashArray"
+                    :stroke-dashoffset="seg.dashOffset"
+                  />
                 </svg>
 
                 <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
                   <span class="text-base font-black text-slate-900 dark:text-white font-mono leading-none">{{ progressOverview.total }}</span>
-                  <span class="text-[8px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium">Total</span>
+                  <span class="text-[8px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium">{{ t('សរុប', 'Total') }}</span>
                 </div>
               </div>
 
@@ -627,7 +646,7 @@ const handleFilterChange = (overrideTab?: string) => {
                   class="flex items-center justify-between text-[11px]"
                 >
                   <div class="flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: item.color }"></span>
+                    <span class="w-2 h-2 rounded-full shrink-0" :style="{ backgroundColor: item.color }"></span>
                     <span class="text-slate-600 dark:text-slate-300 font-medium">{{ item.label }}</span>
                   </div>
                   <span class="font-bold text-slate-900 dark:text-white font-mono">{{ item.count }} ({{ item.percentage }}%)</span>
@@ -639,10 +658,20 @@ const handleFilterChange = (overrideTab?: string) => {
           <!-- WIDGET 2: Popular Certificate Categories -->
           <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/60 pb-2.5">
-              <h3 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">Popular Certificate Categories</h3>
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">{{ t('ជំនាញដែលមានវិញ្ញាបនបត្រ', 'Certificate Categories') }}</h3>
             </div>
 
-            <div class="space-y-2">
+            <div v-if="popularCategories.length === 0" class="py-5 text-center space-y-1">
+              <p class="text-xl">📂</p>
+              <p class="text-xs font-bold text-slate-700 dark:text-slate-300">
+                មិនទាន់មានជំនាញសិក្សានៅឡើយទេ · No Categories Yet
+              </p>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                {{ t('ជំនាញសិក្សានឹងបង្ហាញនៅពេលមានវគ្គសិក្សា។', 'Categories appear once courses are published.') }}
+              </p>
+            </div>
+
+            <div v-else class="space-y-2">
               <div
                 v-for="cat in popularCategories"
                 :key="cat.id"
@@ -663,9 +692,9 @@ const handleFilterChange = (overrideTab?: string) => {
                   </p>
                 </div>
 
-                <div class="flex items-center gap-1.5">
+                <div class="flex items-center gap-1.5 shrink-0">
                   <span class="text-[10px] text-slate-500 dark:text-slate-400 font-mono whitespace-nowrap">
-                    {{ cat.count }} certificates
+                    {{ cat.count }} {{ cat.count === 1 ? 'course' : 'courses' }}
                   </span>
                   <span class="text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors text-xs">›</span>
                 </div>
@@ -673,29 +702,30 @@ const handleFilterChange = (overrideTab?: string) => {
             </div>
 
             <button
+              v-if="popularCategories.length > 0"
               @click="selectedCategory = 'all'; handleFilterChange()"
               class="w-full text-center text-xs text-purple-600 dark:text-purple-400 font-bold hover:underline pt-1 cursor-pointer"
             >
-              View All Categories
+              {{ t('មើលជំនាញទាំងអស់', 'View All Categories') }}
             </button>
           </div>
 
           <!-- WIDGET 3: How to Earn Certificates (4-Step Flow) -->
           <div class="bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/60 dark:from-[#10132B] dark:via-[#0F172A] dark:to-[#1E1138] border border-purple-200 dark:border-purple-900/50 rounded-3xl p-5 shadow-sm dark:shadow-2xl space-y-4">
             <div class="border-b border-purple-200 dark:border-purple-900/40 pb-2.5">
-              <h3 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">How to Earn Certificates</h3>
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">{{ t('របៀបទទួលបានវិញ្ញាបនបត្រ', 'How to Earn Certificates') }}</h3>
             </div>
 
             <div class="space-y-3 text-xs">
-              
+
               <!-- Step 1 -->
               <div class="flex items-start gap-3">
                 <div class="w-6 h-6 rounded-full bg-blue-500/10 dark:bg-blue-600/30 border border-blue-500/30 dark:border-blue-500/50 text-blue-700 dark:text-blue-300 flex items-center justify-center text-xs font-black font-mono shrink-0">
                   1
                 </div>
                 <div>
-                  <p class="font-bold text-slate-900 dark:text-white">Enroll in a course</p>
-                  <p class="text-[10px] text-slate-600 dark:text-slate-400">Choose a course with a certificate.</p>
+                  <p class="font-bold text-slate-900 dark:text-white">{{ t('ចុះឈ្មោះចូលរៀនវគ្គសិក្សា', 'Enroll in a course') }}</p>
+                  <p class="text-[10px] text-slate-600 dark:text-slate-400">{{ t('ជ្រើសរើសវគ្គសិក្សាដែលអ្នកចង់រៀន។', 'Choose a course with an official certificate.') }}</p>
                 </div>
               </div>
 
@@ -705,8 +735,8 @@ const handleFilterChange = (overrideTab?: string) => {
                   2
                 </div>
                 <div>
-                  <p class="font-bold text-slate-900 dark:text-white">Complete all requirements</p>
-                  <p class="text-[10px] text-slate-600 dark:text-slate-400">Finish lessons, quizzes, and assignments.</p>
+                  <p class="font-bold text-slate-900 dark:text-white">{{ t('បញ្ចប់គ្រប់លក្ខខណ្ឌមេរៀន', 'Complete all requirements') }}</p>
+                  <p class="text-[10px] text-slate-600 dark:text-slate-400">{{ t('សិក្សាមេរៀន ធ្វើតេស្ត និងកិច្ចការស្រាវជ្រាវ។', 'Finish lessons, quizzes, and assignments.') }}</p>
                 </div>
               </div>
 
@@ -716,8 +746,8 @@ const handleFilterChange = (overrideTab?: string) => {
                   3
                 </div>
                 <div>
-                  <p class="font-bold text-slate-900 dark:text-white">Achieve passing score</p>
-                  <p class="text-[10px] text-slate-600 dark:text-slate-400">Meet the minimum score requirement.</p>
+                  <p class="font-bold text-slate-900 dark:text-white">{{ t('ទទួលបានពិន្ទុជាប់', 'Achieve passing score') }}</p>
+                  <p class="text-[10px] text-slate-600 dark:text-slate-400">{{ t('បំពេញពិន្ទុអប្បបរមាតាមការកំណត់។', 'Meet the minimum passing score requirement.') }}</p>
                 </div>
               </div>
 
@@ -727,8 +757,8 @@ const handleFilterChange = (overrideTab?: string) => {
                   4
                 </div>
                 <div>
-                  <p class="font-bold text-slate-900 dark:text-white">Earn your certificate</p>
-                  <p class="text-[10px] text-slate-600 dark:text-slate-400">Download and share your achievement!</p>
+                  <p class="font-bold text-slate-900 dark:text-white">{{ t('ទាញយកវិញ្ញាបនបត្រផ្លូវការ', 'Earn your certificate') }}</p>
+                  <p class="text-[10px] text-slate-600 dark:text-slate-400">{{ t('ទាញយក PDF និងចែករំលែកតំណផ្ទៀងផ្ទាត់!', 'Download and share your verified credential!') }}</p>
                 </div>
               </div>
 
@@ -740,7 +770,7 @@ const handleFilterChange = (overrideTab?: string) => {
               class="w-full py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-purple-950/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
             >
               <span>📈</span>
-              <span>View My Progress</span>
+              <span>{{ t('មើលវឌ្ឍនភាពរបស់ខ្ញុំ', 'View My Progress') }}</span>
             </Link>
           </div>
 
@@ -755,8 +785,8 @@ const handleFilterChange = (overrideTab?: string) => {
             🛡️
           </div>
           <div>
-            <h4 class="text-sm font-bold text-slate-900 dark:text-white">Boost Your Career with Certificates</h4>
-            <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Certificates prove your skills and help you advance your career. Start learning today!</p>
+            <h4 class="text-sm font-bold text-slate-900 dark:text-white">{{ t('ពង្រឹងអាជីពរបស់អ្នកជាមួយវិញ្ញាបនបត្រផ្លូវការ', 'Boost Your Career with Certificates') }}</h4>
+            <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{{ t('វិញ្ញាបនបត្របញ្ជាក់ពីសមត្ថភាព និងជំនាញពិតប្រាកដរបស់អ្នក។', 'Certificates prove your skills and help you advance your academic and professional career.') }}</p>
           </div>
         </div>
 
@@ -764,7 +794,7 @@ const handleFilterChange = (overrideTab?: string) => {
           href="/student/browse"
           class="px-5 py-2 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-blue-500/50 text-slate-900 dark:text-white font-bold text-xs shadow-xs whitespace-nowrap transition-colors"
         >
-          Browse Courses
+          {{ t('ស្វែងរកវគ្គសិក្សា', 'Browse Courses') }}
         </Link>
       </div>
 
@@ -781,7 +811,7 @@ const handleFilterChange = (overrideTab?: string) => {
             <span class="text-2xl">🎓</span>
             <div>
               <h3 class="text-base font-black text-slate-900 dark:text-white">{{ selectedCertForModal.title }}</h3>
-              <p class="text-[11px] text-purple-600 dark:text-purple-300">Certificate Eligibility Requirements</p>
+              <p class="text-[11px] text-purple-600 dark:text-purple-300">{{ t('លក្ខខណ្ឌទទួលបានវិញ្ញាបនបត្រ', 'Certificate Eligibility Requirements') }}</p>
             </div>
           </div>
           <button
@@ -795,20 +825,20 @@ const handleFilterChange = (overrideTab?: string) => {
         <!-- Overall Progress Ring -->
         <div class="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div>
-            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Overall Course Progress</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">{{ t('វឌ្ឍនភាពវគ្គសិក្សាសរុប', 'Overall Course Progress') }}</p>
             <p class="text-2xl font-black text-slate-900 dark:text-white font-mono mt-0.5">{{ selectedCertForModal.progress }}%</p>
-            <p class="text-[10px] text-slate-400 dark:text-slate-500">Reach 100% to unlock official certificate</p>
+            <p class="text-[10px] text-slate-400 dark:text-slate-500">{{ t('សម្រេចឱ្យបាន 100% ដើម្បីទទួលបានវិញ្ញាបនបត្រផ្លូវការ', 'Reach 100% to unlock official certificate') }}</p>
           </div>
 
-          <div class="w-12 h-12 rounded-2xl bg-purple-500/10 dark:bg-purple-600/20 border border-purple-500/20 dark:border-purple-500/30 text-purple-700 dark:text-purple-300 flex items-center justify-center text-lg font-mono font-bold">
+          <div class="w-12 h-12 rounded-2xl bg-purple-500/10 dark:bg-purple-600/20 border border-purple-500/20 dark:border-purple-500/30 text-purple-700 dark:text-purple-300 flex items-center justify-center text-lg font-mono font-bold shrink-0">
             {{ selectedCertForModal.progress }}%
           </div>
         </div>
 
         <!-- Requirements Checklist -->
         <div class="space-y-2 text-xs">
-          <h4 class="font-bold text-slate-900 dark:text-white uppercase tracking-wider text-[11px]">Requirements Checklist:</h4>
-          
+          <h4 class="font-bold text-slate-900 dark:text-white uppercase tracking-wider text-[11px]">{{ t('បញ្ជីលក្ខខណ្ឌ៖', 'Requirements Checklist:') }}</h4>
+
           <div
             v-for="(req, idx) in selectedCertForModal.requirements"
             :key="idx"
@@ -818,7 +848,7 @@ const handleFilterChange = (overrideTab?: string) => {
               <span
                 :class="[
                   req.done ? 'bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/40' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700',
-                  'w-5 h-5 rounded-md border flex items-center justify-center text-[10px] font-bold'
+                  'w-5 h-5 rounded-md border flex items-center justify-center text-[10px] font-bold shrink-0'
                 ]"
               >
                 {{ req.done ? '✓' : '•' }}
@@ -837,15 +867,15 @@ const handleFilterChange = (overrideTab?: string) => {
             @click="isRequirementsModalOpen = false"
             class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-200 dark:hover:text-white cursor-pointer"
           >
-            Close
+            {{ t('បិទ', 'Close') }}
           </button>
 
           <Link
-            href="/student/my-courses/enrolled"
+            :href="selectedCertForModal.course_url || '/student/browse'"
             class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold shadow-md flex items-center gap-1.5 cursor-pointer"
           >
             <span>▶</span>
-            <span>Continue Course</span>
+            <span>{{ selectedCertForModal.is_enrolled ? t('បន្តការសិក្សា', 'Continue Course') : t('មើលវគ្គសិក្សា', 'View Course') }}</span>
           </Link>
         </div>
       </div>

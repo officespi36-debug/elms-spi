@@ -602,12 +602,14 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/learn/ai-tutor/{lesson}', [Student\LearningController::class, 'askAi'])->name('learn.ai-tutor');
         Route::post('/learn/discussion/{lesson}', [Student\LearningController::class, 'postDiscussion'])->name('learn.discussion');
         Route::post('/learn/notes/{lesson}', [Student\LearningController::class, 'saveNote'])->name('learn.notes');
+        Route::delete('/learn/notes/{note}', [Student\LearningController::class, 'deleteNote'])->name('learn.notes.destroy');
         Route::get('/quizzes', [Student\QuizController::class, 'index'])->name('quizzes');
         Route::prefix('quizzes')->name('quizzes.')->group(function () {
             Route::get('/pre-test', [Student\QuizController::class, 'preTest'])->name('pre-test');
             Route::get('/practice', [Student\QuizController::class, 'practice'])->name('practice');
             Route::get('/post-test', [Student\QuizController::class, 'postTest'])->name('post-test');
             Route::get('/assignments', [Student\QuizController::class, 'assignments'])->name('assignments');
+            Route::post('/assignments/{quiz}/submit', [Student\QuizController::class, 'submitAssignment'])->name('assignments.submit');
             Route::get('/history', [Student\QuizController::class, 'history'])->name('history');
             Route::get('/scores', [Student\QuizController::class, 'scores'])->name('scores');
         });
@@ -692,6 +694,9 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/ai-alerts', [Student\NotificationController::class, 'aiAlerts'])->name('ai-alerts');
             Route::get('/feedback', [Student\NotificationController::class, 'teacherFeedback'])->name('feedback');
             Route::get('/payment-alerts', [Student\NotificationController::class, 'paymentAlerts'])->name('payment-alerts');
+            Route::get('/course-updates', fn () => redirect('/student/notifications?tab=announcements'));
+            Route::get('/assignments', fn () => redirect('/student/quizzes/assignments'));
+            Route::get('/exams', fn () => redirect('/student/quizzes/practice'));
         });
 
         // Notifications Realtime API for Student Header Dropdown
@@ -699,6 +704,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/', [Student\NotificationController::class, 'apiList'])->name('list');
             Route::post('/read', [Student\NotificationController::class, 'apiMarkRead'])->name('read');
             Route::post('/read-all', [Student\NotificationController::class, 'apiMarkAllRead'])->name('read_all');
+            Route::post('/ai-alerts/{recommendation}/dismiss', [Student\NotificationController::class, 'dismissAiAlert'])->name('ai.dismiss');
         });
 
         Route::get('/calendar', [Student\CalendarController::class, 'index'])->name('calendar');

@@ -2,283 +2,308 @@
 
 namespace App\Services;
 
-use App\Models\Course;
+use App\Models\AssignmentSubmission;
+use App\Models\Deadline;
+use App\Models\Enrollment;
+use App\Models\Quiz;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
 
 class AssessmentService
 {
     /**
-     * Get aggregated assessments, submissions, grading analytics, and history table.
+     * Get aggregated assessments, submissions, grading analytics, and history table from 100% real DB records.
      */
-    public function getAssessmentsData(?User $user = null, string $status = 'all', string $course = 'all', string $dateRange = 'all', string $search = '', int $page = 1, int $perPage = 8): array
-    {
-        return $this->buildAssessmentsPayload($user, $status, $course, $dateRange, $search, $page, $perPage);
-    }
+    public function getAssessmentsData(
+        ?User $user = null,
+        string $status = 'all',
+        string $course = 'all',
+        string $dateRange = 'all',
+        string $search = '',
+        int $page = 1,
+        int $perPage = 8
+    ): array {
+        if (!$user) {
+            return $this->emptyPayload($page, $perPage);
+        }
 
-    /**
-     * Build structured assessments dashboard payload matching reference design.
-     */
-    protected function buildAssessmentsPayload(?User $user, string $status, string $course, string $dateRange, string $search, int $page, int $perPage): array
-    {
-        // 1. Summary Cards
-        $summary = [
-            'total_assignments' => 18,
-            'total_note'        => 'All time assignments',
-            'submitted'         => 14,
-            'submitted_note'    => '78% of total',
-            'graded'            => 10,
-            'graded_note'       => '56% of total',
-            'average_score'     => 82,
-            'average_note'      => 'Good job! Keep it up.',
-            'highest_score'     => 95,
-            'highest_title'     => 'Web Development Project',
-        ];
+        $enrolledCourseIds = Enrollment::where('student_id', $user->id)
+            ->whereIn('status', ['active', 'completed'])
+            ->pluck('course_id')
+            ->unique()
+            ->filter()
+            ->values()
+            ->all();
 
-        // 2. Assessment Performance (Donut Chart)
-        $performanceOverview = [
-            'average_score' => 82,
-            'distribution'  => [
-                ['label' => '90 - 100%', 'count' => 3, 'percentage' => 30, 'color' => '#10B981', 'class' => 'text-emerald-400'],
-                ['label' => '70 - 89%',  'count' => 5, 'percentage' => 50, 'color' => '#3B82F6', 'class' => 'text-blue-400'],
-                ['label' => '50 - 69%',  'count' => 1, 'percentage' => 10, 'color' => '#F59E0B', 'class' => 'text-amber-400'],
-                ['label' => 'Below 50%', 'count' => 1, 'percentage' => 10, 'color' => '#EF4444', 'class' => 'text-rose-400'],
-            ],
-        ];
+        $submissions = AssignmentSubmission::where('user_id', $user->id)
+            ->with(['quiz.course', 'course'])
+            ->latest('submitted_at')
+            ->get();
 
-        // 3. Score Trend (Line Chart)
-        $scoreTrend = [
-            'points' => [
-                ['date' => 'May 1',  'percentage' => 50],
-                ['date' => 'May 8',  'percentage' => 55],
-                ['date' => 'May 15', 'percentage' => 65],
-                ['date' => 'May 22', 'percentage' => 45],
-                ['date' => 'May 29', 'percentage' => 80],
-                ['date' => 'Jun 1',  'percentage' => 95],
-            ],
-            'highlight' => [
-                'date'       => 'May 24, 2025',
-                'score_text' => 'Score: 80%',
-            ]
-        ];
+        if (empty($enrolledCourseIds) && $submissions->isEmpty()) {
+            return $this->emptyPayload($page, $perPage);
+        }
 
-        // 4. Score by Course
-        $scoreByCourse = [
-            ['course' => 'Web Development',       'percentage' => 88, 'color' => 'from-cyan-400 to-blue-500'],
-            ['course' => 'React Development',     'percentage' => 75, 'color' => 'from-cyan-400 to-blue-500'],
-            ['course' => 'JavaScript Advanced',   'percentage' => 85, 'color' => 'from-purple-500 to-indigo-600'],
-            ['course' => 'Database Design',       'percentage' => 45, 'color' => 'from-amber-400 to-orange-500'],
-            ['course' => 'Python Programming',    'percentage' => 88, 'color' => 'from-cyan-400 to-blue-500'],
-        ];
+        $assignmentQuizzes = empty($enrolledCourseIds)
+            ? collect()
+            : Quiz::whereIn('course_id', $enrolledCourseIds)
+                ->where('type', 'assignment')
+                ->where(function ($q) {
+                    $q->where('status', 'published')->orWhereNull('status');
+                })
+                ->with(['course', 'module'])
+                ->latest()
+                ->get();
 
-        // 5. Submission Status Donut
-        $submissionStatus = [
-            'total' => 18,
-            'items' => [
-                ['label' => 'Graded',    'count' => 10, 'percentage' => 56, 'color' => '#10B981'],
-                ['label' => 'Submitted', 'count' => 4,  'percentage' => 22, 'color' => '#3B82F6'],
-                ['label' => 'Pending',   'count' => 2,  'percentage' => 11, 'color' => '#F59E0B'],
-                ['label' => 'Overdue',   'count' => 2,  'percentage' => 11, 'color' => '#EF4444'],
-            ]
-        ];
+        $deadlines = empty($enrolledCourseIds)
+            ? collect()
+            : Deadline::whereIn('course_id', $enrolledCourseIds)
+                ->with('course:id,title')
+                ->orderBy('due_at')
+                ->get();
 
-        // 6. Recent Feedback
-        $recentFeedback = [
-            [
-                'id'       => 1,
-                'title'    => 'Personal Portfolio Website',
-                'score'    => 95,
-                'feedback' => 'Excellent work! Clean code and great design.',
-                'date'     => 'Jun 1, 2025',
-                'icon_bg'  => 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30',
-            ],
-            [
-                'id'       => 2,
-                'title'    => 'React Components Project',
-                'score'    => 75,
-                'feedback' => 'Good job! Improve state management.',
-                'date'     => 'May 27, 2025',
-                'icon_bg'  => 'bg-amber-500/20 text-amber-300 border border-amber-500/30',
-            ],
-            [
-                'id'       => 3,
-                'title'    => 'Database Design Report',
-                'score'    => 45,
-                'feedback' => 'Review normalization and relationships.',
-                'date'     => 'May 29, 2025',
-                'icon_bg'  => 'bg-rose-500/20 text-rose-300 border border-rose-500/30',
-            ],
-        ];
+        $deadlinesByQuiz = $deadlines
+            ->where('linked_type', 'quiz')
+            ->keyBy('linked_id');
 
-        // 7. Upcoming Deadlines
-        $upcomingDeadlines = [
-            [
-                'id'       => 1,
-                'title'    => 'Node.js API Development',
-                'due_text' => 'Due in 2 days',
-                'due_date' => 'May 24, 2025',
-                'icon_bg'  => 'bg-amber-500/20 text-amber-300 border border-amber-500/30',
-            ],
-            [
-                'id'       => 2,
-                'title'    => 'Git Workflow Assignment',
-                'due_text' => 'Due in 4 days',
-                'due_date' => 'May 22, 2025',
-                'icon_bg'  => 'bg-rose-500/20 text-rose-300 border border-rose-500/30',
-            ],
-            [
-                'id'       => 3,
-                'title'    => 'Advanced CSS Project',
-                'due_text' => 'Due in 6 days',
-                'due_date' => 'May 20, 2025',
-                'icon_bg'  => 'bg-blue-500/20 text-blue-300 border border-blue-500/30',
-            ],
-        ];
+        $submissionsByQuiz = $submissions->whereNotNull('quiz_id')->keyBy('quiz_id');
 
-        // 8. Need Improvement Topics
-        $weakTopics = [
-            'Database Design Report',
-            'Git Workflow Assignment',
-        ];
+        $allRows = [];
+        $gradedScores = [];
+        $gradedRows = [];
+        $courseScoresMap = [];
 
-        // 9. Assessments Table Catalog (8 items matching reference)
-        $assessmentsTable = [
-            [
-                'id'           => 1,
-                'title'        => 'Personal Portfolio Website',
-                'subtitle'     => 'Build a responsive personal portfolio',
-                'course'       => 'Web Development (Advanced)',
-                'due_date'     => 'Jun 5, 2025 11:59 PM',
-                'status'       => 'Graded',
-                'status_type'  => 'graded',
-                'score'        => '95%',
-                'score_points' => '95 / 100',
-                'submitted_on' => 'Jun 1, 2025 10:30 AM',
+        foreach ($assignmentQuizzes as $quiz) {
+            /** @var AssignmentSubmission|null $sub */
+            $sub = $submissionsByQuiz->get($quiz->id);
+            /** @var Deadline|null $dl */
+            $dl = $deadlinesByQuiz->get($quiz->id);
+
+            $courseTitle = $quiz->course?->title ?? 'Course';
+            $dueAt = $dl?->due_at;
+            $dueDateStr = $dueAt ? $dueAt->format('M j, Y g:i A') : 'No due date';
+
+            $statusType = 'pending';
+            $statusLabel = 'Pending';
+            $scoreDisplay = '-';
+            $scorePointsDisplay = '-';
+            $submittedOnDisplay = '-';
+            $scoreNumeric = null;
+
+            if ($sub) {
+                $submittedOnDisplay = $sub->submitted_at
+                    ? $sub->submitted_at->format('M j, Y g:i A')
+                    : ($sub->created_at ? $sub->created_at->format('M j, Y g:i A') : '-');
+
+                if ($sub->status === 'returned') {
+                    $statusType = 'returned';
+                    $statusLabel = 'Returned';
+                } elseif ($sub->status === 'graded' || $sub->graded_at !== null || $sub->score !== null) {
+                    $statusType = 'graded';
+                    $statusLabel = 'Graded';
+                } else {
+                    $statusType = 'submitted';
+                    $statusLabel = 'Submitted';
+                }
+
+                if ($sub->score !== null) {
+                    $scoreNumeric = (int) round((float) $sub->score);
+                    $scoreDisplay = "{$scoreNumeric}%";
+                    $scorePointsDisplay = "{$scoreNumeric} / 100";
+                    $gradedScores[] = [
+                        'title' => $quiz->title,
+                        'score' => $scoreNumeric,
+                        'date'  => $sub->graded_at ?? $sub->submitted_at ?? $sub->updated_at,
+                    ];
+                    $gradedRows[] = [
+                        'id'       => $sub->id,
+                        'title'    => $quiz->title,
+                        'score'    => $scoreNumeric,
+                        'feedback' => $sub->feedback,
+                        'date'     => ($sub->graded_at ?? $sub->submitted_at ?? $sub->updated_at)?->format('M j, Y') ?? '',
+                    ];
+                    $courseScoresMap[$courseTitle][] = $scoreNumeric;
+                }
+            } elseif ($dueAt && $dueAt->isPast()) {
+                $statusType = 'overdue';
+                $statusLabel = 'Overdue';
+            }
+
+            $allRows[] = [
+                'id'           => $quiz->id,
+                'quiz_id'      => $quiz->id,
+                'submission_id'=> $sub?->id,
+                'title'        => $quiz->title,
+                'subtitle'     => $quiz->module?->title ?: $courseTitle,
+                'course'       => $courseTitle,
+                'due_date'     => $dueDateStr,
+                'status'       => $statusLabel,
+                'status_type'  => $statusType,
+                'score'        => $scoreDisplay,
+                'score_points' => $scorePointsDisplay,
+                'score_num'    => $scoreNumeric,
+                'submitted_on' => $submittedOnDisplay,
+                'submitted_at_raw' => $sub?->submitted_at?->toIso8601String(),
+                'file_name'    => $sub?->file_name,
+                'file_path'    => $sub?->file_path,
+                'file_size'    => $sub?->file_size,
+                'notes'        => $sub?->notes,
                 'icon_bg'      => 'bg-purple-600/20 text-purple-300 border border-purple-500/30',
-                'feedback'     => 'Excellent work! Clean code and great design.',
-                'rubric'       => [
-                    ['criteria' => 'Design & Responsiveness', 'score' => 25, 'max' => 25],
-                    ['criteria' => 'Code Quality & Structure', 'score' => 24, 'max' => 25],
-                    ['criteria' => 'Interactivity & Features', 'score' => 23, 'max' => 25],
-                    ['criteria' => 'Documentation & Readme', 'score' => 23, 'max' => 25],
-                ],
-            ],
-            [
-                'id'           => 2,
-                'title'        => 'JavaScript Functions Assignment',
-                'subtitle'     => 'Implement and test JS functions',
-                'course'       => 'JavaScript Advanced (Intermediate)',
-                'due_date'     => 'Jun 3, 2025 11:59 PM',
-                'status'       => 'Graded',
-                'status_type'  => 'graded',
-                'score'        => '85%',
-                'score_points' => '85 / 100',
-                'submitted_on' => 'May 31, 2025 09:15 PM',
-                'icon_bg'      => 'bg-amber-500/20 text-amber-300 border border-amber-500/30',
-                'feedback'     => 'Great implementation of arrow functions and scope closures.',
-            ],
-            [
-                'id'           => 3,
-                'title'        => 'Database Design Report',
-                'subtitle'     => 'Design a database for e-commerce',
-                'course'       => 'Database Design (Intermediate)',
-                'due_date'     => 'May 30, 2025 11:59 PM',
-                'status'       => 'Graded',
-                'status_type'  => 'graded',
-                'score'        => '45%',
-                'score_points' => '45 / 100',
-                'submitted_on' => 'May 29, 2025 08:45 PM',
-                'icon_bg'      => 'bg-blue-500/20 text-blue-300 border border-blue-500/30',
-                'feedback'     => 'Review normalization and foreign key constraints.',
-            ],
-            [
-                'id'           => 4,
-                'title'        => 'React Components Project',
-                'subtitle'     => 'Build a component-based app',
-                'course'       => 'React Development (Advanced)',
-                'due_date'     => 'May 28, 2025 11:59 PM',
-                'status'       => 'Returned',
-                'status_type'  => 'returned',
-                'score'        => '75%',
-                'score_points' => '75 / 100',
-                'submitted_on' => 'May 27, 2025 04:20 PM',
-                'icon_bg'      => 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30',
-                'feedback'     => 'Good job! Improve state management and resubmit.',
-            ],
-            [
-                'id'           => 5,
-                'title'        => 'UI/UX Case Study',
-                'subtitle'     => 'Analyze and improve UI/UX',
-                'course'       => 'UI/UX Design (Beginner)',
-                'due_date'     => 'May 25, 2025 11:59 PM',
-                'status'       => 'Graded',
-                'status_type'  => 'graded',
-                'score'        => '80%',
-                'score_points' => '80 / 100',
-                'submitted_on' => 'May 24, 2025 07:30 PM',
-                'icon_bg'      => 'bg-rose-500/20 text-rose-300 border border-rose-500/30',
-                'feedback'     => 'Clear wireframing and user journey documentation.',
-            ],
-            [
-                'id'           => 6,
-                'title'        => 'Node.js API Development',
-                'subtitle'     => 'Create RESTful API with Node.js',
-                'course'       => 'Backend Development (Advanced)',
-                'due_date'     => 'May 24, 2025 11:59 PM',
-                'status'       => 'Pending',
-                'status_type'  => 'pending',
-                'score'        => '-',
-                'score_points' => '-',
-                'submitted_on' => '-',
-                'icon_bg'      => 'bg-purple-500/20 text-purple-300 border border-purple-500/30',
-                'can_upload'   => true,
-            ],
-            [
-                'id'           => 7,
-                'title'        => 'Git Workflow Assignment',
-                'subtitle'     => 'Implement git branching workflow',
-                'course'       => 'DevOps Tools (Intermediate)',
-                'due_date'     => 'May 22, 2025 11:59 PM',
-                'status'       => 'Overdue',
-                'status_type'  => 'overdue',
-                'score'        => '-',
-                'score_points' => '-',
-                'submitted_on' => '-',
-                'icon_bg'      => 'bg-orange-500/20 text-orange-300 border border-orange-500/30',
-                'can_upload'   => true,
-            ],
-            [
-                'id'           => 8,
-                'title'        => 'Python Data Analysis',
-                'subtitle'     => 'Analyze dataset using Python',
-                'course'       => 'Python Programming (Intermediate)',
-                'due_date'     => 'May 21, 2025 11:59 PM',
-                'status'       => 'Graded',
-                'status_type'  => 'graded',
-                'score'        => '88%',
-                'score_points' => '88 / 100',
-                'submitted_on' => 'May 20, 2025 06:40 PM',
-                'icon_bg'      => 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30',
-                'feedback'     => 'Great pandas and matplotlib visualization techniques.',
+                'feedback'     => $sub?->feedback,
+                'can_upload'   => in_array($statusType, ['pending', 'overdue', 'returned', 'submitted'], true),
+            ];
+        }
+
+        $totalAssignments = count($allRows);
+        $submittedCount = count(array_filter($allRows, fn ($r) => in_array($r['status_type'], ['submitted', 'graded', 'returned'], true)));
+        $gradedCount = count(array_filter($allRows, fn ($r) => $r['status_type'] === 'graded'));
+        $pendingCount = count(array_filter($allRows, fn ($r) => $r['status_type'] === 'pending'));
+        $overdueCount = count(array_filter($allRows, fn ($r) => $r['status_type'] === 'overdue'));
+        $onlySubmittedUnGraded = max(0, $submittedCount - $gradedCount);
+
+        $avgScore = !empty($gradedScores)
+            ? (int) round(collect($gradedScores)->avg('score'))
+            : 0;
+
+        $highestItem = !empty($gradedScores)
+            ? collect($gradedScores)->sortByDesc('score')->first()
+            : null;
+
+        $submittedPct = $totalAssignments > 0 ? (int) round(($submittedCount / $totalAssignments) * 100) : 0;
+        $gradedPct = $totalAssignments > 0 ? (int) round(($gradedCount / $totalAssignments) * 100) : 0;
+
+        $summary = [
+            'total_assignments' => $totalAssignments,
+            'total_note'        => $totalAssignments > 0 ? 'Enrolled course assignments' : 'No assignments yet',
+            'submitted'         => $submittedCount,
+            'submitted_note'    => "{$submittedPct}% of total",
+            'graded'            => $gradedCount,
+            'graded_note'       => "{$gradedPct}% of total",
+            'average_score'     => $avgScore,
+            'average_note'      => !empty($gradedScores) ? ($avgScore >= 70 ? 'Good job! Keep it up.' : 'Keep practicing!') : 'No graded assignments',
+            'highest_score'     => $highestItem ? $highestItem['score'] : 0,
+            'highest_title'     => $highestItem ? $highestItem['title'] : '-',
+        ];
+
+        // Performance overview buckets (from graded assignments)
+        $gTotal = count($gradedScores);
+        $b90 = count(array_filter($gradedScores, fn ($g) => $g['score'] >= 90));
+        $b70 = count(array_filter($gradedScores, fn ($g) => $g['score'] >= 70 && $g['score'] < 90));
+        $b50 = count(array_filter($gradedScores, fn ($g) => $g['score'] >= 50 && $g['score'] < 70));
+        $bLow = count(array_filter($gradedScores, fn ($g) => $g['score'] < 50));
+
+        $performanceOverview = [
+            'average_score' => $avgScore,
+            'distribution'  => [
+                ['label' => '90 - 100%', 'count' => $b90,  'percentage' => $gTotal > 0 ? (int) round(($b90 / $gTotal) * 100) : 0,  'color' => '#10B981', 'class' => 'text-emerald-400'],
+                ['label' => '70 - 89%',  'count' => $b70,  'percentage' => $gTotal > 0 ? (int) round(($b70 / $gTotal) * 100) : 0,  'color' => '#3B82F6', 'class' => 'text-blue-400'],
+                ['label' => '50 - 69%',  'count' => $b50,  'percentage' => $gTotal > 0 ? (int) round(($b50 / $gTotal) * 100) : 0,  'color' => '#F59E0B', 'class' => 'text-amber-400'],
+                ['label' => 'Below 50%', 'count' => $bLow, 'percentage' => $gTotal > 0 ? (int) round(($bLow / $gTotal) * 100) : 0, 'color' => '#EF4444', 'class' => 'text-rose-400'],
             ],
         ];
 
-        // Filter by status tab
+        // Score trend
+        $sortedGraded = collect($gradedScores)
+            ->sortBy(fn ($g) => $g['date'] ? Carbon::parse($g['date'])->timestamp : 0)
+            ->values();
+
+        $trendPoints = $sortedGraded->take(-6)->map(fn ($g) => [
+            'date'       => $g['date'] ? Carbon::parse($g['date'])->format('M j') : 'Recent',
+            'percentage' => $g['score'],
+        ])->values()->all();
+
+        $lastTrend = $sortedGraded->last();
+        $scoreTrend = [
+            'points'    => $trendPoints,
+            'highlight' => $lastTrend ? [
+                'date'       => $lastTrend['date'] ? Carbon::parse($lastTrend['date'])->format('M j, Y') : 'Latest',
+                'score_text' => "Score: {$lastTrend['score']}%",
+            ] : null,
+        ];
+
+        // Score by course
+        $scoreByCourse = [];
+        foreach ($courseScoresMap as $cTitle => $scoresArr) {
+            $cAvg = (int) round(array_sum($scoresArr) / count($scoresArr));
+            $scoreByCourse[] = [
+                'course'     => $cTitle,
+                'percentage' => $cAvg,
+                'color'      => $cAvg >= 70 ? 'from-cyan-400 to-blue-500' : 'from-amber-400 to-orange-500',
+            ];
+        }
+
+        // Submission Status Donut
+        $submissionStatus = [
+            'total' => $totalAssignments,
+            'items' => [
+                ['label' => 'Graded',    'count' => $gradedCount,           'percentage' => $totalAssignments > 0 ? (int) round(($gradedCount / $totalAssignments) * 100) : 0,           'color' => '#10B981'],
+                ['label' => 'Submitted', 'count' => $onlySubmittedUnGraded, 'percentage' => $totalAssignments > 0 ? (int) round(($onlySubmittedUnGraded / $totalAssignments) * 100) : 0, 'color' => '#3B82F6'],
+                ['label' => 'Pending',   'count' => $pendingCount,          'percentage' => $totalAssignments > 0 ? (int) round(($pendingCount / $totalAssignments) * 100) : 0,          'color' => '#F59E0B'],
+                ['label' => 'Overdue',   'count' => $overdueCount,          'percentage' => $totalAssignments > 0 ? (int) round(($overdueCount / $totalAssignments) * 100) : 0,          'color' => '#EF4444'],
+            ],
+        ];
+
+        // Recent feedback
+        $recentFeedback = collect($gradedRows)
+            ->filter(fn ($r) => !empty($r['feedback']))
+            ->take(4)
+            ->map(fn ($r) => [
+                'id'       => $r['id'],
+                'title'    => $r['title'],
+                'score'    => $r['score'],
+                'feedback' => $r['feedback'],
+                'date'     => $r['date'],
+                'icon_bg'  => $r['score'] >= 80
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                    : ($r['score'] >= 50
+                        ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                        : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'),
+            ])
+            ->values()
+            ->all();
+
+        // Upcoming deadlines
+        $upcomingDeadlines = $deadlines
+            ->filter(fn (Deadline $d) => $d->due_at && $d->due_at->isFuture())
+            ->take(4)
+            ->map(fn (Deadline $d) => [
+                'id'       => $d->id,
+                'title'    => $d->title,
+                'due_text' => 'Due ' . $d->due_at->diffForHumans(),
+                'due_date' => $d->due_at->format('M j, Y'),
+                'icon_bg'  => 'bg-amber-500/20 text-amber-300 border border-amber-500/30',
+            ])
+            ->values()
+            ->all();
+
+        // Weak topics (graded assignments < 70% or overdue)
+        $weakTopics = collect($allRows)
+            ->filter(fn ($r) => ($r['score_num'] !== null && $r['score_num'] < 70) || $r['status_type'] === 'overdue')
+            ->pluck('title')
+            ->unique()
+            ->take(4)
+            ->values()
+            ->all();
+
+        // Filters
+        $filtered = $allRows;
         if ($status !== 'all') {
-            $assessmentsTable = array_values(array_filter($assessmentsTable, fn($a) => strtolower($a['status_type']) === strtolower($status)));
+            $filtered = array_values(array_filter($filtered, fn ($a) => strcasecmp($a['status_type'], $status) === 0));
         }
-
-        // Filter by course
         if ($course !== 'all') {
-            $assessmentsTable = array_values(array_filter($assessmentsTable, fn($a) => str_contains(strtolower($a['course']), strtolower($course))));
+            $filtered = array_values(array_filter($filtered, fn ($a) => str_contains(mb_strtolower($a['course'], 'UTF-8'), mb_strtolower($course, 'UTF-8'))));
+        }
+        if ($search !== '') {
+            $s = mb_strtolower(trim($search), 'UTF-8');
+            $filtered = array_values(array_filter($filtered, fn ($a) => str_contains(mb_strtolower($a['title'], 'UTF-8'), $s) || str_contains(mb_strtolower($a['course'], 'UTF-8'), $s)));
         }
 
-        // Filter by search
-        if (!empty($search)) {
-            $s = strtolower($search);
-            $assessmentsTable = array_values(array_filter($assessmentsTable, fn($a) => str_contains(strtolower($a['title']), $s) || str_contains(strtolower($a['course']), $s)));
-        }
+        $filteredTotal = count($filtered);
+        $safePage = max(1, $page);
+        $offset = ($safePage - 1) * $perPage;
+        $pagedRows = array_slice($filtered, $offset, $perPage);
+
+        $coursesList = collect($allRows)->pluck('course')->unique()->values()->all();
 
         return [
             'summary'              => $summary,
@@ -289,10 +314,60 @@ class AssessmentService
             'recent_feedback'      => $recentFeedback,
             'upcoming_deadlines'   => $upcomingDeadlines,
             'weak_topics'          => $weakTopics,
-            'assessments'          => $assessmentsTable,
-            'total_count'          => 18,
+            'assessments'          => $pagedRows,
+            'total_count'          => $filteredTotal,
+            'current_page'         => $safePage,
+            'per_page'             => $perPage,
+            'courses'              => $coursesList,
+        ];
+    }
+
+    protected function emptyPayload(int $page = 1, int $perPage = 8): array
+    {
+        return [
+            'summary'              => [
+                'total_assignments' => 0,
+                'total_note'        => 'No assignments yet',
+                'submitted'         => 0,
+                'submitted_note'    => '0% of total',
+                'graded'            => 0,
+                'graded_note'       => '0% of total',
+                'average_score'     => 0,
+                'average_note'      => 'No graded assignments',
+                'highest_score'     => 0,
+                'highest_title'     => '-',
+            ],
+            'performance_overview' => [
+                'average_score' => 0,
+                'distribution'  => [
+                    ['label' => '90 - 100%', 'count' => 0, 'percentage' => 0, 'color' => '#10B981', 'class' => 'text-emerald-400'],
+                    ['label' => '70 - 89%',  'count' => 0, 'percentage' => 0, 'color' => '#3B82F6', 'class' => 'text-blue-400'],
+                    ['label' => '50 - 69%',  'count' => 0, 'percentage' => 0, 'color' => '#F59E0B', 'class' => 'text-amber-400'],
+                    ['label' => 'Below 50%', 'count' => 0, 'percentage' => 0, 'color' => '#EF4444', 'class' => 'text-rose-400'],
+                ],
+            ],
+            'score_trend'          => [
+                'points'    => [],
+                'highlight' => null,
+            ],
+            'score_by_course'      => [],
+            'submission_status'    => [
+                'total' => 0,
+                'items' => [
+                    ['label' => 'Graded',    'count' => 0, 'percentage' => 0, 'color' => '#10B981'],
+                    ['label' => 'Submitted', 'count' => 0, 'percentage' => 0, 'color' => '#3B82F6'],
+                    ['label' => 'Pending',   'count' => 0, 'percentage' => 0, 'color' => '#F59E0B'],
+                    ['label' => 'Overdue',   'count' => 0, 'percentage' => 0, 'color' => '#EF4444'],
+                ],
+            ],
+            'recent_feedback'      => [],
+            'upcoming_deadlines'   => [],
+            'weak_topics'          => [],
+            'assessments'          => [],
+            'total_count'          => 0,
             'current_page'         => $page,
             'per_page'             => $perPage,
+            'courses'              => [],
         ];
     }
 }

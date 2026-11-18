@@ -101,67 +101,37 @@ const props = defineProps<{
   }
 }>()
 
-// Default baseline data
+// Empty official baseline data when no courses are enrolled yet
 const defaultSummary = {
-  overall_level: 64,
-  level_name: 'Intermediate',
-  mastered_count: 16,
-  total_skills: 25,
-  overall_trend: '12% this month',
-  skills_in_progress: 12,
-  in_progress_note: 'Keep practicing!',
-  need_work_count: 6,
-  mastered_skills: 16,
-  mastered_note: 'Amazing progress!',
-  new_mastered_this_month: 3,
-  skill_points: 2450,
-  points_trend: '+150 this week',
-  top_category: 'Front-End Development',
-  top_category_note: 'Your strongest area',
+  overall_level: 0,
+  level_name: 'Not Started',
+  mastered_count: 0,
+  total_skills: 0,
+  overall_trend: '0% overall',
+  skills_in_progress: 0,
+  in_progress_note: 'មិនទាន់មានជំនាញកំពុងសិក្សាទេ',
+  need_work_count: 0,
+  mastered_skills: 0,
+  mastered_note: 'មិនទាន់មានជំនាញដែលបានស្ទាត់ជំនាញទេ',
+  new_mastered_this_month: 0,
+  skill_points: 0,
+  points_trend: '0 pts',
+  top_category: '—',
+  top_category_note: 'មិនទាន់មានទិន្នន័យសិក្សា',
 }
 
-const defaultSkills: SkillItem[] = [
-  { id: 1, name: 'JavaScript', description: 'Core JavaScript concepts', category: 'Front-End', level: 'Advanced', progress: 85, trend: '+15%', action: 'Practice', code: 'JS', icon_bg: 'from-amber-400 to-amber-500 text-slate-950' },
-  { id: 2, name: 'HTML & CSS', description: 'Structure and styling', category: 'Front-End', level: 'Advanced', progress: 90, trend: '+10%', action: 'Practice', code: '5', icon_bg: 'from-orange-500 to-amber-500 text-white' },
-  { id: 3, name: 'React.js', description: 'Build interactive UIs', category: 'Front-End', level: 'Intermediate', progress: 65, trend: '+8%', action: 'Continue', code: '⚛️', icon_bg: 'from-cyan-400 to-blue-500 text-white' },
-  { id: 4, name: 'Node.js', description: 'JavaScript runtime', category: 'Back-End', level: 'Intermediate', progress: 55, trend: '+12%', action: 'Continue', code: 'node', icon_bg: 'from-emerald-500 to-teal-600 text-white' },
-  { id: 5, name: 'SQL', description: 'Database queries', category: 'Database', level: 'Intermediate', progress: 50, trend: '+5%', action: 'Practice', code: '🗄️', icon_bg: 'from-blue-500 to-indigo-600 text-white' },
-  { id: 6, name: 'Git & GitHub', description: 'Version control', category: 'Tools', level: 'Beginner', progress: 35, trend: '+3%', action: 'Learn', code: 'Git', icon_bg: 'from-rose-500 to-orange-500 text-white' },
-  { id: 7, name: 'UI/UX Design', description: 'Design user interfaces', category: 'Design', level: 'Beginner', progress: 25, trend: '+2%', action: 'Learn', code: 'UI', icon_bg: 'from-purple-500 to-indigo-600 text-white' },
-  { id: 8, name: 'Python', description: 'Programming basics', category: 'Back-End', level: 'Not Started', progress: 0, trend: '—', action: 'Start', code: '🐍', icon_bg: 'from-blue-600 to-cyan-600 text-white' },
-]
+const defaultSkills: SkillItem[] = []
 
 const summary = computed(() => props.analytics?.summary || defaultSummary)
-const categories = computed(() => props.analytics?.categories || [
-  { name: 'Front-End', score: 70, color: '#8B5CF6' },
-  { name: 'Back-End', score: 55, color: '#3B82F6' },
-  { name: 'Database', score: 50, color: '#F59E0B' },
-  { name: 'Tools', score: 45, color: '#10B981' },
-  { name: 'Design', score: 30, color: '#F43F5E' },
-  { name: 'Other', score: 20, color: '#94A3B8' },
-])
-const levelDistribution = computed(() => props.analytics?.level_distribution || { advanced: 5, intermediate: 7, beginner: 4, not_started: 3 })
+const categories = computed(() => props.analytics?.categories || [])
+const levelDistribution = computed(() => props.analytics?.level_distribution || { advanced: 0, intermediate: 0, beginner: 0, not_started: 0 })
 const rawSkills = computed(() => props.analytics?.skills || defaultSkills)
-const improvementFocus = computed(() => props.analytics?.improvement_focus || [
-  { id: 1, skill: 'SQL Queries', description: 'Increase practice in JOIN and WHERE clauses', priority: 'Low', badge_color: 'rose', progress: 50, code: '🗄️', icon_bg: 'from-blue-500 to-indigo-600' },
-  { id: 2, skill: 'React Components', description: 'Work on Hooks and State Management', priority: 'Medium', badge_color: 'amber', progress: 65, code: '⚛️', icon_bg: 'from-cyan-400 to-blue-500' },
-  { id: 3, skill: 'Git Workflows', description: 'Learn branching and pull requests', priority: 'Medium', badge_color: 'amber', progress: 35, code: 'Git', icon_bg: 'from-rose-500 to-orange-500' },
-])
-const recentlyMastered = computed(() => props.analytics?.recently_mastered || [
-  { id: 1, title: 'CSS Flexbox', date: 'Mastered on May 28, 2025', icon: '5', icon_bg: 'from-blue-400 to-indigo-500' },
-  { id: 2, title: 'JavaScript DOM', date: 'Mastered on May 25, 2025', icon: 'JS', icon_bg: 'from-amber-400 to-amber-500 text-slate-950' },
-  { id: 3, title: 'Responsive Design', date: 'Mastered on May 22, 2025', icon: '5', icon_bg: 'from-orange-500 to-amber-500' },
-])
+const improvementFocus = computed(() => props.analytics?.improvement_focus || [])
+const recentlyMastered = computed(() => props.analytics?.recently_mastered || [])
 const aiRecommendation = computed(() => props.analytics?.ai_recommendation || {
-  primary: 'Focus on improving your SQL skills.',
-  secondary: 'Practice more JOIN operations and subqueries.',
-  study_plan: [
-    { day: 'Monday', title: 'SQL JOIN Fundamentals & Syntax Drill', duration: '35 minutes', type: 'Interactive Practice' },
-    { day: 'Tuesday', title: 'React Hooks (useEffect & Custom Hooks)', duration: '40 minutes', type: 'Code Lab' },
-    { day: 'Wednesday', title: 'Git Branching & Merge Conflict Simulation', duration: '25 minutes', type: 'Terminal Drill' },
-    { day: 'Thursday', title: 'Database Subqueries & Aggregate Functions', duration: '30 minutes', type: 'Query Practice' },
-    { day: 'Friday', title: 'Full-Stack Skill Integration Assessment', duration: '45 minutes', type: 'Practical Test' },
-  ]
+  primary: 'មិនទាន់មានទិន្នន័យវិភាគជំនាញនៅឡើយទេ។',
+  secondary: 'សូមចុះឈ្មោះចូលរៀនវគ្គសិក្សា ដើម្បីចាប់ផ្តើមតាមដានជំនាញរបស់អ្នក។',
+  study_plan: []
 })
 
 // Filter & Sort State

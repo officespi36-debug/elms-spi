@@ -19,6 +19,9 @@ const props = defineProps<{
   courseProgressPercent?: number
   completedLessonsCount?: number
   totalLessonsCount?: number
+  discussions?: any[]
+  notes?: any[]
+  resources?: any[]
 }>()
 
 const { isDark, toggleTheme } = useTheme()
@@ -33,83 +36,76 @@ const activeTab = ref<'overview' | 'resources' | 'qa' | 'aiTutor' | 'notes'>('ov
 // Sequential vs Open Learning Mode
 const isSequentialMode = ref(false)
 
-// All Lessons Flattened
+// All Lessons Flattened (supports both course.modules[].lessons and direct course.lessons)
 const allLessons = computed(() => {
   const list: any[] = []
+  const seen = new Set<string>()
+
   if (props.course?.modules && props.course.modules.length > 0) {
     props.course.modules.forEach((mod: any, mIdx: number) => {
       if (mod.lessons && mod.lessons.length > 0) {
-        mod.lessons.forEach((l: any, lIdx: number) => {
-          list.push({
-            ...l,
-            moduleTitle: mod.title || `Module ${mIdx + 1}`,
-            moduleId: mod.id,
-            globalIndex: list.length + 1,
-          })
+        mod.lessons.forEach((l: any) => {
+          const key = String(l.id)
+          if (!seen.has(key)) {
+            seen.add(key)
+            list.push({
+              ...l,
+              moduleTitle: mod.title || `Module ${mIdx + 1}`,
+              moduleId: mod.id,
+              globalIndex: list.length + 1,
+            })
+          }
         })
       }
     })
   }
 
-  // Fallback demo curriculum if course has no lessons populated
-  if (list.length === 0) {
-    return [
-      {
-        id: 101,
-        title: '01. សេចក្តីផ្តើម និងទិដ្ឋភាពទូទៅនៃមុខវិជ្ជា (Introduction)',
-        type: 'video',
-        video_url: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-        duration_seconds: 720,
-        content: '<p>សូមស្វាគមន៍មកកាន់វគ្គសិក្សា! នៅក្នុងមេរៀនដំបូងនេះ យើងនឹងស្វែងយល់ពីគោលបំណងចម្បង ឧបករណ៍ដែលត្រូវប្រើប្រាស់ និងរបៀបរៀបចំ Environment សម្រាប់ការសិក្សាប្រកបដោយប្រសិទ្ធភាពខ្ពស់។</p>',
-        moduleTitle: 'Module 1: Orientation & Basics',
-        moduleId: 1,
-        globalIndex: 1,
-      },
-      {
-        id: 102,
-        title: '02. មូលដ្ឋានគ្រឹះ និងគោលការណ៍សំខាន់ៗ (Core Fundamentals)',
-        type: 'pdf',
-        file_path: 'sample.pdf',
-        file_url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-        duration_seconds: 900,
-        content: '<p>ឯកសារ PDF នេះមានសង្ខេបនូវរាល់រូបមន្ត និង Synatx សំខាន់ៗដែលអ្នកត្រូវចងចាំ។ សូមទាញយក និងអានឱ្យបានម៉ត់ចត់មុននឹងបន្តទៅមេរៀនបន្ទាប់។</p>',
-        moduleTitle: 'Module 1: Orientation & Basics',
-        moduleId: 1,
-        globalIndex: 2,
-      },
-      {
-        id: 103,
-        title: '03. ការអនុវត្តផ្ទាល់ Lab Simulator & Coding Practice',
-        type: 'lab',
-        duration_seconds: 1200,
-        content: '<p>បន្ទប់អនុវត្តជាក់ស្តែង! សាកល្បងសរសេរកូដ និងដំណើរការលទ្ធផលក្នុង Interactive Code Sandbox ខាងក្រោម។</p>',
-        moduleTitle: 'Module 2: Practical Lab & Exercises',
-        moduleId: 2,
-        globalIndex: 3,
-      },
-      {
-        id: 104,
-        title: '04. ស្លាយសង្ខេបមេរៀន និងគន្លឹះប្រឡង (Summary Slides)',
-        type: 'slide',
-        duration_seconds: 600,
-        content: '<p>ស្លាយបទបង្ហាញផ្លូវការ ផ្ដល់នូវទិដ្ឋភាពសង្ខេប និងគន្លឹះសម្រាប់ឆ្លើយសំណួរ Quiz ប្រចាំជំពូក។</p>',
-        moduleTitle: 'Module 2: Practical Lab & Exercises',
-        moduleId: 2,
-        globalIndex: 4,
+  if (props.course?.lessons && props.course.lessons.length > 0) {
+    props.course.lessons.forEach((l: any) => {
+      const key = String(l.id)
+      if (!seen.has(key)) {
+        seen.add(key)
+        list.push({
+          ...l,
+          moduleTitle: l.module?.title || props.course?.title || 'Course Lessons',
+          moduleId: l.module_id || null,
+          globalIndex: list.length + 1,
+        })
       }
-    ]
+    })
   }
 
   return list
 })
 
 // Current Active Lesson
-const activeLessonId = ref<number | string>(
-  props.initialLessonId || (allLessons.value[0]?.id ?? 1)
+const activeLessonId = ref<number | string | null>(
+  props.initialLessonId ?? (allLessons.value[0]?.id ?? null)
 )
 
 const activeLesson = computed(() => {
-  return allLessons.value.find(l => String(l.id) === String(activeLessonId.value)) || allLessons.value[0]
+  if (allLessons.value.length === 0) return null
+  return allLessons.value.find(l => String(l.id) === String(activeLessonId.value)) || allLessons.value[0] || null
+})
+
+const embedVideoUrl = computed(() => {
+  const raw = (activeLesson.value?.video_url || '').trim()
+  if (!raw) return ''
+  if (raw.includes('youtube.com/watch') && raw.includes('v=')) {
+    const vid = raw.split('v=')[1]?.split('&')[0]
+    return vid ? `https://www.youtube.com/embed/${vid}` : raw
+  }
+  if (raw.includes('youtu.be/')) {
+    const vid = raw.split('youtu.be/')[1]?.split('?')[0]
+    return vid ? `https://www.youtube.com/embed/${vid}` : raw
+  }
+  if (raw.startsWith('uploads/') || raw.startsWith('storage/')) {
+    return `/${raw}`
+  }
+  if (!raw.startsWith('http') && !raw.startsWith('/')) {
+    return `/storage/${raw}`
+  }
+  return raw
 })
 
 // Current Lesson Index
@@ -310,34 +306,61 @@ const runCode = () => {
 const currentSlideIndex = ref(1)
 const totalSlides = ref(8)
 
-// Q&A Discussion State
+// Q&A Discussion State (100% DB-driven)
 interface DiscussionItem {
   id: number | string
+  lesson_id?: number | string | null
   userName: string
-  avatar: string
+  avatar?: string | null
   content: string
   time: string
   isTeacherReply?: boolean
   reply?: string | null
+  replies?: any[]
 }
 
-const discussionsList = ref<DiscussionItem[]>([
-  {
-    id: 1,
-    userName: 'Channak Meas',
-    avatar: 'https://ui-avatars.com/api/?name=Channak&background=6366f1&color=fff',
-    content: 'លោកគ្រូ តើ Modulo Operator (%) អាចប្រើជាមួយ floating point numbers (float/double) បានដែរឬទេ?',
-    time: '2 ម៉ោងមុន',
-    isTeacherReply: true,
-    reply: 'សួស្តីប្អូន! ក្នុង C Operator % ប្រើបានតែជាមួយ Integers ប៉ុណ្ណោះ។ ប្រសិនបើចង់គណនាសំណល់លើ float ត្រូវប្រើ function fmod() ពីបណ្ណាល័យ <math.h>។'
-  }
-])
+const allDiscussions = ref<DiscussionItem[]>(
+  (props.discussions || []).map((d: any) => ({
+    id: d.id,
+    lesson_id: d.lesson_id,
+    userName: d.userName || d.user_name || 'Student',
+    avatar: d.avatar || null,
+    content: d.content || d.body || '',
+    time: d.time || d.created_at || 'Just now',
+    isTeacherReply: !!d.isTeacherReply,
+    reply: d.reply || null,
+    replies: d.replies || [],
+  }))
+)
+
+watch(() => props.discussions, (val) => {
+  allDiscussions.value = (val || []).map((d: any) => ({
+    id: d.id,
+    lesson_id: d.lesson_id,
+    userName: d.userName || d.user_name || 'Student',
+    avatar: d.avatar || null,
+    content: d.content || d.body || '',
+    time: d.time || d.created_at || 'Just now',
+    isTeacherReply: !!d.isTeacherReply,
+    reply: d.reply || null,
+    replies: d.replies || [],
+  }))
+})
+
+const discussionsList = computed(() => {
+  if (!activeLesson.value?.id) return []
+  return allDiscussions.value.filter(
+    d => !d.lesson_id || String(d.lesson_id) === String(activeLesson.value?.id)
+  )
+})
+
 const newQuestionText = ref('')
 const isSubmittingQuestion = ref(false)
 
 const submitQuestion = () => {
-  if (!newQuestionText.value.trim()) return
+  if (!newQuestionText.value.trim() || !activeLesson.value?.id || isSubmittingQuestion.value) return
   isSubmittingQuestion.value = true
+  const submittedContent = newQuestionText.value.trim()
 
   fetch(`/student/learn/discussion/${activeLesson.value.id}`, {
     method: 'POST',
@@ -346,21 +369,29 @@ const submitQuestion = () => {
       'X-CSRF-TOKEN': (document.head.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
       'Accept': 'application/json'
     },
-    body: JSON.stringify({ content: newQuestionText.value })
+    body: JSON.stringify({
+      content: submittedContent,
+      video_seconds: Math.floor(currentTime.value || 0),
+    })
   })
     .then(res => res.json())
     .then(data => {
       isSubmittingQuestion.value = false
-      discussionsList.value.unshift({
-        id: Date.now(),
-        userName: 'You (Student)',
-        avatar: 'https://ui-avatars.com/api/?name=Student&background=10b981&color=fff',
-        content: newQuestionText.value,
-        time: 'អម្បាញ់មិញ',
-        isTeacherReply: false,
-        reply: null
-      })
-      newQuestionText.value = ''
+      if (data.success && data.discussion) {
+        const d = data.discussion
+        allDiscussions.value.unshift({
+          id: d.id,
+          lesson_id: d.lesson_id || activeLesson.value?.id,
+          userName: d.userName || d.user_name || 'Student',
+          avatar: d.avatar || null,
+          content: d.content || d.body || submittedContent,
+          time: d.time || 'Just now',
+          isTeacherReply: false,
+          reply: null,
+          replies: [],
+        })
+        newQuestionText.value = ''
+      }
     })
     .catch(() => {
       isSubmittingQuestion.value = false
@@ -379,7 +410,7 @@ const aiInputText = ref('')
 const isAiLoading = ref(false)
 
 const askAiTutor = () => {
-  if (!aiInputText.value.trim() || isAiLoading.value) return
+  if (!aiInputText.value.trim() || isAiLoading.value || !activeLesson.value?.id) return
   const q = aiInputText.value
   aiMessages.value.push({ role: 'user', text: q, time: 'ឥឡូវនេះ' })
   aiInputText.value = ''
@@ -413,29 +444,114 @@ const askAiTutor = () => {
     })
 }
 
-// Personal Notes State
+// Personal Notes State (100% DB-driven)
 interface PersonalNote {
   id: number | string
+  lesson_id?: number | string | null
   text: string
   time: string
   savedAt: string
 }
 
-const personalNotes = ref<PersonalNote[]>([
-  { id: 1, text: 'Operator %= ប្រើសម្រាប់គណនា Remainder (សំណល់នៃការចែក)', time: '04:15', savedAt: '2026-08-20' }
-])
+const allNotes = ref<PersonalNote[]>(
+  (props.notes || []).map((n: any) => ({
+    id: n.id,
+    lesson_id: n.lesson_id,
+    text: n.text || n.body || '',
+    time: n.time || n.timestamp || '00:00',
+    savedAt: n.savedAt || n.saved_at || '',
+  }))
+)
+
+watch(() => props.notes, (val) => {
+  allNotes.value = (val || []).map((n: any) => ({
+    id: n.id,
+    lesson_id: n.lesson_id,
+    text: n.text || n.body || '',
+    time: n.time || n.timestamp || '00:00',
+    savedAt: n.savedAt || n.saved_at || '',
+  }))
+})
+
+const personalNotes = computed(() => {
+  if (!activeLesson.value?.id) return allNotes.value
+  return allNotes.value.filter(
+    n => !n.lesson_id || String(n.lesson_id) === String(activeLesson.value?.id)
+  )
+})
+
+const activeResources = computed(() => {
+  const list = props.resources || []
+  if (!activeLesson.value?.id) return list
+  return list.filter(
+    (r: any) => !r.lesson_id || String(r.lesson_id) === String(activeLesson.value?.id)
+  )
+})
+
 const noteInput = ref('')
+const isSavingNote = ref(false)
+const deletingNoteId = ref<number | string | null>(null)
 
 const savePersonalNote = () => {
-  if (!noteInput.value.trim()) return
+  if (!noteInput.value.trim() || !activeLesson.value?.id || isSavingNote.value) return
+  isSavingNote.value = true
   const currentTimestamp = formatTime(currentTime.value)
-  personalNotes.value.push({
-    id: Date.now(),
-    text: noteInput.value,
-    time: currentTimestamp,
-    savedAt: new Date().toLocaleDateString()
+  const videoSeconds = Math.floor(currentTime.value || 0)
+  const noteBody = noteInput.value.trim()
+
+  fetch(`/student/learn/notes/${activeLesson.value.id}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-TOKEN': (document.head.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+      'Accept': 'application/json'
+    },
+    body: JSON.stringify({
+      text: noteBody,
+      timestamp: currentTimestamp,
+      video_seconds: videoSeconds,
+    })
   })
-  noteInput.value = ''
+    .then(res => res.json())
+    .then(data => {
+      isSavingNote.value = false
+      if (data.success && data.note) {
+        allNotes.value.unshift({
+          id: data.note.id,
+          lesson_id: data.note.lesson_id || activeLesson.value?.id,
+          text: data.note.text || data.note.body || noteBody,
+          time: data.note.time || data.note.timestamp || currentTimestamp,
+          savedAt: data.note.savedAt || data.note.saved_at || new Date().toLocaleDateString(),
+        })
+        noteInput.value = ''
+      }
+    })
+    .catch(() => {
+      isSavingNote.value = false
+    })
+}
+
+const deletePersonalNote = (noteId: number | string) => {
+  if (deletingNoteId.value) return
+  deletingNoteId.value = noteId
+
+  fetch(`/student/learn/notes/${noteId}`, {
+    method: 'DELETE',
+    headers: {
+      'X-CSRF-TOKEN': (document.head.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+      'Accept': 'application/json'
+    }
+  })
+    .then(res => res.json())
+    .then(data => {
+      deletingNoteId.value = null
+      if (data.success) {
+        allNotes.value = allNotes.value.filter(item => item.id !== noteId)
+      }
+    })
+    .catch(() => {
+      deletingNoteId.value = null
+    })
 }
 
 // AI Smart Next Steps Recommendation State
@@ -443,6 +559,10 @@ const aiNextSteps = ref<any>(null)
 const isNextStepsLoading = ref(false)
 
 const loadAiNextSteps = async () => {
+  if (!activeLesson.value) {
+    aiNextSteps.value = null
+    return
+  }
   isNextStepsLoading.value = true
   try {
     const res = await fetch('/api/ai/recommendation', {
@@ -452,23 +572,19 @@ const loadAiNextSteps = async () => {
         'Accept': 'application/json'
       },
       body: JSON.stringify({
-        major: props.course?.major?.name || 'Information Technology',
+        major: props.course?.major?.name || 'General Studies',
         lesson_title: activeLesson.value?.title || props.course?.title,
-        quiz_score: 85
+        quiz_score: 0
       })
     })
     const data = await res.json()
     if (data.success && data.recommendation) {
       aiNextSteps.value = data.recommendation
+    } else {
+      aiNextSteps.value = null
     }
-  } catch (e) {
-    aiNextSteps.value = {
-      major: props.course?.major?.name || 'Information Technology',
-      next_topic: 'Advanced Practical Implementation & Lab Exercises',
-      practice_project: 'Complete the attached practice exercises to solidify theoretical concepts.',
-      tech_badge: props.course?.major?.name || 'SPI Academic Module',
-      difficulty_level: 'Recommended Next Step'
-    }
+  } catch {
+    aiNextSteps.value = null
   } finally {
     isNextStepsLoading.value = false
   }
@@ -637,7 +753,7 @@ onUnmounted(() => {
             </span>
           </div>
           <p class="text-[10px] text-slate-400 truncate">
-            👨‍🏫 {{ course.teacher?.name || 'Instructor' }} • Lesson {{ activeLessonIndex + 1 }}/{{ allLessons.length }}
+            👨‍🏫 {{ course.teacher?.name || 'Instructor' }} • {{ allLessons.length > 0 ? `Lesson ${activeLessonIndex + 1}/${allLessons.length}` : '0 Lessons' }}
           </p>
         </div>
       </div>
@@ -801,7 +917,38 @@ onUnmounted(() => {
       <!-- ─────────────────────────────────────────────────────────────────────────── -->
       <main :class="[isTheaterMode || !isSidebarOpen ? 'w-full' : 'flex-1', 'h-full overflow-y-auto custom-scrollbar flex flex-col transition-all duration-300 bg-slate-950']">
         
-        <div class="max-w-6xl mx-auto w-full p-4 md:p-6 flex flex-col flex-1 space-y-6">
+        <!-- Empty State when Course has 0 Lessons -->
+        <div v-if="allLessons.length === 0 || !activeLesson" class="max-w-3xl mx-auto w-full p-6 md:p-12 flex-1 flex items-center justify-center">
+          <div class="w-full bg-slate-900/90 border border-slate-800 rounded-3xl p-8 md:p-12 text-center space-y-4 shadow-2xl">
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 flex items-center justify-center text-3xl">
+              📚
+            </div>
+            <h2 class="text-lg md:text-xl font-black text-white">
+              មិនទាន់មានមេរៀននៅឡើយទេ (No Lessons Available Yet)
+            </h2>
+            <p class="text-xs md:text-sm text-slate-400 max-w-md mx-auto leading-relaxed">
+              គ្រូបង្រៀនកំពុងរៀបចំខ្លឹមសារមេរៀនសម្រាប់វគ្គសិក្សានេះ។ សូមត្រឡប់មកពិនិត្យមើលម្ដងទៀតនៅពេលក្រោយ។
+              <br />
+              The instructor has not published any lessons for this course yet. Please check back soon.
+            </p>
+            <div class="pt-2 flex items-center justify-center gap-3">
+              <Link
+                :href="`/student/courses/${course.id}/overview`"
+                class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg transition-all"
+              >
+                ← ត្រឡប់ទៅទិដ្ឋភាពទូទៅ (Course Overview)
+              </Link>
+              <Link
+                href="/student/my-courses/enrolled"
+                class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs transition-all"
+              >
+                My Courses
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="max-w-6xl mx-auto w-full p-4 md:p-6 flex flex-col flex-1 space-y-6">
           
           <!-- Lesson Header Banner -->
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900/80 border border-slate-800/90 rounded-2xl p-4 shadow-xl">
@@ -845,12 +992,12 @@ onUnmounted(() => {
           <div class="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl flex flex-col">
             
             <!-- 1. VIDEO PLAYER (MP4 / Cloudinary / YouTube) -->
-            <div v-if="activeLesson?.type === 'video'" class="relative aspect-video w-full bg-black flex items-center justify-center group/player">
+            <div v-if="activeLesson?.type === 'video' || activeLesson?.video_url" class="relative aspect-video w-full bg-black flex items-center justify-center group/player">
               
               <!-- Embedded Iframe for YouTube or External Embeds -->
               <iframe
-                v-if="activeLesson?.video_url && (activeLesson.video_url.includes('youtube') || activeLesson.video_url.includes('youtu.be') || activeLesson.video_url.includes('vimeo'))"
-                :src="activeLesson.video_url"
+                v-if="embedVideoUrl && (embedVideoUrl.includes('youtube') || embedVideoUrl.includes('youtu.be') || embedVideoUrl.includes('vimeo'))"
+                :src="embedVideoUrl"
                 class="w-full h-full"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowfullscreen
@@ -858,18 +1005,27 @@ onUnmounted(() => {
 
               <!-- Direct Video Player for MP4 / Cloudinary / Storage -->
               <video
-                v-else
+                v-else-if="embedVideoUrl"
                 ref="videoPlayerRef"
                 class="w-full h-full object-contain"
-                :src="activeLesson?.video_url || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'"
+                :src="embedVideoUrl"
                 @timeupdate="onTimeUpdate"
                 @ended="onVideoEnded"
                 controls
                 playsinline
               ></video>
 
+              <!-- Clean Video Unavailable Empty State -->
+              <div v-else class="w-full h-full flex flex-col items-center justify-center p-8 text-center space-y-2 bg-slate-950">
+                <span class="text-3xl">🎬</span>
+                <p class="text-sm font-bold text-white">មិនទាន់មានវីដេអូសម្រាប់មេរៀននេះទេ (Video Not Available Yet)</p>
+                <p class="text-xs text-slate-400 max-w-md">
+                  សូមពិនិត្យមើលខ្លឹមសារអត្ថបទ ឬឯកសារភ្ជាប់នៅផ្នែកខាងក្រោម។
+                </p>
+              </div>
+
               <!-- Speed & Resolution Overlay Pill (Top Right) -->
-              <div class="absolute top-4 right-4 flex items-center gap-2 opacity-0 group-hover/player:opacity-100 transition-opacity z-20">
+              <div v-if="embedVideoUrl && !(embedVideoUrl.includes('youtube') || embedVideoUrl.includes('youtu.be') || embedVideoUrl.includes('vimeo'))" class="absolute top-4 right-4 flex items-center gap-2 opacity-0 group-hover/player:opacity-100 transition-opacity z-20">
                 <div class="relative group/speed">
                   <button class="px-2.5 py-1 rounded-xl bg-slate-900/80 backdrop-blur-md border border-slate-700 text-white font-bold text-xs shadow-lg flex items-center gap-1 cursor-pointer">
                     <span>⚡ {{ playbackSpeed }}x</span>
@@ -1102,7 +1258,7 @@ onUnmounted(() => {
               </div>
 
               <!-- ✨ AI NEXT STEPS RECOMMENDATION CARD (TAILORED TO MAJOR) -->
-              <div class="rounded-3xl bg-gradient-to-br from-indigo-950 via-slate-900 to-purple-950 border border-indigo-500/30 p-5 shadow-2xl space-y-4">
+              <div v-if="isNextStepsLoading || aiNextSteps" class="rounded-3xl bg-gradient-to-br from-indigo-950 via-slate-900 to-purple-950 border border-indigo-500/30 p-5 shadow-2xl space-y-4">
                 <div class="flex items-center justify-between border-b border-indigo-500/20 pb-3 flex-wrap gap-2">
                   <div class="flex items-center gap-2">
                     <span class="text-xl">✨</span>
@@ -1194,38 +1350,34 @@ onUnmounted(() => {
 
             <!-- Tab 2: Resources & Downloads -->
             <div v-show="activeTab === 'resources'" class="p-6 space-y-3">
-              <div class="space-y-2">
-                <div class="flex items-center justify-between p-3 rounded-2xl bg-slate-950 border border-slate-800 text-xs">
-                  <div class="flex items-center gap-3">
-                    <span class="text-red-400 text-base">📄</span>
-                    <div>
-                      <p class="font-bold text-white">Lesson Summary & Formula Sheet.pdf</p>
-                      <p class="text-[10px] text-slate-500">PDF Document • 2.4 MB</p>
+              <div v-if="activeResources.length > 0" class="space-y-2">
+                <div
+                  v-for="res in activeResources"
+                  :key="res.id"
+                  class="flex items-center justify-between p-3 rounded-2xl bg-slate-950 border border-slate-800 text-xs"
+                >
+                  <div class="flex items-center gap-3 min-w-0">
+                    <span class="text-indigo-400 text-base shrink-0">📄</span>
+                    <div class="min-w-0">
+                      <p class="font-bold text-white truncate">{{ res.title }}</p>
+                      <p class="text-[10px] text-slate-500">{{ res.type || 'FILE' }}{{ res.size ? ` • ${res.size}` : '' }}</p>
                     </div>
                   </div>
                   <a
-                    href="#"
-                    class="px-3 py-1.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 text-xs font-bold transition-all"
+                    :href="res.download_url"
+                    target="_blank"
+                    download
+                    class="px-3 py-1.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 text-xs font-bold transition-all shrink-0"
                   >
                     Download ⬇
                   </a>
                 </div>
+              </div>
 
-                <div class="flex items-center justify-between p-3 rounded-2xl bg-slate-950 border border-slate-800 text-xs">
-                  <div class="flex items-center gap-3">
-                    <span class="text-emerald-400 text-base">💻</span>
-                    <div>
-                      <p class="font-bold text-white">Source_Code_Exercise_Starter.zip</p>
-                      <p class="text-[10px] text-slate-500">ZIP Archive • 1.1 MB</p>
-                    </div>
-                  </div>
-                  <a
-                    href="#"
-                    class="px-3 py-1.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 text-xs font-bold transition-all"
-                  >
-                    Download ⬇
-                  </a>
-                </div>
+              <div v-else class="p-8 rounded-2xl bg-slate-950/70 border border-dashed border-slate-800 text-center space-y-1.5">
+                <span class="text-2xl block">📁</span>
+                <p class="text-xs font-bold text-slate-200">មិនទាន់មានឯកសារភ្ជាប់សម្រាប់មេរៀននេះទេ (No downloadable resources yet)</p>
+                <p class="text-[11px] text-slate-500">ឯកសារមេរៀនបន្ថែមនឹងបង្ហាញនៅទីនេះនៅពេលគ្រូបង្រៀនបញ្ចូល។</p>
               </div>
             </div>
 
@@ -1247,13 +1399,13 @@ onUnmounted(() => {
                     :disabled="isSubmittingQuestion || !newQuestionText.trim()"
                     class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white font-bold text-xs transition-all shadow-md shrink-0 cursor-pointer"
                   >
-                    Post Question
+                    {{ isSubmittingQuestion ? 'Posting...' : 'Post Question' }}
                   </button>
                 </div>
               </div>
 
               <!-- Question Stream -->
-              <div class="space-y-3">
+              <div v-if="discussionsList.length > 0" class="space-y-3">
                 <div
                   v-for="qa in discussionsList"
                   :key="qa.id"
@@ -1261,7 +1413,10 @@ onUnmounted(() => {
                 >
                   <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
-                      <img :src="qa.avatar" class="w-6 h-6 rounded-full object-cover" />
+                      <img
+                        :src="qa.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(qa.userName || 'Student')}&background=6366f1&color=fff`"
+                        class="w-6 h-6 rounded-full object-cover"
+                      />
                       <span class="text-xs font-bold text-white">{{ qa.userName }}</span>
                     </div>
                     <span class="text-[10px] text-slate-500">{{ qa.time }}</span>
@@ -1269,14 +1424,29 @@ onUnmounted(() => {
 
                   <p class="text-xs text-slate-300 leading-relaxed">{{ qa.content }}</p>
 
-                  <!-- Teacher Reply -->
-                  <div v-if="qa.reply" class="ml-4 pl-3 border-l-2 border-indigo-500/60 pt-2 space-y-1">
+                  <!-- Replies -->
+                  <div v-if="qa.replies && qa.replies.length > 0" class="space-y-2 ml-4 pl-3 border-l-2 border-indigo-500/60 pt-1">
+                    <div v-for="rep in qa.replies" :key="rep.id" class="space-y-0.5">
+                      <div class="flex items-center gap-2">
+                        <span class="text-[11px] font-bold text-slate-200">{{ rep.user_name }}</span>
+                        <span v-if="rep.role === 'instructor'" class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-indigo-500/20 text-indigo-300">Instructor Answer</span>
+                      </div>
+                      <p class="text-xs text-slate-400">{{ rep.body }}</p>
+                    </div>
+                  </div>
+                  <div v-else-if="qa.reply" class="ml-4 pl-3 border-l-2 border-indigo-500/60 pt-2 space-y-1">
                     <div class="flex items-center gap-2">
                       <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-indigo-500/20 text-indigo-300">Instructor Answer</span>
                     </div>
                     <p class="text-xs text-slate-400">{{ qa.reply }}</p>
                   </div>
                 </div>
+              </div>
+
+              <div v-else class="p-8 rounded-2xl bg-slate-950/70 border border-dashed border-slate-800 text-center space-y-1.5">
+                <span class="text-2xl block">💬</span>
+                <p class="text-xs font-bold text-slate-200">មិនទាន់មានសំណួរពិភាក្សាទេ (No Questions Yet)</p>
+                <p class="text-[11px] text-slate-500">សួរសំណួរដំបូងរបស់អ្នកអំពីមេរៀននេះនៅខាងលើ!</p>
               </div>
             </div>
 
@@ -1338,27 +1508,39 @@ onUnmounted(() => {
                   />
                   <button
                     @click="savePersonalNote"
-                    class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-all shadow-md shrink-0 cursor-pointer"
+                    :disabled="isSavingNote || !noteInput.trim()"
+                    class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white font-bold text-xs transition-all shadow-md shrink-0 cursor-pointer"
                   >
-                    Save Note
+                    {{ isSavingNote ? 'Saving...' : 'Save Note' }}
                   </button>
                 </div>
               </div>
 
-              <div class="space-y-2">
+              <div v-if="personalNotes.length > 0" class="space-y-2">
                 <div
                   v-for="n in personalNotes"
                   :key="n.id"
-                  class="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs flex items-center justify-between"
+                  class="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs flex items-center justify-between gap-3"
                 >
-                  <div class="space-y-0.5">
-                    <p class="text-slate-200">{{ n.text }}</p>
-                    <p class="text-[10px] text-slate-500">⏱️ {{ n.time }} • {{ n.savedAt }}</p>
+                  <div class="space-y-0.5 min-w-0">
+                    <p class="text-slate-200 break-words">{{ n.text }}</p>
+                    <p class="text-[10px] text-slate-500">⏱️ {{ n.time }}{{ n.savedAt ? ` • ${n.savedAt}` : '' }}</p>
                   </div>
-                  <button @click="personalNotes = personalNotes.filter(item => item.id !== n.id)" class="text-slate-500 hover:text-red-400 p-1">
+                  <button
+                    @click="deletePersonalNote(n.id)"
+                    :disabled="deletingNoteId === n.id"
+                    class="text-slate-500 hover:text-red-400 p-1 shrink-0 cursor-pointer disabled:opacity-40"
+                    title="Delete Note"
+                  >
                     🗑️
                   </button>
                 </div>
+              </div>
+
+              <div v-else class="p-8 rounded-2xl bg-slate-950/70 border border-dashed border-slate-800 text-center space-y-1.5">
+                <span class="text-2xl block">📝</span>
+                <p class="text-xs font-bold text-slate-200">មិនទាន់មានកំណត់ចំណាំផ្ទាល់ខ្លួនទេ (No Personal Notes Yet)</p>
+                <p class="text-[11px] text-slate-500">កំណត់ចំណាំរបស់អ្នកនឹងត្រូវបានរក្សាទុកក្នុងគណនីដោយស្វ័យប្រវត្តិ។</p>
               </div>
             </div>
 
@@ -1404,12 +1586,16 @@ onUnmounted(() => {
         <!-- Lessons Playlist List -->
         <div class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">
           
+          <div v-if="allLessons.length === 0" class="p-6 text-center text-xs text-slate-500 space-y-1">
+            <p class="font-bold text-slate-400">មិនទាន់មានមេរៀន (No lessons yet)</p>
+          </div>
+
           <div
             v-for="lesson in allLessons.filter(l => !playlistSearch.trim() || l.title.toLowerCase().includes(playlistSearch.toLowerCase()))"
             :key="lesson.id"
             @click="selectLesson(lesson)"
             :class="[
-              activeLessonId === lesson.id 
+              activeLesson?.id === lesson.id 
                 ? 'bg-indigo-600/20 border-indigo-500/60 shadow-md shadow-indigo-950/50' 
                 : isLessonLocked(lesson)
                   ? 'bg-slate-950/40 border-slate-800/40 opacity-60 cursor-not-allowed'
@@ -1424,7 +1610,7 @@ onUnmounted(() => {
                 ✓
               </div>
               <!-- Active Playing -->
-              <div v-else-if="activeLessonId === lesson.id" class="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[9px] animate-pulse">
+              <div v-else-if="activeLesson?.id === lesson.id" class="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[9px] animate-pulse">
                 ▶
               </div>
               <!-- Locked -->
@@ -1441,7 +1627,7 @@ onUnmounted(() => {
             <div class="flex-1 min-w-0 space-y-1">
               <p
                 :class="[
-                  activeLessonId === lesson.id ? 'text-indigo-300 font-bold' : 'text-slate-200 group-hover/item:text-white font-medium',
+                  activeLesson?.id === lesson.id ? 'text-indigo-300 font-bold' : 'text-slate-200 group-hover/item:text-white font-medium',
                   'text-xs line-clamp-2 leading-snug'
                 ]"
               >
@@ -1449,9 +1635,9 @@ onUnmounted(() => {
               </p>
 
               <div class="flex items-center gap-2 text-[10px] text-slate-400">
-                <span class="uppercase font-bold text-slate-500">{{ lesson.type }}</span>
+                <span class="uppercase font-bold text-slate-500">{{ lesson.type || 'lesson' }}</span>
                 <span>•</span>
-                <span>⏱️ {{ formatTime(lesson.duration_seconds || 600) }}</span>
+                <span>⏱️ {{ formatTime(lesson.duration_seconds || 0) }}</span>
               </div>
             </div>
           </div>

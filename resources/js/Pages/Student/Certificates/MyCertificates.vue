@@ -2,17 +2,26 @@
 import { ref, computed } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
 import StudentLayout from '@/Layouts/StudentLayout.vue'
+import { useLanguage } from '@/Services/i18n'
+
+const { t } = useLanguage()
 
 interface CertificateItem {
   id: number
+  course_id?: number | null
   title: string
+  title_kh?: string | null
   student_name: string
   issuer: string
+  teacher_name?: string | null
   issued_date: string
   raw_date: string
   status: string
-  status_type: 'verified' | 'expired' | 'in_progress'
+  status_type: 'valid' | 'verified' | 'revoked' | 'expired'
   cert_number: string
+  verification_code?: string
+  download_url?: string
+  verify_url?: string
   qr_url: string
   accent_color: string
   border_class: string
@@ -31,12 +40,17 @@ interface StatItem {
 }
 
 interface AchievementItem {
-  id: number
+  id: number | string
   title: string
   description: string
   date: string
   icon: string
   icon_bg: string
+}
+
+interface CourseOption {
+  id: number | string
+  title: string
 }
 
 const props = defineProps<{
@@ -60,6 +74,11 @@ const props = defineProps<{
     recent_achievements: AchievementItem[]
     certificates: CertificateItem[]
     total_count: number
+    filter_options?: {
+      categories?: string[]
+      courses?: CourseOption[]
+      issuers?: string[]
+    }
   }
   filters?: {
     status: string
@@ -71,196 +90,79 @@ const props = defineProps<{
   }
 }>()
 
-// Default baseline data
 const defaultSummary = {
-  total_certificates: 12,
+  total_certificates: 0,
   total_note: 'All time earned',
-  completed_courses: 8,
-  completed_note: 'With certificates',
-  this_year: 5,
+  completed_courses: 0,
+  completed_note: 'Completed courses',
+  this_year: 0,
   this_year_note: 'Certificates earned',
-  recent_date: 'May 28, 2025',
-  recent_note: 'Most recent',
-  total_learning_time: '245h 30m',
+  recent_date: '—',
+  recent_note: 'No certificates yet',
+  total_learning_time: '0h 00m',
   time_note: 'Across all courses',
 }
 
 const defaultStats = {
-  total: 12,
+  total: 0,
   items: [
-    { label: 'Completed',   count: 8, percentage: 67, color: '#10B981' },
-    { label: 'In Progress', count: 2, percentage: 17, color: '#3B82F6' },
-    { label: 'Expired',     count: 0, percentage: 0,  color: '#F59E0B' },
-    { label: 'Upcoming',    count: 2, percentage: 16, color: '#A855F7' },
-  ]
+    { label: 'Earned',      count: 0, percentage: 0, color: '#10B981' },
+    { label: 'In Progress', count: 0, percentage: 0, color: '#3B82F6' },
+    { label: 'Revoked',     count: 0, percentage: 0, color: '#EF4444' },
+    { label: 'Not Started', count: 0, percentage: 0, color: '#F59E0B' },
+  ],
 }
-
-const defaultAchievements: AchievementItem[] = [
-  { id: 1, title: 'Learning Champion', description: 'Earned 10 certificates', date: 'May 28, 2025', icon: '🏆', icon_bg: 'bg-amber-500/20 text-amber-300 border border-amber-500/30' },
-  { id: 2, title: 'Consistent Learner', description: '7 days learning streak', date: 'May 25, 2025', icon: '🎖️', icon_bg: 'bg-blue-500/20 text-blue-300 border border-blue-500/30' },
-  { id: 3, title: 'Course Master', description: 'Completed 8 courses', date: 'May 20, 2025', icon: '🛡️', icon_bg: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' },
-  { id: 4, title: 'Skill Developer', description: 'Mastered new skills', date: 'May 18, 2025', icon: '🔮', icon_bg: 'bg-purple-500/20 text-purple-300 border border-purple-500/30' },
-]
-
-const defaultCertificates: CertificateItem[] = [
-  {
-    id: 1,
-    title: 'JavaScript Advanced',
-    student_name: 'Sok Pisey',
-    issuer: 'SPI E-Learning Platform',
-    issued_date: 'Issued on May 28, 2025',
-    raw_date: 'May 28, 2025',
-    status: 'Verified',
-    status_type: 'verified',
-    cert_number: 'SPI-CERT-2025-JS8921',
-    qr_url: 'https://spilms.tech/verify/SPI-CERT-2025-JS8921',
-    accent_color: 'purple',
-    border_class: 'from-purple-500/40 to-indigo-500/40',
-    badge_color: 'bg-purple-600/20 text-purple-300 border border-purple-500/30',
-    seal_color: '#8B5CF6',
-    category: 'Programming',
-    grade: 'A+',
-    score: '95%',
-  },
-  {
-    id: 2,
-    title: 'React Development',
-    student_name: 'Sok Pisey',
-    issuer: 'SPI E-Learning Platform',
-    issued_date: 'Issued on May 25, 2025',
-    raw_date: 'May 25, 2025',
-    status: 'Verified',
-    status_type: 'verified',
-    cert_number: 'SPI-CERT-2025-RC4410',
-    qr_url: 'https://spilms.tech/verify/SPI-CERT-2025-RC4410',
-    accent_color: 'blue',
-    border_class: 'from-cyan-500/40 to-blue-500/40',
-    badge_color: 'bg-blue-600/20 text-blue-300 border border-blue-500/30',
-    seal_color: '#3B82F6',
-    category: 'Frontend',
-    grade: 'A',
-    score: '88%',
-  },
-  {
-    id: 3,
-    title: 'Node.js Fundamentals',
-    student_name: 'Sok Pisey',
-    issuer: 'SPI E-Learning Platform',
-    issued_date: 'Issued on May 25, 2025',
-    raw_date: 'May 25, 2025',
-    status: 'Verified',
-    status_type: 'verified',
-    cert_number: 'SPI-CERT-2025-ND3190',
-    qr_url: 'https://spilms.tech/verify/SPI-CERT-2025-ND3190',
-    accent_color: 'emerald',
-    border_class: 'from-emerald-500/40 to-teal-500/40',
-    badge_color: 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/30',
-    seal_color: '#10B981',
-    category: 'Backend',
-    grade: 'A',
-    score: '90%',
-  },
-  {
-    id: 4,
-    title: 'Python Programming',
-    student_name: 'Sok Pisey',
-    issuer: 'SPI E-Learning Platform',
-    issued_date: 'Issued on May 20, 2025',
-    raw_date: 'May 20, 2025',
-    status: 'Verified',
-    status_type: 'verified',
-    cert_number: 'SPI-CERT-2025-PY7832',
-    qr_url: 'https://spilms.tech/verify/SPI-CERT-2025-PY7832',
-    accent_color: 'amber',
-    border_class: 'from-amber-500/40 to-orange-500/40',
-    badge_color: 'bg-amber-600/20 text-amber-300 border border-amber-500/30',
-    seal_color: '#F59E0B',
-    category: 'Programming',
-    grade: 'A',
-    score: '88%',
-  },
-  {
-    id: 5,
-    title: 'Database Design',
-    student_name: 'Sok Pisey',
-    issuer: 'SPI E-Learning Platform',
-    issued_date: 'Issued on May 15, 2025',
-    raw_date: 'May 15, 2025',
-    status: 'Verified',
-    status_type: 'verified',
-    cert_number: 'SPI-CERT-2025-DB6012',
-    qr_url: 'https://spilms.tech/verify/SPI-CERT-2025-DB6012',
-    accent_color: 'rose',
-    border_class: 'from-rose-500/40 to-red-500/40',
-    badge_color: 'bg-rose-600/20 text-rose-300 border border-rose-500/30',
-    seal_color: '#EF4444',
-    category: 'Database',
-    grade: 'B+',
-    score: '78%',
-  },
-  {
-    id: 6,
-    title: 'UI/UX Design Basics',
-    student_name: 'Sok Pisey',
-    issuer: 'SPI E-Learning Platform',
-    issued_date: 'Issued on May 10, 2025',
-    raw_date: 'May 10, 2025',
-    status: 'Verified',
-    status_type: 'verified',
-    cert_number: 'SPI-CERT-2025-UX1182',
-    qr_url: 'https://spilms.tech/verify/SPI-CERT-2025-UX1182',
-    accent_color: 'cyan',
-    border_class: 'from-teal-500/40 to-cyan-500/40',
-    badge_color: 'bg-cyan-600/20 text-cyan-300 border border-cyan-500/30',
-    seal_color: '#06B6D4',
-    category: 'Design',
-    grade: 'A',
-    score: '85%',
-  },
-  {
-    id: 7,
-    title: 'HTML & CSS Basics',
-    student_name: 'Sok Pisey',
-    issuer: 'SPI E-Learning Platform',
-    issued_date: 'Issued on May 5, 2025',
-    raw_date: 'May 5, 2025',
-    status: 'Verified',
-    status_type: 'verified',
-    cert_number: 'SPI-CERT-2025-HC9044',
-    qr_url: 'https://spilms.tech/verify/SPI-CERT-2025-HC9044',
-    accent_color: 'purple',
-    border_class: 'from-purple-500/40 to-indigo-500/40',
-    badge_color: 'bg-purple-600/20 text-purple-300 border border-purple-500/30',
-    seal_color: '#8B5CF6',
-    category: 'Frontend',
-    grade: 'A+',
-    score: '96%',
-  },
-  {
-    id: 8,
-    title: 'Git & GitHub',
-    student_name: 'Sok Pisey',
-    issuer: 'SPI E-Learning Platform',
-    issued_date: 'Issued on Apr 2, 2025',
-    raw_date: 'Apr 2, 2025',
-    status: 'Verified',
-    status_type: 'verified',
-    cert_number: 'SPI-CERT-2025-GT0058',
-    qr_url: 'https://spilms.tech/verify/SPI-CERT-2025-GT0058',
-    accent_color: 'teal',
-    border_class: 'from-teal-500/40 to-slate-500/40',
-    badge_color: 'bg-teal-600/20 text-teal-300 border border-teal-500/30',
-    seal_color: '#14B8A6',
-    category: 'DevOps',
-    grade: 'A',
-    score: '92%',
-  },
-]
 
 const summary = computed(() => props.analytics?.summary || defaultSummary)
 const statistics = computed(() => props.analytics?.statistics || defaultStats)
-const recentAchievements = computed(() => props.analytics?.recent_achievements || defaultAchievements)
-const certificates = computed(() => props.analytics?.certificates || defaultCertificates)
+const recentAchievements = computed<AchievementItem[]>(() => props.analytics?.recent_achievements || [])
+const certificates = computed<CertificateItem[]>(() => props.analytics?.certificates || [])
+
+// Dynamic SVG Donut segments (circumference ≈ 100 for r = 15.9155)
+const donutSegments = computed(() => {
+  if (!statistics.value.total || statistics.value.total <= 0) return []
+  let cumulative = 0
+  return statistics.value.items
+    .filter((item) => item.percentage > 0)
+    .map((item) => {
+      const seg = {
+        label: item.label,
+        color: item.color,
+        dashArray: `${item.percentage} ${Math.max(0, 100 - item.percentage)}`,
+        dashOffset: -cumulative,
+      }
+      cumulative += item.percentage
+      return seg
+    })
+})
+
+// Dynamic Filter Options
+const categoryOptions = computed<string[]>(() => {
+  const fromProps = props.analytics?.filter_options?.categories
+  if (Array.isArray(fromProps) && fromProps.length > 0) return fromProps
+  return Array.from(new Set(certificates.value.map((c) => c.category).filter(Boolean)))
+})
+
+const courseOptions = computed<CourseOption[]>(() => {
+  const fromProps = props.analytics?.filter_options?.courses
+  if (Array.isArray(fromProps) && fromProps.length > 0) return fromProps
+  const seen = new Set<string>()
+  const list: CourseOption[] = []
+  for (const c of certificates.value) {
+    const key = String(c.course_id ?? c.title)
+    if (!seen.has(key) && c.title) {
+      seen.add(key)
+      list.push({ id: c.course_id ?? c.title, title: c.title })
+    }
+  }
+  return list
+})
+
+const issuerOptions = computed<string[]>(() => {
+  const fromProps = props.analytics?.filter_options?.issuers
+  if (Array.isArray(fromProps) && fromProps.length > 0) return fromProps
+  return Array.from(new Set(certificates.value.map((c) => c.issuer).filter(Boolean)))
+})
 
 // Filter & View State
 const activeStatusTab = ref<string>(props.filters?.status || 'all')
@@ -271,34 +173,56 @@ const selectedIssuer = ref<string>(props.filters?.issuer || 'all')
 const selectedSort = ref<string>(props.filters?.sort || 'newest')
 const isGridView = ref(true)
 
+const hasActiveFilters = computed(() => {
+  return (
+    activeStatusTab.value !== 'all' ||
+    selectedCategory.value !== 'all' ||
+    selectedCourse.value !== 'all' ||
+    selectedIssuer.value !== 'all' ||
+    searchQuery.value.trim() !== ''
+  )
+})
+
 // Modals State
 const selectedCertForModal = ref<CertificateItem | null>(null)
 const isPreviewModalOpen = ref(false)
 const isShareModalOpen = ref(false)
 const copiedSuccess = ref(false)
 
-const openPreviewModal = (cert: CertificateItem) => {
+const getDownloadHref = (cert: CertificateItem) => {
+  return cert.download_url || `/certificate/download/${cert.id}`
+}
+
+const getVerifyUrl = (cert: CertificateItem) => {
+  return cert.verify_url || cert.qr_url
+}
+
+const openPreviewModal = (cert?: CertificateItem | null) => {
+  if (!cert) return
   selectedCertForModal.value = cert
   isPreviewModalOpen.value = true
 }
 
-const openShareModal = (cert: CertificateItem) => {
+const openShareModal = (cert?: CertificateItem | null) => {
+  if (!cert) return
   selectedCertForModal.value = cert
   isShareModalOpen.value = true
 }
 
-const copyVerificationLink = () => {
-  if (selectedCertForModal.value) {
-    navigator.clipboard.writeText(selectedCertForModal.value.qr_url)
-    copiedSuccess.value = true
-    setTimeout(() => {
-      copiedSuccess.value = false
-    }, 2500)
-  }
+const copyVerificationLink = (cert?: CertificateItem | null) => {
+  const target = cert || selectedCertForModal.value || certificates.value[0] || null
+  if (!target) return
+  const link = getVerifyUrl(target)
+  if (!link) return
+  navigator.clipboard.writeText(link)
+  copiedSuccess.value = true
+  setTimeout(() => {
+    copiedSuccess.value = false
+  }, 2500)
 }
 
 const handleFilterChange = (overrideTab?: string) => {
-  if (overrideTab) {
+  if (overrideTab !== undefined) {
     activeStatusTab.value = overrideTab
   }
   router.get('/student/certificates/my-certificates', {
@@ -313,6 +237,16 @@ const handleFilterChange = (overrideTab?: string) => {
     preserveScroll: true,
   })
 }
+
+const resetFilters = () => {
+  activeStatusTab.value = 'all'
+  selectedCategory.value = 'all'
+  selectedCourse.value = 'all'
+  selectedIssuer.value = 'all'
+  searchQuery.value = ''
+  selectedSort.value = 'newest'
+  handleFilterChange('all')
+}
 </script>
 
 <template>
@@ -323,22 +257,22 @@ const handleFilterChange = (overrideTab?: string) => {
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
-            <span>My Certificates</span>
+            <span>{{ t('វិញ្ញាបនបត្ររបស់ខ្ញុំ', 'My Certificates') }}</span>
             <span class="inline-flex p-1.5 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-600 dark:text-purple-400 text-lg">🛡️</span>
           </h1>
           <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">
-            View and manage all your earned certificates. Share your achievements with the world!
+            {{ t('ពិនិត្យ និងគ្រប់គ្រងវិញ្ញាបនបត្រផ្លូវការទាំងអស់ដែលអ្នកទទួលបាន។', 'View and manage all your earned official certificates.') }}
           </p>
         </div>
       </div>
 
       <!-- ================= 2. 5 TOP SUMMARY METRIC CARDS ================= -->
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-        
+
         <!-- Card 1: Total Certificates -->
         <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm dark:shadow-xl flex items-center justify-between group hover:border-purple-500/30 transition-all">
           <div class="space-y-0.5">
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Total Certificates</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{{ t('វិញ្ញាបនបត្រសរុប', 'Total Certificates') }}</p>
             <p class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ summary.total_certificates }}</p>
             <p class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">{{ summary.total_note }}</p>
           </div>
@@ -350,7 +284,7 @@ const handleFilterChange = (overrideTab?: string) => {
         <!-- Card 2: Completed Courses -->
         <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm dark:shadow-xl flex items-center justify-between group hover:border-blue-500/30 transition-all">
           <div class="space-y-0.5">
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Completed Courses</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{{ t('វគ្គសិក្សាបានបញ្ចប់', 'Completed Courses') }}</p>
             <p class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ summary.completed_courses }}</p>
             <p class="text-[10px] text-blue-600 dark:text-blue-400 font-medium font-mono">{{ summary.completed_note }}</p>
           </div>
@@ -362,7 +296,7 @@ const handleFilterChange = (overrideTab?: string) => {
         <!-- Card 3: This Year -->
         <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm dark:shadow-xl flex items-center justify-between group hover:border-emerald-500/30 transition-all">
           <div class="space-y-0.5">
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">This Year</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{{ t('ក្នុងឆ្នាំនេះ', 'This Year') }}</p>
             <p class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ summary.this_year }}</p>
             <p class="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium font-mono">{{ summary.this_year_note }}</p>
           </div>
@@ -374,7 +308,7 @@ const handleFilterChange = (overrideTab?: string) => {
         <!-- Card 4: Recent Certificate -->
         <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm dark:shadow-xl flex items-center justify-between group hover:border-amber-500/30 transition-all">
           <div class="space-y-0.5">
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Recent Certificate</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{{ t('វិញ្ញាបនបត្រថ្មីៗ', 'Recent Certificate') }}</p>
             <p class="text-xl font-black text-slate-900 dark:text-white font-mono leading-tight">{{ summary.recent_date }}</p>
             <p class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">{{ summary.recent_note }}</p>
           </div>
@@ -386,7 +320,7 @@ const handleFilterChange = (overrideTab?: string) => {
         <!-- Card 5: Total Learning Time -->
         <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-4 shadow-sm dark:shadow-xl flex items-center justify-between group hover:border-purple-500/30 transition-all">
           <div class="space-y-0.5">
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Total Learning Time</p>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{{ t('ម៉ោងសិក្សាសរុប', 'Total Learning Time') }}</p>
             <p class="text-2xl font-black text-slate-900 dark:text-white font-mono">{{ summary.total_learning_time }}</p>
             <p class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">{{ summary.time_note }}</p>
           </div>
@@ -405,14 +339,14 @@ const handleFilterChange = (overrideTab?: string) => {
 
           <!-- SEARCH & FILTER BAR -->
           <div class="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-[#0F172A]/80 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-3 shadow-sm dark:shadow-lg">
-            
+
             <!-- Search Input -->
             <div class="relative flex-1 min-w-[200px]">
               <input
                 type="text"
                 v-model="searchQuery"
                 @keyup.enter="handleFilterChange()"
-                placeholder="Search certificates..."
+                :placeholder="t('ស្វែងរកវិញ្ញាបនបត្រ...', 'Search certificates...')"
                 class="w-full bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700/80 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 shadow-xs"
               />
               <span class="absolute left-3 top-2 text-xs text-slate-400 dark:text-slate-500">🔍</span>
@@ -425,13 +359,8 @@ const handleFilterChange = (overrideTab?: string) => {
                 @change="handleFilterChange()"
                 class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 text-xs font-semibold text-slate-700 dark:text-slate-200 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-purple-500 cursor-pointer shadow-xs"
               >
-                <option value="all">All Categories</option>
-                <option value="Programming">Programming</option>
-                <option value="Frontend">Frontend</option>
-                <option value="Backend">Backend</option>
-                <option value="Database">Database</option>
-                <option value="Design">Design</option>
-                <option value="DevOps">DevOps</option>
+                <option value="all">{{ t('គ្រប់ជំនាញទាំងអស់', 'All Categories') }}</option>
+                <option v-for="cat in categoryOptions" :key="cat" :value="cat">{{ cat }}</option>
               </select>
 
               <select
@@ -439,11 +368,8 @@ const handleFilterChange = (overrideTab?: string) => {
                 @change="handleFilterChange()"
                 class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 text-xs font-semibold text-slate-700 dark:text-slate-200 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-purple-500 cursor-pointer shadow-xs"
               >
-                <option value="all">All Courses</option>
-                <option value="JavaScript Advanced">JavaScript Advanced</option>
-                <option value="React Development">React Development</option>
-                <option value="Node.js Fundamentals">Node.js Fundamentals</option>
-                <option value="Python Programming">Python Programming</option>
+                <option value="all">{{ t('គ្រប់វគ្គសិក្សាទាំងអស់', 'All Courses') }}</option>
+                <option v-for="c in courseOptions" :key="c.id" :value="String(c.id)">{{ c.title }}</option>
               </select>
 
               <select
@@ -451,8 +377,8 @@ const handleFilterChange = (overrideTab?: string) => {
                 @change="handleFilterChange()"
                 class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 text-xs font-semibold text-slate-700 dark:text-slate-200 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-purple-500 cursor-pointer shadow-xs"
               >
-                <option value="all">All Issuers</option>
-                <option value="SPI E-Learning Platform">SPI E-Learning Platform</option>
+                <option value="all">{{ t('គ្រប់ស្ថាប័នចេញផ្សាយ', 'All Issuers') }}</option>
+                <option v-for="iss in issuerOptions" :key="iss" :value="iss">{{ iss }}</option>
               </select>
 
               <select
@@ -460,8 +386,9 @@ const handleFilterChange = (overrideTab?: string) => {
                 @change="handleFilterChange()"
                 class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 text-xs font-semibold text-slate-700 dark:text-slate-200 rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-purple-500 cursor-pointer shadow-xs"
               >
-                <option value="newest">Newest First</option>
-                <option value="oldest">Oldest First</option>
+                <option value="newest">{{ t('ថ្មីបំផុតមុន', 'Newest First') }}</option>
+                <option value="oldest">{{ t('ចាស់បំផុតមុន', 'Oldest First') }}</option>
+                <option value="score">{{ t('ពិន្ទុខ្ពស់បំផុត', 'Highest Score') }}</option>
               </select>
 
               <!-- View Switch -->
@@ -489,10 +416,9 @@ const handleFilterChange = (overrideTab?: string) => {
           <div class="flex items-center gap-1.5 bg-white dark:bg-[#0F172A]/80 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-1.5 shadow-sm dark:shadow-lg overflow-x-auto custom-scrollbar">
             <button
               v-for="tab in [
-                { key: 'all', label: 'All Certificates' },
-                { key: 'verified', label: 'Verified' },
-                { key: 'expired', label: 'Expired' },
-                { key: 'in_progress', label: 'In Progress' }
+                { key: 'all', label: t('វិញ្ញាបនបត្រទាំងអស់', 'All Certificates') },
+                { key: 'valid', label: t('មានសុពលភាព', 'Valid') },
+                { key: 'revoked', label: t('បានដកហូត', 'Revoked') }
               ]"
               :key="tab.key"
               @click="handleFilterChange(tab.key)"
@@ -507,8 +433,48 @@ const handleFilterChange = (overrideTab?: string) => {
             </button>
           </div>
 
-          <!-- CERTIFICATE GALLERY (4x2 Grid Matching Screenshot) -->
-          <div :class="[isGridView ? 'grid grid-cols-1 sm:grid-cols-2 gap-4' : 'space-y-3']">
+          <!-- BILINGUAL EMPTY STATE -->
+          <div
+            v-if="certificates.length === 0"
+            class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-10 text-center space-y-4 shadow-sm dark:shadow-xl"
+          >
+            <div class="w-16 h-16 rounded-2xl bg-purple-500/10 dark:bg-purple-600/20 border border-purple-500/30 text-purple-600 dark:text-purple-300 flex items-center justify-center text-3xl mx-auto shadow-inner">
+              🎓
+            </div>
+            <div class="space-y-1.5 max-w-md mx-auto">
+              <h3 class="text-base sm:text-lg font-black text-slate-900 dark:text-white">
+                {{ hasActiveFilters
+                  ? 'រកមិនឃើញវិញ្ញាបនបត្រតាមលក្ខខណ្ឌស្វែងរក · No Matching Certificates'
+                  : 'មិនទាន់មានវិញ្ញាបនបត្រនៅឡើយទេ · No Certificates Earned Yet'
+                }}
+              </h3>
+              <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                {{ hasActiveFilters
+                  ? t('សូមសាកល្បងផ្លាស់ប្តូរ ឬកំណត់ឡើងវិញនូវតម្រងស្វែងរករបស់អ្នក។', 'Try adjusting or resetting your search filters to view your certificates.')
+                  : t('សូមចុះឈ្មោះ និងបញ្ចប់មេរៀនទាំងអស់ក្នុងវគ្គសិក្សា ដើម្បីទទួលបានវិញ្ញាបនបត្រផ្លូវការ។', 'Enroll in a course and complete all lessons and assessments to earn your official certificate.')
+                }}
+              </p>
+            </div>
+            <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <button
+                v-if="hasActiveFilters"
+                @click="resetFilters"
+                class="px-5 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
+              >
+                {{ t('កំណត់តម្រងឡើងវិញ', 'Reset Filters') }}
+              </button>
+              <Link
+                href="/student/browse"
+                class="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-purple-950/20 flex items-center gap-2 transition-all"
+              >
+                <span>📚</span>
+                <span>{{ t('ស្វែងរកវគ្គសិក្សា · Browse Courses', 'Browse Courses · ស្វែងរកវគ្គសិក្សា') }}</span>
+              </Link>
+            </div>
+          </div>
+
+          <!-- CERTIFICATE GALLERY -->
+          <div v-else :class="[isGridView ? 'grid grid-cols-1 sm:grid-cols-2 gap-4' : 'space-y-3']">
             <div
               v-for="cert in certificates"
               :key="cert.id"
@@ -516,11 +482,10 @@ const handleFilterChange = (overrideTab?: string) => {
             >
               <!-- TOP: CERTIFICATE CANVAS MINI PREVIEW -->
               <div class="relative w-full aspect-[16/10] bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden shadow-inner flex flex-col items-center justify-between p-3 text-center group-hover:scale-[1.01] transition-transform">
-                
-                <!-- Realistic Ornamental Certificate Framing -->
+
                 <div class="absolute inset-1.5 border border-amber-500/40 rounded-xl pointer-events-none"></div>
                 <div class="absolute inset-2 border border-dashed border-amber-500/20 rounded-lg pointer-events-none"></div>
-                
+
                 <!-- Top Header -->
                 <div class="relative z-10 pt-1">
                   <p class="text-[8px] tracking-[0.2em] uppercase font-serif text-amber-400 font-bold">CERTIFICATE OF COMPLETION</p>
@@ -541,14 +506,13 @@ const handleFilterChange = (overrideTab?: string) => {
                     <p class="border-t border-slate-700 pt-0.5">Issue Date</p>
                   </div>
 
-                  <!-- Official SPI Gold Seal -->
                   <div class="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 border border-amber-300 flex items-center justify-center text-[7px] text-slate-950 font-black shadow-md font-serif">
                     ★
                   </div>
 
                   <div>
-                    <p class="font-serif italic text-slate-300">Director SPI</p>
-                    <p class="border-t border-slate-700 pt-0.5">Signature</p>
+                    <p class="font-serif italic text-slate-300">Saint Paul Institute</p>
+                    <p class="border-t border-slate-700 pt-0.5">Official Seal</p>
                   </div>
                 </div>
 
@@ -556,17 +520,24 @@ const handleFilterChange = (overrideTab?: string) => {
 
               <!-- CARD BODY INFO -->
               <div class="pt-3 pb-1 space-y-1">
-                <div class="flex items-center justify-between">
-                  <h3 class="text-sm font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors truncate max-w-[180px]">
+                <div class="flex items-center justify-between gap-2">
+                  <h3 class="text-sm font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors truncate">
                     {{ cert.title }}
                   </h3>
-                  <span class="px-2 py-0.5 rounded-md bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-[10px] font-bold font-mono">
+                  <span
+                    :class="[
+                      cert.status_type === 'revoked'
+                        ? 'bg-rose-500/10 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/30'
+                        : 'bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/30',
+                      'px-2 py-0.5 rounded-md border text-[10px] font-bold font-mono shrink-0'
+                    ]"
+                  >
                     {{ cert.status }}
                   </span>
                 </div>
 
                 <p class="text-[11px] text-slate-600 dark:text-slate-400">{{ cert.issuer }}</p>
-                <p class="text-[10px] text-slate-400 dark:text-slate-500 font-mono">{{ cert.issued_date }}</p>
+                <p class="text-[10px] text-slate-400 dark:text-slate-500 font-mono">{{ cert.cert_number }} · {{ cert.issued_date }}</p>
               </div>
 
               <!-- CARD ACTIONS -->
@@ -576,16 +547,24 @@ const handleFilterChange = (overrideTab?: string) => {
                   class="py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 hover:border-purple-500/40 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-xs"
                 >
                   <span>👁</span>
-                  <span>View</span>
+                  <span>{{ t('មើល', 'View') }}</span>
                 </button>
 
-                <button
-                  @click="openPreviewModal(cert)"
+                <a
+                  v-if="cert.status_type !== 'revoked'"
+                  :href="getDownloadHref(cert)"
                   class="py-1.5 rounded-xl bg-purple-50 dark:bg-purple-600/30 border border-purple-200 dark:border-purple-500/40 hover:bg-purple-600 hover:text-white text-purple-700 dark:text-purple-200 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs"
                 >
                   <span>⬇</span>
-                  <span>Download</span>
-                </button>
+                  <span>{{ t('ទាញយក PDF', 'Download') }}</span>
+                </a>
+                <span
+                  v-else
+                  class="py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 text-slate-400 dark:text-slate-500 font-bold text-xs flex items-center justify-center gap-1.5 cursor-not-allowed"
+                >
+                  <span>🚫</span>
+                  <span>{{ t('បានដកហូត', 'Revoked') }}</span>
+                </span>
               </div>
 
             </div>
@@ -599,25 +578,31 @@ const handleFilterChange = (overrideTab?: string) => {
           <!-- WIDGET 1: Certificate Stats Donut Chart -->
           <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-4">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/60 pb-3">
-              <h3 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">Certificate Stats</h3>
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">{{ t('ស្ថិតិវិញ្ញាបនបត្រ', 'Certificate Stats') }}</h3>
             </div>
 
             <div class="flex items-center justify-between gap-4">
-              <!-- Donut Chart -->
+              <!-- Dynamic SVG Donut Chart -->
               <div class="relative w-24 h-24 flex items-center justify-center shrink-0">
                 <svg class="w-24 h-24 -rotate-90 transform" viewBox="0 0 36 36">
                   <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#E2E8F0" class="dark:stroke-slate-800" stroke-width="4.5" />
-                  <!-- Completed: 67% -->
-                  <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#10B981" stroke-width="4.5" stroke-dasharray="67, 100" stroke-dashoffset="0" />
-                  <!-- In Progress: 17% -->
-                  <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#3B82F6" stroke-width="4.5" stroke-dasharray="17, 100" stroke-dashoffset="-67" />
-                  <!-- Upcoming: 16% -->
-                  <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#A855F7" stroke-width="4.5" stroke-dasharray="16, 100" stroke-dashoffset="-84" />
+                  <circle
+                    v-for="seg in donutSegments"
+                    :key="seg.label"
+                    cx="18"
+                    cy="18"
+                    r="15.9155"
+                    fill="none"
+                    :stroke="seg.color"
+                    stroke-width="4.5"
+                    :stroke-dasharray="seg.dashArray"
+                    :stroke-dashoffset="seg.dashOffset"
+                  />
                 </svg>
 
                 <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
                   <span class="text-base font-black text-slate-900 dark:text-white font-mono leading-none">{{ statistics.total }}</span>
-                  <span class="text-[8px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium">Total</span>
+                  <span class="text-[8px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium">{{ t('សរុប', 'Total') }}</span>
                 </div>
               </div>
 
@@ -629,7 +614,7 @@ const handleFilterChange = (overrideTab?: string) => {
                   class="flex items-center justify-between text-[11px]"
                 >
                   <div class="flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: item.color }"></span>
+                    <span class="w-2 h-2 rounded-full shrink-0" :style="{ backgroundColor: item.color }"></span>
                     <span class="text-slate-600 dark:text-slate-300 font-medium">{{ item.label }}</span>
                   </div>
                   <span class="font-bold text-slate-900 dark:text-white font-mono">{{ item.count }} ({{ item.percentage }}%)</span>
@@ -642,22 +627,34 @@ const handleFilterChange = (overrideTab?: string) => {
               class="w-full py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-purple-500/40 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-xs"
             >
               <span>📊</span>
-              <span>View All Statistics</span>
+              <span>{{ t('មើលវិញ្ញាបនបត្រទាំងអស់', 'View All Certificates') }}</span>
             </button>
           </div>
 
           <!-- WIDGET 2: Recent Achievements -->
           <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/90 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3">
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/60 pb-2.5">
-              <h3 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">Recent Achievements</h3>
-              <span class="text-xs text-purple-600 dark:text-purple-400 font-bold hover:underline cursor-pointer">View All</span>
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">{{ t('សមិទ្ធផលថ្មីៗ', 'Recent Achievements') }}</h3>
+              <Link href="/student/progress/achievements" class="text-xs text-purple-600 dark:text-purple-400 font-bold hover:underline">
+                {{ t('មើលទាំងអស់', 'View All') }}
+              </Link>
             </div>
 
-            <div class="space-y-2">
+            <div v-if="recentAchievements.length === 0" class="py-6 text-center space-y-1.5">
+              <p class="text-2xl">🏅</p>
+              <p class="text-xs font-bold text-slate-700 dark:text-slate-300">
+                មិនទាន់មានសមិទ្ធផលនៅឡើយទេ · No Achievements Yet
+              </p>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                {{ t('បញ្ចប់វគ្គសិក្សាដើម្បីទទួលបានសមិទ្ធផលដំបូងរបស់អ្នក។', 'Complete courses to unlock your first achievement.') }}
+              </p>
+            </div>
+
+            <div v-else class="space-y-2">
               <div
                 v-for="ach in recentAchievements"
                 :key="ach.id"
-                class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800/60 flex items-center justify-between gap-3 hover:border-purple-500/30 transition-all cursor-pointer shadow-xs"
+                class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800/60 flex items-center justify-between gap-3 hover:border-purple-500/30 transition-all shadow-xs"
               >
                 <div class="flex items-center gap-2.5 min-w-0">
                   <div
@@ -683,16 +680,15 @@ const handleFilterChange = (overrideTab?: string) => {
 
           <!-- WIDGET 3: Share Your Achievement -->
           <div class="bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/60 dark:from-[#10132B] dark:via-[#0F172A] dark:to-[#1E1138] border border-purple-200 dark:border-purple-900/50 rounded-3xl p-5 shadow-sm dark:shadow-2xl space-y-3.5 relative overflow-hidden">
-            
-            <!-- Glowing Purple Rosette Medal -->
+
             <div class="absolute -right-2 top-4 w-16 h-16 opacity-30 text-purple-400 text-5xl pointer-events-none">
               🏅
             </div>
 
             <div class="space-y-1">
-              <h3 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">Share Your Achievement</h3>
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">{{ t('ចែករំលែកសមិទ្ធផលរបស់អ្នក', 'Share Your Achievement') }}</h3>
               <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                Share your certificates on LinkedIn, Twitter, or download high-quality versions.
+                {{ t('ចែករំលែកតំណផ្ទៀងផ្ទាត់វិញ្ញាបនបត្រ ឬទាញយកឯកសារ PDF ផ្លូវការ។', 'Share your verified certificate links or download official PDF credentials.') }}
               </p>
             </div>
 
@@ -700,29 +696,33 @@ const handleFilterChange = (overrideTab?: string) => {
             <div class="flex items-center gap-2 pt-1">
               <button
                 @click="openShareModal(certificates[0])"
-                class="w-8 h-8 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center shadow-md transition-transform hover:scale-105 cursor-pointer"
+                :disabled="certificates.length === 0"
+                class="w-8 h-8 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center shadow-md transition-transform hover:scale-105 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
                 title="Share on LinkedIn"
               >
                 in
               </button>
               <button
                 @click="openShareModal(certificates[0])"
-                class="w-8 h-8 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-bold text-xs flex items-center justify-center shadow-md transition-transform hover:scale-105 cursor-pointer"
+                :disabled="certificates.length === 0"
+                class="w-8 h-8 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-bold text-xs flex items-center justify-center shadow-md transition-transform hover:scale-105 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
                 title="Share on Twitter / X"
               >
                 𝕏
               </button>
               <button
                 @click="openShareModal(certificates[0])"
-                class="w-8 h-8 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center justify-center shadow-md transition-transform hover:scale-105 cursor-pointer"
+                :disabled="certificates.length === 0"
+                class="w-8 h-8 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center justify-center shadow-md transition-transform hover:scale-105 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
                 title="Share on Facebook"
               >
                 f
               </button>
               <button
-                @click="copyVerificationLink()"
-                class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white font-bold text-xs flex items-center justify-center border border-slate-200 dark:border-slate-700 transition-transform hover:scale-105 cursor-pointer shadow-xs"
-                title="Copy Link"
+                @click="copyVerificationLink(certificates[0])"
+                :disabled="certificates.length === 0"
+                class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white font-bold text-xs flex items-center justify-center border border-slate-200 dark:border-slate-700 transition-transform hover:scale-105 cursor-pointer shadow-xs disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+                title="Copy Verification Link"
               >
                 🔗
               </button>
@@ -731,10 +731,11 @@ const handleFilterChange = (overrideTab?: string) => {
             <!-- Action Button -->
             <button
               @click="openShareModal(certificates[0])"
-              class="w-full py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-purple-950/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+              :disabled="certificates.length === 0"
+              class="w-full py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-purple-950/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <span>📢</span>
-              <span>Share Certificates</span>
+              <span>{{ certificates.length > 0 ? t('ចែករំលែកវិញ្ញាបនបត្រ', 'Share Certificates') : t('មិនទាន់មានវិញ្ញាបនបត្រសម្រាប់ចែករំលែក', 'No Certificates to Share Yet') }}</span>
             </button>
           </div>
 
@@ -749,8 +750,8 @@ const handleFilterChange = (overrideTab?: string) => {
             🛡️
           </div>
           <div>
-            <h4 class="text-sm font-bold text-slate-900 dark:text-white">All certificates are blockchain verified and tamper-proof</h4>
-            <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Your certificates are securely stored and can be verified by employers and institutions worldwide.</p>
+            <h4 class="text-sm font-bold text-slate-900 dark:text-white">{{ t('វិញ្ញាបនបត្រទាំងអស់ត្រូវបានចុះបញ្ជី និងផ្ទៀងផ្ទាត់ជាផ្លូវការ', 'All certificates are officially registered and verifiable') }}</h4>
+            <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{{ t('និយោជក និងស្ថាប័ននានាអាចផ្ទៀងផ្ទាត់សុពលភាពវិញ្ញាបនបត្រតាមរយៈលេខសម្គាល់ផ្លូវការ។', 'Employers and institutions can verify certificate authenticity anytime via the official registry.') }}</p>
           </div>
         </div>
 
@@ -758,7 +759,7 @@ const handleFilterChange = (overrideTab?: string) => {
           href="/student/certificates/verify"
           class="px-5 py-2 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-blue-500/50 text-slate-900 dark:text-white font-bold text-xs shadow-sm whitespace-nowrap transition-colors"
         >
-          Verify Certificate
+          {{ t('ផ្ទៀងផ្ទាត់វិញ្ញាបនបត្រ', 'Verify Certificate') }}
         </Link>
       </div>
 
@@ -773,7 +774,7 @@ const handleFilterChange = (overrideTab?: string) => {
         <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
           <div class="flex items-center gap-2">
             <span class="text-xl">🎓</span>
-            <h3 class="text-base font-black text-slate-900 dark:text-white">Official Certificate Verification</h3>
+            <h3 class="text-base font-black text-slate-900 dark:text-white">{{ t('រូបភាពវិញ្ញាបនបត្រផ្លូវការ', 'Official Certificate Preview') }}</h3>
           </div>
           <button
             @click="isPreviewModalOpen = false"
@@ -791,7 +792,7 @@ const handleFilterChange = (overrideTab?: string) => {
             <h2 class="text-2xl font-black text-white font-serif tracking-wide">{{ selectedCertForModal.student_name }}</h2>
             <p class="text-xs text-slate-300">has successfully completed all requirements for</p>
             <h3 class="text-lg font-bold text-amber-300 font-sans">{{ selectedCertForModal.title }}</h3>
-            
+
             <div class="grid grid-cols-3 gap-2 pt-3 border-t border-slate-800 text-xs">
               <div>
                 <p class="text-[9px] text-slate-500">Grade / Score</p>
@@ -812,11 +813,11 @@ const handleFilterChange = (overrideTab?: string) => {
         <!-- MODAL ACTIONS -->
         <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
           <Link
-            :href="`/student/certificates/verify?code=${selectedCertForModal.cert_number}`"
+            :href="`/student/certificates/verify?code=${encodeURIComponent(selectedCertForModal.cert_number)}`"
             class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-cyan-600 dark:text-cyan-300 font-bold border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 shadow-xs"
           >
             <span>🔍</span>
-            <span>Verify on Registry</span>
+            <span>{{ t('ផ្ទៀងផ្ទាត់លើប្រព័ន្ធ', 'Verify on Registry') }}</span>
           </Link>
 
           <div class="flex items-center gap-2">
@@ -824,14 +825,15 @@ const handleFilterChange = (overrideTab?: string) => {
               @click="isPreviewModalOpen = false; openShareModal(selectedCertForModal)"
               class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-200 dark:hover:text-white cursor-pointer"
             >
-              Share Link
+              {{ t('ចែករំលែកតំណ', 'Share Link') }}
             </button>
             <a
-              :href="`/student/certificates/download-share`"
+              v-if="selectedCertForModal.status_type !== 'revoked'"
+              :href="getDownloadHref(selectedCertForModal)"
               class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold shadow-md flex items-center gap-1.5 cursor-pointer"
             >
               <span>📥</span>
-              <span>Download PDF</span>
+              <span>{{ t('ទាញយក PDF', 'Download PDF') }}</span>
             </a>
           </div>
         </div>
@@ -847,7 +849,7 @@ const handleFilterChange = (overrideTab?: string) => {
         <div class="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
           <div class="flex items-center gap-2">
             <span class="text-xl">📢</span>
-            <h3 class="text-base font-black text-slate-900 dark:text-white">Share Your Certificate</h3>
+            <h3 class="text-base font-black text-slate-900 dark:text-white">{{ t('ចែករំលែកវិញ្ញាបនបត្រ', 'Share Your Certificate') }}</h3>
           </div>
           <button
             @click="isShareModalOpen = false"
@@ -858,7 +860,8 @@ const handleFilterChange = (overrideTab?: string) => {
         </div>
 
         <p class="text-xs text-slate-600 dark:text-slate-300">
-          Share your accomplishment in <strong class="text-purple-600 dark:text-purple-300">{{ selectedCertForModal.title }}</strong> with employers and your network.
+          {{ t('ចែករំលែកជោគជ័យរបស់អ្នកក្នុងវគ្គសិក្សា', 'Share your accomplishment in') }}
+          <strong class="text-purple-600 dark:text-purple-300">{{ selectedCertForModal.title }}</strong>.
         </p>
 
         <!-- Verification URL Copy Box -->
@@ -868,11 +871,11 @@ const handleFilterChange = (overrideTab?: string) => {
             <input
               type="text"
               readonly
-              :value="selectedCertForModal.qr_url"
+              :value="getVerifyUrl(selectedCertForModal)"
               class="flex-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-slate-700 dark:text-slate-300 select-all"
             />
             <button
-              @click="copyVerificationLink()"
+              @click="copyVerificationLink(selectedCertForModal)"
               class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md whitespace-nowrap cursor-pointer"
             >
               {{ copiedSuccess ? '✓ Copied!' : 'Copy' }}
@@ -882,27 +885,33 @@ const handleFilterChange = (overrideTab?: string) => {
 
         <!-- Social Buttons Grid -->
         <div class="grid grid-cols-3 gap-2 pt-2 text-xs">
-          <button
-            @click="copyVerificationLink()"
+          <a
+            :href="`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(getVerifyUrl(selectedCertForModal))}`"
+            target="_blank"
+            rel="noopener noreferrer"
             class="p-2.5 rounded-xl bg-blue-500/10 dark:bg-blue-600/20 border border-blue-500/20 dark:border-blue-500/30 text-blue-700 dark:text-blue-300 hover:bg-blue-600 hover:text-white font-bold flex flex-col items-center gap-1 transition-all cursor-pointer"
           >
             <span>💼</span>
             <span>LinkedIn</span>
-          </button>
-          <button
-            @click="copyVerificationLink()"
+          </a>
+          <a
+            :href="`https://twitter.com/intent/tweet?url=${encodeURIComponent(getVerifyUrl(selectedCertForModal))}&text=${encodeURIComponent('Earned my certificate in ' + selectedCertForModal.title)}`"
+            target="_blank"
+            rel="noopener noreferrer"
             class="p-2.5 rounded-xl bg-sky-500/10 dark:bg-sky-500/20 border border-sky-500/20 dark:border-sky-500/30 text-sky-700 dark:text-sky-300 hover:bg-sky-500 hover:text-white font-bold flex flex-col items-center gap-1 transition-all cursor-pointer"
           >
             <span>🐦</span>
             <span>Twitter / X</span>
-          </button>
-          <button
-            @click="copyVerificationLink()"
+          </a>
+          <a
+            :href="`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(getVerifyUrl(selectedCertForModal))}`"
+            target="_blank"
+            rel="noopener noreferrer"
             class="p-2.5 rounded-xl bg-indigo-500/10 dark:bg-indigo-600/20 border border-indigo-500/20 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-600 hover:text-white font-bold flex flex-col items-center gap-1 transition-all cursor-pointer"
           >
             <span>📘</span>
             <span>Facebook</span>
-          </button>
+          </a>
         </div>
 
         <div class="flex justify-end pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
@@ -910,7 +919,7 @@ const handleFilterChange = (overrideTab?: string) => {
             @click="isShareModalOpen = false"
             class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-200 cursor-pointer"
           >
-            Done
+            {{ t('បិទ', 'Done') }}
           </button>
         </div>
       </div>

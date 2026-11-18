@@ -107,7 +107,7 @@ const codeSnippetStep = ref(0)
 let codeAnimationTimer: any = null
 
 // Current Playback State
-const currentDuration = ref(props.currentLesson?.duration_seconds || 600)
+const currentDuration = ref(props.currentLesson?.duration_seconds || 0)
 const currentSeconds = ref(props.currentLesson?.watched_seconds || 0)
 const maxWatchedSeconds = ref(props.currentLesson?.watched_seconds || 0)
 
@@ -124,12 +124,6 @@ const showRetryProgress = ref(false)
 const isSavingProgress = ref(false)
 const isCompleting = ref(false)
 const videoPlaybackError = ref(false)
-const videoFallbackIndex = ref(0)
-
-const FALLBACK_MP4_URLS = [
-  'https://vjs.zencdn.net/v/oceans.mp4',
-  'https://media.w3.org/2010/05/sintel/trailer.mp4',
-]
 
 const normalizedPrimaryVideoUrl = computed(() => {
   const raw = (props.currentLesson?.video_url || '').trim()
@@ -147,43 +141,28 @@ const normalizedPrimaryVideoUrl = computed(() => {
 })
 
 const activeMp4Url = computed(() => {
-  if (videoFallbackIndex.value === 0 && normalizedPrimaryVideoUrl.value) {
-    return normalizedPrimaryVideoUrl.value
-  }
-  const idx = videoFallbackIndex.value - (normalizedPrimaryVideoUrl.value ? 1 : 0)
-  return FALLBACK_MP4_URLS[idx] || normalizedPrimaryVideoUrl.value || FALLBACK_MP4_URLS[0]
+  return normalizedPrimaryVideoUrl.value
 })
 
 const handleVideoError = () => {
-  const maxIndex = FALLBACK_MP4_URLS.length - (normalizedPrimaryVideoUrl.value ? 0 : 1)
-  if (videoFallbackIndex.value < maxIndex) {
-    videoFallbackIndex.value += 1
-    nextTick(() => {
-      if (html5VideoRef.value) {
-        html5VideoRef.value.load()
-      }
-    })
-    return
-  }
   videoPlaybackError.value = true
 }
 
 const retryVideoPlayback = () => {
   videoPlaybackError.value = false
-  videoFallbackIndex.value = 0
   nextTick(() => {
-    if (html5VideoRef.value) {
+    if (html5VideoRef.value && activeMp4Url.value) {
       html5VideoRef.value.load()
       html5VideoRef.value.play().catch(() => {})
     }
   })
 }
 
-// Teacher Display Name (cleans up any raw DB test usernames like 'Pitaja6820')
+// Teacher Display Name
 const teacherDisplay = computed(() => {
-  const t = props.teacherName || ''
-  if (!t || t.toLowerCase().startsWith('pitaja') || t.toLowerCase().includes('@')) {
-    return 'Dr. Mengly Chea'
+  const t = (props.teacherName || '').trim()
+  if (!t || t.toLowerCase().includes('@')) {
+    return 'Instructor'
   }
   return t
 })
@@ -200,7 +179,7 @@ const localChapters = ref<ChapterItem[]>(
 // Watch for prop updates when switching lessons via Inertia
 watch(() => props.currentLesson, (newLesson) => {
   if (newLesson) {
-    currentDuration.value = newLesson.duration_seconds || 600
+    currentDuration.value = newLesson.duration_seconds || 0
     currentSeconds.value = newLesson.watched_seconds || 0
     maxWatchedSeconds.value = newLesson.watched_seconds || 0
     isLessonCompletedLocally.value = newLesson.is_completed || false
@@ -208,7 +187,6 @@ watch(() => props.currentLesson, (newLesson) => {
     isLockedPlay.value = false
     isPreviewMode.value = false
     videoPlaybackError.value = false
-    videoFallbackIndex.value = 0
 
     // Auto expand the chapter containing this lesson
     localChapters.value.forEach(c => {
@@ -248,11 +226,11 @@ const progressFillPercentage = computed(() => {
 
 // Video Provider Detection
 const videoProvider = computed<'youtube' | 'vimeo' | 'mp4' | 'none'>(() => {
+  const url = props.currentLesson?.video_url?.trim()
+  if (!url) return 'none'
   if (props.currentLesson?.video_provider) {
     return props.currentLesson.video_provider as any
   }
-  const url = props.currentLesson?.video_url?.trim()
-  if (!url) return 'none'
   if (url.includes('youtube.com') || url.includes('youtu.be')) return 'youtube'
   if (url.includes('vimeo.com')) return 'vimeo'
   return 'mp4'
@@ -476,7 +454,6 @@ const togglePlayPause = () => {
     isLockedPlay.value = false
     isPreviewMode.value = false
     videoPlaybackError.value = false
-    videoFallbackIndex.value = 0
     if (html5VideoRef.value) {
       html5VideoRef.value.pause()
     }
@@ -796,7 +773,7 @@ const fetchComments = async (page = 1, append = false) => {
     } else {
       isFetchingComments.value = true
     }
-    const url = `/lessons/${props.currentLesson.id}/comments?sort=${discussionSort.value}&filter=${discussionFilter.value}&page=${page}`
+    const url = `/student/lessons/${props.currentLesson.id}/comments?sort=${discussionSort.value}&filter=${discussionFilter.value}&page=${page}`
     const res = await fetch(url, {
       headers: {
         'Accept': 'application/json',
@@ -882,7 +859,7 @@ const postComment = async (parentId: number | null = null) => {
 
   try {
     isPostingComment.value = true
-    const res = await fetch(`/lessons/${props.currentLesson.id}/comments`, {
+    const res = await fetch(`/student/lessons/${props.currentLesson.id}/comments`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -953,7 +930,7 @@ const saveEditComment = async (comm: any) => {
   if (text.length < 2 || isSavingEdit.value) return
   try {
     isSavingEdit.value = true
-    const res = await fetch(`/comments/${comm.id}`, {
+    const res = await fetch(`/student/comments/${comm.id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -993,7 +970,7 @@ const deleteComment = async (commentId: number, parentId: number | null = null) 
   activeMenuCommentId.value = null
   try {
     deletingCommentId.value = commentId
-    const res = await fetch(`/comments/${commentId}`, {
+    const res = await fetch(`/student/comments/${commentId}`, {
       method: 'DELETE',
       headers: {
         'X-CSRF-TOKEN': getCsrfToken(),
@@ -1041,7 +1018,7 @@ const toggleLike = async (comm: any) => {
   comm.likes_count = previousLiked ? Math.max(0, previousCount - 1) : previousCount + 1
 
   try {
-    const res = await fetch(`/comments/${comm.id}/like`, {
+    const res = await fetch(`/student/comments/${comm.id}/like`, {
       method: 'POST',
       headers: {
         'X-CSRF-TOKEN': getCsrfToken(),
@@ -1061,7 +1038,7 @@ const toggleLike = async (comm: any) => {
 // ─── Discussion: Toggle Accepted Answer ───
 const toggleAnswer = async (parentQuestion: any, replyComm: any) => {
   try {
-    const res = await fetch(`/comments/${replyComm.id}/answer`, {
+    const res = await fetch(`/student/comments/${replyComm.id}/answer`, {
       method: 'POST',
       headers: {
         'X-CSRF-TOKEN': getCsrfToken(),
@@ -1103,7 +1080,7 @@ const submitReport = async () => {
   if (!reportingComment.value || !reportReason.value.trim() || isSubmittingReport.value) return
   try {
     isSubmittingReport.value = true
-    const res = await fetch(`/comments/${reportingComment.value.id}/report`, {
+    const res = await fetch(`/student/comments/${reportingComment.value.id}/report`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1155,7 +1132,7 @@ let discussionPollTimer: any = null
 const pollForNewComments = async () => {
   if (activeTab.value !== 'discussion' || !props.currentLesson?.id) return
   try {
-    const res = await fetch(`/lessons/${props.currentLesson.id}/comments?sort=newest&filter=all&page=1`)
+    const res = await fetch(`/student/lessons/${props.currentLesson.id}/comments?sort=newest&filter=all&page=1`)
     if (res.ok) {
       const data = await res.json()
       const serverTotal = data.total_questions_count || 0

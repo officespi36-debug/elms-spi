@@ -199,27 +199,6 @@ class DashboardController extends Controller
 
     private function getDashboardData(string $period, string $majorId): array
     {
-        // Auto-heal production: ensure academic courses and enrollments exist in DB
-        if (Course::count() === 0 || Enrollment::count() === 0) {
-            try {
-                if (Department::count() === 0) {
-                    (new \Database\Seeders\AcademicSeeder())->run();
-                }
-                (new \Database\Seeders\DashboardRealDataSeeder())->run();
-            } catch (\Throwable $e) {
-                // continue gracefully
-            }
-        }
-
-        // Distribute unassigned students evenly across the 5 SPI Core Majors
-        $spiMajors = Major::where('is_active', true)->orWhereNull('is_active')->take(5)->pluck('id')->toArray();
-        if (!empty($spiMajors)) {
-            $unassignedStudents = User::where('role', 'student')->whereNull('major_id')->get();
-            foreach ($unassignedStudents as $uIdx => $uSt) {
-                $uSt->update(['major_id' => $spiMajors[$uIdx % count($spiMajors)]]);
-            }
-        }
-
         return Cache::remember("admin.dashboard.live.{$period}.{$majorId}", 30, function () use ($period, $majorId) {
             // Pure Institutional Dataset matching canonical SPI academic model
             $stats = [

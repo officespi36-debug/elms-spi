@@ -66,6 +66,7 @@ class User extends Authenticatable implements JWTSubject
         'github_username',
         'clerk_id',
         'avatar',
+        'bio',
         'preferences',
         'email_verified_at',
         'is_active',
@@ -105,10 +106,14 @@ class User extends Authenticatable implements JWTSubject
         if (empty($this->avatar)) {
             return null;
         }
-        if (str_starts_with($this->avatar, 'http://') || str_starts_with($this->avatar, 'https://')) {
-            return $this->avatar;
+        $av = trim((string) $this->avatar);
+        if (str_starts_with($av, 'http://') || str_starts_with($av, 'https://')) {
+            return $av;
         }
-        return asset('storage/' . ltrim($this->avatar, '/'));
+        if (str_starts_with($av, '/uploads/') || str_starts_with($av, 'uploads/')) {
+            return asset(ltrim($av, '/'));
+        }
+        return asset('storage/' . ltrim($av, '/'));
     }
 
     public function getJWTIdentifier()
