@@ -124,4 +124,9 @@ class Course extends Model
     {
         return $this->hasMany(CourseReview::class);
     }
+
+    public function skills()
+    {
+        return $this->belongsToMany(Skill::class, 'course_skills');
+    }
 }

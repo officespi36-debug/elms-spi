@@ -633,6 +633,8 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/weak-topics', [Student\AiPathController::class, 'weakTopics'])->name('weak-topics');
             Route::get('/next-module', [Student\AiPathController::class, 'nextModule'])->name('next-module');
             Route::get('/next-course', [Student\AiPathController::class, 'nextCourse'])->name('next-course');
+            Route::get('/goal', [Student\AiPathController::class, 'showGoal'])->middleware('throttle:30,1')->name('goal.show');
+            Route::put('/goal', [Student\AiPathController::class, 'updateGoal'])->middleware('throttle:20,1')->name('goal.update');
         });
 
         // 6. AI Assistant / Tutor

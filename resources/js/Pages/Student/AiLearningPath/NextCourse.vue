@@ -1,1028 +1,1490 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { Link } from '@inertiajs/vue3'
+import { ref, computed, watch, onMounted } from 'vue'
+import { Link, usePage } from '@inertiajs/vue3'
+import {
+  BookOpen,
+  Target,
+  CheckCircle2,
+  Compass,
+  Clock,
+  CheckSquare,
+  HelpCircle,
+  TrendingUp,
+  Play,
+  Eye,
+  ChevronDown,
+  ArrowRight,
+  Pencil,
+  X,
+  AlertCircle,
+  RotateCcw,
+  Sparkles,
+  List,
+  Map as MapIcon,
+  ExternalLink,
+  FileText,
+} from 'lucide-vue-next'
 import StudentLayout from '@/Layouts/StudentLayout.vue'
+import { i18n } from '@/Services/i18n'
+
+interface RoadmapCourse {
+  id: number
+  stageId: number
+  stageNumber: number
+  stageTitle_en: string
+  stageTitle_km: string
+  code: string
+  title_en: string
+  title_km: string
+  desc_en: string
+  desc_km: string
+  level: string
+  thumbnail: string | null
+  lessonsCount: number
+  doneLessons: number
+  durationSeconds: number
+  duration: string
+  progress: number
+  state: 'completed' | 'in_progress' | 'not_started' | 'not_enrolled' | 'coming_soon'
+  isEnrolled: boolean
+  isRequired: boolean
+  actionType: 'continue' | 'start' | 'review' | 'view_details' | 'coming_soon'
+  actionHref: string | null
+  overviewHref: string
+  browseHref: string
+}
+
+interface StageResource {
+  id: string
+  title: string
+  type: string
+  course: string
+  url: string
+  external: boolean
+}
 
 interface RoadmapStage {
   id: number
   stageNumber: number
-  title: string
-  subtitle: string
-  status: 'COMPLETED' | 'CURRENT' | 'UPCOMING' | 'LOCKED'
-  coursesCount: string
+  title_en: string
+  title_km: string
+  desc_en: string
+  desc_km: string
+  status: 'COMPLETED' | 'CURRENT' | 'RECOMMENDED_ORDER'
+  isCompleted: boolean
+  completedCount: number
+  totalCount: number
+  doneLessons: number
+  totalLessons: number
   progress: number
-  courses: {
-    id: number
-    title: string
-    description: string
-    level: string
-    lessonsCount: number
-    duration: string
-    progress: number
-    status: 'completed' | 'in_progress' | 'not_started' | 'locked'
-    icon: string
-    iconBg: string
-    href: string
-  }[]
+  courses: RoadmapCourse[]
+  resources: StageResource[]
 }
 
-// State
+interface PublishedPathOption {
+  id: number
+  slug: string
+  title_en: string
+  title_km: string
+  desc_en: string
+  desc_km: string
+  default_target_months: number
+  stages_count: number
+  courses_count: number
+}
+
+interface WhyFactor {
+  key: string
+  label_en: string
+  label_km: string
+}
+
+interface RoadmapSkill {
+  id: number
+  name_en: string
+  name_km: string
+}
+
+interface RoadmapRecommendation {
+  courseId: number | null
+  courseTitle_en: string
+  courseTitle_km: string
+  isAiGenerated: boolean
+  badge_en: string
+  badge_km: string
+  body_en: string
+  body_km: string
+  actionLabel_en: string
+  actionLabel_km: string
+  askAiHref: string
+}
+
+interface RoadmapPayload {
+  hasPublishedPaths: boolean
+  hasGoal: boolean
+  goal: {
+    pathId: number
+    title_en: string
+    title_km: string
+    desc_en: string
+    desc_km: string
+    targetMonths: number
+    weeklyHours: number
+    startedAtIso: string
+    targetDate_en: string
+    targetDate_km: string
+    doneLessons: number
+    totalLessons: number
+  } | null
+  overallProgress: number
+  counts: {
+    completed: number
+    inProgress: number
+    upcoming: number
+    total: number
+  }
+  stages: RoadmapStage[]
+  currentStageIndex: number
+  currentStageId: number | null
+  nextUp: RoadmapCourse | null
+  skills: RoadmapSkill[]
+  whyFactors: WhyFactor[]
+  recommendation: RoadmapRecommendation | null
+  publishedPaths: PublishedPathOption[]
+}
+
+const props = defineProps<{
+  roadmap?: RoadmapPayload
+  csrfToken?: string
+}>()
+
+const page = usePage()
+const isKm = computed(() => i18n.locale.value === 'km')
+
+const emptyRoadmapFallback = (): RoadmapPayload => ({
+  hasPublishedPaths: false,
+  hasGoal: false,
+  goal: null,
+  overallProgress: 0,
+  counts: { completed: 0, inProgress: 0, upcoming: 0, total: 0 },
+  stages: [],
+  currentStageIndex: 0,
+  currentStageId: null,
+  nextUp: null,
+  skills: [],
+  whyFactors: [],
+  recommendation: null,
+  publishedPaths: [],
+})
+
+const resolveInitialRoadmap = (): RoadmapPayload => {
+  return props.roadmap || ((page.props as any)?.roadmap as RoadmapPayload | undefined) || emptyRoadmapFallback()
+}
+
+const roadmapState = ref<RoadmapPayload>(resolveInitialRoadmap())
 const viewMode = ref<'roadmap' | 'list'>('roadmap')
-const selectedStageIndex = ref(2) // Default Stage 3 (JavaScript Core)
+const selectedStageIndex = ref<number>(roadmapState.value.currentStageIndex || 0)
+const isResourcesOpen = ref(false)
+const showAllSkills = ref(false)
+
+// Goal modal & API state
 const isEditGoalOpen = ref(false)
+const isSavingGoal = ref(false)
+const isLoadingRoadmap = ref(false)
+const fetchError = ref('')
+const goalFormError = ref('')
+const editGoalForm = ref({
+  path_id: 0,
+  target_months: 6,
+  weekly_hours: 10,
+})
+
+// Toast state
 const showToast = ref(false)
 const toastMessage = ref('')
+const toastIsError = ref(false)
+let toastTimer: ReturnType<typeof setTimeout> | null = null
 
-// Learning Goal State
-const learningGoal = ref({
-  title: 'Become a Full Stack Web Developer',
-  track: 'fullstack',
-  targetCompletion: '6 Months',
-  weeklyStudyTime: '10-15 hours',
-  overallProgress: 58,
-  completedCourses: 6,
-  inProgressCourses: 3,
-  upcomingCourses: 7,
-  totalCourses: 16
+const RING_RADIUS = 48
+const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS
+
+const donutDashOffset = computed(() => {
+  const pct = Math.max(0, Math.min(100, roadmapState.value.overallProgress || 0))
+  return RING_CIRCUMFERENCE - (RING_CIRCUMFERENCE * pct) / 100
 })
 
-// Edit Goal Form Model
-const editGoalForm = ref({
-  title: 'Become a Full Stack Web Developer',
-  track: 'fullstack',
-  targetCompletion: '6 Months',
-  weeklyHours: '10-15 hours'
+watch(
+  () => [props.roadmap, (page.props as any)?.roadmap],
+  () => {
+    const incoming = resolveInitialRoadmap()
+    roadmapState.value = incoming
+    if (selectedStageIndex.value >= incoming.stages.length) {
+      selectedStageIndex.value = Math.max(0, incoming.currentStageIndex || 0)
+    }
+  },
+  { deep: true }
+)
+
+const activeStage = computed<RoadmapStage | null>(() => {
+  const list = roadmapState.value.stages || []
+  if (!list.length) return null
+  return list[selectedStageIndex.value] || list[0] || null
 })
 
-// Search Query in header
-const searchQuery = ref('')
+const visibleSkills = computed(() => {
+  const list = roadmapState.value.skills || []
+  return showAllSkills.value ? list : list.slice(0, 8)
+})
 
-// Recommended Stages Data (Matching Screenshot 6 Stages)
-const stages = ref<RoadmapStage[]>([
-  {
-    id: 1,
-    stageNumber: 1,
-    title: 'Foundations',
-    subtitle: 'HTML5 & Web Basics',
-    status: 'COMPLETED',
-    coursesCount: '2 / 2 courses',
-    progress: 100,
-    courses: [
-      {
-        id: 101,
-        title: 'HTML5 Semantic Web & Accessibility',
-        description: 'Learn modern semantic tags, multimedia embeds, and accessible form structures.',
-        level: 'Beginner',
-        lessonsCount: 16,
-        duration: '8h 30m',
-        progress: 100,
-        status: 'completed',
-        icon: 'HTML',
-        iconBg: 'from-orange-500 to-amber-600',
-        href: '/student/my-courses/overview'
-      },
-      {
-        id: 102,
-        title: 'Web Standards, Git & Version Control',
-        description: 'Master Git commit workflows, GitHub repositories, and collaborative branching.',
-        level: 'Beginner',
-        lessonsCount: 12,
-        duration: '6h 15m',
-        progress: 100,
-        status: 'completed',
-        icon: 'GIT',
-        iconBg: 'from-rose-500 to-red-600',
-        href: '/student/my-courses/overview'
-      }
-    ]
-  },
-  {
-    id: 2,
-    stageNumber: 2,
-    title: 'Frontend Basics',
-    subtitle: 'CSS3, Flexbox & Grid',
-    status: 'COMPLETED',
-    coursesCount: '2 / 2 courses',
-    progress: 100,
-    courses: [
-      {
-        id: 201,
-        title: 'CSS3 Styling & Responsive Design',
-        description: 'Build mobile-first fluid designs using Flexbox, CSS Grid, and media queries.',
-        level: 'Beginner',
-        lessonsCount: 20,
-        duration: '10h 45m',
-        progress: 100,
-        status: 'completed',
-        icon: 'CSS',
-        iconBg: 'from-blue-500 to-cyan-600',
-        href: '/student/my-courses/overview'
-      },
-      {
-        id: 202,
-        title: 'TailwindCSS & Modern UI Frameworks',
-        description: 'Rapid UI engineering with utility classes, dark modes, and components.',
-        level: 'Intermediate',
-        lessonsCount: 14,
-        duration: '7h 20m',
-        progress: 100,
-        status: 'completed',
-        icon: 'UI',
-        iconBg: 'from-cyan-400 to-teal-600',
-        href: '/student/my-courses/overview'
-      }
-    ]
-  },
-  {
-    id: 3,
-    stageNumber: 3,
-    title: 'JavaScript Core',
-    subtitle: 'Logic, Functions & DOM',
-    status: 'CURRENT',
-    coursesCount: 'In Progress (60%)',
-    progress: 60,
-    courses: [
-      {
-        id: 301,
-        title: 'JavaScript Fundamentals',
-        description: 'Learn core JavaScript concepts, variables, data types, and operators.',
-        level: 'Intermediate',
-        lessonsCount: 24,
-        duration: '12h 30m',
-        progress: 100,
-        status: 'completed',
-        icon: 'JS',
-        iconBg: 'from-amber-400 to-amber-500',
-        href: '/student/my-courses/overview'
-      },
-      {
-        id: 302,
-        title: 'JavaScript Functions & Scope',
-        description: 'Deep dive into functions, scope, closures, and hoisting.',
-        level: 'Intermediate',
-        lessonsCount: 18,
-        duration: '8h 45m',
-        progress: 20,
-        status: 'in_progress',
-        icon: 'JS',
-        iconBg: 'from-purple-600 to-indigo-600',
-        href: '/student/my-courses/current'
-      },
-      {
-        id: 303,
-        title: 'JavaScript DOM Manipulation',
-        description: 'Learn how to interact with HTML elements using JavaScript.',
-        level: 'Intermediate',
-        lessonsCount: 20,
-        duration: '10h 15m',
-        progress: 0,
-        status: 'not_started',
-        icon: '📄',
-        iconBg: 'from-blue-600 to-indigo-700',
-        href: '/student/courses/1/overview'
-      }
-    ]
-  },
-  {
-    id: 4,
-    stageNumber: 4,
-    title: 'Frontend Advanced',
-    subtitle: 'Async JS & React',
-    status: 'UPCOMING',
-    coursesCount: 'Upcoming (0/3)',
-    progress: 0,
-    courses: [
-      {
-        id: 401,
-        title: 'Asynchronous JavaScript & Fetch APIs',
-        description: 'Master Promises, async/await, API data fetching, and error handling.',
-        level: 'Intermediate',
-        lessonsCount: 16,
-        duration: '8h 00m',
-        progress: 0,
-        status: 'locked',
-        icon: '⚡',
-        iconBg: 'from-slate-700 to-slate-800',
-        href: '#'
-      },
-      {
-        id: 402,
-        title: 'React.js & Modern Component Architecture',
-        description: 'Build interactive SPAs using React Hooks, props, state, and router.',
-        level: 'Advanced',
-        lessonsCount: 28,
-        duration: '16h 30m',
-        progress: 0,
-        status: 'locked',
-        icon: '⚛️',
-        iconBg: 'from-slate-700 to-slate-800',
-        href: '#'
-      }
-    ]
-  },
-  {
-    id: 5,
-    stageNumber: 5,
-    title: 'Backend Basics',
-    subtitle: 'Node.js & Databases',
-    status: 'UPCOMING',
-    coursesCount: 'Upcoming (0/3)',
-    progress: 0,
-    courses: [
-      {
-        id: 501,
-        title: 'Node.js, Express & RESTful APIs',
-        description: 'Server-side programming, HTTP routing, middleware, and authentication.',
-        level: 'Advanced',
-        lessonsCount: 22,
-        duration: '14h 00m',
-        progress: 0,
-        status: 'locked',
-        icon: '🟢',
-        iconBg: 'from-slate-700 to-slate-800',
-        href: '#'
-      },
-      {
-        id: 502,
-        title: 'Database Design & PostgreSQL / MySQL',
-        description: 'Relational data modeling, foreign keys, index optimization, and SQL queries.',
-        level: 'Advanced',
-        lessonsCount: 20,
-        duration: '12h 15m',
-        progress: 0,
-        status: 'locked',
-        icon: '🗄️',
-        iconBg: 'from-slate-700 to-slate-800',
-        href: '#'
-      }
-    ]
-  },
-  {
-    id: 6,
-    stageNumber: 6,
-    title: 'Full Stack Mastery',
-    subtitle: 'Deployment & Capstone',
-    status: 'UPCOMING',
-    coursesCount: 'Upcoming (0/2)',
-    progress: 0,
-    courses: [
-      {
-        id: 601,
-        title: 'Full-Stack Capstone Project & Cloud Deployment',
-        description: 'Deploy real-world web applications on cloud infrastructure with CI/CD.',
-        level: 'Mastery',
-        lessonsCount: 15,
-        duration: '20h 00m',
-        progress: 0,
-        status: 'locked',
-        icon: '🚀',
-        iconBg: 'from-slate-700 to-slate-800',
-        href: '#'
-      }
-    ]
-  }
-])
+const labels = computed(() => isKm.value
+  ? {
+      pageTitle: 'ផែនទីបង្ហាញផ្លូវណែនាំ',
+      pageSubtitle: 'ផែនទីសិក្សាតាមដំណាក់កាលពីវគ្គសិក្សាពិតក្នុងប្រព័ន្ធ SPI',
+      dashboard: 'ផ្ទាំងគ្រប់គ្រង',
+      aiLearning: 'ការរៀនជាមួយ AI',
+      yourGoalLabel: 'គោលដៅសិក្សារបស់អ្នក',
+      targetCompletion: 'គោលដៅបញ្ចប់៖',
+      monthsUnit: 'ខែ',
+      weeklyStudyTime: 'ពេលវេលាសិក្សា៖',
+      hoursPerWeek: 'ម៉ោង/សប្តាហ៍',
+      editGoal: 'កែប្រែគោលដៅ',
+      setGoal: 'កំណត់គោលដៅសិក្សា',
+      overallLabel: 'សរុប',
+      completedLabel: 'បានបញ្ចប់',
+      inProgressLabel: 'កំពុងសិក្សា',
+      upcomingLabel: 'បន្ទាប់',
+      totalLabel: 'វគ្គសរុប',
+      coursesUnit: 'វគ្គ',
+      whyRoadmapTitle: 'ហេតុអ្វីបានជាមានផែនទីនេះ?',
+      whyRoadmapSub: 'រៀបចំផ្អែកលើទិន្នន័យពិតរបស់អ្នក៖',
+      roadmapTitle: 'ផែនទីបង្ហាញផ្លូវសិក្សា',
+      viewBy: 'បង្ហាញតាម៖',
+      viewRoadmap: 'ផែនទី',
+      viewList: 'បញ្ជី',
+      stagePrefix: 'ដំណាក់កាល',
+      recommendedOrder: 'ណែនាំតាមលំដាប់',
+      currentStageCourses: 'វគ្គសិក្សាក្នុងដំណាក់កាលនេះ',
+      currentStageHint: 'សិក្សាវគ្គទាំងនេះតាមលំដាប់ដើម្បីឈានទៅដំណាក់កាលបន្ទាប់',
+      stageProgress: 'វឌ្ឍនភាព',
+      lessonsUnit: 'មេរៀន',
+      continueBtn: 'បន្តការសិក្សា',
+      startCourseBtn: 'ចាប់ផ្តើមរៀន',
+      reviewBtn: 'រំលឹកឡើងវិញ',
+      viewDetailsBtn: 'មើលព័ត៌មានលម្អិត',
+      comingSoonBtn: 'មិនទាន់មានមេរៀន',
+      showResources: 'បង្ហាញឯកសារជំនួយសម្រាប់ដំណាក់កាលនេះ',
+      hideResources: 'លាក់ឯកសារជំនួយ',
+      nextUpTitle: 'ជំហានបន្ទាប់',
+      nextUpContinueHint: 'បន្តពីមេរៀនដែលអ្នកបានរៀនចុងក្រោយ',
+      nextUpStartHint: 'ចាប់ផ្តើមមេរៀនដំបូងក្នុងវគ្គនេះ',
+      nextUpBrowseHint: 'ពិនិត្យព័ត៌មានវគ្គ និងចុះឈ្មោះចូលរៀន',
+      skillsTitle: 'ជំនាញដែលអ្នកនឹងទទួលបាន',
+      viewAllSkills: 'មើលជំនាញទាំងអស់',
+      collapseSkills: 'បង្ហាញតិច',
+      tipsTitle: 'គន្លឹះសិក្សាប្រសិទ្ធភាព',
+      tip1Title: 'រក្សាភាពទៀងទាត់',
+      tip1Desc: 'សិក្សារៀងរាល់ថ្ងៃតាមម៉ោងដែលបានកំណត់',
+      tip2Title: 'អនុវត្តជាប្រចាំ',
+      tip2Desc: 'បំពេញលំហាត់ និងកម្រងសំណួរតាមមេរៀន',
+      tip3Title: 'សួរ AI ពេលមានចម្ងល់',
+      tip3Desc: 'ប្រើជំនួយការសិក្សា AI ដើម្បីពន្យល់មេរៀន',
+      tip4Title: 'តាមដានវឌ្ឍនភាព',
+      tip4Desc: 'រំលឹកឡើងវិញ និងកែលម្អចំណុចខ្សោយ',
+      noPathsTitle: 'មិនទាន់មានផែនទីបង្ហាញផ្លូវដែលបានផ្សាយទេ',
+      noPathsDesc: 'បច្ចុប្បន្នប្រព័ន្ធមិនទាន់មានផែនទីសិក្សាផ្លូវការទេ។ អ្នកអាចស្វែងរកវគ្គសិក្សាក្នុងកាតាឡុក ឬសាកសួរ AI Tutor បាន។',
+      noGoalTitle: 'សូមជ្រើសរើសផែនទីគោលដៅសិក្សារបស់អ្នក',
+      noGoalDesc: 'ជ្រើសរើសគន្លងសិក្សាខាងក្រោម ហើយកំណត់រយៈពេលសិក្សា ដើម្បីតាមដានវឌ្ឍនភាពពិតរបស់អ្នក។',
+      emptyCoursesTitle: 'ផែនទីនេះមិនទាន់មានវគ្គសិក្សាដែលបានផ្សាយទេ',
+      emptyCoursesDesc: 'សូមប្តូរទៅជ្រើសរើសគោលដៅផែនទីផ្សេងទៀត។',
+      browseCatalog: 'ស្វែងរកវគ្គសិក្សា',
+      askAi: 'សួរ AI',
+      retry: 'ព្យាយាមម្ដងទៀត',
+      modalTitle: 'កំណត់គោលដៅសិក្សា',
+      modalSub: 'ជ្រើសរើសផ្លូវសិក្សាពិត និងកាលវិភាគប្រចាំសប្តាហ៍',
+      fieldPath: 'ផ្លូវសិក្សា (Learning Path)',
+      fieldMonths: 'រយៈពេលគោលដៅ (១ – ៣៦ ខែ)',
+      fieldHours: 'ម៉ោងសិក្សាក្នុងមួយសប្តាហ៍ (១ – ៦០ ម៉ោង)',
+      cancel: 'បោះបង់',
+      save: 'រក្សាទុកគោលដៅ',
+      saving: 'កំពុងរក្សាទុក...',
+      saveSuccess: 'បានរក្សាទុកគោលដៅសិក្សាដោយជោគជ័យ!',
+      loadError: 'មិនអាចទាញយកទិន្នន័យផែនទីបានទេ។ សូមសាកល្បងម្ដងទៀត។',
+      beginner: 'កម្រិតដំបូង',
+      intermediate: 'កម្រិតកណ្តាល',
+      advanced: 'កម្រិតខ្ពស់',
+    }
+  : {
+      pageTitle: 'Recommended Roadmap',
+      pageSubtitle: 'Structured stage-by-stage roadmap built from real published SPI courses.',
+      dashboard: 'Dashboard',
+      aiLearning: 'AI Learning',
+      yourGoalLabel: 'Your Learning Goal',
+      targetCompletion: 'Target Completion:',
+      monthsUnit: 'months',
+      weeklyStudyTime: 'Weekly Study Time:',
+      hoursPerWeek: 'hours/week',
+      editGoal: 'Edit Goal',
+      setGoal: 'Set Learning Goal',
+      overallLabel: 'Overall',
+      completedLabel: 'Completed',
+      inProgressLabel: 'In Progress',
+      upcomingLabel: 'Upcoming',
+      totalLabel: 'Total Courses',
+      coursesUnit: 'courses',
+      whyRoadmapTitle: 'Why this roadmap?',
+      whyRoadmapSub: 'Grounded in your real database records:',
+      roadmapTitle: 'Your Recommended Roadmap',
+      viewBy: 'View by:',
+      viewRoadmap: 'Roadmap',
+      viewList: 'List',
+      stagePrefix: 'Stage',
+      recommendedOrder: 'Recommended Order',
+      currentStageCourses: 'Stage Courses',
+      currentStageHint: 'Follow stages in order for smooth progression',
+      stageProgress: 'Stage Progress',
+      lessonsUnit: 'lessons',
+      continueBtn: 'Continue',
+      startCourseBtn: 'Start Course',
+      reviewBtn: 'Review',
+      viewDetailsBtn: 'View Details',
+      comingSoonBtn: 'Coming Soon',
+      showResources: 'Show Recommended Resources for This Stage',
+      hideResources: 'Hide Resources',
+      nextUpTitle: 'Next Up',
+      nextUpContinueHint: 'Continue where you left off',
+      nextUpStartHint: 'Start the first lesson in this course',
+      nextUpBrowseHint: 'View course syllabus and enroll',
+      skillsTitle: 'Skills You Will Gain',
+      viewAllSkills: 'View All Skills',
+      collapseSkills: 'Show Fewer',
+      tipsTitle: 'Roadmap Tips',
+      tip1Title: 'Stay consistent',
+      tip1Desc: 'Study regularly toward your weekly hour target',
+      tip2Title: 'Practice regularly',
+      tip2Desc: 'Complete lesson exercises and quizzes',
+      tip3Title: 'Ask AI for help',
+      tip3Desc: 'Use AI Study Assistant whenever you get stuck',
+      tip4Title: 'Track your progress',
+      tip4Desc: 'Review completed modules and weak topics',
+      noPathsTitle: 'No Published Roadmaps Available Yet',
+      noPathsDesc: 'No structured learning paths are published yet. Browse the catalog or ask AI Tutor for study guidance.',
+      noGoalTitle: 'Choose Your Learning Roadmap',
+      noGoalDesc: 'Select a published track below and set your weekly commitment to start tracking real progress.',
+      emptyCoursesTitle: 'No Published Courses in This Path Yet',
+      emptyCoursesDesc: 'Please choose another published learning path using Edit Goal.',
+      browseCatalog: 'Browse Catalog',
+      askAi: 'Ask AI',
+      retry: 'Retry',
+      modalTitle: 'Configure Learning Goal',
+      modalSub: 'Choose a published path and weekly study commitment',
+      fieldPath: 'Learning Path',
+      fieldMonths: 'Target Duration (1–36 months)',
+      fieldHours: 'Weekly Study Hours (1–60 hours)',
+      cancel: 'Cancel',
+      save: 'Save Goal',
+      saving: 'Saving...',
+      saveSuccess: 'Learning goal saved successfully!',
+      loadError: 'Unable to load roadmap data. Please try again.',
+      beginner: 'Beginner',
+      intermediate: 'Intermediate',
+      advanced: 'Advanced',
+    })
 
-const activeStage = computed(() => stages.value[selectedStageIndex.value])
-
-// Skills List
-const allSkills = [
-  'HTML', 'CSS', 'JavaScript', 'React', 'Node.js',
-  'Express.js', 'MongoDB', 'Git', 'API Integration',
-  'Problem Solving', 'Responsive Design', 'And more...'
-]
-
-// Accordion for Recommended Resources
-const isResourcesOpen = ref(false)
-const stageResources = [
-  { name: 'JavaScript MDN Documentation Guide', type: 'Documentation', link: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript' },
-  { name: 'JavaScript Functions & Scope Cheat Sheet (PDF)', type: 'Downloadable PDF', link: '/student/content' },
-  { name: 'ES6 Arrow Functions Practice Lab', type: 'Interactive Sandbox', link: '/student/practice-lab/it' }
-]
-
-// Methods
-const saveGoal = () => {
-  learningGoal.value.title = editGoalForm.value.title
-  learningGoal.value.targetCompletion = editGoalForm.value.targetCompletion
-  learningGoal.value.weeklyStudyTime = editGoalForm.value.weeklyHours
-  isEditGoalOpen.value = false
-  
-  toastMessage.value = 'Learning Goal and Roadmap updated successfully!'
+const triggerToast = (msg: string, isError = false) => {
+  toastMessage.value = msg
+  toastIsError.value = isError
   showToast.value = true
-  setTimeout(() => {
+  if (toastTimer) clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => {
     showToast.value = false
   }, 3500)
 }
+
+const buildHeaders = (): Record<string, string> => {
+  const tokenProp = props.csrfToken || ((page.props as any)?.csrfToken as string | undefined) || ''
+  const metaToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || ''
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest',
+    'X-CSRF-TOKEN': tokenProp || metaToken,
+  }
+  const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/)
+  if (match && match[1]) {
+    headers['X-XSRF-TOKEN'] = decodeURIComponent(match[1])
+  }
+  return headers
+}
+
+const syncUrlParams = () => {
+  if (typeof window === 'undefined') return
+  const params = new URLSearchParams(window.location.search)
+  params.set('view', viewMode.value)
+  if (activeStage.value) {
+    params.set('stage', String(activeStage.value.stageNumber))
+  } else {
+    params.delete('stage')
+  }
+  const newUrl = `${window.location.pathname}?${params.toString()}`
+  window.history.replaceState({}, '', newUrl)
+}
+
+const setViewMode = (mode: 'roadmap' | 'list') => {
+  viewMode.value = mode
+  syncUrlParams()
+}
+
+const selectStage = (idx: number) => {
+  if (idx < 0 || idx >= (roadmapState.value.stages || []).length) return
+  selectedStageIndex.value = idx
+  isResourcesOpen.value = false
+  syncUrlParams()
+}
+
+const handleStageKeydown = (e: KeyboardEvent, idx: number) => {
+  const max = (roadmapState.value.stages || []).length - 1
+  if (max < 0) return
+  if (e.key === 'ArrowRight') {
+    e.preventDefault()
+    selectStage(idx >= max ? 0 : idx + 1)
+  } else if (e.key === 'ArrowLeft') {
+    e.preventDefault()
+    selectStage(idx <= 0 ? max : idx - 1)
+  }
+}
+
+const openGoalModal = (preselectPathId?: number) => {
+  goalFormError.value = ''
+  const paths = roadmapState.value.publishedPaths || []
+  const currentGoal = roadmapState.value.goal
+  const pickedPathId = preselectPathId || currentGoal?.pathId || paths[0]?.id || 0
+  const pickedPath = paths.find(p => p.id === pickedPathId)
+  editGoalForm.value = {
+    path_id: pickedPathId,
+    target_months: currentGoal && currentGoal.pathId === pickedPathId
+      ? currentGoal.targetMonths
+      : (pickedPath?.default_target_months || 6),
+    weekly_hours: currentGoal ? currentGoal.weeklyHours : 10,
+  }
+  isEditGoalOpen.value = true
+}
+
+const saveGoal = async () => {
+  if (isSavingGoal.value) return
+  goalFormError.value = ''
+  isSavingGoal.value = true
+  try {
+    const res = await fetch('/student/ai-path/goal', {
+      method: 'PUT',
+      credentials: 'same-origin',
+      headers: buildHeaders(),
+      body: JSON.stringify({
+        path_id: Number(editGoalForm.value.path_id),
+        target_months: Number(editGoalForm.value.target_months),
+        weekly_hours: Number(editGoalForm.value.weekly_hours),
+      }),
+    })
+    const data = await res.json().catch(() => null)
+    if (!res.ok || !data?.ok || !data?.roadmap) {
+      const firstErr = data?.errors
+        ? (Object.values(data.errors).flat()[0] as string | undefined)
+        : undefined
+      goalFormError.value = firstErr || data?.message || labels.value.loadError
+      return
+    }
+    roadmapState.value = data.roadmap
+    selectedStageIndex.value = data.roadmap.currentStageIndex || 0
+    isEditGoalOpen.value = false
+    syncUrlParams()
+    triggerToast(labels.value.saveSuccess, false)
+  } catch {
+    goalFormError.value = labels.value.loadError
+  } finally {
+    isSavingGoal.value = false
+  }
+}
+
+const reloadRoadmap = async () => {
+  if (isLoadingRoadmap.value) return
+  fetchError.value = ''
+  isLoadingRoadmap.value = true
+  try {
+    const res = await fetch('/student/ai-path/goal', {
+      method: 'GET',
+      credentials: 'same-origin',
+      headers: buildHeaders(),
+    })
+    const data = await res.json().catch(() => null)
+    if (!res.ok || !data?.ok || !data?.roadmap) {
+      fetchError.value = labels.value.loadError
+      return
+    }
+    roadmapState.value = data.roadmap
+  } catch {
+    fetchError.value = labels.value.loadError
+  } finally {
+    isLoadingRoadmap.value = false
+  }
+}
+
+const levelLabel = (lvl: string) => {
+  const lower = (lvl || 'beginner').toLowerCase()
+  if (lower === 'intermediate') return labels.value.intermediate
+  if (lower === 'advanced' || lower === 'mastery') return labels.value.advanced
+  return labels.value.beginner
+}
+
+const actionLabel = (actionType: RoadmapCourse['actionType']) => {
+  switch (actionType) {
+    case 'continue':
+      return labels.value.continueBtn
+    case 'start':
+      return labels.value.startCourseBtn
+    case 'review':
+      return labels.value.reviewBtn
+    case 'view_details':
+      return labels.value.viewDetailsBtn
+    default:
+      return labels.value.comingSoonBtn
+  }
+}
+
+onMounted(() => {
+  if (typeof window === 'undefined') return
+  const params = new URLSearchParams(window.location.search)
+  const v = params.get('view')
+  if (v === 'roadmap' || v === 'list') {
+    viewMode.value = v
+  }
+  const stParam = Number(params.get('stage'))
+  if (Number.isInteger(stParam) && stParam >= 1 && stParam <= (roadmapState.value.stages || []).length) {
+    selectedStageIndex.value = stParam - 1
+  }
+})
 </script>
 
 <template>
   <StudentLayout
-    title="Recommended Roadmap"
+    :title="labels.pageTitle"
     :breadcrumbs="[
-      { label: 'Dashboard', href: '/student/dashboard' },
-      { label: 'Recommended Roadmap' }
+      { label: labels.dashboard, href: '/student/dashboard' },
+      { label: labels.aiLearning, href: '/student/ai-path/recommended' },
+      { label: labels.pageTitle },
     ]"
   >
-    <div class="space-y-6 pb-16">
-      
-      <!-- Toast Alert -->
+    <div class="space-y-6 pb-24 motion-reduce:transition-none">
+      <!-- Toast Notification -->
       <transition
-        enter-active-class="transform ease-out duration-300 transition"
-        enter-from-class="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
-        enter-to-class="translate-y-0 opacity-100 sm:translate-x-0"
-        leave-active-class="transition ease-in duration-100"
+        enter-active-class="transform ease-out duration-300 transition motion-reduce:transition-none"
+        enter-from-class="translate-y-2 opacity-0"
+        enter-to-class="translate-y-0 opacity-100"
+        leave-active-class="transition ease-in duration-150 motion-reduce:transition-none"
         leave-from-class="opacity-100"
         leave-to-class="opacity-0"
       >
         <div
           v-if="showToast"
-          class="fixed bottom-6 right-6 z-50 p-4 rounded-2xl bg-slate-900 border border-purple-500/50 shadow-2xl text-white flex items-center gap-3 max-w-md"
+          class="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-2xl border shadow-xl flex items-center gap-3 max-w-md"
+          :class="toastIsError
+            ? 'bg-rose-50 border-rose-200 text-rose-800 dark:bg-rose-950 dark:border-rose-500/40 dark:text-rose-200'
+            : 'bg-white border-purple-200 text-slate-800 dark:bg-[#1e1f20] dark:border-purple-500/40 dark:text-slate-100'"
         >
-          <span class="text-xl text-purple-400">✨</span>
-          <p class="text-xs text-slate-200">{{ toastMessage }}</p>
+          <CheckCircle2 class="w-5 h-5 shrink-0" :class="toastIsError ? 'text-rose-500' : 'text-emerald-500'" />
+          <p class="text-xs font-medium">{{ toastMessage }}</p>
         </div>
       </transition>
 
-      <!-- 1. PAGE HEADER (Title with Book Icon, Subtitle & Search Bar) -->
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <!-- 1. PAGE HEADER (Light + Dark mode, ZERO duplicate Ctrl K search input) -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div class="flex items-center gap-2.5">
-            <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2">
-              <span>Recommended Roadmap</span>
-              <span class="text-xl">📖</span>
-            </h1>
-          </div>
-          <p class="text-xs sm:text-sm text-slate-400 mt-1">
-            AI-powered roadmap to help you achieve your learning goals faster.
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
+            <BookOpen class="w-7 h-7 text-purple-600 dark:text-purple-400 shrink-0" />
+            <span>{{ labels.pageTitle }}</span>
+          </h1>
+          <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
+            {{ labels.pageSubtitle }}
           </p>
         </div>
 
-        <!-- Global Search Input with Ctrl K -->
-        <div class="relative w-full md:w-96">
-          <div class="relative flex items-center">
-            <span class="absolute left-3.5 text-slate-400 pointer-events-none">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </span>
-            <input
-              v-model="searchQuery"
-              type="text"
-              placeholder="Search courses, skills, topics..."
-              class="w-full pl-10 pr-16 py-2 rounded-xl bg-slate-900/90 border border-slate-800 focus:border-purple-500 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500/50 shadow-inner transition-all"
-            />
-            <div class="absolute right-2.5 flex items-center gap-1">
-              <kbd class="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-slate-800 border border-slate-700 rounded shadow-xs">Ctrl K</kbd>
-            </div>
-          </div>
-        </div>
+        <button
+          v-if="roadmapState.hasPublishedPaths"
+          type="button"
+          @click="openGoalModal()"
+          class="min-h-12 sm:min-h-10 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold inline-flex items-center justify-center gap-2 shadow-xs transition-colors motion-reduce:transition-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+        >
+          <Pencil class="w-3.5 h-3.5" />
+          <span>{{ roadmapState.hasGoal ? labels.editGoal : labels.setGoal }}</span>
+        </button>
       </div>
 
-      <!-- 2. TOP SECTION (Learning Goal Card 8 cols | Why this roadmap? Card 4 cols) -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-        
-        <!-- LEFT 8 COLS: YOUR LEARNING GOAL & DONUT PROGRESS -->
-        <div class="lg:col-span-8 bg-[#0e1424] border border-slate-800 rounded-3xl p-6 sm:p-7 shadow-2xl flex flex-col justify-between space-y-6">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-            
-            <!-- Left Info -->
-            <div class="space-y-3">
-              <div class="flex items-center gap-2">
-                <span class="text-sm">🎯</span>
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Your Learning Goal</span>
-              </div>
-
-              <div>
-                <h2 class="text-xl sm:text-2xl font-black text-white leading-tight">
-                  {{ learningGoal.title }}
-                </h2>
-                <div class="flex flex-wrap items-center gap-3 text-xs text-slate-300 mt-2">
-                  <span>Target Completion: <strong class="text-white">{{ learningGoal.targetCompletion }}</strong></span>
-                  <span>•</span>
-                  <span>Weekly Study Time: <strong class="text-white">{{ learningGoal.weeklyStudyTime }}</strong></span>
-                </div>
-              </div>
-
-              <button
-                @click="isEditGoalOpen = true"
-                type="button"
-                class="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-purple-300 hover:text-white border border-slate-800 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
-              >
-                <span>✏️</span>
-                <span>Edit Goal</span>
-              </button>
-            </div>
-
-            <!-- Middle Circular Donut Progress Ring -->
-            <div class="flex items-center gap-6 shrink-0 self-center sm:self-auto">
-              <div class="relative w-28 h-28 flex items-center justify-center">
-                <!-- SVG Donut Chart -->
-                <svg class="w-28 h-28 transform -rotate-90" viewBox="0 0 100 100">
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="40"
-                    stroke="#1e293b"
-                    stroke-width="8"
-                    fill="transparent"
-                  />
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="40"
-                    stroke="url(#purpleGradient)"
-                    stroke-width="8"
-                    stroke-dasharray="251.2"
-                    :stroke-dashoffset="251.2 - (251.2 * learningGoal.overallProgress) / 100"
-                    stroke-linecap="round"
-                    fill="transparent"
-                    class="transition-all duration-1000 ease-out"
-                  />
-                  <defs>
-                    <linearGradient id="purpleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#8b5cf6" />
-                      <stop offset="100%" stop-color="#3b82f6" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-
-                <!-- Center Text -->
-                <div class="absolute flex flex-col items-center justify-center text-center">
-                  <span class="text-xl font-black text-white">{{ learningGoal.overallProgress }}%</span>
-                  <span class="text-[9px] text-slate-400 uppercase font-semibold">Overall Progress</span>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- Bottom Stats Breakdown -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-slate-800/80 text-xs">
-            <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-500/50"></span>
-              <div>
-                <p class="text-slate-400 text-[11px]">Completed</p>
-                <p class="text-sm font-bold text-white">{{ learningGoal.completedCourses }} courses</p>
-              </div>
-            </div>
-
-            <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-blue-400 shadow-sm shadow-blue-500/50"></span>
-              <div>
-                <p class="text-slate-400 text-[11px]">In Progress</p>
-                <p class="text-sm font-bold text-white">{{ learningGoal.inProgressCourses }} courses</p>
-              </div>
-            </div>
-
-            <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-sm shadow-amber-500/50"></span>
-              <div>
-                <p class="text-slate-400 text-[11px]">Upcoming</p>
-                <p class="text-sm font-bold text-white">{{ learningGoal.upcomingCourses }} courses</p>
-              </div>
-            </div>
-
-            <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-slate-500"></span>
-              <div>
-                <p class="text-slate-400 text-[11px]">Total Courses</p>
-                <p class="text-sm font-bold text-white">{{ learningGoal.totalCourses }} courses</p>
-              </div>
-            </div>
-          </div>
+      <!-- Error Banner with Retry -->
+      <div
+        v-if="fetchError"
+        class="rounded-[20px] border border-rose-200 dark:border-rose-500/40 bg-rose-50 dark:bg-rose-950/30 p-4 flex items-center justify-between gap-4"
+      >
+        <div class="flex items-center gap-2.5 text-xs font-medium text-rose-800 dark:text-rose-200">
+          <AlertCircle class="w-4 h-4 shrink-0" />
+          <span>{{ fetchError }}</span>
         </div>
-
-        <!-- RIGHT 4 COLS: WHY THIS ROADMAP? -->
-        <div class="lg:col-span-4 bg-[#0e1424] border border-slate-800 rounded-3xl p-6 shadow-2xl flex flex-col justify-between relative overflow-hidden">
-          
-          <div class="space-y-3 z-10">
-            <h3 class="text-sm font-bold text-white">Why this roadmap?</h3>
-            <p class="text-xs text-slate-400">This roadmap is personalized based on:</p>
-
-            <ul class="space-y-2 text-xs text-slate-300">
-              <li class="flex items-center gap-2">
-                <span class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-bold">✓</span>
-                <span>Your current progress</span>
-              </li>
-              <li class="flex items-center gap-2">
-                <span class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-bold">✓</span>
-                <span>Quiz performance</span>
-              </li>
-              <li class="flex items-center gap-2">
-                <span class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-bold">✓</span>
-                <span>Learning time & consistency</span>
-              </li>
-              <li class="flex items-center gap-2">
-                <span class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-bold">✓</span>
-                <span>Industry best practices</span>
-              </li>
-              <li class="flex items-center gap-2">
-                <span class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-bold">✓</span>
-                <span>Your learning goal</span>
-              </li>
-            </ul>
-          </div>
-
-          <!-- 3D AI Robot Graphic on the right -->
-          <div class="absolute right-3 bottom-3 opacity-90 pointer-events-none hidden sm:block">
-            <img
-              :src="'/images/ai-robot-avatar.png'"
-              alt="AI"
-              class="w-24 h-24 rounded-2xl object-contain shadow-xl select-none"
-            />
-          </div>
-
-        </div>
-
+        <button
+          type="button"
+          @click="reloadRoadmap"
+          class="min-h-10 px-3.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer"
+        >
+          <RotateCcw class="w-3.5 h-3.5" />
+          <span>{{ labels.retry }}</span>
+        </button>
       </div>
 
-      <!-- 3. YOUR RECOMMENDED ROADMAP (6-STAGE STEPPER TIMELINE) -->
-      <div class="bg-[#0e1424] border border-slate-800 rounded-3xl p-6 shadow-xl space-y-6">
-        
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h3 class="text-sm font-bold text-white uppercase tracking-wider">
-            Your Recommended Roadmap
-          </h3>
+      <!-- Loading Skeleton -->
+      <div v-if="isLoadingRoadmap" class="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-pulse motion-reduce:animate-none">
+        <div class="lg:col-span-8 h-52 rounded-[20px] bg-slate-200 dark:bg-[#252729]"></div>
+        <div class="lg:col-span-4 h-52 rounded-[20px] bg-slate-200 dark:bg-[#252729]"></div>
+        <div class="lg:col-span-12 h-40 rounded-[20px] bg-slate-200 dark:bg-[#252729]"></div>
+      </div>
 
-          <!-- View Switcher -->
-          <div class="flex items-center gap-2">
-            <span class="text-xs text-slate-400">View by:</span>
-            <div class="flex items-center rounded-xl bg-slate-900 border border-slate-800 p-0.5">
-              <button
-                @click="viewMode = 'roadmap'"
-                type="button"
-                :class="[
-                  viewMode === 'roadmap' ? 'bg-purple-600 text-white font-bold shadow-xs' : 'text-slate-400 hover:text-slate-200',
-                  'px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer'
-                ]"
-              >
-                Roadmap
-              </button>
-              <button
-                @click="viewMode = 'list'"
-                type="button"
-                :class="[
-                  viewMode === 'list' ? 'bg-purple-600 text-white font-bold shadow-xs' : 'text-slate-400 hover:text-slate-200',
-                  'px-3 py-1 rounded-lg text-xs transition-colors cursor-pointer'
-                ]"
-              >
-                List
-              </button>
-            </div>
-          </div>
+      <!-- EMPTY STATE 1: No published learning paths in catalog -->
+      <section
+        v-else-if="!roadmapState.hasPublishedPaths"
+        class="rounded-[20px] border border-slate-200 dark:border-[#2d2f31] bg-white dark:bg-[#1e1f20] p-8 sm:p-12 text-center space-y-4 shadow-xs"
+      >
+        <div class="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-[#252729] text-slate-500 dark:text-slate-300 flex items-center justify-center mx-auto">
+          <Compass class="w-7 h-7" />
         </div>
-
-        <!-- 6 Stages Horizontal Flow with Cards (Matching Screenshot) -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 pt-2">
-          
-          <div
-            v-for="(stg, index) in stages"
-            :key="stg.id"
-            @click="selectedStageIndex = index"
-            :class="[
-              stg.status === 'COMPLETED'
-                ? 'bg-emerald-950/30 border-emerald-500/40 hover:border-emerald-400'
-                : stg.status === 'CURRENT'
-                ? 'bg-purple-950/40 border-purple-500 ring-2 ring-purple-500/30 shadow-lg shadow-purple-950/60'
-                : 'bg-slate-950/60 border-slate-800 opacity-70 hover:opacity-100',
-              'relative p-4 rounded-2xl border flex flex-col justify-between space-y-3 cursor-pointer transition-all duration-200 hover:-translate-y-1'
-            ]"
+        <div class="max-w-md mx-auto space-y-1.5">
+          <h2 class="text-lg font-bold text-slate-900 dark:text-white">{{ labels.noPathsTitle }}</h2>
+          <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{{ labels.noPathsDesc }}</p>
+        </div>
+        <div class="flex items-center justify-center gap-3 flex-wrap pt-1">
+          <Link
+            href="/student/browse"
+            class="min-h-12 sm:min-h-10 px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold inline-flex items-center gap-2 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
           >
-            <!-- Stage Number Badge -->
-            <div class="space-y-1">
-              <span
-                :class="[
-                  stg.status === 'COMPLETED'
-                    ? 'text-emerald-400'
-                    : stg.status === 'CURRENT'
-                    ? 'text-purple-300'
-                    : 'text-slate-400',
-                  'text-[10px] font-bold font-mono uppercase'
-                ]"
-              >
-                Stage {{ stg.stageNumber }}
-              </span>
+            <BookOpen class="w-4 h-4" />
+            <span>{{ labels.browseCatalog }}</span>
+          </Link>
+          <Link
+            href="/student/ai-tutor"
+            class="min-h-12 sm:min-h-10 px-5 py-2.5 rounded-xl border border-slate-200 dark:border-[#3c4043] bg-white hover:bg-slate-50 dark:bg-[#252729] dark:hover:bg-[#2d2f31] text-slate-700 dark:text-slate-200 text-xs font-bold inline-flex items-center gap-2 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+          >
+            <img :src="'/images/ai-robot-avatar.png'" alt="" class="w-4 h-4 rounded-sm object-contain shrink-0" />
+            <span>{{ labels.askAi }}</span>
+          </Link>
+        </div>
+      </section>
 
-              <h4 class="text-xs font-bold text-white leading-tight line-clamp-1">
-                {{ stg.title }}
-              </h4>
+      <!-- EMPTY STATE 2: Student has not selected a Learning Goal yet (ZERO fake 58%) -->
+      <section
+        v-else-if="!roadmapState.hasGoal"
+        class="rounded-[20px] border border-slate-200 dark:border-[#2d2f31] bg-white dark:bg-[#1e1f20] p-6 sm:p-8 shadow-xs space-y-6"
+      >
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 dark:border-[#2d2f31] pb-5">
+          <div class="flex items-start gap-3.5">
+            <div class="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300 flex items-center justify-center shrink-0">
+              <Target class="w-6 h-6" />
+            </div>
+            <div>
+              <h2 class="text-lg font-bold text-slate-900 dark:text-white">{{ labels.noGoalTitle }}</h2>
+              <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">{{ labels.noGoalDesc }}</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            @click="openGoalModal()"
+            class="min-h-12 sm:min-h-10 px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold inline-flex items-center justify-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 shrink-0"
+          >
+            <Target class="w-4 h-4" />
+            <span>{{ labels.setGoal }}</span>
+          </button>
+        </div>
 
-              <p class="text-[10px] text-slate-400 line-clamp-1">
-                {{ stg.coursesCount }}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div
+            v-for="pathOpt in roadmapState.publishedPaths"
+            :key="pathOpt.id"
+            class="rounded-2xl border border-slate-200 dark:border-[#2d2f31] bg-slate-50/70 dark:bg-[#141517] p-4 flex flex-col justify-between gap-4"
+          >
+            <div class="space-y-1.5">
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white">
+                {{ isKm ? pathOpt.title_km : pathOpt.title_en }}
+              </h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
+                {{ isKm ? pathOpt.desc_km : pathOpt.desc_en }}
+              </p>
+              <p class="text-[11px] font-semibold text-purple-600 dark:text-purple-400 pt-1">
+                {{ pathOpt.stages_count }} {{ labels.stagePrefix }} • {{ pathOpt.courses_count }} {{ labels.coursesUnit }}
               </p>
             </div>
 
-            <!-- Status Icon indicator -->
-            <div class="flex items-center justify-end pt-1">
-              <div
-                v-if="stg.status === 'COMPLETED'"
-                class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-bold border border-emerald-500/40"
-              >
-                ✓
+            <button
+              type="button"
+              @click="openGoalModal(pathOpt.id)"
+              class="min-h-11 w-full px-4 py-2 rounded-xl bg-purple-600/10 hover:bg-purple-600 hover:text-white text-purple-700 dark:bg-purple-500/20 dark:text-purple-300 dark:hover:bg-purple-600 dark:hover:text-white text-xs font-bold inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+            >
+              <span>{{ labels.setGoal }}</span>
+              <ArrowRight class="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- MAIN REAL-DATA ROADMAP -->
+      <template v-else-if="roadmapState.goal">
+        <!-- 2. TOP SECTION: YOUR LEARNING GOAL (8 cols) & WHY THIS ROADMAP? (4 cols) -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+          <!-- Goal Summary Card -->
+          <div class="lg:col-span-8 rounded-[20px] border border-slate-200 dark:border-[#2d2f31] bg-white dark:bg-[#1e1f20] p-5 sm:p-7 shadow-xs flex flex-col justify-between gap-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+              <div class="space-y-3 min-w-0">
+                <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                  <Target class="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
+                  <span class="text-xs font-bold uppercase tracking-wider">{{ labels.yourGoalLabel }}</span>
+                </div>
+
+                <div>
+                  <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white leading-tight">
+                    {{ isKm ? roadmapState.goal.title_km : roadmapState.goal.title_en }}
+                  </h2>
+                  <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600 dark:text-slate-300 mt-2">
+                    <span>
+                      {{ labels.targetCompletion }}
+                      <strong class="text-slate-900 dark:text-white">
+                        {{ roadmapState.goal.targetMonths }} {{ labels.monthsUnit }}
+                        ({{ isKm ? roadmapState.goal.targetDate_km : roadmapState.goal.targetDate_en }})
+                      </strong>
+                    </span>
+                    <span>•</span>
+                    <span>
+                      {{ labels.weeklyStudyTime }}
+                      <strong class="text-slate-900 dark:text-white">
+                        {{ roadmapState.goal.weeklyHours }} {{ labels.hoursPerWeek }}
+                      </strong>
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  @click="openGoalModal()"
+                  class="min-h-11 px-4 py-2 rounded-xl border border-slate-200 dark:border-[#3c4043] bg-slate-50 hover:bg-slate-100 dark:bg-[#252729] dark:hover:bg-[#2d2f31] text-purple-700 dark:text-purple-300 text-xs font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                >
+                  <Pencil class="w-3.5 h-3.5" />
+                  <span>{{ labels.editGoal }}</span>
+                </button>
               </div>
-              <div
-                v-else-if="stg.status === 'CURRENT'"
-                class="px-2 py-0.5 rounded-full bg-purple-600/30 text-purple-300 flex items-center justify-center text-[10px] font-bold border border-purple-500/40 font-mono"
-              >
-                {{ stg.progress }}%
-              </div>
-              <div
-                v-else
-                class="w-6 h-6 rounded-full bg-slate-900 text-slate-500 flex items-center justify-center text-xs border border-slate-800"
-              >
-                🔒
+
+              <!-- Circular Progress Ring (Ample padding so "Overall" never clips) -->
+              <div class="shrink-0 self-center sm:self-auto">
+                <div class="relative w-32 h-32 flex items-center justify-center">
+                  <svg class="w-32 h-32 -rotate-90" viewBox="0 0 120 120" aria-hidden="true">
+                    <circle
+                      cx="60"
+                      cy="60"
+                      :r="RING_RADIUS"
+                      class="stroke-slate-200 dark:stroke-slate-800"
+                      stroke-width="9"
+                      fill="transparent"
+                    />
+                    <circle
+                      cx="60"
+                      cy="60"
+                      :r="RING_RADIUS"
+                      stroke="url(#roadmapRingGrad)"
+                      stroke-width="9"
+                      :stroke-dasharray="RING_CIRCUMFERENCE"
+                      :stroke-dashoffset="donutDashOffset"
+                      stroke-linecap="round"
+                      fill="transparent"
+                      class="transition-all duration-700 ease-out motion-reduce:transition-none"
+                    />
+                    <defs>
+                      <linearGradient id="roadmapRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#7c3aed" />
+                        <stop offset="100%" stop-color="#4f46e5" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  <div class="absolute inset-0 flex flex-col items-center justify-center text-center px-3">
+                    <span class="text-2xl font-black text-slate-900 dark:text-white leading-none">
+                      {{ roadmapState.overallProgress }}%
+                    </span>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mt-1">
+                      {{ labels.overallLabel }}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <!-- Active Stage Arrow Down Indicator -->
-            <div
-              v-if="index === selectedStageIndex"
-              class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#0e1424] border-r border-b border-purple-500 transform rotate-45"
-            ></div>
+            <!-- Single-Source Counts Breakdown (Completed + In Progress + Upcoming === Total) -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-slate-200/80 dark:border-[#2d2f31]">
+              <div class="flex items-center gap-2.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+                <div>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ labels.completedLabel }}</p>
+                  <p class="text-sm font-bold text-slate-900 dark:text-white">
+                    {{ roadmapState.counts.completed }} {{ labels.coursesUnit }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-purple-500 shrink-0"></span>
+                <div>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ labels.inProgressLabel }}</p>
+                  <p class="text-sm font-bold text-slate-900 dark:text-white">
+                    {{ roadmapState.counts.inProgress }} {{ labels.coursesUnit }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0"></span>
+                <div>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ labels.upcomingLabel }}</p>
+                  <p class="text-sm font-bold text-slate-900 dark:text-white">
+                    {{ roadmapState.counts.upcoming }} {{ labels.coursesUnit }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-slate-400 shrink-0"></span>
+                <div>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ labels.totalLabel }}</p>
+                  <p class="text-sm font-bold text-slate-900 dark:text-white">
+                    {{ roadmapState.counts.total }} {{ labels.coursesUnit }}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
-        </div>
-
-      </div>
-
-      <!-- 4. MAIN 2-COLUMN SECTION: CURRENT STAGE COURSES (8 cols) vs NEXT UP & SKILLS (4 cols) -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        
-        <!-- LEFT 8 COLS: CURRENT STAGE COURSES & AI RECOMMENDATION BANNER -->
-        <div class="lg:col-span-8 space-y-6">
-          
-          <!-- CURRENT STAGE COURSES CARD -->
-          <div class="bg-[#0e1424] border border-slate-800 rounded-3xl p-6 shadow-xl space-y-5">
-            
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-4">
-              <div>
-                <h3 class="text-sm font-bold text-white uppercase tracking-wider">
-                  Current Stage Courses
-                </h3>
-                <p class="text-xs text-slate-400 mt-0.5">
-                  Complete these courses to unlock the next stage
-                </p>
-              </div>
-
-              <!-- Stage Progress Indicator -->
-              <div class="flex items-center gap-3">
-                <span class="text-xs text-slate-300 font-bold">Stage {{ activeStage.stageNumber }} Progress</span>
-                <div class="w-28 h-2 rounded-full bg-slate-900 overflow-hidden">
-                  <div
-                    class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all"
-                    :style="{ width: `${activeStage.progress}%` }"
-                  ></div>
+          <!-- Why this roadmap? (Real factors only + compact non-overlapping robot icon) -->
+          <div class="lg:col-span-4 rounded-[20px] border border-slate-200 dark:border-[#2d2f31] bg-white dark:bg-[#1e1f20] p-5 sm:p-6 shadow-xs flex flex-col justify-between gap-4">
+            <div class="space-y-3">
+              <div class="flex items-center justify-between gap-3">
+                <div>
+                  <h3 class="text-sm font-bold text-slate-900 dark:text-white">{{ labels.whyRoadmapTitle }}</h3>
+                  <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ labels.whyRoadmapSub }}</p>
                 </div>
-                <span class="text-xs font-bold text-purple-400 font-mono">{{ activeStage.progress }}%</span>
+                <img
+                  :src="'/images/ai-robot-avatar.png'"
+                  alt="AI"
+                  class="w-14 h-14 rounded-2xl object-contain bg-purple-50 dark:bg-purple-500/15 p-1.5 border border-purple-200/70 dark:border-purple-500/30 shrink-0 select-none"
+                />
               </div>
+
+              <ul class="space-y-2.5 text-xs text-slate-700 dark:text-slate-300">
+                <li
+                  v-for="factor in roadmapState.whyFactors"
+                  :key="factor.key"
+                  class="flex items-start gap-2.5"
+                >
+                  <CheckCircle2 class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <span>{{ isKm ? factor.label_km : factor.label_en }}</span>
+                </li>
+              </ul>
             </div>
+          </div>
+        </section>
 
-            <!-- Courses List in Active Stage -->
-            <div class="space-y-4">
-              <div
-                v-for="crs in activeStage.courses"
-                :key="crs.id"
-                class="p-4 sm:p-5 rounded-2xl bg-slate-950 border border-slate-800 hover:border-purple-500/40 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all group"
-              >
-                <!-- Course Left: Icon & Info -->
-                <div class="flex items-start gap-4 min-w-0">
-                  <div :class="[crs.iconBg, 'w-12 h-12 rounded-2xl bg-gradient-to-br text-slate-950 font-black text-sm flex items-center justify-center font-mono shadow-md shrink-0']">
-                    {{ crs.icon }}
-                  </div>
+        <!-- Path has 0 published courses -->
+        <section
+          v-if="roadmapState.stages.length === 0"
+          class="rounded-[20px] border border-dashed border-slate-200 dark:border-[#323539] bg-white dark:bg-[#1e1f20] p-8 text-center space-y-3"
+        >
+          <p class="text-sm font-bold text-slate-900 dark:text-white">{{ labels.emptyCoursesTitle }}</p>
+          <p class="text-xs text-slate-500 dark:text-slate-400">{{ labels.emptyCoursesDesc }}</p>
+          <button
+            type="button"
+            @click="openGoalModal()"
+            class="min-h-11 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold inline-flex items-center gap-2 cursor-pointer"
+          >
+            <Pencil class="w-3.5 h-3.5" />
+            <span>{{ labels.editGoal }}</span>
+          </button>
+        </section>
 
-                  <div class="space-y-1 min-w-0">
-                    <h4 class="text-sm font-bold text-white group-hover:text-purple-300 transition-colors truncate">
-                      {{ crs.title }}
-                    </h4>
-                    <p class="text-xs text-slate-400 line-clamp-1 leading-relaxed">
-                      {{ crs.description }}
-                    </p>
-                    <div class="flex items-center gap-2 text-[11px] text-slate-400 pt-0.5">
-                      <span class="text-emerald-400 font-bold">● {{ crs.level }}</span>
-                      <span>•</span>
-                      <span>{{ crs.lessonsCount }} Lessons</span>
-                      <span>•</span>
-                      <span>{{ crs.duration }}</span>
-                    </div>
-                  </div>
-                </div>
+        <template v-else>
+          <!-- 3. ROADMAP STAGES + VIEW MODE SWITCHER -->
+          <section class="rounded-[20px] border border-slate-200 dark:border-[#2d2f31] bg-white dark:bg-[#1e1f20] p-5 sm:p-6 shadow-xs space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                {{ labels.roadmapTitle }}
+              </h3>
 
-                <!-- Course Right: Progress & Action -->
-                <div class="flex items-center gap-4 shrink-0 justify-between sm:justify-end border-t sm:border-t-0 border-slate-800/80 pt-3 sm:pt-0">
-                  <div class="w-24 sm:w-28 space-y-1">
-                    <div class="flex items-center justify-between text-[11px] text-slate-400">
-                      <span>Progress</span>
-                      <span class="font-bold text-white">{{ crs.progress }}%</span>
-                    </div>
-                    <div class="w-full h-1.5 rounded-full bg-slate-900 overflow-hidden">
-                      <div
-                        class="h-full bg-gradient-to-r from-purple-500 to-indigo-400 rounded-full"
-                        :style="{ width: `${crs.progress}%` }"
-                      ></div>
-                    </div>
-                  </div>
-
-                  <!-- Action Buttons -->
-                  <Link
-                    v-if="crs.status === 'completed'"
-                    :href="crs.href"
-                    class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-white border border-slate-800 text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs"
-                  >
-                    <span>👁</span>
-                    <span>Review</span>
-                    <span class="text-[10px]">▼</span>
-                  </Link>
-
-                  <Link
-                    v-else-if="crs.status === 'in_progress'"
-                    :href="crs.href"
-                    class="px-5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-purple-600/30 flex items-center gap-1.5 transition-all"
-                  >
-                    <span>▶</span>
-                    <span>Continue</span>
-                  </Link>
-
-                  <Link
-                    v-else-if="crs.status === 'not_started'"
-                    :href="crs.href"
-                    class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 text-xs font-bold flex items-center gap-1.5 transition-all"
-                  >
-                    <span>▶</span>
-                    <span>Start Course</span>
-                  </Link>
-
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-slate-500 dark:text-slate-400">{{ labels.viewBy }}</span>
+                <div class="inline-flex items-center rounded-xl bg-slate-100 dark:bg-[#141517] border border-slate-200 dark:border-[#2d2f31] p-1">
                   <button
-                    v-else
-                    disabled
                     type="button"
-                    class="px-4 py-2 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-600 text-xs font-bold cursor-not-allowed flex items-center gap-1.5"
+                    @click="setViewMode('roadmap')"
+                    class="min-h-9 px-3 py-1.5 rounded-lg text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                    :class="viewMode === 'roadmap' ? 'bg-purple-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
                   >
-                    <span>🔒</span>
-                    <span>Locked</span>
+                    <MapIcon class="w-3.5 h-3.5" />
+                    <span>{{ labels.viewRoadmap }}</span>
+                  </button>
+                  <button
+                    type="button"
+                    @click="setViewMode('list')"
+                    class="min-h-9 px-3 py-1.5 rounded-lg text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                    :class="viewMode === 'list' ? 'bg-purple-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
+                  >
+                    <List class="w-3.5 h-3.5" />
+                    <span>{{ labels.viewList }}</span>
                   </button>
                 </div>
               </div>
             </div>
 
-            <!-- Accordion: Show Recommended Resources for This Stage -->
-            <div class="pt-2 border-t border-slate-800/80">
+            <!-- Horizontal scroll on mobile, grid on desktop -->
+            <div
+              role="tablist"
+              class="flex overflow-x-auto snap-x gap-3 pb-2 lg:grid lg:grid-cols-3 xl:grid-cols-4 lg:overflow-visible lg:pb-0"
+            >
               <button
-                @click="isResourcesOpen = !isResourcesOpen"
+                v-for="(stg, index) in roadmapState.stages"
+                :key="stg.id"
                 type="button"
-                class="w-full text-center py-2 text-xs text-slate-400 hover:text-purple-300 font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                role="tab"
+                :aria-selected="index === selectedStageIndex"
+                @click="selectStage(index)"
+                @keydown="handleStageKeydown($event, index)"
+                class="min-w-[210px] snap-start lg:min-w-0 text-left relative p-4 rounded-2xl border flex flex-col justify-between gap-3 cursor-pointer transition-all motion-reduce:transition-none focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                :class="[
+                  stg.status === 'COMPLETED'
+                    ? 'bg-emerald-50/70 border-emerald-200 dark:bg-emerald-950/25 dark:border-emerald-500/40'
+                    : (stg.status === 'CURRENT'
+                      ? 'bg-purple-50/80 border-purple-300 dark:bg-purple-950/30 dark:border-purple-500/60'
+                      : 'bg-slate-50/80 border-slate-200 dark:bg-[#141517] dark:border-[#2d2f31]'),
+                  index === selectedStageIndex ? 'ring-2 ring-purple-500 shadow-sm' : 'hover:border-purple-300 dark:hover:border-purple-500/40'
+                ]"
               >
-                <span>{{ isResourcesOpen ? 'Hide' : 'Show' }} Recommended Resources for This Stage</span>
-                <span :class="{ 'rotate-180': isResourcesOpen }" class="transition-transform">▼</span>
+                <div class="space-y-1">
+                  <span
+                    class="text-[10px] font-bold uppercase tracking-wider"
+                    :class="stg.status === 'COMPLETED'
+                      ? 'text-emerald-700 dark:text-emerald-400'
+                      : (stg.status === 'CURRENT' ? 'text-purple-700 dark:text-purple-300' : 'text-slate-500 dark:text-slate-400')"
+                  >
+                    {{ labels.stagePrefix }} {{ stg.stageNumber }}
+                  </span>
+
+                  <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white line-clamp-1">
+                    {{ isKm ? stg.title_km : stg.title_en }}
+                  </h4>
+
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                    {{ stg.completedCount }} / {{ stg.totalCount }} {{ labels.coursesUnit }} • {{ stg.doneLessons }}/{{ stg.totalLessons }} {{ labels.lessonsUnit }}
+                  </p>
+                </div>
+
+                <div class="flex items-center justify-between gap-2 pt-1">
+                  <span
+                    v-if="stg.status === 'RECOMMENDED_ORDER'"
+                    class="text-[10px] font-medium text-slate-500 dark:text-slate-400 inline-flex items-center gap-1"
+                  >
+                    <Compass class="w-3.5 h-3.5 text-slate-400" />
+                    <span>{{ labels.recommendedOrder }}</span>
+                  </span>
+                  <span v-else class="text-[10px] font-bold" :class="stg.status === 'COMPLETED' ? 'text-emerald-600 dark:text-emerald-400' : 'text-purple-600 dark:text-purple-400'">
+                    {{ stg.progress }}%
+                  </span>
+
+                  <span
+                    v-if="stg.status === 'COMPLETED'"
+                    class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/40 inline-flex items-center justify-center"
+                  >
+                    <CheckCircle2 class="w-3.5 h-3.5" />
+                  </span>
+                  <span
+                    v-else-if="stg.status === 'CURRENT'"
+                    class="px-2 py-0.5 rounded-full bg-purple-600 text-white text-[10px] font-bold font-mono"
+                  >
+                    {{ stg.progress }}%
+                  </span>
+                  <span
+                    v-else
+                    class="w-6 h-6 rounded-full bg-slate-200/80 text-slate-500 dark:bg-slate-800 dark:text-slate-400 inline-flex items-center justify-center"
+                  >
+                    <Compass class="w-3.5 h-3.5" />
+                  </span>
+                </div>
               </button>
+            </div>
+          </section>
 
-              <div v-if="isResourcesOpen" class="mt-3 space-y-2">
-                <a
-                  v-for="res in stageResources"
-                  :key="res.name"
-                  :href="res.link"
-                  class="p-3 rounded-xl bg-slate-950 border border-slate-800 hover:border-purple-500/40 text-xs flex items-center justify-between text-slate-300 hover:text-white transition-all group"
-                >
-                  <div class="flex items-center gap-2.5">
-                    <span class="text-purple-400">📄</span>
-                    <span>{{ res.name }}</span>
+          <!-- 4. MAIN 2-COLUMN SECTION: STAGE COURSES + RECOMMENDATION vs NEXT UP + SKILLS + TIPS -->
+          <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <!-- LEFT 8 COLS -->
+            <div class="lg:col-span-8 space-y-6">
+              <!-- VIEW MODE = ROADMAP (Active Stage Courses) -->
+              <div
+                v-if="viewMode === 'roadmap' && activeStage"
+                class="rounded-[20px] border border-slate-200 dark:border-[#2d2f31] bg-white dark:bg-[#1e1f20] p-5 sm:p-6 shadow-xs space-y-5"
+              >
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 dark:border-[#2d2f31] pb-4">
+                  <div>
+                    <h3 class="text-sm font-bold text-slate-900 dark:text-white">
+                      {{ labels.stagePrefix }} {{ activeStage.stageNumber }}: {{ isKm ? activeStage.title_km : activeStage.title_en }}
+                    </h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      {{ (isKm ? activeStage.desc_km : activeStage.desc_en) || labels.currentStageHint }}
+                    </p>
                   </div>
-                  <span class="text-[10px] text-purple-400 font-mono group-hover:underline">{{ res.type }} →</span>
-                </a>
-              </div>
-            </div>
 
-          </div>
-
-          <!-- AI RECOMMENDATION BANNER (Bottom Left) -->
-          <div class="p-5 rounded-3xl bg-gradient-to-r from-[#170e3b] via-[#101935] to-[#120e2e] border border-purple-800/50 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div class="flex items-start gap-3">
-              <img
-                :src="'/images/ai-robot-avatar.png'"
-                alt="AI"
-                class="w-10 h-10 rounded-xl object-contain shrink-0 select-none"
-              />
-              <div class="space-y-1">
-                <h4 class="text-xs font-bold text-white uppercase tracking-wider">AI Recommendation</h4>
-                <p class="text-xs text-slate-300 leading-relaxed max-w-xl">
-                  You're making great progress! Focus more on <strong class="text-purple-300">JavaScript Functions & Scope</strong>. Strengthening this skill will help you in advanced topics.
-                </p>
-              </div>
-            </div>
-
-            <Link
-              href="/student/ai-tutor?course=1&prompt=Why+should+I+study+JavaScript+Functions+next"
-              class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 shrink-0 transition-all"
-            >
-              <img :src="'/images/ai-robot-avatar.png'" alt="" class="w-4 h-4 rounded-sm object-contain shrink-0 select-none" />
-              <span>Ask AI for Advice</span>
-            </Link>
-          </div>
-
-        </div>
-
-        <!-- RIGHT 4 COLS: NEXT UP, SKILLS YOU WILL GAIN & ROADMAP TIPS -->
-        <div class="lg:col-span-4 space-y-6">
-          
-          <!-- NEXT UP CARD (Matching Screenshot) -->
-          <div class="bg-[#0e1424] border border-slate-800 rounded-3xl p-5 shadow-xl space-y-3">
-            <h3 class="text-xs font-bold text-white uppercase tracking-wider border-b border-slate-800/80 pb-3">
-              Next Up
-            </h3>
-
-            <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 text-white font-black text-xs flex items-center justify-center font-mono shadow-md shrink-0">
-                  JS
+                  <div class="flex items-center gap-2.5 shrink-0">
+                    <span class="text-xs font-semibold text-slate-600 dark:text-slate-300">{{ labels.stageProgress }}</span>
+                    <div class="w-24 h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                      <div
+                        class="h-full rounded-full bg-gradient-to-r from-purple-600 to-indigo-500 transition-all duration-300 motion-reduce:transition-none"
+                        :style="{ width: `${activeStage.progress}%` }"
+                      ></div>
+                    </div>
+                    <span class="text-xs font-bold text-purple-600 dark:text-purple-400 font-mono">{{ activeStage.progress }}%</span>
+                  </div>
                 </div>
-                <div>
-                  <h4 class="text-xs font-bold text-white">JavaScript Functions & Scope</h4>
-                  <p class="text-[10px] text-slate-400">Continue where you left off</p>
+
+                <!-- Courses in Selected Stage -->
+                <div class="space-y-3.5">
+                  <div
+                    v-for="crs in activeStage.courses"
+                    :key="crs.id"
+                    class="p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-[#2d2f31] bg-slate-50/70 dark:bg-[#141517] hover:border-purple-300 dark:hover:border-purple-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors"
+                  >
+                    <div class="flex items-start gap-3.5 min-w-0">
+                      <img
+                        v-if="crs.thumbnail"
+                        :src="crs.thumbnail"
+                        :alt="isKm ? crs.title_km : crs.title_en"
+                        class="w-12 h-12 rounded-xl object-cover border border-slate-200 dark:border-[#2d2f31] shrink-0"
+                      />
+                      <div
+                        v-else
+                        class="w-12 h-12 rounded-xl bg-purple-100 text-purple-700 border border-purple-200 dark:bg-purple-500/20 dark:text-purple-300 dark:border-purple-500/30 font-extrabold text-xs flex items-center justify-center font-mono shrink-0"
+                      >
+                        {{ crs.code.slice(0, 4) }}
+                      </div>
+
+                      <div class="space-y-1 min-w-0">
+                        <h4 class="text-sm font-bold text-slate-900 dark:text-white truncate">
+                          {{ isKm ? crs.title_km : crs.title_en }}
+                        </h4>
+                        <p v-if="isKm ? crs.desc_km : crs.desc_en" class="text-xs text-slate-500 dark:text-slate-400 line-clamp-1">
+                          {{ isKm ? crs.desc_km : crs.desc_en }}
+                        </p>
+                        <div class="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 pt-0.5 flex-wrap">
+                          <span class="font-semibold text-emerald-600 dark:text-emerald-400">{{ levelLabel(crs.level) }}</span>
+                          <span>•</span>
+                          <span>{{ crs.lessonsCount }} {{ labels.lessonsUnit }}</span>
+                          <span>•</span>
+                          <span>{{ crs.duration }}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="flex items-center gap-4 shrink-0 justify-between sm:justify-end border-t sm:border-t-0 border-slate-200/70 dark:border-[#2d2f31] pt-3 sm:pt-0">
+                      <div class="w-24 space-y-1">
+                        <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                          <span>{{ crs.progress }}%</span>
+                        </div>
+                        <div class="w-full h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+                          <div
+                            class="h-full rounded-full transition-all duration-300 motion-reduce:transition-none"
+                            :class="crs.state === 'completed' ? 'bg-emerald-500' : 'bg-purple-600'"
+                            :style="{ width: `${crs.progress}%` }"
+                          ></div>
+                        </div>
+                      </div>
+
+                      <button
+                        v-if="crs.actionType === 'coming_soon' || !crs.actionHref"
+                        type="button"
+                        disabled
+                        class="min-h-11 px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 text-xs font-bold cursor-not-allowed"
+                      >
+                        {{ actionLabel(crs.actionType) }}
+                      </button>
+
+                      <Link
+                        v-else
+                        :href="crs.actionHref"
+                        class="min-h-11 px-4 py-2 rounded-xl text-xs font-bold inline-flex items-center gap-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                        :class="crs.actionType === 'continue'
+                          ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-xs'
+                          : (crs.actionType === 'review'
+                            ? 'bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30'
+                            : 'bg-white hover:bg-slate-100 text-slate-800 border border-slate-200 dark:bg-[#252729] dark:hover:bg-[#2d2f31] dark:text-white dark:border-[#3c4043]')"
+                      >
+                        <Play v-if="crs.actionType === 'continue' || crs.actionType === 'start'" class="w-3.5 h-3.5" />
+                        <Eye v-else class="w-3.5 h-3.5" />
+                        <span>{{ actionLabel(crs.actionType) }}</span>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Recommended Stage Resources (shown ONLY when real resources exist in DB) -->
+                <div v-if="activeStage.resources.length > 0" class="pt-3 border-t border-slate-200/80 dark:border-[#2d2f31]">
+                  <button
+                    type="button"
+                    @click="isResourcesOpen = !isResourcesOpen"
+                    class="w-full py-2 text-xs text-slate-600 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400 font-semibold inline-flex items-center justify-center gap-1.5 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                  >
+                    <span>{{ isResourcesOpen ? labels.hideResources : labels.showResources }}</span>
+                    <ChevronDown class="w-4 h-4 transition-transform motion-reduce:transition-none" :class="{ 'rotate-180': isResourcesOpen }" />
+                  </button>
+
+                  <div v-if="isResourcesOpen" class="mt-3 space-y-2">
+                    <a
+                      v-for="res in activeStage.resources"
+                      :key="res.id"
+                      :href="res.url"
+                      :target="res.external ? '_blank' : undefined"
+                      :rel="res.external ? 'noopener noreferrer' : undefined"
+                      class="p-3 rounded-xl border border-slate-200 dark:border-[#2d2f31] bg-slate-50 dark:bg-[#141517] hover:border-purple-300 dark:hover:border-purple-500/40 text-xs flex items-center justify-between text-slate-700 dark:text-slate-200 transition-colors"
+                    >
+                      <div class="flex items-center gap-2.5 min-w-0">
+                        <FileText class="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
+                        <span class="truncate font-medium">{{ res.title }}</span>
+                      </div>
+                      <span class="text-[10px] font-bold text-purple-600 dark:text-purple-400 shrink-0 inline-flex items-center gap-1">
+                        <span>{{ res.type }}</span>
+                        <ExternalLink class="w-3 h-3" />
+                      </span>
+                    </a>
+                  </div>
                 </div>
               </div>
 
-              <Link
-                href="/student/my-courses/current"
-                class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-600/30 flex items-center justify-center gap-1.5 transition-all"
+              <!-- VIEW MODE = LIST (All Stages Vertically) -->
+              <div v-else-if="viewMode === 'list'" class="space-y-5">
+                <div
+                  v-for="stg in roadmapState.stages"
+                  :key="stg.id"
+                  class="rounded-[20px] border border-slate-200 dark:border-[#2d2f31] bg-white dark:bg-[#1e1f20] p-5 sm:p-6 shadow-xs space-y-4"
+                >
+                  <div class="flex items-center justify-between gap-2 border-b border-slate-200/80 dark:border-[#2d2f31] pb-3">
+                    <div>
+                      <span class="text-[10px] font-bold uppercase text-purple-600 dark:text-purple-400">
+                        {{ labels.stagePrefix }} {{ stg.stageNumber }}
+                      </span>
+                      <h3 class="text-sm font-bold text-slate-900 dark:text-white">
+                        {{ isKm ? stg.title_km : stg.title_en }}
+                      </h3>
+                    </div>
+                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200 font-mono">
+                      {{ stg.progress }}% ({{ stg.completedCount }}/{{ stg.totalCount }})
+                    </span>
+                  </div>
+
+                  <div class="space-y-3">
+                    <div
+                      v-for="crs in stg.courses"
+                      :key="crs.id"
+                      class="p-3.5 rounded-xl border border-slate-200 dark:border-[#2d2f31] bg-slate-50/70 dark:bg-[#141517] flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                    >
+                      <div class="min-w-0">
+                        <p class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">
+                          {{ isKm ? crs.title_km : crs.title_en }}
+                        </p>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                          {{ levelLabel(crs.level) }} • {{ crs.lessonsCount }} {{ labels.lessonsUnit }} • {{ crs.duration }} • {{ crs.progress }}%
+                        </p>
+                      </div>
+
+                      <Link
+                        v-if="crs.actionHref"
+                        :href="crs.actionHref"
+                        class="min-h-10 px-3.5 py-1.5 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 shrink-0"
+                        :class="crs.actionType === 'continue'
+                          ? 'bg-purple-600 text-white hover:bg-purple-700'
+                          : 'border border-slate-200 dark:border-[#3c4043] bg-white dark:bg-[#252729] text-slate-800 dark:text-white'"
+                      >
+                        <span>{{ actionLabel(crs.actionType) }}</span>
+                        <ArrowRight class="w-3.5 h-3.5" />
+                      </Link>
+                      <button
+                        v-else
+                        type="button"
+                        disabled
+                        class="min-h-10 px-3.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 text-xs font-bold cursor-not-allowed shrink-0"
+                      >
+                        {{ actionLabel(crs.actionType) }}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- RECOMMENDATION BANNER ("AI" badge ONLY when AI truly wrote explanation) -->
+              <div
+                v-if="roadmapState.recommendation"
+                class="rounded-[20px] border border-purple-200/80 dark:border-purple-800/50 bg-gradient-to-r from-purple-50 via-indigo-50/60 to-white dark:from-[#1b1438] dark:via-[#151b30] dark:to-[#18152b] p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4"
               >
-                <span>▶ Continue</span>
-              </Link>
+                <div class="flex items-start gap-3.5">
+                  <img
+                    :src="'/images/ai-robot-avatar.png'"
+                    alt="AI"
+                    class="w-12 h-12 rounded-xl object-contain bg-white/80 dark:bg-white/10 p-1 border border-purple-200/70 dark:border-white/10 shrink-0 select-none"
+                  />
+                  <div class="space-y-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-purple-100 text-purple-700 border border-purple-200 dark:bg-purple-500/20 dark:text-purple-300 dark:border-purple-500/30 inline-flex items-center gap-1">
+                        <Sparkles v-if="roadmapState.recommendation.isAiGenerated" class="w-3 h-3" />
+                        <span>{{ isKm ? roadmapState.recommendation.badge_km : roadmapState.recommendation.badge_en }}</span>
+                      </span>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-700 dark:text-slate-200 leading-relaxed max-w-xl">
+                      {{ isKm ? roadmapState.recommendation.body_km : roadmapState.recommendation.body_en }}
+                    </p>
+                  </div>
+                </div>
+
+                <Link
+                  :href="roadmapState.recommendation.askAiHref"
+                  class="min-h-12 sm:min-h-10 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-xs inline-flex items-center justify-center gap-2 shrink-0 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                >
+                  <img :src="'/images/ai-robot-avatar.png'" alt="" class="w-4 h-4 rounded-xs object-contain shrink-0 select-none" />
+                  <span>{{ isKm ? roadmapState.recommendation.actionLabel_km : roadmapState.recommendation.actionLabel_en }}</span>
+                </Link>
+              </div>
             </div>
-          </div>
 
-          <!-- SKILLS YOU WILL GAIN CARD (Matching Screenshot) -->
-          <div class="bg-[#0e1424] border border-slate-800 rounded-3xl p-5 shadow-xl space-y-3">
-            <h3 class="text-xs font-bold text-white uppercase tracking-wider border-b border-slate-800/80 pb-3">
-              Skills You Will Gain
-            </h3>
-
-            <div class="flex flex-wrap gap-1.5">
-              <span
-                v-for="skill in allSkills"
-                :key="skill"
-                class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 text-xs font-medium"
+            <!-- RIGHT 4 COLS: NEXT UP, SKILLS (ONLY IF PRESENT) & ROADMAP TIPS -->
+            <div class="lg:col-span-4 space-y-6">
+              <!-- NEXT UP -->
+              <div
+                v-if="roadmapState.nextUp"
+                class="rounded-[20px] border border-slate-200 dark:border-[#2d2f31] bg-white dark:bg-[#1e1f20] p-5 shadow-xs space-y-3.5"
               >
-                {{ skill }}
-              </span>
+                <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-200/80 dark:border-[#2d2f31] pb-3">
+                  {{ labels.nextUpTitle }}
+                </h3>
+
+                <div class="p-4 rounded-2xl border border-slate-200 dark:border-[#2d2f31] bg-slate-50/70 dark:bg-[#141517] space-y-3">
+                  <div class="flex items-center gap-3">
+                    <img
+                      v-if="roadmapState.nextUp.thumbnail"
+                      :src="roadmapState.nextUp.thumbnail"
+                      :alt="isKm ? roadmapState.nextUp.title_km : roadmapState.nextUp.title_en"
+                      class="w-10 h-10 rounded-xl object-cover shrink-0"
+                    />
+                    <div
+                      v-else
+                      class="w-10 h-10 rounded-xl bg-purple-600 text-white font-black text-xs flex items-center justify-center font-mono shrink-0"
+                    >
+                      {{ roadmapState.nextUp.code.slice(0, 4) }}
+                    </div>
+
+                    <div class="min-w-0">
+                      <h4 class="text-xs font-bold text-slate-900 dark:text-white truncate">
+                        {{ isKm ? roadmapState.nextUp.title_km : roadmapState.nextUp.title_en }}
+                      </h4>
+                      <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                        {{ roadmapState.nextUp.state === 'in_progress'
+                          ? labels.nextUpContinueHint
+                          : (roadmapState.nextUp.isEnrolled ? labels.nextUpStartHint : labels.nextUpBrowseHint) }}
+                      </p>
+                    </div>
+                  </div>
+
+                  <Link
+                    v-if="roadmapState.nextUp.actionHref"
+                    :href="roadmapState.nextUp.actionHref"
+                    class="min-h-11 w-full py-2 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs inline-flex items-center justify-center gap-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                  >
+                    <Play v-if="roadmapState.nextUp.isEnrolled" class="w-3.5 h-3.5" />
+                    <Eye v-else class="w-3.5 h-3.5" />
+                    <span>{{ actionLabel(roadmapState.nextUp.actionType) }}</span>
+                  </Link>
+                </div>
+              </div>
+
+              <!-- SKILLS YOU WILL GAIN (Hidden cleanly when `skills.length === 0`) -->
+              <div
+                v-if="roadmapState.skills.length > 0"
+                class="rounded-[20px] border border-slate-200 dark:border-[#2d2f31] bg-white dark:bg-[#1e1f20] p-5 shadow-xs space-y-3"
+              >
+                <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-200/80 dark:border-[#2d2f31] pb-3">
+                  {{ labels.skillsTitle }}
+                </h3>
+
+                <div class="flex flex-wrap gap-1.5">
+                  <span
+                    v-for="skill in visibleSkills"
+                    :key="skill.id"
+                    class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-[#141517] border border-slate-200 dark:border-[#2d2f31] text-slate-700 dark:text-slate-300 text-xs font-medium"
+                  >
+                    {{ isKm ? skill.name_km : skill.name_en }}
+                  </span>
+                </div>
+
+                <button
+                  v-if="roadmapState.skills.length > 8"
+                  type="button"
+                  @click="showAllSkills = !showAllSkills"
+                  class="text-xs text-purple-600 dark:text-purple-400 hover:underline font-bold pt-1 inline-flex items-center gap-1 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 rounded"
+                >
+                  <span>{{ showAllSkills ? labels.collapseSkills : `${labels.viewAllSkills} (${roadmapState.skills.length})` }}</span>
+                  <ArrowRight class="w-3 h-3" />
+                </button>
+              </div>
+
+              <!-- ROADMAP TIPS (Monochrome Lucide icons, zero colorful emojis) -->
+              <div class="rounded-[20px] border border-slate-200 dark:border-[#2d2f31] bg-white dark:bg-[#1e1f20] p-5 shadow-xs space-y-3.5">
+                <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-200/80 dark:border-[#2d2f31] pb-3">
+                  {{ labels.tipsTitle }}
+                </h3>
+
+                <div class="space-y-3 text-xs">
+                  <div class="flex items-start gap-3">
+                    <div class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-[#252729] text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0">
+                      <Clock class="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p class="font-bold text-slate-900 dark:text-white">{{ labels.tip1Title }}</p>
+                      <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ labels.tip1Desc }}</p>
+                    </div>
+                  </div>
+
+                  <div class="flex items-start gap-3">
+                    <div class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-[#252729] text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0">
+                      <CheckSquare class="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p class="font-bold text-slate-900 dark:text-white">{{ labels.tip2Title }}</p>
+                      <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ labels.tip2Desc }}</p>
+                    </div>
+                  </div>
+
+                  <div class="flex items-start gap-3">
+                    <div class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-[#252729] text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0">
+                      <HelpCircle class="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p class="font-bold text-slate-900 dark:text-white">{{ labels.tip3Title }}</p>
+                      <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ labels.tip3Desc }}</p>
+                    </div>
+                  </div>
+
+                  <div class="flex items-start gap-3">
+                    <div class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-[#252729] text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0">
+                      <TrendingUp class="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p class="font-bold text-slate-900 dark:text-white">{{ labels.tip4Title }}</p>
+                      <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ labels.tip4Desc }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-
-            <button
-              type="button"
-              class="text-xs text-purple-400 hover:text-purple-300 font-bold pt-1 block cursor-pointer"
-            >
-              View All Skills →
-            </button>
-          </div>
-
-          <!-- ROADMAP TIPS CARD (Matching Screenshot) -->
-          <div class="bg-[#0e1424] border border-slate-800 rounded-3xl p-5 shadow-xl space-y-3">
-            <h3 class="text-xs font-bold text-white uppercase tracking-wider border-b border-slate-800/80 pb-3">
-              Roadmap Tips
-            </h3>
-
-            <div class="space-y-3 text-xs">
-              
-              <!-- Tip 1: Stay consistent -->
-              <div class="flex items-start gap-3">
-                <div class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm shrink-0">
-                  ⏱️
-                </div>
-                <div>
-                  <p class="font-bold text-white">Stay consistent</p>
-                  <p class="text-[11px] text-slate-400">Study a little every day</p>
-                </div>
-              </div>
-
-              <!-- Tip 2: Practice regularly -->
-              <div class="flex items-start gap-3">
-                <div class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm shrink-0">
-                  💼
-                </div>
-                <div>
-                  <p class="font-bold text-white">Practice regularly</p>
-                  <p class="text-[11px] text-slate-400">Complete exercises and quizzes</p>
-                </div>
-              </div>
-
-              <!-- Tip 3: Ask for help -->
-              <div class="flex items-start gap-3">
-                <img
-                  :src="'/images/ai-robot-avatar.png'"
-                  alt="AI"
-                  class="w-7 h-7 rounded-lg object-contain shrink-0 select-none"
-                />
-                <div>
-                  <p class="font-bold text-white">Ask for help</p>
-                  <p class="text-[11px] text-slate-400">Use AI Assistant when you're stuck</p>
-                </div>
-              </div>
-
-              <!-- Tip 4: Track your progress -->
-              <div class="flex items-start gap-3">
-                <div class="w-7 h-7 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center text-sm shrink-0">
-                  📈
-                </div>
-                <div>
-                  <p class="font-bold text-white">Track your progress</p>
-                  <p class="text-[11px] text-slate-400">Review and improve continuously</p>
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-        </div>
-
-      </div>
-
+          </section>
+        </template>
+      </template>
     </div>
 
-    <!-- 1. EDIT GOAL MODAL -->
+    <!-- EDIT / SET GOAL MODAL -->
     <div
       v-if="isEditGoalOpen"
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md"
-      @click="isEditGoalOpen = false"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs"
+      @click.self="isEditGoalOpen = false"
     >
-      <div
-        class="relative w-full max-w-md bg-[#0e1424] border border-slate-800 rounded-3xl p-6 sm:p-7 shadow-2xl space-y-5"
-        @click.stop
+      <form
+        class="relative w-full max-w-md rounded-[22px] border border-slate-200 dark:border-[#3c4043] bg-white dark:bg-[#1e1f20] p-6 shadow-2xl space-y-5"
+        @submit.prevent="saveGoal"
       >
-        <button
-          @click="isEditGoalOpen = false"
-          class="absolute top-4 right-4 text-slate-400 hover:text-white text-sm cursor-pointer"
-        >
-          ✕
-        </button>
+        <div class="flex items-start justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300 flex items-center justify-center shrink-0">
+              <Target class="w-5 h-5" />
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-slate-900 dark:text-white">{{ labels.modalTitle }}</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">{{ labels.modalSub }}</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            @click="isEditGoalOpen = false"
+            class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
+          >
+            <X class="w-4 h-4" />
+          </button>
+        </div>
 
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-2xl bg-purple-600/20 border border-purple-500/40 text-purple-300 flex items-center justify-center text-lg">
-            🎯
-          </div>
-          <div>
-            <h3 class="text-base font-bold text-white">Edit Learning Goal</h3>
-            <p class="text-xs text-slate-400">Customize your personalized study target</p>
-          </div>
+        <div
+          v-if="goalFormError"
+          class="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-500/30 text-xs text-rose-700 dark:text-rose-200"
+        >
+          {{ goalFormError }}
         </div>
 
         <div class="space-y-4 text-xs">
-          <!-- Target Track -->
           <div class="space-y-1.5">
-            <label class="font-bold text-slate-300 uppercase text-[11px]">Career Track</label>
+            <label class="font-bold text-slate-700 dark:text-slate-300 block">{{ labels.fieldPath }}</label>
             <select
-              v-model="editGoalForm.title"
-              class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white focus:outline-none focus:border-purple-500"
+              v-model.number="editGoalForm.path_id"
+              required
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-[#3c4043] bg-slate-50 dark:bg-[#141517] text-slate-900 dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
             >
-              <option value="Become a Full Stack Web Developer">Full Stack Web Developer (SPI IT Track)</option>
-              <option value="Become a Frontend React Specialist">Frontend React Specialist</option>
-              <option value="Become a Python & AI Developer">Python & AI Data Specialist</option>
-              <option value="Become a UI/UX Product Designer">UI/UX Product Designer</option>
+              <option
+                v-for="pathOpt in roadmapState.publishedPaths"
+                :key="pathOpt.id"
+                :value="pathOpt.id"
+              >
+                {{ isKm ? pathOpt.title_km : pathOpt.title_en }} ({{ pathOpt.courses_count }} {{ labels.coursesUnit }})
+              </option>
             </select>
           </div>
 
-          <!-- Target Timeline -->
-          <div class="space-y-1.5">
-            <label class="font-bold text-slate-300 uppercase text-[11px]">Target Timeline</label>
-            <select
-              v-model="editGoalForm.targetCompletion"
-              class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white focus:outline-none focus:border-purple-500"
-            >
-              <option value="3 Months">3 Months (Fast Track)</option>
-              <option value="6 Months">6 Months (Recommended)</option>
-              <option value="12 Months">12 Months (Comprehensive)</option>
-            </select>
-          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="space-y-1.5">
+              <label class="font-bold text-slate-700 dark:text-slate-300 block">{{ labels.fieldMonths }}</label>
+              <input
+                v-model.number="editGoalForm.target_months"
+                type="number"
+                min="1"
+                max="36"
+                required
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-[#3c4043] bg-slate-50 dark:bg-[#141517] text-slate-900 dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+              />
+            </div>
 
-          <!-- Weekly Hours -->
-          <div class="space-y-1.5">
-            <label class="font-bold text-slate-300 uppercase text-[11px]">Weekly Study Commitment</label>
-            <select
-              v-model="editGoalForm.weeklyHours"
-              class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white focus:outline-none focus:border-purple-500"
-            >
-              <option value="5-10 hours">5-10 hours / week</option>
-              <option value="10-15 hours">10-15 hours / week (Standard)</option>
-              <option value="15-25 hours">15-25 hours / week (Intensive)</option>
-            </select>
+            <div class="space-y-1.5">
+              <label class="font-bold text-slate-700 dark:text-slate-300 block">{{ labels.fieldHours }}</label>
+              <input
+                v-model.number="editGoalForm.weekly_hours"
+                type="number"
+                min="1"
+                max="60"
+                required
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-[#3c4043] bg-slate-50 dark:bg-[#141517] text-slate-900 dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+              />
+            </div>
           </div>
         </div>
 
-        <div class="flex items-center justify-end gap-3 pt-2">
+        <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-200 dark:border-[#2d2f31]">
           <button
+            type="button"
             @click="isEditGoalOpen = false"
-            type="button"
-            class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-semibold border border-slate-800 cursor-pointer"
+            class="min-h-11 px-4 py-2 rounded-xl border border-slate-200 dark:border-[#3c4043] bg-white hover:bg-slate-50 dark:bg-[#252729] text-slate-700 dark:text-slate-200 text-xs font-semibold cursor-pointer"
           >
-            Cancel
+            {{ labels.cancel }}
           </button>
           <button
-            @click="saveGoal"
-            type="button"
-            class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-lg shadow-purple-600/30 cursor-pointer"
+            type="submit"
+            :disabled="isSavingGoal"
+            class="min-h-11 px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-xs cursor-pointer disabled:opacity-50"
           >
-            Save Goal
+            {{ isSavingGoal ? labels.saving : labels.save }}
           </button>
         </div>
-      </div>
+      </form>
     </div>
-
   </StudentLayout>
 </template>

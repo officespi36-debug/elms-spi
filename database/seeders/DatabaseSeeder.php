@@ -53,6 +53,13 @@ class DatabaseSeeder extends Seeder
             Setting::firstOrCreate(['key' => $setting['key']], $setting);
         }
 
+        // Seed published course-backed learning paths only when real published courses exist
+        try {
+            $this->call(LearningPathCatalogSeeder::class);
+        } catch (\Throwable $e) {
+            // Non-blocking during early bootstrap before tables are migrated
+        }
+
         // ─── Fake / Sample Seeders Disabled for Official Production ───
         // $this->call([
         //     AcademicSeeder::class,

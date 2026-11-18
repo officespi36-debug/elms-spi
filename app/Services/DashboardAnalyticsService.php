@@ -83,6 +83,7 @@ class DashboardAnalyticsService
         Cache::forget("student_enrolled_{$userId}_v3");
         Cache::forget("student_enrolled_{$userId}_v4");
         Cache::forget("student_enrolled_{$userId}_v5");
+        PathProgressService::invalidateForUser($userId);
     }
 
     /**

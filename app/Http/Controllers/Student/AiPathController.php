@@ -15,11 +15,13 @@ use App\Models\Semester;
 use App\Models\StudentGoal;
 use App\Models\StudyDaily;
 use App\Models\User;
+use App\Models\UserGoal;
 use App\Services\AiLearningPathService;
 use App\Services\AiRecommendationService;
 use App\Services\ContinueLearningService;
 use App\Services\CourseProgressService;
 use App\Services\DashboardAnalyticsService;
+use App\Services\PathProgressService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -27,6 +29,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class AiPathController extends Controller
@@ -72,12 +75,76 @@ class AiPathController extends Controller
         );
     }
 
-    public function nextCourse(Request $request)
+    public function nextCourse(Request $request, PathProgressService $pathProgressService)
     {
-        return Inertia::render(
-            'Student/AiLearningPath/NextCourse',
-            $this->buildAiPathPayload($request->user(), $request)
+        return Inertia::render('Student/AiLearningPath/NextCourse', [
+            'roadmap'   => $pathProgressService->getRoadmapPayload($request->user()),
+            'csrfToken' => $request->session()->token(),
+        ]);
+    }
+
+    /**
+     * GET /student/ai-path/goal - Return student's roadmap goal and live progress payload.
+     */
+    public function showGoal(Request $request, PathProgressService $pathProgressService): JsonResponse
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['ok' => false, 'message' => 'Unauthenticated'], 401);
+        }
+
+        return response()->json([
+            'ok'      => true,
+            'roadmap' => $pathProgressService->getRoadmapPayload($user),
+        ]);
+    }
+
+    /**
+     * PUT /student/ai-path/goal - Persist student's selected published learning path & commitment.
+     */
+    public function updateGoal(Request $request, PathProgressService $pathProgressService): JsonResponse
+    {
+        /** @var User|null $user */
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['ok' => false, 'message' => 'Unauthenticated'], 401);
+        }
+
+        $pathProgressService->ensureTablesExist();
+
+        $validated = $request->validate([
+            'path_id' => [
+                'required',
+                'integer',
+                Rule::exists('learning_paths', 'id')->where(fn ($q) => $q->where('is_published', true)),
+            ],
+            'target_months' => ['required', 'integer', 'min:1', 'max:36'],
+            'weekly_hours'  => ['required', 'integer', 'min:1', 'max:60'],
+        ]);
+
+        $pathId = (int) $validated['path_id'];
+        $existing = UserGoal::where('user_id', $user->id)->first();
+        $startedAt = ($existing && (int) $existing->path_id === $pathId && $existing->started_at)
+            ? $existing->started_at
+            : now();
+
+        UserGoal::updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'path_id'       => $pathId,
+                'target_months' => (int) $validated['target_months'],
+                'weekly_hours'  => (int) $validated['weekly_hours'],
+                'started_at'    => $startedAt,
+            ]
         );
+
+        PathProgressService::invalidateForUser($user->id);
+        app(DashboardAnalyticsService::class)->invalidateUserCache($user->id);
+
+        return response()->json([
+            'ok'      => true,
+            'roadmap' => $pathProgressService->getRoadmapPayload($user),
+        ]);
     }
 
     /**
