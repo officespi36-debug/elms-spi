@@ -291,7 +291,7 @@ const submitPracticeAnswer = (idx: number) => {
           v-if="showToast"
           class="fixed bottom-6 right-6 z-50 p-4 rounded-2xl bg-slate-900 border border-purple-500/50 shadow-2xl text-white flex items-center gap-3 max-w-md"
         >
-          <span class="text-xl text-purple-400">🤖</span>
+          <img :src="'/images/ai-robot-avatar.png'" alt="AI" class="w-7 h-7 rounded-lg object-contain shrink-0 select-none" />
           <p class="text-xs text-slate-200">{{ toastMessage }}</p>
         </div>
       </transition>
@@ -303,8 +303,9 @@ const submitPracticeAnswer = (idx: number) => {
             <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2">
               <span>Personalized Learning Path</span>
             </h1>
-            <span class="px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 text-xs font-bold font-mono">
-              🤖 AI
+            <span class="px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 text-xs font-bold font-mono inline-flex items-center gap-1.5">
+              <img :src="'/images/ai-robot-avatar.png'" alt="" class="w-4 h-4 rounded-sm object-contain shrink-0 select-none" />
+              <span>AI</span>
             </span>
           </div>
           <p class="text-xs sm:text-sm text-slate-400 mt-1">
@@ -331,11 +332,11 @@ const submitPracticeAnswer = (idx: number) => {
 
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div class="flex items-start gap-4">
-            <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-500 p-0.5 shadow-xl shadow-purple-600/30 shrink-0">
-              <div class="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center text-3xl shadow-inner">
-                🤖
-              </div>
-            </div>
+            <img
+              :src="'/images/ai-robot-avatar.png'"
+              alt="AI"
+              class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl object-contain shadow-xl shadow-purple-600/30 shrink-0 select-none"
+            />
 
             <div class="space-y-1.5">
               <div class="flex items-center gap-2">
@@ -367,7 +368,8 @@ const submitPracticeAnswer = (idx: number) => {
               href="/student/ai-tutor?course=1&prompt=Explain+JavaScript+Functions"
               class="px-4 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 font-bold text-xs border border-slate-800 flex items-center gap-1.5 transition-all"
             >
-              <span>🤖 Ask AI</span>
+              <img :src="'/images/ai-robot-avatar.png'" alt="AI" class="w-4 h-4 rounded-sm object-contain shrink-0 select-none" />
+              <span>Ask AI</span>
             </Link>
           </div>
         </div>
@@ -615,9 +617,10 @@ const submitPracticeAnswer = (idx: number) => {
 
             <Link
               href="/student/ai-tutor?course=1&prompt=Explain+Function+Parameters"
-              class="px-4 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-purple-300 font-bold text-xs border border-slate-800 flex items-center justify-center gap-1 transition-all"
+              class="px-4 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-purple-300 font-bold text-xs border border-slate-800 flex items-center justify-center gap-1.5 transition-all"
             >
-              <span>🤖 Explain</span>
+              <img :src="'/images/ai-robot-avatar.png'" alt="AI" class="w-4 h-4 rounded-sm object-contain shrink-0 select-none" />
+              <span>Explain</span>
             </Link>
           </div>
         </div>

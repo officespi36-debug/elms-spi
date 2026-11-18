@@ -122,7 +122,8 @@ const recentAssessments = ref([
           <div class="p-4 bg-slate-900/80 border border-slate-700/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div class="space-y-1">
               <p class="text-[11px] font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
-                <span>🤖 AI Customized Action Step:</span>
+                <img :src="'/images/ai-robot-avatar.png'" alt="" class="w-4 h-4 rounded-sm object-contain shrink-0 select-none" />
+                <span>AI Customized Action Step:</span>
               </p>
               <p class="text-xs text-slate-200 font-medium">
                 {{ item.aiRecommendation }}

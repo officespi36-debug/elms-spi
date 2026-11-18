@@ -123,9 +123,11 @@ const sendQuick = (text: string) => {
         <div class="px-6 py-4 border-b border-slate-700/80 bg-slate-900/60 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="relative">
-              <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center text-white text-lg font-bold shadow">
-                🤖
-              </div>
+              <img
+                :src="'/images/ai-robot-avatar.png'"
+                alt="SPI AI Tutor Assistant"
+                class="w-10 h-10 rounded-xl object-contain shadow select-none"
+              />
               <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 rounded-full ring-2 ring-slate-900"></span>
             </div>
             <div>
@@ -149,12 +151,12 @@ const sendQuick = (text: string) => {
               'flex items-start gap-3'
             ]"
           >
-            <div
+            <img
               v-if="msg.sender === 'ai'"
-              class="w-8 h-8 rounded-full bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 flex items-center justify-center text-sm shrink-0"
-            >
-              🤖
-            </div>
+              :src="'/images/ai-robot-avatar.png'"
+              alt="AI"
+              class="w-8 h-8 rounded-xl object-contain shrink-0 select-none"
+            />
 
             <div
               :class="[
@@ -179,7 +181,8 @@ const sendQuick = (text: string) => {
           </div>
 
           <div v-if="isSending" class="flex items-center gap-2 text-xs text-slate-400 italic">
-            <span>🤖 AI is typing response...</span>
+            <img :src="'/images/ai-robot-avatar.png'" alt="AI" class="w-5 h-5 rounded-md object-contain shrink-0 select-none" />
+            <span>AI is typing response...</span>
           </div>
         </div>
 

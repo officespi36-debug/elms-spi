@@ -2,7 +2,6 @@
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { Link, usePage } from '@inertiajs/vue3'
 import {
-  Sparkles,
   Send,
   Plus,
   Trash2,
@@ -692,17 +691,24 @@ onUnmounted(() => {
       <!-- Short Hero Header (Light + Dark theme aware, zero white-on-white headings) -->
       <section class="rounded-[20px] border border-slate-200 dark:border-[#2d2f31] bg-white dark:bg-[#1e1f20] p-5 sm:p-6 shadow-xs">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div class="space-y-1.5">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-50 dark:bg-purple-500/15 border border-purple-200 dark:border-purple-500/30 text-purple-700 dark:text-purple-300 text-xs font-semibold">
-              <Sparkles class="w-3.5 h-3.5 shrink-0" />
-              <span>{{ labels.pageTitle }}</span>
+          <div class="flex items-start sm:items-center gap-4">
+            <img
+              :src="'/images/ai-robot-avatar.png'"
+              alt="AI Tutor"
+              class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl object-contain shrink-0 shadow-xs select-none"
+            />
+            <div class="space-y-1.5">
+              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-50 dark:bg-purple-500/15 border border-purple-200 dark:border-purple-500/30 text-purple-700 dark:text-purple-300 text-xs font-semibold">
+                <img :src="'/images/ai-robot-avatar.png'" alt="" class="w-4 h-4 rounded-sm object-contain shrink-0 select-none" />
+                <span>{{ labels.pageTitle }}</span>
+              </div>
+              <h1 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+                {{ labels.greeting }}
+              </h1>
+              <p class="text-sm text-slate-600 dark:text-slate-300 max-w-2xl">
+                {{ labels.heroSub }}
+              </p>
             </div>
-            <h1 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-              {{ labels.greeting }}
-            </h1>
-            <p class="text-sm text-slate-600 dark:text-slate-300 max-w-2xl">
-              {{ labels.heroSub }}
-            </p>
           </div>
 
           <div class="flex flex-wrap items-center gap-2.5 shrink-0">
@@ -728,9 +734,11 @@ onUnmounted(() => {
           <!-- Chat Header -->
           <div class="px-5 py-4 border-b border-slate-200 dark:border-[#2d2f31] flex flex-wrap items-center justify-between gap-3 bg-slate-50/70 dark:bg-[#18191b]">
             <div class="flex items-center gap-2.5 min-w-0">
-              <div class="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0">
-                <Sparkles class="w-4 h-4" />
-              </div>
+              <img
+                :src="'/images/ai-robot-avatar.png'"
+                alt="AI Tutor"
+                class="w-9 h-9 rounded-xl object-contain shrink-0 select-none"
+              />
               <div class="min-w-0">
                 <h2 class="text-sm font-bold text-slate-900 dark:text-white truncate">
                   {{ activeConversation?.title || labels.chatTitle }}
@@ -770,9 +778,11 @@ onUnmounted(() => {
 
             <!-- Honest Empty Chat State -->
             <div v-else-if="activeMessages.length === 0" class="py-8 text-center space-y-4">
-              <div class="w-12 h-12 mx-auto rounded-2xl bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-300 flex items-center justify-center">
-                <Sparkles class="w-6 h-6" />
-              </div>
+              <img
+                :src="'/images/ai-robot-avatar.png'"
+                alt="AI Tutor"
+                class="w-14 h-14 mx-auto rounded-2xl object-contain shadow-xs select-none"
+              />
               <div class="space-y-1 max-w-md mx-auto">
                 <h3 class="text-base font-bold text-slate-900 dark:text-white">
                   {{ labels.emptyChatTitle }}
@@ -808,13 +818,12 @@ onUnmounted(() => {
                 :class="[msg.role === 'user' ? 'justify-end' : 'justify-start', 'flex gap-3 items-start']"
               >
                 <!-- AI Avatar -->
-                <div
+                <img
                   v-if="msg.role === 'assistant'"
-                  class="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-500/20 border border-purple-200 dark:border-purple-500/40 text-purple-700 dark:text-purple-300 flex items-center justify-center shrink-0"
-                  aria-hidden="true"
-                >
-                  <Sparkles class="w-4 h-4" />
-                </div>
+                  :src="'/images/ai-robot-avatar.png'"
+                  alt="AI"
+                  class="w-8 h-8 rounded-xl object-contain shrink-0 select-none"
+                />
 
                 <!-- Message Card -->
                 <div
@@ -931,9 +940,11 @@ onUnmounted(() => {
 
             <!-- Typing Indicator -->
             <div v-if="isSending" class="flex gap-3 items-start">
-              <div class="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-500/20 border border-purple-200 dark:border-purple-500/40 text-purple-700 dark:text-purple-300 flex items-center justify-center shrink-0">
-                <Sparkles class="w-4 h-4" />
-              </div>
+              <img
+                :src="'/images/ai-robot-avatar.png'"
+                alt="AI"
+                class="w-8 h-8 rounded-xl object-contain shrink-0 select-none"
+              />
               <div class="rounded-2xl rounded-tl-xs border border-slate-200 dark:border-[#2d2f31] bg-white dark:bg-[#1e1f20] px-4 py-3 flex items-center gap-3 text-xs text-slate-600 dark:text-slate-300">
                 <span class="flex items-center gap-1" aria-hidden="true">
                   <span class="w-2 h-2 rounded-full bg-purple-500 animate-bounce motion-reduce:animate-none"></span>

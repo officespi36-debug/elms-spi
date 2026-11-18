@@ -116,29 +116,40 @@ const sendMessage = async () => {
   scrollToBottom()
 
   try {
-    const res = await fetch('/api/ai/chat', {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+    const xsrf = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/)
+    if (xsrf && xsrf[1]) {
+      headers['X-XSRF-TOKEN'] = decodeURIComponent(xsrf[1])
+    }
+
+    const res = await fetch('/student/api/ai-tutor/chat', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
+      credentials: 'same-origin',
+      headers,
       body: JSON.stringify({
         message: userText,
         history: chatMessages.value.slice(-6)
       })
     })
-    const data = await res.json()
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok || !data?.reply) {
+      throw new Error(data?.message || 'AI unavailable')
+    }
     chatMessages.value.push({
       role: 'assistant',
-      text: data.reply || (currentLang.value === 'km' ? 'ខ្ញុំបានកត់ត្រាសំណួររបស់អ្នក! សូមពិនិត្យមើលខ្លឹមសារមេរៀនបន្ថែម។' : 'I have received your question! Please review the lesson content.'),
+      text: data.reply,
       time: data.time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     })
   } catch (e) {
     chatMessages.value.push({
       role: 'assistant',
       text: currentLang.value === 'km'
-        ? '🤖 ខ្ញុំជា AI Tutor នៅ Saint Paul Institute។ សំណួររបស់អ្នកបានកត់ត្រាជោគជ័យ! សូមសាកល្បងសាកសួរម្ដងទៀត។'
-        : '🤖 I am SPI AI Tutor at Saint Paul Institute. Your request was received! Please try asking again.',
+        ? 'សេវា AI បច្ចុប្បន្នមិនអាចឆ្លើយតបបានទេ សូមសាកល្បងម្ដងទៀត។'
+        : 'AI service is temporarily unavailable. Please try again.',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     })
   } finally {
@@ -174,14 +185,11 @@ const sendMessage = async () => {
 
         <!-- Icon & Status Dot (56px centered when not hovered) -->
         <div class="relative flex items-center justify-center w-10 h-10 shrink-0">
-          <svg class="w-6 h-6 text-white group-hover:scale-110 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 8V4H8"></path>
-            <rect width="16" height="12" x="4" y="8" rx="2"></rect>
-            <path d="M2 14h2"></path>
-            <path d="M20 14h2"></path>
-            <path d="M15 13v2"></path>
-            <path d="M9 13v2"></path>
-          </svg>
+          <img
+            :src="'/images/ai-robot-avatar.png'"
+            alt="SPI AI Tutor 24/7"
+            class="w-10 h-10 rounded-xl object-contain group-hover:scale-105 transition-transform duration-200 select-none"
+          />
           <span class="absolute top-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-slate-900 animate-pulse"></span>
         </div>
 
@@ -210,9 +218,11 @@ const sendMessage = async () => {
         <div class="px-5 py-3.5 bg-gradient-to-r from-purple-700 via-indigo-700 to-purple-800 text-white border-b border-purple-600/30 flex items-center justify-between shrink-0 shadow-sm">
           <div class="flex items-center gap-3">
             <div class="relative">
-              <div class="w-9 h-9 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white text-base font-bold shadow">
-                🤖
-              </div>
+              <img
+                :src="'/images/ai-robot-avatar.png'"
+                alt="SPI AI Tutor 24/7"
+                class="w-9 h-9 rounded-xl object-contain shadow select-none"
+              />
               <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 rounded-full ring-2 ring-purple-900 animate-pulse"></span>
             </div>
             <div>
@@ -250,12 +260,12 @@ const sendMessage = async () => {
               'msg-slide-up flex items-start gap-2.5'
             ]"
           >
-            <div
+            <img
               v-if="msg.role === 'assistant'"
-              class="w-7 h-7 rounded-full bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-500/30 flex items-center justify-center text-xs shrink-0 mt-0.5 shadow-xs"
-            >
-              🤖
-            </div>
+              :src="'/images/ai-robot-avatar.png'"
+              alt="AI"
+              class="w-7 h-7 rounded-lg object-contain shrink-0 mt-0.5 select-none"
+            />
 
             <div
               :class="[
@@ -297,9 +307,11 @@ const sendMessage = async () => {
 
           <!-- Modern Animated Typing Indicator -->
           <div v-if="isSending" class="flex items-start gap-2.5 msg-slide-up">
-            <div class="w-7 h-7 rounded-full bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-500/30 flex items-center justify-center text-xs shrink-0 mt-0.5">
-              🤖
-            </div>
+            <img
+              :src="'/images/ai-robot-avatar.png'"
+              alt="AI"
+              class="w-7 h-7 rounded-lg object-contain shrink-0 mt-0.5 select-none"
+            />
             <div class="bg-white dark:bg-slate-950 border border-purple-100 dark:border-slate-800 rounded-2xl rounded-tl-none p-3 shadow-sm flex items-center gap-2">
               <div class="flex items-center gap-1.5">
                 <span class="w-2 h-2 rounded-full bg-purple-500 animate-bounce [animation-delay:-0.3s]"></span>

@@ -80,8 +80,9 @@ const dismissAlert = (id: number) => {
       <!-- Top Banner -->
       <div class="bg-gradient-to-r from-purple-950 via-slate-900 to-indigo-950 border border-purple-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
         <div class="space-y-2.5 max-w-2xl">
-          <span class="px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40 text-xs font-bold uppercase tracking-wider">
-            🤖 AI SMART NOTIFICATIONS
+          <span class="px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40 text-xs font-bold uppercase tracking-wider inline-flex items-center gap-1.5">
+            <img :src="'/images/ai-robot-avatar.png'" alt="" class="w-4 h-4 rounded-sm object-contain shrink-0 select-none" />
+            <span>AI SMART NOTIFICATIONS</span>
           </span>
 
           <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight">
@@ -103,8 +104,14 @@ const dismissAlert = (id: number) => {
           >
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
               <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-lg shrink-0">
-                  {{ alert.icon }}
+                <div class="w-10 h-10 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-lg shrink-0 overflow-hidden">
+                  <img
+                    v-if="alert.type === 'study_reminder' || alert.icon === '🤖'"
+                    :src="'/images/ai-robot-avatar.png'"
+                    alt="AI"
+                    class="w-7 h-7 rounded-lg object-contain select-none"
+                  />
+                  <span v-else>{{ alert.icon }}</span>
                 </div>
                 <div>
                   <h3 class="text-base font-bold text-white">{{ alert.title }}</h3>

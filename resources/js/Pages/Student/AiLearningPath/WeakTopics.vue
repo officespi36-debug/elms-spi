@@ -479,9 +479,11 @@ const confirmStudyPlan = () => {
 
           <!-- 3D Robot Graphic on Right -->
           <div class="absolute right-3 top-4 pointer-events-none opacity-90 hidden sm:block">
-            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-600/30 to-indigo-600/30 border border-purple-500/40 p-1 flex items-center justify-center text-3xl shadow-xl">
-              🤖
-            </div>
+            <img
+              :src="'/images/ai-robot-avatar.png'"
+              alt="AI"
+              class="w-16 h-16 rounded-2xl object-contain shadow-xl select-none"
+            />
           </div>
 
           <!-- Action Button -->
@@ -490,7 +492,7 @@ const confirmStudyPlan = () => {
               href="/student/ai-tutor?prompt=Create+a+personalized+study+plan+to+fix+my+weak+topic+JavaScript+Function+Parameters"
               class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 flex items-center justify-center gap-1.5 transition-all"
             >
-              <span>🤖 ></span>
+              <img :src="'/images/ai-robot-avatar.png'" alt="" class="w-4 h-4 rounded-sm object-contain shrink-0 select-none" />
               <span>Ask AI for Study Plan</span>
             </Link>
           </div>
@@ -1070,8 +1072,8 @@ const confirmStudyPlan = () => {
 
         <!-- AI Advice -->
         <div class="p-3.5 rounded-2xl bg-purple-950/40 border border-purple-500/30 text-xs space-y-1">
-          <span class="text-[10px] font-bold text-purple-300 uppercase flex items-center gap-1">
-            <span>🤖</span>
+          <span class="text-[10px] font-bold text-purple-300 uppercase flex items-center gap-1.5">
+            <img :src="'/images/ai-robot-avatar.png'" alt="" class="w-4 h-4 rounded-sm object-contain shrink-0 select-none" />
             <span>AI Advice</span>
           </span>
           <p class="text-slate-300 text-[11px] leading-relaxed">

@@ -92,9 +92,10 @@ const markAllRead = () => {
         </button>
         <button
           @click="currentTab = 'ai-alerts'"
-          :class="[currentTab === 'ai-alerts' ? 'bg-purple-600 text-white font-bold' : 'bg-slate-900 text-slate-300 border border-slate-700', 'px-4 py-2 rounded-xl text-xs transition-all']"
+          :class="[currentTab === 'ai-alerts' ? 'bg-purple-600 text-white font-bold' : 'bg-slate-900 text-slate-300 border border-slate-700', 'px-4 py-2 rounded-xl text-xs transition-all inline-flex items-center gap-1.5']"
         >
-          🤖 AI Alerts (2)
+          <img :src="'/images/ai-robot-avatar.png'" alt="" class="w-4 h-4 rounded-sm object-contain shrink-0 select-none" />
+          <span>AI Alerts (2)</span>
         </button>
         <button
           @click="currentTab = 'feedback'"

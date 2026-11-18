@@ -525,9 +525,11 @@ const saveGoal = () => {
 
           <!-- 3D AI Robot Graphic on the right -->
           <div class="absolute right-3 bottom-3 opacity-90 pointer-events-none hidden sm:block">
-            <div class="w-24 h-24 rounded-2xl bg-gradient-to-br from-purple-600/30 to-indigo-600/30 border border-purple-500/40 p-1 flex items-center justify-center text-4xl shadow-xl">
-              🤖
-            </div>
+            <img
+              :src="'/images/ai-robot-avatar.png'"
+              alt="AI"
+              class="w-24 h-24 rounded-2xl object-contain shadow-xl select-none"
+            />
           </div>
 
         </div>
@@ -794,9 +796,11 @@ const saveGoal = () => {
           <!-- AI RECOMMENDATION BANNER (Bottom Left) -->
           <div class="p-5 rounded-3xl bg-gradient-to-r from-[#170e3b] via-[#101935] to-[#120e2e] border border-purple-800/50 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div class="flex items-start gap-3">
-              <div class="w-10 h-10 rounded-xl bg-purple-600/30 border border-purple-500/50 text-purple-300 flex items-center justify-center text-lg shrink-0">
-                ✦
-              </div>
+              <img
+                :src="'/images/ai-robot-avatar.png'"
+                alt="AI"
+                class="w-10 h-10 rounded-xl object-contain shrink-0 select-none"
+              />
               <div class="space-y-1">
                 <h4 class="text-xs font-bold text-white uppercase tracking-wider">AI Recommendation</h4>
                 <p class="text-xs text-slate-300 leading-relaxed max-w-xl">
@@ -809,7 +813,8 @@ const saveGoal = () => {
               href="/student/ai-tutor?course=1&prompt=Why+should+I+study+JavaScript+Functions+next"
               class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 shrink-0 transition-all"
             >
-              <span>🤖 Ask AI for Advice</span>
+              <img :src="'/images/ai-robot-avatar.png'" alt="" class="w-4 h-4 rounded-sm object-contain shrink-0 select-none" />
+              <span>Ask AI for Advice</span>
             </Link>
           </div>
 
@@ -900,9 +905,11 @@ const saveGoal = () => {
 
               <!-- Tip 3: Ask for help -->
               <div class="flex items-start gap-3">
-                <div class="w-7 h-7 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-sm shrink-0">
-                  🤖
-                </div>
+                <img
+                  :src="'/images/ai-robot-avatar.png'"
+                  alt="AI"
+                  class="w-7 h-7 rounded-lg object-contain shrink-0 select-none"
+                />
                 <div>
                   <p class="font-bold text-white">Ask for help</p>
                   <p class="text-[11px] text-slate-400">Use AI Assistant when you're stuck</p>

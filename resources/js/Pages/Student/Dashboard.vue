@@ -1852,19 +1852,11 @@ const recentActivities = computed(() => {
           <div class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3.5">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
-                <div class="w-6 h-6 rounded-lg bg-gradient-to-tr from-purple-600 to-indigo-600 dark:from-transparent dark:to-transparent text-white flex items-center justify-center text-xs shadow-sm">
-                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 2C12 7.52285 7.52285 12 2 12C7.52285 12 12 16.4772 12 22C12 16.4772 16.4772 12 22 12C16.4772 12 12 7.52285 12 2Z" fill="url(#geminiSparkHeadAss)" />
-                    <defs>
-                      <linearGradient id="geminiSparkHeadAss" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0%" stop-color="#4285F4" />
-                        <stop offset="35%" stop-color="#9B72CB" />
-                        <stop offset="70%" stop-color="#EA4335" />
-                        <stop offset="100%" stop-color="#FBBC05" />
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                </div>
+                <img
+                  :src="'/images/ai-robot-avatar.png'"
+                  alt="AI"
+                  class="w-7 h-7 rounded-lg object-contain shrink-0 select-none"
+                />
                 <h3 class="text-[18px] font-semibold text-slate-900 dark:text-slate-100">
                   {{ currentLang === 'km' ? 'ជំនួយការសិក្សា AI' : 'AI study assistant' }}
                 </h3>

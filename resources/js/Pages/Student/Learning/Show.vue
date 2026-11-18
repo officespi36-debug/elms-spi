@@ -1216,7 +1216,7 @@ onUnmounted(() => {
                   'px-4 py-2.5 border-b-2 text-xs transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer'
                 ]"
               >
-                <span>🤖</span>
+                <img :src="'/images/ai-robot-avatar.png'" alt="AI" class="w-4 h-4 rounded-sm object-contain shrink-0 select-none" />
                 <span>AI Helper 24/7</span>
                 <span class="px-1.5 py-0.2 rounded text-[9px] font-extrabold bg-purple-500/20 text-purple-300 border border-purple-500/30">AI</span>
               </button>
@@ -1463,7 +1463,10 @@ onUnmounted(() => {
                   ]"
                 >
                   <div class="flex items-center justify-between gap-2 text-[10px] opacity-70">
-                    <span class="font-bold">{{ msg.role === 'user' ? 'You' : '🤖 SPI AI Tutor' }}</span>
+                    <span class="font-bold inline-flex items-center gap-1">
+                      <img v-if="msg.role !== 'user'" :src="'/images/ai-robot-avatar.png'" alt="AI" class="w-3.5 h-3.5 rounded-sm object-contain shrink-0 select-none" />
+                      <span>{{ msg.role === 'user' ? 'You' : 'SPI AI Tutor' }}</span>
+                    </span>
                     <span>{{ msg.time }}</span>
                   </div>
                   <div class="whitespace-pre-wrap">{{ msg.text }}</div>
