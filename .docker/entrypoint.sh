@@ -21,9 +21,6 @@ php artisan migrate --force || true
 php artisan db:seed --force || true
 php artisan storage:link || true
 
-# Enable student system notice banner in production unless explicitly disabled via env
-export STUDENT_NOTICE="${STUDENT_NOTICE:-true}"
-
 # Cache fresh config, routes, views, and events
 php artisan config:cache || true
 php artisan route:cache || true
