@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 class AiRecommendation extends Model
 {
     protected $fillable = [
-        'user_id', 'lesson_id', 'type', 'reason', 'is_dismissed'
+        'user_id', 'lesson_id', 'type', 'reason', 'ai_payload', 'is_dismissed'
     ];
 
     protected $casts = [
+        'ai_payload'   => 'array',
         'is_dismissed' => 'boolean',
     ];
 

@@ -34,6 +34,7 @@ interface JourneyStep {
   category_en: string
   category_km: string
   status: 'COMPLETED' | 'CURRENT' | 'AI_RECOMMENDED' | 'UPCOMING'
+  isCourseStep?: boolean
   progress: number
   score: number | null
   duration: string
@@ -158,11 +159,15 @@ interface LearningPathPayload {
   metrics: {
     trackName_en: string
     trackName_km: string
+    facultyName_en?: string | null
+    facultyName_km?: string | null
     targetLabel_en: string
     targetLabel_km: string
     overallProgress: number
     completedMilestones: number
     totalMilestones: number
+    unitLabel_km?: string
+    unitLabel_en?: string
     pacingBadge_en: string
     pacingBadge_km: string
     pacingSub_en: string
@@ -183,6 +188,9 @@ interface LearningPathPayload {
     primaryHref: string
     askAiUrl: string
     tone: string
+    analyzedAt?: string | null
+    provider?: string | null
+    isFromAiDb?: boolean
   }
   journeySteps: JourneyStep[]
   suggestedCourses: SuggestedCourse[]
@@ -217,11 +225,15 @@ const resolveLearningPath = (): LearningPathPayload => {
     metrics: {
       trackName_en: 'No Track Selected Yet',
       trackName_km: 'មិនទាន់ជ្រើសរើសជំនាញសិក្សា',
+      facultyName_en: null,
+      facultyName_km: null,
       targetLabel_en: 'Enroll in a course to set milestones',
       targetLabel_km: 'ចុះឈ្មោះវគ្គសិក្សាដើម្បីចាប់ផ្តើមគោលដៅ',
       overallProgress: 0,
       completedMilestones: 0,
       totalMilestones: 0,
+      unitLabel_km: 'មេរៀន',
+      unitLabel_en: 'lessons',
       pacingBadge_en: 'Ready to Start',
       pacingBadge_km: 'ត្រៀមចាប់ផ្តើម',
       pacingSub_en: 'No active courses yet',
@@ -242,6 +254,9 @@ const resolveLearningPath = (): LearningPathPayload => {
       primaryHref: '/student/browse',
       askAiUrl: '/student/ai-tutor',
       tone: 'neutral',
+      analyzedAt: null,
+      provider: null,
+      isFromAiDb: false,
     },
     journeySteps: [],
     suggestedCourses: [],
@@ -314,6 +329,12 @@ const labels = computed(() => isKm.value
       statusUpcoming: 'បន្ទាប់',
       stepPrefix: 'ជំហាន',
       progressLabel: 'វឌ្ឍនភាព',
+      stepActionCompleted: 'រំលឹកឡើងវិញ',
+      stepActionCurrent: 'ចូលរៀនបន្ត',
+      stepActionRecommended: 'មើលវគ្គណែនាំ',
+      stepActionUpcoming: 'បើកមេរៀន',
+      stepDetails: 'លម្អិត',
+      analyzedLabel: 'រក្សាទុកក្នុង AI DB:',
       emptyJourneyTitle: 'មិនទាន់មានដំណើរសិក្សានៅឡើយទេ',
       emptyJourneyDesc: 'ចុះឈ្មោះវគ្គសិក្សាមួយក្នុងប្រព័ន្ធ SPI ដើម្បីឲ្យ AI បង្កើតជំហានសិក្សាតាមមេរៀនជូនអ្នក។',
       browseCourses: 'ស្វែងរកវគ្គសិក្សា',
@@ -378,6 +399,12 @@ const labels = computed(() => isKm.value
       statusUpcoming: 'Upcoming',
       stepPrefix: 'STEP',
       progressLabel: 'Progress',
+      stepActionCompleted: 'Review',
+      stepActionCurrent: 'Continue Learning',
+      stepActionRecommended: 'Explore Recommended',
+      stepActionUpcoming: 'Preview',
+      stepDetails: 'Details',
+      analyzedLabel: 'Saved AI Analysis:',
       emptyJourneyTitle: 'Your Learning Roadmap Awaits',
       emptyJourneyDesc: 'Enroll in a course in the SPI catalog so AI can build your step-by-step milestone roadmap.',
       browseCourses: 'Browse Catalog',
@@ -457,7 +484,10 @@ const reanalyzeWithAi = async () => {
     })
     const data = await res.json().catch(() => null)
     if (!res.ok || !data?.ok || !data?.learningPath) {
-      triggerToast(labels.value.reanalyzeErr, 'error')
+      const serverErr = isKm.value
+        ? (data?.message || labels.value.reanalyzeErr)
+        : (data?.message_en || data?.message || labels.value.reanalyzeErr)
+      triggerToast(serverErr, 'error')
       return
     }
     pathState.value = data.learningPath
@@ -752,6 +782,12 @@ const skillBarColor = (item: SkillProgressItem) => {
                 >
                   {{ isKm ? pathState.aiBanner.badge_km : pathState.aiBanner.badge_en }}
                 </span>
+                <span
+                  v-if="pathState.aiBanner.analyzedAt"
+                  class="px-2 py-0.5 rounded-md text-[10px] font-medium bg-white/80 text-slate-600 border border-slate-200 dark:bg-white/10 dark:text-slate-300 dark:border-white/10"
+                >
+                  {{ labels.analyzedLabel }} {{ pathState.aiBanner.analyzedAt }}
+                </span>
               </div>
               <h2 class="text-base sm:text-xl font-bold text-slate-900 dark:text-white leading-snug">
                 {{ isKm ? pathState.aiBanner.title_km : pathState.aiBanner.title_en }}
@@ -783,15 +819,23 @@ const skillBarColor = (item: SkillProgressItem) => {
 
       <!-- 3. REAL KPI SUMMARY CARDS -->
       <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Card 1: Track -->
+        <!-- Card 1: Track & Active Academic Year -->
         <div class="rounded-[20px] border border-slate-200 dark:border-[#2d2f31] bg-white dark:bg-[#1e1f20] p-4 sm:p-5 shadow-xs flex flex-col justify-between gap-2">
           <div class="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
             <span>{{ labels.targetGoalCard }}</span>
             <Target class="w-4 h-4 text-purple-600 dark:text-purple-400" />
           </div>
-          <p class="text-sm font-bold text-slate-900 dark:text-white line-clamp-2">
-            {{ isKm ? pathState.metrics.trackName_km : pathState.metrics.trackName_en }}
-          </p>
+          <div>
+            <p class="text-sm font-bold text-slate-900 dark:text-white line-clamp-2">
+              {{ isKm ? pathState.metrics.trackName_km : pathState.metrics.trackName_en }}
+            </p>
+            <p
+              v-if="isKm ? pathState.metrics.facultyName_km : pathState.metrics.facultyName_en"
+              class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5"
+            >
+              {{ isKm ? pathState.metrics.facultyName_km : pathState.metrics.facultyName_en }}
+            </p>
+          </div>
           <p class="text-xs text-purple-700 dark:text-purple-300 font-medium">
             {{ isKm ? pathState.metrics.targetLabel_km : pathState.metrics.targetLabel_en }}
           </p>
@@ -877,14 +921,12 @@ const skillBarColor = (item: SkillProgressItem) => {
           </div>
         </div>
 
-        <!-- Enrolled Journey Steps -->
+        <!-- Journey Steps (Green = Completed, Purple = Current, Yellow = AI Recommended) -->
         <div v-if="pathState.journeySteps.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <button
+          <div
             v-for="(step, idx) in pathState.journeySteps"
             :key="step.id"
-            type="button"
-            @click="openStepModal(step)"
-            class="text-left rounded-2xl border bg-slate-50/70 dark:bg-[#141517] p-4 transition-all cursor-pointer flex flex-col justify-between gap-3.5"
+            class="rounded-2xl border bg-slate-50/70 dark:bg-[#141517] p-4 transition-all flex flex-col justify-between gap-3.5"
             :class="stepCardBorderClass(step.status)"
           >
             <div class="space-y-2">
@@ -897,28 +939,66 @@ const skillBarColor = (item: SkillProgressItem) => {
                 </span>
               </div>
 
-              <h3 class="text-sm font-bold text-slate-900 dark:text-white line-clamp-2">
-                {{ isKm ? step.title_km : step.title_en }}
-              </h3>
+              <div>
+                <p class="text-[11px] font-semibold text-purple-600 dark:text-purple-400 line-clamp-1">
+                  {{ isKm ? step.category_km : step.category_en }}
+                </p>
+                <h3 class="text-sm font-bold text-slate-900 dark:text-white line-clamp-2 mt-0.5">
+                  {{ isKm ? step.title_km : step.title_en }}
+                </h3>
+              </div>
               <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
                 {{ isKm ? step.desc_km : step.desc_en }}
               </p>
             </div>
 
-            <div class="space-y-1.5">
-              <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-                <span>{{ labels.progressLabel }}: <strong class="text-slate-800 dark:text-slate-200">{{ step.progress }}%</strong></span>
-                <span>{{ step.duration }}</span>
+            <div class="space-y-3">
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                  <span>{{ labels.progressLabel }}: <strong class="text-slate-800 dark:text-slate-200">{{ step.progress }}%</strong></span>
+                  <span>{{ step.duration }}</span>
+                </div>
+                <div class="w-full h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+                  <div
+                    class="h-full rounded-full transition-all duration-300"
+                    :class="step.status === 'COMPLETED' ? 'bg-emerald-500' : (step.status === 'CURRENT' ? 'bg-purple-600' : 'bg-amber-500')"
+                    :style="{ width: `${step.progress}%` }"
+                  ></div>
+                </div>
               </div>
-              <div class="w-full h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
-                <div
-                  class="h-full rounded-full transition-all duration-300"
-                  :class="step.status === 'COMPLETED' ? 'bg-emerald-500' : (step.status === 'CURRENT' ? 'bg-purple-600' : 'bg-amber-500')"
-                  :style="{ width: `${step.progress}%` }"
-                ></div>
+
+              <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/70 dark:border-[#2d2f31]">
+                <Link
+                  :href="step.learnUrl"
+                  class="px-3 py-1.5 rounded-lg text-[11px] font-bold inline-flex items-center gap-1 transition-colors"
+                  :class="step.status === 'COMPLETED'
+                    ? 'bg-emerald-600/10 text-emerald-700 hover:bg-emerald-600/20 dark:bg-emerald-500/20 dark:text-emerald-300'
+                    : (step.status === 'CURRENT'
+                      ? 'bg-purple-600 text-white hover:bg-purple-700 shadow-xs'
+                      : (step.status === 'AI_RECOMMENDED'
+                        ? 'bg-amber-500 text-white hover:bg-amber-600 shadow-xs'
+                        : 'bg-slate-200/80 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200'))"
+                >
+                  <span>
+                    {{ step.status === 'COMPLETED'
+                      ? labels.stepActionCompleted
+                      : (step.status === 'CURRENT'
+                        ? labels.stepActionCurrent
+                        : (step.status === 'AI_RECOMMENDED' ? labels.stepActionRecommended : labels.stepActionUpcoming)) }}
+                  </span>
+                  <ArrowRight class="w-3 h-3" />
+                </Link>
+
+                <button
+                  type="button"
+                  @click="openStepModal(step)"
+                  class="px-2.5 py-1.5 rounded-lg text-[11px] font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  {{ labels.stepDetails }}
+                </button>
               </div>
             </div>
-          </button>
+          </div>
         </div>
 
         <!-- Honest Unenrolled Empty State (+ optional published catalog courses) -->

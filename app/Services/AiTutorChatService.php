@@ -352,6 +352,42 @@ class AiTutorChatService
         throw new \RuntimeException('AI_PROVIDER_UNAVAILABLE');
     }
 
+    /**
+     * Execute a custom system + user prompt through configured real AI providers
+     * (Gemini -> OpenAI -> Cloudflare Workers AI).
+     *
+     * @return array{body: string, provider: string, model: string, latency_ms: int, tokens: int|null}
+     */
+    public function generateStructuredOrCustomText(string $systemPrompt, string $userPrompt): array
+    {
+        $geminiKey = $this->getConfiguredSetting('gemini_api_key', 'services.gemini.api_key');
+        if ($geminiKey !== '') {
+            $geminiResult = $this->callGemini($geminiKey, $systemPrompt, [], $userPrompt);
+            if ($geminiResult !== null) {
+                return $geminiResult;
+            }
+        }
+
+        $openAiKey = $this->getConfiguredSetting('openai_api_key', 'services.openai.api_key');
+        if ($openAiKey !== '') {
+            $openAiResult = $this->callOpenAi($openAiKey, $systemPrompt, [], $userPrompt);
+            if ($openAiResult !== null) {
+                return $openAiResult;
+            }
+        }
+
+        $cfAccountId = $this->getConfiguredSetting('cloudflare_account_id', 'services.cloudflare.account_id');
+        $cfToken = $this->getConfiguredSetting('cloudflare_ai_token', 'services.cloudflare.ai_token');
+        if ($cfAccountId !== '' && $cfToken !== '') {
+            $cfResult = $this->callWorkersAi($cfAccountId, $cfToken, $systemPrompt, [], $userPrompt);
+            if ($cfResult !== null) {
+                return $cfResult;
+            }
+        }
+
+        throw new \RuntimeException('AI_PROVIDER_UNAVAILABLE');
+    }
+
     protected function buildSystemPrompt(?array $ctx): string
     {
         $base = "You are the Saint Paul Institute (SPI) E-LMS AI Academic Tutor.\n"
