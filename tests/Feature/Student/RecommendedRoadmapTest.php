@@ -2,8 +2,6 @@
 
 namespace Tests\Feature\Student;
 
-use App\Models\AiConversation;
-use App\Models\AiMessage;
 use App\Models\Course;
 use App\Models\Department;
 use App\Models\Enrollment;
@@ -15,16 +13,10 @@ use App\Models\Major;
 use App\Models\Module;
 use App\Models\PathStage;
 use App\Models\PathStageCourse;
-use App\Models\Quiz;
-use App\Models\QuizAttempt;
 use App\Models\Skill;
 use App\Models\User;
-use App\Models\UserGoal;
-use App\Services\AiTutorChatService;
 use App\Services\PathProgressService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -32,9 +24,17 @@ class RecommendedRoadmapTest extends TestCase
 {
     use RefreshDatabase;
 
+    private function makeUser(string $role = 'student'): User
+    {
+        /** @var User $user */
+        $user = User::factory()->createOne(['role' => $role]);
+
+        return $user;
+    }
+
     public function test_student_without_goal_gets_clean_empty_state_with_no_fake_data(): void
     {
-        $student = User::factory()->create(['role' => 'student']);
+        $student = $this->makeUser('student');
 
         $response = $this->actingAs($student)->get('/student/ai-path/next-course');
         $response->assertStatus(200);
@@ -49,9 +49,9 @@ class RecommendedRoadmapTest extends TestCase
         config(['services.gemini.api_key' => 'test-gemini-key']);
         Http::fake(['*' => Http::response(['error' => 'down'], 500)]);
 
-        $teacher = User::factory()->create(['role' => 'teacher']);
-        $studentA = User::factory()->create(['role' => 'student']);
-        $studentB = User::factory()->create(['role' => 'student']);
+        $teacher = $this->makeUser('teacher');
+        $studentA = $this->makeUser('student');
+        $studentB = $this->makeUser('student');
 
         $fac = Faculty::create(['code' => 'F1', 'name' => 'Computing', 'is_active' => true]);
         $dept = Department::create(['faculty_id' => $fac->id, 'code' => 'D1', 'name' => 'IT', 'is_active' => true]);
