@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\AssignmentSubmission;
+use App\Models\Course;
 use App\Models\Deadline;
 use App\Models\Enrollment;
 use App\Models\Quiz;

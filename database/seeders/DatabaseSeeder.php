@@ -60,6 +60,13 @@ class DatabaseSeeder extends Seeder
             // Non-blocking during early bootstrap before tables are migrated
         }
 
+        // Seed realistic course assignments and deadlines for student practice & assessment
+        try {
+            $this->call(AssignmentSeeder::class);
+        } catch (\Throwable $e) {
+            // Non-blocking during early bootstrap
+        }
+
         // ─── Fake / Sample Seeders Disabled for Official Production ───
         // $this->call([
         //     AcademicSeeder::class,
