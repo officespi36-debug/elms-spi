@@ -45,8 +45,6 @@ let maxWaitTimer: ReturnType<typeof setTimeout> | null = null
 let removeStartListener: (() => void) | null = null
 let removeFinishListener: (() => void) | null = null
 let removeCancelListener: (() => void) | null = null
-let removeInvalidListener: (() => void) | null = null
-let removeExceptionListener: (() => void) | null = null
 let removeSuccessListener: (() => void) | null = null
 let removeErrorListener: (() => void) | null = null
 
@@ -120,14 +118,6 @@ onMounted(() => {
     hideCenterLoader()
   })
 
-  removeInvalidListener = router.on('invalid', () => {
-    hideCenterLoader()
-  })
-
-  removeExceptionListener = router.on('exception', () => {
-    hideCenterLoader()
-  })
-
   removeSuccessListener = router.on('success', (event: any) => {
     const rawUrl = (event?.detail?.page?.url || '').toString().toLowerCase()
     const isAuthPage = rawUrl.includes('login') || rawUrl === '/'
@@ -162,8 +152,6 @@ onUnmounted(() => {
   if (removeStartListener) removeStartListener()
   if (removeFinishListener) removeFinishListener()
   if (removeCancelListener) removeCancelListener()
-  if (removeInvalidListener) removeInvalidListener()
-  if (removeExceptionListener) removeExceptionListener()
   if (removeSuccessListener) removeSuccessListener()
   if (removeErrorListener) removeErrorListener()
 })
