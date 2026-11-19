@@ -663,7 +663,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/tourism', [Student\PracticeLabController::class, 'tourism'])->name('tourism');
             Route::get('/english', [Student\PracticeLabController::class, 'english'])->name('english');
             Route::get('/agronomy', [Student\PracticeLabController::class, 'agronomy'])->name('agronomy');
-            Route::get('/social-work', [Student\PracticeLabController::class, 'social-work'])->name('social-work');
+            Route::get('/social-work', [Student\PracticeLabController::class, 'socialWork'])->name('social-work');
         });
 
         // 7.1 Simulations / Branching Scenarios (Practice & Assignments)
