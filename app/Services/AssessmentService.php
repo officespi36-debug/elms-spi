@@ -35,10 +35,24 @@ class AssessmentService
             ->values()
             ->all();
 
+        // If the student has no active enrollments yet (e.g. newly registered, or admin inspecting portal),
+        // fallback to all published courses so they can explore available assignments
+        if (empty($enrolledCourseIds)) {
+            $enrolledCourseIds = Course::where('status', 'published')->pluck('id')->all();
+        }
+
         $submissions = AssignmentSubmission::where('user_id', $user->id)
             ->with(['quiz.course', 'course'])
             ->latest('submitted_at')
             ->get();
+
+        if ($submissions->isNotEmpty()) {
+            $enrolledCourseIds = array_values(array_unique(array_merge(
+                $enrolledCourseIds,
+                $submissions->pluck('course_id')->filter()->all(),
+                $submissions->pluck('quiz.course_id')->filter()->all()
+            )));
+        }
 
         if (empty($enrolledCourseIds) && $submissions->isEmpty()) {
             return $this->emptyPayload($page, $perPage);
@@ -137,6 +151,7 @@ class AssessmentService
                 'subtitle'     => $quiz->module?->title ?: $courseTitle,
                 'course'       => $courseTitle,
                 'due_date'     => $dueDateStr,
+                'due_at_raw'   => $dueAt?->toIso8601String(),
                 'status'       => $statusLabel,
                 'status_type'  => $statusType,
                 'score'        => $scoreDisplay,
@@ -293,6 +308,29 @@ class AssessmentService
         if ($course !== 'all') {
             $filtered = array_values(array_filter($filtered, fn ($a) => str_contains(mb_strtolower($a['course'], 'UTF-8'), mb_strtolower($course, 'UTF-8'))));
         }
+        if ($dateRange !== 'all') {
+            $now = Carbon::now();
+            $filtered = array_values(array_filter($filtered, function ($a) use ($dateRange, $now) {
+                $targetDate = null;
+                if (!empty($a['submitted_at_raw'])) {
+                    $targetDate = Carbon::parse($a['submitted_at_raw']);
+                } elseif (!empty($a['due_at_raw'])) {
+                    $targetDate = Carbon::parse($a['due_at_raw']);
+                }
+
+                if (!$targetDate) {
+                    return true;
+                }
+
+                return match ($dateRange) {
+                    'this_week'  => $targetDate->between($now->copy()->startOfWeek(), $now->copy()->endOfWeek()),
+                    'this_month' => $targetDate->between($now->copy()->startOfMonth(), $now->copy()->endOfMonth()),
+                    'past_month' => $targetDate->between($now->copy()->subMonth()->startOfMonth(), $now->copy()->subMonth()->endOfMonth()),
+                    'past_30'    => $targetDate->greaterThanOrEqualTo($now->copy()->subDays(30)),
+                    default      => true,
+                };
+            }));
+        }
         if ($search !== '') {
             $s = mb_strtolower(trim($search), 'UTF-8');
             $filtered = array_values(array_filter($filtered, fn ($a) => str_contains(mb_strtolower($a['title'], 'UTF-8'), $s) || str_contains(mb_strtolower($a['course'], 'UTF-8'), $s)));
@@ -303,7 +341,10 @@ class AssessmentService
         $offset = ($safePage - 1) * $perPage;
         $pagedRows = array_slice($filtered, $offset, $perPage);
 
-        $coursesList = collect($allRows)->pluck('course')->unique()->values()->all();
+        $coursesList = Course::whereIn('id', $enrolledCourseIds)->pluck('title')->filter()->unique()->values()->all();
+        if (empty($coursesList)) {
+            $coursesList = collect($allRows)->pluck('course')->filter()->unique()->values()->all();
+        }
 
         return [
             'summary'              => $summary,
