@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AssignmentSubmission;
 use App\Models\Certificate;
 use App\Models\LessonProgress;
+use App\Models\Major;
 use App\Models\Payment;
 use App\Models\QuizAttempt;
 use App\Models\Semester;
@@ -51,6 +52,41 @@ class ProfileController extends Controller
             ? (bool) $prefs['app_notifications']
             : (array_key_exists('push', $notifPrefs) ? (bool) $notifPrefs['push'] : true);
 
+        // Fallbacks for Faculty, Department, and Major when student profile is unassigned
+        $faculty = $user->major?->department?->faculty?->name;
+        $facultyKh = $user->major?->department?->faculty?->name_kh;
+        $department = $user->major?->department?->name;
+        $departmentKh = $user->major?->department?->name_kh;
+        $major = $user->major?->name;
+        $majorKh = $user->major?->name_kh;
+
+        if (!$major) {
+            $firstCourse = $user->enrollments()
+                ->with(['course.major.department.faculty'])
+                ->first()?->course;
+
+            if ($firstCourse?->major) {
+                $major = $firstCourse->major->name;
+                $majorKh = $firstCourse->major->name_kh ?: $major;
+                $department = $firstCourse->major->department?->name;
+                $departmentKh = $firstCourse->major->department?->name_kh ?: $department;
+                $faculty = $firstCourse->major->department?->faculty?->name;
+                $facultyKh = $firstCourse->major->department?->faculty?->name_kh ?: $faculty;
+            } else {
+                $major = 'Information Technology';
+                $majorKh = 'បច្ចេកវិទ្យាព័ត៌មាន (IT)';
+                $department = 'Department of Information Technology';
+                $departmentKh = 'ដេប៉ាតឺម៉ង់បច្ចេកវិទ្យាព័ត៌មាន';
+                $faculty = 'Faculty of Science & Technology';
+                $facultyKh = 'មហាវិទ្យាល័យវិទ្យាសាស្ត្រ និងបច្ចេកវិទ្យា';
+            }
+        }
+
+        $availableMajors = Major::where('is_active', true)
+            ->with('department.faculty')
+            ->select('id', 'department_id', 'name', 'name_kh', 'code')
+            ->get();
+
         return Inertia::render('Student/Profile/Index', [
             'profile' => [
                 'id'                  => $user->id,
@@ -58,22 +94,31 @@ class ProfileController extends Controller
                 'name_kh'             => $user->name_kh ?? '',
                 'email'               => $user->email ?? '',
                 'avatar_url'          => $user->avatar_url,
-                'student_id'          => $user->student_code ?: null,
-                'faculty'             => $user->major?->department?->faculty?->name ?: null,
-                'faculty_kh'          => $user->major?->department?->faculty?->name_kh ?: null,
-                'department'          => $user->major?->department?->name ?: null,
-                'department_kh'       => $user->major?->department?->name_kh ?: null,
-                'major'               => $user->major?->name ?: null,
-                'major_kh'            => $user->major?->name_kh ?: null,
+                'student_id'          => $user->student_code ?: ('STU' . str_pad((string) $user->id, 6, '0', STR_PAD_LEFT)),
+                'faculty'             => $faculty,
+                'faculty_kh'          => $facultyKh ?: $faculty,
+                'department'          => $department,
+                'department_kh'       => $departmentKh ?: $department,
+                'major'               => $major,
+                'major_kh'            => $majorKh ?: $major,
+                'major_id'            => $user->major_id,
                 'phone'               => $user->phone ?? '',
+                'gender'              => $user->gender ?? 'male',
+                'dob'                 => $user->dob ? Carbon::parse($user->dob)->format('Y-m-d') : '',
+                'telegram_username'   => $user->telegram_username ?? '',
+                'study_type'          => $user->study_type ?: 'Full-time',
+                'study_type_kh'       => ($user->study_type === 'Part-time') ? 'ក្រៅម៉ោង' : 'ពេញម៉ោង',
+                'degree_level'        => 'Bachelor of Science (B.Sc.)',
+                'degree_level_kh'     => 'ថ្នាក់បរិញ្ញាបត្រ (B.Sc.)',
                 'bio'                 => $user->bio ?? '',
-                'semester'            => $semesterLabel,
+                'semester'            => $semesterLabel ?: 'Semester 2 — 2024-2025 • Academic Year 2024 — 2025',
                 'status'              => $user->status ?: ($user->is_active ? 'active' : 'inactive'),
                 'language'            => $language,
                 'email_notifications' => $emailNotifications,
                 'app_notifications'   => $appNotifications,
             ],
-            'activityLogs' => $this->buildActivityLogs($user),
+            'availableMajors' => $availableMajors,
+            'activityLogs'    => $this->buildActivityLogs($user),
         ]);
     }
 
@@ -87,10 +132,15 @@ class ProfileController extends Controller
             'name_kh'             => 'nullable|string|max:255',
             'email'               => 'required|email|max:255|unique:users,email,' . $user->id,
             'phone'               => 'nullable|string|max:50',
+            'telegram_username'   => 'nullable|string|max:100',
+            'gender'              => 'nullable|string|in:male,female,other',
+            'dob'                 => 'nullable|date',
             'bio'                 => 'nullable|string|max:1000',
+            'major_id'            => 'nullable|integer',
             'language'            => 'nullable|string|in:km,en',
             'email_notifications' => 'nullable|boolean',
             'app_notifications'   => 'nullable|boolean',
+            'avatar'              => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:5120',
         ]);
 
         $prefs = is_array($user->preferences) ? $user->preferences : [];
@@ -119,17 +169,38 @@ class ProfileController extends Controller
             );
         }
 
-        $user->fill([
-            'name'        => $validated['name'],
-            'name_kh'     => $validated['name_kh'] ?? $user->name_kh,
-            'email'       => $validated['email'],
-            'phone'       => $validated['phone'] ?? null,
-            'bio'         => $validated['bio'] ?? null,
-            'preferences' => $prefs,
-        ]);
+        // Handle Avatar File Upload if present in request
+        if ($request->hasFile('avatar')) {
+            $file = $request->file('avatar');
+            $filename = 'avatar_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $destinationPath = public_path('uploads/avatars');
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0777, true);
+            }
+            $file->move($destinationPath, $filename);
+            $user->avatar = '/uploads/avatars/' . $filename;
+        }
+
+        $fillData = [
+            'name'              => $validated['name'],
+            'name_kh'           => $validated['name_kh'] ?? $user->name_kh,
+            'email'             => $validated['email'],
+            'phone'             => $validated['phone'] ?? null,
+            'telegram_username' => $validated['telegram_username'] ?? null,
+            'gender'            => $validated['gender'] ?? $user->gender,
+            'dob'               => $validated['dob'] ?? $user->dob,
+            'bio'               => $validated['bio'] ?? null,
+            'preferences'       => $prefs,
+        ];
+
+        if (!empty($validated['major_id'])) {
+            $fillData['major_id'] = (int) $validated['major_id'];
+        }
+
+        $user->fill($fillData);
         $user->save();
 
-        return back()->with('success', 'Profile updated successfully!');
+        return back()->with('success', 'ព័ត៌មានផ្ទាល់ខ្លួនត្រូវបានកែប្រែដោយជោគជ័យ (Profile Updated Successfully!)');
     }
 
     public function updatePassword(Request $request)
@@ -144,7 +215,7 @@ class ProfileController extends Controller
 
         if (!Hash::check($request->current_password, $user->password)) {
             return back()->withErrors([
-                'current_password' => 'The provided password does not match your current password.',
+                'current_password' => 'ពាក្យសម្ងាត់បច្ចុប្បន្នមិនត្រឹមត្រូវទេ (The provided current password does not match).',
             ]);
         }
 
@@ -152,7 +223,7 @@ class ProfileController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        return back()->with('success', 'Password changed successfully!');
+        return back()->with('success', 'កូដសម្ងាត់ត្រូវបានប្តូរដោយជោគជ័យ (Password Changed Successfully!)');
     }
 
     /**
