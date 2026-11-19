@@ -122,6 +122,7 @@ const props = defineProps<{
 }>()
 
 const page = usePage<any>()
+const spiLogoUrl = '/images/spi-logo.png'
 
 // 1. Language detection
 const currentLang = computed<'km' | 'en'>(() => {
@@ -470,19 +471,24 @@ const getLogTypeBadge = (type: string) => {
                   </span>
                 </div>
 
-                <!-- Missing Fields Hint with Direct Tab Navigation Link -->
-                <div v-if="profile.missing_fields && profile.missing_fields.length > 0" class="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 pt-0.5">
-                  <span class="text-rose-500 dark:text-rose-400 font-semibold">{{ currentLang === 'km' ? 'ខ្វះ:' : 'Missing:' }}</span>
+                <!-- Missing Fields Hint with Sleek Pill Buttons -->
+                <div v-if="profile.missing_fields && profile.missing_fields.length > 0" class="flex flex-wrap items-center gap-1.5 text-[11px] pt-1">
+                  <span class="text-rose-500 dark:text-rose-400 font-bold inline-flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <span>{{ currentLang === 'km' ? 'ខ្វះ:' : 'Missing:' }}</span>
+                  </span>
                   <div class="inline-flex flex-wrap items-center gap-1">
                     <button
-                      v-for="(mf, idx) in profile.missing_fields"
+                      v-for="mf in profile.missing_fields"
                       :key="mf.key"
                       type="button"
                       @click="selectTab(mf.tab)"
-                      class="text-indigo-600 dark:text-indigo-400 hover:underline font-bold cursor-pointer inline-flex items-center"
+                      class="px-2 py-0.5 rounded-md bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-[10.5px] font-bold transition-all cursor-pointer inline-flex items-center gap-1 shadow-2xs"
                     >
                       <span>{{ currentLang === 'km' ? mf.label_km : mf.label_en }}</span>
-                      <span v-if="idx < (profile.missing_fields.length - 1)" class="text-slate-400 ml-1">,</span>
+                      <svg class="w-2.5 h-2.5 opacity-60 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                     </button>
                   </div>
                 </div>
@@ -668,77 +674,129 @@ const getLogTypeBadge = (type: string) => {
             tabindex="0"
             role="button"
             :aria-label="currentLang === 'km' ? 'កាតនិស្សិតឌីជីថល ចុចដើម្បីបង្វិល' : 'Digital Student ID Card. Click to flip.'"
-            class="w-full max-w-[430px] aspect-[85.6/54] rounded-2xl p-5 sm:p-6 bg-gradient-to-br from-[#0c1222] via-[#161f3d] to-[#0c1222] border border-slate-700/60 dark:border-slate-700/80 shadow-lg text-white relative overflow-hidden select-none cursor-pointer transition-transform duration-300 hover:scale-[1.01] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            class="w-full max-w-[430px] aspect-[85.6/54] rounded-2xl p-5 sm:p-6 bg-gradient-to-br from-[#070e22] via-[#0f1d47] to-[#080d1e] border border-slate-700/60 dark:border-slate-700/80 shadow-xl text-white relative overflow-hidden select-none cursor-pointer transition-all duration-300 hover:shadow-2xl hover:scale-[1.01] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ring-1 ring-white/10"
           >
+            <!-- Background Security Watermark & Sheen Layers -->
+            <img
+              :src="spiLogoUrl"
+              alt=""
+              class="absolute right-[-25px] -bottom-10 w-52 h-52 object-contain opacity-[0.06] pointer-events-none select-none blur-[0.5px]"
+            />
+            <div class="absolute inset-0 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:16px_16px] opacity-[0.07] pointer-events-none"></div>
+            <div class="absolute -top-24 -right-24 w-60 h-60 bg-gradient-to-bl from-indigo-500/15 via-cyan-400/10 to-transparent rounded-full blur-2xl pointer-events-none"></div>
+
             <!-- FRONT SIDE VIEW -->
             <div v-if="!isCardFlipped" class="h-full flex flex-col justify-between relative z-10">
               
               <!-- Card Top Row: Official Institution Name from Config (NOT E.LMS) -->
               <div class="flex items-center justify-between border-b border-slate-700/60 pb-2.5">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-sm font-black shadow-xs">
-                    🎓
+                  <div class="w-9 h-9 rounded-xl bg-white p-1 border border-white/20 shadow-xs flex items-center justify-center shrink-0">
+                    <img :src="spiLogoUrl" alt="SPI Logo" class="w-full h-full object-contain" />
                   </div>
-                  <div>
-                    <p class="text-xs font-black tracking-wider text-slate-100 uppercase">
+                  <div class="min-w-0">
+                    <p class="text-xs sm:text-[13px] font-black tracking-wide text-white uppercase drop-shadow-xs truncate">
                       {{ currentLang === 'km' ? (idCard.institution_kh || idCard.institution) : idCard.institution }}
                     </p>
-                    <p class="text-[9.5px] text-slate-300 font-medium">
+                    <p class="text-[9px] font-semibold text-amber-200/90 tracking-wider uppercase truncate">
                       {{ currentLang === 'km' ? 'គ្រឹះស្ថានឧត្តមសិក្សាផ្លូវការ' : 'Official Higher Education Institution' }}
                     </p>
                   </div>
                 </div>
                 
-                <!-- OFFICIAL ID Badge: Displayed ONLY when approved_by & approved_at are from real registrar -->
-                <span
-                  v-if="idCard.is_official"
-                  class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[9px] font-bold uppercase tracking-wider"
-                >
-                  {{ currentLang === 'km' ? 'កាតផ្លូវការ' : 'OFFICIAL ID' }}
-                </span>
-                <span
-                  v-else
-                  class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[9px] font-bold uppercase tracking-wider"
-                >
-                  {{ currentLang === 'km' ? 'រង់ចាំការបញ្ជាក់' : 'PENDING' }}
-                </span>
-              </div>
+                <div class="flex items-center gap-2 shrink-0">
+                  <!-- Contactless Waves Symbol -->
+                  <svg class="w-4 h-4 text-slate-400/80 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.5 16.5a5 5 0 010-9M12 19a9 9 0 000-14M15.5 21.5a13 13 0 000-19" />
+                  </svg>
 
-              <!-- Card Middle: Avatar & Identification -->
-              <div class="flex items-center gap-4 my-auto">
-                <div class="w-16 h-16 rounded-xl overflow-hidden bg-slate-800 border border-slate-600 text-white font-black text-xl flex items-center justify-center shrink-0 shadow-sm">
-                  <img
-                    v-if="avatarPreview"
-                    :src="avatarPreview"
-                    :alt="profile.name"
-                    class="w-full h-full object-cover"
-                  />
-                  <span v-else>
-                    {{ profile.name ? profile.name.charAt(0).toUpperCase() : 'S' }}
+                  <!-- OFFICIAL ID Badge: Displayed ONLY when approved_by & approved_at are from real registrar -->
+                  <span
+                    v-if="idCard.is_official"
+                    class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 text-[9.5px] font-black uppercase tracking-wider shadow-xs backdrop-blur-xs flex items-center gap-1.5"
+                  >
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>{{ currentLang === 'km' ? 'កាតផ្លូវការ' : 'OFFICIAL ID' }}</span>
+                  </span>
+                  <span
+                    v-else
+                    class="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/40 text-[9.5px] font-black uppercase tracking-wider shadow-xs backdrop-blur-xs"
+                  >
+                    {{ currentLang === 'km' ? 'រង់ចាំការបញ្ជាក់' : 'PENDING' }}
                   </span>
                 </div>
+              </div>
 
-                <div class="space-y-0.5 min-w-0">
-                  <h2 class="text-sm md:text-base font-black text-white leading-tight truncate">
-                    {{ profile.name }}
-                  </h2>
-                  <p v-if="profile.name_kh" class="text-xs font-semibold text-indigo-300 truncate">{{ profile.name_kh }}</p>
-                  <p class="text-xs font-mono font-bold text-slate-200 mt-1">{{ profile.student_id }}</p>
-                  <p class="text-[11px] text-slate-300 font-medium truncate">{{ currentLang === 'km' ? (academic.major_kh || academic.major) : academic.major }}</p>
+              <!-- Card Middle: Avatar, Details & Realistic EMV Chip -->
+              <div class="flex items-center gap-3.5 my-auto">
+                <!-- Student Photo with Frame & Verified Seal -->
+                <div class="relative shrink-0">
+                  <div class="w-[72px] h-[72px] sm:w-[78px] sm:h-[78px] rounded-xl overflow-hidden bg-slate-900 border-2 border-slate-600/80 shadow-md ring-1 ring-white/20 flex items-center justify-center">
+                    <img
+                      v-if="avatarPreview"
+                      :src="avatarPreview"
+                      :alt="profile.name"
+                      class="w-full h-full object-cover"
+                    />
+                    <span v-else class="text-2xl font-black text-indigo-400">
+                      {{ profile.name ? profile.name.charAt(0).toUpperCase() : 'S' }}
+                    </span>
+                  </div>
+                  <div v-if="idCard.is_official" class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-md border-2 border-[#0f1d47]">
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                </div>
+
+                <!-- Student Details & Chip -->
+                <div class="space-y-1 min-w-0 flex-1">
+                  <div class="flex items-start justify-between gap-2">
+                    <div class="min-w-0">
+                      <h2 class="text-sm sm:text-base font-black text-white leading-tight truncate tracking-wide">
+                        {{ profile.name }}
+                      </h2>
+                      <p v-if="profile.name_kh" class="text-xs font-semibold text-indigo-200 truncate mt-0.5">
+                        {{ profile.name_kh }}
+                      </p>
+                    </div>
+
+                    <!-- Realistic Gold EMV Smart Chip -->
+                    <div class="w-8 h-6 sm:w-9 sm:h-6.5 rounded bg-gradient-to-br from-amber-200 via-amber-400 to-amber-600 p-[1px] shadow-sm border border-amber-300/60 shrink-0 relative overflow-hidden hidden xs:block">
+                      <div class="w-full h-full bg-gradient-to-tr from-amber-400 via-amber-300 to-amber-200 rounded-[2px] relative flex items-center justify-center">
+                        <div class="w-full h-[0.5px] bg-amber-800/50 absolute top-1/2"></div>
+                        <div class="h-full w-[0.5px] bg-amber-800/50 absolute left-1/2"></div>
+                        <div class="w-3.5 h-2.5 rounded-[2px] border border-amber-800/40 bg-amber-200/50"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Student ID Badge -->
+                  <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/10 backdrop-blur-xs border border-white/15">
+                    <span class="text-[9px] uppercase tracking-wider text-slate-300 font-bold">{{ currentLang === 'km' ? 'អត្តលេខ' : 'STUDENT ID' }}:</span>
+                    <span class="font-mono text-xs font-extrabold text-amber-200">{{ profile.student_id }}</span>
+                  </div>
+
+                  <!-- Major -->
+                  <p class="text-[11px] sm:text-xs text-slate-200 font-medium truncate flex items-center gap-1">
+                    <span class="text-indigo-400 text-[10px]">●</span>
+                    <span>{{ currentLang === 'km' ? (academic.major_kh || academic.major) : academic.major }}</span>
+                  </p>
                 </div>
               </div>
 
               <!-- Card Bottom: CARD NO and TERM row (nowrap, >= 12px, contrast >= 4.5:1) -->
               <div class="pt-2.5 border-t border-slate-700/60 flex items-center justify-between gap-3 text-xs md:text-[13px] text-slate-100 whitespace-nowrap overflow-hidden">
                 <div class="flex items-center gap-1.5 shrink-0 whitespace-nowrap">
-                  <span class="text-slate-300 font-semibold text-xs">{{ currentLang === 'km' ? 'ឆមាស:' : 'Term:' }}</span>
-                  <span class="font-bold text-emerald-300 text-xs truncate max-w-[200px]">
+                  <span class="text-slate-400 font-semibold text-xs">{{ currentLang === 'km' ? 'ឆមាស:' : 'Term:' }}</span>
+                  <span class="font-bold text-emerald-300 text-xs truncate max-w-[210px]">
                     {{ currentLang === 'km' ? (academic.term_kh || academic.term) : academic.term }}
                   </span>
                 </div>
-                <span class="font-mono font-bold text-slate-100 text-xs shrink-0 whitespace-nowrap">
-                  ID: {{ idCard.card_no }}
-                </span>
+                <div class="flex items-center gap-1 shrink-0 font-mono text-xs text-slate-300 bg-slate-900/60 px-2 py-0.5 rounded border border-slate-700/60">
+                  <span class="text-slate-400 text-[10px] font-sans">CARD:</span>
+                  <span class="font-bold text-white">{{ idCard.card_no }}</span>
+                </div>
               </div>
 
             </div>
@@ -747,26 +805,31 @@ const getLogTypeBadge = (type: string) => {
             <div v-else class="h-full flex flex-col justify-between relative z-10">
               
               <!-- Back Magnetic Security Strip -->
-              <div class="w-full h-7 bg-slate-950/90 rounded-lg border border-slate-800 -mx-1 flex items-center px-3">
-                <span class="text-[9px] font-mono tracking-widest text-slate-400">OFFICIAL DIGITAL SECURITY TOKEN AUTHENTICATED</span>
+              <div class="w-full h-7 sm:h-8 bg-gradient-to-r from-[#030712] via-[#111827] to-[#030712] rounded-lg border border-slate-800 -mx-1 flex items-center justify-between px-3 shadow-inner">
+                <span class="text-[8.5px] sm:text-[9px] font-mono tracking-widest text-slate-400">OFFICIAL DIGITAL SECURITY TOKEN AUTHENTICATED</span>
+                <span class="text-[7.5px] font-mono text-amber-400/80 tracking-wider">SPI SECURE CHIP</span>
               </div>
 
               <!-- QR & Terms -->
-              <div class="flex items-center justify-between gap-4 py-1">
-                <div class="space-y-1 text-[10px] text-slate-300 max-w-[210px] leading-relaxed">
-                  <p class="font-bold text-indigo-300">
-                    {{ currentLang === 'km' ? 'ល័ក្ខខ័ណ្ឌប្រើប្រាស់:' : 'Terms of Use:' }}
-                  </p>
-                  <p class="text-slate-400">
+              <div class="flex items-center justify-between gap-3 py-1">
+                <div class="space-y-1.5 text-[10px] text-slate-300 max-w-[220px] leading-relaxed">
+                  <!-- Authorized Signature Strip -->
+                  <div class="w-full bg-slate-100/90 rounded border border-slate-300 px-2 py-0.5 flex items-center justify-between select-none">
+                    <span class="text-[7.5px] font-mono text-slate-500 uppercase tracking-wider">AUTHORIZED SIGNATURE</span>
+                    <span class="text-[8px] font-mono font-bold text-slate-700">{{ profile.student_id }}</span>
+                  </div>
+
+                  <p class="text-slate-300 text-[9.5px]">
                     {{ currentLang === 'km' ? 'កាតនេះជាកម្មសិទ្ធិរបស់វិទ្យាស្ថាន សន្តប៉ូល។ ស្កេន QR Code ដើម្បីផ្ទៀងផ្ទាត់សុពលភាពតាមប្រព័ន្ធសុវត្ថិភាព។' : 'This card remains the property of the institute. Scan QR Code to verify authenticity.' }}
                   </p>
-                  <p class="text-[9.5px] text-slate-400">
-                    {{ currentLang === 'km' ? 'ផុតកំណត់:' : 'Expires:' }} {{ currentLang === 'km' ? (idCard.expires_at_kh || idCard.expires_at || '—') : (idCard.expires_at || '—') }}
+                  <p class="text-[9.5px] text-amber-200/90 font-medium flex items-center gap-1">
+                    <span class="text-slate-400">{{ currentLang === 'km' ? 'ផុតកំណត់:' : 'Expires:' }}</span>
+                    <span>{{ currentLang === 'km' ? (idCard.expires_at_kh || idCard.expires_at || '—') : (idCard.expires_at || '—') }}</span>
                   </p>
                 </div>
 
-                <!-- High-Resolution Local QR Code -->
-                <div class="bg-white p-2 rounded-xl shrink-0 shadow-md">
+                <!-- High-Resolution Local QR Code with clean white card -->
+                <div class="bg-white p-2 rounded-xl shrink-0 shadow-md border border-indigo-200/50">
                   <img
                     v-if="qrDataUrl"
                     :src="qrDataUrl"
@@ -781,8 +844,10 @@ const getLogTypeBadge = (type: string) => {
 
               <!-- Bottom Row: Masked Token (Only last 4 chars revealed) -->
               <div class="text-[11px] font-mono text-slate-300 tracking-wider flex items-center justify-between border-t border-slate-700/60 pt-2">
-                <span class="text-slate-400 text-[10px] uppercase">TOKEN</span>
-                <span>•••• •••• {{ idCard.token ? idCard.token.slice(-4) : '••••' }}</span>
+                <span class="text-slate-400 text-[10px] uppercase font-bold">SECURITY TOKEN</span>
+                <span class="bg-slate-900/60 px-2 py-0.5 rounded border border-slate-700/60 font-bold text-slate-200">
+                  •••• •••• {{ idCard.token ? idCard.token.slice(-4) : '••••' }}
+                </span>
               </div>
 
             </div>
@@ -1724,24 +1789,26 @@ const getLogTypeBadge = (type: string) => {
     <div id="printable-cr80-document" class="hidden print:block">
       
       <!-- PAGE 1: CR80 CARD FRONT SIDE -->
-      <div class="cr80-page-front w-[85.6mm] h-[54mm] p-[5mm] bg-[#0c1222] text-white flex flex-col justify-between rounded-[3.18mm] relative overflow-hidden">
+      <div class="cr80-page-front w-[85.6mm] h-[54mm] p-[4.5mm] bg-[#070e22] text-white flex flex-col justify-between rounded-[3.18mm] relative overflow-hidden">
         
         <!-- Top Row -->
         <div class="flex items-center justify-between border-b border-slate-700 pb-1">
           <div class="flex items-center gap-2">
-            <span class="text-sm font-black">🎓</span>
+            <div class="w-[7mm] h-[7mm] rounded bg-white p-[0.5mm] flex items-center justify-center shrink-0">
+              <img :src="spiLogoUrl" alt="SPI Logo" class="w-full h-full object-contain" />
+            </div>
             <div>
-              <p class="text-[8pt] font-black uppercase tracking-wider text-slate-100">
+              <p class="text-[7.5pt] font-black uppercase tracking-wider text-slate-100">
                 {{ currentLang === 'km' ? (idCard.institution_kh || idCard.institution) : idCard.institution }}
               </p>
-              <p class="text-[6pt] text-slate-400">
+              <p class="text-[5.5pt] text-amber-200/90 font-semibold">
                 {{ currentLang === 'km' ? 'គ្រឹះស្ថានឧត្តមសិក្សាផ្លូវការ' : 'Official Higher Education Institution' }}
               </p>
             </div>
           </div>
           <span
             v-if="idCard.is_official"
-            class="px-1.5 py-0.5 rounded-full bg-emerald-500 text-white text-[6pt] font-black uppercase"
+            class="px-1.5 py-0.5 rounded-full bg-emerald-500 text-white text-[5.5pt] font-black uppercase"
           >
             OFFICIAL ID
           </span>
@@ -1749,7 +1816,7 @@ const getLogTypeBadge = (type: string) => {
 
         <!-- Middle Row: Photo & Names -->
         <div class="flex items-center gap-3 my-auto">
-          <div class="w-[18mm] h-[18mm] rounded-lg overflow-hidden bg-slate-800 border border-slate-600 flex items-center justify-center shrink-0">
+          <div class="w-[18mm] h-[18mm] rounded-lg overflow-hidden bg-slate-900 border border-slate-600 flex items-center justify-center shrink-0">
             <img
               v-if="avatarPreview"
               :src="avatarPreview"
@@ -1762,17 +1829,17 @@ const getLogTypeBadge = (type: string) => {
           </div>
 
           <div class="space-y-0.5 min-w-0">
-            <p class="text-[10pt] font-black leading-tight text-white">{{ profile.name }}</p>
-            <p v-if="profile.name_kh" class="text-[8pt] font-semibold text-indigo-300">{{ profile.name_kh }}</p>
-            <p class="text-[8pt] font-mono font-bold text-slate-200">{{ profile.student_id }}</p>
-            <p class="text-[7pt] text-slate-300">{{ currentLang === 'km' ? (academic.major_kh || academic.major) : academic.major }}</p>
+            <p class="text-[9.5pt] font-black leading-tight text-white">{{ profile.name }}</p>
+            <p v-if="profile.name_kh" class="text-[7.5pt] font-semibold text-indigo-300">{{ profile.name_kh }}</p>
+            <p class="text-[7.5pt] font-mono font-bold text-amber-200">ID: {{ profile.student_id }}</p>
+            <p class="text-[6.5pt] text-slate-300">{{ currentLang === 'km' ? (academic.major_kh || academic.major) : academic.major }}</p>
           </div>
         </div>
 
         <!-- Bottom Row: Card No & Academic Term -->
-        <div class="pt-1 border-t border-slate-700 flex items-center justify-between text-[7pt] text-slate-200 whitespace-nowrap">
+        <div class="pt-1 border-t border-slate-700 flex items-center justify-between text-[6.5pt] text-slate-200 whitespace-nowrap">
           <span>TERM: {{ currentLang === 'km' ? (academic.term_kh || academic.term) : academic.term }}</span>
-          <span class="font-mono font-bold">ID: {{ idCard.card_no }}</span>
+          <span class="font-mono font-bold">CARD: {{ idCard.card_no }}</span>
         </div>
 
       </div>
