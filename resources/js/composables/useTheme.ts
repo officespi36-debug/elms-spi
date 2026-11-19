@@ -5,9 +5,13 @@ export const isDark = ref(false)
 export function initTheme() {
   if (typeof window === 'undefined') return
   try {
+    if (localStorage.getItem('elms_theme_v2') !== '1') {
+      localStorage.setItem('elms_theme_v2', '1')
+      localStorage.setItem('theme', 'light')
+    }
+
     const stored = localStorage.getItem('theme')
-    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-    if (stored === 'dark' || (!stored && prefersDark)) {
+    if (stored === 'dark') {
       isDark.value = true
       document.documentElement.classList.add('dark')
       document.documentElement.style.colorScheme = 'dark'
@@ -19,10 +23,10 @@ export function initTheme() {
       document.documentElement.style.backgroundColor = '#f8fafc'
     }
   } catch (e) {
-    isDark.value = true
-    document.documentElement.classList.add('dark')
-    document.documentElement.style.colorScheme = 'dark'
-    document.documentElement.style.backgroundColor = '#0b132b'
+    isDark.value = false
+    document.documentElement.classList.remove('dark')
+    document.documentElement.style.colorScheme = 'light'
+    document.documentElement.style.backgroundColor = '#f8fafc'
   }
 }
 

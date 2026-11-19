@@ -1193,6 +1193,7 @@ watch(
 )
 
 onMounted(() => {
+  initTheme()
   if (typeof userPrefs.value.sidebar_collapsed === 'boolean') {
     isSidebarCollapsed.value = userPrefs.value.sidebar_collapsed
   } else if (typeof window !== 'undefined') {

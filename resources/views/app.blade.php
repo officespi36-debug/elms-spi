@@ -1,20 +1,24 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" translate="no" class="dark notranslate" style="color-scheme: dark; background-color: #0b132b;">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" translate="no" class="notranslate" style="color-scheme: light; background-color: #f8fafc;">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
     <meta name="google" content="notranslate">
     <meta name="googlebot" content="notranslate">
-    <meta name="theme-color" content="#0b132b">
+    <meta name="theme-color" content="#f8fafc">
 
     <!-- Anti-FOUC & Instant Theme Injection (Runs Synchronously Before First Paint) -->
     <script>
         (function () {
             try {
+                if (localStorage.getItem('elms_theme_v2') !== '1') {
+                    localStorage.setItem('elms_theme_v2', '1');
+                    localStorage.setItem('theme', 'light');
+                }
+
                 var storedTheme = localStorage.getItem('theme');
-                var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-                if (storedTheme === 'dark' || (!storedTheme && prefersDark)) {
+                if (storedTheme === 'dark') {
                     document.documentElement.classList.add('dark');
                     document.documentElement.style.colorScheme = 'dark';
                     document.documentElement.style.backgroundColor = '#0b132b';
@@ -28,9 +32,9 @@
                     document.documentElement.lang = storedLang;
                 }
             } catch (e) {
-                document.documentElement.classList.add('dark');
-                document.documentElement.style.colorScheme = 'dark';
-                document.documentElement.style.backgroundColor = '#0b132b';
+                document.documentElement.classList.remove('dark');
+                document.documentElement.style.colorScheme = 'light';
+                document.documentElement.style.backgroundColor = '#f8fafc';
             }
 
             try {
@@ -49,8 +53,8 @@
     <style>
         /* Instant baseline styling to eliminate White Flash / FOUC / Layout Shift on reload */
         html {
-            background-color: #0b132b;
-            color-scheme: dark;
+            background-color: #f8fafc;
+            color-scheme: light;
             -webkit-text-size-adjust: 100%;
             text-rendering: optimizeLegibility;
         }

@@ -1072,14 +1072,18 @@ const t = (key: string, defaultText?: string) => {
 
 const initTheme = () => {
   try {
+    if (localStorage.getItem('elms_theme_v2') !== '1') {
+      localStorage.setItem('elms_theme_v2', '1')
+      localStorage.setItem('theme', 'light')
+    }
     const saved = localStorage.getItem('theme')
     if (saved) {
       isDark.value = saved === 'dark'
     } else {
-      isDark.value = true
+      isDark.value = false
     }
   } catch (e) {
-    isDark.value = true
+    isDark.value = false
   }
   applyTheme()
 }

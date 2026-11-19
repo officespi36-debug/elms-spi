@@ -22,11 +22,19 @@ const selectLanguage = (code: LanguageCode) => {
 }
 
 const initTheme = () => {
-  const saved = localStorage.getItem('theme')
-  if (saved) {
-    isDark.value = saved === 'dark'
-  } else {
-    isDark.value = true
+  try {
+    if (localStorage.getItem('elms_theme_v2') !== '1') {
+      localStorage.setItem('elms_theme_v2', '1')
+      localStorage.setItem('theme', 'light')
+    }
+    const saved = localStorage.getItem('theme')
+    if (saved) {
+      isDark.value = saved === 'dark'
+    } else {
+      isDark.value = false
+    }
+  } catch (e) {
+    isDark.value = false
   }
   applyTheme()
 }
