@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\AcademicRecord;
+use App\Models\AcademicYear;
 use App\Models\AssignmentSubmission;
 use App\Models\Certificate;
 use App\Models\IdCard;
@@ -18,6 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -36,27 +38,10 @@ class ProfileController extends Controller
         $requestedTab = $request->query('tab', 'id-card');
         $activeTab = in_array($requestedTab, self::VALID_TABS, true) ? $requestedTab : 'id-card';
 
-        // 2. Fetch or initialize active academic semester
-        $activeSemester = Semester::with('academicYear')
-            ->where('is_active', true)
-            ->first();
+        // 2. Fetch truly active academic term without duplicate years
+        $termInfo = $this->resolveAcademicTerm($user);
 
-        $academicTermLabel = null;
-        if ($activeSemester) {
-            $yearName = $activeSemester->academicYear?->name
-                ?: ($user->academicYear?->name ?: $user->academic_year);
-            $academicTermLabel = $yearName
-                ? ($activeSemester->name . ' • ' . $yearName)
-                : $activeSemester->name;
-        } elseif ($user->academicYear?->name) {
-            $academicTermLabel = $user->academicYear->name;
-        } elseif (!empty($user->academic_year)) {
-            $academicTermLabel = (string) $user->academic_year;
-        } else {
-            $academicTermLabel = 'Academic Year 2026 – 2027';
-        }
-
-        // 3. Ensure official IdCard record exists
+        // 3. Ensure official IdCard record exists (with proper registrar approval check)
         $idCard = IdCard::firstOrCreate(
             ['user_id' => $user->id],
             [
@@ -65,10 +50,20 @@ class ProfileController extends Controller
                 'issued_at'   => now(),
                 'expires_at'  => now()->addYears(4),
                 'status'      => 'active',
-                'approved_by' => 1,
-                'approved_at' => now(),
+                'approved_by' => null,
+                'approved_at' => null,
             ]
         );
+
+        // Check if approval was performed by a genuine registrar/admin
+        $approver = $idCard->approved_by ? User::find($idCard->approved_by) : null;
+        $isOfficial = ($idCard->status === 'active'
+            && !empty($idCard->approved_at)
+            && $approver !== null
+            && in_array($approver->role, ['admin', 'registrar', 'super_admin'], true));
+
+        // Live verified requires an active card, valid token, and official approval
+        $isLiveVerified = ($isOfficial && !empty($idCard->token) && $idCard->status === 'active');
 
         // 4. Ensure official AcademicRecord exists
         $academicRecord = AcademicRecord::with(['faculty', 'department', 'major', 'semester', 'academicYear'])
@@ -81,8 +76,8 @@ class ProfileController extends Controller
                 'faculty_id'       => $user->major?->department?->faculty_id,
                 'department_id'    => $user->major?->department_id,
                 'major_id'         => $user->major_id,
-                'academic_year_id' => $user->academic_year_id,
-                'semester_id'      => $activeSemester?->id,
+                'academic_year_id' => $user->academic_year_id ?: $termInfo['active_year_id'],
+                'semester_id'      => $termInfo['active_semester_id'],
                 'gpa'              => null,
                 'total_credits'    => null,
                 'degree_level'     => 'Bachelor of Science (B.Sc.)',
@@ -162,22 +157,26 @@ class ProfileController extends Controller
                 'created_at'  => $r->created_at?->format('M j, Y · h:i A'),
             ]);
 
-        // 9. Profile completion percentage calculation
+        // 9. Profile completion percentage calculation with missing fields
         $completionFields = [
-            'name'     => !empty($user->name),
-            'name_kh'  => !empty($user->name_kh),
-            'email'    => !empty($user->email),
-            'phone'    => !empty($user->phone),
-            'avatar'   => !empty($user->avatar),
-            'dob'      => !empty($user->dob),
-            'gender'   => !empty($user->gender),
-            'bio'      => !empty($user->bio),
+            ['key' => 'name', 'filled' => !empty($user->name), 'label_en' => 'Full Name', 'label_km' => 'ឈ្មោះពេញ', 'tab' => 'personal'],
+            ['key' => 'name_kh', 'filled' => !empty($user->name_kh), 'label_en' => 'Khmer Name', 'label_km' => 'ឈ្មោះជាភាសាខ្មែរ', 'tab' => 'personal'],
+            ['key' => 'phone', 'filled' => !empty($user->phone), 'label_en' => 'Phone Number', 'label_km' => 'លេខទូរស័ព្ទ', 'tab' => 'personal'],
+            ['key' => 'avatar', 'filled' => !empty($user->avatar), 'label_en' => 'Photo', 'label_km' => 'រូបថតផ្ទាល់ខ្លួន', 'tab' => 'personal'],
+            ['key' => 'dob', 'filled' => !empty($user->dob), 'label_en' => 'Date of Birth', 'label_km' => 'ថ្ងៃខែឆ្នាំកំណើត', 'tab' => 'personal'],
+            ['key' => 'gender', 'filled' => !empty($user->gender), 'label_en' => 'Gender', 'label_km' => 'ភេទ', 'tab' => 'personal'],
+            ['key' => 'bio', 'filled' => !empty($user->bio), 'label_en' => 'Bio', 'label_km' => 'ជីវប្រវត្តិសង្ខេប', 'tab' => 'personal'],
         ];
-        $filledCount = count(array_filter($completionFields));
+
+        $filledCount = count(array_filter($completionFields, fn ($f) => $f['filled']));
         $completionPercent = (int) round(($filledCount / count($completionFields)) * 100);
+        $missingFields = array_values(array_filter($completionFields, fn ($f) => !$f['filled']));
 
         $prefs = is_array($user->preferences) ? $user->preferences : [];
         $language = $prefs['locale'] ?? $prefs['language'] ?? app()->getLocale() ?? 'km';
+
+        $formatDateEn = fn (?Carbon $d) => $d ? $d->locale('en')->translatedFormat('M j, Y') : '—';
+        $formatDateKm = fn (?Carbon $d) => $d ? $this->toKhmerDigits($d->locale('km')->translatedFormat('d F Y')) : '—';
 
         return Inertia::render('Student/Profile/Index', [
             'activeTab' => $activeTab,
@@ -197,17 +196,23 @@ class ProfileController extends Controller
                 'is_active'          => (bool) $user->is_active,
                 'language'           => $language,
                 'completion_percent' => $completionPercent,
+                'missing_fields'     => $missingFields,
             ],
             'idCard' => [
-                'card_no'      => $idCard->card_no,
-                'token'        => $idCard->token,
-                'verify_url'   => route('id.verify', ['token' => $idCard->token]),
-                'issued_at'    => $idCard->issued_at?->format('M j, Y'),
-                'expires_at'   => $idCard->expires_at?->format('M j, Y'),
-                'status'       => $idCard->status,
-                'is_official'  => ($idCard->status === 'active' && !empty($idCard->approved_at)),
-                'approved_at'  => $idCard->approved_at?->format('M j, Y'),
-                'institution'  => config('app.name', 'Saint Paul Institute'),
+                'card_no'          => $idCard->card_no,
+                'token'            => $idCard->token,
+                'verify_url'       => route('id.verify', ['token' => $idCard->token]),
+                'issued_at'        => $formatDateEn($idCard->issued_at),
+                'issued_at_kh'     => $formatDateKm($idCard->issued_at),
+                'expires_at'       => $formatDateEn($idCard->expires_at),
+                'expires_at_kh'    => $formatDateKm($idCard->expires_at),
+                'status'           => $idCard->status,
+                'is_official'      => $isOfficial,
+                'is_live_verified' => $isLiveVerified,
+                'approved_at'      => $formatDateEn($idCard->approved_at),
+                'approved_at_kh'   => $formatDateKm($idCard->approved_at),
+                'institution'      => config('app.institution', 'Saint Paul Institute'),
+                'institution_kh'   => config('app.institution_kh', 'វិទ្យាស្ថាន សន្តប៉ូល'),
             ],
             'academic' => [
                 'faculty'       => $facultyName,
@@ -216,7 +221,8 @@ class ProfileController extends Controller
                 'department_kh' => $departmentNameKh,
                 'major'         => $majorName,
                 'major_kh'      => $majorNameKh,
-                'term'          => $academicTermLabel,
+                'term'          => $termInfo['en'],
+                'term_kh'       => $termInfo['km'],
                 'degree_level'  => $academicRecord->degree_level ?: 'Bachelor of Science (B.Sc.)',
                 'study_type'    => $academicRecord->study_type ?: 'Full-time',
                 'gpa'           => $academicRecord->gpa !== null ? (string) $academicRecord->gpa : null,
@@ -330,29 +336,44 @@ class ProfileController extends Controller
     }
 
     /**
-     * Regenerate 40-character Crypto Token for ID Card QR code.
+     * Regenerate 40-character Crypto Token for ID Card QR code with audit logging.
      */
     public function regenerateIdCardToken(Request $request)
     {
         /** @var User $user */
         $user = $request->user();
 
-        $idCard = IdCard::firstOrCreate(
-            ['user_id' => $user->id],
-            [
-                'card_no'     => IdCard::generateCardNo($user),
-                'token'       => IdCard::generateUniqueToken(),
-                'issued_at'   => now(),
-                'expires_at'  => now()->addYears(4),
-                'status'      => 'active',
-                'approved_by' => 1,
-                'approved_at' => now(),
-            ]
-        );
+        $idCard = IdCard::where('user_id', $user->id)->first();
+        if (!$idCard) {
+            $idCard = IdCard::create([
+                'user_id'    => $user->id,
+                'card_no'    => IdCard::generateCardNo($user),
+                'token'      => IdCard::generateUniqueToken(),
+                'issued_at'  => now(),
+                'expires_at' => now()->addYears(4),
+                'status'     => 'active',
+            ]);
+        } else {
+            $oldToken = $idCard->token;
+            $idCard->update([
+                'token' => IdCard::generateUniqueToken(),
+            ]);
+        }
 
-        $idCard->update([
-            'token' => IdCard::generateUniqueToken(),
-        ]);
+        Log::info("Student ID Card token regenerated for user {$user->id} ({$user->name}) from IP {$request->ip()}");
+
+        try {
+            DB::table('auth_logs')->insert([
+                'user_id'    => $user->id,
+                'action'     => 'id_card_token_regenerated',
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'status'     => 'success',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        } catch (\Throwable $e) {
+        }
 
         return back()->with('success', 'កូដសម្ងាត់ QR ថ្មីត្រូវបានបង្កើតដោយជោគជ័យ! តំណចាស់លែងដំណើរការទៀតហើយ។');
     }
@@ -728,5 +749,76 @@ class ProfileController extends Controller
         });
 
         return array_slice($logs, 0, 30);
+    }
+
+    /**
+     * Resolve academic term and year without duplicating year labels.
+     */
+    protected function resolveAcademicTerm($user): array
+    {
+        $activeYear = AcademicYear::where('is_active', true)
+            ->orWhere('status', 'active')
+            ->orderByDesc('is_active')
+            ->orderByDesc('id')
+            ->first();
+
+        $activeSemester = Semester::where('is_active', true)
+            ->orWhere('status', 'active')
+            ->orderByDesc('is_active')
+            ->orderByDesc('id')
+            ->first();
+
+        // Base year string
+        $yearString = $activeYear?->name
+            ?: ($activeSemester?->academicYear?->name
+                ?: ($user->academicYear?->name ?: ($user->academic_year ?: 'Academic Year 2026 – 2027')));
+
+        // Extract clean year range like "2024–2025" or "2026–2027"
+        $yearRange = '';
+        if (preg_match('/(\d{4})\s*[-–—]\s*(\d{4})/', $yearString, $m)) {
+            $yearRange = $m[1] . '–' . $m[2];
+        } else {
+            $yearRange = trim(str_ireplace(['Academic Year', 'ឆ្នាំសិក្សា'], '', $yearString));
+        }
+
+        // Clean semester name, stripping any trailing year if already attached (e.g. "Semester 2 — 2024-2025")
+        $rawSem = $activeSemester?->semester_num ?: ($activeSemester?->name ?: '');
+        if ($rawSem !== '' && str_contains($rawSem, '—')) {
+            $rawSem = trim(explode('—', $rawSem)[0]);
+        }
+        if ($rawSem !== '' && str_contains($rawSem, '-')) {
+            $rawSem = trim(explode('-', $rawSem)[0]);
+        }
+        if ($rawSem === '') {
+            $rawSem = 'Semester 2';
+        }
+
+        $semEn = $rawSem;
+        $semKm = preg_replace('/Semester\s+(\d+)/i', 'ឆមាសទី $1', $rawSem);
+        $semKm = $this->toKhmerDigits($semKm);
+
+        $yearKm = $this->toKhmerDigits($yearRange);
+
+        $en = $yearRange !== '' ? "{$semEn} • {$yearRange}" : $semEn;
+        $km = $yearRange !== '' ? "{$semKm} • ឆ្នាំសិក្សា {$yearKm}" : $semKm;
+
+        return [
+            'en'                 => $en,
+            'km'                 => $km,
+            'year'               => $yearRange,
+            'semester'           => $semEn,
+            'active_semester_id' => $activeSemester?->id,
+            'active_year_id'     => $activeYear?->id,
+        ];
+    }
+
+    /**
+     * Convert western arabic numerals to Khmer numerals.
+     */
+    protected function toKhmerDigits(string $str): string
+    {
+        $en = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+        $kh = ['០', '១', '២', '៣', '៤', '៥', '៦', '៧', '៨', '៩'];
+        return str_replace($en, $kh, $str);
     }
 }

@@ -4,6 +4,13 @@ import { useForm, usePage, router } from '@inertiajs/vue3'
 import StudentLayout from '@/Layouts/StudentLayout.vue'
 import QRCode from 'qrcode'
 
+interface MissingFieldItem {
+  key: string
+  label_en: string
+  label_km: string
+  tab: string
+}
+
 interface ProfileData {
   id: number
   name: string
@@ -20,6 +27,7 @@ interface ProfileData {
   is_active: boolean
   language?: string
   completion_percent: number
+  missing_fields?: MissingFieldItem[]
 }
 
 interface IdCardData {
@@ -27,11 +35,16 @@ interface IdCardData {
   token: string
   verify_url: string
   issued_at?: string
+  issued_at_kh?: string
   expires_at?: string
+  expires_at_kh?: string
   status: 'active' | 'revoked' | 'pending'
   is_official: boolean
+  is_live_verified?: boolean
   approved_at?: string
+  approved_at_kh?: string
   institution: string
+  institution_kh: string
 }
 
 interface AcademicData {
@@ -42,6 +55,7 @@ interface AcademicData {
   major: string
   major_kh: string
   term: string
+  term_kh?: string
   degree_level: string
   study_type: string
   gpa?: string | null
@@ -158,6 +172,7 @@ onMounted(() => {
 // 3. Digital ID Card: Flip & Local QR Code
 const isCardFlipped = ref(false)
 const qrDataUrl = ref<string>('')
+const isRegenerateModalOpen = ref(false)
 const isRegeneratingToken = ref(false)
 const linkCopied = ref(false)
 
@@ -195,15 +210,13 @@ const copyVerifyLink = () => {
   })
 }
 
-const triggerRegenerateToken = () => {
-  if (!confirm(currentLang.value === 'km' ? 'តើអ្នកពិតជាចង់បង្កើតកូដ QR ថ្មីមែនទេ? តំណផ្ទៀងផ្ទាត់ចាស់នឹងលែងដំណើរការ។' : 'Are you sure you want to regenerate this ID card QR token? The previous verification link will become permanently invalid.')) {
-    return
-  }
+const confirmRegenerateToken = () => {
   isRegeneratingToken.value = true
   router.post('/student/profile/id-card/regenerate', {}, {
     preserveScroll: true,
     onFinish: () => {
       isRegeneratingToken.value = false
+      isRegenerateModalOpen.value = false
     },
   })
 }
@@ -377,20 +390,18 @@ const getLogTypeBadge = (type: string) => {
 
 <template>
   <StudentLayout :title="currentLang === 'km' ? 'គណនី & ការកំណត់' : 'Student Account & Profile'">
-    <div class="space-y-6 max-w-6xl mx-auto pb-28 sm:pb-36 notranslate" translate="no" style="padding-bottom: 112px;">
+    <!-- Main container with safe padding-bottom: 96px preventing FAB from obstructing controls -->
+    <div class="space-y-6 max-w-6xl mx-auto notranslate" translate="no" style="padding-bottom: 96px;">
       
-      <!-- HEADER CARD (Aesthetic of Image 3: Clean White Card, Rounded-3xl, Subtle Borders, Ambient Glow) -->
+      <!-- HEADER CARD (Aesthetic of Image 3: Clean White Card, Rounded-3xl, Subtle Borders) -->
       <div class="relative overflow-hidden bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] rounded-3xl p-6 sm:p-7 shadow-sm dark:shadow-xl transition-all">
         
-        <!-- Ambient Radial Gradient in Top-Right -->
-        <div class="absolute -right-16 -top-16 w-56 h-56 bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-transparent rounded-full blur-2xl pointer-events-none"></div>
-
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
           
           <div class="flex items-center gap-5">
             <!-- Squircle Avatar with Camera Overlay -->
             <div class="relative shrink-0 group">
-              <div class="w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden bg-[#f0f4f9] dark:bg-[#131314] border-2 border-indigo-500/30 text-indigo-600 dark:text-indigo-400 font-black flex items-center justify-center text-3xl shadow-sm">
+              <div class="w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden bg-[#f0f4f9] dark:bg-[#131314] border border-slate-200 dark:border-slate-700 text-indigo-600 dark:text-indigo-400 font-black flex items-center justify-center text-3xl shadow-sm">
                 <img
                   v-if="avatarPreview"
                   :src="avatarPreview"
@@ -434,6 +445,7 @@ const getLogTypeBadge = (type: string) => {
                 </span>
               </div>
 
+              <!-- Student Meta Info: Academic term shown once -->
               <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium">
                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-[#f0f4f9] dark:bg-[#131314] border border-[#dfe3e7] dark:border-[#2d2f31] font-mono font-bold text-slate-800 dark:text-slate-200">
                   {{ profile.student_id }}
@@ -441,25 +453,45 @@ const getLogTypeBadge = (type: string) => {
                 <span>•</span>
                 <span class="text-indigo-600 dark:text-indigo-400 font-semibold">{{ currentLang === 'km' ? (academic.major_kh || academic.major) : academic.major }}</span>
                 <span>•</span>
-                <span>{{ academic.term }}</span>
+                <span>{{ currentLang === 'km' ? (academic.term_kh || academic.term) : academic.term }}</span>
               </div>
 
-              <!-- Profile Completion Progress Bar with Image 3 Vibrant Gradient -->
-              <div class="pt-1.5 flex items-center gap-3">
-                <div class="w-36 bg-[#e1e3e1] dark:bg-[#282a2c] rounded-full h-2 overflow-hidden">
-                  <div
-                    class="bg-gradient-to-r from-[#6366f1] via-[#8b5cf6] to-[#06b6d4] h-2 rounded-full transition-all duration-900 ease-out"
-                    :style="{ width: `${profile.completion_percent}%` }"
-                  ></div>
+              <!-- Profile Completion Progress Bar with Missing Fields Link -->
+              <div class="pt-1.5 space-y-1">
+                <div class="flex items-center gap-3">
+                  <div class="w-36 bg-[#e1e3e1] dark:bg-[#282a2c] rounded-full h-2 overflow-hidden">
+                    <div
+                      class="bg-gradient-to-r from-[#6366f1] via-[#8b5cf6] to-[#06b6d4] h-2 rounded-full transition-all duration-900 ease-out"
+                      :style="{ width: `${profile.completion_percent}%` }"
+                    ></div>
+                  </div>
+                  <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 tabular-nums">
+                    {{ currentLang === 'km' ? 'ព័ត៌មានពេញលេញ' : 'Profile Complete' }}: {{ profile.completion_percent }}%
+                  </span>
                 </div>
-                <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 tabular-nums">
-                  {{ currentLang === 'km' ? 'ព័ត៌មានពេញលេញ' : 'Profile Complete' }}: {{ profile.completion_percent }}%
-                </span>
+
+                <!-- Missing Fields Hint with Direct Tab Navigation Link -->
+                <div v-if="profile.missing_fields && profile.missing_fields.length > 0" class="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 pt-0.5">
+                  <span class="text-rose-500 dark:text-rose-400 font-semibold">{{ currentLang === 'km' ? 'ខ្វះ:' : 'Missing:' }}</span>
+                  <div class="inline-flex flex-wrap items-center gap-1">
+                    <button
+                      v-for="(mf, idx) in profile.missing_fields"
+                      :key="mf.key"
+                      type="button"
+                      @click="selectTab(mf.tab)"
+                      class="text-indigo-600 dark:text-indigo-400 hover:underline font-bold cursor-pointer inline-flex items-center"
+                    >
+                      <span>{{ currentLang === 'km' ? mf.label_km : mf.label_en }}</span>
+                      <span v-if="idx < (profile.missing_fields.length - 1)" class="text-slate-400 ml-1">,</span>
+                    </button>
+                  </div>
+                </div>
               </div>
+
             </div>
           </div>
 
-          <!-- Higher Education Institution Card on Right (Styled like Image 3 Cards) -->
+          <!-- Higher Education Institution Card on Right (Official Config Name) -->
           <div class="bg-[#f8fafc] dark:bg-[#131314] border border-[#dfe3e7] dark:border-[#2d2f31] rounded-2xl p-4 flex items-center gap-3.5 shrink-0 self-start md:self-auto shadow-2xs">
             <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#6366f1] to-[#7c3aed] text-white flex items-center justify-center font-black shadow-sm shrink-0">
               <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -472,9 +504,11 @@ const getLogTypeBadge = (type: string) => {
                 {{ currentLang === 'km' ? 'គ្រឹះស្ថានឧត្តមសិក្សា' : 'Higher Education Institution' }}
               </p>
               <p class="text-xs font-bold text-slate-900 dark:text-slate-100 mt-0.5">
-                {{ idCard.institution }}
+                {{ currentLang === 'km' ? (idCard.institution_kh || idCard.institution) : idCard.institution }}
               </p>
-              <p class="text-[10px] text-slate-400">វិទ្យាស្ថាន សន្តប៉ូល • SPI E-LMS</p>
+              <p class="text-[10px] text-slate-400">
+                {{ currentLang === 'km' ? 'ប្រព័ន្ធគ្រប់គ្រងការសិក្សាផ្លូវការ' : 'Official Learning Management System' }}
+              </p>
             </div>
           </div>
 
@@ -604,12 +638,12 @@ const getLogTypeBadge = (type: string) => {
         <!-- Left: Flippable CR80 Digital Card Container -->
         <div class="lg:col-span-7 bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] rounded-3xl p-6 sm:p-7 shadow-sm dark:shadow-xl flex flex-col items-center justify-between space-y-6">
           
-          <!-- Top Row: Side indicator & Flip trigger -->
+          <!-- Top Row: Side indicator & Flip trigger (Single Language - no bilingual English suffix) -->
           <div class="w-full flex items-center justify-between text-xs text-slate-500">
             <div class="flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-[#6366f1]"></span>
               <span class="font-bold text-slate-900 dark:text-slate-100">
-                {{ isCardFlipped ? (currentLang === 'km' ? 'ផ្នែកខាងក្រោយកាត (Back Side)' : 'Card Back Side') : (currentLang === 'km' ? 'ផ្នែកខាងមុខកាត (Front Side)' : 'Card Front Side') }}
+                {{ isCardFlipped ? (currentLang === 'km' ? 'ផ្នែកខាងក្រោយនៃកាត' : 'Card Back Side') : (currentLang === 'km' ? 'ផ្នែកខាងមុខនៃកាត' : 'Card Front Side') }}
               </span>
             </div>
 
@@ -621,11 +655,11 @@ const getLogTypeBadge = (type: string) => {
               <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
-              <span>{{ currentLang === 'km' ? 'ចុចបង្វិលកាត' : 'Flip Card' }}</span>
+              <span>{{ currentLang === 'km' ? 'ត្រឡប់កាត' : 'Flip Card' }}</span>
             </button>
           </div>
 
-          <!-- CR80 Standard Proportional Card Container -->
+          <!-- CR80 Standard Proportional Card Container: 1px border + soft shadow, no purple glow -->
           <div
             id="student-digital-id-card"
             @click="toggleCardFlip"
@@ -634,37 +668,45 @@ const getLogTypeBadge = (type: string) => {
             tabindex="0"
             role="button"
             :aria-label="currentLang === 'km' ? 'កាតនិស្សិតឌីជីថល ចុចដើម្បីបង្វិល' : 'Digital Student ID Card. Click to flip.'"
-            class="w-full max-w-[430px] aspect-[85.6/54] rounded-3xl p-5 sm:p-6 bg-gradient-to-br from-[#0c1222] via-[#161f3d] to-[#0c1222] border-2 border-indigo-400/30 shadow-2xl text-white relative overflow-hidden select-none cursor-pointer transition-transform duration-300 hover:scale-[1.01] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-500"
+            class="w-full max-w-[430px] aspect-[85.6/54] rounded-2xl p-5 sm:p-6 bg-gradient-to-br from-[#0c1222] via-[#161f3d] to-[#0c1222] border border-slate-700/60 dark:border-slate-700/80 shadow-lg text-white relative overflow-hidden select-none cursor-pointer transition-transform duration-300 hover:scale-[1.01] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
           >
-            <!-- Ambient Card Glow -->
-            <div class="absolute -right-16 -top-16 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
-
             <!-- FRONT SIDE VIEW -->
             <div v-if="!isCardFlipped" class="h-full flex flex-col justify-between relative z-10">
               
-              <!-- Card Top Row -->
-              <div class="flex items-center justify-between border-b border-indigo-800/40 pb-2.5">
+              <!-- Card Top Row: Official Institution Name from Config (NOT E.LMS) -->
+              <div class="flex items-center justify-between border-b border-slate-700/60 pb-2.5">
                 <div class="flex items-center gap-2.5">
                   <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-sm font-black shadow-xs">
                     🎓
                   </div>
                   <div>
-                    <p class="text-[10px] font-black tracking-widest text-indigo-200 uppercase">{{ idCard.institution }}</p>
-                    <p class="text-[8px] text-slate-400 font-medium">វិទ្យាស្ថាន សន្តប៉ូល • SPI E-LMS</p>
+                    <p class="text-xs font-black tracking-wider text-slate-100 uppercase">
+                      {{ currentLang === 'km' ? (idCard.institution_kh || idCard.institution) : idCard.institution }}
+                    </p>
+                    <p class="text-[9.5px] text-slate-300 font-medium">
+                      {{ currentLang === 'km' ? 'គ្រឹះស្ថានឧត្តមសិក្សាផ្លូវការ' : 'Official Higher Education Institution' }}
+                    </p>
                   </div>
                 </div>
                 
+                <!-- OFFICIAL ID Badge: Displayed ONLY when approved_by & approved_at are from real registrar -->
                 <span
                   v-if="idCard.is_official"
-                  class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[8px] font-bold uppercase tracking-wider"
+                  class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[9px] font-bold uppercase tracking-wider"
                 >
-                  OFFICIAL ID
+                  {{ currentLang === 'km' ? 'កាតផ្លូវការ' : 'OFFICIAL ID' }}
+                </span>
+                <span
+                  v-else
+                  class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[9px] font-bold uppercase tracking-wider"
+                >
+                  {{ currentLang === 'km' ? 'រង់ចាំការបញ្ជាក់' : 'PENDING' }}
                 </span>
               </div>
 
               <!-- Card Middle: Avatar & Identification -->
               <div class="flex items-center gap-4 my-auto">
-                <div class="w-16 h-16 rounded-2xl overflow-hidden bg-slate-800 border-2 border-indigo-400/40 text-white font-black text-xl flex items-center justify-center shrink-0 shadow-md">
+                <div class="w-16 h-16 rounded-xl overflow-hidden bg-slate-800 border border-slate-600 text-white font-black text-xl flex items-center justify-center shrink-0 shadow-sm">
                   <img
                     v-if="avatarPreview"
                     :src="avatarPreview"
@@ -676,23 +718,27 @@ const getLogTypeBadge = (type: string) => {
                   </span>
                 </div>
 
-                <div class="space-y-0.5">
-                  <h2 class="text-sm md:text-base font-black text-white leading-tight">
+                <div class="space-y-0.5 min-w-0">
+                  <h2 class="text-sm md:text-base font-black text-white leading-tight truncate">
                     {{ profile.name }}
                   </h2>
-                  <p v-if="profile.name_kh" class="text-xs font-semibold text-indigo-300">{{ profile.name_kh }}</p>
-                  <p class="text-xs font-mono font-bold text-indigo-200 mt-1">{{ profile.student_id }}</p>
-                  <p class="text-[11px] text-slate-300 font-medium">{{ currentLang === 'km' ? (academic.major_kh || academic.major) : academic.major }}</p>
+                  <p v-if="profile.name_kh" class="text-xs font-semibold text-indigo-300 truncate">{{ profile.name_kh }}</p>
+                  <p class="text-xs font-mono font-bold text-slate-200 mt-1">{{ profile.student_id }}</p>
+                  <p class="text-[11px] text-slate-300 font-medium truncate">{{ currentLang === 'km' ? (academic.major_kh || academic.major) : academic.major }}</p>
                 </div>
               </div>
 
-              <!-- Card Bottom: Academic Term -->
-              <div class="pt-2 border-t border-indigo-800/40 flex items-center justify-between text-[9px] text-slate-300">
-                <div>
-                  <span class="text-slate-400 uppercase font-semibold">Term: </span>
-                  <span class="font-bold text-emerald-300">{{ academic.term }}</span>
+              <!-- Card Bottom: CARD NO and TERM row (nowrap, >= 12px, contrast >= 4.5:1) -->
+              <div class="pt-2.5 border-t border-slate-700/60 flex items-center justify-between gap-3 text-xs md:text-[13px] text-slate-100 whitespace-nowrap overflow-hidden">
+                <div class="flex items-center gap-1.5 shrink-0 whitespace-nowrap">
+                  <span class="text-slate-300 font-semibold text-xs">{{ currentLang === 'km' ? 'ឆមាស:' : 'Term:' }}</span>
+                  <span class="font-bold text-emerald-300 text-xs truncate max-w-[200px]">
+                    {{ currentLang === 'km' ? (academic.term_kh || academic.term) : academic.term }}
+                  </span>
                 </div>
-                <span class="text-[9px] font-mono text-indigo-300">CARD NO: {{ idCard.card_no }}</span>
+                <span class="font-mono font-bold text-slate-100 text-xs shrink-0 whitespace-nowrap">
+                  ID: {{ idCard.card_no }}
+                </span>
               </div>
 
             </div>
@@ -702,19 +748,25 @@ const getLogTypeBadge = (type: string) => {
               
               <!-- Back Magnetic Security Strip -->
               <div class="w-full h-7 bg-slate-950/90 rounded-lg border border-slate-800 -mx-1 flex items-center px-3">
-                <span class="text-[8px] font-mono tracking-widest text-slate-500">OFFICIAL DIGITAL SECURITY TOKEN AUTHENTICATED</span>
+                <span class="text-[9px] font-mono tracking-widest text-slate-400">OFFICIAL DIGITAL SECURITY TOKEN AUTHENTICATED</span>
               </div>
 
               <!-- QR & Terms -->
               <div class="flex items-center justify-between gap-4 py-1">
-                <div class="space-y-1 text-[9px] text-slate-300 max-w-[210px] leading-relaxed">
-                  <p class="font-bold text-indigo-300">ល័ក្ខខ័ណ្ឌប្រើប្រាស់ (Terms):</p>
-                  <p class="text-slate-400">កាតនេះជាកម្មសិទ្ធិរបស់វិទ្យាស្ថាន សន្តប៉ូល។ ស្កេន QR Code ដើម្បីផ្ទៀងផ្ទាត់សុពលភាពតាមប្រព័ន្ធសុវត្ថិភាព។</p>
-                  <p class="text-[8px] text-slate-500">Expires: {{ idCard.expires_at || '—' }}</p>
+                <div class="space-y-1 text-[10px] text-slate-300 max-w-[210px] leading-relaxed">
+                  <p class="font-bold text-indigo-300">
+                    {{ currentLang === 'km' ? 'ល័ក្ខខ័ណ្ឌប្រើប្រាស់:' : 'Terms of Use:' }}
+                  </p>
+                  <p class="text-slate-400">
+                    {{ currentLang === 'km' ? 'កាតនេះជាកម្មសិទ្ធិរបស់វិទ្យាស្ថាន សន្តប៉ូល។ ស្កេន QR Code ដើម្បីផ្ទៀងផ្ទាត់សុពលភាពតាមប្រព័ន្ធសុវត្ថិភាព។' : 'This card remains the property of the institute. Scan QR Code to verify authenticity.' }}
+                  </p>
+                  <p class="text-[9.5px] text-slate-400">
+                    {{ currentLang === 'km' ? 'ផុតកំណត់:' : 'Expires:' }} {{ currentLang === 'km' ? (idCard.expires_at_kh || idCard.expires_at || '—') : (idCard.expires_at || '—') }}
+                  </p>
                 </div>
 
                 <!-- High-Resolution Local QR Code -->
-                <div class="bg-white p-2 rounded-2xl shrink-0 shadow-lg shadow-black/40">
+                <div class="bg-white p-2 rounded-xl shrink-0 shadow-md">
                   <img
                     v-if="qrDataUrl"
                     :src="qrDataUrl"
@@ -727,10 +779,10 @@ const getLogTypeBadge = (type: string) => {
                 </div>
               </div>
 
-              <!-- Bottom Barcode & Token Watermark -->
-              <div class="text-[8px] text-slate-400 font-mono flex items-center justify-between border-t border-indigo-800/40 pt-1.5">
-                <span>SPI-VERIFIED-TOKEN</span>
-                <span>{{ idCard.token.substring(0, 16) }}...</span>
+              <!-- Bottom Row: Masked Token (Only last 4 chars revealed) -->
+              <div class="text-[11px] font-mono text-slate-300 tracking-wider flex items-center justify-between border-t border-slate-700/60 pt-2">
+                <span class="text-slate-400 text-[10px] uppercase">TOKEN</span>
+                <span>•••• •••• {{ idCard.token ? idCard.token.slice(-4) : '••••' }}</span>
               </div>
 
             </div>
@@ -738,20 +790,31 @@ const getLogTypeBadge = (type: string) => {
           </div>
 
           <p class="text-[11px] text-slate-400 text-center">
-            {{ currentLang === 'km' ? 'ចុចលើកាត ឬចុច Spacebar ដើម្បីត្រឡប់មើលផ្នែកខាងមុខ និងខាងក្រោយ' : 'Click card or press Spacebar to flip between front and back' }}
+            {{ currentLang === 'km' ? 'ចុចលើកាត ឬចុច Spacebar ដើម្បីត្រឡប់កាត' : 'Click card or press Spacebar to flip between front and back' }}
           </p>
 
         </div>
 
-        <!-- Right: Validity Details & Actions (Styled identically to the 3 Cards in Image 3) -->
+        <!-- Right: Validity Details & Actions (Styled like Image 3, No ✓ icon in header) -->
         <div class="lg:col-span-5 bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] rounded-3xl p-6 sm:p-7 shadow-sm dark:shadow-xl flex flex-col justify-between space-y-6">
           
           <div>
             <div class="flex items-center justify-between">
-              <h3 class="text-[15px] font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                <span>{{ currentLang === 'km' ? 'សុពលភាព & ស្ថានភាពកាត' : 'Card Validity & Verification' }}</span>
+              <!-- Removed checkmark icon from header -->
+              <h3 class="text-[15px] font-bold text-slate-900 dark:text-slate-100">
+                {{ currentLang === 'km' ? 'សុពលភាព & ស្ថានភាពកាត' : 'Card Validity & Verification' }}
               </h3>
-              <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              
+              <!-- Live Verified Badge: Shown ONLY when verified token is active and valid -->
+              <a
+                v-if="idCard.is_live_verified"
+                :href="idCard.verify_url"
+                target="_blank"
+                class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 inline-flex items-center gap-1 hover:underline"
+              >
+                <span>Live Verified</span>
+                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+              </a>
             </div>
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
               {{ currentLang === 'km' ? 'គ្រប់គ្រងកាតសម្គាល់ខ្លួន និងផ្ទៀងផ្ទាត់តំណភ្ជាប់សាធារណៈ' : 'Manage your digital credentials and verification link' }}
@@ -767,23 +830,36 @@ const getLogTypeBadge = (type: string) => {
 
             <div class="flex items-center justify-between">
               <span class="text-slate-500 dark:text-slate-400 font-medium">{{ currentLang === 'km' ? 'ស្ថានភាពផ្លូវការ:' : 'Official Status:' }}</span>
-              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                ● {{ idCard.is_official ? (currentLang === 'km' ? 'បានអនុម័តផ្លូវការ' : 'Officially Verified') : (currentLang === 'km' ? 'រង់ចាំការបញ្ជាក់' : 'Pending Approval') }}
+              <span
+                v-if="idCard.is_official"
+                class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+              >
+                ● {{ currentLang === 'km' ? 'បានអនុម័តផ្លូវការ' : 'Officially Verified' }}
+              </span>
+              <span
+                v-else
+                class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+              >
+                ● {{ currentLang === 'km' ? 'រង់ចាំការអនុម័ត' : 'Pending Registrar Approval' }}
               </span>
             </div>
 
             <div class="flex items-center justify-between">
               <span class="text-slate-500 dark:text-slate-400 font-medium">{{ currentLang === 'km' ? 'កាលបរិច្ឆេទចេញ:' : 'Issued Date:' }}</span>
-              <span class="font-medium text-slate-700 dark:text-slate-300">{{ idCard.issued_at || '—' }}</span>
+              <span class="font-medium text-slate-700 dark:text-slate-300">
+                {{ currentLang === 'km' ? (idCard.issued_at_kh || idCard.issued_at || '—') : (idCard.issued_at || '—') }}
+              </span>
             </div>
 
             <div class="flex items-center justify-between">
               <span class="text-slate-500 dark:text-slate-400 font-medium">{{ currentLang === 'km' ? 'កាលបរិច្ឆេទផុតកំណត់:' : 'Expires:' }}</span>
-              <span class="font-medium text-slate-700 dark:text-slate-300">{{ idCard.expires_at || '—' }}</span>
+              <span class="font-medium text-slate-700 dark:text-slate-300">
+                {{ currentLang === 'km' ? (idCard.expires_at_kh || idCard.expires_at || '—') : (idCard.expires_at || '—') }}
+              </span>
             </div>
           </div>
 
-          <!-- Action Buttons with Vibrant Indigo Gradient -->
+          <!-- Action Buttons (Single Language - No English bilingual suffixes) -->
           <div class="space-y-3">
             
             <!-- Print CR80 Standard -->
@@ -795,7 +871,7 @@ const getLogTypeBadge = (type: string) => {
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
               </svg>
-              <span>{{ currentLang === 'km' ? 'បោះពុម្ពកាត (Print Standard CR80)' : 'Print ID Card (Standard CR80)' }}</span>
+              <span>{{ currentLang === 'km' ? 'បោះពុម្ពកាតសម្គាល់ខ្លួន' : 'Print ID Card' }}</span>
             </button>
 
             <!-- Copy Verify URL -->
@@ -807,20 +883,19 @@ const getLogTypeBadge = (type: string) => {
               <svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
               </svg>
-              <span>{{ linkCopied ? (currentLang === 'km' ? '✓ បានចម្លងតំណភ្ជាប់' : '✓ Link Copied') : (currentLang === 'km' ? 'ចម្លងតំណផ្ទៀងផ្ទាត់' : 'Copy Verification Link') }}</span>
+              <span>{{ linkCopied ? (currentLang === 'km' ? '✓ បានចម្លងតំណភ្ជាប់' : '✓ Link Copied') : (currentLang === 'km' ? 'ចម្លងតំណភ្ជាប់ផ្ទៀងផ្ទាត់' : 'Copy Verification Link') }}</span>
             </button>
 
-            <!-- Regenerate Token -->
+            <!-- Regenerate Token: Opens Modal Dialog -->
             <button
               type="button"
-              :disabled="isRegeneratingToken"
-              @click="triggerRegenerateToken"
-              class="w-full py-2.5 px-4 rounded-2xl border border-rose-200 dark:border-rose-900/60 bg-rose-50/50 dark:bg-rose-950/20 hover:bg-rose-100/60 text-rose-600 dark:text-rose-400 font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              @click="isRegenerateModalOpen = true"
+              class="w-full py-2.5 px-4 rounded-2xl border border-rose-200 dark:border-rose-900/60 bg-rose-50/50 dark:bg-rose-950/20 hover:bg-rose-100/60 text-rose-600 dark:text-rose-400 font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
-              <span>{{ isRegeneratingToken ? (currentLang === 'km' ? 'កំពុងបង្កើត...' : 'Generating...') : (currentLang === 'km' ? 'បង្កើតកូដ QR ថ្មី (Regenerate)' : 'Regenerate Security QR') }}</span>
+              <span>{{ currentLang === 'km' ? 'បង្កើតកូដ QR ថ្មី' : 'Regenerate QR Code' }}</span>
             </button>
 
           </div>
@@ -829,7 +904,7 @@ const getLogTypeBadge = (type: string) => {
 
       </div>
 
-      <!-- TAB 2: PERSONAL INFORMATION (Sectioned Cards Matching Image 3) -->
+      <!-- TAB 2: PERSONAL INFORMATION -->
       <div v-show="currentTab === 'personal'" class="space-y-6">
         
         <!-- Success Alert -->
@@ -846,7 +921,7 @@ const getLogTypeBadge = (type: string) => {
           <button @click="personalSuccess = false" class="text-emerald-600 dark:text-emerald-400 font-bold text-xs">✕</button>
         </div>
 
-        <!-- Section 1: Locked Official Identification (3 Cards styled like Image 3) -->
+        <!-- Section 1: Locked Official Identification -->
         <div class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] rounded-3xl p-6 sm:p-7 shadow-sm dark:shadow-xl space-y-5">
           <div class="flex items-center justify-between">
             <div>
@@ -1078,12 +1153,12 @@ const getLogTypeBadge = (type: string) => {
 
       </div>
 
-      <!-- TAB 3: ACADEMIC INFORMATION (3 Cards Layout identical to Image 3's Analytics Row) -->
+      <!-- TAB 3: ACADEMIC INFORMATION (3 Cards Layout identical to Image 3) -->
       <div v-show="currentTab === 'academic'" class="space-y-6">
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
           
-          <!-- Card 1: Faculty & Department (Styled like Image 3 Card 1) -->
+          <!-- Card 1: Faculty & Department -->
           <div class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-purple-400 hover:dark:border-purple-400/60 rounded-3xl p-5 sm:p-6 shadow-sm dark:shadow-xl flex flex-col justify-between space-y-4 transition-all hover:-translate-y-1">
             <div class="flex items-center justify-between min-h-[32px]">
               <div class="flex items-center gap-1.5 text-[15px] font-bold text-slate-900 dark:text-slate-100">
@@ -1097,23 +1172,23 @@ const getLogTypeBadge = (type: string) => {
 
             <div class="space-y-3 my-auto">
               <div>
-                <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{{ currentLang === 'km' ? 'មហាវិទ្យាល័យ (Faculty)' : 'Faculty Name' }}</p>
+                <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{{ currentLang === 'km' ? 'មហាវិទ្យាល័យ' : 'Faculty Name' }}</p>
                 <p class="text-sm font-bold text-slate-900 dark:text-slate-100 mt-0.5">{{ currentLang === 'km' ? (academic.faculty_kh || academic.faculty) : academic.faculty }}</p>
               </div>
 
               <div>
-                <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{{ currentLang === 'km' ? 'ដេប៉ាតឺម៉ង់ (Department)' : 'Department Name' }}</p>
+                <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{{ currentLang === 'km' ? 'ដេប៉ាតឺម៉ង់' : 'Department Name' }}</p>
                 <p class="text-sm font-semibold text-slate-700 dark:text-slate-300 mt-0.5">{{ currentLang === 'km' ? (academic.department_kh || academic.department) : academic.department }}</p>
               </div>
             </div>
 
             <div class="pt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
               <span>{{ currentLang === 'km' ? 'ស្ថាប័ន' : 'Institute' }}</span>
-              <span class="font-bold text-slate-800 dark:text-slate-200">Saint Paul Institute</span>
+              <span class="font-bold text-slate-800 dark:text-slate-200">{{ currentLang === 'km' ? (idCard.institution_kh || idCard.institution) : idCard.institution }}</span>
             </div>
           </div>
 
-          <!-- Card 2: Major Specialization (Styled like Image 3 Card 2) -->
+          <!-- Card 2: Major Specialization -->
           <div class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-purple-400 hover:dark:border-purple-400/60 rounded-3xl p-5 sm:p-6 shadow-sm dark:shadow-xl flex flex-col justify-between space-y-4 transition-all hover:-translate-y-1">
             <div class="flex items-center justify-between min-h-[32px]">
               <div class="flex items-center gap-1.5 text-[15px] font-bold text-slate-900 dark:text-slate-100">
@@ -1145,7 +1220,7 @@ const getLogTypeBadge = (type: string) => {
             </div>
           </div>
 
-          <!-- Card 3: Semester & Academic Term (Styled like Image 3 Card 3) -->
+          <!-- Card 3: Semester & Academic Term (Shown only once) -->
           <div class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-purple-400 hover:dark:border-purple-400/60 rounded-3xl p-5 sm:p-6 shadow-sm dark:shadow-xl flex flex-col justify-between space-y-4 transition-all hover:-translate-y-1">
             <div class="flex items-center justify-between min-h-[32px]">
               <div class="flex items-center gap-1.5 text-[15px] font-bold text-slate-900 dark:text-slate-100">
@@ -1160,7 +1235,7 @@ const getLogTypeBadge = (type: string) => {
             <div class="space-y-2 my-auto">
               <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{{ currentLang === 'km' ? 'ឆមាសបច្ចុប្បន្ន' : 'Active Semester' }}</p>
               <p class="text-base font-black text-emerald-600 dark:text-emerald-400 leading-tight">
-                {{ academic.term }}
+                {{ currentLang === 'km' ? (academic.term_kh || academic.term) : academic.term }}
               </p>
               <p class="text-xs text-slate-500 dark:text-slate-400">
                 {{ currentLang === 'km' ? 'ការចុះឈ្មោះសិក្សាត្រូវបានផ្ទៀងផ្ទាត់ដោយប្រព័ន្ធ E-LMS' : 'Enrollment officially verified by E-LMS' }}
@@ -1374,7 +1449,7 @@ const getLogTypeBadge = (type: string) => {
 
       </div>
 
-      <!-- TAB 5: LEARNING HISTORY & LOGS (Segmented Controls Matching Image 3 + CSV Export) -->
+      <!-- TAB 5: LEARNING HISTORY & LOGS -->
       <div v-show="currentTab === 'history'" class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] rounded-3xl p-6 sm:p-7 shadow-sm dark:shadow-xl space-y-6">
         
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#dfe3e7] dark:border-[#2d2f31] pb-5">
@@ -1458,6 +1533,63 @@ const getLogTypeBadge = (type: string) => {
 
       </div>
 
+    </div>
+
+    <!-- DIALOG MODAL: Regenerate QR Confirmation with Warning -->
+    <div
+      v-if="isRegenerateModalOpen"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+      @click.self="isRegenerateModalOpen = false"
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="regenerate-dialog-title"
+        class="w-full max-w-md bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] rounded-3xl p-6 shadow-2xl space-y-4"
+      >
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <div>
+            <h3 id="regenerate-dialog-title" class="text-base font-bold text-slate-900 dark:text-white">
+              {{ currentLang === 'km' ? 'បញ្ជាក់ការបង្កើតកូដ QR ថ្មី' : 'Confirm QR Code Regeneration' }}
+            </h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              {{ currentLang === 'km' ? 'សកម្មភាពនេះមិនអាចត្រឡប់ថយក្រោយបានឡើយ' : 'This action cannot be undone' }}
+            </p>
+          </div>
+        </div>
+
+        <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-[#f8fafc] dark:bg-[#131314] p-3.5 rounded-2xl border border-[#dfe3e7] dark:border-[#2d2f31]">
+          {{ currentLang === 'km' ? 'តើអ្នកពិតជាចង់បង្កើតកូដ QR ថ្មីមែនទេ? តំណភ្ជាប់ផ្ទៀងផ្ទាត់ និងកូដ QR ចាស់ទាំងអស់នឹងលែងដំណើរការជារៀងរហូត។' : 'Are you sure you want to regenerate your digital ID QR code? The previous QR code and public verification link will permanently stop working.' }}
+        </p>
+
+        <div class="flex items-center justify-end gap-2.5 pt-2">
+          <button
+            type="button"
+            @click="isRegenerateModalOpen = false"
+            class="px-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-bold text-xs cursor-pointer"
+          >
+            {{ currentLang === 'km' ? 'បោះបង់' : 'Cancel' }}
+          </button>
+          <button
+            type="button"
+            :disabled="isRegeneratingToken"
+            @click="confirmRegenerateToken"
+            class="px-5 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-md cursor-pointer disabled:opacity-50 inline-flex items-center gap-1.5"
+          >
+            <svg v-if="isRegeneratingToken" class="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>{{ isRegeneratingToken ? (currentLang === 'km' ? 'កំពុងបង្កើត...' : 'Regenerating...') : (currentLang === 'km' ? 'បង្កើត QR ថ្មី' : 'Regenerate QR') }}</span>
+          </button>
+        </div>
+
+      </div>
     </div>
 
     <!-- MODAL: Request Correction for Locked Field -->
@@ -1588,30 +1720,146 @@ const getLogTypeBadge = (type: string) => {
       </div>
     </div>
 
+    <!-- DEDICATED PRINTABLE CR80 CONTAINER (Printed on 2 pages: Front on Page 1, Back on Page 2) -->
+    <div id="printable-cr80-document" class="hidden print:block">
+      
+      <!-- PAGE 1: CR80 CARD FRONT SIDE -->
+      <div class="cr80-page-front w-[85.6mm] h-[54mm] p-[5mm] bg-[#0c1222] text-white flex flex-col justify-between rounded-[3.18mm] relative overflow-hidden">
+        
+        <!-- Top Row -->
+        <div class="flex items-center justify-between border-b border-slate-700 pb-1">
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-black">🎓</span>
+            <div>
+              <p class="text-[8pt] font-black uppercase tracking-wider text-slate-100">
+                {{ currentLang === 'km' ? (idCard.institution_kh || idCard.institution) : idCard.institution }}
+              </p>
+              <p class="text-[6pt] text-slate-400">
+                {{ currentLang === 'km' ? 'គ្រឹះស្ថានឧត្តមសិក្សាផ្លូវការ' : 'Official Higher Education Institution' }}
+              </p>
+            </div>
+          </div>
+          <span
+            v-if="idCard.is_official"
+            class="px-1.5 py-0.5 rounded-full bg-emerald-500 text-white text-[6pt] font-black uppercase"
+          >
+            OFFICIAL ID
+          </span>
+        </div>
+
+        <!-- Middle Row: Photo & Names -->
+        <div class="flex items-center gap-3 my-auto">
+          <div class="w-[18mm] h-[18mm] rounded-lg overflow-hidden bg-slate-800 border border-slate-600 flex items-center justify-center shrink-0">
+            <img
+              v-if="avatarPreview"
+              :src="avatarPreview"
+              :alt="profile.name"
+              class="w-full h-full object-cover"
+            />
+            <span v-else class="text-sm font-bold text-white">
+              {{ profile.name ? profile.name.charAt(0).toUpperCase() : 'S' }}
+            </span>
+          </div>
+
+          <div class="space-y-0.5 min-w-0">
+            <p class="text-[10pt] font-black leading-tight text-white">{{ profile.name }}</p>
+            <p v-if="profile.name_kh" class="text-[8pt] font-semibold text-indigo-300">{{ profile.name_kh }}</p>
+            <p class="text-[8pt] font-mono font-bold text-slate-200">{{ profile.student_id }}</p>
+            <p class="text-[7pt] text-slate-300">{{ currentLang === 'km' ? (academic.major_kh || academic.major) : academic.major }}</p>
+          </div>
+        </div>
+
+        <!-- Bottom Row: Card No & Academic Term -->
+        <div class="pt-1 border-t border-slate-700 flex items-center justify-between text-[7pt] text-slate-200 whitespace-nowrap">
+          <span>TERM: {{ currentLang === 'km' ? (academic.term_kh || academic.term) : academic.term }}</span>
+          <span class="font-mono font-bold">ID: {{ idCard.card_no }}</span>
+        </div>
+
+      </div>
+
+      <!-- PAGE 2: CR80 CARD BACK SIDE -->
+      <div class="cr80-page-back w-[85.6mm] h-[54mm] p-[5mm] bg-[#0c1222] text-white flex flex-col justify-between rounded-[3.18mm] relative overflow-hidden">
+        
+        <!-- Magnetic Stripe -->
+        <div class="w-full h-[6mm] bg-black rounded border border-slate-800 flex items-center px-2">
+          <span class="text-[5pt] font-mono text-slate-500 tracking-widest">OFFICIAL DIGITAL SECURITY TOKEN AUTHENTICATED</span>
+        </div>
+
+        <!-- Terms & QR -->
+        <div class="flex items-center justify-between gap-3 my-auto py-1">
+          <div class="space-y-1 text-[6.5pt] text-slate-300 max-w-[48mm] leading-tight">
+            <p class="font-bold text-indigo-300">{{ currentLang === 'km' ? 'ល័ក្ខខ័ណ្ឌប្រើប្រាស់:' : 'Terms of Use:' }}</p>
+            <p class="text-slate-400">
+              {{ currentLang === 'km' ? 'កាតនេះជាកម្មសិទ្ធិរបស់វិទ្យាស្ថាន សន្តប៉ូល។ ស្កេន QR Code ដើម្បីផ្ទៀងផ្ទាត់សុពលភាពតាមប្រព័ន្ធសុវត្ថិភាព។' : 'This card is issued by the institute. Scan QR Code to verify authenticity.' }}
+            </p>
+            <p class="text-[6pt] text-slate-400">
+              {{ currentLang === 'km' ? 'ផុតកំណត់:' : 'Expires:' }} {{ currentLang === 'km' ? (idCard.expires_at_kh || idCard.expires_at || '—') : (idCard.expires_at || '—') }}
+            </p>
+          </div>
+
+          <div class="bg-white p-1 rounded-lg shrink-0">
+            <img
+              v-if="qrDataUrl"
+              :src="qrDataUrl"
+              alt="Verification QR"
+              class="w-[18mm] h-[18mm] object-contain"
+            />
+          </div>
+        </div>
+
+        <!-- Token Hash -->
+        <div class="text-[6pt] font-mono text-slate-400 flex items-center justify-between border-t border-slate-700 pt-1">
+          <span>TOKEN</span>
+          <span>•••• •••• {{ idCard.token ? idCard.token.slice(-4) : '••••' }}</span>
+        </div>
+
+      </div>
+
+    </div>
+
   </StudentLayout>
 </template>
 
 <style scoped>
 @media print {
-  /* Print Optimization: Print exclusively the CR80 card at 85.6mm x 54mm */
+  @page {
+    size: 85.6mm 54mm;
+    margin: 0;
+  }
   body * {
     visibility: hidden !important;
   }
-  #student-digital-id-card,
-  #student-digital-id-card * {
+  #printable-cr80-document,
+  #printable-cr80-document * {
     visibility: visible !important;
   }
-  #student-digital-id-card {
+  #printable-cr80-document {
     position: fixed !important;
     left: 0 !important;
     top: 0 !important;
     width: 85.6mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+    background: transparent !important;
+  }
+  .cr80-page-front {
+    width: 85.6mm !important;
     height: 54mm !important;
-    max-width: none !important;
-    box-shadow: none !important;
-    border-radius: 4mm !important;
+    page-break-after: always !important;
+    break-after: page !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    box-sizing: border-box !important;
+  }
+  .cr80-page-back {
+    width: 85.6mm !important;
+    height: 54mm !important;
+    page-break-before: always !important;
+    break-before: page !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    box-sizing: border-box !important;
   }
 }
 </style>

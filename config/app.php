@@ -14,6 +14,8 @@ return [
     */
 
     'name' => env('APP_NAME', 'Laravel'),
+    'institution' => env('INSTITUTION_NAME', 'Saint Paul Institute'),
+    'institution_kh' => env('INSTITUTION_NAME_KH', 'វិទ្យាស្ថាន សន្តប៉ូល'),
 
     /*
     |--------------------------------------------------------------------------
