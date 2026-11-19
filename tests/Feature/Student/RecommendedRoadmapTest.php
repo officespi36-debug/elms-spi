@@ -16,6 +16,7 @@ use App\Models\PathStageCourse;
 use App\Models\Skill;
 use App\Models\User;
 use App\Services\PathProgressService;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -24,9 +25,12 @@ class RecommendedRoadmapTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * @return User&Authenticatable
+     */
     private function makeUser(string $role = 'student'): User
     {
-        /** @var User $user */
+        /** @var User&Authenticatable $user */
         $user = User::factory()->createOne(['role' => $role]);
 
         return $user;

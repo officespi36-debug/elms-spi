@@ -666,6 +666,13 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/social-work', [Student\PracticeLabController::class, 'social-work'])->name('social-work');
         });
 
+        // 7.1 Simulations / Branching Scenarios (Practice & Assignments)
+        Route::get('/simulations', [Student\SimulationController::class, 'index'])->name('simulations.index');
+        Route::post('/simulations/{simulation}/start', [Student\SimulationController::class, 'start'])->name('simulations.start');
+        Route::get('/simulations/{simulation}/play/{attempt}', [Student\SimulationController::class, 'play'])->name('simulations.play');
+        Route::post('/simulation-attempts/{attempt}/choose', [Student\SimulationController::class, 'choose'])->name('simulations.choose');
+        Route::get('/simulation-attempts/{attempt}/summary', [Student\SimulationController::class, 'summary'])->name('simulations.summary');
+
         Route::get('/progress', [Student\ProgressController::class, 'index'])->name('progress');
         Route::prefix('progress')->name('progress.')->group(function () {
             Route::get('/overview', [Student\ProgressController::class, 'overview'])->name('overview');

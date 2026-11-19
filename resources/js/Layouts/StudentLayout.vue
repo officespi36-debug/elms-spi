@@ -973,6 +973,19 @@ const studentNav: NavItem[] = [
     ]
   },
   {
+    key: 'practice',
+    name: 'Practice & Assignments',
+    khName: 'អនុវត្ត & កិច្ចការ',
+    iconUrl: '/images/nav/analytics.svg',
+    icon: 'M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z',
+    children: [
+      { name: 'To Do Assignments', khName: 'កិច្ចការត្រូវធ្វើ', href: '/student/quizzes/assignments' },
+      { name: 'Simulations', khName: 'ស៊ីមុយឡាទ័រ', href: '/student/simulations' },
+      { name: 'Practice Labs', khName: 'លំហាត់អនុវត្ត (Labs)', href: '/student/practice-lab' },
+      { name: 'Grades & Feedback', khName: 'ពិន្ទុ & មតិយោបល់', href: '/student/notifications/feedback' },
+    ]
+  },
+  {
     key: 'aiPath',
     name: 'AI Learning',
     khName: 'ការរៀនជាមួយ AI',
@@ -1402,7 +1415,7 @@ const onIconError = (e: Event) => {
                     ? 'bg-purple-50 text-purple-700 border border-purple-200 font-semibold dark:bg-purple-600/20 dark:text-purple-300 dark:border-purple-500/30' 
                     : 'text-[#64748b] hover:text-[#1f1f1f] hover:bg-[#f0f4f9] dark:text-slate-400 dark:hover:text-[#F1F5F9] dark:hover:bg-slate-800/60 border border-transparent',
                   isSidebarCollapsed ? 'justify-center w-11 h-11 p-0 rounded-2xl mx-auto' : 'px-3 w-full justify-between py-2 rounded-xl',
-                  'group flex items-center text-xs font-medium transition-all duration-200 cursor-pointer'
+                  'group flex items-center text-xs font-medium transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 outline-none'
                 ]"
               >
                 <div :class="[isSidebarCollapsed ? 'justify-center w-full' : '', 'flex items-center gap-x-2.5 truncate']">
@@ -1410,6 +1423,10 @@ const onIconError = (e: Event) => {
                     <!-- Lucide Courses (BookOpen) -->
                     <svg v-if="item.key === 'courses'" :class="[isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4', isChildActive(item.children) ? 'text-purple-600 dark:text-purple-400' : 'text-[#64748b] dark:text-slate-400 group-hover:text-[#1f1f1f] dark:group-hover:text-slate-200', 'shrink-0 transition-colors']" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/>
+                    </svg>
+                    <!-- Lucide Practice & Assignments (Gamepad / Swords / Terminal) -->
+                    <svg v-else-if="item.key === 'practice'" :class="[isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4', isChildActive(item.children) ? 'text-purple-600 dark:text-purple-400' : 'text-[#64748b] dark:text-slate-400 group-hover:text-[#1f1f1f] dark:group-hover:text-slate-200', 'shrink-0 transition-colors']" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polygon points="6 2 18 2 18 6 6 6 6 2"/><rect width="20" height="14" x="2" y="6" rx="2"/><line x1="12" x2="12" y1="10" y2="16"/><line x1="8" x2="8" y1="12" y2="14"/><line x1="16" x2="16" y1="12" y2="14"/>
                     </svg>
                     <!-- Lucide AI Learning (Sparkles) -->
                     <svg v-else-if="item.key === 'aiPath'" :class="[isSidebarCollapsed ? 'h-5 w-5' : 'h-4 w-4', isChildActive(item.children) ? 'text-purple-600 dark:text-purple-400' : 'text-[#64748b] dark:text-slate-400 group-hover:text-[#1f1f1f] dark:group-hover:text-slate-200', 'shrink-0 transition-colors']" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1497,11 +1514,17 @@ const onIconError = (e: Event) => {
                       isSubActive(sub.href)
                         ? 'bg-purple-50 text-purple-700 font-bold border border-purple-200 dark:bg-purple-600/20 dark:text-purple-300 dark:border-purple-500/30'
                         : 'text-[#64748b] hover:text-[#1f1f1f] hover:bg-[#f0f4f9] dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800/50 border border-transparent font-medium',
-                      'flex items-center gap-x-2 rounded-lg px-2 py-1.5 text-[11px] transition-all duration-200 truncate group/sub select-none'
+                      'flex items-center gap-x-2 rounded-lg px-2 py-1.5 text-[11px] transition-all duration-200 truncate group/sub select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 outline-none'
                     ]"
                   >
                     <!-- Lucide Line Icons for Submenu (Clean grey line icons, no emojis) -->
-                    <svg v-if="sub.name === 'Continue Learning' || sub.href.includes('/my-courses/current')" class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 group-hover/sub:text-purple-600 dark:group-hover/sub:text-purple-400 shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg v-if="sub.href === '/student/simulations'" class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 group-hover/sub:text-purple-600 dark:group-hover/sub:text-purple-400 shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polygon points="6 2 18 2 18 6 6 6 6 2"/><rect width="20" height="14" x="2" y="6" rx="2"/><line x1="12" x2="12" y1="10" y2="16"/><line x1="8" x2="8" y1="12" y2="14"/><line x1="16" x2="16" y1="12" y2="14"/>
+                    </svg>
+                    <svg v-else-if="sub.href === '/student/practice-lab'" class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 group-hover/sub:text-purple-600 dark:group-hover/sub:text-purple-400 shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/>
+                    </svg>
+                    <svg v-else-if="sub.name === 'Continue Learning' || sub.href.includes('/my-courses/current')" class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 group-hover/sub:text-purple-600 dark:group-hover/sub:text-purple-400 shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/>
                     </svg>
                     <svg v-else-if="sub.name === 'Enrolled Courses' || sub.href === '/student/my-courses/enrolled'" class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 group-hover/sub:text-purple-600 dark:group-hover/sub:text-purple-400 shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1719,13 +1742,17 @@ const onIconError = (e: Event) => {
                 isChildActive(item.children)
                   ? 'bg-purple-50 text-purple-700 font-bold border border-purple-200 dark:bg-purple-600/20 dark:text-purple-300 dark:border-purple-500/40'
                   : 'text-[#64748b] dark:text-slate-400 hover:text-slate-900 dark:hover:text-white',
-                'w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium cursor-pointer'
+                'w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 outline-none'
               ]"
             >
               <div class="flex items-center gap-2.5 truncate">
                 <!-- Lucide Courses (BookOpen) -->
                 <svg v-if="item.key === 'courses'" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/>
+                </svg>
+                <!-- Lucide Practice & Assignments (Gamepad) -->
+                <svg v-else-if="item.key === 'practice'" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="6 2 18 2 18 6 6 6 6 2"/><rect width="20" height="14" x="2" y="6" rx="2"/><line x1="12" x2="12" y1="10" y2="16"/><line x1="8" x2="8" y1="12" y2="14"/><line x1="16" x2="16" y1="12" y2="14"/>
                 </svg>
                 <!-- Lucide AI Learning (Sparkles) -->
                 <svg v-else-if="item.key === 'aiPath'" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
