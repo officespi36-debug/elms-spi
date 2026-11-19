@@ -542,9 +542,9 @@ html.dark .p-toast .p-toast-close-button:hover {
   ::view-transition-new(*) {
     animation: none !important;
   }
-  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.animate-spin):not(.loading-spinner),
-  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.animate-spin):not(.loading-spinner)::before,
-  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.animate-spin):not(.loading-spinner)::after {
+  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.elms-ring-wrap):not(.animate-spin):not(.loading-spinner),
+  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.elms-ring-wrap):not(.animate-spin):not(.loading-spinner)::before,
+  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.elms-ring-wrap):not(.animate-spin):not(.loading-spinner)::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -552,7 +552,8 @@ html.dark .p-toast .p-toast-close-button:hover {
   }
   .init-ring-wrap,
   .blue-ring-wrap,
-  .init-ring-svg {
+  .init-ring-svg,
+  .elms-ring-wrap {
     animation-duration: 1.1s !important;
     animation-iteration-count: infinite !important;
   }
