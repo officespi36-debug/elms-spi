@@ -8,6 +8,7 @@ interface Props {
   user: any
   isOpen: boolean
   role?: string
+  locale?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -22,7 +23,12 @@ const emit = defineEmits<{
   (e: 'manageProfile'): void
 }>()
 
-const isKhmer = computed(() => (i18n.currentLocale?.value || i18n.locale?.value || 'km') === 'km')
+const isKhmer = computed(() => {
+  if (props.locale) {
+    return props.locale === 'km'
+  }
+  return (i18n.currentLocale?.value || i18n.locale?.value || 'km') === 'km'
+})
 
 const currentUser = computed(() => {
   return props.user || {}
@@ -150,7 +156,7 @@ const handleManageProfile = () => {
           <span
             v-if="currentUser?.last_seen_at"
             class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full ring-2 ring-white dark:ring-[#0f172a]"
-            :title="isKhmer ? 'គណនីផ្លូវការសកម្ម (Online)' : 'Official Active Account'"
+            :title="isKhmer ? 'គណនីផ្លូវការសកម្ម' : 'Official Active Account'"
           ></span>
         </div>
 
@@ -199,7 +205,7 @@ const handleManageProfile = () => {
             <svg class="w-3.5 h-3.5 text-blue-500 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
-            <span>{{ isKhmer ? 'គ្រប់គ្រងគណនី (Manage Profile)' : 'Manage Profile' }}</span>
+            <span>{{ isKhmer ? 'គ្រប់គ្រងគណនី' : 'Manage Profile' }}</span>
           </span>
           <svg class="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
@@ -246,7 +252,7 @@ const handleManageProfile = () => {
         <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
         </svg>
-        <span>{{ isKhmer ? 'ចាកចេញពីប្រព័ន្ធ (Log Out)' : 'Log Out' }}</span>
+        <span>{{ isKhmer ? 'ចាកចេញពីប្រព័ន្ធ' : 'Log Out' }}</span>
       </button>
     </div>
   </div>

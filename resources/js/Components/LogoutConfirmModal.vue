@@ -8,6 +8,7 @@ const props = withDefaults(
     show: boolean
     user?: any
     loading?: boolean
+    locale?: string
   }>(),
   {
     show: false,
@@ -20,7 +21,10 @@ const emit = defineEmits<{
   (e: 'confirm'): void
 }>()
 
-const isKhmer = computed(() => (i18n.locale?.value || 'km') === 'km')
+const isKhmer = computed(() => {
+  if (props.locale) return props.locale === 'km'
+  return (i18n.locale?.value || 'km') === 'km'
+})
 
 const userName = computed(() => props.user?.name || 'User')
 const userEmail = computed(() => props.user?.email || '')

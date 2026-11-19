@@ -2116,6 +2116,7 @@ const onIconError = (e: Event) => {
             <ProfileAccountDropdown
               :user="user"
               :is-open="isProfileOpen"
+              :locale="currentLang"
               role="student"
               @close="isProfileOpen = false"
               @logout="logout"
@@ -2245,6 +2246,7 @@ const onIconError = (e: Event) => {
       :show="isLogoutModalOpen"
       :user="user"
       :loading="isLoggingOut"
+      :locale="currentLang"
       @close="isLogoutModalOpen = false"
       @confirm="confirmLogout"
     />

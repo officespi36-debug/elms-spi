@@ -75,14 +75,23 @@ class PreferenceController extends Controller
         $user->preferences = $currentPreferences;
         $user->save();
 
-        if (isset($validated['locale']) && $request->hasSession()) {
-            $request->session()->put('locale', $validated['locale']);
+        if (isset($validated['locale'])) {
+            if ($request->hasSession()) {
+                $request->session()->put('locale', $validated['locale']);
+                $request->session()->put('elms_lang', $validated['locale']);
+            }
             app()->setLocale($validated['locale']);
         }
 
-        return response()->json([
+        $response = response()->json([
             'success'     => true,
             'preferences' => $user->preferences,
         ]);
+
+        if (isset($validated['locale'])) {
+            $response->cookie('elms_lang', $validated['locale'], 60 * 24 * 365, '/', null, false, false);
+        }
+
+        return $response;
     }
 }

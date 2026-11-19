@@ -2010,6 +2010,7 @@ onUnmounted(() => {
             <ProfileAccountDropdown
               :user="user"
               :is-open="isProfileOpen"
+              :locale="currentLang"
               role="admin"
               @close="isProfileOpen = false"
               @logout="logout"
@@ -2203,6 +2204,7 @@ onUnmounted(() => {
       :show="isLogoutModalOpen"
       :user="user"
       :loading="isLoggingOut"
+      :locale="currentLang"
       @close="isLogoutModalOpen = false"
       @confirm="confirmLogout"
     />
