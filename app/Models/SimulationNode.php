@@ -27,10 +27,13 @@ class SimulationNode extends Model
         'simulation_id',
         'topic_id',
         'title',
+        'title_kh',
         'body',
+        'body_kh',
         'media_path',
         'is_end',
         'feedback',
+        'feedback_kh',
     ];
 
     protected $casts = [

@@ -7,12 +7,16 @@
         <div class="flex items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-slate-800">
           <div>
             <nav class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1">
-              <Link href="/student/simulations" class="hover:text-purple-600 dark:hover:text-purple-400 transition-colors">ស៊ីមុយឡាទ័រ</Link>
+              <Link href="/student/simulations" class="hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
+                {{ isKm ? 'ស៊ីមុយឡាទ័រ' : 'Simulations' }}
+              </Link>
               <span>/</span>
-              <span class="text-purple-600 dark:text-purple-400 font-semibold">របាយការណ៍សង្ខេប</span>
+              <span class="text-purple-600 dark:text-purple-400 font-semibold">
+                {{ isKm ? 'របាយការណ៍សង្ខេប' : 'Summary Report' }}
+              </span>
             </nav>
             <h1 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
-              របាយការណ៍លទ្ធផលសេណារីយ៉ូ
+              {{ isKm ? 'របាយការណ៍លទ្ធផលសេណារីយ៉ូ' : 'Simulation Result Report' }}
             </h1>
           </div>
 
@@ -20,7 +24,7 @@
             href="/student/simulations"
             class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
           >
-            ← បញ្ជីស៊ីមុយឡាទ័រ
+            {{ isKm ? '← បញ្ជីស៊ីមុយឡាទ័រ' : '← Back to Simulations' }}
           </Link>
         </div>
 
@@ -43,21 +47,31 @@
               ]"
             >
               <span>{{ attempt.passed ? '🎉' : '⚠️' }}</span>
-              <span>{{ attempt.passed ? 'បានឆ្លងផុតដោយជោគជ័យ (Passed)' : 'មិនទាន់ឆ្លងផុត (Needs Practice)' }}</span>
+              <span>
+                {{ attempt.passed 
+                  ? (isKm ? 'បានឆ្លងផុតដោយជោគជ័យ (Passed)' : 'Passed Successfully') 
+                  : (isKm ? 'មិនទាន់ឆ្លងផុត (Needs Practice)' : 'Needs Practice (Did not pass)') 
+                }}
+              </span>
             </span>
 
             <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
-              {{ simulation.title_kh || simulation.title }}
+              {{ isKm ? (simulation.title_kh || simulation.title) : (simulation.title || simulation.title_kh) }}
             </h2>
 
             <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
-              Attempt #{{ attempt.attempt_no }} • បញ្ចប់នៅ៖ {{ formatDate(attempt.completed_at) }}
+              {{ isKm 
+                ? `Attempt #${attempt.attempt_no} • បញ្ចប់នៅ៖ ${formatDate(attempt.completed_at)}` 
+                : `Attempt #${attempt.attempt_no} • Completed: ${formatDate(attempt.completed_at)}` 
+              }}
             </p>
           </div>
 
           <!-- Score Circle KPI -->
           <div class="flex flex-col items-center justify-center p-5 rounded-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-xs border border-slate-200/80 dark:border-slate-700 min-w-[160px] text-center shadow-xs">
-            <span class="text-xs font-semibold text-slate-400 dark:text-slate-500">ពិន្ទុសម្រេចបាន</span>
+            <span class="text-xs font-semibold text-slate-400 dark:text-slate-500">
+              {{ isKm ? 'ពិន្ទុសម្រេចបាន' : 'Score Achieved' }}
+            </span>
             <span
               :class="[
                 attempt.passed ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400',
@@ -67,7 +81,7 @@
               {{ attempt.score }}
             </span>
             <span class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-              ពិន្ទុគោលដៅ ≥ {{ simulation.pass_score }} pts
+              {{ isKm ? `ពិន្ទុគោលដៅ ≥ ${simulation.pass_score} pts` : `Target Pass Score ≥ ${simulation.pass_score} pts` }}
             </span>
           </div>
         </div>
@@ -77,10 +91,10 @@
           <div class="flex items-center justify-between">
             <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <span>🧭</span>
-              <span>ប្រវត្តិការសម្រេចចិត្តតាមជំហាន (Decision Path)</span>
+              <span>{{ isKm ? 'ប្រវត្តិការសម្រេចចិត្តតាមជំហាន (Decision Path)' : 'Decision Path History' }}</span>
             </h3>
             <span class="text-xs text-slate-400 dark:text-slate-500">
-              សរុប {{ steps.length }} ជំហាន
+              {{ isKm ? `សរុប ${steps.length} ជំហាន` : `Total ${steps.length} Steps` }}
             </span>
           </div>
 
@@ -93,7 +107,10 @@
               <!-- Step Header -->
               <div class="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-100 dark:border-slate-800">
                 <span class="text-xs font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/40 px-2.5 py-1 rounded-lg">
-                  ជំហានទី {{ idx + 1 }}: {{ step.node_title || 'ការសម្រេចចិត្ត' }}
+                  {{ isKm 
+                    ? `ជំហានទី ${idx + 1}: ${step.node_title_kh || step.node_title || 'ការសម្រេចចិត្ត'}` 
+                    : `Step ${idx + 1}: ${step.node_title || step.node_title_kh || 'Decision'}` 
+                  }}
                 </span>
 
                 <span
@@ -104,34 +121,36 @@
                     'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border'
                   ]"
                 >
-                  <span>{{ step.is_best ? '✓ ល្អបំផុត' : 'ជម្រើសធម្មតា' }}</span>
+                  <span>{{ step.is_best ? (isKm ? '✓ ល្អបំផុត' : '✓ Optimal') : (isKm ? 'ជម្រើសធម្មតា' : 'Sub-optimal') }}</span>
                   <span>(+{{ step.points }} pts)</span>
                 </span>
               </div>
 
               <!-- Context Question -->
               <p class="text-xs text-slate-600 dark:text-slate-300 line-clamp-2 italic">
-                "{{ step.node_body }}"
+                "{{ isKm ? (step.node_body_kh || step.node_body) : (step.node_body || step.node_body_kh) }}"
               </p>
 
               <!-- What student chose -->
               <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700 space-y-1">
                 <span class="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">
-                  ចម្លើយដែលអ្នកបានជ្រើសរើស៖
+                  {{ isKm ? 'ចម្លើយដែលអ្នកបានជ្រើសរើស៖' : 'Your Selected Response:' }}
                 </span>
                 <p class="text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100">
-                  {{ step.chosen_label }}
+                  {{ isKm ? (step.chosen_label_kh || step.chosen_label) : (step.chosen_label || step.chosen_label_kh) }}
                 </p>
               </div>
 
               <!-- Feedback of that choice -->
-              <div v-if="step.feedback" class="p-3 rounded-xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/30 text-xs text-purple-900 dark:text-purple-200 leading-relaxed">
-                <span class="font-bold">មតិកែលម្អ៖ </span>{{ step.feedback }}
+              <div v-if="step.feedback || step.feedback_kh" class="p-3 rounded-xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/30 text-xs text-purple-900 dark:text-purple-200 leading-relaxed">
+                <span class="font-bold">{{ isKm ? 'មតិកែលម្អ៖ ' : 'Feedback: ' }}</span>
+                {{ isKm ? (step.feedback_kh || step.feedback) : (step.feedback || step.feedback_kh) }}
               </div>
 
               <!-- Better choice hint if not best -->
-              <div v-if="!step.is_best && step.best_choice_label" class="p-3 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 text-xs text-emerald-900 dark:text-emerald-200 leading-relaxed">
-                <span class="font-bold">💡 ជម្រើសដែលប្រសើរជាង៖ </span>{{ step.best_choice_label }}
+              <div v-if="!step.is_best && (step.best_choice_label || step.best_choice_label_kh)" class="p-3 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 text-xs text-emerald-900 dark:text-emerald-200 leading-relaxed">
+                <span class="font-bold">{{ isKm ? '💡 ជម្រើសដែលប្រសើរជាង៖ ' : '💡 Better Choice: ' }}</span>
+                {{ isKm ? (step.best_choice_label_kh || step.best_choice_label) : (step.best_choice_label || step.best_choice_label_kh) }}
               </div>
             </div>
           </div>
@@ -140,7 +159,10 @@
         <!-- Footer Actions -->
         <div class="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <span class="text-xs text-slate-500 dark:text-slate-400">
-            នៅសល់សិទ្ធិអនុវត្តចំនួន <strong class="text-slate-900 dark:text-white">{{ attempts_left }}</strong> ដងទៀត។
+            {{ isKm 
+              ? `នៅសល់សិទ្ធិអនុវត្តចំនួន ${attempts_left} ដងទៀត។` 
+              : `${attempts_left} attempt(s) remaining.` 
+            }}
           </span>
 
           <div class="flex items-center gap-3 w-full sm:w-auto">
@@ -150,14 +172,14 @@
               type="button"
               class="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 active:scale-[0.98] transition-all shadow-xs cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
             >
-              🔄 សាកល្បងអនុវត្តឡើងវិញ (Retry)
+              {{ isKm ? '🔄 សាកល្បងអនុវត្តឡើងវិញ (Retry)' : '🔄 Retry Scenario' }}
             </button>
 
             <Link
               href="/student/simulations"
               class="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 transition-colors text-center"
             >
-              បញ្ចប់ & ត្រឡប់ក្រោយ
+              {{ isKm ? 'បញ្ចប់ & ត្រឡប់ក្រោយ' : 'Finish & Return' }}
             </Link>
           </div>
         </div>
@@ -168,19 +190,26 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
 import StudentLayout from '@/Layouts/StudentLayout.vue'
+import { useLanguage } from '@/Services/i18n'
 
 interface StepSummary {
   step_id: number
   node_id: number
   node_title: string | null
+  node_title_kh?: string | null
   node_body: string
+  node_body_kh?: string | null
   chosen_label: string
+  chosen_label_kh?: string | null
   points: number
   feedback: string | null
+  feedback_kh?: string | null
   is_best: boolean
   best_choice_label: string | null
+  best_choice_label_kh?: string | null
 }
 
 const props = defineProps<{
@@ -209,6 +238,9 @@ const props = defineProps<{
   attempts_left: number
 }>()
 
+const { currentLang, isKhmer } = useLanguage()
+const isKm = computed(() => isKhmer.value || currentLang.value === 'km')
+
 const retrySimulation = () => {
   router.post(`/student/simulations/${props.simulation.id}/start`)
 }
@@ -216,7 +248,7 @@ const retrySimulation = () => {
 const formatDate = (dateStr: string | null) => {
   if (!dateStr) return '—'
   const d = new Date(dateStr)
-  return d.toLocaleDateString('km-KH', {
+  return d.toLocaleDateString(isKm.value ? 'km-KH' : 'en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',

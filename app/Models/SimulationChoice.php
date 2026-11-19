@@ -24,10 +24,12 @@ class SimulationChoice extends Model
     protected $fillable = [
         'node_id',
         'label',
+        'label_kh',
         'next_node_id',
         'points',
         'is_best',
         'feedback',
+        'feedback_kh',
     ];
 
     protected $casts = [

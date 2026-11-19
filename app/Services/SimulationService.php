@@ -68,6 +68,7 @@ class SimulationService
                 'skill' => $sim->skill,
                 'kind' => $sim->kind,
                 'instructions' => $sim->instructions,
+                'instructions_kh' => $sim->instructions_kh,
                 'estimated_minutes' => $sim->estimated_minutes,
                 'is_graded' => $sim->is_graded,
                 'pass_score' => $sim->pass_score,
@@ -248,7 +249,9 @@ class SimulationService
         return [
             'id' => $node->id,
             'title' => $node->title,
+            'title_kh' => $node->title_kh,
             'body' => $node->body,
+            'body_kh' => $node->body_kh,
             'media_path' => $node->media_path,
             'is_end' => $node->is_end,
             'choices' => $node->choices->map(function (SimulationChoice $choice) {
@@ -256,6 +259,7 @@ class SimulationService
                 return [
                     'id' => $choice->id,
                     'label' => $choice->label,
+                    'label_kh' => $choice->label_kh,
                 ];
             })->values(),
         ];
@@ -270,6 +274,7 @@ class SimulationService
 
         return [
             'feedback' => $choice->feedback,
+            'feedback_kh' => $choice->feedback_kh,
             'points_awarded' => $choice->points,
             'current_score' => $attempt->score,
             'done' => $attempt->status === 'completed',
@@ -309,12 +314,17 @@ class SimulationService
                 'step_id' => $step->id,
                 'node_id' => $node->id,
                 'node_title' => $node->title,
+                'node_title_kh' => $node->title_kh,
                 'node_body' => $node->body,
+                'node_body_kh' => $node->body_kh,
                 'chosen_label' => $choice->label,
+                'chosen_label_kh' => $choice->label_kh,
                 'points' => $step->points,
                 'feedback' => $choice->feedback,
+                'feedback_kh' => $choice->feedback_kh,
                 'is_best' => $choice->is_best,
                 'best_choice_label' => ($choice->is_best) ? null : $bestChoice?->label,
+                'best_choice_label_kh' => ($choice->is_best) ? null : $bestChoice?->label_kh,
             ];
         });
 

@@ -39,6 +39,7 @@ class Simulation extends Model
         'skill',
         'kind',
         'instructions',
+        'instructions_kh',
         'estimated_minutes',
         'is_graded',
         'pass_score',

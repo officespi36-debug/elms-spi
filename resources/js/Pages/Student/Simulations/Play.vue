@@ -7,25 +7,31 @@
         <div class="flex items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-slate-800">
           <div>
             <nav class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1">
-              <Link href="/student/simulations" class="hover:text-purple-600 dark:hover:text-purple-400 transition-colors">ស៊ីមុយឡាទ័រ</Link>
+              <Link href="/student/simulations" class="hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
+                {{ isKm ? 'ស៊ីមុយឡាទ័រ' : 'Simulations' }}
+              </Link>
               <span>/</span>
-              <span class="text-purple-600 dark:text-purple-400 font-semibold">កំពុងអនុវត្ត</span>
+              <span class="text-purple-600 dark:text-purple-400 font-semibold">
+                {{ isKm ? 'កំពុងអនុវត្ត' : 'In Progress' }}
+              </span>
             </nav>
             <h1 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
-              {{ simulation.title_kh || simulation.title }}
+              {{ isKm ? (simulation.title_kh || simulation.title) : (simulation.title || simulation.title_kh) }}
             </h1>
           </div>
 
           <div class="flex items-center gap-3">
             <div class="text-right">
-              <span class="text-[11px] text-slate-400 dark:text-slate-500 block">ពិន្ទុបច្ចុប្បន្ន</span>
+              <span class="text-[11px] text-slate-400 dark:text-slate-500 block">
+                {{ isKm ? 'ពិន្ទុបច្ចុប្បន្ន' : 'Current Score' }}
+              </span>
               <span class="text-lg font-extrabold text-purple-600 dark:text-purple-400">{{ currentScore }} pts</span>
             </div>
             <Link
               href="/student/simulations"
               class="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-200/80 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors"
             >
-              ចាកចេញ
+              {{ isKm ? 'ចាកចេញ' : 'Exit' }}
             </Link>
           </div>
         </div>
@@ -33,8 +39,12 @@
         <!-- Step Progress Bar -->
         <div class="space-y-1.5">
           <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-            <span>ដំណើរការអនុវត្ត (Attempt #{{ attempt.attempt_no }})</span>
-            <span class="font-semibold text-purple-600 dark:text-purple-400">ជំហានទី {{ stepIndex }}</span>
+            <span>
+              {{ isKm ? `ដំណើរការអនុវត្ត (Attempt #${attempt.attempt_no})` : `Simulation Progress (Attempt #${attempt.attempt_no})` }}
+            </span>
+            <span class="font-semibold text-purple-600 dark:text-purple-400">
+              {{ isKm ? `ជំហានទី ${stepIndex}` : `Step ${stepIndex}` }}
+            </span>
           </div>
           <div class="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
             <div
@@ -51,13 +61,13 @@
           <div class="p-6 sm:p-8 space-y-4">
             <div class="flex items-center gap-2">
               <span class="px-3 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300">
-                {{ currentNode.title || `ស្ថានភាពជំហានទី ${stepIndex}` }}
+                {{ localizedNodeTitle }}
               </span>
             </div>
 
             <!-- Scene Body (Markdown / Prose) -->
             <div class="prose prose-slate dark:prose-invert max-w-none text-sm sm:text-base leading-relaxed text-slate-800 dark:text-slate-200 whitespace-pre-line">
-              {{ currentNode.body }}
+              {{ localizedNodeBody }}
             </div>
 
             <!-- Optional Media -->
@@ -74,14 +84,14 @@
             <div class="flex items-center justify-between">
               <span class="text-xs font-bold uppercase tracking-wider text-purple-700 dark:text-purple-300 flex items-center gap-1.5">
                 <span>💡</span>
-                <span>មតិកែលម្អលើការសម្រេចចិត្ត (Feedback)</span>
+                <span>{{ isKm ? 'មតិកែលម្អលើការសម្រេចចិត្ត (Feedback)' : 'Decision Feedback' }}</span>
               </span>
               <span class="text-xs font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/60 px-2.5 py-1 rounded-lg">
-                +{{ lastAwardedPoints }} ពិន្ទុ
+                +{{ lastAwardedPoints }} {{ isKm ? 'ពិន្ទុ' : 'pts' }}
               </span>
             </div>
             <p class="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
-              {{ stepFeedback }}
+              {{ localizedFeedback }}
             </p>
 
             <div class="pt-2 flex justify-end">
@@ -90,7 +100,12 @@
                 type="button"
                 class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-purple-600 hover:bg-purple-700 active:scale-[0.98] transition-all shadow-xs flex items-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
               >
-                <span>{{ isCompleted ? 'បញ្ចប់ & មើលលទ្ធផលសង្ខេប' : 'បន្តទៅជំហានបន្ទាប់' }}</span>
+                <span>
+                  {{ isCompleted 
+                    ? (isKm ? 'បញ្ចប់ & មើលលទ្ធផលសង្ខេប' : 'Complete & View Summary') 
+                    : (isKm ? 'បន្តទៅជំហានបន្ទាប់' : 'Continue to Next Step') 
+                  }}
+                </span>
                 <span>→</span>
               </button>
             </div>
@@ -100,7 +115,12 @@
           <div v-else class="p-6 sm:p-8 pt-0 space-y-3">
             <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
               <span>🎯</span>
-              <span>ចូរជ្រើសរើសការឆ្លើយតបដ៏ល្អបំផុត (ចុចលេខ 1-{{ currentNode.choices?.length || 4 }} លើក្តារចុច)៖</span>
+              <span>
+                {{ isKm 
+                  ? `ចូរជ្រើសរើសការឆ្លើយតបដ៏ល្អបំផុត (ចុចលេខ 1-${currentNode.choices?.length || 4} លើក្តារចុច)៖` 
+                  : `Choose the best professional response (Press 1-${currentNode.choices?.length || 4} on keyboard):` 
+                }}
+              </span>
             </h4>
 
             <div class="space-y-3">
@@ -119,7 +139,7 @@
                 
                 <!-- Choice Text -->
                 <span class="text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 group-hover:text-purple-700 dark:group-hover:text-purple-300 leading-snug flex-1">
-                  {{ choice.label }}
+                  {{ isKm ? (choice.label_kh || choice.label) : (choice.label || choice.label_kh) }}
                 </span>
 
                 <svg class="w-4 h-4 text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 shrink-0 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -136,15 +156,17 @@
           <div class="w-16 h-16 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto text-2xl">
             🎉
           </div>
-          <h3 class="text-xl font-bold text-slate-900 dark:text-white">ការអនុវត្តបានបញ្ចប់!</h3>
+          <h3 class="text-xl font-bold text-slate-900 dark:text-white">
+            {{ isKm ? 'ការអនុវត្តបានបញ្ចប់!' : 'Scenario Completed!' }}
+          </h3>
           <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            កំពុងរៀបចំរបាយការណ៍សង្ខេបពិន្ទុ និងការវិភាគការសម្រេចចិត្តរបស់អ្នក...
+            {{ isKm ? 'កំពុងរៀបចំរបាយការណ៍សង្ខេបពិន្ទុ និងការវិភាគការសម្រេចចិត្តរបស់អ្នក...' : 'Preparing your score summary and decision breakdown...' }}
           </p>
           <Link
             :href="`/student/simulation-attempts/${attempt.id}/summary`"
             class="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-xs sm:text-sm font-bold text-white bg-purple-600 hover:bg-purple-700 transition-all"
           >
-            មើលរបាយការណ៍សង្ខេបភ្លាមៗ →
+            {{ isKm ? 'មើលរបាយការណ៍សង្ខេបភ្លាមៗ →' : 'View Summary Now →' }}
           </Link>
         </div>
 
@@ -157,16 +179,20 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
 import StudentLayout from '@/Layouts/StudentLayout.vue'
+import { useLanguage } from '@/Services/i18n'
 
 interface Choice {
   id: number
   label: string
+  label_kh?: string | null
 }
 
 interface NodePayload {
   id: number
   title: string | null
+  title_kh?: string | null
   body: string
+  body_kh?: string | null
   media_path: string | null
   is_end: boolean
   choices: Choice[]
@@ -192,18 +218,41 @@ const props = defineProps<{
   node: NodePayload | null
 }>()
 
+const { currentLang, isKhmer } = useLanguage()
+const isKm = computed(() => isKhmer.value || currentLang.value === 'km')
+
 const currentNode = ref<NodePayload | null>(props.node)
 const stepIndex = ref(props.attempt.steps_count + 1)
 const currentScore = ref(props.attempt.score)
 const isSubmitting = ref(false)
 const stepFeedback = ref<string | null>(null)
+const stepFeedbackKh = ref<string | null>(null)
 const lastAwardedPoints = ref<number>(0)
 const isCompleted = ref(props.attempt.status === 'completed')
 const nextPendingNode = ref<NodePayload | null>(null)
 
+const localizedNodeTitle = computed(() => {
+  if (!currentNode.value) return ''
+  return isKm.value 
+    ? (currentNode.value.title_kh || currentNode.value.title || `ស្ថានភាពជំហានទី ${stepIndex.value}`)
+    : (currentNode.value.title || currentNode.value.title_kh || `Scenario Step ${stepIndex.value}`)
+})
+
+const localizedNodeBody = computed(() => {
+  if (!currentNode.value) return ''
+  return isKm.value 
+    ? (currentNode.value.body_kh || currentNode.value.body) 
+    : (currentNode.value.body || currentNode.value.body_kh)
+})
+
+const localizedFeedback = computed(() => {
+  return isKm.value 
+    ? (stepFeedbackKh.value || stepFeedback.value || 'ការសម្រេចចិត្តត្រូវបានកត់ត្រា។') 
+    : (stepFeedback.value || stepFeedbackKh.value || 'Decision recorded.')
+})
+
 const progressPercent = computed(() => {
   if (isCompleted.value) return 100
-  // Estimated progress based on steps
   return Math.min(95, Math.max(15, (stepIndex.value / 5) * 100))
 })
 
@@ -227,7 +276,8 @@ const submitChoice = async (choiceId: number) => {
     }
 
     const data = await res.json()
-    stepFeedback.value = data.feedback || 'ការសម្រេចចិត្តត្រូវបានកត់ត្រា។'
+    stepFeedback.value = data.feedback || ''
+    stepFeedbackKh.value = data.feedback_kh || data.feedback || ''
     lastAwardedPoints.value = data.points_awarded || 0
     currentScore.value = data.current_score || currentScore.value + data.points_awarded
     isCompleted.value = Boolean(data.done)
@@ -247,6 +297,7 @@ const advanceToNextStep = () => {
 
   currentNode.value = nextPendingNode.value
   stepFeedback.value = null
+  stepFeedbackKh.value = null
   stepIndex.value += 1
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
