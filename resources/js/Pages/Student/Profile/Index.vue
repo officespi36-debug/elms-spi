@@ -4,6 +4,7 @@ import { useForm, usePage, router } from '@inertiajs/vue3'
 import StudentLayout from '@/Layouts/StudentLayout.vue'
 import QRCode from 'qrcode'
 import { useAppToast } from '@/composables/useAppToast'
+import { i18n } from '@/Services/i18n'
 
 interface MissingFieldItem {
   key: string
@@ -126,13 +127,8 @@ const page = usePage<any>()
 const cardLogoUrl = '/images/logo.png'
 const toast = useAppToast()
 
-// 1. Language detection
-const currentLang = computed<'km' | 'en'>(() => {
-  const pLang = page.props?.auth?.user?.preferences?.locale || page.props?.auth?.user?.preferences?.language
-  if (pLang === 'en' || pLang === 'km') return pLang
-  const local = localStorage.getItem('elms_lang')
-  return local === 'en' ? 'en' : 'km'
-})
+// 1. Language detection (Reactive with global i18n service)
+const currentLang = computed<'km' | 'en'>(() => (i18n.locale.value === 'en' ? 'en' : 'km'))
 
 // 2. Tab Navigation
 const validTabs = ['id-card', 'personal', 'academic', 'security', 'history']
@@ -715,7 +711,7 @@ const getLogTypeBadge = (type: string) => {
                         {{ currentLang === 'km' ? (idCard.institution_kh || idCard.institution) : idCard.institution }}
                       </p>
                       <p class="text-[9px] font-semibold text-amber-300/90 tracking-wider uppercase truncate">
-                        SAINT PAUL INSTITUTE
+                        {{ currentLang === 'km' ? 'វិទ្យាស្ថាន សន្តប៉ូល' : 'SAINT PAUL INSTITUTE' }}
                       </p>
                     </div>
                   </div>
@@ -808,24 +804,24 @@ const getLogTypeBadge = (type: string) => {
                 </div>
 
                 <!-- Card Bottom: CARD NO, TERM, and VALID THRU in Equal Alignment -->
-                <div class="pt-2 border-t border-slate-700/60 flex items-center justify-between gap-2 text-[11px] text-slate-100 whitespace-nowrap overflow-hidden relative z-10">
+                <div class="pt-2 border-t border-slate-700/60 flex items-center justify-between gap-1.5 sm:gap-2 text-[9.5px] sm:text-[10px] text-slate-100 whitespace-nowrap relative z-10">
                   <!-- Term / Academic Year -->
-                  <div class="flex items-center gap-1 shrink-0 truncate max-w-[170px]">
-                    <span class="text-slate-400 text-[10px]">{{ currentLang === 'km' ? 'ឆមាស:' : 'Term:' }}</span>
-                    <span class="font-bold text-emerald-300 truncate">
+                  <div class="flex items-center gap-1 min-w-0 flex-1 truncate">
+                    <span class="text-slate-400 text-[8.5px] sm:text-[9.5px] shrink-0">{{ currentLang === 'km' ? 'ឆមាស:' : 'TERM:' }}</span>
+                    <span class="font-bold text-emerald-300 truncate" :title="currentLang === 'km' ? (academic.term_kh || academic.term) : academic.term">
                       {{ currentLang === 'km' ? (academic.term_kh || academic.term) : academic.term }}
                     </span>
                   </div>
 
                   <!-- Card No -->
-                  <div class="flex items-center gap-1 shrink-0 font-mono text-[10.5px] text-slate-300 bg-slate-900/60 px-1.5 py-0.5 rounded border border-slate-700/60">
-                    <span class="text-slate-400 text-[9px] font-sans">CARD:</span>
+                  <div class="flex items-center gap-1 shrink-0 font-mono text-[9px] sm:text-[9.5px] text-slate-300 bg-slate-900/70 px-1.5 py-0.5 rounded border border-slate-700/60">
+                    <span class="text-slate-400 text-[8px] font-sans">CARD:</span>
                     <span class="font-bold text-white">{{ idCard.card_no }}</span>
                   </div>
 
                   <!-- Valid Thru -->
                   <div class="flex items-center gap-1 shrink-0">
-                    <span class="text-slate-400 text-[10px]">{{ currentLang === 'km' ? 'សុពលភាព:' : 'Valid Thru:' }}</span>
+                    <span class="text-slate-400 text-[8.5px] sm:text-[9.5px] uppercase">{{ currentLang === 'km' ? 'សុពលភាព:' : 'EXP:' }}</span>
                     <span class="font-bold text-amber-200">
                       {{ currentLang === 'km' ? (idCard.expires_at_kh || idCard.expires_at) : idCard.expires_at }}
                     </span>
@@ -848,7 +844,7 @@ const getLogTypeBadge = (type: string) => {
                 <!-- Back Magnetic Security Strip -->
                 <div class="w-full h-7 sm:h-7.5 bg-gradient-to-r from-[#030712] via-[#111827] to-[#030712] rounded-lg border border-slate-800 -mx-0.5 flex items-center justify-between px-3 shadow-inner relative z-10">
                   <span class="text-[8px] font-mono tracking-widest text-slate-400 uppercase">
-                    {{ currentLang === 'km' ? 'ការផ្ទៀងផ្ទាត់អត្តសញ្ញាណនិស្សិត (STUDENT VERIFICATION)' : 'STUDENT IDENTITY VERIFICATION' }}
+                    {{ currentLang === 'km' ? 'ការផ្ទៀងផ្ទាត់អត្តសញ្ញាណនិស្សិត' : 'STUDENT IDENTITY VERIFICATION' }}
                   </span>
                   <span class="text-[7.5px] font-mono text-amber-400/80 tracking-wider">SPI SECURE</span>
                 </div>
@@ -869,7 +865,7 @@ const getLogTypeBadge = (type: string) => {
                       </div>
                     </div>
                     <span class="text-[8px] font-mono text-slate-400 mt-1 uppercase tracking-wider">
-                      SCAN TO VERIFY
+                      {{ currentLang === 'km' ? 'ស្កេនផ្ទៀងផ្ទាត់' : 'SCAN TO VERIFY' }}
                     </span>
                   </div>
 
@@ -877,7 +873,7 @@ const getLogTypeBadge = (type: string) => {
                   <div class="space-y-1.5 text-[9.5px] text-slate-300 max-w-[235px] leading-relaxed flex-1">
                     <!-- Authorized Signature Strip -->
                     <div class="w-full bg-slate-100 rounded border border-slate-300 px-2 py-0.5 flex items-center justify-between select-none">
-                      <span class="text-[7px] font-mono text-slate-500 uppercase tracking-wider">AUTHORIZED SIGNATURE / ហត្ថលេខា</span>
+                      <span class="text-[7px] font-mono text-slate-600 uppercase tracking-wider">{{ currentLang === 'km' ? 'ហត្ថលេខាម្ចាស់កាត' : 'AUTHORIZED SIGNATURE' }}</span>
                       <span class="text-[7.5px] font-mono font-bold text-slate-800">{{ profile.student_id }}</span>
                     </div>
 
@@ -1071,7 +1067,7 @@ const getLogTypeBadge = (type: string) => {
             <!-- Full Name Card -->
             <div class="p-4.5 bg-[#f8fafc] dark:bg-[#131314] rounded-2xl border border-[#dfe3e7] dark:border-[#2d2f31] space-y-1 relative hover:border-indigo-400 transition-colors group">
               <div class="flex items-center justify-between">
-                <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Full Name</span>
+                <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider">{{ currentLang === 'km' ? 'ឈ្មោះពេញ' : 'Full Name' }}</span>
                 <span class="text-slate-400 text-xs">🔒</span>
               </div>
               <p class="text-sm font-bold text-slate-900 dark:text-white pt-0.5">{{ profile.name }}</p>
@@ -1088,7 +1084,7 @@ const getLogTypeBadge = (type: string) => {
             <!-- Student ID Card -->
             <div class="p-4.5 bg-[#f8fafc] dark:bg-[#131314] rounded-2xl border border-[#dfe3e7] dark:border-[#2d2f31] space-y-1 relative hover:border-indigo-400 transition-colors group">
               <div class="flex items-center justify-between">
-                <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Official Student ID</span>
+                <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider">{{ currentLang === 'km' ? 'អត្តលេខផ្លូវការ' : 'Official Student ID' }}</span>
                 <span class="text-slate-400 text-xs">🔒</span>
               </div>
               <p class="text-sm font-mono font-bold text-slate-900 dark:text-white pt-0.5">{{ profile.student_id }}</p>
@@ -1105,7 +1101,7 @@ const getLogTypeBadge = (type: string) => {
             <!-- Academic Major Card -->
             <div class="p-4.5 bg-[#f8fafc] dark:bg-[#131314] rounded-2xl border border-[#dfe3e7] dark:border-[#2d2f31] space-y-1 relative hover:border-indigo-400 transition-colors group">
               <div class="flex items-center justify-between">
-                <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Major Specialization</span>
+                <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider">{{ currentLang === 'km' ? 'ជំនាញឯកទេស' : 'Major Specialization' }}</span>
                 <span class="text-slate-400 text-xs">🔒</span>
               </div>
               <p class="text-sm font-bold text-indigo-600 dark:text-indigo-400 pt-0.5">{{ currentLang === 'km' ? (academic.major_kh || academic.major) : academic.major }}</p>
@@ -1376,7 +1372,7 @@ const getLogTypeBadge = (type: string) => {
 
             <div class="pt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
               <span>{{ currentLang === 'km' ? 'ស្ថានភាពសិក្សា' : 'Status' }}</span>
-              <span class="font-bold text-emerald-600 dark:text-emerald-400">Enrolled & Active</span>
+              <span class="font-bold text-emerald-600 dark:text-emerald-400">{{ currentLang === 'km' ? 'កំពុងសិក្សាសកម្ម' : 'Enrolled & Active' }}</span>
             </div>
           </div>
 
@@ -1424,7 +1420,7 @@ const getLogTypeBadge = (type: string) => {
                   @click="showCurrentPassword = !showCurrentPassword"
                   class="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600 text-xs cursor-pointer font-bold"
                 >
-                  {{ showCurrentPassword ? 'Hide' : 'Show' }}
+                  {{ showCurrentPassword ? (currentLang === 'km' ? 'លាក់' : 'Hide') : (currentLang === 'km' ? 'បង្ហាញ' : 'Show') }}
                 </button>
               </div>
               <p v-if="passwordForm.errors.current_password" class="mt-1 text-[11px] text-rose-500 font-medium">
@@ -1450,7 +1446,7 @@ const getLogTypeBadge = (type: string) => {
                   @click="showNewPassword = !showNewPassword"
                   class="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600 text-xs cursor-pointer font-bold"
                 >
-                  {{ showNewPassword ? 'Hide' : 'Show' }}
+                  {{ showNewPassword ? (currentLang === 'km' ? 'លាក់' : 'Hide') : (currentLang === 'km' ? 'បង្ហាញ' : 'Show') }}
                 </button>
               </div>
 
@@ -1489,7 +1485,7 @@ const getLogTypeBadge = (type: string) => {
                   @click="showConfirmPassword = !showConfirmPassword"
                   class="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600 text-xs cursor-pointer font-bold"
                 >
-                  {{ showConfirmPassword ? 'Hide' : 'Show' }}
+                  {{ showConfirmPassword ? (currentLang === 'km' ? 'លាក់' : 'Hide') : (currentLang === 'km' ? 'បង្ហាញ' : 'Show') }}
                 </button>
               </div>
               <p v-if="passwordForm.errors.password_confirmation" class="mt-1 text-[11px] text-rose-500 font-medium">
