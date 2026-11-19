@@ -113,22 +113,46 @@
             width: 68px;
             height: 68px;
             flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform-origin: 50% 50% !important;
+            -webkit-transform-origin: 50% 50% !important;
             will-change: transform;
             transform: translate3d(0, 0, 0);
             backface-visibility: hidden;
             filter: drop-shadow(0 2px 8px rgba(0, 153, 255, 0.35));
-            animation: initRingSpin 1.15s linear infinite;
+            -webkit-animation: initRingSpin 1.1s linear infinite !important;
+            animation: initRingSpin 1.1s linear infinite !important;
         }
 
         .init-ring-svg {
             display: block;
             width: 100%;
             height: 100%;
+            transform-origin: 50% 50% !important;
+            -webkit-transform-origin: 50% 50% !important;
+        }
+
+        @-webkit-keyframes initRingSpin {
+            0% {
+                -webkit-transform: rotate(0deg);
+                transform: rotate(0deg);
+            }
+            100% {
+                -webkit-transform: rotate(360deg);
+                transform: rotate(360deg);
+            }
         }
 
         @keyframes initRingSpin {
-            to {
-                transform: translate3d(0, 0, 0) rotate(360deg);
+            0% {
+                -webkit-transform: rotate(0deg);
+                transform: rotate(0deg);
+            }
+            100% {
+                -webkit-transform: rotate(360deg);
+                transform: rotate(360deg);
             }
         }
 
@@ -298,6 +322,19 @@
                 if (txt) {
                     var lang = localStorage.getItem('elms_lang') || document.documentElement.lang || 'km';
                     txt.textContent = (lang === 'en') ? 'Please wait while loading...' : 'សូមរង់ចាំ កំពុងដំណើរការ...';
+                }
+                var ring = document.querySelector('.init-ring-wrap');
+                if (ring) {
+                    var start = null;
+                    function spinStep(ts) {
+                        if (!document.getElementById('initial-page-preloader')) return;
+                        if (!start) start = ts;
+                        var deg = Math.floor(((ts - start) / 1100) * 360) % 360;
+                        ring.style.transform = 'rotate(' + deg + 'deg)';
+                        ring.style.webkitTransform = 'rotate(' + deg + 'deg)';
+                        requestAnimationFrame(spinStep);
+                    }
+                    requestAnimationFrame(spinStep);
                 }
             } catch(e) {}
         })();

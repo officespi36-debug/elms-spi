@@ -131,7 +131,7 @@ createInertiaApp({
               try { preloader.remove() } catch (e) { }
             }, 260)
           })
-        }, 300)
+        }, 480)
       }
     }
   },

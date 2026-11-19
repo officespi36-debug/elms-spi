@@ -534,6 +534,7 @@ html.dark .p-toast .p-toast-close-button:hover {
 
 /* ==========================================================================
    Accessibility: Strict Reduced Motion Compliance
+   (Preserve continuous essential loading spinners so users know tasks are active)
    ========================================================================== */
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*),
@@ -541,10 +542,18 @@ html.dark .p-toast .p-toast-close-button:hover {
   ::view-transition-new(*) {
     animation: none !important;
   }
-  *, *::before, *::after {
+  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.animate-spin):not(.loading-spinner),
+  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.animate-spin):not(.loading-spinner)::before,
+  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.animate-spin):not(.loading-spinner)::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+  .init-ring-wrap,
+  .blue-ring-wrap,
+  .init-ring-svg {
+    animation-duration: 1.1s !important;
+    animation-iteration-count: infinite !important;
   }
 }

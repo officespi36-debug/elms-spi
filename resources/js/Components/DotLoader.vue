@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import { useLanguage } from '@/Services/i18n'
 
 const props = withDefaults(defineProps<{
@@ -45,11 +45,33 @@ const sizeClass = computed(() => {
     default: return 'w-[68px] h-[68px]'
   }
 })
+
+const ringRef = ref<HTMLElement | null>(null)
+let animId: number | null = null
+
+onMounted(() => {
+  if (typeof window === 'undefined') return
+  let start: number | null = null
+  const spin = (ts: number) => {
+    if (!ringRef.value) return
+    if (!start) start = ts
+    const deg = Math.floor(((ts - start) / 1100) * 360) % 360
+    ringRef.value.style.transform = `rotate(${deg}deg)`
+    animId = requestAnimationFrame(spin)
+  }
+  animId = requestAnimationFrame(spin)
+})
+
+onBeforeUnmount(() => {
+  if (animId !== null) {
+    cancelAnimationFrame(animId)
+  }
+})
 </script>
 
 <template>
   <div class="flex flex-col items-center justify-center gap-3.5 select-none text-center">
-    <div :class="['blue-ring-wrap shrink-0', sizeClass]" aria-hidden="true">
+    <div ref="ringRef" :class="['blue-ring-wrap shrink-0', sizeClass]" aria-hidden="true">
       <svg
         class="block w-full h-full"
         viewBox="0 0 64 64"
@@ -81,17 +103,36 @@ const sizeClass = computed(() => {
 
 <style scoped>
 .blue-ring-wrap {
-  transform-origin: center center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: 50% 50% !important;
+  -webkit-transform-origin: 50% 50% !important;
   will-change: transform;
-  transform: translate3d(0, 0, 0);
-  backface-visibility: hidden;
   filter: drop-shadow(0 2px 8px rgba(0, 153, 255, 0.35));
-  animation: blueRingSpin 1.15s linear infinite;
+  -webkit-animation: blueRingSpin 1.1s linear infinite !important;
+  animation: blueRingSpin 1.1s linear infinite !important;
+}
+
+@-webkit-keyframes blueRingSpin {
+  0% {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes blueRingSpin {
-  to {
-    transform: translate3d(0, 0, 0) rotate(360deg);
+  0% {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
   }
 }
 
