@@ -1709,10 +1709,14 @@ const recentActivities = computed(() => {
           <!-- AI RECOMMENDED FOR YOU CARD (Uniform thin border, single header, no 16px text) -->
           <div class="relative overflow-hidden bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-[#0b57d0] dark:hover:border-[#8ab4f8] rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3.5 transition-all">
             <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <!-- Google Gemini 4-Point Sparkle Icon -->
-                <div class="w-6 h-6 rounded-lg bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-xs shrink-0">
-                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
+              <div class="flex items-center gap-2.5">
+                <!-- Google Gemini / AI Sparkle Icon Badge (Crisp High-DPI, Premium Squircle) -->
+                <div class="relative flex items-center justify-center w-7.5 h-7.5 rounded-xl bg-gradient-to-br from-violet-600 via-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/25 ring-1 ring-white/20 dark:ring-white/10 shrink-0 select-none">
+                  <svg class="w-4 h-4 drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]" viewBox="0 0 24 24" fill="none">
+                    <!-- Primary Gemini 4-Point Star (Crisp luminous white for maximum contrast & beauty) -->
+                    <path d="M12 2C12 7.52285 7.52285 12 2 12C7.52285 12 12 16.4772 12 22C12 16.4772 16.4772 12 22 12C16.4772 12 12 7.52285 12 2Z" fill="#ffffff" />
+                    <!-- Companion Sparkle Accent -->
+                    <path d="M19.5 2.5C19.5 4.15685 18.1569 5.5 16.5 5.5C18.1569 5.5 19.5 6.84315 19.5 8.5C19.5 6.84315 20.8431 5.5 22.5 5.5C20.8431 5.5 19.5 4.15685 19.5 2.5Z" fill="#e0e7ff" fill-opacity="0.9" />
                     <defs>
                       <linearGradient id="geminiSparkleHead" x1="0" y1="0" x2="1" y2="1">
                         <stop offset="0%" stop-color="#4285F4" />
@@ -1721,7 +1725,6 @@ const recentActivities = computed(() => {
                         <stop offset="100%" stop-color="#FBBC05" />
                       </linearGradient>
                     </defs>
-                    <path d="M12 2C12 7.52285 7.52285 12 2 12C7.52285 12 12 16.4772 12 22C12 16.4772 16.4772 12 22 12C16.4772 12 12 7.52285 12 2Z" fill="url(#geminiSparkleHead)" />
                   </svg>
                 </div>
                 <h3 class="text-[18px] font-semibold text-slate-900 dark:text-slate-100">
