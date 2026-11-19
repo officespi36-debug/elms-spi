@@ -127,6 +127,21 @@ class User extends Authenticatable implements AuthenticatableContract, JWTSubjec
         return [];
     }
 
+    public function idCard()
+    {
+        return $this->hasOne(IdCard::class);
+    }
+
+    public function academicRecord()
+    {
+        return $this->hasOne(AcademicRecord::class);
+    }
+
+    public function profileChangeRequests()
+    {
+        return $this->hasMany(ProfileChangeRequest::class);
+    }
+
     public function major()
     {
         return $this->belongsTo(Major::class);

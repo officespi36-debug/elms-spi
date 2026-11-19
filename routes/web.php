@@ -68,7 +68,10 @@ Route::get('/robots.txt', function () {
     ]);
 });
 
-// ─── Public Certificate Verification ───
+// ─── Public Certificate & ID Card Verification ───
+Route::get('/verify/id/{token}', [Student\ProfileController::class, 'verifyPublicIdCard'])
+    ->middleware('throttle:30,1')
+    ->name('id.verify');
 Route::get('/verify/{code?}', [CertificateController::class, 'verify']);
 Route::get('/certificate/verify/{code?}', [CertificateController::class, 'verify'])->name('certificate.verify');
 Route::get('/verify-certificate/{code?}', [CertificateController::class, 'verify'])->name('verify-certificate.public');
@@ -739,8 +742,13 @@ Route::middleware(['auth'])->group(function () {
 
         // 13. Profile Settings
         Route::get('/profile', [Student\ProfileController::class, 'index'])->name('profile');
+        Route::put('/profile/personal', [Student\ProfileController::class, 'updatePersonal'])->name('profile.personal.update');
         Route::post('/profile', [Student\ProfileController::class, 'update'])->name('profile.update');
-        Route::post('/profile/password', [Student\ProfileController::class, 'updatePassword'])->name('profile.password');
+        Route::post('/profile/password', [Student\ProfileController::class, 'updatePassword'])->middleware('throttle:5,1')->name('profile.password');
+        Route::post('/profile/id-card/regenerate', [Student\ProfileController::class, 'regenerateIdCardToken'])->middleware('throttle:10,1')->name('profile.id-card.regenerate');
+        Route::post('/profile/change-request', [Student\ProfileController::class, 'storeChangeRequest'])->name('profile.change-request');
+        Route::post('/profile/sessions/logout-others', [Student\ProfileController::class, 'logoutOtherSessions'])->name('profile.sessions.logout-others');
+        Route::get('/profile/history/export-csv', [Student\ProfileController::class, 'exportHistoryCsv'])->name('profile.history.export-csv');
 
         // Route Aliases for Direct Dashboard Links
         Route::get('/assignments', [Student\QuizController::class, 'assignments'])->name('assignments');

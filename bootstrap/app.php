@@ -20,7 +20,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->encryptCookies(except: [
             'elms_lang',
         ]);
-        $middleware->web(append: [\App\Http\Middleware\HandleInertiaRequests::class]);
+        $middleware->web(append: [
+            \Illuminate\Session\Middleware\AuthenticateSession::class,
+            \App\Http\Middleware\HandleInertiaRequests::class,
+        ]);
         $middleware->alias(['role' => \App\Http\Middleware\EnsureRole::class]);
         $middleware->preventRequestForgery(except: [
             'auth/telegram',
