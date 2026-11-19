@@ -123,7 +123,7 @@ const props = defineProps<{
 }>()
 
 const page = usePage<any>()
-const spiLogoUrl = '/images/spi-logo.png'
+const cardLogoUrl = '/images/logo.png'
 const toast = useAppToast()
 
 // 1. Language detection
@@ -511,11 +511,8 @@ const getLogTypeBadge = (type: string) => {
 
           <!-- Higher Education Institution Card on Right (Official Config Name) -->
           <div class="bg-[#f8fafc] dark:bg-[#131314] border border-[#dfe3e7] dark:border-[#2d2f31] rounded-2xl p-4 flex items-center gap-3.5 shrink-0 self-start md:self-auto shadow-2xs">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#6366f1] to-[#7c3aed] text-white flex items-center justify-center font-black shadow-sm shrink-0">
-              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-              </svg>
+            <div class="w-10 h-10 rounded-full overflow-hidden shadow-sm shrink-0 ring-1 ring-slate-200 dark:ring-slate-700">
+              <img :src="cardLogoUrl" alt="Logo" class="w-full h-full object-cover" />
             </div>
             <div>
               <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
@@ -698,9 +695,9 @@ const getLogTypeBadge = (type: string) => {
               >
                 <!-- Background Security Watermark & Sheen Layers -->
                 <img
-                  :src="spiLogoUrl"
+                  :src="cardLogoUrl"
                   alt=""
-                  class="absolute right-[-25px] -bottom-10 w-52 h-52 object-contain opacity-[0.06] pointer-events-none select-none blur-[0.5px]"
+                  class="absolute right-[-25px] -bottom-10 w-52 h-52 object-contain rounded-full opacity-[0.08] pointer-events-none select-none blur-[0.5px]"
                 />
                 <div class="absolute inset-0 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:16px_16px] opacity-[0.07] pointer-events-none"></div>
                 <div class="absolute -top-24 -right-24 w-60 h-60 bg-gradient-to-bl from-indigo-500/15 via-cyan-400/10 to-transparent rounded-full blur-2xl pointer-events-none"></div>
@@ -710,8 +707,8 @@ const getLogTypeBadge = (type: string) => {
                 <!-- Card Top Row: Official Institution Name from Config & Logo (NOT E.LMS) -->
                 <div class="flex items-center justify-between border-b border-slate-700/60 pb-2 relative z-10">
                   <div class="flex items-center gap-2.5 min-w-0">
-                    <div class="w-9 h-9 rounded-xl bg-white p-1 border border-white/30 shadow-sm flex items-center justify-center shrink-0">
-                      <img :src="spiLogoUrl" alt="SPI Logo" class="w-full h-full object-contain" />
+                    <div class="w-9 h-9 rounded-full overflow-hidden shadow-sm flex items-center justify-center shrink-0 ring-1 ring-white/30">
+                      <img :src="cardLogoUrl" alt="Logo" class="w-full h-full object-cover" />
                     </div>
                     <div class="min-w-0">
                       <p class="text-xs sm:text-[13px] font-black tracking-wide text-white uppercase drop-shadow-xs truncate">
@@ -842,9 +839,9 @@ const getLogTypeBadge = (type: string) => {
               >
                 <!-- Background Security Watermark & Sheen Layers -->
                 <img
-                  :src="spiLogoUrl"
+                  :src="cardLogoUrl"
                   alt=""
-                  class="absolute left-[-20px] -bottom-10 w-52 h-52 object-contain opacity-[0.06] pointer-events-none select-none blur-[0.5px]"
+                  class="absolute left-[-20px] -bottom-10 w-52 h-52 object-contain rounded-full opacity-[0.08] pointer-events-none select-none blur-[0.5px]"
                 />
                 <div class="absolute inset-0 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:16px_16px] opacity-[0.07] pointer-events-none"></div>
 
@@ -1864,8 +1861,8 @@ const getLogTypeBadge = (type: string) => {
         <!-- Top Row -->
         <div class="flex items-center justify-between border-b border-slate-700 pb-1">
           <div class="flex items-center gap-2">
-            <div class="w-[7mm] h-[7mm] rounded bg-white p-[0.5mm] flex items-center justify-center shrink-0">
-              <img :src="spiLogoUrl" alt="SPI Logo" class="w-full h-full object-contain" />
+            <div class="w-[7mm] h-[7mm] rounded-full overflow-hidden flex items-center justify-center shrink-0">
+              <img :src="cardLogoUrl" alt="Logo" class="w-full h-full object-cover" />
             </div>
             <div>
               <p class="text-[7.5pt] font-black uppercase tracking-wider text-slate-100">
