@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Link, router } from '@inertiajs/vue3'
+import { Link, router, usePage } from '@inertiajs/vue3'
 import StudentLayout from '@/Layouts/StudentLayout.vue'
 import { useLanguage } from '@/Services/i18n'
 
 const { isKhmer } = useLanguage()
+const page = usePage()
+const currentLocale = computed(() => isKhmer.value || (page.props as any)?.locale === 'km' ? 'km' : 'en')
 
 interface ActivityItem {
   id: string | number
@@ -318,37 +320,37 @@ const getHeatmapColor = (level: number) => {
   switch (level) {
     case 4: return 'bg-emerald-500 border-emerald-400 text-white'
     case 3: return 'bg-teal-500 border-teal-400 text-white'
-    case 2: return 'bg-teal-700/80 border-teal-600 text-teal-100'
-    case 1: return 'bg-emerald-950 border-emerald-800 text-emerald-300'
-    default: return 'bg-slate-900 border-slate-800 text-slate-600'
+    case 2: return 'bg-teal-600 dark:bg-teal-700/80 border-teal-500 dark:border-teal-600 text-white dark:text-teal-100'
+    case 1: return 'bg-emerald-100 dark:bg-emerald-950 border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300'
+    default: return 'bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-600'
   }
 }
 </script>
 
 <template>
-  <StudentLayout title="Learning Activity — Progress & Analytics">
+  <StudentLayout :title="isKhmer ? 'សកម្មភាពនៃការរៀន — វឌ្ឍនភាព និងការវិភាគ' : 'Learning Activity — Progress & Analytics'">
     <div class="space-y-6 max-w-7xl mx-auto pb-10">
 
       <!-- ================= 1. PAGE HEADER & DATE FILTERS ================= -->
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2">
-            <span>{{ isKhmer ? 'សកម្មភាពសិក្សា' : 'Learning Activity' }}</span>
-            <span class="inline-flex p-1.5 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400 text-lg">⏱️</span>
+          <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+            <span>{{ isKhmer ? 'សកម្មភាពនៃការរៀន' : 'Learning Activity' }}</span>
+            <span class="inline-flex p-1.5 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-600 dark:text-purple-400 text-lg">⏱️</span>
           </h1>
-          <p class="text-xs sm:text-sm text-slate-400 mt-1 font-medium">
+          <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">
             {{ isKhmer ? 'តាមដានម៉ោងសិក្សា សកម្មភាព និងទម្លាប់សិក្សាប្រចាំថ្ងៃរបស់អ្នកពីទិន្នន័យពិត។' : 'Track your real study time, sessions, and learning consistency.' }}
           </p>
         </div>
 
         <!-- Date Range Filter & Quick Range Pills -->
         <div class="flex flex-wrap items-center gap-2.5 self-start md:self-auto">
-          <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs font-semibold text-slate-300 shadow-sm">
+          <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-sm">
             <span>📅</span>
             <span>{{ summary.date_range_label || '—' }}</span>
           </div>
 
-          <div class="flex items-center bg-slate-900/90 border border-slate-800 rounded-xl p-1 shadow-sm">
+          <div class="flex items-center bg-slate-100 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl p-1 shadow-sm">
             <button
               v-for="r in rangeOptions"
               :key="r.key"
@@ -356,8 +358,8 @@ const getHeatmapColor = (level: number) => {
               @click="setRange(r.key)"
               :class="[
                 selectedRange.toLowerCase() === r.key
-                  ? 'bg-purple-600 text-white shadow-md shadow-purple-900/40'
-                  : 'text-slate-400 hover:text-slate-200',
+                  ? 'bg-purple-600 text-white shadow-md shadow-purple-900/30'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200',
                 'px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer'
               ]"
             >
@@ -371,72 +373,72 @@ const getHeatmapColor = (level: number) => {
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
 
         <!-- CARD 1: Total Study Time -->
-        <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-2xl p-4.5 shadow-xl hover:border-purple-500/30 transition-all flex items-center justify-between group">
+        <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-4.5 shadow-sm dark:shadow-xl hover:border-purple-500/40 transition-all flex items-center justify-between group">
           <div class="space-y-1 z-10">
-            <p class="text-[11px] text-slate-400 font-medium">{{ isKhmer ? 'ម៉ោងសិក្សាសរុប' : 'Total Study Time' }}</p>
-            <p class="text-2xl font-black text-white font-mono tracking-tight">{{ summary.total_study_time }}</p>
-            <p class="text-[11px] text-slate-400 flex items-center gap-1 font-medium pt-0.5">
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{{ isKhmer ? 'ម៉ោងសិក្សាសរុប' : 'Total Study Time' }}</p>
+            <p class="text-2xl font-black text-slate-900 dark:text-white font-mono tracking-tight">{{ summary.total_study_time }}</p>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1 font-medium pt-0.5">
               <span>{{ summary.time_trend }}</span>
             </p>
           </div>
-          <div class="w-12 h-12 rounded-full bg-purple-600 text-white flex items-center justify-center text-lg shadow-lg shadow-purple-900/40 group-hover:scale-110 transition-transform shrink-0">
+          <div class="w-12 h-12 rounded-2xl bg-purple-100 dark:bg-purple-600/20 border border-purple-200 dark:border-purple-500/30 flex items-center justify-center text-purple-600 dark:text-purple-400 text-lg shadow-inner group-hover:scale-110 transition-transform shrink-0">
             ⏱
           </div>
         </div>
 
         <!-- CARD 2: Daily Average -->
-        <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-2xl p-4.5 shadow-xl hover:border-blue-500/30 transition-all flex items-center justify-between group">
+        <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-4.5 shadow-sm dark:shadow-xl hover:border-blue-500/40 transition-all flex items-center justify-between group">
           <div class="space-y-1 z-10">
-            <p class="text-[11px] text-slate-400 font-medium">{{ isKhmer ? 'មធ្យមភាគប្រចាំថ្ងៃ' : 'Daily Average' }}</p>
-            <p class="text-2xl font-black text-white font-mono tracking-tight">{{ summary.daily_average }}</p>
-            <p class="text-[11px] text-slate-400 flex items-center gap-1 font-medium pt-0.5">
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{{ isKhmer ? 'មធ្យមភាគប្រចាំថ្ងៃ' : 'Daily Average' }}</p>
+            <p class="text-2xl font-black text-slate-900 dark:text-white font-mono tracking-tight">{{ summary.daily_average }}</p>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1 font-medium pt-0.5">
               <span>{{ summary.daily_avg_trend }}</span>
             </p>
           </div>
-          <div class="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center text-lg shadow-lg shadow-blue-900/40 group-hover:scale-110 transition-transform shrink-0">
+          <div class="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-600/20 border border-blue-200 dark:border-blue-500/30 flex items-center justify-center text-blue-600 dark:text-blue-400 text-lg shadow-inner group-hover:scale-110 transition-transform shrink-0">
             📅
           </div>
         </div>
 
         <!-- CARD 3: Study Sessions -->
-        <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-2xl p-4.5 shadow-xl hover:border-emerald-500/30 transition-all flex items-center justify-between group">
+        <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-4.5 shadow-sm dark:shadow-xl hover:border-emerald-500/40 transition-all flex items-center justify-between group">
           <div class="space-y-1 z-10">
-            <p class="text-[11px] text-slate-400 font-medium">{{ isKhmer ? 'ចំនួនដងសិក្សា' : 'Study Sessions' }}</p>
-            <p class="text-2xl font-black text-white font-mono tracking-tight">{{ summary.study_sessions }}</p>
-            <p class="text-[11px] text-slate-400 flex items-center gap-1 font-medium pt-0.5">
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{{ isKhmer ? 'ចំនួនដងសិក្សា' : 'Study Sessions' }}</p>
+            <p class="text-2xl font-black text-slate-900 dark:text-white font-mono tracking-tight">{{ summary.study_sessions }}</p>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1 font-medium pt-0.5">
               <span>{{ summary.sessions_trend }}</span>
             </p>
           </div>
-          <div class="w-12 h-12 rounded-full bg-emerald-600 text-white flex items-center justify-center text-lg shadow-lg shadow-emerald-900/40 group-hover:scale-110 transition-transform shrink-0">
+          <div class="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-600/20 border border-emerald-200 dark:border-emerald-500/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-lg shadow-inner group-hover:scale-110 transition-transform shrink-0">
             〽️
           </div>
         </div>
 
         <!-- CARD 4: Active Days -->
-        <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-2xl p-4.5 shadow-xl hover:border-orange-500/30 transition-all flex items-center justify-between group">
+        <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-4.5 shadow-sm dark:shadow-xl hover:border-orange-500/40 transition-all flex items-center justify-between group">
           <div class="space-y-1 z-10">
-            <p class="text-[11px] text-slate-400 font-medium">{{ isKhmer ? 'ថ្ងៃសិក្សាសកម្ម' : 'Active Days' }}</p>
-            <p class="text-2xl font-black text-white font-mono tracking-tight">{{ summary.active_days }}</p>
-            <p class="text-[11px] text-orange-400 flex items-center gap-1 font-medium pt-0.5">
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{{ isKhmer ? 'ថ្ងៃសិក្សាសកម្ម' : 'Active Days' }}</p>
+            <p class="text-2xl font-black text-slate-900 dark:text-white font-mono tracking-tight">{{ summary.active_days }}</p>
+            <p class="text-[11px] text-orange-600 dark:text-orange-400 flex items-center gap-1 font-medium pt-0.5">
               <span>🔥</span>
               <span>{{ summary.active_days_note }}</span>
             </p>
           </div>
-          <div class="w-12 h-12 rounded-full bg-orange-600 text-white flex items-center justify-center text-lg shadow-lg shadow-orange-900/40 group-hover:scale-110 transition-transform shrink-0">
+          <div class="w-12 h-12 rounded-2xl bg-orange-100 dark:bg-orange-600/20 border border-orange-200 dark:border-orange-500/30 flex items-center justify-center text-orange-600 dark:text-orange-400 text-lg shadow-inner group-hover:scale-110 transition-transform shrink-0">
             🔥
           </div>
         </div>
 
         <!-- CARD 5: Peak Day -->
-        <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-2xl p-4.5 shadow-xl hover:border-amber-500/30 transition-all flex items-center justify-between group">
+        <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-4.5 shadow-sm dark:shadow-xl hover:border-amber-500/40 transition-all flex items-center justify-between group">
           <div class="space-y-1 z-10">
-            <p class="text-[11px] text-slate-400 font-medium">{{ isKhmer ? 'ថ្ងៃសិក្សាច្រើនបំផុត' : 'Peak Study Day' }}</p>
-            <p class="text-2xl font-black text-white font-mono tracking-tight">{{ summary.longest_session }}</p>
-            <p class="text-[11px] text-slate-400 font-medium pt-0.5">
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{{ isKhmer ? 'ថ្ងៃសិក្សាប្រើច្រើនបំផុត' : 'Peak Study Day' }}</p>
+            <p class="text-2xl font-black text-slate-900 dark:text-white font-mono tracking-tight">{{ summary.longest_session }}</p>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium pt-0.5">
               {{ summary.longest_session_date }}
             </p>
           </div>
-          <div class="w-12 h-12 rounded-full bg-amber-500 text-white flex items-center justify-center text-lg shadow-lg shadow-amber-900/40 group-hover:scale-110 transition-transform shrink-0">
+          <div class="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-500/20 border border-amber-200 dark:border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400 text-lg shadow-inner group-hover:scale-110 transition-transform shrink-0">
             🏆
           </div>
         </div>
@@ -450,14 +452,14 @@ const getHeatmapColor = (level: number) => {
         <div class="lg:col-span-8 grid grid-cols-1 md:grid-cols-12 gap-6">
 
           <!-- Card A (7/12 of 8/12): Study Time Over Time -->
-          <div class="md:col-span-7 bg-[#0F172A]/90 border border-slate-800/80 rounded-3xl p-5 shadow-xl space-y-3 relative">
-            <div class="flex items-center justify-between border-b border-slate-800/60 pb-3">
-              <h3 class="text-sm font-bold text-white tracking-tight">
+          <div class="md:col-span-7 bg-white dark:bg-[#0F172A]/90 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3 relative">
+            <div class="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800/60 pb-3">
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">
                 {{ isKhmer ? 'ម៉ោងសិក្សាតាមពេលវេលា' : 'Study Time Over Time' }}
               </h3>
 
               <!-- Daily / Weekly Pills -->
-              <div class="flex items-center bg-slate-900 border border-slate-800 rounded-lg p-0.5">
+              <div class="flex items-center bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-0.5">
                 <button
                   v-for="g in (['daily', 'weekly'] as const)"
                   :key="g"
@@ -466,29 +468,29 @@ const getHeatmapColor = (level: number) => {
                   :class="[
                     selectedGranularity === g
                       ? 'bg-purple-600 text-white font-bold'
-                      : 'text-slate-400 hover:text-white',
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white',
                     'px-2 py-0.5 rounded text-[10px] capitalize transition-all cursor-pointer'
                   ]"
                 >
-                  {{ g }}
+                  {{ isKhmer ? (g === 'daily' ? 'ប្រចាំថ្ងៃ' : 'ប្រចាំសប្តាហ៍') : g }}
                 </button>
               </div>
             </div>
 
             <!-- Empty State when 0 study time -->
             <div v-if="!hasAnyStudyTime" class="h-44 flex flex-col items-center justify-center text-center px-4 space-y-2">
-              <div class="w-10 h-10 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-lg">
+              <div class="w-10 h-10 rounded-2xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 flex items-center justify-center text-lg text-purple-600 dark:text-purple-400">
                 📉
               </div>
-              <p class="text-xs font-bold text-slate-300">
+              <p class="text-xs font-bold text-slate-900 dark:text-white">
                 {{ isKhmer ? 'មិនទាន់មានទិន្នន័យម៉ោងសិក្សាក្នុងរយៈពេលនេះទេ' : 'No study sessions recorded in this period yet' }}
               </p>
-              <p class="text-[11px] text-slate-400">
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">
                 {{ isKhmer ? 'ចាប់ផ្តើមមើលមេរៀន ឬធ្វើតេស្តដើម្បីកត់ត្រាម៉ោងសិក្សារបស់អ្នក។' : 'Watch a lesson or complete a quiz to track your study hours.' }}
               </p>
               <Link
-                href="/student/browse"
-                class="mt-1 px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-bold transition-all"
+                href="/student/courses"
+                class="mt-1 px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-bold transition-all shadow-sm"
               >
                 {{ isKhmer ? 'ស្វែងរកវគ្គសិក្សា →' : 'Browse Courses →' }}
               </Link>
@@ -497,18 +499,18 @@ const getHeatmapColor = (level: number) => {
             <!-- Line Chart SVG -->
             <div v-else class="relative w-full h-44 pt-2">
               <!-- Y-Axis labels -->
-              <div class="absolute left-0 inset-y-2 flex flex-col justify-between text-[9px] text-slate-500 font-mono select-none pointer-events-none">
+              <div class="absolute left-0 inset-y-2 flex flex-col justify-between text-[9px] text-slate-400 dark:text-slate-500 font-mono select-none pointer-events-none pb-4">
                 <span v-for="yl in yAxisLabels" :key="yl">{{ yl }}</span>
               </div>
 
               <div class="ml-8 h-full relative">
                 <!-- Grid lines -->
-                <div class="absolute inset-0 flex flex-col justify-between pointer-events-none">
-                  <div class="w-full border-b border-slate-800/30"></div>
-                  <div class="w-full border-b border-slate-800/30"></div>
-                  <div class="w-full border-b border-slate-800/30"></div>
-                  <div class="w-full border-b border-slate-800/30"></div>
-                  <div class="w-full border-b border-slate-800/60"></div>
+                <div class="absolute inset-0 flex flex-col justify-between pointer-events-none pb-4">
+                  <div class="w-full border-b border-slate-100 dark:border-slate-800/30"></div>
+                  <div class="w-full border-b border-slate-100 dark:border-slate-800/30"></div>
+                  <div class="w-full border-b border-slate-100 dark:border-slate-800/30"></div>
+                  <div class="w-full border-b border-slate-100 dark:border-slate-800/30"></div>
+                  <div class="w-full border-b border-slate-200 dark:border-slate-800/60"></div>
                 </div>
 
                 <!-- SVG Area & Stroke -->
@@ -535,8 +537,8 @@ const getHeatmapColor = (level: number) => {
                     :key="idx"
                     :cx="pt.x"
                     :cy="pt.y"
-                    r="3.5"
-                    class="fill-slate-950 stroke-purple-400 stroke-2 hover:stroke-white transition-all cursor-pointer"
+                    r="4"
+                    class="fill-white dark:fill-slate-950 stroke-purple-500 stroke-2 hover:r-6 hover:stroke-purple-700 dark:hover:stroke-white transition-all cursor-pointer"
                     @mouseenter="hoveredChartPoint = pt"
                     @mouseleave="hoveredChartPoint = null"
                   />
@@ -545,14 +547,14 @@ const getHeatmapColor = (level: number) => {
                 <!-- Dynamic Hover Tooltip -->
                 <div
                   v-if="hoveredChartPoint"
-                  class="absolute -top-2 right-2 bg-slate-900/95 border border-purple-500/70 rounded-lg px-2.5 py-1 shadow-xl text-[10px] text-slate-200 pointer-events-none whitespace-nowrap z-10"
+                  class="absolute -top-2 right-2 bg-slate-900/95 text-white border border-purple-500/70 rounded-lg px-2.5 py-1 shadow-xl text-[10px] pointer-events-none whitespace-nowrap z-10"
                 >
-                  <p class="font-mono text-center"><strong class="text-white">{{ hoveredChartPoint.label }}</strong></p>
+                  <p class="font-mono text-center"><strong>{{ hoveredChartPoint.label }}</strong></p>
                   <p class="text-purple-400 font-bold font-mono text-center">{{ hoveredChartPoint.duration }}</p>
                 </div>
 
                 <!-- Bottom X-Axis labels -->
-                <div class="w-full flex justify-between text-[8px] sm:text-[9px] text-slate-500 font-mono mt-1 overflow-hidden">
+                <div class="w-full flex justify-between text-[8px] sm:text-[9px] text-slate-400 dark:text-slate-500 font-mono mt-1 overflow-hidden">
                   <span v-for="(lbl, idx) in xAxisLabels" :key="idx">{{ lbl }}</span>
                 </div>
               </div>
@@ -560,8 +562,8 @@ const getHeatmapColor = (level: number) => {
           </div>
 
           <!-- Card B (5/12 of 8/12): Study Time by Activity -->
-          <div class="md:col-span-5 bg-[#0F172A]/90 border border-slate-800/80 rounded-3xl p-5 shadow-xl space-y-3 flex flex-col justify-between">
-            <h3 class="text-sm font-bold text-white tracking-tight border-b border-slate-800/60 pb-3">
+          <div class="md:col-span-5 bg-white dark:bg-[#0F172A]/90 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3 flex flex-col justify-between">
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight border-b border-slate-200/80 dark:border-slate-800/60 pb-3">
               {{ isKhmer ? 'ម៉ោងសិក្សាតាមប្រភេទ' : 'Study Time by Activity' }}
             </h3>
 
@@ -569,7 +571,7 @@ const getHeatmapColor = (level: number) => {
               <!-- Donut Chart SVG -->
               <div class="relative w-28 h-28 flex items-center justify-center shrink-0">
                 <svg class="w-28 h-28 -rotate-90 transform" viewBox="0 0 42 42">
-                  <circle cx="21" cy="21" r="15.915" fill="none" stroke="#1E293B" stroke-width="4.5" />
+                  <circle cx="21" cy="21" r="15.915" fill="none" class="stroke-slate-100 dark:stroke-slate-800" stroke-width="4.5" />
                   <circle
                     v-for="seg in donutSegments"
                     :key="seg.id"
@@ -581,11 +583,12 @@ const getHeatmapColor = (level: number) => {
                     stroke-width="4.5"
                     :stroke-dasharray="seg.dashArray"
                     :stroke-dashoffset="seg.dashOffset"
+                    class="transition-all duration-700"
                   />
                 </svg>
                 <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-                  <span class="text-xs font-black text-white font-mono leading-tight">{{ summary.total_study_time }}</span>
-                  <span class="text-[9px] text-slate-400">{{ isKhmer ? 'សរុប' : 'Total' }}</span>
+                  <span class="text-xs font-black text-slate-900 dark:text-white font-mono leading-tight">{{ summary.total_study_time }}</span>
+                  <span class="text-[9px] text-slate-500 dark:text-slate-400">{{ isKhmer ? 'សរុប' : 'Total' }}</span>
                 </div>
               </div>
 
@@ -594,25 +597,25 @@ const getHeatmapColor = (level: number) => {
                 <div v-for="act in activityBreakdown" :key="act.id" class="flex items-center justify-between text-[10px]">
                   <div class="flex items-center gap-1.5 truncate">
                     <span class="w-2 h-2 rounded-full shrink-0" :style="{ backgroundColor: act.color }"></span>
-                    <span class="text-slate-300 truncate">{{ isKhmer && act.name_kh ? act.name_kh : act.name }}</span>
+                    <span class="text-slate-600 dark:text-slate-300 truncate">{{ isKhmer && act.name_kh ? act.name_kh : act.name }}</span>
                   </div>
                   <div class="text-right font-mono font-bold shrink-0 ml-1">
-                    <span class="text-white">{{ act.percentage }}%</span>
+                    <span class="text-slate-900 dark:text-white">{{ act.percentage }}%</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div class="pt-2 border-t border-slate-800/60 grid grid-cols-2 gap-2 text-[10px] text-slate-400">
+            <div class="pt-2 border-t border-slate-200/80 dark:border-slate-800/60 grid grid-cols-2 gap-2 text-[10px] text-slate-500 dark:text-slate-400">
               <div>
                 {{ isKhmer ? 'ច្រើនបំផុត:' : 'Top:' }}
-                <strong class="text-purple-300">
+                <strong class="text-purple-600 dark:text-purple-300">
                   {{ topActivityItem ? `${topActivityItem.duration}` : '0h 00m' }}
                 </strong>
               </div>
               <div class="text-right">
                 Quiz:
-                <strong class="text-blue-300">
+                <strong class="text-blue-600 dark:text-blue-300">
                   {{ quizActivityItem ? quizActivityItem.duration : '0h 00m' }}
                 </strong>
               </div>
@@ -622,19 +625,19 @@ const getHeatmapColor = (level: number) => {
         </div>
 
         <!-- RIGHT (4/12): Calendar Heatmap Card -->
-        <div class="lg:col-span-4 bg-[#0F172A]/90 border border-slate-800/80 rounded-3xl p-5 shadow-xl space-y-3 flex flex-col justify-between">
-          <div class="flex items-center justify-between border-b border-slate-800/60 pb-3">
-            <h3 class="text-sm font-bold text-white tracking-tight">
+        <div class="lg:col-span-4 bg-white dark:bg-[#0F172A]/90 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3 flex flex-col justify-between">
+          <div class="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800/60 pb-3">
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">
               {{ isKhmer ? 'ប្រតិទិនសកម្មភាពសិក្សា' : 'Calendar Heatmap' }}
             </h3>
-            <span class="text-[11px] text-slate-400 font-mono">{{ isKhmer ? '៥ សប្តាហ៍ចុងក្រោយ' : 'Last 5 Weeks' }}</span>
+            <span class="text-[11px] text-slate-500 dark:text-slate-400 font-mono">{{ isKhmer ? '៥ សប្តាហ៍ចុងក្រោយ' : 'Last 5 Weeks' }}</span>
           </div>
 
           <!-- Heatmap Grid -->
           <div class="space-y-2 pt-1">
             <!-- Day Header (Mon - Sun) -->
-            <div class="grid grid-cols-8 text-center text-[10px] font-mono text-slate-400 font-bold">
-              <span class="text-left text-[9px] text-slate-500">Wk</span>
+            <div class="grid grid-cols-8 text-center text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold">
+              <span class="text-left text-[9px] text-slate-400">Wk</span>
               <span v-for="d in calendarHeatmap.days" :key="d">{{ d }}</span>
             </div>
 
@@ -644,7 +647,7 @@ const getHeatmapColor = (level: number) => {
               :key="wk.label"
               class="grid grid-cols-8 items-center gap-1 text-center"
             >
-              <span class="text-[8px] font-mono text-slate-500 text-left truncate">{{ wk.label.split('-')[0] }}</span>
+              <span class="text-[8px] font-mono text-slate-400 dark:text-slate-500 text-left truncate">{{ wk.label.split('-')[0] }}</span>
               <div
                 v-for="cell in wk.cells"
                 :key="cell.date"
@@ -660,11 +663,11 @@ const getHeatmapColor = (level: number) => {
           </div>
 
           <!-- Heatmap Scale Legend -->
-          <div class="flex items-center justify-between pt-3 border-t border-slate-800/60 text-[9px] text-slate-400 font-mono">
+          <div class="flex items-center justify-between pt-3 border-t border-slate-200/80 dark:border-slate-800/60 text-[9px] text-slate-500 dark:text-slate-400 font-mono">
             <span>0h</span>
             <div class="flex items-center gap-1.5">
-              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-emerald-950 border border-emerald-800"></span> &lt;1h</span>
-              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-teal-700 border border-teal-600"></span> 1h+</span>
+              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-emerald-100 dark:bg-emerald-950 border border-emerald-300 dark:border-emerald-800"></span> &lt;1h</span>
+              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-teal-600 dark:bg-teal-700 border border-teal-500 dark:border-teal-600"></span> 1h+</span>
               <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-teal-500 border border-teal-400"></span> 3h+</span>
               <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-emerald-500 border border-emerald-400"></span> 5h+</span>
             </div>
@@ -677,32 +680,32 @@ const getHeatmapColor = (level: number) => {
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
         <!-- LEFT (8/12): Recent Learning Activity Table -->
-        <div class="lg:col-span-8 bg-[#0F172A]/90 border border-slate-800/80 rounded-3xl p-5 md:p-6 shadow-xl space-y-4">
-          <div class="flex items-center justify-between border-b border-slate-800/60 pb-3">
-            <h2 class="text-base font-bold text-white tracking-tight">
+        <div class="lg:col-span-8 bg-white dark:bg-[#0F172A]/90 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl p-5 md:p-6 shadow-sm dark:shadow-xl space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800/60 pb-3">
+            <h2 class="text-base font-bold text-slate-900 dark:text-white tracking-tight">
               {{ isKhmer ? 'សកម្មភាពសិក្សាថ្មីៗ' : 'Recent Learning Activity' }}
             </h2>
-            <span class="text-xs text-slate-400">
+            <span class="text-xs text-slate-500 dark:text-slate-400">
               {{ recentActivities.length }} {{ isKhmer ? 'សកម្មភាព' : (recentActivities.length === 1 ? 'Activity' : 'Activities') }}
             </span>
           </div>
 
           <!-- Empty State -->
           <div v-if="recentActivities.length === 0" class="py-10 text-center space-y-3">
-            <div class="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-2xl mx-auto">
+            <div class="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-slate-900 border border-purple-200 dark:border-slate-800 flex items-center justify-center text-2xl mx-auto shadow-sm">
               📚
             </div>
             <div class="space-y-1">
-              <p class="text-sm font-bold text-white">
+              <p class="text-sm font-bold text-slate-900 dark:text-white">
                 {{ isKhmer ? 'មិនទាន់មានសកម្មភាពសិក្សាថ្មីៗនៅឡើយទេ' : 'No recent learning activities yet' }}
               </p>
-              <p class="text-xs text-slate-400 max-w-md mx-auto">
+              <p class="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
                 {{ isKhmer ? 'នៅពេលអ្នកចុះឈ្មោះចូលរៀន មើលវីដេអូមេរៀន ឬធ្វើតេស្ត Quiz សកម្មភាពរបស់អ្នកនឹងបង្ហាញនៅទីនេះ។' : 'Once you enroll in a course, watch lessons, or submit quizzes, your activity history will appear here.' }}
               </p>
             </div>
             <div class="pt-1">
               <Link
-                href="/student/browse"
+                href="/student/courses"
                 class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-md transition-all"
               >
                 <span>{{ isKhmer ? 'រុករកវគ្គសិក្សា' : 'Browse Courses' }}</span>
@@ -713,8 +716,8 @@ const getHeatmapColor = (level: number) => {
 
           <!-- Activity Table -->
           <div v-else class="overflow-x-auto custom-scrollbar">
-            <table class="w-full text-left text-xs text-slate-300">
-              <thead class="text-[11px] uppercase font-bold text-slate-400 border-b border-slate-800/80">
+            <table class="w-full text-left text-xs text-slate-700 dark:text-slate-300">
+              <thead class="text-[11px] uppercase font-bold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800/80">
                 <tr>
                   <th class="py-2.5 px-3">{{ isKhmer ? 'សកម្មភាព' : 'Activity' }}</th>
                   <th class="py-2.5 px-3">{{ isKhmer ? 'វគ្គសិក្សា' : 'Course' }}</th>
@@ -724,11 +727,11 @@ const getHeatmapColor = (level: number) => {
                   <th class="py-2.5 px-3">{{ isKhmer ? 'វឌ្ឍនភាព' : 'Progress' }}</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-800/40 font-medium">
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-800/40 font-medium">
                 <tr
                   v-for="item in recentActivities"
                   :key="item.id"
-                  class="hover:bg-slate-900/80 transition-colors group"
+                  class="hover:bg-slate-50 dark:hover:bg-slate-900/80 transition-colors group"
                 >
                   <td class="py-3 px-3">
                     <div class="flex items-center gap-3">
@@ -741,10 +744,10 @@ const getHeatmapColor = (level: number) => {
                         {{ item.icon }}
                       </div>
                       <div>
-                        <p class="font-bold text-white group-hover:text-purple-300 transition-colors">
+                        <p class="font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors">
                           {{ isKhmer && item.title_kh ? item.title_kh : item.title }}
                         </p>
-                        <p class="text-[10px] text-slate-400">
+                        <p class="text-[10px] text-slate-500 dark:text-slate-400">
                           {{ isKhmer && item.description_kh ? item.description_kh : item.description }}
                         </p>
                       </div>
@@ -752,7 +755,7 @@ const getHeatmapColor = (level: number) => {
                   </td>
 
                   <td class="py-3 px-3">
-                    <span class="px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800 text-slate-300 text-[10px] font-medium">
+                    <span class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-medium">
                       {{ isKhmer && item.course_kh ? item.course_kh : item.course }}
                     </span>
                   </td>
@@ -761,32 +764,32 @@ const getHeatmapColor = (level: number) => {
                     <span
                       class="px-2 py-0.5 rounded-md text-[10px] font-bold border"
                       :class="[
-                        item.type === 'Lesson' ? 'bg-purple-500/20 text-purple-300 border-purple-500/30' :
-                        item.type === 'Quiz' ? 'bg-blue-500/20 text-blue-300 border-blue-500/30' :
-                        'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                        item.type === 'Lesson' ? 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-500/30' :
+                        item.type === 'Quiz' ? 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-500/30' :
+                        'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-500/30'
                       ]"
                     >
                       {{ item.type }}
                     </span>
                   </td>
 
-                  <td class="py-3 px-3 font-mono font-bold text-white">
+                  <td class="py-3 px-3 font-mono font-bold text-slate-900 dark:text-white">
                     {{ item.duration }}
                   </td>
 
-                  <td class="py-3 px-3 text-[11px] text-slate-400">
+                  <td class="py-3 px-3 text-[11px] text-slate-500 dark:text-slate-400">
                     {{ item.time }}
                   </td>
 
                   <td class="py-3 px-3 w-32">
                     <div class="flex items-center gap-2">
-                      <div class="w-full h-2 rounded-full bg-slate-950 overflow-hidden border border-slate-800">
+                      <div class="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-950 overflow-hidden border border-slate-200 dark:border-slate-800">
                         <div
                           :class="[item.progress_color, 'h-full rounded-full transition-all duration-500']"
                           :style="{ width: `${item.progress}%` }"
                         ></div>
                       </div>
-                      <span class="text-xs font-mono font-bold text-white w-8 text-right">{{ item.progress }}%</span>
+                      <span class="text-xs font-mono font-bold text-slate-800 dark:text-white w-8 text-right">{{ item.progress }}%</span>
                     </div>
                   </td>
                 </tr>
@@ -794,10 +797,10 @@ const getHeatmapColor = (level: number) => {
             </table>
           </div>
 
-          <div class="pt-2 text-center border-t border-slate-800/60">
+          <div class="pt-2 text-center border-t border-slate-200/80 dark:border-slate-800/60">
             <Link
               href="/student/my-courses/enrolled"
-              class="text-xs font-bold text-slate-400 hover:text-purple-400 transition-colors inline-flex items-center gap-1"
+              class="text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors inline-flex items-center gap-1"
             >
               <span>{{ isKhmer ? 'មើលវគ្គសិក្សាទាំងអស់ →' : 'Go to Enrolled Courses →' }}</span>
             </Link>
@@ -805,13 +808,13 @@ const getHeatmapColor = (level: number) => {
         </div>
 
         <!-- RIGHT (4/12): Activity Breakdown Card -->
-        <div class="lg:col-span-4 bg-[#0F172A]/90 border border-slate-800/80 rounded-3xl p-5 md:p-6 shadow-xl space-y-4 flex flex-col justify-between">
+        <div class="lg:col-span-4 bg-white dark:bg-[#0F172A]/90 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl p-5 md:p-6 shadow-sm dark:shadow-xl space-y-4 flex flex-col justify-between">
           <div class="space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-800/60 pb-3">
-              <h3 class="text-sm font-bold text-white tracking-tight">
+            <div class="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800/60 pb-3">
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">
                 {{ isKhmer ? 'ការបែងចែកសកម្មភាព' : 'Activity Breakdown' }}
               </h3>
-              <span class="text-xs text-slate-400 font-mono">{{ selectedRange.toUpperCase() }}</span>
+              <span class="text-xs text-slate-500 dark:text-slate-400 font-mono">{{ selectedRange.toUpperCase() }}</span>
             </div>
 
             <div class="space-y-3">
@@ -819,13 +822,13 @@ const getHeatmapColor = (level: number) => {
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-2">
                     <span class="w-2.5 h-2.5 rounded-full shrink-0" :style="{ backgroundColor: act.color }"></span>
-                    <span class="text-slate-300 font-medium">{{ isKhmer && act.name_kh ? act.name_kh : act.name }}</span>
+                    <span class="text-slate-700 dark:text-slate-300 font-medium">{{ isKhmer && act.name_kh ? act.name_kh : act.name }}</span>
                   </div>
-                  <div class="font-mono text-slate-400">
-                    <strong class="text-white">{{ act.duration }}</strong> ({{ act.percentage }}%)
+                  <div class="font-mono text-slate-500 dark:text-slate-400">
+                    <strong class="text-slate-900 dark:text-white">{{ act.duration }}</strong> ({{ act.percentage }}%)
                   </div>
                 </div>
-                <div class="w-full h-2 rounded-full bg-slate-950 overflow-hidden border border-slate-800">
+                <div class="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-950 overflow-hidden border border-slate-200 dark:border-slate-800">
                   <div
                     :class="[act.bg_class, 'h-full rounded-full transition-all duration-500']"
                     :style="{ width: `${act.percentage}%` }"
@@ -835,9 +838,9 @@ const getHeatmapColor = (level: number) => {
             </div>
           </div>
 
-          <div class="pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs">
-            <span class="text-slate-400 font-medium">{{ isKhmer ? 'សរុប' : 'Total' }}</span>
-            <span class="font-mono font-black text-white text-sm">{{ summary.total_study_time }}</span>
+          <div class="pt-3 border-t border-slate-200/80 dark:border-slate-800/60 flex items-center justify-between text-xs">
+            <span class="text-slate-500 dark:text-slate-400 font-medium">{{ isKhmer ? 'សរុប' : 'Total' }}</span>
+            <span class="font-mono font-black text-slate-900 dark:text-white text-sm">{{ summary.total_study_time }}</span>
           </div>
         </div>
 
@@ -847,19 +850,19 @@ const getHeatmapColor = (level: number) => {
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
         <!-- LEFT (8/12): This Week Overview Card -->
-        <div class="lg:col-span-8 bg-[#0F172A]/90 border border-slate-800/80 rounded-3xl p-5 md:p-6 shadow-xl space-y-4">
-          <div class="flex items-center justify-between border-b border-slate-800/60 pb-3">
+        <div class="lg:col-span-8 bg-white dark:bg-[#0F172A]/90 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl p-5 md:p-6 shadow-sm dark:shadow-xl space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800/60 pb-3">
             <div>
-              <h3 class="text-base font-bold text-white tracking-tight">
+              <h3 class="text-base font-bold text-slate-900 dark:text-white tracking-tight">
                 {{ isKhmer ? 'ទិដ្ឋភាពសប្តាហ៍នេះ' : 'This Week Overview' }}
               </h3>
-              <p class="text-[11px] text-slate-400">{{ thisWeekOverview.date_range }}</p>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ thisWeekOverview.date_range }}</p>
             </div>
 
             <button
               type="button"
               @click="isReportModalOpen = true"
-              class="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-purple-500/30 text-purple-300 hover:text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+              class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 border border-purple-200 dark:border-purple-500/30 text-purple-700 dark:text-purple-300 hover:text-purple-900 dark:hover:text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
             >
               <span>📊</span>
               <span>{{ isKhmer ? 'សង្ខេបរបាយការណ៍' : 'Summary Report' }}</span>
@@ -871,13 +874,13 @@ const getHeatmapColor = (level: number) => {
             <div
               v-for="met in thisWeekOverview.metrics"
               :key="met.label"
-              class="p-3.5 bg-slate-900/80 border border-slate-800/80 rounded-2xl space-y-1"
+              class="p-3.5 bg-slate-50 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl space-y-1"
             >
-              <p class="text-[11px] text-slate-400">{{ isKhmer && met.label_kh ? met.label_kh : met.label }}</p>
-              <p class="text-xl font-black text-white font-mono">{{ met.value }}</p>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ isKhmer && met.label_kh ? met.label_kh : met.label }}</p>
+              <p class="text-xl font-black text-slate-900 dark:text-white font-mono">{{ met.value }}</p>
               <p
                 :class="[
-                  met.is_positive ? 'text-emerald-400' : 'text-rose-400',
+                  met.is_positive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400',
                   'text-[10px] flex items-center gap-1 font-medium'
                 ]"
               >
@@ -891,35 +894,35 @@ const getHeatmapColor = (level: number) => {
         <div class="lg:col-span-4 space-y-6">
 
           <!-- Widget 1: Learning Streak -->
-          <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-3xl p-5 shadow-xl space-y-3">
-            <div class="flex items-center justify-between border-b border-slate-800/60 pb-2.5">
-              <h3 class="text-sm font-bold text-white tracking-tight">
+          <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800/60 pb-2.5">
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">
                 {{ isKhmer ? 'ស្ទ្រីកសិក្សាជាប់គ្នា' : 'Learning Streak' }}
               </h3>
-              <span class="text-xs text-slate-400 font-mono">{{ isKhmer ? '៧ ថ្ងៃចុងក្រោយ' : 'Last 7 Days' }}</span>
+              <span class="text-xs text-slate-500 dark:text-slate-400 font-mono">{{ isKhmer ? '៧ ថ្ងៃចុងក្រោយ' : 'Last 7 Days' }}</span>
             </div>
 
             <div class="flex items-center justify-between gap-4 py-1">
               <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-2xl bg-orange-500/20 border border-orange-500/40 text-orange-400 flex items-center justify-center text-2xl shadow-inner">
+                <div class="w-12 h-12 rounded-2xl bg-orange-100 dark:bg-orange-500/20 border border-orange-200 dark:border-orange-500/40 text-orange-600 dark:text-orange-400 flex items-center justify-center text-2xl shadow-inner">
                   🔥
                 </div>
                 <div>
-                  <p class="text-lg font-black text-white font-mono">{{ learningStreak.current_streak }} {{ isKhmer ? 'ថ្ងៃ' : 'Days' }}</p>
-                  <p class="text-[10px] text-slate-400">{{ isKhmer ? 'ស្ទ្រីកបច្ចុប្បន្ន' : 'Current Streak' }}</p>
+                  <p class="text-lg font-black text-slate-900 dark:text-white font-mono">{{ learningStreak.current_streak }} {{ isKhmer ? 'ថ្ងៃ' : 'Days' }}</p>
+                  <p class="text-[10px] text-slate-500 dark:text-slate-400">{{ isKhmer ? 'ស្ទ្រីកបច្ចុប្បន្ន' : 'Current Streak' }}</p>
                 </div>
               </div>
 
               <div class="text-right">
-                <p class="text-xs font-bold text-white font-mono">{{ learningStreak.best_streak }} {{ isKhmer ? 'ថ្ងៃ' : 'Days' }}</p>
-                <p class="text-[10px] text-slate-400">
+                <p class="text-xs font-bold text-slate-900 dark:text-white font-mono">{{ learningStreak.best_streak }} {{ isKhmer ? 'ថ្ងៃ' : 'Days' }}</p>
+                <p class="text-[10px] text-slate-500 dark:text-slate-400">
                   {{ isKhmer ? 'ខ្ពស់បំផុត' : 'Best' }} ({{ learningStreak.best_streak_date }})
                 </p>
               </div>
             </div>
 
             <!-- 7-Day Dynamic Checklist -->
-            <div class="flex items-center justify-between pt-2 border-t border-slate-800/60">
+            <div class="flex items-center justify-between pt-2 border-t border-slate-200/80 dark:border-slate-800/60">
               <div
                 v-for="d in learningStreak.days"
                 :key="d.label"
@@ -930,34 +933,34 @@ const getHeatmapColor = (level: number) => {
                   :class="[
                     d.active
                       ? 'bg-emerald-500 text-white shadow-sm'
-                      : 'bg-slate-900 border border-slate-800 text-slate-600',
+                      : 'bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-600',
                     'w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold'
                   ]"
                 >
                   {{ d.active ? '✓' : '·' }}
                 </div>
-                <span class="text-[9px] font-mono text-slate-400">{{ d.date }}</span>
+                <span class="text-[9px] font-mono text-slate-500 dark:text-slate-400">{{ d.date }}</span>
               </div>
             </div>
           </div>
 
           <!-- Widget 2: Recent Achievements -->
-          <div class="bg-[#0F172A]/90 border border-slate-800/80 rounded-3xl p-5 shadow-xl space-y-3">
-            <div class="flex items-center justify-between border-b border-slate-800/60 pb-2.5">
-              <h3 class="text-sm font-bold text-white tracking-tight">
+          <div class="bg-white dark:bg-[#0F172A]/90 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800/60 pb-2.5">
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">
                 {{ isKhmer ? 'សមិទ្ធផលដែលទទួលបាន' : 'Recent Achievements' }}
               </h3>
-              <Link href="/student/progress/achievements" class="text-xs text-purple-400 font-bold hover:underline">
+              <Link href="/student/progress/achievements" class="text-xs text-purple-600 dark:text-purple-400 font-bold hover:underline">
                 {{ isKhmer ? 'មើលទាំងអស់' : 'View All' }}
               </Link>
             </div>
 
             <!-- Empty Achievements State -->
             <div v-if="recentAchievements.length === 0" class="py-4 text-center space-y-1.5">
-              <p class="text-xs font-bold text-slate-300">
+              <p class="text-xs font-bold text-slate-800 dark:text-slate-300">
                 {{ isKhmer ? 'មិនទាន់មានសមិទ្ធផលនៅឡើយទេ' : 'No achievements unlocked yet' }}
               </p>
-              <p class="text-[11px] text-slate-400">
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">
                 {{ isKhmer ? 'បញ្ចប់មេរៀន និងធ្វើតេស្តដើម្បីទទួលបានស្លាកសញ្ញាដំបូងរបស់អ្នក។' : 'Complete lessons and quizzes to earn your first milestone badge.' }}
               </p>
             </div>
@@ -966,7 +969,7 @@ const getHeatmapColor = (level: number) => {
               <div
                 v-for="ach in recentAchievements"
                 :key="ach.id"
-                class="p-2 rounded-2xl bg-slate-900/70 border border-slate-800/60 flex items-center justify-between gap-3"
+                class="p-2 rounded-2xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800/60 flex items-center justify-between gap-3"
               >
                 <div class="flex items-center gap-2.5 min-w-0">
                   <div
@@ -978,11 +981,11 @@ const getHeatmapColor = (level: number) => {
                     {{ ach.icon }}
                   </div>
                   <div class="min-w-0">
-                    <p class="text-xs font-bold text-white truncate">{{ isKhmer && ach.title_kh ? ach.title_kh : ach.title }}</p>
-                    <p class="text-[10px] text-slate-400 truncate">{{ isKhmer && ach.description_kh ? ach.description_kh : ach.description }}</p>
+                    <p class="text-xs font-bold text-slate-900 dark:text-white truncate">{{ isKhmer && ach.title_kh ? ach.title_kh : ach.title }}</p>
+                    <p class="text-[10px] text-slate-500 dark:text-slate-400 truncate">{{ isKhmer && ach.description_kh ? ach.description_kh : ach.description }}</p>
                   </div>
                 </div>
-                <span class="text-[9px] text-slate-500 font-mono shrink-0">{{ ach.date.split(',')[0] }}</span>
+                <span class="text-[9px] text-slate-400 dark:text-slate-500 font-mono shrink-0">{{ ach.date.split(',')[0] }}</span>
               </div>
             </div>
           </div>
@@ -996,21 +999,21 @@ const getHeatmapColor = (level: number) => {
     <!-- ================= MODAL: SUMMARY REPORT ================= -->
     <div
       v-if="isReportModalOpen"
-      class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4"
+      class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4"
       @click="isReportModalOpen = false"
     >
       <div
-        class="bg-slate-900 border border-purple-500/40 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative"
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-purple-500/40 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative"
         @click.stop
       >
-        <div class="border-b border-slate-800 pb-3 flex items-center justify-between">
+        <div class="border-b border-slate-200 dark:border-slate-800 pb-3 flex items-center justify-between">
           <div class="flex items-center gap-2.5">
             <span class="text-2xl">📊</span>
             <div>
-              <h3 class="text-base font-black text-white">
+              <h3 class="text-base font-black text-slate-900 dark:text-white">
                 {{ isKhmer ? 'របាយការណ៍សកម្មភាពសិក្សារបស់និស្សិត' : 'Student Learning Activity Report' }}
               </h3>
-              <p class="text-[11px] text-purple-300">
+              <p class="text-[11px] text-purple-600 dark:text-purple-300">
                 {{ summary.date_range_label }}
               </p>
             </div>
@@ -1018,31 +1021,31 @@ const getHeatmapColor = (level: number) => {
           <button
             type="button"
             @click="isReportModalOpen = false"
-            class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center font-bold text-sm cursor-pointer"
+            class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center justify-center font-bold text-sm cursor-pointer"
           >
             ✕
           </button>
         </div>
 
-        <div class="space-y-3 bg-slate-950 p-4 rounded-2xl border border-slate-800 text-xs">
-          <div class="grid grid-cols-2 gap-2.5 text-slate-300">
-            <p>{{ isKhmer ? 'ម៉ោងសិក្សាសរុប:' : 'Total Study Time:' }} <strong class="text-white font-mono">{{ summary.total_study_time }}</strong></p>
-            <p>{{ isKhmer ? 'មធ្យមភាគប្រចាំថ្ងៃ:' : 'Daily Average:' }} <strong class="text-white font-mono">{{ summary.daily_average }}</strong></p>
-            <p>{{ isKhmer ? 'ចំនួនដងសិក្សា:' : 'Total Sessions:' }} <strong class="text-white font-mono">{{ summary.study_sessions }}</strong></p>
-            <p>{{ isKhmer ? 'ថ្ងៃសកម្ម:' : 'Active Days:' }} <strong class="text-white font-mono">{{ summary.active_days }}</strong></p>
-            <p>{{ isKhmer ? 'ស្ទ្រីកសិក្សា:' : 'Learning Streak:' }} <strong class="text-orange-400 font-mono">{{ learningStreak.current_streak }} {{ isKhmer ? 'ថ្ងៃ' : 'Days' }}</strong></p>
-            <p>{{ isKhmer ? 'មេរៀនបានបញ្ចប់:' : 'Completed Lessons:' }} <strong class="text-emerald-400 font-mono">{{ summary.completed_lessons || 0 }}</strong></p>
+        <div class="space-y-3 bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs">
+          <div class="grid grid-cols-2 gap-2.5 text-slate-700 dark:text-slate-300">
+            <p>{{ isKhmer ? 'ម៉ោងសិក្សាសរុប:' : 'Total Study Time:' }} <strong class="text-slate-900 dark:text-white font-mono">{{ summary.total_study_time }}</strong></p>
+            <p>{{ isKhmer ? 'មធ្យមភាគប្រចាំថ្ងៃ:' : 'Daily Average:' }} <strong class="text-slate-900 dark:text-white font-mono">{{ summary.daily_average }}</strong></p>
+            <p>{{ isKhmer ? 'ចំនួនដងសិក្សា:' : 'Total Sessions:' }} <strong class="text-slate-900 dark:text-white font-mono">{{ summary.study_sessions }}</strong></p>
+            <p>{{ isKhmer ? 'ថ្ងៃសកម្ម:' : 'Active Days:' }} <strong class="text-slate-900 dark:text-white font-mono">{{ summary.active_days }}</strong></p>
+            <p>{{ isKhmer ? 'ស្ទ្រីកសិក្សា:' : 'Learning Streak:' }} <strong class="text-orange-600 dark:text-orange-400 font-mono">{{ learningStreak.current_streak }} {{ isKhmer ? 'ថ្ងៃ' : 'Days' }}</strong></p>
+            <p>{{ isKhmer ? 'មេរៀនបានបញ្ចប់:' : 'Completed Lessons:' }} <strong class="text-emerald-600 dark:text-emerald-400 font-mono">{{ summary.completed_lessons || 0 }}</strong></p>
           </div>
-          <div class="pt-2 border-t border-slate-800 text-slate-400 text-[11px]">
+          <div class="pt-2 border-t border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-[11px]">
             {{ isKhmer ? 'របាយការណ៍នេះបង្ហាញពីទិន្នន័យសិក្សាពិតប្រាកដពីមេរៀន និងការប្រឡងរបស់អ្នកក្នុងប្រព័ន្ធ E-LMS។' : 'This live summary reflects your verified lesson progress, study time, and quiz sessions recorded in E-LMS.' }}
           </div>
         </div>
 
-        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800 text-xs">
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800 text-xs">
           <button
             type="button"
             @click="isReportModalOpen = false"
-            class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold cursor-pointer"
+            class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold cursor-pointer"
           >
             {{ isKhmer ? 'បិទ' : 'Close' }}
           </button>
@@ -1059,14 +1062,20 @@ const getHeatmapColor = (level: number) => {
   width: 6px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #0B0F19;
+  background: transparent;
   border-radius: 9999px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #1E293B;
+  background: #cbd5e1;
   border-radius: 9999px;
 }
+:root.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #1E293B;
+}
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+:root.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #334155;
 }
 </style>
