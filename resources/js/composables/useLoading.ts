@@ -15,10 +15,10 @@ export function useLoading() {
     isLoading.value = true
   }
 
-  const hideLoading = (minDisplayMs: number = 550) => {
+  const hideLoading = (minDisplayMs: number = 160) => {
     clearTimeout(showTimer)
     const elapsed = Date.now() - showStartTime
-    const effectiveMin = Math.max(minDisplayMs, 550)
+    const effectiveMin = Math.max(0, minDisplayMs)
     const remaining = Math.max(0, effectiveMin - elapsed)
     clearTimeout(finishTimer)
     if (remaining === 0) {

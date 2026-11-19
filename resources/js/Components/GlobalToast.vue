@@ -37,7 +37,7 @@ const loadingText = computed(() => {
   return currentLang.value === 'km' ? 'សូមរង់ចាំ កំពុងដំណើរការ' : 'Please wait while loading'
 })
 
-const MIN_LOADER_DISPLAY_MS = 550
+const MIN_LOADER_DISPLAY_MS = 160
 let loaderShownAt = 0
 let lastMethod = ''
 let showDelayTimer: ReturnType<typeof setTimeout> | null = null
@@ -61,8 +61,9 @@ const hideCenterLoader = (forceImmediate = false) => {
     isGlobalProcessing.value = false
     return
   }
+  const minDisplay = (processingMode.value === 'nav' || lastMethod === 'get') ? 160 : 300
   const elapsed = Date.now() - loaderShownAt
-  const remaining = Math.max(0, MIN_LOADER_DISPLAY_MS - elapsed)
+  const remaining = Math.max(0, minDisplay - elapsed)
   if (remaining === 0) {
     isGlobalProcessing.value = false
   } else {
@@ -326,12 +327,12 @@ const getToastBadge = (severity?: string, summary?: string) => {
 
   <!-- Centered Screen Loading Indicator -->
   <Transition
-    enter-active-class="transition duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]"
-    enter-from-class="opacity-0 scale-95"
-    enter-to-class="opacity-100 scale-100"
-    leave-active-class="transition duration-200 ease-out"
-    leave-from-class="opacity-100 scale-100"
-    leave-to-class="opacity-0 scale-95"
+    enter-active-class="transition-opacity duration-100 ease-out"
+    enter-from-class="opacity-0"
+    enter-to-class="opacity-100"
+    leave-active-class="transition-opacity duration-100 ease-in"
+    leave-from-class="opacity-100"
+    leave-to-class="opacity-0"
   >
     <div
       v-if="isGlobalProcessing && !isManualLoading"
