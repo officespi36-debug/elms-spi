@@ -91,7 +91,7 @@ onBeforeUnmount(() => {
     </div>
 
     <div class="space-y-0.5">
-      <p class="blue-loading-text h-[26px] leading-[26px] whitespace-nowrap text-base sm:text-[17px] font-extrabold tracking-wide text-slate-900 dark:text-white flex items-center justify-center">
+      <p class="blue-loading-text h-[26px] leading-[26px] whitespace-nowrap text-base sm:text-[17px] font-extrabold tracking-wide text-black dark:text-white flex items-center justify-center">
         <span>{{ displayText }}</span><span class="blue-ellipsis" aria-hidden="true">...</span>
       </p>
       <p v-if="subtext" class="text-xs text-slate-600 dark:text-slate-300 font-medium">
@@ -109,7 +109,7 @@ onBeforeUnmount(() => {
   transform-origin: 50% 50% !important;
   -webkit-transform-origin: 50% 50% !important;
   will-change: transform;
-  filter: drop-shadow(0 2px 8px rgba(0, 153, 255, 0.35));
+  filter: drop-shadow(0 2px 5px rgba(0, 153, 255, 0.22));
   -webkit-animation: blueRingSpin 1.1s linear infinite !important;
   animation: blueRingSpin 1.1s linear infinite !important;
 }
@@ -137,11 +137,16 @@ onBeforeUnmount(() => {
 }
 
 .blue-loading-text {
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.95), 0 0 14px rgba(255, 255, 255, 0.95);
+  color: #000000;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: geometricPrecision;
+  text-shadow: none;
 }
 
 :global(html.dark) .blue-loading-text {
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9), 0 0 14px rgba(11, 19, 43, 0.95);
+  color: #ffffff;
+  text-shadow: none;
 }
 
 .blue-ellipsis {

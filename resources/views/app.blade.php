@@ -101,12 +101,12 @@
 
         html.dark #initial-page-preloader {
             background-color: #0b132b;
-            color: #f8fafc;
+            color: #ffffff;
         }
 
         html:not(.dark) #initial-page-preloader {
             background-color: #f8fafc;
-            color: #0f172a;
+            color: #000000;
         }
 
         .init-ring-wrap {
@@ -121,7 +121,7 @@
             will-change: transform;
             transform: translate3d(0, 0, 0);
             backface-visibility: hidden;
-            filter: drop-shadow(0 2px 8px rgba(0, 153, 255, 0.35));
+            filter: drop-shadow(0 2px 5px rgba(0, 153, 255, 0.22));
             -webkit-animation: initRingSpin 1.1s linear infinite !important;
             animation: initRingSpin 1.1s linear infinite !important;
         }
@@ -163,11 +163,20 @@
             font-family: 'Plus Jakarta Sans', 'Kantumruy Pro', system-ui, -apple-system, sans-serif;
             font-size: 16px;
             font-weight: 800;
-            letter-spacing: 0.3px;
+            letter-spacing: 0.2px;
             white-space: nowrap;
             display: flex;
             align-items: center;
             justify-content: center;
+            color: #000000;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: geometricPrecision;
+            text-shadow: none;
+        }
+
+        html.dark #initial-preloader-text {
+            color: #ffffff;
         }
 
         [v-cloak] {
