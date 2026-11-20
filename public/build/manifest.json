@@ -25,12 +25,8 @@
       "_vendor-vue-BDpNKq-0.js"
     ]
   },
-  "_AchievementsBadges-Do-6DldG.css": {
-    "file": "assets/AchievementsBadges-Do-6DldG.css",
-    "src": "_AchievementsBadges-Do-6DldG.css"
-  },
-  "_AchievementsBadges-QywBI-vT.js": {
-    "file": "assets/AchievementsBadges-QywBI-vT.js",
+  "_AchievementsBadges-CMmtBLcM.js": {
+    "file": "assets/AchievementsBadges-CMmtBLcM.js",
     "name": "AchievementsBadges",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
@@ -38,11 +34,15 @@
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
       "__plugin-vue_export-helper-K9rsuiWd.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ],
     "css": [
       "assets/AchievementsBadges-Do-6DldG.css"
     ]
+  },
+  "_AchievementsBadges-Do-6DldG.css": {
+    "file": "assets/AchievementsBadges-Do-6DldG.css",
+    "src": "_AchievementsBadges-Do-6DldG.css"
   },
   "_AddUrlLinkModal-BdSjcIxK.js": {
     "file": "assets/AddUrlLinkModal-BdSjcIxK.js",
@@ -53,15 +53,15 @@
       "_vendor-vue-BDpNKq-0.js"
     ]
   },
-  "_AdminLayout-BKjHO_N-.js": {
-    "file": "assets/AdminLayout-BKjHO_N-.js",
+  "_AdminLayout-BnZH6hUy.js": {
+    "file": "assets/AdminLayout-BnZH6hUy.js",
     "name": "AdminLayout",
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
-      "_GlobalToast-AnO4ZO5o.js",
-      "_ProfileAccountDropdown-DUdmHPv4.js"
+      "_GlobalToast-Dy-MOUqt.js",
+      "_ProfileAccountDropdown-BcwLuwaV.js"
     ],
     "css": [
       "assets/AdminLayout-DsYq_V_I.css"
@@ -71,14 +71,14 @@
     "file": "assets/AdminLayout-DsYq_V_I.css",
     "src": "_AdminLayout-DsYq_V_I.css"
   },
-  "_AiAlerts-CpfuXsUh.js": {
-    "file": "assets/AiAlerts-CpfuXsUh.js",
+  "_AiAlerts-DrCfS0ZD.js": {
+    "file": "assets/AiAlerts-DrCfS0ZD.js",
     "name": "AiAlerts",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "_AiConfiguration-C9QsP2T8.js": {
@@ -142,25 +142,25 @@
       "_vendor-vue-BDpNKq-0.js"
     ]
   },
-  "_Announcements-DLwYIB5k.js": {
-    "file": "assets/Announcements-DLwYIB5k.js",
+  "_Announcements-Cnm7TFhW.js": {
+    "file": "assets/Announcements-Cnm7TFhW.js",
     "name": "Announcements",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
-  "_AskQuestion-CKjAGn-r.js": {
-    "file": "assets/AskQuestion-CKjAGn-r.js",
+  "_AskQuestion-dCOBHccy.js": {
+    "file": "assets/AskQuestion-dCOBHccy.js",
     "name": "AskQuestion",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "_AssetTypeBadge-7EU2eTKz.js": {
@@ -171,14 +171,14 @@
       "_vendor-ui-BSlL5PLM.js"
     ]
   },
-  "_AssignmentDue-Cp0lU_r7.js": {
-    "file": "assets/AssignmentDue-Cp0lU_r7.js",
+  "_AssignmentDue-CdBfdFdA.js": {
+    "file": "assets/AssignmentDue-CdBfdFdA.js",
     "name": "AssignmentDue",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "_AssignmentTab-D9wL8qUE.js": {
@@ -188,21 +188,6 @@
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js"
-    ]
-  },
-  "_Assignments-CLPygUyV.js": {
-    "file": "assets/Assignments-CLPygUyV.js",
-    "name": "Assignments",
-    "imports": [
-      "_rolldown-runtime-b3L32Ng1.js",
-      "_vendor-ui-BSlL5PLM.js",
-      "_vendor-vue-BDpNKq-0.js",
-      "resources/js/app.ts",
-      "__plugin-vue_export-helper-K9rsuiWd.js",
-      "_StudentLayout-BEmoP9HX.js"
-    ],
-    "css": [
-      "assets/Assignments-DvsFcOQv.css"
     ]
   },
   "_Assignments-DiuERtFd.js": {
@@ -217,6 +202,21 @@
   "_Assignments-DvsFcOQv.css": {
     "file": "assets/Assignments-DvsFcOQv.css",
     "src": "_Assignments-DvsFcOQv.css"
+  },
+  "_Assignments-vuQGrSEk.js": {
+    "file": "assets/Assignments-vuQGrSEk.js",
+    "name": "Assignments",
+    "imports": [
+      "_rolldown-runtime-b3L32Ng1.js",
+      "_vendor-ui-BSlL5PLM.js",
+      "_vendor-vue-BDpNKq-0.js",
+      "resources/js/app.ts",
+      "__plugin-vue_export-helper-K9rsuiWd.js",
+      "_StudentLayout-Cx0opfZn.js"
+    ],
+    "css": [
+      "assets/Assignments-DvsFcOQv.css"
+    ]
   },
   "_AtRiskStudents-BbQ--ciw.js": {
     "file": "assets/AtRiskStudents-BbQ--ciw.js",
@@ -236,8 +236,8 @@
       "_vendor-vue-BDpNKq-0.js"
     ]
   },
-  "_AuthModuleHeader-CkiKIXHh.js": {
-    "file": "assets/AuthModuleHeader-CkiKIXHh.js",
+  "_AuthModuleHeader-B1NgglEe.js": {
+    "file": "assets/AuthModuleHeader-B1NgglEe.js",
     "name": "AuthModuleHeader",
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
@@ -268,13 +268,13 @@
       "_vendor-ui-BSlL5PLM.js"
     ]
   },
-  "_BrowseCatalog-DK4yvnxr.js": {
-    "file": "assets/BrowseCatalog-DK4yvnxr.js",
+  "_BrowseCatalog-3Kc58rim.js": {
+    "file": "assets/BrowseCatalog-3Kc58rim.js",
     "name": "BrowseCatalog",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
-      "_Index-B9Jadw55.js"
+      "_Index-nW5hZ2-E.js"
     ]
   },
   "_CodingAssessmentTab-CWgKdPlA.js": {
@@ -286,15 +286,15 @@
       "_vendor-vue-BDpNKq-0.js"
     ]
   },
-  "_CompletedCourses-D0q9XlFx.js": {
-    "file": "assets/CompletedCourses-D0q9XlFx.js",
+  "_CompletedCourses--A8DA6Ui.js": {
+    "file": "assets/CompletedCourses--A8DA6Ui.js",
     "name": "CompletedCourses",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "_Completion-DIr5f-by.js": {
@@ -334,28 +334,28 @@
       "_vendor-vue-BDpNKq-0.js"
     ]
   },
-  "_CourseDiscussions-hnbQZ0JG.js": {
-    "file": "assets/CourseDiscussions-hnbQZ0JG.js",
+  "_CourseDiscussions-D_1V2L2a.js": {
+    "file": "assets/CourseDiscussions-D_1V2L2a.js",
     "name": "CourseDiscussions",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
-  "_CourseFaq-CKeupSGz.js": {
-    "file": "assets/CourseFaq-CKeupSGz.js",
+  "_CourseFaq-Bqsio0Xh.js": {
+    "file": "assets/CourseFaq-Bqsio0Xh.js",
     "name": "CourseFaq",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
-  "_CourseModuleHeader-B4Aw5X1q.js": {
-    "file": "assets/CourseModuleHeader-B4Aw5X1q.js",
+  "_CourseModuleHeader-D_twDR42.js": {
+    "file": "assets/CourseModuleHeader-D_twDR42.js",
     "name": "CourseModuleHeader",
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
@@ -390,15 +390,15 @@
       "_vendor-vue-BDpNKq-0.js"
     ]
   },
-  "_CurrentCourse-Ben1L2s3.js": {
-    "file": "assets/CurrentCourse-Ben1L2s3.js",
+  "_CurrentCourse-zJgqncgY.js": {
+    "file": "assets/CurrentCourse-zJgqncgY.js",
     "name": "CurrentCourse",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-DtS-JzhD.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "_DeadlineFormModal-Dpi6i8wa.js": {
@@ -428,12 +428,8 @@
       "_vendor-vue-BDpNKq-0.js"
     ]
   },
-  "_DownloadShare-CTg7xyO0.css": {
-    "file": "assets/DownloadShare-CTg7xyO0.css",
-    "src": "_DownloadShare-CTg7xyO0.css"
-  },
-  "_DownloadShare-HmInEKHY.js": {
-    "file": "assets/DownloadShare-HmInEKHY.js",
+  "_DownloadShare-BJDOVyaY.js": {
+    "file": "assets/DownloadShare-BJDOVyaY.js",
     "name": "DownloadShare",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
@@ -441,11 +437,15 @@
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
       "__plugin-vue_export-helper-K9rsuiWd.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ],
     "css": [
       "assets/DownloadShare-CTg7xyO0.css"
     ]
+  },
+  "_DownloadShare-CTg7xyO0.css": {
+    "file": "assets/DownloadShare-CTg7xyO0.css",
+    "src": "_DownloadShare-CTg7xyO0.css"
   },
   "_EmailSmtp-Cl2TckBQ.js": {
     "file": "assets/EmailSmtp-Cl2TckBQ.js",
@@ -456,15 +456,15 @@
       "_vendor-vue-BDpNKq-0.js"
     ]
   },
-  "_EnrolledCourses-DCt4z8iN.js": {
-    "file": "assets/EnrolledCourses-DCt4z8iN.js",
+  "_EnrolledCourses-d6ahVkTy.js": {
+    "file": "assets/EnrolledCourses-d6ahVkTy.js",
     "name": "EnrolledCourses",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "_EnrollmentModuleHeader-CXN7VN0p.js": {
@@ -502,8 +502,12 @@
       "_vendor-vue-BDpNKq-0.js"
     ]
   },
-  "_GlobalToast-AnO4ZO5o.js": {
-    "file": "assets/GlobalToast-AnO4ZO5o.js",
+  "_GlobalToast-CC8nhzWp.css": {
+    "file": "assets/GlobalToast-CC8nhzWp.css",
+    "src": "_GlobalToast-CC8nhzWp.css"
+  },
+  "_GlobalToast-Dy-MOUqt.js": {
+    "file": "assets/GlobalToast-Dy-MOUqt.js",
     "name": "GlobalToast",
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
@@ -515,65 +519,74 @@
       "assets/GlobalToast-CC8nhzWp.css"
     ]
   },
-  "_GlobalToast-CC8nhzWp.css": {
-    "file": "assets/GlobalToast-CC8nhzWp.css",
-    "src": "_GlobalToast-CC8nhzWp.css"
-  },
-  "_History-BTEgFMJu.css": {
-    "file": "assets/History-BTEgFMJu.css",
-    "src": "_History-BTEgFMJu.css"
-  },
-  "_History-CUAdfgqF.js": {
-    "file": "assets/History-CUAdfgqF.js",
+  "_History-BJlZveN8.js": {
+    "file": "assets/History-BJlZveN8.js",
     "name": "History",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "__plugin-vue_export-helper-K9rsuiWd.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ],
     "css": [
       "assets/History-BTEgFMJu.css"
     ]
   },
-  "_Index-18oq2GEh.js": {
-    "file": "assets/Index-18oq2GEh.js",
-    "name": "Index",
-    "imports": [
-      "_rolldown-runtime-b3L32Ng1.js",
-      "_vendor-ui-BSlL5PLM.js",
-      "_EnrolledCourses-DCt4z8iN.js",
-      "_CurrentCourse-Ben1L2s3.js",
-      "_CompletedCourses-D0q9XlFx.js",
-      "_BrowseCatalog-DK4yvnxr.js",
-      "_Wishlist-CKKdhYLv.js"
-    ]
+  "_History-BTEgFMJu.css": {
+    "file": "assets/History-BTEgFMJu.css",
+    "src": "_History-BTEgFMJu.css"
   },
-  "_Index-B9Jadw55.js": {
-    "file": "assets/Index-B9Jadw55.js",
+  "_Index-9nMoSvP5.js": {
+    "file": "assets/Index-9nMoSvP5.js",
     "name": "Index",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "resources/js/app.ts",
-      "__plugin-vue_export-helper-K9rsuiWd.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_AdminLayout-BnZH6hUy.js",
+      "_ContentLibrary-BQXqjHFK.js",
+      "_ModulesChapters-CS98vGhO.js",
+      "_OfflineContent-C09h72bL.js"
     ],
-    "css": [
-      "assets/Index-x2fyDv9r.css"
+    "dynamicImports": [
+      "resources/js/Pages/Admin/ContentDeliveryModule/UniversalUploadModal.vue",
+      "resources/js/Pages/Admin/ContentDeliveryModule/VideoPlayerModal.vue",
+      "resources/js/Pages/Admin/ContentDeliveryModule/PdfViewerModal.vue",
+      "resources/js/Pages/Admin/ContentDeliveryModule/SlideViewerModal.vue",
+      "resources/js/Pages/Admin/ContentDeliveryModule/NoteEditorModal.vue",
+      "resources/js/Pages/Admin/ContentDeliveryModule/LinkViewerModal.vue",
+      "resources/js/Pages/Admin/ContentDeliveryModule/ModuleChapterModal.vue",
+      "resources/js/Pages/Admin/ContentDeliveryModule/OfflinePackageModal.vue",
+      "resources/js/Pages/Admin/ContentDeliveryModule/LessonPreviewEditorModal.vue"
     ]
   },
-  "_Index-BeRiRrW_.js": {
-    "file": "assets/Index-BeRiRrW_.js",
+  "_Index-BSpNCDFF.js": {
+    "file": "assets/Index-BSpNCDFF.js",
+    "name": "Index",
+    "imports": [
+      "_rolldown-runtime-b3L32Ng1.js",
+      "_vendor-ui-BSlL5PLM.js",
+      "_EnrolledCourses-d6ahVkTy.js",
+      "_CurrentCourse-zJgqncgY.js",
+      "_CompletedCourses--A8DA6Ui.js",
+      "_BrowseCatalog-3Kc58rim.js",
+      "_Wishlist-CcISOukq.js"
+    ]
+  },
+  "_Index-BjvKp5N-.css": {
+    "file": "assets/Index-BjvKp5N-.css",
+    "src": "_Index-BjvKp5N-.css"
+  },
+  "_Index-CmUGCtBc.js": {
+    "file": "assets/Index-CmUGCtBc.js",
     "name": "Index",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "__plugin-vue_export-helper-K9rsuiWd.js",
-      "_AdminLayout-BKjHO_N-.js",
+      "_AdminLayout-BnZH6hUy.js",
       "_AbaTransactions-CY2EtnI1.js",
       "_CoursePricing-CVoDESHm.js",
       "_PaymentDashboard-CyWQtj1U.js",
@@ -595,32 +608,19 @@
       "assets/Index-BjvKp5N-.css"
     ]
   },
-  "_Index-BjvKp5N-.css": {
-    "file": "assets/Index-BjvKp5N-.css",
-    "src": "_Index-BjvKp5N-.css"
-  },
-  "_Index-DIwiJ967.js": {
-    "file": "assets/Index-DIwiJ967.js",
+  "_Index-nW5hZ2-E.js": {
+    "file": "assets/Index-nW5hZ2-E.js",
     "name": "Index",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js",
-      "_ContentLibrary-BQXqjHFK.js",
-      "_ModulesChapters-CS98vGhO.js",
-      "_OfflineContent-C09h72bL.js"
+      "resources/js/app.ts",
+      "__plugin-vue_export-helper-K9rsuiWd.js",
+      "_StudentLayout-Cx0opfZn.js"
     ],
-    "dynamicImports": [
-      "resources/js/Pages/Admin/ContentDeliveryModule/UniversalUploadModal.vue",
-      "resources/js/Pages/Admin/ContentDeliveryModule/VideoPlayerModal.vue",
-      "resources/js/Pages/Admin/ContentDeliveryModule/PdfViewerModal.vue",
-      "resources/js/Pages/Admin/ContentDeliveryModule/SlideViewerModal.vue",
-      "resources/js/Pages/Admin/ContentDeliveryModule/NoteEditorModal.vue",
-      "resources/js/Pages/Admin/ContentDeliveryModule/LinkViewerModal.vue",
-      "resources/js/Pages/Admin/ContentDeliveryModule/ModuleChapterModal.vue",
-      "resources/js/Pages/Admin/ContentDeliveryModule/OfflinePackageModal.vue",
-      "resources/js/Pages/Admin/ContentDeliveryModule/LessonPreviewEditorModal.vue"
+    "css": [
+      "assets/Index-x2fyDv9r.css"
     ]
   },
   "_Index-x2fyDv9r.css": {
@@ -663,8 +663,8 @@
       "_vendor-vue-BDpNKq-0.js"
     ]
   },
-  "_LearningTime-BH3yQ1ms.js": {
-    "file": "assets/LearningTime-BH3yQ1ms.js",
+  "_LearningTime-BLqu7YDC.js": {
+    "file": "assets/LearningTime-BLqu7YDC.js",
     "name": "LearningTime",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
@@ -672,7 +672,7 @@
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
       "__plugin-vue_export-helper-K9rsuiWd.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ],
     "css": [
       "assets/LearningTime-CsVPOxm4.css"
@@ -708,13 +708,13 @@
       "_vendor-vue-BDpNKq-0.js"
     ]
   },
-  "_LiveClassSchedule-Bq3Z__JK.js": {
-    "file": "assets/LiveClassSchedule-Bq3Z__JK.js",
+  "_LiveClassSchedule-Cma2yFmx.js": {
+    "file": "assets/LiveClassSchedule-Cma2yFmx.js",
     "name": "LiveClassSchedule",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "_ModuleCompletion-BRmDTBR3.js": {
@@ -764,8 +764,8 @@
       "_vendor-vue-BDpNKq-0.js"
     ]
   },
-  "_MyCertificates-DQens5sy.js": {
-    "file": "assets/MyCertificates-DQens5sy.js",
+  "_MyCertificates-B8OU4DYo.js": {
+    "file": "assets/MyCertificates-B8OU4DYo.js",
     "name": "MyCertificates",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
@@ -773,7 +773,7 @@
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
       "__plugin-vue_export-helper-K9rsuiWd.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ],
     "css": [
       "assets/MyCertificates-Du10oL3q.css"
@@ -783,23 +783,23 @@
     "file": "assets/MyCertificates-Du10oL3q.css",
     "src": "_MyCertificates-Du10oL3q.css"
   },
-  "_MyPayments-BzBk-dOR.js": {
-    "file": "assets/MyPayments-BzBk-dOR.js",
+  "_MyPayments-COJLDfBN.js": {
+    "file": "assets/MyPayments-COJLDfBN.js",
     "name": "MyPayments",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
-  "_MyQuestions-C3u6LKaE.js": {
-    "file": "assets/MyQuestions-C3u6LKaE.js",
+  "_MyQuestions-BduaXppK.js": {
+    "file": "assets/MyQuestions-BduaXppK.js",
     "name": "MyQuestions",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "_NetworkStatusPill-h3nG4W6r.js": {
@@ -809,14 +809,14 @@
       "_vendor-ui-BSlL5PLM.js"
     ]
   },
-  "_NextModule-DmqC4ns9.js": {
-    "file": "assets/NextModule-DmqC4ns9.js",
+  "_NextModule-D7Lc3JE1.js": {
+    "file": "assets/NextModule-D7Lc3JE1.js",
     "name": "NextModule",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "_Notes-8ebFhNsC.js": {
@@ -828,14 +828,14 @@
       "_vendor-vue-BDpNKq-0.js"
     ]
   },
-  "_NotesDownloads-BrWVDaPR.js": {
-    "file": "assets/NotesDownloads-BrWVDaPR.js",
+  "_NotesDownloads-C_btBI6I.js": {
+    "file": "assets/NotesDownloads-C_btBI6I.js",
     "name": "NotesDownloads",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "_OfflineContent-C09h72bL.js": {
@@ -856,25 +856,25 @@
       "_vendor-vue-BDpNKq-0.js"
     ]
   },
-  "_Overview-B6PMagWH.js": {
-    "file": "assets/Overview-B6PMagWH.js",
+  "_Overview-CUrut06G.js": {
+    "file": "assets/Overview-CUrut06G.js",
     "name": "Overview",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
-  "_PaymentAlerts-CMaOp6yy.js": {
-    "file": "assets/PaymentAlerts-CMaOp6yy.js",
+  "_PaymentAlerts-CCtKiCDe.js": {
+    "file": "assets/PaymentAlerts-CCtKiCDe.js",
     "name": "PaymentAlerts",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "_PaymentDashboard-CyWQtj1U.js": {
@@ -886,16 +886,6 @@
       "_vendor-vue-BDpNKq-0.js"
     ]
   },
-  "_PaymentHistory-CUg4p6lR.js": {
-    "file": "assets/PaymentHistory-CUg4p6lR.js",
-    "name": "PaymentHistory",
-    "imports": [
-      "_rolldown-runtime-b3L32Ng1.js",
-      "_vendor-ui-BSlL5PLM.js",
-      "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
-    ]
-  },
   "_PaymentHistory-DruWfpky.js": {
     "file": "assets/PaymentHistory-DruWfpky.js",
     "name": "PaymentHistory",
@@ -903,6 +893,29 @@
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js"
+    ]
+  },
+  "_PaymentHistory-f_OqNz92.js": {
+    "file": "assets/PaymentHistory-f_OqNz92.js",
+    "name": "PaymentHistory",
+    "imports": [
+      "_rolldown-runtime-b3L32Ng1.js",
+      "_vendor-ui-BSlL5PLM.js",
+      "_vendor-vue-BDpNKq-0.js",
+      "_StudentLayout-Cx0opfZn.js"
+    ]
+  },
+  "_Pdfs-BQB61Y-7.js": {
+    "file": "assets/Pdfs-BQB61Y-7.js",
+    "name": "Pdfs",
+    "imports": [
+      "_rolldown-runtime-b3L32Ng1.js",
+      "_vendor-ui-BSlL5PLM.js",
+      "__plugin-vue_export-helper-K9rsuiWd.js",
+      "_StudentLayout-Cx0opfZn.js"
+    ],
+    "css": [
+      "assets/Pdfs-DK1Gpikw.css"
     ]
   },
   "_Pdfs-CSPpsvKT.js": {
@@ -918,27 +931,24 @@
     "file": "assets/Pdfs-DK1Gpikw.css",
     "src": "_Pdfs-DK1Gpikw.css"
   },
-  "_Pdfs-ZIXOxu-V.js": {
-    "file": "assets/Pdfs-ZIXOxu-V.js",
-    "name": "Pdfs",
-    "imports": [
-      "_rolldown-runtime-b3L32Ng1.js",
-      "_vendor-ui-BSlL5PLM.js",
-      "__plugin-vue_export-helper-K9rsuiWd.js",
-      "_StudentLayout-BEmoP9HX.js"
-    ],
-    "css": [
-      "assets/Pdfs-DK1Gpikw.css"
-    ]
-  },
-  "_PendingPayments-wqW2_EBF.js": {
-    "file": "assets/PendingPayments-wqW2_EBF.js",
+  "_PendingPayments-IguiojDi.js": {
+    "file": "assets/PendingPayments-IguiojDi.js",
     "name": "PendingPayments",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
+    ]
+  },
+  "_PostTest-BAZziNtM.js": {
+    "file": "assets/PostTest-BAZziNtM.js",
+    "name": "PostTest",
+    "imports": [
+      "_rolldown-runtime-b3L32Ng1.js",
+      "_vendor-ui-BSlL5PLM.js",
+      "_vendor-vue-BDpNKq-0.js",
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "_PostTest-D6JjURv3.js": {
@@ -950,29 +960,19 @@
       "_vendor-vue-BDpNKq-0.js"
     ]
   },
-  "_PostTest-DDzbuCIO.js": {
-    "file": "assets/PostTest-DDzbuCIO.js",
-    "name": "PostTest",
-    "imports": [
-      "_rolldown-runtime-b3L32Ng1.js",
-      "_vendor-ui-BSlL5PLM.js",
-      "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
-    ]
-  },
   "_Practice-DBZF9SsR.css": {
     "file": "assets/Practice-DBZF9SsR.css",
     "src": "_Practice-DBZF9SsR.css"
   },
-  "_Practice-DxrEsn2C.js": {
-    "file": "assets/Practice-DxrEsn2C.js",
+  "_Practice-hTpHTQ_q.js": {
+    "file": "assets/Practice-hTpHTQ_q.js",
     "name": "Practice",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "__plugin-vue_export-helper-K9rsuiWd.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ],
     "css": [
       "assets/Practice-DBZF9SsR.css"
@@ -1005,36 +1005,36 @@
       "_vendor-vue-BDpNKq-0.js"
     ]
   },
-  "_PreTest-Cd2CUkqP.js": {
-    "file": "assets/PreTest-Cd2CUkqP.js",
+  "_PreTest-CUIjlX6V.js": {
+    "file": "assets/PreTest-CUIjlX6V.js",
     "name": "PreTest",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
-  "_ProfileAccountDropdown-DUdmHPv4.js": {
-    "file": "assets/ProfileAccountDropdown-DUdmHPv4.js",
+  "_ProfileAccountDropdown-BcwLuwaV.js": {
+    "file": "assets/ProfileAccountDropdown-BcwLuwaV.js",
     "name": "ProfileAccountDropdown",
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
-      "_GlobalToast-AnO4ZO5o.js",
+      "_GlobalToast-Dy-MOUqt.js",
       "__plugin-vue_export-helper-K9rsuiWd.js"
     ],
     "dynamicImports": [
       "resources/js/Pages/Auth/Login.vue"
     ],
     "css": [
-      "assets/ProfileAccountDropdown-a5GhzcYS.css"
+      "assets/ProfileAccountDropdown-CZxf-r6V.css"
     ]
   },
-  "_ProfileAccountDropdown-a5GhzcYS.css": {
-    "file": "assets/ProfileAccountDropdown-a5GhzcYS.css",
-    "src": "_ProfileAccountDropdown-a5GhzcYS.css"
+  "_ProfileAccountDropdown-CZxf-r6V.css": {
+    "file": "assets/ProfileAccountDropdown-CZxf-r6V.css",
+    "src": "_ProfileAccountDropdown-CZxf-r6V.css"
   },
   "_Progress-DBL_CNjt.js": {
     "file": "assets/Progress-DBL_CNjt.js",
@@ -1141,13 +1141,13 @@
       "_vendor-vue-BDpNKq-0.js"
     ]
   },
-  "_ReceiptsInvoices-Cl3MQtca.js": {
-    "file": "assets/ReceiptsInvoices-Cl3MQtca.js",
+  "_ReceiptsInvoices-IPymE0pM.js": {
+    "file": "assets/ReceiptsInvoices-IPymE0pM.js",
     "name": "ReceiptsInvoices",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "_RecommendationLogs-CVo3CRcw.js": {
@@ -1159,15 +1159,15 @@
       "_vendor-vue-BDpNKq-0.js"
     ]
   },
-  "_RecommendedLesson-DpecH_p8.js": {
-    "file": "assets/RecommendedLesson-DpecH_p8.js",
+  "_RecommendedLesson-ncgcswBv.js": {
+    "file": "assets/RecommendedLesson-ncgcswBv.js",
     "name": "RecommendedLesson",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "_RedisQueue-ByYfGn8o.js": {
@@ -1227,14 +1227,14 @@
       "_vendor-vue-BDpNKq-0.js"
     ]
   },
-  "_ReviewLesson-cI2vYXMj.js": {
-    "file": "assets/ReviewLesson-cI2vYXMj.js",
+  "_ReviewLesson-BDncThiV.js": {
+    "file": "assets/ReviewLesson-BDncThiV.js",
     "name": "ReviewLesson",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "_S3Storage-3E26q9_C.js": {
@@ -1264,15 +1264,15 @@
       "_vendor-vue-BDpNKq-0.js"
     ]
   },
-  "_Scores-BBxL-YM8.js": {
-    "file": "assets/Scores-BBxL-YM8.js",
+  "_Scores-BTVyOUyk.js": {
+    "file": "assets/Scores-BTVyOUyk.js",
     "name": "Scores",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "__plugin-vue_export-helper-K9rsuiWd.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ],
     "css": [
       "assets/Scores-CI9qZ8Ap.css"
@@ -1282,14 +1282,14 @@
     "file": "assets/Scores-CI9qZ8Ap.css",
     "src": "_Scores-CI9qZ8Ap.css"
   },
-  "_Slides-CeSYSjUs.js": {
-    "file": "assets/Slides-CeSYSjUs.js",
+  "_Slides-DFGGK0Eg.js": {
+    "file": "assets/Slides-DFGGK0Eg.js",
     "name": "Slides",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "__plugin-vue_export-helper-K9rsuiWd.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ],
     "css": [
       "assets/Slides-We_HNujv.css"
@@ -1342,16 +1342,16 @@
       "_vendor-ui-BSlL5PLM.js"
     ]
   },
-  "_StudentLayout-BEmoP9HX.js": {
-    "file": "assets/StudentLayout-BEmoP9HX.js",
+  "_StudentLayout-Cx0opfZn.js": {
+    "file": "assets/StudentLayout-Cx0opfZn.js",
     "name": "StudentLayout",
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
-      "_GlobalToast-AnO4ZO5o.js",
+      "_GlobalToast-Dy-MOUqt.js",
       "__plugin-vue_export-helper-K9rsuiWd.js",
-      "_ProfileAccountDropdown-DUdmHPv4.js"
+      "_ProfileAccountDropdown-BcwLuwaV.js"
     ],
     "css": [
       "assets/StudentLayout-Cy3hgkIE.css"
@@ -1413,14 +1413,14 @@
       "_vendor-ui-BSlL5PLM.js"
     ]
   },
-  "_SupportTicket-CEisSzXG.js": {
-    "file": "assets/SupportTicket-CEisSzXG.js",
+  "_SupportTicket-DwbuTWju.js": {
+    "file": "assets/SupportTicket-DwbuTWju.js",
     "name": "SupportTicket",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "_SystemLogs-DBjNYQ2t.js": {
@@ -1450,30 +1450,30 @@
       "_vendor-vue-BDpNKq-0.js"
     ]
   },
-  "_TeacherFeedback-g9ZOaOYr.js": {
-    "file": "assets/TeacherFeedback-g9ZOaOYr.js",
+  "_TeacherFeedback-CEbisL5F.js": {
+    "file": "assets/TeacherFeedback-CEbisL5F.js",
     "name": "TeacherFeedback",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "_TeacherLayout-AnDPNZzu.css": {
     "file": "assets/TeacherLayout-AnDPNZzu.css",
     "src": "_TeacherLayout-AnDPNZzu.css"
   },
-  "_TeacherLayout-DeYMN90N.js": {
-    "file": "assets/TeacherLayout-DeYMN90N.js",
+  "_TeacherLayout-Crew-C4y.js": {
+    "file": "assets/TeacherLayout-Crew-C4y.js",
     "name": "TeacherLayout",
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
-      "_GlobalToast-AnO4ZO5o.js",
+      "_GlobalToast-Dy-MOUqt.js",
       "__plugin-vue_export-helper-K9rsuiWd.js",
-      "_ProfileAccountDropdown-DUdmHPv4.js"
+      "_ProfileAccountDropdown-BcwLuwaV.js"
     ],
     "css": [
       "assets/TeacherLayout-AnDPNZzu.css"
@@ -1496,27 +1496,27 @@
       "_vendor-vue-BDpNKq-0.js"
     ]
   },
-  "_UpcomingQuiz-DP61ik0H.js": {
-    "file": "assets/UpcomingQuiz-DP61ik0H.js",
+  "_UpcomingQuiz-D__SZ6nK.js": {
+    "file": "assets/UpcomingQuiz-D__SZ6nK.js",
     "name": "UpcomingQuiz",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
-  "_UrlResources-D5sn3JyW.js": {
-    "file": "assets/UrlResources-D5sn3JyW.js",
+  "_UrlResources-BkoMlEDz.js": {
+    "file": "assets/UrlResources-BkoMlEDz.js",
     "name": "UrlResources",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
-  "_UserModuleHeader-BuMZynFW.js": {
-    "file": "assets/UserModuleHeader-BuMZynFW.js",
+  "_UserModuleHeader-Czk7shVo.js": {
+    "file": "assets/UserModuleHeader-Czk7shVo.js",
     "name": "UserModuleHeader",
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
@@ -1524,22 +1524,22 @@
       "resources/js/app.ts"
     ]
   },
-  "_VerifyCertificate-CUUCW3S7.css": {
-    "file": "assets/VerifyCertificate-CUUCW3S7.css",
-    "src": "_VerifyCertificate-CUUCW3S7.css"
-  },
-  "_VerifyCertificate-coVwk2Pk.js": {
-    "file": "assets/VerifyCertificate-coVwk2Pk.js",
+  "_VerifyCertificate-B62lt1Uf.js": {
+    "file": "assets/VerifyCertificate-B62lt1Uf.js",
     "name": "VerifyCertificate",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ],
     "css": [
       "assets/VerifyCertificate-CUUCW3S7.css"
     ]
+  },
+  "_VerifyCertificate-CUUCW3S7.css": {
+    "file": "assets/VerifyCertificate-CUUCW3S7.css",
+    "src": "_VerifyCertificate-CUUCW3S7.css"
   },
   "_VideoCdn-Dcr2DX8j.js": {
     "file": "assets/VideoCdn-Dcr2DX8j.js",
@@ -1550,14 +1550,14 @@
       "_vendor-vue-BDpNKq-0.js"
     ]
   },
-  "_Videos-DuS7MR8v.js": {
-    "file": "assets/Videos-DuS7MR8v.js",
+  "_Videos-ChR7kHR6.js": {
+    "file": "assets/Videos-ChR7kHR6.js",
     "name": "Videos",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "_Videos-bKB0YAs6.js": {
@@ -1569,15 +1569,15 @@
       "_vendor-vue-BDpNKq-0.js"
     ]
   },
-  "_WeakTopics-BbhmhVph.js": {
-    "file": "assets/WeakTopics-BbhmhVph.js",
+  "_WeakTopics-vaeGIiZV.js": {
+    "file": "assets/WeakTopics-vaeGIiZV.js",
     "name": "WeakTopics",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "_WeeklyProgress-CcidB3nB.css": {
@@ -1592,8 +1592,8 @@
       "_vendor-ui-BSlL5PLM.js"
     ]
   },
-  "_WeeklyProgress-FJ-m5m9A.js": {
-    "file": "assets/WeeklyProgress-FJ-m5m9A.js",
+  "_WeeklyProgress-DCu7vWxg.js": {
+    "file": "assets/WeeklyProgress-DCu7vWxg.js",
     "name": "WeeklyProgress",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
@@ -1601,7 +1601,7 @@
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
       "__plugin-vue_export-helper-K9rsuiWd.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ],
     "css": [
       "assets/WeeklyProgress-CcidB3nB.css"
@@ -1615,15 +1615,15 @@
       "_vendor-ui-BSlL5PLM.js"
     ]
   },
-  "_Wishlist-CKKdhYLv.js": {
-    "file": "assets/Wishlist-CKKdhYLv.js",
+  "_Wishlist-CcISOukq.js": {
+    "file": "assets/Wishlist-CcISOukq.js",
     "name": "Wishlist",
     "imports": [
       "_rolldown-runtime-b3L32Ng1.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "__plugin-vue_export-helper-K9rsuiWd.js": {
@@ -1822,7 +1822,7 @@
     "src": "node_modules/primeicons/fonts/primeicons.woff2"
   },
   "resources/css/app.css": {
-    "file": "assets/app-DyLJnsSM.css",
+    "file": "assets/app-C-VCBClD.css",
     "name": "app",
     "names": [
       "app.css"
@@ -1831,118 +1831,118 @@
     "isEntry": true
   },
   "resources/js/Pages/Admin/AI/Rules.vue": {
-    "file": "assets/Rules-CeIb79Pv.js",
+    "file": "assets/Rules-CNNLuLaD.js",
     "name": "Rules",
     "src": "resources/js/Pages/Admin/AI/Rules.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js"
+      "_AdminLayout-BnZH6hUy.js"
     ]
   },
   "resources/js/Pages/Admin/Academic/DepartmentIndex.vue": {
-    "file": "assets/DepartmentIndex-DKwMldUH.js",
+    "file": "assets/DepartmentIndex-B3QAVdd0.js",
     "name": "DepartmentIndex",
     "src": "resources/js/Pages/Admin/Academic/DepartmentIndex.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js"
+      "_AdminLayout-BnZH6hUy.js"
     ]
   },
   "resources/js/Pages/Admin/Academic/FacultyIndex.vue": {
-    "file": "assets/FacultyIndex-Wn_xxUxS.js",
+    "file": "assets/FacultyIndex-Bz_S1FRx.js",
     "name": "FacultyIndex",
     "src": "resources/js/Pages/Admin/Academic/FacultyIndex.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js"
+      "_AdminLayout-BnZH6hUy.js"
     ]
   },
   "resources/js/Pages/Admin/Academic/MajorIndex.vue": {
-    "file": "assets/MajorIndex-CFdxLMGr.js",
+    "file": "assets/MajorIndex-CGCVoDrf.js",
     "name": "MajorIndex",
     "src": "resources/js/Pages/Admin/Academic/MajorIndex.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js"
+      "_AdminLayout-BnZH6hUy.js"
     ]
   },
   "resources/js/Pages/Admin/AcademicStructureModule/AcademicYears.vue": {
-    "file": "assets/AcademicYears-DYDLeXj5.js",
+    "file": "assets/AcademicYears-p5PFi1Zm.js",
     "name": "AcademicYears",
     "src": "resources/js/Pages/Admin/AcademicStructureModule/AcademicYears.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js",
+      "_AdminLayout-BnZH6hUy.js",
       "_AcademicModuleHeader-D9QydjB5.js"
     ]
   },
   "resources/js/Pages/Admin/AcademicStructureModule/Departments.vue": {
-    "file": "assets/Departments-D62pLFj9.js",
+    "file": "assets/Departments--5tyOA__.js",
     "name": "Departments",
     "src": "resources/js/Pages/Admin/AcademicStructureModule/Departments.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js",
+      "_AdminLayout-BnZH6hUy.js",
       "_AcademicModuleHeader-D9QydjB5.js"
     ]
   },
   "resources/js/Pages/Admin/AcademicStructureModule/Faculties.vue": {
-    "file": "assets/Faculties-C40nkG-H.js",
+    "file": "assets/Faculties-BiDUtGOX.js",
     "name": "Faculties",
     "src": "resources/js/Pages/Admin/AcademicStructureModule/Faculties.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js",
+      "_AdminLayout-BnZH6hUy.js",
       "_AcademicModuleHeader-D9QydjB5.js"
     ]
   },
   "resources/js/Pages/Admin/AcademicStructureModule/Majors.vue": {
-    "file": "assets/Majors-BY69eTH2.js",
+    "file": "assets/Majors-B1rJZD0e.js",
     "name": "Majors",
     "src": "resources/js/Pages/Admin/AcademicStructureModule/Majors.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js",
+      "_AdminLayout-BnZH6hUy.js",
       "_AcademicModuleHeader-D9QydjB5.js"
     ]
   },
   "resources/js/Pages/Admin/AcademicStructureModule/Semesters.vue": {
-    "file": "assets/Semesters-BKYKG47o.js",
+    "file": "assets/Semesters-6LS9wySe.js",
     "name": "Semesters",
     "src": "resources/js/Pages/Admin/AcademicStructureModule/Semesters.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js",
+      "_AdminLayout-BnZH6hUy.js",
       "_AcademicModuleHeader-D9QydjB5.js"
     ]
   },
   "resources/js/Pages/Admin/AiRecommendationModule/Index.vue": {
-    "file": "assets/Index-enilYSUB.js",
+    "file": "assets/Index-BMi0a-Re.js",
     "name": "Index",
     "src": "resources/js/Pages/Admin/AiRecommendationModule/Index.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js",
+      "_AdminLayout-BnZH6hUy.js",
       "_AiConfiguration-C9QsP2T8.js",
       "_AiRules-Bht3g0WB.js",
       "_AtRiskStudents-BbQ--ciw.js",
@@ -2052,7 +2052,7 @@
     ]
   },
   "resources/js/Pages/Admin/AiRules/Index.vue": {
-    "file": "assets/Index-C9k0x1UK.js",
+    "file": "assets/Index-BjbWyrV1.js",
     "name": "Index",
     "src": "resources/js/Pages/Admin/AiRules/Index.vue",
     "isDynamicEntry": true,
@@ -2061,7 +2061,7 @@
       "_vendor-DtS-JzhD.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js"
+      "_AdminLayout-BnZH6hUy.js"
     ]
   },
   "resources/js/Pages/Admin/AnalyticsModule/ExportReports.vue": {
@@ -2075,13 +2075,13 @@
     ]
   },
   "resources/js/Pages/Admin/AnalyticsModule/Index.vue": {
-    "file": "assets/Index-D8AB2RR2.js",
+    "file": "assets/Index-CZugLCUq.js",
     "name": "Index",
     "src": "resources/js/Pages/Admin/AnalyticsModule/Index.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
-      "_AdminLayout-BKjHO_N-.js",
+      "_AdminLayout-BnZH6hUy.js",
       "_CourseAnalytics-DKdmeCwo.js",
       "_StudentAnalytics-DT-ifBM8.js",
       "_TeacherAnalytics-BCKgi-11.js",
@@ -2110,7 +2110,7 @@
     ]
   },
   "resources/js/Pages/Admin/AuthLogs/Index.vue": {
-    "file": "assets/Index-qpS4HfSF.js",
+    "file": "assets/Index-Bm9cLScR.js",
     "name": "Index",
     "src": "resources/js/Pages/Admin/AuthLogs/Index.vue",
     "isDynamicEntry": true,
@@ -2119,11 +2119,11 @@
       "_vendor-DtS-JzhD.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js"
+      "_AdminLayout-BnZH6hUy.js"
     ]
   },
   "resources/js/Pages/Admin/AuthenticationModule/ActiveSessions.vue": {
-    "file": "assets/ActiveSessions-Y3blJBlJ.js",
+    "file": "assets/ActiveSessions-DWyZWwTL.js",
     "name": "ActiveSessions",
     "src": "resources/js/Pages/Admin/AuthenticationModule/ActiveSessions.vue",
     "isDynamicEntry": true,
@@ -2133,12 +2133,12 @@
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
-      "_AdminLayout-BKjHO_N-.js",
-      "_AuthModuleHeader-CkiKIXHh.js"
+      "_AdminLayout-BnZH6hUy.js",
+      "_AuthModuleHeader-B1NgglEe.js"
     ]
   },
   "resources/js/Pages/Admin/AuthenticationModule/CyberSecurity.vue": {
-    "file": "assets/CyberSecurity-Bq8Dz-pn.js",
+    "file": "assets/CyberSecurity-CUCIesRp.js",
     "name": "CyberSecurity",
     "src": "resources/js/Pages/Admin/AuthenticationModule/CyberSecurity.vue",
     "isDynamicEntry": true,
@@ -2146,12 +2146,12 @@
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
-      "_AdminLayout-BKjHO_N-.js",
-      "_AuthModuleHeader-CkiKIXHh.js"
+      "_AdminLayout-BnZH6hUy.js",
+      "_AuthModuleHeader-B1NgglEe.js"
     ]
   },
   "resources/js/Pages/Admin/AuthenticationModule/FailedLoginAttempts.vue": {
-    "file": "assets/FailedLoginAttempts-s13JFf2S.js",
+    "file": "assets/FailedLoginAttempts-C1g2uEYM.js",
     "name": "FailedLoginAttempts",
     "src": "resources/js/Pages/Admin/AuthenticationModule/FailedLoginAttempts.vue",
     "isDynamicEntry": true,
@@ -2161,12 +2161,12 @@
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
-      "_AdminLayout-BKjHO_N-.js",
-      "_AuthModuleHeader-CkiKIXHh.js"
+      "_AdminLayout-BnZH6hUy.js",
+      "_AuthModuleHeader-B1NgglEe.js"
     ]
   },
   "resources/js/Pages/Admin/AuthenticationModule/Index.vue": {
-    "file": "assets/Index-DJMwD09a.js",
+    "file": "assets/Index-FJNYWuDS.js",
     "name": "Index",
     "src": "resources/js/Pages/Admin/AuthenticationModule/Index.vue",
     "isDynamicEntry": true,
@@ -2174,15 +2174,15 @@
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
-      "_AdminLayout-BKjHO_N-.js",
-      "_AuthModuleHeader-CkiKIXHh.js"
+      "_AdminLayout-BnZH6hUy.js",
+      "_AuthModuleHeader-B1NgglEe.js"
     ],
     "dynamicImports": [
       "_vendor-vue-BDpNKq-0.js"
     ]
   },
   "resources/js/Pages/Admin/AuthenticationModule/LoginHistory.vue": {
-    "file": "assets/LoginHistory-Bps02VH5.js",
+    "file": "assets/LoginHistory-tpu_DJzf.js",
     "name": "LoginHistory",
     "src": "resources/js/Pages/Admin/AuthenticationModule/LoginHistory.vue",
     "isDynamicEntry": true,
@@ -2192,12 +2192,12 @@
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
-      "_AdminLayout-BKjHO_N-.js",
-      "_AuthModuleHeader-CkiKIXHh.js"
+      "_AdminLayout-BnZH6hUy.js",
+      "_AuthModuleHeader-B1NgglEe.js"
     ]
   },
   "resources/js/Pages/Admin/AuthenticationModule/RolesPermissions.vue": {
-    "file": "assets/RolesPermissions-0Skxt8Ye.js",
+    "file": "assets/RolesPermissions-CHbbvAk1.js",
     "name": "RolesPermissions",
     "src": "resources/js/Pages/Admin/AuthenticationModule/RolesPermissions.vue",
     "isDynamicEntry": true,
@@ -2205,12 +2205,12 @@
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
-      "_AdminLayout-BKjHO_N-.js",
-      "_AuthModuleHeader-CkiKIXHh.js"
+      "_AdminLayout-BnZH6hUy.js",
+      "_AuthModuleHeader-B1NgglEe.js"
     ]
   },
   "resources/js/Pages/Admin/AuthenticationModule/SecurityPolicies.vue": {
-    "file": "assets/SecurityPolicies-BgYCPg7n.js",
+    "file": "assets/SecurityPolicies-CiXLScJ-.js",
     "name": "SecurityPolicies",
     "src": "resources/js/Pages/Admin/AuthenticationModule/SecurityPolicies.vue",
     "isDynamicEntry": true,
@@ -2218,45 +2218,45 @@
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
-      "_AdminLayout-BKjHO_N-.js",
-      "_AuthModuleHeader-CkiKIXHh.js"
+      "_AdminLayout-BnZH6hUy.js",
+      "_AuthModuleHeader-B1NgglEe.js"
     ]
   },
   "resources/js/Pages/Admin/Calendar/Index.vue": {
-    "file": "assets/Index-DPvoq6DU.js",
+    "file": "assets/Index-DoK8aJQY.js",
     "name": "Index",
     "src": "resources/js/Pages/Admin/Calendar/Index.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js"
+      "_AdminLayout-BnZH6hUy.js"
     ]
   },
   "resources/js/Pages/Admin/CertificateModule/CertificateVerification.vue": {
-    "file": "assets/CertificateVerification-CNwfwkCu.js",
+    "file": "assets/CertificateVerification-DIuaGEvx.js",
     "name": "CertificateVerification",
     "src": "resources/js/Pages/Admin/CertificateModule/CertificateVerification.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js"
+      "_AdminLayout-BnZH6hUy.js"
     ]
   },
   "resources/js/Pages/Admin/CertificateModule/IssueCertificate.vue": {
-    "file": "assets/IssueCertificate-SFSVD2GN.js",
+    "file": "assets/IssueCertificate-C4LdkuH6.js",
     "name": "IssueCertificate",
     "src": "resources/js/Pages/Admin/CertificateModule/IssueCertificate.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js"
+      "_AdminLayout-BnZH6hUy.js"
     ]
   },
   "resources/js/Pages/Admin/CertificateModule/IssuedCertificates.vue": {
-    "file": "assets/IssuedCertificates-DInSnjaJ.js",
+    "file": "assets/IssuedCertificates-NUjwnhRD.js",
     "name": "IssuedCertificates",
     "src": "resources/js/Pages/Admin/CertificateModule/IssuedCertificates.vue",
     "isDynamicEntry": true,
@@ -2265,33 +2265,33 @@
       "_vendor-DtS-JzhD.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js"
+      "_AdminLayout-BnZH6hUy.js"
     ]
   },
   "resources/js/Pages/Admin/CertificateModule/RevokedCertificates.vue": {
-    "file": "assets/RevokedCertificates-DnzFACJY.js",
+    "file": "assets/RevokedCertificates-FmjtTtdg.js",
     "name": "RevokedCertificates",
     "src": "resources/js/Pages/Admin/CertificateModule/RevokedCertificates.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js"
+      "_AdminLayout-BnZH6hUy.js"
     ]
   },
   "resources/js/Pages/Admin/CertificateModule/Templates.vue": {
-    "file": "assets/Templates-C8-em9n9.js",
+    "file": "assets/Templates-gPwxv9SF.js",
     "name": "Templates",
     "src": "resources/js/Pages/Admin/CertificateModule/Templates.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js"
+      "_AdminLayout-BnZH6hUy.js"
     ]
   },
   "resources/js/Pages/Admin/Certificates/Index.vue": {
-    "file": "assets/Index-DveH4aiN.js",
+    "file": "assets/Index-BPr174ji.js",
     "name": "Index",
     "src": "resources/js/Pages/Admin/Certificates/Index.vue",
     "isDynamicEntry": true,
@@ -2300,17 +2300,17 @@
       "_vendor-DtS-JzhD.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js"
+      "_AdminLayout-BnZH6hUy.js"
     ]
   },
   "resources/js/Pages/Admin/Content/Index.vue": {
-    "file": "assets/Index-DJHH197M.js",
+    "file": "assets/Index-BeIdJngY.js",
     "name": "Index",
     "src": "resources/js/Pages/Admin/Content/Index.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
-      "_Index-DIwiJ967.js"
+      "_Index-9nMoSvP5.js"
     ]
   },
   "resources/js/Pages/Admin/ContentDeliveryModule/LessonPreviewEditorModal.vue": {
@@ -2450,19 +2450,19 @@
     ]
   },
   "resources/js/Pages/Admin/CourseSubjectModule/AllCourses.vue": {
-    "file": "assets/AllCourses-BR1eFxhB.js",
+    "file": "assets/AllCourses-pvPRC6AZ.js",
     "name": "AllCourses",
     "src": "resources/js/Pages/Admin/CourseSubjectModule/AllCourses.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js",
-      "_CourseModuleHeader-B4Aw5X1q.js"
+      "_AdminLayout-BnZH6hUy.js",
+      "_CourseModuleHeader-D_twDR42.js"
     ]
   },
   "resources/js/Pages/Admin/CourseSubjectModule/CourseApproval.vue": {
-    "file": "assets/CourseApproval-C3ujIIiK.js",
+    "file": "assets/CourseApproval-CAjQuPCu.js",
     "name": "CourseApproval",
     "src": "resources/js/Pages/Admin/CourseSubjectModule/CourseApproval.vue",
     "isDynamicEntry": true,
@@ -2470,95 +2470,95 @@
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
-      "_AdminLayout-BKjHO_N-.js",
-      "_CourseModuleHeader-B4Aw5X1q.js"
+      "_AdminLayout-BnZH6hUy.js",
+      "_CourseModuleHeader-D_twDR42.js"
     ]
   },
   "resources/js/Pages/Admin/CourseSubjectModule/FreeCourses.vue": {
-    "file": "assets/FreeCourses-eqCyzN7g.js",
+    "file": "assets/FreeCourses-DjdhwEt0.js",
     "name": "FreeCourses",
     "src": "resources/js/Pages/Admin/CourseSubjectModule/FreeCourses.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js",
-      "_CourseModuleHeader-B4Aw5X1q.js"
+      "_AdminLayout-BnZH6hUy.js",
+      "_CourseModuleHeader-D_twDR42.js"
     ]
   },
   "resources/js/Pages/Admin/CourseSubjectModule/PaidCourses.vue": {
-    "file": "assets/PaidCourses-BGKVouXy.js",
+    "file": "assets/PaidCourses-MBxkfevq.js",
     "name": "PaidCourses",
     "src": "resources/js/Pages/Admin/CourseSubjectModule/PaidCourses.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js",
-      "_CourseModuleHeader-B4Aw5X1q.js"
+      "_AdminLayout-BnZH6hUy.js",
+      "_CourseModuleHeader-D_twDR42.js"
     ]
   },
   "resources/js/Pages/Admin/CourseSubjectModule/SelfStudyCourses.vue": {
-    "file": "assets/SelfStudyCourses-BQ6d_JCv.js",
+    "file": "assets/SelfStudyCourses-C5sTD0Gm.js",
     "name": "SelfStudyCourses",
     "src": "resources/js/Pages/Admin/CourseSubjectModule/SelfStudyCourses.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js",
-      "_CourseModuleHeader-B4Aw5X1q.js"
+      "_AdminLayout-BnZH6hUy.js",
+      "_CourseModuleHeader-D_twDR42.js"
     ]
   },
   "resources/js/Pages/Admin/CourseSubjectModule/Subjects.vue": {
-    "file": "assets/Subjects-BXsfXBgO.js",
+    "file": "assets/Subjects-BMpHP4Pf.js",
     "name": "Subjects",
     "src": "resources/js/Pages/Admin/CourseSubjectModule/Subjects.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js",
+      "_AdminLayout-BnZH6hUy.js",
       "_AcademicModuleHeader-D9QydjB5.js"
     ]
   },
   "resources/js/Pages/Admin/CourseSubjectModule/TeacherAssignments.vue": {
-    "file": "assets/TeacherAssignments-BqaZ0oKM.js",
+    "file": "assets/TeacherAssignments-D9H8gMm8.js",
     "name": "TeacherAssignments",
     "src": "resources/js/Pages/Admin/CourseSubjectModule/TeacherAssignments.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js",
-      "_CourseModuleHeader-B4Aw5X1q.js"
+      "_AdminLayout-BnZH6hUy.js",
+      "_CourseModuleHeader-D_twDR42.js"
     ]
   },
   "resources/js/Pages/Admin/CourseSubjectModule/TeacherLedCourses.vue": {
-    "file": "assets/TeacherLedCourses-O_Oocp_1.js",
+    "file": "assets/TeacherLedCourses-CLyqAcG0.js",
     "name": "TeacherLedCourses",
     "src": "resources/js/Pages/Admin/CourseSubjectModule/TeacherLedCourses.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js",
-      "_CourseModuleHeader-B4Aw5X1q.js"
+      "_AdminLayout-BnZH6hUy.js",
+      "_CourseModuleHeader-D_twDR42.js"
     ]
   },
   "resources/js/Pages/Admin/Courses/Index.vue": {
-    "file": "assets/Index-DR3da5kd.js",
+    "file": "assets/Index-NfPwcSk4.js",
     "name": "Index",
     "src": "resources/js/Pages/Admin/Courses/Index.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js"
+      "_AdminLayout-BnZH6hUy.js"
     ]
   },
   "resources/js/Pages/Admin/Dashboard.vue": {
-    "file": "assets/Dashboard-COGsK5Cm.js",
+    "file": "assets/Dashboard-4PogJ8Kx.js",
     "name": "Dashboard",
     "src": "resources/js/Pages/Admin/Dashboard.vue",
     "isDynamicEntry": true,
@@ -2566,184 +2566,184 @@
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
-      "_AdminLayout-BKjHO_N-.js"
+      "_AdminLayout-BnZH6hUy.js"
     ],
     "dynamicImports": [
       "_vendor-vue-BDpNKq-0.js"
     ]
   },
   "resources/js/Pages/Admin/DiscussionModule/Discussions.vue": {
-    "file": "assets/Discussions-CA21F_aO.js",
+    "file": "assets/Discussions-DMYJq7CX.js",
     "name": "Discussions",
     "src": "resources/js/Pages/Admin/DiscussionModule/Discussions.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js"
+      "_AdminLayout-BnZH6hUy.js"
     ]
   },
   "resources/js/Pages/Admin/DiscussionModule/ReportedContent.vue": {
-    "file": "assets/ReportedContent-BIbwZbOM.js",
+    "file": "assets/ReportedContent-C5FNhA2m.js",
     "name": "ReportedContent",
     "src": "resources/js/Pages/Admin/DiscussionModule/ReportedContent.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js"
+      "_AdminLayout-BnZH6hUy.js"
     ]
   },
   "resources/js/Pages/Admin/DiscussionModule/StudentQuestions.vue": {
-    "file": "assets/StudentQuestions-BTpBEK7e.js",
+    "file": "assets/StudentQuestions-BY48Pfw1.js",
     "name": "StudentQuestions",
     "src": "resources/js/Pages/Admin/DiscussionModule/StudentQuestions.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js"
+      "_AdminLayout-BnZH6hUy.js"
     ]
   },
   "resources/js/Pages/Admin/DiscussionModule/SupportTickets.vue": {
-    "file": "assets/SupportTickets-CiMy2F_p.js",
+    "file": "assets/SupportTickets-BMY-mN6a.js",
     "name": "SupportTickets",
     "src": "resources/js/Pages/Admin/DiscussionModule/SupportTickets.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js"
+      "_AdminLayout-BnZH6hUy.js"
     ]
   },
   "resources/js/Pages/Admin/EnrollmentModule/BulkEnrollment.vue": {
-    "file": "assets/BulkEnrollment-CEudtvSg.js",
+    "file": "assets/BulkEnrollment-BJK1lhnR.js",
     "name": "BulkEnrollment",
     "src": "resources/js/Pages/Admin/EnrollmentModule/BulkEnrollment.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js",
+      "_AdminLayout-BnZH6hUy.js",
       "_EnrollmentModuleHeader-CXN7VN0p.js"
     ]
   },
   "resources/js/Pages/Admin/EnrollmentModule/CourseEnrollments.vue": {
-    "file": "assets/CourseEnrollments-CuWLNcE5.js",
+    "file": "assets/CourseEnrollments-1GnXdnUX.js",
     "name": "CourseEnrollments",
     "src": "resources/js/Pages/Admin/EnrollmentModule/CourseEnrollments.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js",
-      "_CourseModuleHeader-B4Aw5X1q.js"
+      "_AdminLayout-BnZH6hUy.js",
+      "_CourseModuleHeader-D_twDR42.js"
     ]
   },
   "resources/js/Pages/Admin/EnrollmentModule/EnrollmentHistory.vue": {
-    "file": "assets/EnrollmentHistory-BXURtO65.js",
+    "file": "assets/EnrollmentHistory-DDqp87hM.js",
     "name": "EnrollmentHistory",
     "src": "resources/js/Pages/Admin/EnrollmentModule/EnrollmentHistory.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js",
+      "_AdminLayout-BnZH6hUy.js",
       "_EnrollmentModuleHeader-CXN7VN0p.js"
     ]
   },
   "resources/js/Pages/Admin/EnrollmentModule/MajorEnrollments.vue": {
-    "file": "assets/MajorEnrollments-BwiqLqsx.js",
+    "file": "assets/MajorEnrollments-CPDTeUsC.js",
     "name": "MajorEnrollments",
     "src": "resources/js/Pages/Admin/EnrollmentModule/MajorEnrollments.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js",
+      "_AdminLayout-BnZH6hUy.js",
       "_EnrollmentModuleHeader-CXN7VN0p.js"
     ]
   },
   "resources/js/Pages/Admin/EnrollmentModule/SingleEnrollment.vue": {
-    "file": "assets/SingleEnrollment-BFOebpW9.js",
+    "file": "assets/SingleEnrollment-ebccOz_w.js",
     "name": "SingleEnrollment",
     "src": "resources/js/Pages/Admin/EnrollmentModule/SingleEnrollment.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js",
+      "_AdminLayout-BnZH6hUy.js",
       "_EnrollmentModuleHeader-CXN7VN0p.js"
     ]
   },
   "resources/js/Pages/Admin/NotificationModule/Announcements.vue": {
-    "file": "assets/Announcements-BXE7zYIW.js",
+    "file": "assets/Announcements-CP0fSf4i.js",
     "name": "Announcements",
     "src": "resources/js/Pages/Admin/NotificationModule/Announcements.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js"
+      "_AdminLayout-BnZH6hUy.js"
     ]
   },
   "resources/js/Pages/Admin/NotificationModule/EmailNotifications.vue": {
-    "file": "assets/EmailNotifications-DRIq8ngZ.js",
+    "file": "assets/EmailNotifications-CaHdUQNz.js",
     "name": "EmailNotifications",
     "src": "resources/js/Pages/Admin/NotificationModule/EmailNotifications.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js"
+      "_AdminLayout-BnZH6hUy.js"
     ]
   },
   "resources/js/Pages/Admin/NotificationModule/NotificationHistory.vue": {
-    "file": "assets/NotificationHistory-Dw_jYFdS.js",
+    "file": "assets/NotificationHistory-DE_tE6O-.js",
     "name": "NotificationHistory",
     "src": "resources/js/Pages/Admin/NotificationModule/NotificationHistory.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js"
+      "_AdminLayout-BnZH6hUy.js"
     ]
   },
   "resources/js/Pages/Admin/NotificationModule/Notifications.vue": {
-    "file": "assets/Notifications-Ck6mio-7.js",
+    "file": "assets/Notifications-C8Su2ib_.js",
     "name": "Notifications",
     "src": "resources/js/Pages/Admin/NotificationModule/Notifications.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js"
+      "_AdminLayout-BnZH6hUy.js"
     ]
   },
   "resources/js/Pages/Admin/NotificationModule/PushNotifications.vue": {
-    "file": "assets/PushNotifications-CChpagLj.js",
+    "file": "assets/PushNotifications-u48splPa.js",
     "name": "PushNotifications",
     "src": "resources/js/Pages/Admin/NotificationModule/PushNotifications.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js"
+      "_AdminLayout-BnZH6hUy.js"
     ]
   },
   "resources/js/Pages/Admin/NotificationModule/ScheduledNotifications.vue": {
-    "file": "assets/ScheduledNotifications-C3qH7NHp.js",
+    "file": "assets/ScheduledNotifications-DCVnB-XE.js",
     "name": "ScheduledNotifications",
     "src": "resources/js/Pages/Admin/NotificationModule/ScheduledNotifications.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js"
+      "_AdminLayout-BnZH6hUy.js"
     ]
   },
   "resources/js/Pages/Admin/Notifications/Index.vue": {
-    "file": "assets/Index-BellaPEF.js",
+    "file": "assets/Index-CcN-RhS9.js",
     "name": "Index",
     "src": "resources/js/Pages/Admin/Notifications/Index.vue",
     "isDynamicEntry": true,
@@ -2752,7 +2752,7 @@
       "_vendor-DtS-JzhD.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js"
+      "_AdminLayout-BnZH6hUy.js"
     ]
   },
   "resources/js/Pages/Admin/PaymentABAModule/DiscountCodeModal.vue": {
@@ -2959,17 +2959,17 @@
     ]
   },
   "resources/js/Pages/Admin/Payments/Index.vue": {
-    "file": "assets/Index-iio4JGQg.js",
+    "file": "assets/Index-BUs4JchT.js",
     "name": "Index",
     "src": "resources/js/Pages/Admin/Payments/Index.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
-      "_Index-BeRiRrW_.js"
+      "_Index-CmUGCtBc.js"
     ]
   },
   "resources/js/Pages/Admin/Progress/Index.vue": {
-    "file": "assets/Index-Bk3jbrfo.js",
+    "file": "assets/Index-ZxnI3oED.js",
     "name": "Index",
     "src": "resources/js/Pages/Admin/Progress/Index.vue",
     "isDynamicEntry": true,
@@ -2978,18 +2978,18 @@
       "_vendor-DtS-JzhD.js",
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js"
+      "_AdminLayout-BnZH6hUy.js"
     ]
   },
   "resources/js/Pages/Admin/ProgressTrackingModule/Index.vue": {
-    "file": "assets/Index-BDDiCSKB.js",
+    "file": "assets/Index-DqAk_aIv.js",
     "name": "Index",
     "src": "resources/js/Pages/Admin/ProgressTrackingModule/Index.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js",
+      "_AdminLayout-BnZH6hUy.js",
       "_AtRiskStudents-Cu8DuAos.js",
       "_CourseCompletion-bHIKe_RW.js",
       "_StudentProgress-C6Pa7NM3.js",
@@ -3000,14 +3000,14 @@
     ]
   },
   "resources/js/Pages/Admin/Quizzes/Index.vue": {
-    "file": "assets/Index-QnXQC0Wv.js",
+    "file": "assets/Index-Bxd5Do1x.js",
     "name": "Index",
     "src": "resources/js/Pages/Admin/Quizzes/Index.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js",
+      "_AdminLayout-BnZH6hUy.js",
       "_AllQuizzes-YrZ8rShS.js",
       "_Assignments-DiuERtFd.js",
       "_QuestionBank-CTCVB7k4.js",
@@ -3074,14 +3074,14 @@
     ]
   },
   "resources/js/Pages/Admin/Reports/Index.vue": {
-    "file": "assets/Index-CcH-n-ex.js",
+    "file": "assets/Index-Dj01u_6k.js",
     "name": "Index",
     "src": "resources/js/Pages/Admin/Reports/Index.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js"
+      "_AdminLayout-BnZH6hUy.js"
     ]
   },
   "resources/js/Pages/Admin/Settings/AbaPayment.vue": {
@@ -3095,14 +3095,14 @@
     ]
   },
   "resources/js/Pages/Admin/Settings/Index.vue": {
-    "file": "assets/Index-DWOdQHq1.js",
+    "file": "assets/Index-DlTkjC3v.js",
     "name": "Index",
     "src": "resources/js/Pages/Admin/Settings/Index.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js",
+      "_AdminLayout-BnZH6hUy.js",
       "_AcademicSettings-CrFacZpJ.js",
       "_BackupRestore-Crcnv3JV.js",
       "_EmailSmtp-Cl2TckBQ.js",
@@ -3126,43 +3126,43 @@
     ]
   },
   "resources/js/Pages/Admin/UserManagementModule/Administrators.vue": {
-    "file": "assets/Administrators-C7OUuWNC.js",
+    "file": "assets/Administrators-BEYYADgF.js",
     "name": "Administrators",
     "src": "resources/js/Pages/Admin/UserManagementModule/Administrators.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js",
-      "_UserModuleHeader-BuMZynFW.js"
+      "_AdminLayout-BnZH6hUy.js",
+      "_UserModuleHeader-Czk7shVo.js"
     ]
   },
   "resources/js/Pages/Admin/UserManagementModule/AllUsers.vue": {
-    "file": "assets/AllUsers-BhZE6tTT.js",
+    "file": "assets/AllUsers-POxZSkPg.js",
     "name": "AllUsers",
     "src": "resources/js/Pages/Admin/UserManagementModule/AllUsers.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js",
-      "_UserModuleHeader-BuMZynFW.js"
+      "_AdminLayout-BnZH6hUy.js",
+      "_UserModuleHeader-Czk7shVo.js"
     ]
   },
   "resources/js/Pages/Admin/UserManagementModule/ImportExport.vue": {
-    "file": "assets/ImportExport-Z6BYYWiM.js",
+    "file": "assets/ImportExport-DDhHVuqC.js",
     "name": "ImportExport",
     "src": "resources/js/Pages/Admin/UserManagementModule/ImportExport.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js",
-      "_UserModuleHeader-BuMZynFW.js"
+      "_AdminLayout-BnZH6hUy.js",
+      "_UserModuleHeader-Czk7shVo.js"
     ]
   },
   "resources/js/Pages/Admin/UserManagementModule/Students.vue": {
-    "file": "assets/Students-BOxD3EiP.js",
+    "file": "assets/Students-Bpdw_RGK.js",
     "name": "Students",
     "src": "resources/js/Pages/Admin/UserManagementModule/Students.vue",
     "isDynamicEntry": true,
@@ -3170,47 +3170,47 @@
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
-      "_AdminLayout-BKjHO_N-.js",
-      "_UserModuleHeader-BuMZynFW.js"
+      "_AdminLayout-BnZH6hUy.js",
+      "_UserModuleHeader-Czk7shVo.js"
     ]
   },
   "resources/js/Pages/Admin/UserManagementModule/SuspendedUsers.vue": {
-    "file": "assets/SuspendedUsers-CdOv9_5c.js",
+    "file": "assets/SuspendedUsers-DJhgZqpo.js",
     "name": "SuspendedUsers",
     "src": "resources/js/Pages/Admin/UserManagementModule/SuspendedUsers.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js",
-      "_UserModuleHeader-BuMZynFW.js"
+      "_AdminLayout-BnZH6hUy.js",
+      "_UserModuleHeader-Czk7shVo.js"
     ]
   },
   "resources/js/Pages/Admin/UserManagementModule/Teachers.vue": {
-    "file": "assets/Teachers-D8rK6dCO.js",
+    "file": "assets/Teachers-kS7S9Wa2.js",
     "name": "Teachers",
     "src": "resources/js/Pages/Admin/UserManagementModule/Teachers.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js",
-      "_UserModuleHeader-BuMZynFW.js"
+      "_AdminLayout-BnZH6hUy.js",
+      "_UserModuleHeader-Czk7shVo.js"
     ]
   },
   "resources/js/Pages/Admin/Users/Index.vue": {
-    "file": "assets/Index-CwoqxqF1.js",
+    "file": "assets/Index-DGv0qlUS.js",
     "name": "Index",
     "src": "resources/js/Pages/Admin/Users/Index.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_AdminLayout-BKjHO_N-.js"
+      "_AdminLayout-BnZH6hUy.js"
     ]
   },
   "resources/js/Pages/Auth/ForgotPassword.vue": {
-    "file": "assets/ForgotPassword-D2S4jkOn.js",
+    "file": "assets/ForgotPassword-BPP5u4Ib.js",
     "name": "ForgotPassword",
     "src": "resources/js/Pages/Auth/ForgotPassword.vue",
     "isDynamicEntry": true,
@@ -3226,7 +3226,7 @@
     ]
   },
   "resources/js/Pages/Auth/Login.vue": {
-    "file": "assets/Login-CjedyBp1.js",
+    "file": "assets/Login-CIDgXFJQ.js",
     "name": "Login",
     "src": "resources/js/Pages/Auth/Login.vue",
     "isDynamicEntry": true,
@@ -3236,7 +3236,7 @@
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
-      "_GlobalToast-AnO4ZO5o.js",
+      "_GlobalToast-Dy-MOUqt.js",
       "__plugin-vue_export-helper-K9rsuiWd.js",
       "_NetworkStatusPill-h3nG4W6r.js",
       "_AuthProcessLoader-CXCbG7Wb.js"
@@ -3246,7 +3246,7 @@
     ]
   },
   "resources/js/Pages/Auth/Register.vue": {
-    "file": "assets/Register-CQpZJMaI.js",
+    "file": "assets/Register-DidaOyAt.js",
     "name": "Register",
     "src": "resources/js/Pages/Auth/Register.vue",
     "isDynamicEntry": true,
@@ -3254,7 +3254,7 @@
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
-      "_GlobalToast-AnO4ZO5o.js",
+      "_GlobalToast-Dy-MOUqt.js",
       "__plugin-vue_export-helper-K9rsuiWd.js",
       "_NetworkStatusPill-h3nG4W6r.js",
       "_AuthProcessLoader-CXCbG7Wb.js"
@@ -3274,7 +3274,7 @@
     ]
   },
   "resources/js/Pages/Privacy.vue": {
-    "file": "assets/Privacy-CnMmFv3_.js",
+    "file": "assets/Privacy-DGCE-IK7.js",
     "name": "Privacy",
     "src": "resources/js/Pages/Privacy.vue",
     "isDynamicEntry": true,
@@ -3286,20 +3286,20 @@
     ]
   },
   "resources/js/Pages/Student/AiLearningPath/Index.vue": {
-    "file": "assets/Index-DirE38Bt.js",
+    "file": "assets/Index-B2TzkqFQ.js",
     "name": "Index",
     "src": "resources/js/Pages/Student/AiLearningPath/Index.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
-      "_RecommendedLesson-DpecH_p8.js",
-      "_ReviewLesson-cI2vYXMj.js",
-      "_WeakTopics-BbhmhVph.js",
-      "_NextModule-DmqC4ns9.js"
+      "_RecommendedLesson-ncgcswBv.js",
+      "_ReviewLesson-BDncThiV.js",
+      "_WeakTopics-vaeGIiZV.js",
+      "_NextModule-D7Lc3JE1.js"
     ]
   },
   "resources/js/Pages/Student/AiLearningPath/NextCourse.vue": {
-    "file": "assets/NextCourse-Jbw7YyeD.js",
+    "file": "assets/NextCourse-X1wTmKjW.js",
     "name": "NextCourse",
     "src": "resources/js/Pages/Student/AiLearningPath/NextCourse.vue",
     "isDynamicEntry": true,
@@ -3307,33 +3307,33 @@
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "resources/js/Pages/Student/AiTutor/ChatSupport.vue": {
-    "file": "assets/ChatSupport-C9UrISQV.js",
+    "file": "assets/ChatSupport-CCIbpp79.js",
     "name": "ChatSupport",
     "src": "resources/js/Pages/Student/AiTutor/ChatSupport.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "resources/js/Pages/Student/AiTutor/EnglishTutor.vue": {
-    "file": "assets/EnglishTutor-B0i8a3mY.js",
+    "file": "assets/EnglishTutor-DHcCmYgW.js",
     "name": "EnglishTutor",
     "src": "resources/js/Pages/Student/AiTutor/EnglishTutor.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "resources/js/Pages/Student/AiTutor/Index.vue": {
-    "file": "assets/Index-DOkFP8Sh.js",
+    "file": "assets/Index-C79HDj8H.js",
     "name": "Index",
     "src": "resources/js/Pages/Student/AiTutor/Index.vue",
     "isDynamicEntry": true,
@@ -3342,25 +3342,25 @@
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
       "__plugin-vue_export-helper-K9rsuiWd.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ],
     "css": [
       "assets/Index-BEoDrf0m.css"
     ]
   },
   "resources/js/Pages/Student/AiTutor/InstantFeedback.vue": {
-    "file": "assets/InstantFeedback-C9YhYvs7.js",
+    "file": "assets/InstantFeedback-Dt1-FhzA.js",
     "name": "InstantFeedback",
     "src": "resources/js/Pages/Student/AiTutor/InstantFeedback.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "resources/js/Pages/Student/Browse/Show.vue": {
-    "file": "assets/Show-CeaXZtfy.js",
+    "file": "assets/Show-CnI5PNli.js",
     "name": "Show",
     "src": "resources/js/Pages/Student/Browse/Show.vue",
     "isDynamicEntry": true,
@@ -3368,56 +3368,56 @@
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "resources/js/Pages/Student/Calendar/AcademicEvents.vue": {
-    "file": "assets/AcademicEvents-C3qrjnxO.js",
+    "file": "assets/AcademicEvents-BkmYhshS.js",
     "name": "AcademicEvents",
     "src": "resources/js/Pages/Student/Calendar/AcademicEvents.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "resources/js/Pages/Student/Calendar/Index.vue": {
-    "file": "assets/Index-BDHTvK09.js",
+    "file": "assets/Index-z4U-tTkO.js",
     "name": "Index",
     "src": "resources/js/Pages/Student/Calendar/Index.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
-      "_AssignmentDue-Cp0lU_r7.js",
-      "_LiveClassSchedule-Bq3Z__JK.js",
-      "_UpcomingQuiz-DP61ik0H.js"
+      "_AssignmentDue-CdBfdFdA.js",
+      "_LiveClassSchedule-Cma2yFmx.js",
+      "_UpcomingQuiz-D__SZ6nK.js"
     ]
   },
   "resources/js/Pages/Student/Certificates/Index.vue": {
-    "file": "assets/Index-BCGpU7Yu.js",
+    "file": "assets/Index-DFzPpi3L.js",
     "name": "Index",
     "src": "resources/js/Pages/Student/Certificates/Index.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
-      "_DownloadShare-HmInEKHY.js",
-      "_MyCertificates-DQens5sy.js",
-      "_VerifyCertificate-coVwk2Pk.js"
+      "_DownloadShare-BJDOVyaY.js",
+      "_MyCertificates-B8OU4DYo.js",
+      "_VerifyCertificate-B62lt1Uf.js"
     ]
   },
   "resources/js/Pages/Student/Courses/Index.vue": {
-    "file": "assets/Index-CpgVn1iU.js",
+    "file": "assets/Index-xdPQxGsR.js",
     "name": "Index",
     "src": "resources/js/Pages/Student/Courses/Index.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
-      "_Index-18oq2GEh.js"
+      "_Index-BSpNCDFF.js"
     ]
   },
   "resources/js/Pages/Student/Courses/Overview.vue": {
-    "file": "assets/Overview-CYG1MPtU.js",
+    "file": "assets/Overview-BYSbtd6N.js",
     "name": "Overview",
     "src": "resources/js/Pages/Student/Courses/Overview.vue",
     "isDynamicEntry": true,
@@ -3425,11 +3425,11 @@
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "resources/js/Pages/Student/Dashboard.vue": {
-    "file": "assets/Dashboard-CLi2E0q8.js",
+    "file": "assets/Dashboard-DvsTGs3h.js",
     "name": "Dashboard",
     "src": "resources/js/Pages/Student/Dashboard.vue",
     "isDynamicEntry": true,
@@ -3438,28 +3438,28 @@
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
       "__plugin-vue_export-helper-K9rsuiWd.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ],
     "css": [
       "assets/Dashboard-q1aTq5SQ.css"
     ]
   },
   "resources/js/Pages/Student/Discussions/Index.vue": {
-    "file": "assets/Index-Deisw8PO.js",
+    "file": "assets/Index-oqcoekXQ.js",
     "name": "Index",
     "src": "resources/js/Pages/Student/Discussions/Index.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
-      "_AskQuestion-CKjAGn-r.js",
-      "_CourseDiscussions-hnbQZ0JG.js",
-      "_CourseFaq-CKeupSGz.js",
-      "_MyQuestions-C3u6LKaE.js",
-      "_SupportTicket-CEisSzXG.js"
+      "_AskQuestion-dCOBHccy.js",
+      "_CourseDiscussions-D_1V2L2a.js",
+      "_CourseFaq-Bqsio0Xh.js",
+      "_MyQuestions-BduaXppK.js",
+      "_SupportTicket-DwbuTWju.js"
     ]
   },
   "resources/js/Pages/Student/Learning/Show.vue": {
-    "file": "assets/Show-DOjDoR48.js",
+    "file": "assets/Show-BV_rYONb.js",
     "name": "Show",
     "src": "resources/js/Pages/Student/Learning/Show.vue",
     "isDynamicEntry": true,
@@ -3467,7 +3467,7 @@
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
-      "_GlobalToast-AnO4ZO5o.js",
+      "_GlobalToast-Dy-MOUqt.js",
       "__plugin-vue_export-helper-K9rsuiWd.js"
     ],
     "css": [
@@ -3475,91 +3475,91 @@
     ]
   },
   "resources/js/Pages/Student/LearningContent/Index.vue": {
-    "file": "assets/Index-6Y7GKy2F2.js",
+    "file": "assets/Index-CqAscTXO2.js",
     "name": "Index",
     "src": "resources/js/Pages/Student/LearningContent/Index.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
-      "_Videos-DuS7MR8v.js",
-      "_Pdfs-ZIXOxu-V.js",
-      "_Slides-CeSYSjUs.js",
-      "_NotesDownloads-BrWVDaPR.js",
-      "_UrlResources-D5sn3JyW.js"
+      "_Videos-ChR7kHR6.js",
+      "_Pdfs-BQB61Y-7.js",
+      "_Slides-DFGGK0Eg.js",
+      "_NotesDownloads-C_btBI6I.js",
+      "_UrlResources-BkoMlEDz.js"
     ]
   },
   "resources/js/Pages/Student/Notifications/Index.vue": {
-    "file": "assets/Index-KjovARVH.js",
+    "file": "assets/Index-wtwgL5ph.js",
     "name": "Index",
     "src": "resources/js/Pages/Student/Notifications/Index.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
-      "_AiAlerts-CpfuXsUh.js",
-      "_Announcements-DLwYIB5k.js",
-      "_TeacherFeedback-g9ZOaOYr.js",
-      "_PaymentAlerts-CMaOp6yy.js"
+      "_AiAlerts-DrCfS0ZD.js",
+      "_Announcements-Cnm7TFhW.js",
+      "_TeacherFeedback-CEbisL5F.js",
+      "_PaymentAlerts-CCtKiCDe.js"
     ]
   },
   "resources/js/Pages/Student/Payments/Index.vue": {
-    "file": "assets/Index-CGtgDznX2.js",
+    "file": "assets/Index-B5Djc_5c2.js",
     "name": "Index",
     "src": "resources/js/Pages/Student/Payments/Index.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
-      "_MyPayments-BzBk-dOR.js",
-      "_PendingPayments-wqW2_EBF.js",
-      "_PaymentHistory-CUg4p6lR.js",
-      "_ReceiptsInvoices-Cl3MQtca.js"
+      "_MyPayments-COJLDfBN.js",
+      "_PendingPayments-IguiojDi.js",
+      "_PaymentHistory-f_OqNz92.js",
+      "_ReceiptsInvoices-IPymE0pM.js"
     ]
   },
   "resources/js/Pages/Student/Payments/PaymentSettings.vue": {
-    "file": "assets/PaymentSettings-B6EcSx7V.js",
+    "file": "assets/PaymentSettings-DxR_z_VK.js",
     "name": "PaymentSettings",
     "src": "resources/js/Pages/Student/Payments/PaymentSettings.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "resources/js/Pages/Student/Payments/Upload.vue": {
-    "file": "assets/Upload-0Z25hps3.js",
+    "file": "assets/Upload-CEz9sbyf.js",
     "name": "Upload",
     "src": "resources/js/Pages/Student/Payments/Upload.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "resources/js/Pages/Student/PracticeLab/AgronomyLab.vue": {
-    "file": "assets/AgronomyLab-Bm6B7Mpu.js",
+    "file": "assets/AgronomyLab-BGQrgiqi.js",
     "name": "AgronomyLab",
     "src": "resources/js/Pages/Student/PracticeLab/AgronomyLab.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "resources/js/Pages/Student/PracticeLab/EnglishLab.vue": {
-    "file": "assets/EnglishLab-D6RS-1hW.js",
+    "file": "assets/EnglishLab-rcmW93bt.js",
     "name": "EnglishLab",
     "src": "resources/js/Pages/Student/PracticeLab/EnglishLab.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "resources/js/Pages/Student/PracticeLab/Index.vue": {
-    "file": "assets/Index-v6bZcR4S.js",
+    "file": "assets/Index-CViMuy3P.js",
     "name": "Index",
     "src": "resources/js/Pages/Student/PracticeLab/Index.vue",
     "isDynamicEntry": true,
@@ -3568,47 +3568,47 @@
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
       "__plugin-vue_export-helper-K9rsuiWd.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ],
     "css": [
       "assets/Index-D5uFIDOM.css"
     ]
   },
   "resources/js/Pages/Student/PracticeLab/ItLab.vue": {
-    "file": "assets/ItLab-BPG4PBrP.js",
+    "file": "assets/ItLab-DfKPIuHY.js",
     "name": "ItLab",
     "src": "resources/js/Pages/Student/PracticeLab/ItLab.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "resources/js/Pages/Student/PracticeLab/SocialWorkLab.vue": {
-    "file": "assets/SocialWorkLab-dA9ITuOM.js",
+    "file": "assets/SocialWorkLab-DulDdGQF.js",
     "name": "SocialWorkLab",
     "src": "resources/js/Pages/Student/PracticeLab/SocialWorkLab.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "resources/js/Pages/Student/PracticeLab/TourismLab.vue": {
-    "file": "assets/TourismLab-fWYkyNoQ.js",
+    "file": "assets/TourismLab-CDT5lJvT.js",
     "name": "TourismLab",
     "src": "resources/js/Pages/Student/PracticeLab/TourismLab.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "resources/js/Pages/Student/Profile/Index.vue": {
-    "file": "assets/Index-RxegXZcW.js",
+    "file": "assets/Index-BxpMsIJw.js",
     "name": "Index",
     "src": "resources/js/Pages/Student/Profile/Index.vue",
     "isDynamicEntry": true,
@@ -3618,9 +3618,9 @@
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
-      "_GlobalToast-AnO4ZO5o.js",
+      "_GlobalToast-Dy-MOUqt.js",
       "__plugin-vue_export-helper-K9rsuiWd.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ],
     "css": [
       "assets/Index-MPZcbJpc.css"
@@ -3637,57 +3637,57 @@
     ]
   },
   "resources/js/Pages/Student/Progress/Index.vue": {
-    "file": "assets/Index-BOOf290o.js",
+    "file": "assets/Index-Buov7zLS.js",
     "name": "Index",
     "src": "resources/js/Pages/Student/Progress/Index.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "resources/js/Pages/Student/ProgressTracking/Index.vue": {
-    "file": "assets/Index-sVftyCrR.js",
+    "file": "assets/Index-DLtIH027.js",
     "name": "Index",
     "src": "resources/js/Pages/Student/ProgressTracking/Index.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
-      "_AchievementsBadges-QywBI-vT.js",
-      "_Overview-B6PMagWH.js",
-      "_LearningTime-BH3yQ1ms.js",
-      "_WeeklyProgress-FJ-m5m9A.js"
+      "_AchievementsBadges-CMmtBLcM.js",
+      "_Overview-CUrut06G.js",
+      "_LearningTime-BLqu7YDC.js",
+      "_WeeklyProgress-DCu7vWxg.js"
     ]
   },
   "resources/js/Pages/Student/Quizzes/Index.vue": {
-    "file": "assets/Index-dg3irEGn.js",
+    "file": "assets/Index-XLVQBkgH.js",
     "name": "Index",
     "src": "resources/js/Pages/Student/Quizzes/Index.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
-      "_Assignments-CLPygUyV.js",
-      "_History-CUAdfgqF.js",
-      "_PreTest-Cd2CUkqP.js",
-      "_Practice-DxrEsn2C.js",
-      "_PostTest-DDzbuCIO.js",
-      "_Scores-BBxL-YM8.js"
+      "_Assignments-vuQGrSEk.js",
+      "_History-BJlZveN8.js",
+      "_PreTest-CUIjlX6V.js",
+      "_Practice-hTpHTQ_q.js",
+      "_PostTest-BAZziNtM.js",
+      "_Scores-BTVyOUyk.js"
     ]
   },
   "resources/js/Pages/Student/Quizzes/Show.vue": {
-    "file": "assets/Show-ukNGJv-E.js",
+    "file": "assets/Show-5TG1aZJg.js",
     "name": "Show",
     "src": "resources/js/Pages/Student/Quizzes/Show.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "resources/js/Pages/Student/Simulations/Index.vue": {
-    "file": "assets/Index-BOUAmPrE.js",
+    "file": "assets/Index-BP15ZZJy.js",
     "name": "Index",
     "src": "resources/js/Pages/Student/Simulations/Index.vue",
     "isDynamicEntry": true,
@@ -3695,11 +3695,11 @@
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "resources/js/Pages/Student/Simulations/Play.vue": {
-    "file": "assets/Play-Dk8x3i1i.js",
+    "file": "assets/Play-BDcv6plS.js",
     "name": "Play",
     "src": "resources/js/Pages/Student/Simulations/Play.vue",
     "isDynamicEntry": true,
@@ -3707,11 +3707,11 @@
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "resources/js/Pages/Student/Simulations/Summary.vue": {
-    "file": "assets/Summary-C1vWZzcX.js",
+    "file": "assets/Summary-CflxL0XQ.js",
     "name": "Summary",
     "src": "resources/js/Pages/Student/Simulations/Summary.vue",
     "isDynamicEntry": true,
@@ -3719,11 +3719,11 @@
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
-      "_StudentLayout-BEmoP9HX.js"
+      "_StudentLayout-Cx0opfZn.js"
     ]
   },
   "resources/js/Pages/Teacher/Calendar/Index.vue": {
-    "file": "assets/Index-aZ8B7Hx4.js",
+    "file": "assets/Index-DXr7XWha.js",
     "name": "Index",
     "src": "resources/js/Pages/Teacher/Calendar/Index.vue",
     "isDynamicEntry": true,
@@ -3733,7 +3733,7 @@
       "_DeadlineFormModal-Dpi6i8wa.js",
       "_DeadlinesDashboard-B6JPP_fz.js",
       "_OverdueHandlingModal-wFuhjBmp.js",
-      "_TeacherLayout-DeYMN90N.js",
+      "_TeacherLayout-Crew-C4y.js",
       "_ScheduleDashboard-C0cVFxHg.js",
       "_ScheduleFormModal-CJ-7cMq3.js",
       "_LiveClassLobbyModal-C92wlJTD.js",
@@ -3741,14 +3741,14 @@
     ]
   },
   "resources/js/Pages/Teacher/Content/Index.vue": {
-    "file": "assets/Index-BYivqvvA.js",
+    "file": "assets/Index-7TbCKClr.js",
     "name": "Index",
     "src": "resources/js/Pages/Teacher/Content/Index.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_TeacherLayout-DeYMN90N.js",
+      "_TeacherLayout-Crew-C4y.js",
       "_AiContent-BMKzZACU.js",
       "_Videos-bKB0YAs6.js",
       "_Pdfs-CSPpsvKT.js",
@@ -3759,18 +3759,18 @@
     ]
   },
   "resources/js/Pages/Teacher/Courses/Builder.vue": {
-    "file": "assets/Builder-CTrjTmmx.js",
+    "file": "assets/Builder-NsPE7F77.js",
     "name": "Builder",
     "src": "resources/js/Pages/Teacher/Courses/Builder.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_TeacherLayout-DeYMN90N.js"
+      "_TeacherLayout-Crew-C4y.js"
     ]
   },
   "resources/js/Pages/Teacher/Courses/Create.vue": {
-    "file": "assets/Create-zcQxdUya.js",
+    "file": "assets/Create-xBKWxnl0.js",
     "name": "Create",
     "src": "resources/js/Pages/Teacher/Courses/Create.vue",
     "isDynamicEntry": true,
@@ -3778,14 +3778,14 @@
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "__plugin-vue_export-helper-K9rsuiWd.js",
-      "_TeacherLayout-DeYMN90N.js"
+      "_TeacherLayout-Crew-C4y.js"
     ],
     "css": [
       "assets/Create-DiitVKlg.css"
     ]
   },
   "resources/js/Pages/Teacher/Courses/Index.vue": {
-    "file": "assets/Index-CR75Mq8L.js",
+    "file": "assets/Index-D2AfNM5k.js",
     "name": "Index",
     "src": "resources/js/Pages/Teacher/Courses/Index.vue",
     "isDynamicEntry": true,
@@ -3793,25 +3793,25 @@
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "__plugin-vue_export-helper-K9rsuiWd.js",
-      "_TeacherLayout-DeYMN90N.js"
+      "_TeacherLayout-Crew-C4y.js"
     ],
     "css": [
       "assets/Index-xkIH_Jeb.css"
     ]
   },
   "resources/js/Pages/Teacher/Courses/Modules/Index.vue": {
-    "file": "assets/Index-BZ2vHpmI.js",
+    "file": "assets/Index-BZDomOZa.js",
     "name": "Index",
     "src": "resources/js/Pages/Teacher/Courses/Modules/Index.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_TeacherLayout-DeYMN90N.js"
+      "_TeacherLayout-Crew-C4y.js"
     ]
   },
   "resources/js/Pages/Teacher/Courses/Workspace.vue": {
-    "file": "assets/Workspace-CORXB2yE.js",
+    "file": "assets/Workspace-n1vkNvhh.js",
     "name": "Workspace",
     "src": "resources/js/Pages/Teacher/Courses/Workspace.vue",
     "isDynamicEntry": true,
@@ -3819,14 +3819,14 @@
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "__plugin-vue_export-helper-K9rsuiWd.js",
-      "_TeacherLayout-DeYMN90N.js"
+      "_TeacherLayout-Crew-C4y.js"
     ],
     "css": [
       "assets/Workspace-D4ubb_dI.css"
     ]
   },
   "resources/js/Pages/Teacher/Dashboard.vue": {
-    "file": "assets/Dashboard-BQbdlfWL.js",
+    "file": "assets/Dashboard-B2AH0ogK.js",
     "name": "Dashboard",
     "src": "resources/js/Pages/Teacher/Dashboard.vue",
     "isDynamicEntry": true,
@@ -3834,17 +3834,17 @@
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
       "resources/js/app.ts",
-      "_TeacherLayout-DeYMN90N.js"
+      "_TeacherLayout-Crew-C4y.js"
     ]
   },
   "resources/js/Pages/Teacher/Discussions/Index.vue": {
-    "file": "assets/Index-hcgR1OD6.js",
+    "file": "assets/Index-CA1xDk-Z.js",
     "name": "Index",
     "src": "resources/js/Pages/Teacher/Discussions/Index.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
-      "_TeacherLayout-DeYMN90N.js",
+      "_TeacherLayout-Crew-C4y.js",
       "_AnnouncementMetricsModal-BEH0T-Rn.js",
       "_AnnouncementPreviewModal-DcNlo383.js",
       "_Announcements-CZ7_RfZE.js",
@@ -3856,47 +3856,47 @@
     ]
   },
   "resources/js/Pages/Teacher/Earnings/Index.vue": {
-    "file": "assets/Index-D4or2NPE.js",
+    "file": "assets/Index-DdZLGPfV.js",
     "name": "Index",
     "src": "resources/js/Pages/Teacher/Earnings/Index.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_TeacherLayout-DeYMN90N.js"
+      "_TeacherLayout-Crew-C4y.js"
     ]
   },
   "resources/js/Pages/Teacher/Notifications/Index.vue": {
-    "file": "assets/Index-DVoMd01W.js",
+    "file": "assets/Index-CnJdQd5g.js",
     "name": "Index",
     "src": "resources/js/Pages/Teacher/Notifications/Index.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_TeacherLayout-DeYMN90N.js"
+      "_TeacherLayout-Crew-C4y.js"
     ]
   },
   "resources/js/Pages/Teacher/Profile/Index.vue": {
-    "file": "assets/Index-BPwFJ2as2.js",
+    "file": "assets/Index-CbN6JAwf2.js",
     "name": "Index",
     "src": "resources/js/Pages/Teacher/Profile/Index.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_TeacherLayout-DeYMN90N.js"
+      "_TeacherLayout-Crew-C4y.js"
     ]
   },
   "resources/js/Pages/Teacher/Progress/Index.vue": {
-    "file": "assets/Index-BZq1BMga.js",
+    "file": "assets/Index-PA7lYfUB.js",
     "name": "Index",
     "src": "resources/js/Pages/Teacher/Progress/Index.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_TeacherLayout-DeYMN90N.js",
+      "_TeacherLayout-Crew-C4y.js",
       "_ExportReportModal-DBqDB1UM.js",
       "_ModuleCompletion-BpT1T9v2.js",
       "_LearningTime-BtcbxSUn.js",
@@ -3906,13 +3906,13 @@
     ]
   },
   "resources/js/Pages/Teacher/Quizzes/Index.vue": {
-    "file": "assets/Index-Dq0HvVWM.js",
+    "file": "assets/Index-CeWNZuYu.js",
     "name": "Index",
     "src": "resources/js/Pages/Teacher/Quizzes/Index.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
-      "_TeacherLayout-DeYMN90N.js",
+      "_TeacherLayout-Crew-C4y.js",
       "_AssignmentTab-D9wL8qUE.js",
       "_CodingAssessmentTab-CWgKdPlA.js",
       "_QuestionBank-9N9Mv86B.js",
@@ -3924,25 +3924,25 @@
     ]
   },
   "resources/js/Pages/Teacher/Quizzes/Show.vue": {
-    "file": "assets/Show-CM5d_okg.js",
+    "file": "assets/Show-DzB6UqeG.js",
     "name": "Show",
     "src": "resources/js/Pages/Teacher/Quizzes/Show.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_TeacherLayout-DeYMN90N.js"
+      "_TeacherLayout-Crew-C4y.js"
     ]
   },
   "resources/js/Pages/Teacher/Reports/Index.vue": {
-    "file": "assets/Index-BOOgHw50.js",
+    "file": "assets/Index-Duo-Mi0T.js",
     "name": "Index",
     "src": "resources/js/Pages/Teacher/Reports/Index.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_TeacherLayout-DeYMN90N.js",
+      "_TeacherLayout-Crew-C4y.js",
       "_CourseReport-n65NrQbz.js",
       "_StudentReport-CyW-N7Re.js",
       "_QuizReport-C9pryGZv.js",
@@ -3951,14 +3951,14 @@
     ]
   },
   "resources/js/Pages/Teacher/Students/Index.vue": {
-    "file": "assets/Index-BQvFfZIb.js",
+    "file": "assets/Index-DMsLgnD0.js",
     "name": "Index",
     "src": "resources/js/Pages/Teacher/Students/Index.vue",
     "isDynamicEntry": true,
     "imports": [
       "_vendor-ui-BSlL5PLM.js",
       "_vendor-vue-BDpNKq-0.js",
-      "_TeacherLayout-DeYMN90N.js",
+      "_TeacherLayout-Crew-C4y.js",
       "_Completion-DIr5f-by.js",
       "_StudentList-CJ0Dz10u.js",
       "_Progress-DBL_CNjt.js",
@@ -3966,7 +3966,7 @@
     ]
   },
   "resources/js/Pages/Terms.vue": {
-    "file": "assets/Terms-Bm6spOI-.js",
+    "file": "assets/Terms-DbQoxSoa.js",
     "name": "Terms",
     "src": "resources/js/Pages/Terms.vue",
     "isDynamicEntry": true,
@@ -3978,7 +3978,7 @@
     ]
   },
   "resources/js/app.ts": {
-    "file": "assets/app-Bsp2L97j.js",
+    "file": "assets/app-BRKVmn95.js",
     "name": "app",
     "src": "resources/js/app.ts",
     "isEntry": true,
@@ -4044,7 +4044,7 @@
       "_AddUrlLinkModal-BdSjcIxK.js",
       "_AssetTypeBadge-7EU2eTKz.js",
       "_ContentLibrary-BQXqjHFK.js",
-      "_Index-DIwiJ967.js",
+      "_Index-9nMoSvP5.js",
       "_LearningReminderModal-BzMmeLNf.js",
       "resources/js/Pages/Admin/ContentDeliveryModule/LessonPreviewEditorModal.vue",
       "resources/js/Pages/Admin/ContentDeliveryModule/LinkViewerModal.vue",
@@ -4092,7 +4092,7 @@
       "_AbaTransactions-CY2EtnI1.js",
       "_CoursePricing-CVoDESHm.js",
       "resources/js/Pages/Admin/PaymentABAModule/DiscountCodeModal.vue",
-      "_Index-BeRiRrW_.js",
+      "_Index-CmUGCtBc.js",
       "resources/js/Pages/Admin/PaymentABAModule/InvoiceModal.vue",
       "_PaymentDashboard-CyWQtj1U.js",
       "_PaymentHistory-DruWfpky.js",
@@ -4167,58 +4167,58 @@
       "resources/js/Pages/Privacy.vue",
       "resources/js/Pages/Student/AiLearningPath/Index.vue",
       "resources/js/Pages/Student/AiLearningPath/NextCourse.vue",
-      "_NextModule-DmqC4ns9.js",
-      "_RecommendedLesson-DpecH_p8.js",
-      "_ReviewLesson-cI2vYXMj.js",
-      "_WeakTopics-BbhmhVph.js",
+      "_NextModule-D7Lc3JE1.js",
+      "_RecommendedLesson-ncgcswBv.js",
+      "_ReviewLesson-BDncThiV.js",
+      "_WeakTopics-vaeGIiZV.js",
       "resources/js/Pages/Student/AiTutor/ChatSupport.vue",
       "resources/js/Pages/Student/AiTutor/EnglishTutor.vue",
       "resources/js/Pages/Student/AiTutor/Index.vue",
       "resources/js/Pages/Student/AiTutor/InstantFeedback.vue",
-      "_Index-B9Jadw55.js",
+      "_Index-nW5hZ2-E.js",
       "resources/js/Pages/Student/Browse/Show.vue",
       "resources/js/Pages/Student/Calendar/AcademicEvents.vue",
-      "_AssignmentDue-Cp0lU_r7.js",
+      "_AssignmentDue-CdBfdFdA.js",
       "resources/js/Pages/Student/Calendar/Index.vue",
-      "_LiveClassSchedule-Bq3Z__JK.js",
-      "_UpcomingQuiz-DP61ik0H.js",
-      "_DownloadShare-HmInEKHY.js",
+      "_LiveClassSchedule-Cma2yFmx.js",
+      "_UpcomingQuiz-D__SZ6nK.js",
+      "_DownloadShare-BJDOVyaY.js",
       "resources/js/Pages/Student/Certificates/Index.vue",
-      "_MyCertificates-DQens5sy.js",
-      "_VerifyCertificate-coVwk2Pk.js",
+      "_MyCertificates-B8OU4DYo.js",
+      "_VerifyCertificate-B62lt1Uf.js",
       "resources/js/Pages/Student/Courses/Index.vue",
       "resources/js/Pages/Student/Courses/Overview.vue",
       "resources/js/Pages/Student/Dashboard.vue",
-      "_AskQuestion-CKjAGn-r.js",
-      "_CourseDiscussions-hnbQZ0JG.js",
-      "_CourseFaq-CKeupSGz.js",
+      "_AskQuestion-dCOBHccy.js",
+      "_CourseDiscussions-D_1V2L2a.js",
+      "_CourseFaq-Bqsio0Xh.js",
       "resources/js/Pages/Student/Discussions/Index.vue",
-      "_MyQuestions-C3u6LKaE.js",
-      "_SupportTicket-CEisSzXG.js",
+      "_MyQuestions-BduaXppK.js",
+      "_SupportTicket-DwbuTWju.js",
       "resources/js/Pages/Student/Learning/Show.vue",
       "resources/js/Pages/Student/LearningContent/Index.vue",
-      "_NotesDownloads-BrWVDaPR.js",
-      "_Pdfs-ZIXOxu-V.js",
-      "_Slides-CeSYSjUs.js",
-      "_UrlResources-D5sn3JyW.js",
-      "_Videos-DuS7MR8v.js",
-      "_BrowseCatalog-DK4yvnxr.js",
-      "_CompletedCourses-D0q9XlFx.js",
-      "_CurrentCourse-Ben1L2s3.js",
-      "_EnrolledCourses-DCt4z8iN.js",
-      "_Index-18oq2GEh.js",
-      "_Wishlist-CKKdhYLv.js",
-      "_AiAlerts-CpfuXsUh.js",
-      "_Announcements-DLwYIB5k.js",
+      "_NotesDownloads-C_btBI6I.js",
+      "_Pdfs-BQB61Y-7.js",
+      "_Slides-DFGGK0Eg.js",
+      "_UrlResources-BkoMlEDz.js",
+      "_Videos-ChR7kHR6.js",
+      "_BrowseCatalog-3Kc58rim.js",
+      "_CompletedCourses--A8DA6Ui.js",
+      "_CurrentCourse-zJgqncgY.js",
+      "_EnrolledCourses-d6ahVkTy.js",
+      "_Index-BSpNCDFF.js",
+      "_Wishlist-CcISOukq.js",
+      "_AiAlerts-DrCfS0ZD.js",
+      "_Announcements-Cnm7TFhW.js",
       "resources/js/Pages/Student/Notifications/Index.vue",
-      "_PaymentAlerts-CMaOp6yy.js",
-      "_TeacherFeedback-g9ZOaOYr.js",
+      "_PaymentAlerts-CCtKiCDe.js",
+      "_TeacherFeedback-CEbisL5F.js",
       "resources/js/Pages/Student/Payments/Index.vue",
-      "_MyPayments-BzBk-dOR.js",
-      "_PaymentHistory-CUg4p6lR.js",
+      "_MyPayments-COJLDfBN.js",
+      "_PaymentHistory-f_OqNz92.js",
       "resources/js/Pages/Student/Payments/PaymentSettings.vue",
-      "_PendingPayments-wqW2_EBF.js",
-      "_ReceiptsInvoices-Cl3MQtca.js",
+      "_PendingPayments-IguiojDi.js",
+      "_ReceiptsInvoices-IPymE0pM.js",
       "resources/js/Pages/Student/Payments/Upload.vue",
       "resources/js/Pages/Student/PracticeLab/AgronomyLab.vue",
       "resources/js/Pages/Student/PracticeLab/EnglishLab.vue",
@@ -4229,18 +4229,18 @@
       "resources/js/Pages/Student/Profile/Index.vue",
       "resources/js/Pages/Student/Profile/VerifyIdCard.vue",
       "resources/js/Pages/Student/Progress/Index.vue",
-      "_AchievementsBadges-QywBI-vT.js",
+      "_AchievementsBadges-CMmtBLcM.js",
       "resources/js/Pages/Student/ProgressTracking/Index.vue",
-      "_LearningTime-BH3yQ1ms.js",
-      "_Overview-B6PMagWH.js",
-      "_WeeklyProgress-FJ-m5m9A.js",
-      "_Assignments-CLPygUyV.js",
-      "_History-CUAdfgqF.js",
+      "_LearningTime-BLqu7YDC.js",
+      "_Overview-CUrut06G.js",
+      "_WeeklyProgress-DCu7vWxg.js",
+      "_Assignments-vuQGrSEk.js",
+      "_History-BJlZveN8.js",
       "resources/js/Pages/Student/Quizzes/Index.vue",
-      "_PostTest-DDzbuCIO.js",
-      "_Practice-DxrEsn2C.js",
-      "_PreTest-Cd2CUkqP.js",
-      "_Scores-BBxL-YM8.js",
+      "_PostTest-BAZziNtM.js",
+      "_Practice-hTpHTQ_q.js",
+      "_PreTest-CUIjlX6V.js",
+      "_Scores-BTVyOUyk.js",
       "resources/js/Pages/Student/Quizzes/Show.vue",
       "resources/js/Pages/Student/Simulations/Index.vue",
       "resources/js/Pages/Student/Simulations/Play.vue",
@@ -4311,7 +4311,7 @@
       "_vendor-vue-BDpNKq-0.js"
     ],
     "css": [
-      "assets/app-DyLJnsSM.css"
+      "assets/app-C-VCBClD.css"
     ]
   }
 }
