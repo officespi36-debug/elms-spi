@@ -48,11 +48,11 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        $botToken = config('services.telegram.bot_token') ?? env('TELEGRAM_BOT_TOKEN');
-        $botId = config('services.telegram.bot_id') ?? env('TELEGRAM_BOT_ID');
+        $botToken = config('services.telegram.bot_token');
+        $botId = config('services.telegram.bot_id');
         if (!$botId && !empty($botToken) && str_contains((string) $botToken, ':')) {
             $parts = explode(':', (string) $botToken);
-            $botId = $parts[0] ?? '8828915669';
+            $botId = $parts[0] ?? '9048704504';
         }
 
         $locale = $request->cookie('elms_lang') ?? ($_COOKIE['elms_lang'] ?? session('elms_lang', 'km'));

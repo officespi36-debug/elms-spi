@@ -20,10 +20,13 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       color: #0f172a;
     }
-    table, td {
-      mso-table-lspace: 0pt !important;
-      mso-table-rspace: 0pt !important;
-    }
+  </style>
+  <!--[if mso]>
+  <style type="text/css">
+    table, td { mso-table-lspace: 0pt !important; mso-table-rspace: 0pt !important; }
+  </style>
+  <![endif]-->
+  <style type="text/css">
     img {
       -ms-interpolation-mode: bicubic;
       border: 0;
@@ -75,7 +78,7 @@
 <body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: #0f172a;">
 
   <!-- Preheader text for email clients -->
-  <div style="display: none; font-size: 1px; color: #f1f5f9; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all;">
+  <div style="display: none; font-size: 1px; color: #f1f5f9; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden;">
     Your verification code is {{ $otp }}. Please enter this code to confirm your email address.
   </div>
 

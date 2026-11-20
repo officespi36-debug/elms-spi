@@ -282,8 +282,8 @@
     <script>
         const qrToken = "{{ $token }}";
         const botUsername = "{{ $botUsername ?? 'elms_verification_bot' }}";
-        const initialUser = @json($currentUser ?? null);
-        const serverAvailableAccounts = @json($availableAccounts ?? []);
+        const initialUser = {!! json_encode($currentUser ?? null) !!};
+        const serverAvailableAccounts = {!! json_encode($availableAccounts ?? []) !!};
 
         let activeUser = initialUser || null;
         let tgUser = null;
@@ -362,7 +362,7 @@
         }
 
         function getAllAccounts() {
-            const map = new Map();
+            const map = new window.Map();
             
             // Server accounts
             if (Array.isArray(serverAvailableAccounts)) {
