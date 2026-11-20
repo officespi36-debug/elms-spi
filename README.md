@@ -64,7 +64,7 @@ Built with **Laravel 11**, **Inertia.js**, **Vue 3**, **Tailwind CSS v4**, and *
 
 ### 🔐 2. Advanced Multi-Channel Authentication
 - **Multi-Role Security:** Granular role-based access control for **Students**, **Teachers**, and **System Administrators**.
-- **Telegram Bot Deep Linking:** Direct Telegram OAuth & 6-digit OTP delivery for instant account linking and password resets (`@spi_elms_auth_bot`).
+- **Telegram Bot Deep Linking:** Direct Telegram OAuth & 6-digit OTP delivery for instant account linking and password resets (`@elms_verification_bot`).
 - **Google Identity Services & Clerk OAuth:** Modern single sign-on (SSO) for students and educators.
 - **Audit & Anti-Brute-Force:** Session tracking, login attempt monitoring, and automatic account freeze on anomaly detection.
 
@@ -154,7 +154,7 @@ DB_PASSWORD=
 
 # Telegram Bot Authentication
 TELEGRAM_BOT_TOKEN=your_telegram_bot_token
-TELEGRAM_BOT_USERNAME=spi_elms_auth_bot
+TELEGRAM_BOT_USERNAME=elms_verification_bot
 
 # Google OAuth / Clerk (Optional)
 VITE_CLERK_PUBLISHABLE_KEY=your_clerk_key

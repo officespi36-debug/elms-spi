@@ -206,9 +206,9 @@
                             <img src="https://img.icons8.com/ios-glyphs/30/111827/youtube-play.png" width="18" height="18" alt="YouTube" style="display: block; width: 18px; height: 18px; border: 0;">
                           </a>
                         </td>
-                        <!-- Telegram (@spi_elms_auth_bot) -->
+                        <!-- Telegram (@elms_verification_bot) -->
                         <td style="padding: 0 8px;">
-                          <a href="https://t.me/spi_elms_auth_bot" target="_blank" title="Telegram" style="text-decoration: none; display: inline-block;">
+                          <a href="https://t.me/elms_verification_bot" target="_blank" title="Telegram" style="text-decoration: none; display: inline-block;">
                             <img src="https://img.icons8.com/ios-glyphs/30/111827/telegram-app.png" width="18" height="18" alt="Telegram" style="display: block; width: 18px; height: 18px; border: 0;">
                           </a>
                         </td>

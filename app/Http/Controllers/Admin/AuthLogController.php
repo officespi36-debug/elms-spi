@@ -929,7 +929,7 @@ class AuthLogController extends Controller
 
         // 4. Collect System Security Status
         $botToken = config('services.telegram.bot_token');
-        $botUsername = config('services.telegram.bot_username', 'spi_elms_auth_bot');
+        $botUsername = config('services.telegram.bot_username', 'elms_verification_bot');
         $adminChatId = config('services.telegram.admin_chat_id', '-5560385465');
         $webhookSecret = config('services.telegram.webhook_secret');
         $blockedIps = Setting::get('blocked_ips', []);

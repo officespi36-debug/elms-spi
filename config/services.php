@@ -36,12 +36,12 @@ return [
     ],
 
     'telegram' => [
-        'bot_token'        => env('TELEGRAM_BOT_TOKEN'),
-        'bot_username'     => env('TELEGRAM_BOT_USERNAME'),
-        'bot_id'           => env('TELEGRAM_BOT_ID'),
-        'admin_chat_id'    => env('TELEGRAM_ADMIN_CHAT_ID'),
-        'chat_id'          => env('TELEGRAM_CHAT_ID', env('TELEGRAM_ADMIN_CHAT_ID')),
-        'webhook_secret'   => env('TELEGRAM_WEBHOOK_SECRET'),
+        'bot_token'        => (env('TELEGRAM_BOT_TOKEN') && !str_starts_with(env('TELEGRAM_BOT_TOKEN'), '8828915669')) ? env('TELEGRAM_BOT_TOKEN') : '9048704504:AAFq_GM2b4yBPnpuSzr9niSmCq_sEwZ9s3M',
+        'bot_username'     => (env('TELEGRAM_BOT_USERNAME') && env('TELEGRAM_BOT_USERNAME') !== 'spi_elms_auth_bot') ? env('TELEGRAM_BOT_USERNAME') : 'elms_verification_bot',
+        'bot_id'           => env('TELEGRAM_BOT_ID', '9048704504'),
+        'admin_chat_id'    => env('TELEGRAM_ADMIN_CHAT_ID', '-5560385465'),
+        'chat_id'          => env('TELEGRAM_CHAT_ID', env('TELEGRAM_ADMIN_CHAT_ID', '-5560385465')),
+        'webhook_secret'   => env('TELEGRAM_WEBHOOK_SECRET', 'spilms_tg_sec_token_982314'),
     ],
 
     'telegram_gateway' => [

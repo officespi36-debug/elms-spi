@@ -1510,7 +1510,7 @@ class TelegramAuthController extends Controller
                 'role' => $currentUser->role,
             ] : null,
             'availableAccounts' => $availableAccounts,
-            'botUsername' => config('services.telegram.bot_username') ?: 'spi_elms_auth_bot',
+            'botUsername' => config('services.telegram.bot_username') ?: 'elms_verification_bot',
         ]);
     }
 

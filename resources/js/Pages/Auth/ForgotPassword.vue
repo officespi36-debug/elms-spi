@@ -695,7 +695,7 @@ const onResetPassword = () => {
               </div>
 
               <a
-                :href="flashData.link_telegram_url || flashData.telegram_url || ('https://t.me/' + (flashData.telegram_bot_name || 'spi_elms_auth_bot') + '?start=' + (flashData.reset_user?.id || flashData.user?.id || ''))"
+                :href="flashData.link_telegram_url || flashData.telegram_url || ('https://t.me/' + (flashData.telegram_bot_name || 'elms_verification_bot') + '?start=' + (flashData.reset_user?.id || flashData.user?.id || ''))"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="px-3 py-1.5 bg-sky-500 hover:bg-sky-600 text-white text-xs font-semibold rounded-lg transition shadow-xs whitespace-nowrap inline-flex items-center gap-1 cursor-pointer shrink-0"

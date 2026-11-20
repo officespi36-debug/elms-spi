@@ -110,7 +110,7 @@ class TelegramPollingCommand extends Command
                 Cache::forever('telegram_chat_id', (string) $groupChatId);
                 $this->safeLog('info', "🎉 Bot promoted/added to Group: '{$groupTitle}' (Chat ID: {$groupChatId})");
 
-                $botUsername = config('services.telegram.bot_username', 'spi_elms_auth_bot');
+                $botUsername = config('services.telegram.bot_username', 'elms_verification_bot');
                 $welcomeGroupText = "🛡️ <b>SPI LMS — Security Alerts Channel Activated!</b>\n" .
                                    "━━━━━━━━━━━━━━━━━━━━━\n" .
                                    "✅ <b>គ្រុបនេះត្រូវបានភ្ជាប់ជាផ្លូវការសម្រាប់ទទួល Security Alerts & Real-time Login Notifications!</b>\n\n" .
@@ -250,7 +250,7 @@ class TelegramPollingCommand extends Command
             $this->safeLog('info', "🔔 Registered active security alerts group: '{$groupTitle}' (Chat ID: {$chatId})");
 
             if (str_starts_with($cleanCmd, '/start') || str_starts_with($cleanCmd, '/alerts') || str_starts_with($cleanCmd, '/status') || str_starts_with($cleanCmd, '/setgroup') || str_starts_with($cleanCmd, '/test') || !empty($rawText)) {
-                $botUsername = config('services.telegram.bot_username', 'spi_elms_auth_bot');
+                $botUsername = config('services.telegram.bot_username', 'elms_verification_bot');
                 $welcomeGroupText = "🛡️ <b>SPI LMS — Security Alerts Channel Activated!</b>\n" .
                                    "━━━━━━━━━━━━━━━━━━━━━\n" .
                                    "✅ <b>គ្រុបនេះត្រូវបានភ្ជាប់ជាផ្លូវការសម្រាប់ទទួល Security Alerts & Real-time Login Notifications!</b>\n\n" .

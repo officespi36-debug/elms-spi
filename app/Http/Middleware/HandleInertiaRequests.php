@@ -120,9 +120,9 @@ class HandleInertiaRequests extends Middleware
                 })
                 : 0,
             'telegram' => [
-                'bot_username' => config('services.telegram.bot_username') ?? env('TELEGRAM_BOT_USERNAME', 'spi_elms_auth_bot'),
-                'bot_id' => $botId ?? '8828915669',
-                'is_configured' => !empty($botToken),
+                'bot_username' => config('services.telegram.bot_username') ?: 'elms_verification_bot',
+                'bot_id' => $botId ?? '9048704504',
+                'is_configured' => true,
             ],
             'clerk' => [
                 'publishable_key' => config('services.clerk.publishable_key') ?? env('VITE_CLERK_PUBLISHABLE_KEY'),

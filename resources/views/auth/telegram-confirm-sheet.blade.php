@@ -170,7 +170,7 @@
         <div id="openTgBtnContainer" class="w-full mt-3">
             <a
                 id="directOpenTgBtn"
-                href="tg://resolve?domain={{ $botUsername ?? 'spi_elms_auth_bot' }}&start=login_{{ $token }}"
+                href="tg://resolve?domain={{ $botUsername ?? 'elms_verification_bot' }}&start=login_{{ $token }}"
                 onclick="handleOpenTelegramApp(event)"
                 class="w-full py-2.5 px-4 rounded-xl bg-[#0088cc] hover:bg-[#0077b5] active:scale-95 text-white text-xs font-bold flex items-center justify-center gap-2 transition shadow-md shadow-sky-500/20 cursor-pointer select-none"
             >
@@ -281,7 +281,7 @@
 
     <script>
         const qrToken = "{{ $token }}";
-        const botUsername = "{{ $botUsername ?? 'spi_elms_auth_bot' }}";
+        const botUsername = "{{ $botUsername ?? 'elms_verification_bot' }}";
         const initialUser = @json($currentUser ?? null);
         const serverAvailableAccounts = @json($availableAccounts ?? []);
 
