@@ -76,7 +76,7 @@ const emit = defineEmits<{
         <span class="text-slate-500 dark:text-slate-400 font-medium">
           {{ currentLang === 'km' ? 'អត្តលេខនិស្សិត:' : 'Student ID:' }}
         </span>
-        <span class="font-mono font-bold text-[#FFD54A] bg-[#071638] px-2 py-0.5 rounded border border-[#FFD54A]/30">
+        <span class="font-mono font-bold text-amber-800 dark:text-[#FFD54A] bg-amber-500/15 dark:bg-[#071638] px-2 py-0.5 rounded border border-amber-500/40 dark:border-[#FFD54A]/30">
           {{ profile.student_id }}
         </span>
       </div>
@@ -138,7 +138,7 @@ const emit = defineEmits<{
       <button
         type="button"
         @click="emit('printCard')"
-        class="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-[#7045F5] via-[#4842e4] to-[#1459D9] hover:from-[#5d31e3] hover:to-[#104bc2] text-white font-bold text-xs shadow-lg shadow-purple-500/25 transition-all flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+        class="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-[#7045F5] via-[#4842e4] to-[#1459D9] hover:from-[#5d31e3] hover:to-[#104bc2] text-white font-bold text-xs shadow-lg shadow-purple-500/25 transition-all flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99] cursor-pointer font-khmer"
       >
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -150,7 +150,7 @@ const emit = defineEmits<{
       <button
         type="button"
         @click="emit('copyLink')"
-        class="w-full py-3 px-4 rounded-2xl bg-[#f0f4f9] dark:bg-[#131314] hover:bg-slate-200 dark:hover:bg-[#282a2c] text-slate-800 dark:text-slate-200 font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer border border-[#dfe3e7] dark:border-[#2d2f31] shadow-2xs hover:shadow-xs active:scale-[0.99]"
+        class="w-full py-3 px-4 rounded-2xl bg-[#f0f4f9] dark:bg-[#131314] hover:bg-slate-200 dark:hover:bg-[#282a2c] text-slate-800 dark:text-slate-200 font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer border border-[#dfe3e7] dark:border-[#2d2f31] shadow-2xs hover:shadow-xs active:scale-[0.99] font-khmer"
       >
         <svg class="w-4 h-4 text-[#1459D9] dark:text-[#16C8F5]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -162,7 +162,7 @@ const emit = defineEmits<{
       <button
         type="button"
         @click="emit('openRegenerateModal')"
-        class="w-full py-2.5 px-4 rounded-2xl border border-rose-200 dark:border-rose-900/60 bg-rose-50/50 dark:bg-rose-950/20 hover:bg-rose-100/60 dark:hover:bg-rose-900/40 text-rose-600 dark:text-rose-400 font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+        class="w-full py-2.5 px-4 rounded-2xl border border-rose-200 dark:border-rose-900/60 bg-rose-50/50 dark:bg-rose-950/20 hover:bg-rose-100/60 dark:hover:bg-rose-900/40 text-rose-600 dark:text-rose-400 font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99] font-khmer"
       >
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />

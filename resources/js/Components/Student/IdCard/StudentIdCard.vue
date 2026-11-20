@@ -61,9 +61,9 @@ const handleFlip = () => {
   <div class="w-full flex flex-col items-center justify-between space-y-5">
     
     <!-- Top Row: Active Side Indicator & Flip Card Action Button -->
-    <div class="w-full flex items-center justify-between text-xs text-slate-500">
+    <div class="w-full flex items-center justify-between text-xs text-slate-500 font-khmer">
       <div class="flex items-center gap-2">
-        <span class="w-2.5 h-2.5 rounded-full bg-[#16C8F5] shadow-sm"></span>
+        <span class="w-2.5 h-2.5 rounded-full bg-blue-600 dark:bg-[#16C8F5] shadow-sm"></span>
         <span class="font-bold text-slate-900 dark:text-slate-100">
           {{ isFlipped ? (currentLang === 'km' ? 'ផ្នែកខាងក្រោយនៃកាត' : 'Card Back Side') : (currentLang === 'km' ? 'ផ្នែកខាងមុខនៃកាត' : 'Card Front Side') }}
         </span>
@@ -73,10 +73,10 @@ const handleFlip = () => {
       <button
         type="button"
         @click="handleFlip"
-        class="px-3.5 py-1.5 rounded-xl bg-[#f0f4f9] dark:bg-[#131314] hover:bg-slate-200 dark:hover:bg-[#282a2c] text-slate-700 dark:text-slate-200 font-bold text-xs transition-all cursor-pointer inline-flex items-center gap-2 border border-[#dfe3e7] dark:border-[#2d2f31] shadow-2xs hover:shadow-xs active:scale-95"
+        class="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-[#131314] hover:bg-slate-200 dark:hover:bg-[#282a2c] text-slate-700 dark:text-slate-200 font-bold font-khmer text-xs transition-all cursor-pointer inline-flex items-center gap-2 border border-slate-200 dark:border-[#2d2f31] shadow-2xs hover:shadow-xs active:scale-95"
       >
         <svg
-          class="w-4 h-4 text-[#7045F5] transition-transform duration-500"
+          class="w-4 h-4 text-indigo-600 dark:text-[#7045F5] transition-transform duration-500"
           :class="{ 'rotate-180': isFlipped }"
           fill="none"
           viewBox="0 0 24 24"
