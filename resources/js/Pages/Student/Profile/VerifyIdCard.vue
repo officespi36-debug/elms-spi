@@ -7,10 +7,13 @@ defineProps<{
   student?: {
     name: string
     name_kh?: string
+    student_id?: string
+    card_no?: string
     program: string
     program_kh?: string
     status: string
     status_kh?: string
+    issued_at?: string
     expires_at: string
     verified_at: string
     institution: string
@@ -133,11 +136,16 @@ const toggleTheme = () => {
         <!-- Verified Student Details Panel (Privacy-Safe) -->
         <div class="p-5 rounded-2xl bg-slate-50/80 dark:bg-[#071638]/70 border border-slate-200/90 dark:border-blue-500/20 space-y-3.5 text-xs shadow-inner">
           
-          <!-- Student Full Name -->
+          <!-- Student Full Name & ID -->
           <div>
-            <p class="text-[10px] text-slate-400 dark:text-slate-400 uppercase font-bold tracking-wider">
-              ឈ្មោះនិស្សិត (Student Name)
-            </p>
+            <div class="flex items-center justify-between">
+              <p class="text-[10px] text-slate-400 dark:text-slate-400 uppercase font-bold tracking-wider">
+                ឈ្មោះនិស្សិត (Student Name)
+              </p>
+              <span v-if="student.card_no" class="font-mono text-[10.5px] font-bold text-slate-600 dark:text-slate-300 bg-slate-200/70 dark:bg-slate-800/80 px-2 py-0.5 rounded border border-slate-300/80 dark:border-slate-700">
+                {{ student.card_no }}
+              </span>
+            </div>
             <div class="flex items-center gap-2 mt-1">
               <p class="text-base sm:text-lg font-black text-slate-900 dark:text-white">
                 {{ student.name }}
@@ -146,6 +154,9 @@ const toggleTheme = () => {
                 ({{ student.name_kh }})
               </span>
             </div>
+            <p v-if="student.student_id" class="text-[11px] font-mono font-bold text-amber-600 dark:text-[#FFD54A] mt-0.5">
+              ID: {{ student.student_id }}
+            </p>
           </div>
 
           <!-- Academic Status Row -->

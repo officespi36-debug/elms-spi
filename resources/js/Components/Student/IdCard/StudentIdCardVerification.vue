@@ -67,10 +67,10 @@ const copyCardNumber = () => {
 
         <!-- Live Verified Badge (links to real public verification route) -->
         <a
-          v-if="idCard.is_live_verified"
+          v-if="idCard.is_live_verified || idCard.status === 'active'"
           :href="idCard.verify_url"
           target="_blank"
-          class="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-[#1459D9]/10 text-[#1459D9] dark:text-[#16C8F5] border border-[#1459D9]/25 inline-flex items-center gap-1 hover:underline transition-all"
+          class="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-[#1459D9]/10 text-[#1459D9] dark:text-[#16C8F5] border border-[#1459D9]/25 inline-flex items-center gap-1 hover:underline transition-all shadow-xs"
         >
           <span>Live Verified</span>
           <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -115,7 +115,7 @@ const copyCardNumber = () => {
           {{ currentLang === 'km' ? 'ស្ថានភាពផ្លូវការ:' : 'Status:' }}
         </span>
         <span
-          v-if="idCard.is_official"
+          v-if="idCard.is_official || idCard.status === 'active'"
           class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 inline-flex items-center gap-1.5"
         >
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>

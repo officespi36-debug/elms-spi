@@ -67,6 +67,86 @@ class DatabaseSeeder extends Seeder
             // Non-blocking during early bootstrap
         }
 
+        // ─── 3. Ensure Official Digital ID Cards for Official Students & Admin ───
+        try {
+            $faculty = \App\Models\Faculty::firstOrCreate(
+                ['code' => 'FST'],
+                [
+                    'name'        => 'Faculty of Science & Technology',
+                    'name_kh'     => 'មហាវិទ្យាល័យវិទ្យាសាស្ត្រ និងបច្ចេកវិទ្យា',
+                    'dean'        => 'H.E. Bishop Olivier Schmitthaeusler',
+                    'email'       => 'fst@spilms.tech',
+                    'est_year'    => 2009,
+                    'description' => 'Faculty of Science and Information Technology at Saint Paul Institute',
+                    'is_active'   => true,
+                ]
+            );
+
+            $department = \App\Models\Department::firstOrCreate(
+                ['code' => 'DIT'],
+                [
+                    'faculty_id'  => $faculty->id,
+                    'name'        => 'Department of Information Technology',
+                    'name_kh'     => 'ដេប៉ាតឺម៉ង់បច្ចេកវិទ្យាព័ត៌មាន',
+                    'head'        => 'Ph.D. IT Department Head',
+                    'email'       => 'dit@spilms.tech',
+                    'description' => 'Department of IT & Software Engineering',
+                    'is_active'   => true,
+                ]
+            );
+
+            $major = \App\Models\Major::firstOrCreate(
+                ['code' => 'IT-BSC'],
+                [
+                    'department_id' => $department->id,
+                    'name'          => 'Information Technology',
+                    'name_kh'       => 'បច្ចេកវិទ្យាព័ត៌មាន (IT)',
+                    'duration'      => '4 Years',
+                    'degree_level'  => 'Bachelor of Science (B.Sc.)',
+                    'credits'       => 120,
+                    'language'      => 'Khmer / English',
+                    'is_active'     => true,
+                ]
+            );
+
+            if ($superAdmin) {
+                $superAdmin->update([
+                    'major_id'     => $major->id,
+                    'status'       => 'active',
+                    'is_active'    => true,
+                    'student_code' => $superAdmin->student_code ?: 'SPI-2026-001582',
+                ]);
+
+                \App\Models\AcademicRecord::firstOrCreate(
+                    ['user_id' => $superAdmin->id],
+                    [
+                        'faculty_id'    => $faculty->id,
+                        'department_id' => $department->id,
+                        'major_id'      => $major->id,
+                        'degree_level'  => 'Bachelor of Science (B.Sc.)',
+                        'study_type'    => 'Full-time',
+                        'gpa'           => 3.85,
+                        'total_credits' => 120,
+                    ]
+                );
+
+                \App\Models\IdCard::updateOrCreate(
+                    ['user_id' => $superAdmin->id],
+                    [
+                        'card_no'     => 'SPI-2026-001582',
+                        'token'       => '0b7a68d6a1a3c4de139b5fa8750c2f9960b3264c',
+                        'issued_at'   => \Carbon\Carbon::create(2026, 11, 14, 0, 0, 0),
+                        'expires_at'  => \Carbon\Carbon::create(2030, 11, 14, 23, 59, 59),
+                        'status'      => 'active',
+                        'approved_by' => $superAdmin->id,
+                        'approved_at' => \Carbon\Carbon::create(2026, 11, 14, 0, 0, 0),
+                    ]
+                );
+            }
+        } catch (\Throwable $e) {
+            // Non-blocking
+        }
+
         // ─── Fake / Sample Seeders Disabled for Official Production ───
         // $this->call([
         //     AcademicSeeder::class,
