@@ -88,7 +88,7 @@ class TelegramAuthController extends Controller
     public function initQrSession(Request $request)
     {
         $token = Str::random(32);
-        $botUsername = config('services.telegram.bot_username') ?: 'spi_elms_auth_bot';
+        $botUsername = config('services.telegram.bot_username') ?: 'elms_verification_bot';
 
         // Detect device, browser, IP and location
         $userAgent = $request->header('User-Agent', '');
@@ -712,7 +712,7 @@ class TelegramAuthController extends Controller
                             ['text' => '🚀 បើក E-LMS WebApp', 'url' => 'https://spilms.tech']
                         ],
                         [
-                            ['text' => '💬 ឆាតទៅកាន់ Bot ផ្ទាល់ (@spi_elms_auth_bot)', 'url' => 'https://t.me/spi_elms_auth_bot']
+                            ['text' => '💬 ឆាតទៅកាន់ Bot ផ្ទាល់ (@elms_verification_bot)', 'url' => 'https://t.me/elms_verification_bot']
                         ]
                     ]
                 ];
@@ -1690,7 +1690,7 @@ class TelegramAuthController extends Controller
 
         // 5. If opened in regular browser without Telegram context, prompt to launch Telegram App!
         if (!$tgUser || empty($tgUser['id'])) {
-            $botUsername = config('services.telegram.bot_username') ?: 'spi_elms_auth_bot';
+            $botUsername = config('services.telegram.bot_username') ?: 'elms_verification_bot';
             return response()->json([
                 'success' => false,
                 'open_telegram' => true,

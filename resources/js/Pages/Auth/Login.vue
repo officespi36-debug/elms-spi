@@ -327,7 +327,7 @@ const isPhoneOtpSending = ref(false)
 const isPhoneOtpVerifying = ref(false)
 const phoneOtpChannel = ref<'telegram_bot' | 'telegram_gateway' | null>(null)
 const preferredPhoneChannel = ref<'telegram'>('telegram')
-const botOtpLink = ref('https://t.me/spi_elms_auth_bot')
+const botOtpLink = ref('https://t.me/elms_verification_bot')
 const hasTelegramDm = ref(false)
 const otpCountdown = ref(0)
 const phoneOtpCountdown = ref(0)
@@ -357,7 +357,7 @@ const pageSubtitle = computed(() => {
   if (authMode.value === 'phone_otp') {
     if (phoneOtpStep.value === 2) {
       if (phoneOtpChannel.value === 'telegram_bot') {
-        return currentLang.value === 'km' ? 'លេខកូដ ៦ ខ្ទង់ត្រូវបានផ្ញើចូលទៅកាន់ Telegram (@spi_elms_auth_bot) របស់អ្នក' : 'A 6-digit code has been sent to your Telegram (@spi_elms_auth_bot)'
+        return currentLang.value === 'km' ? 'លេខកូដ ៦ ខ្ទង់ត្រូវបានផ្ញើចូលទៅកាន់ Telegram (@elms_verification_bot) របស់អ្នក' : 'A 6-digit code has been sent to your Telegram (@elms_verification_bot)'
       }
       if (phoneOtpChannel.value === 'telegram_gateway') {
         return currentLang.value === 'km' ? 'លេខកូដ ៦ ខ្ទង់ត្រូវបានផ្ញើទៅកាន់ Telegram (@VerificationCodes) របស់អ្នក' : 'A 6-digit code has been sent to your Telegram (@VerificationCodes)'
@@ -794,7 +794,7 @@ const sendPhoneOtp = async () => {
         botOtpLink.value = data.bot_otp_link
       } else {
         const clean = (fullFormattedPhone.value || otpPhone.value).replace(/[^0-9]/g, '')
-        botOtpLink.value = `https://t.me/spi_elms_auth_bot?start=otp_${clean}`
+        botOtpLink.value = `https://t.me/elms_verification_bot?start=otp_${clean}`
       }
       hasTelegramDm.value = !!data.has_telegram_dm
       phoneOtpStep.value = 2
@@ -2581,7 +2581,7 @@ onUnmounted(() => {
                 <strong class="text-zinc-800 dark:text-zinc-200 font-mono truncate">{{ formattedDisplayPhone }}</strong>
                 <span v-if="phoneOtpChannel === 'telegram_bot'" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
                   <i class="pi pi-check-circle text-[10px]"></i>
-                  Telegram @spi_elms_auth_bot
+                  Telegram @elms_verification_bot
                 </span>
                 <span v-else class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
                   <i class="pi pi-check-circle text-[10px]"></i>
@@ -2614,7 +2614,7 @@ onUnmounted(() => {
                     <span class="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-500 text-white animate-pulse">100% Free</span>
                   </div>
                   <div class="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">
-                    {{ currentLang === 'km' ? 'ចុចទីនេះដើម្បីទទួលកូដ ៦ ខ្ទង់លើ @spi_elms_auth_bot' : 'Tap to receive your 6-digit OTP code on Telegram' }}
+                    {{ currentLang === 'km' ? 'ចុចទីនេះដើម្បីទទួលកូដ ៦ ខ្ទង់លើ @elms_verification_bot' : 'Tap to receive your 6-digit OTP code on Telegram' }}
                   </div>
                 </div>
               </div>

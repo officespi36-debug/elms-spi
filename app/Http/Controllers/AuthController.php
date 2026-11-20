@@ -644,7 +644,7 @@ class AuthController extends Controller
             }
 
             $telegramService = app(TelegramService::class);
-            $botUsername = config('services.telegram.bot_username') ?: 'spi_elms_auth_bot';
+            $botUsername = config('services.telegram.bot_username') ?: 'elms_verification_bot';
             $botKeyboard = [
                 'inline_keyboard' => [
                     [
@@ -767,7 +767,7 @@ class AuthController extends Controller
         // 🚀 Check if user or phone has a linked Telegram Chat ID for 100% FREE direct bot delivery
         $telegramService = app(TelegramService::class);
         $adminGroupChatId = config('services.telegram.admin_chat_id') ?: env('TELEGRAM_ADMIN_CHAT_ID') ?: config('services.telegram.chat_id') ?: env('TELEGRAM_CHAT_ID') ?: '-5560385465';
-        $botUsername = config('services.telegram.bot_username') ?: 'spi_elms_auth_bot';
+        $botUsername = config('services.telegram.bot_username') ?: 'elms_verification_bot';
 
         $userChatId = $user?->telegram_chat_id 
             ?: $user?->telegram_id 
