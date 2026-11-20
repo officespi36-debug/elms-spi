@@ -542,9 +542,9 @@ html.dark .p-toast .p-toast-close-button:hover {
   ::view-transition-new(*) {
     animation: none !important;
   }
-  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.elms-ring-wrap):not(.animate-spin):not(.loading-spinner):not(.logout-beam-spinner):not(.border-beam-runner):not(.border-beam-mask),
-  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.elms-ring-wrap):not(.animate-spin):not(.loading-spinner):not(.logout-beam-spinner):not(.border-beam-runner):not(.border-beam-mask)::before,
-  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.elms-ring-wrap):not(.animate-spin):not(.loading-spinner):not(.logout-beam-spinner):not(.border-beam-runner):not(.border-beam-mask)::after {
+  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.elms-ring-wrap):not(.animate-spin):not(.loading-spinner):not(.logout-beam-spinner):not(.border-beam-runner):not(.border-beam-mask):not(.border-beam-spinner):not(.border-beam-track):not(.border-beam-inner):not(.border-beam-btn),
+  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.elms-ring-wrap):not(.animate-spin):not(.loading-spinner):not(.logout-beam-spinner):not(.border-beam-runner):not(.border-beam-mask):not(.border-beam-spinner):not(.border-beam-track):not(.border-beam-inner):not(.border-beam-btn)::before,
+  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.elms-ring-wrap):not(.animate-spin):not(.loading-spinner):not(.logout-beam-spinner):not(.border-beam-runner):not(.border-beam-mask):not(.border-beam-spinner):not(.border-beam-track):not(.border-beam-inner):not(.border-beam-btn)::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -555,8 +555,9 @@ html.dark .p-toast .p-toast-close-button:hover {
   .init-ring-svg,
   .elms-ring-wrap,
   .logout-beam-spinner,
-  .border-beam-runner {
-    animation-duration: 3.5s !important;
+  .border-beam-runner,
+  .border-beam-spinner {
+    animation-duration: 3.2s !important;
     animation-iteration-count: infinite !important;
   }
 }
@@ -641,6 +642,132 @@ html.dark .logout-beam-spinner,
   background: linear-gradient(to left, #ffffff 0%, #ff1744 40%, #ef4444 70%, rgba(239, 68, 68, 0) 100%);
   animation: border-beam-travel 3.5s linear infinite !important;
   will-change: transform, offset-distance;
+}
+
+/* ═════════════════════════════════════════════════════════════════════ */
+/* Continuous Running Border Beam Animation on Buttons                   */
+/* ═════════════════════════════════════════════════════════════════════ */
+@keyframes border-beam-spin {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@-webkit-keyframes border-beam-spin {
+  0% {
+    -webkit-transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    -webkit-transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+.border-beam-btn {
+  position: relative;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}
+
+.border-beam-track {
+  position: absolute;
+  inset: 0;
+  border-radius: 0.75rem; /* 12px */
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.border-beam-track::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  z-index: 2;
+  pointer-events: none;
+  transition: border-color 0.15s ease;
+}
+
+html.dark .border-beam-track::before,
+.dark .border-beam-track::before {
+  border-color: #27272a;
+}
+
+.border-beam-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 460px;
+  height: 460px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  -webkit-transform: translate(-50%, -50%);
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 260deg,
+    rgba(37, 99, 235, 0.2) 280deg,
+    rgba(37, 99, 235, 0.8) 310deg,
+    #2563eb 335deg,
+    #38bdf8 352deg,
+    #ffffff 357deg,
+    transparent 360deg
+  ) !important;
+  animation: border-beam-spin 3.2s linear infinite !important;
+  -webkit-animation: border-beam-spin 3.2s linear infinite !important;
+  will-change: transform;
+  z-index: 3;
+}
+
+html.dark .border-beam-spinner,
+.dark .border-beam-spinner {
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 260deg,
+    rgba(249, 115, 22, 0.2) 280deg,
+    rgba(249, 115, 22, 0.8) 310deg,
+    #f97316 335deg,
+    #fed7aa 352deg,
+    #ffffff 357deg,
+    transparent 360deg
+  ) !important;
+}
+
+.border-beam-inner {
+  position: absolute;
+  inset: 1px;
+  border-radius: calc(0.75rem - 1px);
+  background: #ffffff;
+  z-index: 4;
+  transition: background-color 0.15s ease;
+}
+
+html.dark .border-beam-inner,
+.dark .border-beam-inner {
+  background: #18181b;
+}
+
+.border-beam-btn:hover .border-beam-inner {
+  background: #f8fafc;
+}
+
+html.dark .border-beam-btn:hover .border-beam-inner,
+.dark .border-beam-btn:hover .border-beam-inner {
+  background: #232327;
+}
+
+.border-beam-btn:hover .border-beam-track::before {
+  border-color: #cbd5e1;
+}
+
+html.dark .border-beam-btn:hover .border-beam-track::before,
+.dark .border-beam-btn:hover .border-beam-track::before {
+  border-color: #3f3f46;
 }
 
 /* ═════════════════════════════════════════════════════════════════════ */
