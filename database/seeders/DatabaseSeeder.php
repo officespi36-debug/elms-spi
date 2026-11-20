@@ -147,13 +147,33 @@ class DatabaseSeeder extends Seeder
             // Non-blocking
         }
 
-        // ─── Fake / Sample Seeders Disabled for Official Production ───
-        // $this->call([
-        //     AcademicSeeder::class,
-        //     DashboardRealDataSeeder::class,
-        //     LessonContentSeeder::class,
-        //     StudentDashboardSeeder::class,
-        //     CourseMultilingualSeeder::class,
-        // ]);
+        // ─── 4. Seed Official Academic Structure & Published Courses ───
+        try {
+            $this->call(AcademicSeeder::class);
+            $this->call(CourseApprovalAndEnrollmentSeeder::class);
+
+            // Ensure primary superAdmin / student has active enrolled courses & study goals
+            if ($superAdmin) {
+                $published = \App\Models\Course::where('status', 'published')->take(3)->get();
+                foreach ($published as $c) {
+                    \App\Models\Enrollment::firstOrCreate(
+                        ['student_id' => $superAdmin->id, 'course_id' => $c->id],
+                        ['status' => 'active', 'enrolled_at' => now()]
+                    );
+                }
+
+                \App\Models\StudentGoal::firstOrCreate(
+                    ['user_id' => $superAdmin->id, 'title' => 'Complete Chapter 1 on Web Development'],
+                    [
+                        'title_km'     => 'បញ្ចប់ជំពូកទី ១ ស្តីពីការអភិវឌ្ឍគេហទំព័រ',
+                        'is_completed' => false,
+                        'target_route' => '/student/my-courses/enrolled',
+                        'goal_date'    => now()->toDateString(),
+                    ]
+                );
+            }
+        } catch (\Throwable $e) {
+            // Non-blocking
+        }
     }
 }

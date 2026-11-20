@@ -38,136 +38,128 @@ class DashboardController extends Controller
             return redirect()->route('login');
         }
 
-        if ($request->has('refresh')) {
-            Cache::forget("student_dashboard_payload_{$user->id}_v5");
-            Cache::forget("student_dashboard_payload_{$user->id}_v6");
-            Cache::forget("student_stats_{$user->id}");
+        $progressService = app(CourseProgressService::class);
+        $analyticsService = app(DashboardAnalyticsService::class);
+
+        // 1. Academic Term & Welcome Banner Profile from DB
+        $academicTerm = $this->resolveActiveAcademicTerm();
+        $studentProfile = [
+            'id'      => $user->id,
+            'name'    => $user->name,
+            'name_kh' => $user->name_kh ?: $user->name,
+        ];
+
+        // 2. Real Enrollments & Course Progress from DB
+        try {
+            $enrollments = Enrollment::where('student_id', $user->id)
+                ->whereIn('status', ['active', 'completed'])
+                ->select(['id', 'student_id', 'course_id', 'status', 'enrolled_at', 'updated_at'])
+                ->with([
+                    'course:id,title,title_kh,code,teacher_id,major_id,thumbnail',
+                    'course.teacher:id,name,name_kh,email,avatar',
+                    'course.major:id,name,name_kh',
+                    'course.modules:id,course_id,title,kh_title,order',
+                    'course.modules.lessons:id,module_id,course_id,title,kh_title,order,duration_seconds',
+                    'course.lessons:id,module_id,course_id,title,kh_title,order,duration_seconds',
+                ])
+                ->latest('updated_at')
+                ->get();
+        } catch (\Throwable $e) {
+            $enrollments = collect();
         }
 
-        $payload = Cache::remember("student_dashboard_payload_{$user->id}_v6", 300, function () use ($user) {
-            $progressService = app(CourseProgressService::class);
-            $analyticsService = app(DashboardAnalyticsService::class);
+        $computedProgress = $progressService->calculateForEnrollments($user, $enrollments);
+        $myCoursesList = $this->buildCoursesList($computedProgress, $progressService);
 
-            // 1. Academic Term & Welcome Banner Profile from DB
-            $academicTerm = $this->resolveActiveAcademicTerm();
-            $studentProfile = [
-                'id'      => $user->id,
-                'name'    => $user->name,
-                'name_kh' => $user->name_kh ?: $user->name,
-            ];
+        // 3. Stats Strip computed from DB (using same single-source CourseProgressService collection)
+        $statsData = $this->computeStats($user, $enrollments, $computedProgress);
 
-            // 2. Real Enrollments & Course Progress from DB
-            try {
-                $enrollments = Enrollment::where('student_id', $user->id)
-                    ->whereIn('status', ['active', 'completed'])
-                    ->select(['id', 'student_id', 'course_id', 'status', 'enrolled_at', 'updated_at'])
-                    ->with([
-                        'course:id,title,title_kh,code,teacher_id,major_id,thumbnail',
-                        'course.teacher:id,name,name_kh,email,avatar',
-                        'course.major:id,name,name_kh',
-                        'course.modules:id,course_id,title,kh_title,order',
-                        'course.modules.lessons:id,module_id,course_id,title,kh_title,order,duration_seconds',
-                        'course.lessons:id,module_id,course_id,title,kh_title,order,duration_seconds',
-                    ])
-                    ->latest('updated_at')
-                    ->get();
-            } catch (\Throwable $e) {
-                $enrollments = collect();
-            }
+        // 4. Continue Learning Course (Real DB via ContinueLearningService)
+        $continueCourseData = $this->buildContinueCourse($user, $myCoursesList, $progressService);
 
-            $computedProgress = $progressService->calculateForEnrollments($user, $enrollments);
-            $myCoursesList = $this->buildCoursesList($computedProgress, $progressService);
+        // 5. Recent Learning Activities strictly for Auth::user()
+        $recentActivitiesList = $this->buildRecentActivities($user);
 
-            // 3. Stats Strip computed from DB (using same single-source CourseProgressService collection)
-            $statsData = $this->computeStats($user, $enrollments, $computedProgress);
+        // 6. Upcoming Quizzes & Deadlines from real DB records
+        $upcomingEventsList = $this->buildUpcomingEvents($enrollments);
 
-            // 4. Continue Learning Course (Real DB via ContinueLearningService)
-            $continueCourseData = $this->buildContinueCourse($user, $myCoursesList, $progressService);
+        // 7. Today's Goals strictly from `student_goals` DB table
+        $todayGoalsList = $this->buildTodayGoalsPayload($user);
 
-            // 5. Recent Learning Activities strictly for Auth::user()
-            $recentActivitiesList = $this->buildRecentActivities($user);
+        // 8. Analytics (7D / 30D / 90D + Quiz Performance) from DB
+        $win7 = $analyticsService->getWindowAnalytics($user, 7);
+        $win30 = $analyticsService->getWindowAnalytics($user, 30);
+        $win90 = $analyticsService->getWindowAnalytics($user, 90);
 
-            // 6. Upcoming Quizzes & Deadlines from real DB records
-            $upcomingEventsList = $this->buildUpcomingEvents($enrollments);
+        $studyBreakdown = $win7['breakdown'];
+        $quizPerformanceData = $analyticsService->getQuizPerformance($user);
+        $learningOverviewData = [
+            'week'      => $win7,
+            'last_week' => $win30,
+            'month'     => $win90,
+        ];
 
-            // 7. Today's Goals strictly from `student_goals` DB table
-            $todayGoalsList = $this->buildTodayGoalsPayload($user);
+        $statsData['learningTime'] = $win7['total'];
+        $statsData['studyHours'] = (int) floor($win7['totalSeconds'] / 3600);
+        $statsData['studyMinutes'] = (int) floor(($win7['totalSeconds'] % 3600) / 60);
+        $statsData['averageScore'] = $quizPerformanceData['hasData'] ? (string) $quizPerformanceData['averageScore'] : '—';
+        $statsData['averageScoreNum'] = $quizPerformanceData['hasData'] ? (int) $quizPerformanceData['averageScoreNum'] : 0;
 
-            // 8. Analytics (7D / 30D / 90D + Quiz Performance) from DB
-            $win7 = $analyticsService->getWindowAnalytics($user, 7);
-            $win30 = $analyticsService->getWindowAnalytics($user, 30);
-            $win90 = $analyticsService->getWindowAnalytics($user, 90);
+        // 9. AI Recommendations strictly from `ai_recommendations` DB table
+        $aiRecommendationsData = $this->buildAiRecommendations($user);
 
-            $studyBreakdown = $win7['breakdown'];
-            $quizPerformanceData = $analyticsService->getQuizPerformance($user);
-            $learningOverviewData = [
-                'week'      => $win7,
-                'last_week' => $win30,
-                'month'     => $win90,
-            ];
+        // 10. Announcements strictly from `announcements` DB table
+        [$announcementsList, $unreadAnnouncementsCount] = $this->buildAnnouncements($user);
 
-            $statsData['learningTime'] = $win7['total'];
-            $statsData['studyHours'] = (int) floor($win7['totalSeconds'] / 3600);
-            $statsData['studyMinutes'] = (int) floor(($win7['totalSeconds'] % 3600) / 60);
-            $statsData['averageScore'] = $quizPerformanceData['hasData'] ? (string) $quizPerformanceData['averageScore'] : '—';
-            $statsData['averageScoreNum'] = $quizPerformanceData['hasData'] ? (int) $quizPerformanceData['averageScoreNum'] : 0;
-
-            // 9. AI Recommendations strictly from `ai_recommendations` DB table
-            $aiRecommendationsData = $this->buildAiRecommendations($user);
-
-            // 10. Announcements strictly from `announcements` DB table
-            [$announcementsList, $unreadAnnouncementsCount] = $this->buildAnnouncements($user);
-
-            // 11. Achievements computed from real DB records
+        // 11. Achievements computed from real DB records
+        $completedLessonsCount = 0;
+        try {
+            $completedLessonsCount = LessonProgress::where('user_id', $user->id)
+                ->where(function ($q) {
+                    $q->where('percent', '>=', 90)->orWhereNotNull('completed_at');
+                })
+                ->count();
+        } catch (\Throwable $e) {
             $completedLessonsCount = 0;
-            try {
-                $completedLessonsCount = LessonProgress::where('user_id', $user->id)
-                    ->where(function ($q) {
-                        $q->where('percent', '>=', 90)->orWhereNotNull('completed_at');
-                    })
-                    ->count();
-            } catch (\Throwable $e) {
-                $completedLessonsCount = 0;
-            }
-            $achievementsData = $this->buildAchievements(
-                $user,
-                $statsData,
-                (int) $statsData['completedCount'],
-                $completedLessonsCount
-            );
+        }
+        $achievementsData = $this->buildAchievements(
+            $user,
+            $statsData,
+            (int) $statsData['completedCount'],
+            $completedLessonsCount
+        );
 
-            // Determine whether student has actually studied before
-            $hasAnyLessonProgress = $completedLessonsCount > 0 || LessonProgress::where('user_id', $user->id)->exists();
-            $hasStudiedBefore = ($statsData['enrolledCount'] > 0) && (
-                $hasAnyLessonProgress ||
-                ($statsData['inProgressCount'] ?? 0) > 0 ||
-                ($statsData['completedCount'] ?? 0) > 0 ||
-                !empty($continueCourseData) ||
-                !empty($recentActivitiesList) ||
-                ($statsData['studyHours'] ?? 0) > 0 ||
-                ($statsData['studyMinutes'] ?? 0) > 0
-            );
+        // Determine whether student has actually studied before
+        $hasAnyLessonProgress = $completedLessonsCount > 0 || LessonProgress::where('user_id', $user->id)->exists();
+        $hasStudiedBefore = ($statsData['enrolledCount'] > 0) && (
+            $hasAnyLessonProgress ||
+            ($statsData['inProgressCount'] ?? 0) > 0 ||
+            ($statsData['completedCount'] ?? 0) > 0 ||
+            !empty($continueCourseData) ||
+            !empty($recentActivitiesList) ||
+            ($statsData['studyHours'] ?? 0) > 0 ||
+            ($statsData['studyMinutes'] ?? 0) > 0
+        );
 
-            return [
-                'studentProfile'           => $studentProfile,
-                'academicTerm'             => $academicTerm,
-                'announcements'            => $announcementsList,
-                'unreadAnnouncementsCount' => $unreadAnnouncementsCount,
-                'hasStudiedBefore'         => $hasStudiedBefore,
-                'enrollments'              => $enrollments,
-                'stats'                    => $statsData,
-                'continueCourse'           => $continueCourseData,
-                'dbCourses'                => $myCoursesList,
-                'recentActivities'         => $recentActivitiesList,
-                'upcomingEvents'           => $upcomingEventsList,
-                'todayGoals'               => $todayGoalsList,
-                'studyTimeBreakdown'       => $studyBreakdown,
-                'quizPerformance'          => $quizPerformanceData,
-                'learningOverview'         => $learningOverviewData,
-                'aiRecommendations'        => $aiRecommendationsData,
-                'achievements'             => $achievementsData,
-            ];
-        });
+        $payload = [
+            'studentProfile'           => $studentProfile,
+            'academicTerm'             => $academicTerm,
+            'announcements'            => $announcementsList,
+            'unreadAnnouncementsCount' => $unreadAnnouncementsCount,
+            'hasStudiedBefore'         => $hasStudiedBefore,
+            'enrollments'              => $enrollments->values()->toArray(),
+            'stats'                    => $statsData,
+            'continueCourse'           => $continueCourseData,
+            'dbCourses'                => $myCoursesList,
+            'recentActivities'         => $recentActivitiesList,
+            'upcomingEvents'           => $upcomingEventsList,
+            'todayGoals'               => $todayGoalsList,
+            'studyTimeBreakdown'       => $studyBreakdown,
+            'quizPerformance'          => $quizPerformanceData,
+            'learningOverview'         => $learningOverviewData,
+            'aiRecommendations'        => $aiRecommendationsData,
+            'achievements'             => $achievementsData,
+        ];
 
         return Inertia::render('Student/Dashboard', $payload);
     }
@@ -361,13 +353,7 @@ class DashboardController extends Controller
             return response()->json(['error' => 'Unauthenticated'], 401);
         }
 
-        if ($request->has('refresh')) {
-            Cache::forget("student_stats_{$user->id}");
-        }
-
-        $stats = Cache::remember("student_stats_{$user->id}", 300, function () use ($user) {
-            return $this->computeStats($user);
-        });
+        $stats = $this->computeStats($user);
 
         return response()->json([
             'success' => true,
