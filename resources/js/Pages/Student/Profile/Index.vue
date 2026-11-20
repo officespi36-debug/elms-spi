@@ -614,11 +614,11 @@ const getLogTypeBadge = (type: string) => {
 
       </div>
 
-      <!-- TABS TRACK (Styled with Image 3 Segmented Control: Pill track with active gradient highlight) -->
+      <!-- TABS TRACK (Styled with User Reference Pill Capsule Design: Floating rounded-full pills, soothing to the eyes) -->
       <div
         role="tablist"
         aria-label="Profile Sections"
-        class="inline-flex items-center gap-1.5 p-1.5 bg-[#f0f4f9] dark:bg-[#131314] rounded-2xl border border-[#dfe3e7] dark:border-[#2d2f31] overflow-x-auto max-w-full shadow-2xs custom-scrollbar"
+        class="flex items-center gap-2.5 overflow-x-auto max-w-full py-1.5 px-0.5 custom-scrollbar select-none"
       >
         <!-- Tab 1: ID Card -->
         <button
@@ -630,16 +630,28 @@ const getLogTypeBadge = (type: string) => {
           @keydown="onTabKeydown($event, 0)"
           :class="[
             currentTab === 'id-card'
-              ? 'bg-gradient-to-r from-[#6366f1] to-[#7c3aed] text-white shadow-xs font-bold'
-              : 'text-[#444746] dark:text-[#c4c7c5] hover:text-[#1f1f1f] dark:hover:text-white hover:bg-white/60 dark:hover:bg-[#282a2c] font-semibold',
-            'px-4 py-2.5 rounded-xl text-xs sm:text-[13px] transition-all shrink-0 cursor-pointer flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500'
+              ? 'bg-gradient-to-r from-[#1d4ed8] via-[#2563eb] to-[#3b82f6] text-white shadow-md shadow-blue-500/25 ring-1 ring-blue-400/30 font-bold'
+              : 'bg-white dark:bg-[#1e1f20] text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700/80 shadow-2xs hover:shadow-md hover:border-blue-400 dark:hover:border-blue-500/50 hover:text-blue-600 dark:hover:text-blue-400 font-semibold hover:-translate-y-0.5',
+            'px-5 py-2.5 rounded-full text-xs sm:text-[13px] transition-all duration-200 shrink-0 cursor-pointer flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 font-khmer'
           ]"
         >
-          <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <svg
+            class="w-4 h-4 shrink-0 transition-colors"
+            :class="currentTab === 'id-card' ? 'text-white' : 'text-blue-600 dark:text-[#16C8F5]'"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+          >
             <rect x="2" y="5" width="20" height="14" rx="3" />
             <line x1="2" y1="10" x2="22" y2="10" />
           </svg>
           <span>{{ currentLang === 'km' ? 'កាតនិស្សិតឌីជីថល' : 'Digital Student ID' }}</span>
+          <span
+            v-if="idCard.is_official"
+            class="w-1.5 h-1.5 rounded-full shrink-0"
+            :class="currentTab === 'id-card' ? 'bg-cyan-300' : 'bg-emerald-500'"
+          ></span>
         </button>
 
         <!-- Tab 2: Personal -->
@@ -652,15 +664,28 @@ const getLogTypeBadge = (type: string) => {
           @keydown="onTabKeydown($event, 1)"
           :class="[
             currentTab === 'personal'
-              ? 'bg-gradient-to-r from-[#6366f1] to-[#7c3aed] text-white shadow-xs font-bold'
-              : 'text-[#444746] dark:text-[#c4c7c5] hover:text-[#1f1f1f] dark:hover:text-white hover:bg-white/60 dark:hover:bg-[#282a2c] font-semibold',
-            'px-4 py-2.5 rounded-xl text-xs sm:text-[13px] transition-all shrink-0 cursor-pointer flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500'
+              ? 'bg-gradient-to-r from-[#1d4ed8] via-[#2563eb] to-[#3b82f6] text-white shadow-md shadow-blue-500/25 ring-1 ring-blue-400/30 font-bold'
+              : 'bg-white dark:bg-[#1e1f20] text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700/80 shadow-2xs hover:shadow-md hover:border-blue-400 dark:hover:border-blue-500/50 hover:text-blue-600 dark:hover:text-blue-400 font-semibold hover:-translate-y-0.5',
+            'px-5 py-2.5 rounded-full text-xs sm:text-[13px] transition-all duration-200 shrink-0 cursor-pointer flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 font-khmer'
           ]"
         >
-          <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <svg
+            class="w-4 h-4 shrink-0 transition-colors"
+            :class="currentTab === 'personal' ? 'text-white' : 'text-amber-500 dark:text-amber-400'"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+          >
             <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
           <span>{{ currentLang === 'km' ? 'ព័ត៌មានផ្ទាល់ខ្លួន' : 'Personal Information' }}</span>
+          <!-- Missing fields indicator red dot 🔴 like reference image -->
+          <span
+            v-if="profile.missing_fields && profile.missing_fields.length > 0"
+            class="w-2 h-2 rounded-full bg-rose-500 shrink-0 animate-pulse"
+            :title="currentLang === 'km' ? 'នៅខ្វះព័ត៌មានខ្លះ' : 'Incomplete fields'"
+          ></span>
         </button>
 
         <!-- Tab 3: Academic -->
@@ -673,12 +698,19 @@ const getLogTypeBadge = (type: string) => {
           @keydown="onTabKeydown($event, 2)"
           :class="[
             currentTab === 'academic'
-              ? 'bg-gradient-to-r from-[#6366f1] to-[#7c3aed] text-white shadow-xs font-bold'
-              : 'text-[#444746] dark:text-[#c4c7c5] hover:text-[#1f1f1f] dark:hover:text-white hover:bg-white/60 dark:hover:bg-[#282a2c] font-semibold',
-            'px-4 py-2.5 rounded-xl text-xs sm:text-[13px] transition-all shrink-0 cursor-pointer flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500'
+              ? 'bg-gradient-to-r from-[#1d4ed8] via-[#2563eb] to-[#3b82f6] text-white shadow-md shadow-blue-500/25 ring-1 ring-blue-400/30 font-bold'
+              : 'bg-white dark:bg-[#1e1f20] text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700/80 shadow-2xs hover:shadow-md hover:border-blue-400 dark:hover:border-blue-500/50 hover:text-blue-600 dark:hover:text-blue-400 font-semibold hover:-translate-y-0.5',
+            'px-5 py-2.5 rounded-full text-xs sm:text-[13px] transition-all duration-200 shrink-0 cursor-pointer flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 font-khmer'
           ]"
         >
-          <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <svg
+            class="w-4 h-4 shrink-0 transition-colors"
+            :class="currentTab === 'academic' ? 'text-white' : 'text-indigo-600 dark:text-indigo-400'"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+          >
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" />
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
           </svg>
@@ -695,12 +727,19 @@ const getLogTypeBadge = (type: string) => {
           @keydown="onTabKeydown($event, 3)"
           :class="[
             currentTab === 'security'
-              ? 'bg-gradient-to-r from-[#6366f1] to-[#7c3aed] text-white shadow-xs font-bold'
-              : 'text-[#444746] dark:text-[#c4c7c5] hover:text-[#1f1f1f] dark:hover:text-white hover:bg-white/60 dark:hover:bg-[#282a2c] font-semibold',
-            'px-4 py-2.5 rounded-xl text-xs sm:text-[13px] transition-all shrink-0 cursor-pointer flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500'
+              ? 'bg-gradient-to-r from-[#1d4ed8] via-[#2563eb] to-[#3b82f6] text-white shadow-md shadow-blue-500/25 ring-1 ring-blue-400/30 font-bold'
+              : 'bg-white dark:bg-[#1e1f20] text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700/80 shadow-2xs hover:shadow-md hover:border-blue-400 dark:hover:border-blue-500/50 hover:text-blue-600 dark:hover:text-blue-400 font-semibold hover:-translate-y-0.5',
+            'px-5 py-2.5 rounded-full text-xs sm:text-[13px] transition-all duration-200 shrink-0 cursor-pointer flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 font-khmer'
           ]"
         >
-          <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <svg
+            class="w-4 h-4 shrink-0 transition-colors"
+            :class="currentTab === 'security' ? 'text-white' : 'text-emerald-600 dark:text-emerald-400'"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+          >
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
             <path d="M7 11V7a5 5 0 0110 0v4" />
           </svg>
@@ -717,12 +756,19 @@ const getLogTypeBadge = (type: string) => {
           @keydown="onTabKeydown($event, 4)"
           :class="[
             currentTab === 'history'
-              ? 'bg-gradient-to-r from-[#6366f1] to-[#7c3aed] text-white shadow-xs font-bold'
-              : 'text-[#444746] dark:text-[#c4c7c5] hover:text-[#1f1f1f] dark:hover:text-white hover:bg-white/60 dark:hover:bg-[#282a2c] font-semibold',
-            'px-4 py-2.5 rounded-xl text-xs sm:text-[13px] transition-all shrink-0 cursor-pointer flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500'
+              ? 'bg-gradient-to-r from-[#1d4ed8] via-[#2563eb] to-[#3b82f6] text-white shadow-md shadow-blue-500/25 ring-1 ring-blue-400/30 font-bold'
+              : 'bg-white dark:bg-[#1e1f20] text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700/80 shadow-2xs hover:shadow-md hover:border-blue-400 dark:hover:border-blue-500/50 hover:text-blue-600 dark:hover:text-blue-400 font-semibold hover:-translate-y-0.5',
+            'px-5 py-2.5 rounded-full text-xs sm:text-[13px] transition-all duration-200 shrink-0 cursor-pointer flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 font-khmer'
           ]"
         >
-          <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <svg
+            class="w-4 h-4 shrink-0 transition-colors"
+            :class="currentTab === 'history' ? 'text-white' : 'text-sky-600 dark:text-sky-400'"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+          >
             <circle cx="12" cy="12" r="10" />
             <polyline points="12 6 12 12 16 14" />
           </svg>
@@ -1337,8 +1383,8 @@ const getLogTypeBadge = (type: string) => {
           </a>
         </div>
 
-        <!-- Filter Segmented Control Track matching Image 3 -->
-        <div class="inline-flex items-center gap-1 p-1 bg-[#f0f4f9] dark:bg-[#131314] rounded-2xl border border-[#dfe3e7] dark:border-[#2d2f31] overflow-x-auto max-w-full">
+        <!-- Filter Segmented Control Track with Pill Capsules -->
+        <div class="flex items-center gap-1.5 overflow-x-auto max-w-full py-1 custom-scrollbar select-none">
           <button
             type="button"
             v-for="typeOpt in ['all', 'lesson', 'quiz', 'assignment', 'payment', 'certificate']"
@@ -1346,9 +1392,9 @@ const getLogTypeBadge = (type: string) => {
             @click="selectedHistoryType = typeOpt as any"
             :class="[
               selectedHistoryType === typeOpt
-                ? 'bg-[#6366f1] text-white font-bold shadow-xs'
-                : 'text-[#444746] dark:text-[#c4c7c5] hover:text-[#1f1f1f] dark:hover:text-white',
-              'px-3.5 py-1.5 rounded-xl text-xs capitalize transition-all cursor-pointer shrink-0'
+                ? 'bg-gradient-to-r from-[#1d4ed8] to-[#2563eb] text-white shadow-xs font-bold ring-1 ring-blue-400/30'
+                : 'bg-white dark:bg-[#1e1f20] text-slate-700 dark:text-slate-300 border border-slate-200/90 dark:border-slate-700/80 hover:border-blue-400 font-medium hover:text-blue-600 dark:hover:text-blue-400 shadow-2xs',
+              'px-4 py-1.5 rounded-full text-xs font-khmer capitalize transition-all cursor-pointer shrink-0'
             ]"
           >
             {{ typeOpt === 'all' ? (currentLang === 'km' ? 'ទាំងអស់' : 'All') : typeOpt === 'lesson' ? (currentLang === 'km' ? 'មេរៀន' : 'Lessons') : typeOpt === 'quiz' ? 'Quiz' : typeOpt === 'assignment' ? (currentLang === 'km' ? 'កិច្ចការ' : 'Assignments') : typeOpt === 'payment' ? (currentLang === 'km' ? 'ការបង់ប្រាក់' : 'Payments') : (currentLang === 'km' ? 'វិញ្ញាបនបត្រ' : 'Certificates') }}

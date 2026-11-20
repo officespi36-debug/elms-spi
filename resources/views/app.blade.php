@@ -38,7 +38,7 @@
             }
 
             try {
-                var currentDeployBuild = 'v_20261120_idcard_cr80_persistent_v3';
+                var currentDeployBuild = 'v_20261120_capsule_tabs_idcard_v5';
                 if (localStorage.getItem('spi_app_deploy') !== currentDeployBuild) {
                     localStorage.setItem('spi_app_deploy', currentDeployBuild);
                     if ('caches' in window) {

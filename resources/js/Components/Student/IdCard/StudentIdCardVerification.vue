@@ -57,14 +57,14 @@ const copyCardNumber = () => {
 
 <template>
   <div class="w-full flex flex-col justify-between space-y-6">
-    
+
     <!-- Header -->
     <div>
       <div class="flex items-center justify-between">
         <h3 class="text-[15px] font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
           <span>{{ currentLang === 'km' ? 'សុពលភាព & ស្ថានភាពកាត' : 'Card Verification Information' }}</span>
         </h3>
-        
+
         <!-- Live Verified Badge (links to real public verification route) -->
         <a
           v-if="idCard.is_live_verified"
@@ -85,7 +85,7 @@ const copyCardNumber = () => {
 
     <!-- Soft Panel Rows with Metrics -->
     <div class="p-4.5 bg-[#f8fafc] dark:bg-[#131314] rounded-2xl border border-[#dfe3e7] dark:border-[#2d2f31] space-y-3.5 text-xs shadow-2xs">
-      
+
       <!-- Card No with Copy Button (Deduplicated Student ID removed) -->
       <div class="flex items-center justify-between">
         <span class="text-slate-500 dark:text-slate-400 font-medium">
@@ -179,7 +179,7 @@ const copyCardNumber = () => {
 
     <!-- Action Buttons -->
     <div class="space-y-3">
-      
+
       <!-- Prominent Primary Button: Purple/Royal Blue Gradient (Download PDF & Print Card) -->
       <button
         type="button"
