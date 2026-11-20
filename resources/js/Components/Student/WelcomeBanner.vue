@@ -35,13 +35,6 @@ const emit = defineEmits<{
   (e: 'open-announcements'): void
 }>()
 
-const displayTerm = computed(() => {
-  const rawTerm = props.currentLang === 'km'
-    ? (props.academicTermKm || props.academicTerm || '')
-    : (props.academicTerm || props.academicTermKm || '')
-  return rawTerm ? `SPI Student Portal • ${rawTerm}` : 'SPI Student Portal'
-})
-
 const greetingText = computed(() => {
   const safeName = props.studentName?.trim() || (props.currentLang === 'km' ? 'និស្សិត' : 'Student')
   if (props.hasStudiedBefore) {
@@ -97,7 +90,6 @@ const handleOpenAnnouncements = () => {
       aria-label="Loading welcome banner"
     >
       <div class="space-y-2 flex-1 min-w-0">
-        <div class="h-5 w-64 bg-indigo-100/80 dark:bg-indigo-900/30 rounded-full"></div>
         <div class="h-6 w-56 sm:w-72 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
         <div class="h-4 w-72 sm:w-96 bg-slate-100 dark:bg-slate-800 rounded"></div>
       </div>
@@ -111,14 +103,7 @@ const handleOpenAnnouncements = () => {
     <div v-else class="flex flex-col md:flex-row md:items-center justify-between gap-4">
       <!-- Left Content Stack (Tight & Clean) -->
       <div class="min-w-0 flex-1">
-        <div
-          class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-500/30 max-w-full"
-        >
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
-          <span class="truncate">{{ displayTerm }}</span>
-        </div>
-
-        <h1 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 mt-1.5 flex items-center gap-1.5 min-w-0">
+        <h1 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5 min-w-0">
           <span class="truncate max-w-[260px] sm:max-w-md">{{ greetingText }}</span>
           <span class="shrink-0" aria-hidden="true">✨</span>
         </h1>
