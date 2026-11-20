@@ -1851,92 +1851,116 @@ const recentActivities = computed(() => {
             </div>
           </div>
 
-          <!-- AI STUDY ASSISTANT WIDGET -->
-          <div class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3.5">
+          <!-- AI STUDY ASSISTANT WIDGET (Premium AI Design with Kantumruy Pro) -->
+          <div class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] rounded-3xl p-5 shadow-sm dark:shadow-xl space-y-3.5 transition-all">
             <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <img
-                  :src="'/images/ai-robot-avatar.png'"
-                  alt="AI"
-                  class="w-7 h-7 rounded-lg object-contain shrink-0 select-none"
-                />
-                <h3 class="text-[18px] font-semibold text-slate-900 dark:text-slate-100">
-                  {{ currentLang === 'km' ? 'ជំនួយការសិក្សា AI' : 'AI study assistant' }}
-                </h3>
+              <div class="flex items-center gap-2.5">
+                <div class="relative flex items-center justify-center p-1 rounded-xl bg-gradient-to-tr from-purple-500/10 via-indigo-500/10 to-pink-500/10 border border-purple-200/50 dark:border-purple-800/30">
+                  <img
+                    :src="'/images/ai-robot-avatar.png'"
+                    alt="AI Tutor"
+                    class="w-7 h-7 rounded-lg object-contain shrink-0 select-none drop-shadow-xs"
+                  />
+                  <span class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#1e1f20]"></span>
+                </div>
+                <div>
+                  <h3 class="text-base font-bold text-slate-900 dark:text-slate-100 font-khmer flex items-center gap-1.5 leading-snug">
+                    <span>{{ currentLang === 'km' ? 'ជំនួយការសិក្សា AI' : 'AI Study Assistant' }}</span>
+                    <span class="text-xs px-1.5 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 font-sans font-bold">24/7</span>
+                  </h3>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400 font-khmer">
+                    {{ currentLang === 'km' ? 'ឆ្លើយសំណួរមេរៀន និងពន្យល់លំហាត់' : 'Lesson explanations & study guidance' }}
+                  </p>
+                </div>
               </div>
               <button
                 type="button"
                 @click="openAiTutorChat()"
-                class="px-3 py-1 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#0b57d0] dark:text-[#a8c7fa] text-xs font-semibold border border-[#d2e3fc] dark:border-[#1a73e8]/30 hover:bg-[#0b57d0] hover:text-white transition-colors cursor-pointer"
+                class="px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-500/15 hover:bg-indigo-100 dark:hover:bg-indigo-500/25 text-indigo-700 dark:text-indigo-300 text-xs font-semibold font-khmer border border-indigo-200/70 dark:border-indigo-500/30 hover:border-indigo-300 transition-all cursor-pointer flex items-center gap-1 shadow-2xs active:scale-95"
               >
-                {{ currentLang === 'km' ? 'ជជែកពេញលេញ ↗' : 'Full Chat ↗' }}
+                <span>{{ currentLang === 'km' ? 'ជជែកពេញលេញ' : 'Full Chat' }}</span>
+                <span class="text-indigo-500 dark:text-indigo-400">↗</span>
               </button>
             </div>
 
             <!-- Messages Stream -->
-            <div class="space-y-2 max-h-44 overflow-y-auto custom-scrollbar pr-1">
+            <div class="space-y-2.5 max-h-48 overflow-y-auto custom-scrollbar pr-1">
               <div
                 v-for="(msg, idx) in aiMessages"
                 :key="idx"
                 :class="[
-                  msg.role === 'user' ? 'bg-[#d3e3fd] text-[#041e49] border border-[#0b57d0]/20 dark:bg-[#004a77] dark:border-[#004a77] dark:text-[#c2e7ff] ml-4' : 'bg-[#f8fafd] text-[#1f1f1f] border border-[#dfe3e7] dark:bg-[#131314] dark:border-[#2d2f31] dark:text-[#c4c7c5] mr-2',
-                  'p-3 rounded-2xl text-xs space-y-1'
+                  msg.role === 'user'
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl rounded-tr-xs shadow-xs ml-6 p-3'
+                    : 'bg-gradient-to-br from-indigo-50/70 via-white to-purple-50/40 dark:from-[#1b1c2b] dark:via-[#1e1f20] dark:to-[#1e1f20] border border-indigo-100/90 dark:border-indigo-900/30 text-slate-800 dark:text-slate-100 rounded-2xl rounded-tl-xs shadow-2xs mr-2 p-3.5',
+                  'text-xs space-y-1 transition-all'
                 ]"
               >
-                <p class="whitespace-pre-wrap leading-relaxed">{{ msg.text }}</p>
+                <div v-if="msg.role === 'ai'" class="flex items-center gap-1.5 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 mb-1 select-none">
+                  <span class="inline-block animate-pulse">✨</span>
+                  <span>SPI AI Tutor 24/7</span>
+                </div>
+                <p class="whitespace-pre-wrap leading-relaxed font-khmer text-xs sm:text-[13px] select-text">{{ msg.text }}</p>
               </div>
 
-              <div v-if="isAiTyping" class="p-2.5 rounded-2xl bg-[#f8fafd] dark:bg-[#131314] text-[#444746] dark:text-[#c4c7c5] text-xs italic flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-[#0b57d0] animate-pulse"></span>
-                <span>{{ currentLang === 'km' ? 'AI Tutor កំពុងគិត...' : 'AI Tutor is thinking...' }}</span>
+              <div v-if="isAiTyping" class="p-3 rounded-2xl bg-indigo-50/50 dark:bg-[#1a1c22] border border-indigo-100 dark:border-indigo-950 text-indigo-700 dark:text-indigo-300 text-xs flex items-center gap-2 font-khmer">
+                <span class="flex h-2 w-2 relative">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-600"></span>
+                </span>
+                <span class="font-medium">{{ currentLang === 'km' ? 'AI Tutor កំពុងវិភាគចម្លើយ...' : 'AI Tutor is thinking...' }}</span>
               </div>
             </div>
 
-            <!-- Quick Action Prompt Chips (Google One Selection Chips) -->
-            <div class="grid grid-cols-2 gap-1.5 pt-1">
+            <!-- Quick Action Prompt Chips (High-End Interactive Chips with Icons) -->
+            <div class="grid grid-cols-2 gap-2 pt-1 font-khmer">
               <button
                 @click="handleSendAiPrompt(currentLang === 'km' ? 'ពន្យល់មេរៀននេះ' : 'Explain this lesson')"
                 type="button"
-                class="p-2 rounded-full bg-white dark:bg-[#282a2c] hover:bg-[#f0f4f9] dark:hover:bg-[#333538] text-[#1f1f1f] dark:text-[#c4c7c5] text-xs font-medium border border-[#c7c7c7] dark:border-[#3c4043] text-center transition-colors cursor-pointer truncate shadow-2xs"
+                class="group flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-white dark:bg-[#25272a] hover:bg-gradient-to-r hover:from-amber-50 hover:to-orange-50 dark:hover:from-amber-950/25 dark:hover:to-orange-950/25 border border-slate-200 dark:border-[#383a3d] hover:border-amber-300 dark:hover:border-amber-500/50 text-slate-700 dark:text-slate-200 hover:text-amber-800 dark:hover:text-amber-300 text-xs font-semibold transition-all duration-200 shadow-2xs hover:shadow-xs active:scale-97 cursor-pointer"
               >
-                {{ currentLang === 'km' ? 'ពន្យល់មេរៀននេះ' : 'Explain this lesson' }}
+                <span class="text-amber-500 group-hover:scale-110 transition-transform shrink-0">💡</span>
+                <span class="truncate">{{ currentLang === 'km' ? 'ពន្យល់មេរៀននេះ' : 'Explain this lesson' }}</span>
               </button>
               <button
                 @click="handleSendAiPrompt(currentLang === 'km' ? 'ផ្តល់ឧទាហរណ៍' : 'Give me an example')"
                 type="button"
-                class="p-2 rounded-full bg-white dark:bg-[#282a2c] hover:bg-[#f0f4f9] dark:hover:bg-[#333538] text-[#1f1f1f] dark:text-[#c4c7c5] text-xs font-medium border border-[#c7c7c7] dark:border-[#3c4043] text-center transition-colors cursor-pointer truncate shadow-2xs"
+                class="group flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-white dark:bg-[#25272a] hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-blue-950/25 dark:hover:to-indigo-950/25 border border-slate-200 dark:border-[#383a3d] hover:border-blue-300 dark:hover:border-blue-500/50 text-slate-700 dark:text-slate-200 hover:text-blue-800 dark:hover:text-blue-300 text-xs font-semibold transition-all duration-200 shadow-2xs hover:shadow-xs active:scale-97 cursor-pointer"
               >
-                {{ currentLang === 'km' ? 'ផ្តល់ឧទាហរណ៍' : 'Give me an example' }}
+                <span class="text-blue-500 group-hover:scale-110 transition-transform shrink-0">📝</span>
+                <span class="truncate">{{ currentLang === 'km' ? 'ផ្តល់ឧទាហរណ៍' : 'Give me an example' }}</span>
               </button>
               <button
                 @click="handleSendAiPrompt(currentLang === 'km' ? 'សង្ខេបប្រធានបទនេះ' : 'Summarize this topic')"
                 type="button"
-                class="p-2 rounded-full bg-white dark:bg-[#282a2c] hover:bg-[#f0f4f9] dark:hover:bg-[#333538] text-[#1f1f1f] dark:text-[#c4c7c5] text-xs font-medium border border-[#c7c7c7] dark:border-[#3c4043] text-center transition-colors cursor-pointer truncate shadow-2xs"
+                class="group flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-white dark:bg-[#25272a] hover:bg-gradient-to-r hover:from-emerald-50 hover:to-teal-50 dark:hover:from-emerald-950/25 dark:hover:to-teal-950/25 border border-slate-200 dark:border-[#383a3d] hover:border-emerald-300 dark:hover:border-emerald-500/50 text-slate-700 dark:text-slate-200 hover:text-emerald-800 dark:hover:text-emerald-300 text-xs font-semibold transition-all duration-200 shadow-2xs hover:shadow-xs active:scale-97 cursor-pointer"
               >
-                {{ currentLang === 'km' ? 'សង្ខេបប្រធានបទនេះ' : 'Summarize this topic' }}
+                <span class="text-emerald-500 group-hover:scale-110 transition-transform shrink-0">📌</span>
+                <span class="truncate">{{ currentLang === 'km' ? 'សង្ខេបប្រធានបទនេះ' : 'Summarize this topic' }}</span>
               </button>
               <button
                 @click="handleSendAiPrompt(currentLang === 'km' ? 'តើខ្ញុំគួររៀនអ្វីថ្ងៃនេះ?' : 'What should I study today?')"
                 type="button"
-                class="p-2 rounded-full bg-white dark:bg-[#282a2c] hover:bg-[#f0f4f9] dark:hover:bg-[#333538] text-[#1f1f1f] dark:text-[#c4c7c5] text-xs font-medium border border-[#c7c7c7] dark:border-[#3c4043] text-center transition-colors cursor-pointer truncate shadow-2xs"
+                class="group flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-white dark:bg-[#25272a] hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-950/25 dark:hover:to-pink-950/25 border border-slate-200 dark:border-[#383a3d] hover:border-purple-300 dark:hover:border-purple-500/50 text-slate-700 dark:text-slate-200 hover:text-purple-800 dark:hover:text-purple-300 text-xs font-semibold transition-all duration-200 shadow-2xs hover:shadow-xs active:scale-97 cursor-pointer"
               >
-                {{ currentLang === 'km' ? 'តើខ្ញុំគួររៀនអ្វី?' : 'What should I study?' }}
+                <span class="text-purple-500 group-hover:scale-110 transition-transform shrink-0">🎯</span>
+                <span class="truncate">{{ currentLang === 'km' ? 'តើខ្ញុំគួររៀនអ្វី?' : 'What should I study?' }}</span>
               </button>
             </div>
 
-            <!-- Input Form (Google Rounded-Full Input) -->
-            <form @submit.prevent="sendUserCustomAi" class="relative flex items-center pt-1">
+            <!-- Input Form (Modern Floating Input Bar) -->
+            <form @submit.prevent="sendUserCustomAi" class="relative flex items-center pt-1 font-khmer">
               <input
                 v-model="aiPromptInput"
                 type="text"
                 :placeholder="currentLang === 'km' ? 'សួរសំណួរទៅកាន់ AI Tutor របស់អ្នក...' : 'Ask your AI academic tutor...'"
-                class="w-full pl-4 pr-10 py-2.5 rounded-full bg-[#f8fafd] dark:bg-[#131314] border border-[#dfe3e7] dark:border-[#2d2f31] text-xs text-[#1f1f1f] dark:text-[#e3e3e3] placeholder-[#747775] dark:placeholder-[#8e918f] focus:outline-none focus:border-[#0b57d0] dark:focus:border-[#1a73e8] shadow-2xs"
+                class="w-full pl-4 pr-11 py-2.5 rounded-full bg-[#f8fafd] dark:bg-[#131314] border border-[#dfe3e7] dark:border-[#2d2f31] text-xs text-[#1f1f1f] dark:text-[#e3e3e3] placeholder-[#747775] dark:placeholder-[#8e918f] focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 shadow-2xs transition-all"
               />
               <button
                 type="submit"
-                class="absolute right-1.5 p-1.5 rounded-full bg-[#0b57d0] hover:bg-[#1557bf] text-white dark:bg-[#a8c7fa] dark:hover:bg-[#b8d2fa] dark:text-[#041e49] transition-all cursor-pointer shadow-xs"
+                :disabled="!aiPromptInput.trim() || isAiTyping"
+                class="absolute right-1.5 p-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-40 text-white transition-all cursor-pointer shadow-xs active:scale-95 flex items-center justify-center"
               >
-                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
               </button>

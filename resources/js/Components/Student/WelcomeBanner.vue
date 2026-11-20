@@ -87,7 +87,7 @@ const handleOpenAnnouncements = () => {
 <template>
   <div
     class="px-5 py-4 rounded-2xl border border-[#E2E8F0] dark:border-[#2d2f31] bg-gradient-to-r from-white via-indigo-50/40 to-purple-50/50 dark:from-[#1e1f20] dark:via-[#202331] dark:to-[#242031] shadow-xs transition-all"
-    :class="currentLang === 'km' ? 'font-[\'Kantumruy_Pro\',sans-serif]' : 'font-[\'Inter\',sans-serif]'"
+    :class="currentLang === 'km' ? 'font-khmer' : 'font-sans'"
   >
     <!-- Compact Skeleton Loading State -->
     <div
@@ -133,28 +133,33 @@ const handleOpenAnnouncements = () => {
         <button
           @click="handleBrowseCourses"
           type="button"
-          class="rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-[#2563EB] to-[#4F46E5] hover:opacity-95 shadow-sm transition flex items-center justify-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+          class="rounded-full px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-[#2563EB] to-[#4F46E5] hover:from-[#1D4ED8] hover:to-[#4338CA] shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 active:scale-95 group select-none"
         >
-          <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <svg class="w-4 h-4 shrink-0 group-hover:scale-110 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
           </svg>
-          <span>{{ currentLang === 'km' ? 'ស្វែងរកវគ្គសិក្សា' : 'Browse Courses' }}</span>
+          <span class="tracking-normal leading-normal">{{ currentLang === 'km' ? 'ស្វែងរកវគ្គសិក្សា' : 'Browse Courses' }}</span>
         </button>
 
         <button
           @click="handleOpenAnnouncements"
           type="button"
-          class="rounded-xl px-4 py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-[#282a2c] border border-slate-200 dark:border-[#3c4043] hover:bg-slate-50 dark:hover:bg-[#333538] hover:border-slate-300 transition flex items-center justify-center gap-2 relative cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+          class="rounded-full px-4 py-2 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white/95 dark:bg-[#202225] border border-slate-200/90 dark:border-slate-700 shadow-xs hover:shadow-md hover:border-indigo-400 dark:hover:border-indigo-500/70 hover:bg-slate-50 dark:hover:bg-[#282a2d] transition-all duration-200 flex items-center justify-center gap-2 relative cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 active:scale-95 group select-none"
         >
-          <svg class="w-4 h-4 shrink-0 text-slate-600 dark:text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-          </svg>
-          <span>{{ currentLang === 'km' ? 'សេចក្តីប្រកាស' : 'Announcements' }}</span>
+          <div class="relative flex items-center justify-center">
+            <svg class="w-4 h-4 shrink-0 text-amber-500 dark:text-amber-400 group-hover:rotate-12 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+            </svg>
+          </div>
+          <span class="tracking-normal leading-normal">{{ currentLang === 'km' ? 'សេចក្តីប្រកាស' : 'Announcements' }}</span>
           <span
             v-if="unreadAnnouncementsCount > 0"
-            class="w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white dark:ring-[#282a2c]"
+            class="relative flex h-2.5 w-2.5 shrink-0"
             :aria-label="`${unreadAnnouncementsCount} unread announcements`"
-          ></span>
+          >
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500 ring-2 ring-white dark:ring-[#202225]"></span>
+          </span>
         </button>
       </div>
     </div>
