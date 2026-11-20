@@ -14,14 +14,14 @@ class TelegramService
 
     public function __construct()
     {
-        $this->botToken = config('services.telegram.bot_token') ?: env('TELEGRAM_BOT_TOKEN') ?: '8828915669:AAHCBS8crm8t8zXlYPOGiGxmywXybrr-fm8';
+        $this->botToken = config('services.telegram.bot_token') ?: env('TELEGRAM_BOT_TOKEN') ?: '9048704504:AAfq_GM2b4yBPnpuSzr9niSMcq_sEwZ9s3M';
         $this->botUsername = config('services.telegram.bot_username') ?: env('TELEGRAM_BOT_USERNAME') ?: 'spi_elms_auth_bot';
         $this->chatId = config('services.telegram.chat_id') ?: env('TELEGRAM_CHAT_ID') ?: config('services.telegram.admin_chat_id') ?: '-5560385465';
     }
 
     public function getBotToken(): ?string
     {
-        return $this->botToken ?: '8828915669:AAHCBS8crm8t8zXlYPOGiGxmywXybrr-fm8';
+        return $this->botToken ?: '9048704504:AAfq_GM2b4yBPnpuSzr9niSMcq_sEwZ9s3M';
     }
 
     public function getBotUsername(): string
@@ -39,7 +39,7 @@ class TelegramService
         }
 
         $checkHash = (string) $authData['hash'];
-        $botToken = $this->botToken ?: '8828915669:AAHCBS8crm8t8zXlYPOGiGxmywXybrr-fm8';
+        $botToken = $this->botToken ?: '9048704504:AAfq_GM2b4yBPnpuSzr9niSMcq_sEwZ9s3M';
 
         if (empty($botToken)) {
             Log::warning("Telegram Auth Verification: Bot token is not configured.");
@@ -89,7 +89,7 @@ class TelegramService
      */
     public function sendDirectMessage(string|int $chatId, string $text, string $parseMode = 'HTML', ?array $replyMarkup = null): bool
     {
-        $token = $this->botToken ?: '8828915669:AAHCBS8crm8t8zXlYPOGiGxmywXybrr-fm8';
+        $token = $this->botToken ?: '9048704504:AAfq_GM2b4yBPnpuSzr9niSMcq_sEwZ9s3M';
         if (empty($chatId)) {
             return false;
         }
@@ -270,7 +270,7 @@ class TelegramService
             ?: \Illuminate\Support\Facades\Cache::get('telegram_admin_chat_id') 
             ?: '-5560385465');
 
-        $token = $this->botToken ?: '8828915669:AAHCBS8crm8t8zXlYPOGiGxmywXybrr-fm8';
+        $token = $this->botToken ?: '9048704504:AAfq_GM2b4yBPnpuSzr9niSMcq_sEwZ9s3M';
 
         $payload = [
             'chat_id'                  => (string) $target,

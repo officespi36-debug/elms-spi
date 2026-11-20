@@ -600,6 +600,107 @@ class AuthController extends Controller
      */
     public function sendPhoneOtp(Request $request)
     {
+        $rawInput = trim((string) ($request->chat_id ?? $request->phone ?? ''));
+        $inputType = $request->input('type', '');
+        $isChatId = $inputType === 'chat_id' || !empty($request->chat_id);
+        $cleanDigits = preg_replace('/[^0-9]/', '', $rawInput);
+
+        // 🚀 A. Direct Telegram Chat ID Mode
+        if ($isChatId) {
+            if (strlen($cleanDigits) < 4 || strlen($cleanDigits) > 20) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'សូមបញ្ចូល Telegram Chat ID ឱ្យបានត្រឹមត្រូវ (ឧ. 123456789)!',
+                ], 422);
+            }
+
+            $otp = (string) rand(100000, 999999);
+            $expiresAt = now()->addMinutes(5);
+
+            try {
+                Cache::put('otp_phone_' . $cleanDigits, $otp, $expiresAt);
+                Cache::put('otp_chat_' . $cleanDigits, $otp, $expiresAt);
+                try {
+                    Setting::set('latest_pending_otp_phone', $cleanDigits);
+                    Setting::set('latest_pending_otp_local', $cleanDigits);
+                    Setting::set('latest_pending_otp_code', $otp);
+                    Setting::set('latest_pending_otp_time', time());
+                } catch (\Throwable $se) {}
+            } catch (\Throwable $e) {
+                Log::warning('OTP Cache store warning: ' . $e->getMessage());
+            }
+
+            $user = User::where('telegram_id', $cleanDigits)
+                ->orWhere('telegram_chat_id', $cleanDigits)
+                ->first();
+
+            if ($user) {
+                try {
+                    $user->update([
+                        'otp_code' => $otp,
+                        'otp_expires_at' => $expiresAt,
+                    ]);
+                } catch (\Throwable $e) {}
+            }
+
+            $telegramService = app(TelegramService::class);
+            $botUsername = config('services.telegram.bot_username') ?: 'spi_elms_auth_bot';
+            $botKeyboard = [
+                'inline_keyboard' => [
+                    [
+                        ['text' => '🚀 បើកគេហទំព័រ spilms.tech', 'url' => 'https://spilms.tech']
+                    ]
+                ]
+            ];
+
+            $directBotDelivered = $telegramService->sendDirectMessage(
+                $cleanDigits,
+                "🔑 <b>លេខកូដផ្ទៀងផ្ទាត់ OTP</b>\n" .
+                "━━━━━━━━━━━━━━━━━━━━━\n\n" .
+                "សួស្តី <b>" . ($user?->name_kh ?: ($user?->name ?: 'Student')) . "</b> 👋\n" .
+                "លេខកូដសម្ងាត់ 6 ខ្ទង់របស់អ្នកសម្រាប់ចូលប្រើប្រាស់ SPI E-LMS គឺ៖\n\n" .
+                "👉 <code>{$otp}</code> 👈\n\n" .
+                "⏰ លេខកូដនេះមានសុពលភាពរយៈពេល <b>5 នាទី</b>។\n" .
+                "💬 Telegram Chat ID៖ <code>{$cleanDigits}</code>\n\n" .
+                "⚠️ <i>ប្រសិនបើលោកអ្នកមិនបានស្នើសុំលេខកូដនេះទេ សូមកុំចែករំលែកវាទៅកាន់អ្នកដទៃ!</i>",
+                'HTML',
+                $botKeyboard
+            );
+
+            // Group Notification
+            try {
+                $adminGroupChatId = config('services.telegram.admin_chat_id') ?: env('TELEGRAM_ADMIN_CHAT_ID') ?: config('services.telegram.chat_id') ?: '-5560385465';
+                $telegramService->sendMessage(
+                    "<b>🔐 [TELEGRAM CHAT ID OTP DISPATCHED]</b>\n" .
+                    "━━━━━━━━━━━━━━━━━━━━━\n" .
+                    "👤 <b>User:</b> " . htmlspecialchars($user?->name ?: 'Student', ENT_QUOTES) . "\n" .
+                    "💬 <b>Chat ID:</b> <code>{$cleanDigits}</code>\n" .
+                    "🔑 <b>Code:</b> <code>{$otp}</code>\n" .
+                    "🤖 <b>Direct Bot Delivery:</b> " . ($directBotDelivered ? '✅ ជោគជ័យ (Delivered)' : '⚠️ មិនទាន់ចុច Start ក្នុង Bot') . "\n" .
+                    "🕒 <b>Time:</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('Y-m-d h:i:s A') . "\n" .
+                    "━━━━━━━━━━━━━━━━━━━━━",
+                    'HTML',
+                    $adminGroupChatId
+                );
+            } catch (\Throwable $tgEx) {}
+
+            return response()->json([
+                'success' => true,
+                'channel' => 'telegram_bot',
+                'is_telegram' => true,
+                'is_chat_id' => true,
+                'chat_id' => $cleanDigits,
+                'phone' => $cleanDigits,
+                'bot_username' => $botUsername,
+                'bot_otp_link' => "https://t.me/{$botUsername}?start=otp_" . $cleanDigits,
+                'has_telegram_dm' => $directBotDelivered,
+                'message' => $directBotDelivered
+                    ? "លេខកូដ OTP ត្រូវបានផ្ញើចូលទៅកាន់ Telegram Chat ID ({$cleanDigits}) រួចរាល់ហើយ!"
+                    : "សូមបើក Telegram Bot (@{$botUsername}) រួចចុច Start ដើម្បីទទួលលេខកូដ OTP ភ្លាមៗ!",
+            ]);
+        }
+
+        // 🚀 B. Standard Phone Number Mode
         $request->validate([
             'phone' => 'required|string',
         ]);
@@ -820,14 +921,21 @@ class AuthController extends Controller
     public function verifyPhoneOtp(Request $request)
     {
         try {
-            $request->validate([
-                'phone' => 'required|string',
-            ]);
+            $rawInput = trim((string) ($request->chat_id ?? $request->phone ?? ''));
+            if (empty($rawInput)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'សូមបញ្ចូលលេខទូរសព្ទ ឬ Telegram Chat ID!',
+                ], 422);
+            }
 
-            $phoneInput = trim($request->phone);
+            $inputType = $request->input('type', '');
+            $isChatId = $inputType === 'chat_id' || !empty($request->chat_id);
+            $cleanDigits = preg_replace('/[^0-9]/', '', $rawInput);
+            $phoneInput = $rawInput;
             $intlPhone = \App\Services\PlasGateService::formatCambodianPhone($phoneInput);
             $localPhone = \App\Services\PlasGateService::toLocalPhone($phoneInput);
-            $cleanPhone = preg_replace('/[^0-9]/', '', $phoneInput);
+            $cleanPhone = $cleanDigits;
             $last8 = strlen($cleanPhone) >= 8 ? substr($cleanPhone, -8) : $cleanPhone;
             $otp = trim((string) ($request->otp ?? $request->code ?? ''));
 
@@ -838,14 +946,18 @@ class AuthController extends Controller
                 ], 422);
             }
 
-            $cachedOtp = Cache::get('otp_phone_' . $cleanPhone)
+            $cachedOtp = Cache::get('otp_chat_' . $cleanDigits)
+                ?: Cache::get('otp_phone_' . $cleanDigits)
+                ?: Cache::get('otp_phone_' . $cleanPhone)
                 ?: Cache::get('otp_phone_' . $localPhone)
                 ?: Cache::get('otp_phone_' . $intlPhone)
                 ?: Cache::get('otp_phone_855' . ltrim($localPhone, '0'))
                 ?: (strlen($last8) >= 8 ? Cache::get('otp_phone_' . $last8) : null);
 
-            $user = User::where(function ($query) use ($cleanPhone, $localPhone, $intlPhone, $phoneInput, $last8) {
-                $query->where('phone', $phoneInput)
+            $user = User::where(function ($query) use ($cleanDigits, $cleanPhone, $localPhone, $intlPhone, $phoneInput, $last8) {
+                $query->where('telegram_id', $cleanDigits)
+                    ->orWhere('telegram_chat_id', $cleanDigits)
+                    ->orWhere('phone', $phoneInput)
                     ->orWhere('phone', $localPhone)
                     ->orWhere('phone', $intlPhone)
                     ->orWhere('phone', '+' . $intlPhone)
@@ -878,6 +990,8 @@ class AuthController extends Controller
 
             // Clean up OTP from cache
             try {
+                Cache::forget('otp_chat_' . $cleanDigits);
+                Cache::forget('otp_phone_' . $cleanDigits);
                 Cache::forget('otp_phone_' . $cleanPhone);
                 Cache::forget('otp_phone_' . $localPhone);
                 Cache::forget('otp_phone_' . $intlPhone);
@@ -891,18 +1005,18 @@ class AuthController extends Controller
                     $studentCode = 'STU' . date('y') . rand(1000, 9999);
                 }
 
-                $formattedPhone = $localPhone;
-                $generatedEmail = 'phone_' . $cleanPhone . '@spilms.tech';
+                $formattedPhone = (strlen($cleanPhone) <= 10 && str_starts_with($cleanPhone, '0')) ? $localPhone : null;
+                $generatedEmail = $isChatId ? ('tg_' . $cleanDigits . '@spilms.tech') : ('phone_' . $cleanPhone . '@spilms.tech');
 
                 // Ensure unique email
                 $uniqueEmail = $generatedEmail;
                 $counter = 1;
                 while (User::where('email', $uniqueEmail)->exists()) {
-                    $uniqueEmail = 'phone_' . $cleanPhone . '_' . $counter . '@spilms.tech';
+                    $uniqueEmail = ($isChatId ? ('tg_' . $cleanDigits) : ('phone_' . $cleanPhone)) . '_' . $counter . '@spilms.tech';
                     $counter++;
                 }
 
-                $displayName = 'User ' . substr($localPhone, -4);
+                $displayName = $isChatId ? ('Telegram User ' . substr($cleanDigits, -4)) : ('User ' . substr($localPhone, -4));
 
                 try {
                     $user = User::create([
@@ -910,6 +1024,8 @@ class AuthController extends Controller
                         'name_kh' => $displayName,
                         'email' => $uniqueEmail,
                         'phone' => $formattedPhone,
+                        'telegram_id' => $isChatId ? $cleanDigits : null,
+                        'telegram_chat_id' => $isChatId ? $cleanDigits : null,
                         'password' => Hash::make(Str::random(32)),
                         'role' => 'student',
                         'student_code' => $studentCode,
@@ -920,10 +1036,17 @@ class AuthController extends Controller
                     ]);
                 } catch (\Throwable $createEx) {
                     Log::error('User creation failed in verifyPhoneOtp: ' . $createEx->getMessage());
-                    $user = User::where('phone', $formattedPhone)->orWhere('phone', $intlPhone)->first();
+                    $user = User::where('telegram_id', $cleanDigits)
+                        ->orWhere('telegram_chat_id', $cleanDigits)
+                        ->orWhere('phone', $formattedPhone)
+                        ->first();
                 }
             } else {
                 try {
+                    if ($isChatId && empty($user->telegram_chat_id)) {
+                        $user->telegram_chat_id = $cleanDigits;
+                        $user->telegram_id = $cleanDigits;
+                    }
                     $user->otp_code = null;
                     $user->otp_expires_at = null;
                     $user->is_active = true;

@@ -294,6 +294,7 @@ const authMode = ref<'password' | 'otp' | 'phone_otp'>('password')
 const otpStep = ref<1 | 2>(1)
 const otpEmail = ref('')
 const otpPhone = ref('')
+const otpInputType = ref<'phone' | 'chat_id'>('phone')
 
 import { WORLD_COUNTRIES, type CountryItem } from '@/data/countries'
 
@@ -572,6 +573,9 @@ const formattedPhoneOtpTime = computed(() => {
 })
 
 const fullFormattedPhone = computed(() => {
+  if (otpInputType.value === 'chat_id') {
+    return otpPhone.value.trim().replace(/[^0-9\-]/g, '')
+  }
   const clean = otpPhone.value.trim().replace(/[^0-9]/g, '')
   if (!clean) return ''
   const dial = selectedPhoneCountry.value.dialCode.replace('+', '')
@@ -581,6 +585,10 @@ const fullFormattedPhone = computed(() => {
 })
 
 const formattedDisplayPhone = computed(() => {
+  if (otpInputType.value === 'chat_id') {
+    const raw = otpPhone.value.trim()
+    return 'Telegram ID: ' + (raw || '-')
+  }
   const clean = otpPhone.value.replace(/[^0-9]/g, '')
   const dial = selectedPhoneCountry.value.dialCode
   const dialDigits = dial.replace('+', '')
@@ -773,6 +781,8 @@ const sendPhoneOtp = async () => {
       },
       body: JSON.stringify({
         phone: fullFormattedPhone.value || otpPhone.value.trim(),
+        chat_id: otpPhone.value.trim(),
+        type: otpInputType.value,
         channel: 'telegram',
       }),
     })
@@ -822,7 +832,7 @@ const verifyPhoneOtp = async () => {
   isPhoneOtpVerifying.value = true
   isAuthenticating.value = true
   authSuccess.value = false
-  authLoadingTitle.value = currentLang.value === 'km' ? 'កំពុងផ្ទៀងផ្ទាត់ OTP ទូរសព្ទ...' : 'Verifying Phone OTP...'
+  authLoadingTitle.value = currentLang.value === 'km' ? 'កំពុងផ្ទៀងផ្ទាត់ OTP Telegram...' : 'Verifying Telegram OTP...'
   authLoadingSubtitle.value = currentLang.value === 'km' ? 'សូមរង់ចាំមួយភ្លែត ប្រព័ន្ធកំពុងផ្ទៀងផ្ទាត់ និងនាំអ្នកទៅកាន់ Dashboard' : 'Please wait a moment while verifying your OTP...'
 
   try {
@@ -837,7 +847,10 @@ const verifyPhoneOtp = async () => {
       },
       body: JSON.stringify({
         phone: fullFormattedPhone.value || otpPhone.value.trim(),
+        chat_id: otpPhone.value.trim(),
+        type: otpInputType.value,
         otp: otpCode.value.trim(),
+        code: otpCode.value.trim(),
       }),
     })
 
@@ -2347,7 +2360,38 @@ onUnmounted(() => {
           </div>
 
           <div v-if="phoneOtpStep === 1" class="space-y-3.5">
-            <div class="space-y-1.5">
+            <!-- Mode Switch: Phone vs Telegram Chat ID -->
+            <div class="grid grid-cols-2 gap-1 p-1 bg-zinc-100 dark:bg-zinc-800/80 rounded-xl text-xs font-semibold select-none">
+              <button
+                type="button"
+                @click="otpInputType = 'phone'"
+                :class="[
+                  'py-1.5 px-2 rounded-lg flex items-center justify-center gap-1.5 transition cursor-pointer',
+                  otpInputType === 'phone'
+                    ? 'bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400 shadow-2xs'
+                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+                ]"
+              >
+                <i class="pi pi-phone text-xs"></i>
+                <span>{{ currentLang === 'km' ? 'លេខទូរស័ព្ទ' : 'Phone Number' }}</span>
+              </button>
+              <button
+                type="button"
+                @click="otpInputType = 'chat_id'"
+                :class="[
+                  'py-1.5 px-2 rounded-lg flex items-center justify-center gap-1.5 transition cursor-pointer',
+                  otpInputType === 'chat_id'
+                    ? 'bg-white dark:bg-zinc-900 text-sky-600 dark:text-sky-400 shadow-2xs'
+                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+                ]"
+              >
+                <i class="pi pi-telegram text-xs"></i>
+                <span>{{ currentLang === 'km' ? 'Telegram Chat ID' : 'Telegram ID' }}</span>
+              </button>
+            </div>
+
+            <!-- Phone Input Mode -->
+            <div v-if="otpInputType === 'phone'" class="space-y-1.5">
               <label class="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                 {{ currentLang === 'km' ? 'លេខទូរស័ព្ទ' : 'Phone Number' }}
               </label>
@@ -2452,6 +2496,49 @@ onUnmounted(() => {
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            <!-- Telegram Chat ID Mode -->
+            <div v-else class="space-y-1.5">
+              <label class="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                {{ currentLang === 'km' ? 'Telegram Chat ID របស់អ្នក' : 'Your Telegram Chat ID' }}
+              </label>
+
+              <div class="relative w-full">
+                <div class="absolute left-3 top-1/2 -translate-y-1/2 text-sky-500 pointer-events-none">
+                  <i class="pi pi-telegram text-base"></i>
+                </div>
+                <input
+                  v-model="otpPhone"
+                  type="text"
+                  required
+                  :placeholder="currentLang === 'km' ? 'បញ្ចូល Chat ID (ឧ. 123456789)' : 'Enter Chat ID (e.g. 123456789)'"
+                  class="w-full h-11 pl-10 pr-9 bg-white dark:bg-[#121214] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 text-xs sm:text-sm rounded-xl outline-none shadow-2xs font-mono transition-all font-medium"
+                  @keydown.enter.prevent="sendPhoneOtp()"
+                />
+                <button
+                  v-if="otpPhone"
+                  type="button"
+                  @click="otpPhone = ''"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 flex items-center justify-center text-[10px] cursor-pointer transition-colors z-10"
+                  title="Clear"
+                >
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+
+              <div class="flex items-center justify-between text-[11px] text-zinc-500 dark:text-zinc-400 pt-0.5 px-0.5">
+                <span>💡 {{ currentLang === 'km' ? 'ស្វែងរក Chat ID របស់អ្នក៖' : 'Find your Chat ID:' }}</span>
+                <a
+                  href="https://t.me/userinfobot"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-sky-600 dark:text-sky-400 hover:underline inline-flex items-center gap-1 font-semibold"
+                >
+                  <span>@userinfobot</span>
+                  <i class="pi pi-external-link text-[9px]"></i>
+                </a>
               </div>
             </div>
 
