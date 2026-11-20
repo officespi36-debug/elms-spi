@@ -97,54 +97,23 @@ const enrollCourse = (course: WishlistCourse) => {
         </span>
       </div>
 
-      <!-- Empty Wishlist (Aesthetic Redesign) -->
       <div
         v-if="items.length === 0"
-        class="relative overflow-hidden bg-white/90 dark:bg-[#0a1226]/85 backdrop-blur-xl border border-slate-200/90 dark:border-rose-500/25 rounded-3xl p-8 sm:p-14 text-center space-y-6 shadow-xl dark:shadow-2xl dark:shadow-black/60 transition-all duration-300"
+        class="p-12 text-center bg-white dark:bg-[#1e1f20] rounded-[20px] border border-dashed border-[#dfe3e7] dark:border-[#2d2f31] space-y-4"
       >
-        <!-- Ambient Glow -->
-        <div class="absolute -top-24 -left-24 w-72 h-72 bg-rose-500/10 dark:bg-rose-500/15 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute -bottom-24 -right-24 w-72 h-72 bg-purple-500/10 dark:bg-purple-500/15 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute inset-0 bg-[radial-gradient(#F43F5E_1px,transparent_1px)] [background-size:20px_20px] opacity-[0.035] dark:opacity-[0.06] pointer-events-none"></div>
-
-        <!-- Central Heart Badge Icon Container -->
-        <div class="relative w-28 h-28 mx-auto flex items-center justify-center select-none group">
-          <div class="absolute inset-0 bg-gradient-to-tr from-rose-500/25 via-pink-500/25 to-purple-500/25 rounded-full blur-2xl transform group-hover:scale-115 transition-transform duration-500"></div>
-
-          <div class="w-full h-full rounded-3xl bg-gradient-to-b from-white/90 to-slate-100/80 dark:from-slate-800/80 dark:to-slate-900/90 p-2 shadow-2xl shadow-rose-500/20 dark:shadow-rose-950/50 border border-white/80 dark:border-rose-500/30 flex items-center justify-center ring-4 ring-rose-500/10 dark:ring-rose-500/20 relative z-10 transition-transform duration-300 group-hover:-translate-y-1">
-            <svg class="w-16 h-16 text-rose-500 drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
-          </div>
+        <div class="w-14 h-14 rounded-full bg-rose-50 dark:bg-rose-900/30 text-rose-500 flex items-center justify-center mx-auto">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+          </svg>
         </div>
-
-        <!-- Text Content -->
-        <div class="space-y-2 relative z-10 max-w-md mx-auto">
-          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10.5px] font-bold bg-rose-500/10 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 shadow-2xs font-khmer">
-            <span>💖</span>
-            <span>{{ t('បញ្ជីចង់រៀន', 'Saved Wishlist') }}</span>
-          </div>
-
-          <h3 class="text-lg sm:text-xl font-black text-slate-900 dark:text-white font-khmer tracking-tight leading-snug">
-            {{ t('wishlist_empty_title') }}
-          </h3>
-          <p class="text-xs sm:text-[13px] text-slate-600 dark:text-slate-400 max-w-sm mx-auto font-khmer leading-relaxed">
-            {{ t('wishlist_empty_desc') }}
-          </p>
-        </div>
-
-        <!-- Action Button -->
-        <div class="flex items-center justify-center relative z-10 pt-2">
-          <Link
-            href="/student/browse"
-            class="px-7 py-3.5 rounded-2xl bg-gradient-to-r from-rose-500 via-[#7045F5] to-[#1459D9] hover:opacity-95 text-white font-bold text-xs sm:text-sm shadow-xl shadow-rose-500/25 hover:shadow-rose-500/40 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2.5 font-khmer cursor-pointer"
-          >
-            <svg class="w-4 h-4 text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <span>{{ t('wishlist_browse_btn') }}</span>
-          </Link>
-        </div>
+        <h3 class="text-base font-bold text-slate-900 dark:text-white">{{ t('wishlist_empty_title') }}</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">{{ t('wishlist_empty_desc') }}</p>
+        <Link
+          href="/student/browse"
+          class="inline-block px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+        >
+          {{ t('wishlist_browse_btn') }}
+        </Link>
       </div>
 
       <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">

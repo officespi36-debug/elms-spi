@@ -1040,90 +1040,38 @@ onUnmounted(() => {
 
           </div>
 
-          <!-- Empty State (Aesthetic Redesign) -->
+          <!-- Empty State -->
           <div
             v-else
-            class="relative overflow-hidden bg-white/90 dark:bg-[#0a1226]/85 backdrop-blur-xl border border-slate-200/90 dark:border-purple-500/25 rounded-3xl p-8 sm:p-12 text-center space-y-6 shadow-xl dark:shadow-2xl dark:shadow-black/60 transition-all duration-300"
+            class="bg-white dark:bg-slate-900/40 border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-4 shadow-xs"
           >
-            <!-- Ambient Lighting -->
-            <div class="absolute -top-20 -left-20 w-60 h-60 bg-amber-500/10 dark:bg-amber-400/10 rounded-full blur-3xl pointer-events-none"></div>
-            <div class="absolute -bottom-20 -right-20 w-60 h-60 bg-purple-500/10 dark:bg-purple-500/15 rounded-full blur-3xl pointer-events-none"></div>
-            <div class="absolute inset-0 bg-[radial-gradient(#6366F1_1px,transparent_1px)] [background-size:20px_20px] opacity-[0.035] dark:opacity-[0.06] pointer-events-none"></div>
-
-            <!-- Central Achievement Badge Icon Container -->
-            <div class="relative w-28 h-28 mx-auto flex items-center justify-center select-none group">
-              <div class="absolute inset-0 bg-gradient-to-tr from-amber-500/25 via-purple-500/25 to-blue-500/25 rounded-full blur-2xl transform group-hover:scale-115 transition-transform duration-500"></div>
-
-              <div class="w-full h-full rounded-3xl bg-gradient-to-b from-white/90 to-slate-100/80 dark:from-slate-800/80 dark:to-slate-900/90 p-2 shadow-2xl shadow-amber-500/20 dark:shadow-amber-950/50 border border-white/80 dark:border-amber-500/30 flex items-center justify-center ring-4 ring-amber-500/10 dark:ring-amber-500/20 relative z-10 transition-transform duration-300 group-hover:-translate-y-1">
-                <svg class="w-20 h-20 drop-shadow-md" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <defs>
-                    <linearGradient id="cupGrad" x1="20" y1="20" x2="80" y2="80" gradientUnits="userSpaceOnUse">
-                      <stop offset="0%" stop-color="#FDE047" />
-                      <stop offset="50%" stop-color="#F59E0B" />
-                      <stop offset="100%" stop-color="#D97706" />
-                    </linearGradient>
-                    <linearGradient id="starGrad" x1="0" y1="0" x2="30" y2="30" gradientUnits="userSpaceOnUse">
-                      <stop offset="0%" stop-color="#60A5FA" />
-                      <stop offset="100%" stop-color="#7C3AED" />
-                    </linearGradient>
-                  </defs>
-
-                  <!-- Base Stand -->
-                  <path d="M35 78 L65 78 L68 86 L32 86 Z" fill="#78350F" />
-                  <rect x="28" y="86" width="44" height="6" rx="2" fill="url(#cupGrad)" />
-
-                  <!-- Trophy Cup Body -->
-                  <path d="M32 28 L68 28 C68 28 68 56 50 64 C32 56 32 28 32 28 Z" fill="url(#cupGrad)" />
-                  <path d="M48 64 L48 78 L52 78 L52 64 Z" fill="#D97706" />
-
-                  <!-- Trophy Handles -->
-                  <path d="M32 34 C22 34 22 48 33 52" stroke="url(#cupGrad)" stroke-width="4.5" stroke-linecap="round" fill="none" />
-                  <path d="M68 34 C78 34 78 48 67 52" stroke="url(#cupGrad)" stroke-width="4.5" stroke-linecap="round" fill="none" />
-
-                  <!-- Cup Inner Glow & Star -->
-                  <circle cx="50" cy="44" r="8" fill="#FEF08A" fill-opacity="0.9" />
-                  <path d="M50 38 L52 42 L56 42.5 L53 45.5 L54 49.5 L50 47 L46 49.5 L47 45.5 L44 42.5 L48 42 Z" fill="#D97706" />
-
-                  <!-- Floating Sparkles -->
-                  <path d="M22 18 Q22 23 27 23 Q22 23 22 28 Q22 23 17 23 Q22 23 22 18 Z" fill="url(#starGrad)" />
-                  <path d="M78 16 Q78 21 83 21 Q78 21 78 26 Q78 21 73 21 Q78 21 78 16 Z" fill="#FBBF24" />
-                </svg>
-              </div>
+            <div class="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800/60 flex items-center justify-center mx-auto text-slate-400 dark:text-slate-500">
+              <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
             </div>
-
-            <!-- Text Content -->
-            <div class="space-y-2 relative z-10 max-w-md mx-auto">
-              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10.5px] font-bold bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/20 shadow-2xs font-khmer">
-                <span>🏆</span>
-                <span>{{ currentLang === 'km' ? 'សមិទ្ធផលសិក្សា' : 'Academic Achievements' }}</span>
-              </div>
-
-              <h3 class="text-lg sm:text-xl font-black text-slate-900 dark:text-white font-khmer tracking-tight leading-snug">
+            <div class="space-y-1">
+              <h3 class="text-base font-bold text-slate-900 dark:text-white">
                 {{ currentLang === 'km' ? 'មិនទាន់មានវគ្គសិក្សាដែលបានបញ្ចប់ទេ' : 'No completed courses match your criteria' }}
               </h3>
-              <p class="text-xs sm:text-[13px] text-slate-600 dark:text-slate-400 max-w-sm mx-auto font-khmer leading-relaxed">
-                {{ currentLang === 'km' ? 'សាកល្បងប្តូរផ្ទាំង ឬស្វែងរកវគ្គសិក្សាថ្មីដើម្បីចាប់ផ្តើមរៀន និងទទួលបានវិញ្ញាបនបត្រ។' : 'Try switching between tabs or browse courses to begin learning and earning certificates.' }}
+              <p class="text-xs text-slate-600 dark:text-slate-400 max-w-sm mx-auto">
+                {{ currentLang === 'km' ? 'សាកល្បងប្តូរផ្ទាំង ឬស្វែងរកវគ្គសិក្សាថ្មីដើម្បីចាប់ផ្តើមរៀន។' : 'Try switching between tabs or browse courses to begin learning.' }}
               </p>
             </div>
-
-            <!-- Action Buttons -->
-            <div class="flex flex-wrap items-center justify-center gap-3 relative z-10 pt-2">
-              <Link
-                href="/student/browse"
-                class="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#7045F5] via-[#5942e4] to-[#1459D9] hover:from-[#5d31e3] hover:to-[#104bc2] text-white font-bold text-xs sm:text-sm shadow-xl shadow-purple-500/25 hover:shadow-purple-500/40 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2 font-khmer cursor-pointer"
-              >
-                <svg class="w-4 h-4 text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <span>{{ currentLang === 'km' ? 'ស្វែងរកវគ្គសិក្សា' : 'Browse Courses' }}</span>
-              </Link>
+            <div class="flex flex-wrap items-center justify-center gap-2.5">
               <button
                 @click="resetFilters"
                 type="button"
-                class="px-5 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm border border-slate-200/80 dark:border-slate-700 transition-all font-khmer cursor-pointer shadow-xs"
+                class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs cursor-pointer shadow-md shadow-purple-600/20"
               >
                 {{ currentLang === 'km' ? 'កំណត់តម្រងឡើងវិញ' : 'Reset Filters' }}
               </button>
+              <Link
+                href="/student/browse"
+                class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs transition-colors"
+              >
+                {{ currentLang === 'km' ? 'ស្វែងរកវគ្គសិក្សា' : 'Browse Courses' }}
+              </Link>
             </div>
           </div>
 
