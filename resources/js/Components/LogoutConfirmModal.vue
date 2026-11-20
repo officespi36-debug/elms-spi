@@ -101,21 +101,27 @@ onUnmounted(() => {
 
         <!-- Centered Dialog Box (Animated Running Red Border Beam Frame) -->
         <div
-          class="logout-beam-card relative w-full max-w-[416px] rounded-2xl sm:rounded-3xl p-[2px] overflow-hidden shadow-2xl z-10 transition-all transform select-none"
+          class="logout-beam-card relative w-full max-w-[416px] rounded-2xl sm:rounded-3xl p-[2px] overflow-hidden shadow-2xl z-10 select-none"
           @click.stop
         >
-          <!-- 1. Base frame border line (Crisp frame outline when beam is at other side) -->
+          <!-- 1. Base subtle frame border line (Crisp frame outline when beam is elsewhere) -->
           <div class="absolute inset-0 rounded-[inherit] border border-zinc-200/90 dark:border-zinc-800/90 pointer-events-none z-0"></div>
 
-          <!-- 2. Sharp Radiant Red Beam running smoothly around the entire frame perimeter -->
+          <!-- 2. Rotating Conic Runner (Guaranteed 360deg rotation on all engines) -->
           <div class="logout-beam-spinner pointer-events-none z-0"></div>
+          <div class="logout-beam-spinner blur-[8px] opacity-75 pointer-events-none z-0"></div>
 
-          <!-- 3. Glowing Red Neon Aura running with the beam -->
-          <div class="logout-beam-spinner blur-[7px] opacity-75 pointer-events-none z-0"></div>
+          <!-- 3. Magic UI Precise Perimeter Border Beam (Physical runner traveling around the 4 edges) -->
+          <div class="border-beam-mask pointer-events-none z-10">
+            <div class="border-beam-runner"></div>
+          </div>
+          <div class="border-beam-mask pointer-events-none z-10 blur-[4px] opacity-80">
+            <div class="border-beam-runner"></div>
+          </div>
 
           <!-- 4. Inner Dialog Box Surface -->
           <div
-            class="relative w-full h-full p-6 sm:p-7 rounded-[calc(1rem-1px)] sm:rounded-[calc(1.5rem-1px)] bg-white dark:bg-[#121214] text-zinc-900 dark:text-white text-center z-10 overflow-hidden"
+            class="relative w-full h-full p-6 sm:p-7 rounded-[calc(1rem-1px)] sm:rounded-[calc(1.5rem-1px)] bg-white dark:bg-[#121214] text-zinc-900 dark:text-white text-center z-20 overflow-hidden"
           >
             <!-- Subtle Top Ambient Glow -->
             <div

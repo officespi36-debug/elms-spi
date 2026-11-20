@@ -542,9 +542,9 @@ html.dark .p-toast .p-toast-close-button:hover {
   ::view-transition-new(*) {
     animation: none !important;
   }
-  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.elms-ring-wrap):not(.animate-spin):not(.loading-spinner),
-  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.elms-ring-wrap):not(.animate-spin):not(.loading-spinner)::before,
-  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.elms-ring-wrap):not(.animate-spin):not(.loading-spinner)::after {
+  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.elms-ring-wrap):not(.animate-spin):not(.loading-spinner):not(.logout-beam-spinner):not(.border-beam-runner):not(.border-beam-mask),
+  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.elms-ring-wrap):not(.animate-spin):not(.loading-spinner):not(.logout-beam-spinner):not(.border-beam-runner):not(.border-beam-mask)::before,
+  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.elms-ring-wrap):not(.animate-spin):not(.loading-spinner):not(.logout-beam-spinner):not(.border-beam-runner):not(.border-beam-mask)::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -553,8 +553,92 @@ html.dark .p-toast .p-toast-close-button:hover {
   .init-ring-wrap,
   .blue-ring-wrap,
   .init-ring-svg,
-  .elms-ring-wrap {
-    animation-duration: 1.1s !important;
+  .elms-ring-wrap,
+  .logout-beam-spinner,
+  .border-beam-runner {
+    animation-duration: 3.5s !important;
     animation-iteration-count: infinite !important;
   }
+}
+
+/* ==========================================================================
+   Continuous Running Red Border Beam Frame (Global)
+   ========================================================================== */
+@keyframes logout-beam-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes border-beam-travel {
+  0% {
+    offset-distance: 0%;
+  }
+  100% {
+    offset-distance: 100%;
+  }
+}
+
+.logout-beam-spinner {
+  position: absolute;
+  top: -100%;
+  left: -100%;
+  width: 300%;
+  height: 300%;
+  background: conic-gradient(
+    from 0deg at 50% 50%,
+    transparent 0deg,
+    transparent 200deg,
+    rgba(244, 63, 94, 0.2) 240deg,
+    rgba(239, 68, 68, 0.8) 290deg,
+    #f43f5e 325deg,
+    #ff1744 345deg,
+    #ffffff 357deg,
+    transparent 360deg
+  );
+  animation: logout-beam-spin 3.5s linear infinite !important;
+  will-change: transform;
+}
+
+html.dark .logout-beam-spinner,
+.dark .logout-beam-spinner {
+  background: conic-gradient(
+    from 0deg at 50% 50%,
+    transparent 0deg,
+    transparent 200deg,
+    rgba(244, 63, 94, 0.25) 240deg,
+    rgba(239, 68, 68, 0.9) 290deg,
+    #f43f5e 325deg,
+    #ff1744 345deg,
+    #ffffff 357deg,
+    transparent 360deg
+  );
+}
+
+.border-beam-mask {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 2px solid transparent;
+  -webkit-mask-clip: padding-box, border-box;
+  mask-clip: padding-box, border-box;
+  -webkit-mask-composite: destination-out;
+  mask-composite: exclude;
+  mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  pointer-events: none;
+}
+
+.border-beam-runner {
+  position: absolute;
+  aspect-ratio: 1;
+  width: 160px;
+  offset-anchor: 100% 50%;
+  offset-path: rect(0 auto auto 0 round 24px);
+  background: linear-gradient(to left, #ffffff 0%, #ff1744 40%, #ef4444 70%, rgba(239, 68, 68, 0) 100%);
+  animation: border-beam-travel 3.5s linear infinite !important;
+  will-change: transform, offset-distance;
 }
