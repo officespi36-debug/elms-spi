@@ -212,7 +212,7 @@
     </div>
 
     <!-- ═══════════════ ACCOUNT SELECTOR MODAL (Matching Image 2 Feature) ═══════════════ -->
-    <div id="accountModal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-sm p-3 sm:p-4 transition-all duration-200">
+    <div id="accountModal" style="display: none;" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-sm p-3 sm:p-4 transition-all duration-200">
         <div class="w-full max-w-sm rounded-3xl bg-[#1c1c1e] border border-zinc-800 p-5 shadow-2xl space-y-4 animate-slide-up select-none">
             <!-- Header -->
             <div class="flex items-center justify-between pb-2 border-b border-zinc-800/80">
@@ -279,11 +279,15 @@
         </div>
     </div>
 
+    <!-- Raw Data Payloads (Decoupled from JS parser to eliminate linter errors) -->
+    <script type="application/json" id="initial-user-data">{!! json_encode($currentUser ?? null) !!}</script>
+    <script type="application/json" id="server-accounts-data">{!! json_encode($availableAccounts ?? []) !!}</script>
+
     <script>
         const qrToken = "{{ $token }}";
         const botUsername = "{{ $botUsername ?? 'elms_verification_bot' }}";
-        const initialUser = {!! json_encode($currentUser ?? null) !!};
-        const serverAvailableAccounts = {!! json_encode($availableAccounts ?? []) !!};
+        const initialUser = JSON.parse(document.getElementById('initial-user-data')?.textContent || 'null');
+        const serverAvailableAccounts = JSON.parse(document.getElementById('server-accounts-data')?.textContent || '[]');
 
         let activeUser = initialUser || null;
         let tgUser = null;
@@ -453,13 +457,13 @@
 
         function openAccountSelectorModal() {
             const modal = document.getElementById('accountModal');
-            if (modal) modal.classList.remove('hidden');
+            if (modal) modal.style.display = 'flex';
             renderAccountsList();
         }
 
         function closeAccountSelectorModal() {
             const modal = document.getElementById('accountModal');
-            if (modal) modal.classList.add('hidden');
+            if (modal) modal.style.display = 'none';
         }
 
         async function lookupOrSwitchAccount() {
