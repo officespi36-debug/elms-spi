@@ -18,7 +18,7 @@ defineProps<{
   message: string
 }>()
 
-const logoUrl = '/images/spi-elms-logo.png'
+const logoUrl = '/images/logo.png'
 const isDark = ref(false)
 
 onMounted(() => {
