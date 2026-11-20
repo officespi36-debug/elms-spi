@@ -293,7 +293,7 @@ const confirmReportLostCard = () => {
   router.post('/student/profile/id-card/report-lost', {}, {
     preserveScroll: true,
     onSuccess: () => {
-      toast.warning(
+      toast.warn(
         currentLang.value === 'km' ? 'កាតត្រូវបានរាយការណ៍ថាបាត់! សុពលភាពត្រូវបានផ្អាកភ្លាមៗ។' : 'Card reported as lost. It has been revoked immediately.',
         currentLang.value === 'km' ? 'បានផ្អាកកាត' : 'Card Revoked'
       )

@@ -20,7 +20,7 @@ interface IdCardData {
   issued_at_kh?: string
   expires_at?: string
   expires_at_kh?: string
-  status: 'active' | 'revoked' | 'pending'
+  status: 'active' | 'revoked' | 'pending' | 'expired'
   is_official: boolean
   institution: string
   institution_kh: string

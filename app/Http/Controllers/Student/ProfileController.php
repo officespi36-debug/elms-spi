@@ -809,7 +809,7 @@ class ProfileController extends Controller
     /**
      * Resolve academic term and year without duplicating year labels.
      */
-    protected function resolveAcademicTerm($user): array
+    protected function resolveAcademicTerm(User $user): array
     {
         $activeYear = AcademicYear::where('is_active', true)
             ->orWhere('status', 'active')

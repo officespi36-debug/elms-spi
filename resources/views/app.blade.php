@@ -38,7 +38,7 @@
             }
 
             try {
-                var currentDeployBuild = 'v_20261120_capsule_tabs_idcard_v5';
+                var currentDeployBuild = 'v_20261120_ts_and_intelephense_fixes_v6';
                 if (localStorage.getItem('spi_app_deploy') !== currentDeployBuild) {
                     localStorage.setItem('spi_app_deploy', currentDeployBuild);
                     if ('caches' in window) {
