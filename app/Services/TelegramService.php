@@ -754,6 +754,7 @@ class TelegramService
         $msg .= "⚠️ <i>សូមនិស្សិតទាំងអស់រួសរាន់បញ្ចប់ និងដាក់ស្នើឱ្យបានទាន់ពេលវេលា!</i>\n";
         $msg .= "🏛️ <i>Saint Paul Institute</i>";
 
+        return $this->sendMessage($msg, 'HTML', $this->chatId);
     }
 }
 
