@@ -723,7 +723,9 @@ const verifyEmailOtp = async () => {
         authSuccess.value = true
         authLoadingTitle.value = currentLang.value === 'km' ? 'ផ្ទៀងផ្ទាត់ជោគជ័យ!' : 'OTP Verified Successfully!'
         authLoadingSubtitle.value = currentLang.value === 'km' ? 'សូមរង់ចាំមួយភ្លែត កំពុងនាំអ្នកទៅកាន់ Dashboard...' : 'Redirecting to your dashboard...'
-        window.location.assign('/dashboard')
+        setTimeout(() => {
+          window.location.assign('/dashboard')
+        }, 2600)
         return
       }
       data = {
@@ -740,7 +742,7 @@ const verifyEmailOtp = async () => {
       }
       setTimeout(() => {
         window.location.assign(data.redirect || '/student/dashboard')
-      }, 1000)
+      }, 2600)
     } else {
       isAuthenticating.value = false
       authSuccess.value = false
@@ -863,7 +865,9 @@ const verifyPhoneOtp = async () => {
         authSuccess.value = true
         authLoadingTitle.value = currentLang.value === 'km' ? 'ផ្ទៀងផ្ទាត់ជោគជ័យ!' : 'Phone OTP Verified Successfully!'
         authLoadingSubtitle.value = currentLang.value === 'km' ? 'សូមរង់ចាំមួយភ្លែត កំពុងនាំអ្នកទៅកាន់ Dashboard...' : 'Redirecting to your dashboard...'
-        window.location.assign('/dashboard')
+        setTimeout(() => {
+          window.location.assign('/dashboard')
+        }, 2600)
         return
       }
       data = {
@@ -880,7 +884,7 @@ const verifyPhoneOtp = async () => {
       }
       setTimeout(() => {
         window.location.assign(data.redirect || '/student/dashboard')
-      }, 1000)
+      }, 2600)
     } else {
       isAuthenticating.value = false
       authSuccess.value = false
@@ -1417,7 +1421,7 @@ const handleTelegramAuthSuccess = async (tgUser: any) => {
       authLoadingSubtitle.value = currentLang.value === 'km' ? 'កំពុងនាំអ្នកទៅកាន់ Dashboard...' : 'Redirecting to Dashboard...'
       setTimeout(() => {
         window.location.href = data.redirect || '/student/dashboard'
-      }, 1000)
+      }, 2600)
     } else {
       isAuthenticating.value = false
       authSuccess.value = false
