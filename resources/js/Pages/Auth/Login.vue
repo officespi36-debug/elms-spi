@@ -294,7 +294,7 @@ const authMode = ref<'password' | 'otp' | 'phone_otp'>('password')
 const otpStep = ref<1 | 2>(1)
 const otpEmail = ref('')
 const otpPhone = ref('')
-const otpInputType = ref<'phone' | 'chat_id'>('phone')
+const otpInputType = ref<'chat_id'>('chat_id')
 
 const phoneOtpStep = ref<1 | 2>(1)
 const otpCode = ref('')
@@ -341,7 +341,7 @@ const pageSubtitle = computed(() => {
       }
       return currentLang.value === 'km' ? 'លេខកូដ ៦ ខ្ទង់ត្រូវបានផ្ញើចូលទៅកាន់ Telegram របស់អ្នក' : 'A 6-digit code has been sent to your Telegram'
     }
-    return currentLang.value === 'km' ? 'សូមបញ្ចូលលេខទូរស័ព្ទរបស់អ្នកដើម្បីទទួលលេខកូដ OTP' : 'Enter your phone number to receive an OTP code'
+    return currentLang.value === 'km' ? 'សូមបញ្ចូល Telegram Chat ID របស់អ្នកដើម្បីទទួលលេខកូដ OTP' : 'Enter your Telegram Chat ID to receive an OTP code'
   }
   return t('login_subtitle_manus', 'សូមជ្រើសរើសវិធីសាស្ត្រដើម្បីចូលប្រើគណនីរបស់អ្នក')
 })
@@ -1810,19 +1810,17 @@ onUnmounted(() => {
               </span>
             </button>
 
-            <!-- 4. Phone Number Button -->
+            <!-- 4. Telegram OTP Button -->
             <button
               type="button"
               :disabled="isAuthenticating"
-              @click="recordLoginMethod('phone'); authMode = 'phone_otp'; phoneOtpStep = 1; otpPhone = form.email && /^[0-9+ ]+$/.test(form.email) ? form.email : ''; otpCode = ''"
+              @click="recordLoginMethod('phone'); authMode = 'phone_otp'; phoneOtpStep = 1; otpPhone = ''; otpCode = ''"
               class="border-beam-btn w-full h-11 px-4 rounded-xl text-zinc-900 dark:text-white text-xs sm:text-sm font-medium relative flex items-center justify-center transition-all duration-150 active:scale-[0.99] cursor-pointer disabled:opacity-50 select-none shadow-xs"
               :class="{ 'z-[5]': mostUsedMethod === 'phone' }"
               style="animation-delay: -3s;"
             >
-              <svg class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 shrink-0 text-emerald-600 dark:text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-              </svg>
-              <span class="text-center font-medium">{{ t('login_btn_continue_phone', 'បន្តតាមរយៈ លេខទូរសព្ទ') }}</span>
+              <i class="pi pi-telegram absolute left-4 top-1/2 -translate-y-1/2 shrink-0 text-sky-500 text-base"></i>
+              <span class="text-center font-medium">{{ currentLang === 'km' ? 'បន្តតាមរយៈ Telegram' : 'Continue with Telegram' }}</span>
               <span
                 v-if="mostUsedMethod === 'phone'"
                 class="absolute top-0 -translate-y-1/2 right-4 z-10 text-[11px] sm:text-[11.5px] font-bold px-3 py-0.5 sm:py-1 rounded-full bg-gradient-to-r from-[#e84e27] via-[#ea580c] to-[#f7931e] text-white shadow-[0_2px_8px_rgba(234,88,12,0.4)] animate-fade-in tracking-wide select-none leading-none flex items-center justify-center pointer-events-none"
@@ -2306,9 +2304,9 @@ onUnmounted(() => {
             <button
               type="button"
               @click="authMode = 'password'; step = 'identifier'"
-              class="group text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400 flex items-center gap-1 cursor-pointer transition-colors"
+              class="group text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-sky-600 dark:hover:text-sky-400 flex items-center gap-1 cursor-pointer transition-colors"
             >
-              <svg class="w-3.5 h-3.5 transition-transform duration-150 group-hover:-translate-x-0.5 text-zinc-500 group-hover:text-emerald-600 dark:group-hover:text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <svg class="w-3.5 h-3.5 transition-transform duration-150 group-hover:-translate-x-0.5 text-zinc-500 group-hover:text-sky-600 dark:group-hover:text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="m15 18-6-6 6-6"/>
               </svg>
               <span>{{ currentLang === 'km' ? 'ត្រឡប់ក្រោយ' : 'Back' }}</span>
@@ -2318,8 +2316,8 @@ onUnmounted(() => {
                 :class="[
                   'w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-all',
                   phoneOtpStep === 1
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'bg-emerald-600 text-white'
+                    ? 'bg-sky-600 text-white shadow-xs'
+                    : 'bg-sky-600 text-white'
                 ]"
               >
                 <i v-if="phoneOtpStep > 1" class="pi pi-check text-[9px]"></i>
@@ -2330,7 +2328,7 @@ onUnmounted(() => {
                 :class="[
                   'w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-all',
                   phoneOtpStep === 2
-                    ? 'bg-emerald-600 text-white shadow-xs'
+                    ? 'bg-sky-600 text-white shadow-xs'
                     : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 border border-zinc-200 dark:border-zinc-700'
                 ]"
               >
@@ -2340,70 +2338,8 @@ onUnmounted(() => {
           </div>
 
           <div v-if="phoneOtpStep === 1" class="space-y-3.5">
-            <!-- Mode Switch: Phone vs Telegram Chat ID -->
-            <div class="grid grid-cols-2 gap-1 p-1 bg-zinc-100 dark:bg-zinc-800/80 rounded-xl text-xs font-semibold select-none">
-              <button
-                type="button"
-                @click="otpInputType = 'phone'"
-                :class="[
-                  'py-1.5 px-2 rounded-lg flex items-center justify-center gap-1.5 transition cursor-pointer',
-                  otpInputType === 'phone'
-                    ? 'bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400 shadow-2xs'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
-                ]"
-              >
-                <i class="pi pi-phone text-xs"></i>
-                <span>{{ currentLang === 'km' ? 'លេខទូរស័ព្ទ' : 'Phone Number' }}</span>
-              </button>
-              <button
-                type="button"
-                @click="otpInputType = 'chat_id'"
-                :class="[
-                  'py-1.5 px-2 rounded-lg flex items-center justify-center gap-1.5 transition cursor-pointer',
-                  otpInputType === 'chat_id'
-                    ? 'bg-white dark:bg-zinc-900 text-sky-600 dark:text-sky-400 shadow-2xs'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
-                ]"
-              >
-                <i class="pi pi-telegram text-xs"></i>
-                <span>{{ currentLang === 'km' ? 'Telegram Chat ID' : 'Telegram ID' }}</span>
-              </button>
-            </div>
-
-            <!-- Phone Input Mode -->
-            <div v-if="otpInputType === 'phone'" class="space-y-1.5">
-              <label class="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                {{ currentLang === 'km' ? 'លេខទូរស័ព្ទ' : 'Phone Number' }}
-              </label>
-
-              <div class="relative w-full">
-                <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-600 dark:text-emerald-400 pointer-events-none">
-                  <i class="pi pi-phone text-sm"></i>
-                </div>
-
-                <input
-                  v-model="otpPhone"
-                  type="tel"
-                  required
-                  :placeholder="currentLang === 'km' ? 'បញ្ចូលលេខទូរស័ព្ទ (ឧ. 088 801 0546)' : 'Enter phone number (e.g. 088 801 0546)'"
-                  class="w-full h-11 pl-10 pr-9 bg-white dark:bg-[#121214] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 focus:border-emerald-600 dark:focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 text-xs sm:text-sm rounded-xl outline-none shadow-2xs font-mono transition-all font-medium"
-                  @keydown.enter.prevent="sendPhoneOtp()"
-                />
-
-                <button
-                  v-if="otpPhone"
-                  type="button"
-                  @click="otpPhone = ''"
-                  class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 flex items-center justify-center text-[10px] cursor-pointer transition-colors z-10"
-                  title="Clear"
-                >
-                  <i class="pi pi-times"></i>
-                </button>
-              </div>
-            </div>
-
-            <!-- Telegram Chat ID Mode -->
-            <div v-else class="space-y-1.5">
+            <!-- Telegram Chat ID Input -->
+            <div class="space-y-1.5">
               <label class="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                 {{ currentLang === 'km' ? 'Telegram Chat ID របស់អ្នក' : 'Your Telegram Chat ID' }}
               </label>
@@ -2494,7 +2430,7 @@ onUnmounted(() => {
               <button
                 type="button"
                 @click="phoneOtpStep = 1; clearOtpDigits()"
-                class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer ml-2 shrink-0"
+                class="text-xs font-semibold text-sky-600 dark:text-sky-400 hover:underline cursor-pointer ml-2 shrink-0"
               >
                 {{ currentLang === 'km' ? 'កែប្រែ' : 'Edit' }}
               </button>
