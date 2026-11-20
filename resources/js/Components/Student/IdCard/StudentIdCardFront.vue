@@ -42,22 +42,22 @@ const props = defineProps<{
 
 <template>
   <div
-    class="card-3d-face card-3d-front absolute inset-0 w-full h-full rounded-2xl p-4 sm:p-4.5 bg-[#071638] border border-blue-500/25 shadow-2xl text-white overflow-hidden flex flex-col justify-between ring-1 ring-white/10 select-none"
+    class="card-3d-face card-3d-front absolute inset-0 w-full h-full rounded-2xl p-3.5 sm:p-4 pb-2.5 sm:pb-3 bg-gradient-to-br from-[#0a1a3e] via-[#071638] to-[#040e26] border border-blue-500/25 shadow-2xl text-white overflow-hidden flex flex-col justify-between ring-1 ring-white/10 select-none"
   >
     <!-- Background Watermarks & Subtle Geometric Mesh -->
     <img
       :src="cardLogoUrl || '/images/logo.png'"
       alt=""
-      class="absolute right-[-24px] -bottom-10 w-56 h-56 object-contain rounded-full opacity-[0.07] pointer-events-none select-none blur-[0.4px]"
+      class="absolute right-[-24px] -bottom-10 w-56 h-56 object-contain rounded-full opacity-[0.06] pointer-events-none select-none blur-[0.4px]"
     />
     <!-- Subtle geometric grid pattern -->
-    <div class="absolute inset-0 bg-[radial-gradient(#16C8F5_1px,transparent_1px)] [background-size:18px_18px] opacity-[0.06] pointer-events-none"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(#16C8F5_1px,transparent_1px)] [background-size:18px_18px] opacity-[0.04] pointer-events-none"></div>
     <!-- Soft radial ambient glows -->
-    <div class="absolute -top-20 -right-20 w-56 h-56 bg-gradient-to-br from-[#1459D9]/25 via-[#7045F5]/15 to-transparent rounded-full blur-2xl pointer-events-none"></div>
-    <div class="absolute -bottom-16 -left-16 w-52 h-52 bg-gradient-to-tr from-[#16C8F5]/15 via-[#1459D9]/10 to-transparent rounded-full blur-2xl pointer-events-none"></div>
+    <div class="absolute -top-20 -right-20 w-56 h-56 bg-gradient-to-br from-[#1459D9]/20 via-[#7045F5]/10 to-transparent rounded-full blur-2xl pointer-events-none"></div>
+    <div class="absolute -bottom-16 -left-16 w-52 h-52 bg-gradient-to-tr from-[#16C8F5]/12 via-[#1459D9]/8 to-transparent rounded-full blur-2xl pointer-events-none"></div>
 
     <!-- Header: SPI Logo, Names, and STUDENT ID CARD Badge -->
-    <div class="flex items-center justify-between border-b border-white/10 pb-2 relative z-10">
+    <div class="flex items-center justify-between border-b border-white/10 pb-1.5 relative z-10">
       <div class="flex items-center gap-2.5 min-w-0">
         <div class="w-9 h-9 sm:w-9.5 sm:h-9.5 rounded-full overflow-hidden shadow-md flex items-center justify-center shrink-0 ring-1.5 ring-[#16C8F5]/50 bg-[#0a1b42]">
           <img :src="cardLogoUrl || '/images/logo.png'" alt="SPI Logo" class="w-full h-full object-cover" />
@@ -91,7 +91,7 @@ const props = defineProps<{
       
       <!-- Left: Student Portrait with Rounded Corners & Subtle Ring -->
       <div class="relative shrink-0">
-        <div class="w-19 h-19 sm:w-21 sm:h-21 rounded-xl overflow-hidden bg-[#0c1e4a] ring-2 ring-[#16C8F5]/50 shadow-xl flex items-center justify-center">
+        <div class="w-18 h-18 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-[#0c1e4a] ring-2 ring-[#16C8F5]/50 shadow-xl flex items-center justify-center">
           <img
             v-if="avatarPreview"
             :src="avatarPreview"
@@ -105,7 +105,7 @@ const props = defineProps<{
         <!-- Live Verified Dot -->
         <span
           v-if="idCard.is_official"
-          class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-[#071638] shadow-md flex items-center justify-center text-white text-[10px]"
+          class="absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full bg-emerald-500 border-2 border-[#071638] shadow-md flex items-center justify-center text-white text-[9px]"
           title="Official University Verified"
         >
           ✓
@@ -113,11 +113,11 @@ const props = defineProps<{
       </div>
 
       <!-- Center: Student Names, ID Badge, Major, Academic Year, and Status -->
-      <div class="space-y-1 min-w-0 flex-1">
+      <div class="space-y-0.5 sm:space-y-1 min-w-0 flex-1">
         
         <!-- Name (English large bold + Khmer subtitle) -->
         <div class="leading-tight">
-          <h2 class="text-sm sm:text-base font-black text-white tracking-wide truncate uppercase drop-shadow-xs font-sans">
+          <h2 class="text-sm sm:text-[15px] font-black text-white tracking-wide truncate uppercase drop-shadow-xs font-sans">
             {{ profile.name }}
           </h2>
           <p v-if="profile.name_kh" class="text-[11px] sm:text-xs font-semibold text-slate-300 truncate font-khmer pt-0.5 leading-normal">
@@ -139,7 +139,7 @@ const props = defineProps<{
         <!-- Major & Faculty -->
         <div class="space-y-0.5">
           <p
-            class="text-[10.5px] sm:text-[11px] text-slate-100 font-semibold truncate flex items-center gap-1"
+            class="text-[10px] sm:text-[10.5px] text-slate-100 font-semibold truncate flex items-center gap-1"
             :class="currentLang === 'km' ? 'font-khmer' : 'font-sans'"
           >
             <span class="text-[#16C8F5] text-[9px]">●</span>
@@ -147,7 +147,7 @@ const props = defineProps<{
           </p>
           <p
             v-if="academic.faculty || academic.faculty_kh"
-            class="text-[9px] text-slate-300/85 truncate pl-2.5 font-medium"
+            class="text-[8.5px] sm:text-[9px] text-slate-300/85 truncate pl-2.5 font-medium"
             :class="currentLang === 'km' ? 'font-khmer' : 'font-sans'"
           >
             {{ currentLang === 'km' ? (academic.faculty_kh || academic.faculty) : academic.faculty }}
@@ -157,7 +157,7 @@ const props = defineProps<{
         <!-- Academic Year / Status Pill -->
         <div class="flex items-center gap-2 pt-0.5">
           <span
-            class="text-[9px] sm:text-[9.5px] font-bold text-[#16C8F5] truncate"
+            class="text-[8.5px] sm:text-[9px] font-bold text-[#16C8F5] truncate"
             :class="currentLang === 'km' ? 'font-khmer' : 'font-sans'"
           >
             {{ currentLang === 'km' ? (academic.term_kh || academic.term) : academic.term }}
@@ -191,63 +191,43 @@ const props = defineProps<{
 
     </div>
 
-    <!-- Bottom Decorative Gradient Wave & Footer Row -->
-    <div class="relative pt-2 border-t border-white/10 z-10">
-      
-      <!-- Subtle Blue-to-Purple Decorative Wave Background SVG -->
-      <div class="absolute inset-x-0 bottom-0 h-6 pointer-events-none opacity-40 overflow-hidden">
-        <svg viewBox="0 0 500 60" preserveAspectRatio="none" class="w-full h-full">
-          <path
-            d="M0,25 C150,55 350,5 500,30 L500,60 L0,60 Z"
-            fill="url(#frontWaveGrad)"
-          ></path>
-          <defs>
-            <linearGradient id="frontWaveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#1459D9" stop-opacity="0.8" />
-              <stop offset="50%" stop-color="#7045F5" stop-opacity="0.8" />
-              <stop offset="100%" stop-color="#16C8F5" stop-opacity="0.8" />
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
-
-      <!-- Footer: Valid From, Card Number, and Valid Thru -->
-      <div class="flex items-center justify-between gap-1.5 sm:gap-2 text-[9px] sm:text-[10px] text-slate-100 whitespace-nowrap relative z-10">
+    <!-- Footer: Valid From, Card Number, and Valid Thru -->
+    <div class="relative pt-2 pb-1 border-t border-white/10 z-10">
+      <div class="flex items-center justify-between gap-1.5 sm:gap-2 text-[8.5px] sm:text-[9.5px] text-slate-100 whitespace-nowrap relative z-10">
         
         <!-- Valid From Date -->
         <div class="flex items-center gap-1 shrink-0">
           <span
-            class="text-slate-400 text-[8px] sm:text-[9px]"
+            class="text-slate-400 text-[8px] sm:text-[8.5px]"
             :class="currentLang === 'km' ? 'font-khmer' : 'uppercase font-sans'"
           >
             {{ currentLang === 'km' ? 'ថ្ងៃចេញ:' : 'Valid From:' }}
           </span>
-          <span class="font-medium text-slate-200" :class="currentLang === 'km' ? 'font-khmer' : 'font-sans'">
+          <span class="font-medium text-slate-200" :class="currentLang === 'km' ? 'font-khmer leading-relaxed' : 'font-sans'">
             {{ currentLang === 'km' ? (idCard.issued_at_kh || idCard.issued_at) : idCard.issued_at }}
           </span>
         </div>
 
         <!-- Unique Card Number -->
-        <div class="flex items-center gap-1 shrink-0 font-mono text-[9px] sm:text-[9.5px] text-slate-200 bg-[#0c1e4a]/80 px-2 py-0.5 rounded border border-[#16C8F5]/30 shadow-xs">
-          <span class="text-[#16C8F5] text-[8px] font-sans font-bold">CARD:</span>
+        <div class="flex items-center gap-1 shrink-0 font-mono text-[8.5px] sm:text-[9px] text-slate-200 bg-[#0c1e4a]/90 px-2 py-0.5 rounded-md border border-[#16C8F5]/35 shadow-xs">
+          <span class="text-[#16C8F5] text-[7.5px] sm:text-[8px] font-sans font-bold">CARD:</span>
           <span class="font-bold text-white tracking-wide">{{ idCard.card_no }}</span>
         </div>
 
         <!-- Valid Until Date -->
         <div class="flex items-center gap-1 shrink-0">
           <span
-            class="text-slate-400 text-[8px] sm:text-[9px]"
+            class="text-slate-400 text-[8px] sm:text-[8.5px]"
             :class="currentLang === 'km' ? 'font-khmer' : 'uppercase font-sans'"
           >
             {{ currentLang === 'km' ? 'សុពលភាព:' : 'Valid Thru:' }}
           </span>
-          <span class="font-bold text-[#FFD54A]" :class="currentLang === 'km' ? 'font-khmer' : 'font-sans'">
+          <span class="font-bold text-[#FFD54A]" :class="currentLang === 'km' ? 'font-khmer leading-relaxed' : 'font-sans'">
             {{ currentLang === 'km' ? (idCard.expires_at_kh || idCard.expires_at) : idCard.expires_at }}
           </span>
         </div>
 
       </div>
-
     </div>
 
   </div>

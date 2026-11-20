@@ -39,15 +39,15 @@ const props = defineProps<{
 
 <template>
   <div
-    class="card-3d-face card-3d-back absolute inset-0 w-full h-full rounded-2xl p-4 sm:p-4.5 bg-[#071638] border border-blue-500/25 shadow-2xl text-white overflow-hidden flex flex-col justify-between ring-1 ring-white/10 select-none"
+    class="card-3d-face card-3d-back absolute inset-0 w-full h-full rounded-2xl p-3.5 sm:p-4 pb-2.5 sm:pb-3 bg-gradient-to-br from-[#0a1a3e] via-[#071638] to-[#040e26] border border-blue-500/25 shadow-2xl text-white overflow-hidden flex flex-col justify-between ring-1 ring-white/10 select-none"
   >
     <!-- Background Watermarks & Subtle Geometric Mesh -->
     <img
       :src="cardLogoUrl || '/images/logo.png'"
       alt=""
-      class="absolute left-[-24px] -bottom-10 w-56 h-56 object-contain rounded-full opacity-[0.06] pointer-events-none select-none blur-[0.4px]"
+      class="absolute left-[-24px] -bottom-10 w-56 h-56 object-contain rounded-full opacity-[0.05] pointer-events-none select-none blur-[0.4px]"
     />
-    <div class="absolute inset-0 bg-[radial-gradient(#16C8F5_1px,transparent_1px)] [background-size:18px_18px] opacity-[0.05] pointer-events-none"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(#16C8F5_1px,transparent_1px)] [background-size:18px_18px] opacity-[0.04] pointer-events-none"></div>
 
     <!-- Top: Magnetic Security Stripe -->
     <div class="w-full h-7 bg-gradient-to-r from-[#030816] via-[#0f172a] to-[#030816] rounded-lg border border-slate-800 -mx-0.5 flex items-center justify-between px-3 shadow-inner relative z-10">
@@ -70,9 +70,9 @@ const props = defineProps<{
             v-if="qrDataUrl"
             :src="qrDataUrl"
             alt="Official Student Verification QR"
-            class="w-[74px] h-[74px] sm:w-[80px] sm:h-[80px] rounded-md object-contain"
+            class="w-[68px] h-[68px] sm:w-[74px] sm:h-[74px] rounded-md object-contain"
           />
-          <div v-else class="w-[74px] h-[74px] flex items-center justify-center bg-slate-100 text-[10px] text-slate-500 font-mono">
+          <div v-else class="w-[68px] h-[68px] flex items-center justify-center bg-slate-100 text-[10px] text-slate-500 font-mono">
             QR
           </div>
         </div>
@@ -85,7 +85,7 @@ const props = defineProps<{
       </div>
 
       <!-- Right Section: Student Name, ID, Major, Card No, Signature & Disclaimer -->
-      <div class="space-y-1.5 text-[9px] sm:text-[9.5px] text-slate-300 max-w-[245px] leading-relaxed flex-1">
+      <div class="space-y-1 text-[8.5px] sm:text-[9px] text-slate-300 max-w-[245px] leading-relaxed flex-1">
         
         <!-- Student Identity Row -->
         <div>
@@ -112,7 +112,7 @@ const props = defineProps<{
 
         <!-- Official Terms of Use & Disclaimer -->
         <p
-          class="text-[8px] sm:text-[8.5px] text-slate-300 leading-relaxed"
+          class="text-[8px] sm:text-[8.5px] text-slate-300 leading-snug"
           :class="currentLang === 'km' ? 'font-khmer' : 'font-sans'"
         >
           {{ currentLang === 'km' ? 'កាតនេះជាកម្មសិទ្ធិរបស់វិទ្យាស្ថាន សន្តប៉ូល។ ប្រសិនបើរើសបាន សូមមេត្តាប្រគល់ជូនការិយាល័យសិក្សា ឬទាក់ទងមកវិទ្យាស្ថាន។' : 'This card is issued by Saint Paul Institute. If found, please return to the Academic Registry Office.' }}
@@ -137,27 +137,9 @@ const props = defineProps<{
 
     </div>
 
-    <!-- Footer: Website, Verified by SPI, and Card Validity Status with subtle bottom wave -->
-    <div class="relative pt-1.5 border-t border-white/10 z-10">
-      
-      <!-- Subtle Blue-to-Purple Wave on Back -->
-      <div class="absolute inset-x-0 bottom-0 h-5 pointer-events-none opacity-30 overflow-hidden">
-        <svg viewBox="0 0 500 50" preserveAspectRatio="none" class="w-full h-full">
-          <path
-            d="M0,20 C180,45 320,5 500,25 L500,50 L0,50 Z"
-            fill="url(#backWaveGrad)"
-          ></path>
-          <defs>
-            <linearGradient id="backWaveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#1459D9" />
-              <stop offset="50%" stop-color="#7045F5" />
-              <stop offset="100%" stop-color="#16C8F5" />
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
-
-      <div class="flex items-center justify-between text-[8.5px] sm:text-[9px] text-slate-300 relative z-10">
+    <!-- Footer: Website, Verified by SPI, and Card Validity Status -->
+    <div class="relative pt-2 pb-1 border-t border-white/10 z-10">
+      <div class="flex items-center justify-between text-[8.5px] sm:text-[9.5px] text-slate-300 relative z-10">
         <!-- Website -->
         <a
           href="https://spilms.tech"
@@ -169,27 +151,26 @@ const props = defineProps<{
         </a>
 
         <!-- Verified by SPI -->
-        <div class="flex items-center gap-1 text-slate-300">
-          <svg class="w-3 h-3 text-[#16C8F5]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <div class="flex items-center gap-1.5 text-slate-300">
+          <svg class="w-3.5 h-3.5 text-[#16C8F5]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
           </svg>
-          <span class="font-bold" :class="currentLang === 'km' ? 'font-khmer' : 'font-sans'">
+          <span class="font-bold" :class="currentLang === 'km' ? 'font-khmer leading-relaxed' : 'font-sans'">
             {{ currentLang === 'km' ? 'បញ្ជាក់ដោយ SPI' : 'Verified by SPI' }}
           </span>
         </div>
 
         <!-- Card validity status -->
-        <div class="flex items-center gap-1">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+        <div class="flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]"></span>
           <span
             class="font-bold text-emerald-300"
-            :class="currentLang === 'km' ? 'font-khmer' : 'font-mono uppercase'"
+            :class="currentLang === 'km' ? 'font-khmer leading-relaxed' : 'font-mono uppercase'"
           >
             {{ currentLang === 'km' ? 'កាតផ្លូវការ' : 'ACTIVE' }}
           </span>
         </div>
       </div>
-
     </div>
 
   </div>
