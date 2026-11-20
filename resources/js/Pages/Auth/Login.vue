@@ -296,29 +296,6 @@ const otpEmail = ref('')
 const otpPhone = ref('')
 const otpInputType = ref<'phone' | 'chat_id'>('phone')
 
-import { WORLD_COUNTRIES, type CountryItem } from '@/data/countries'
-
-const phoneCountries: CountryItem[] = WORLD_COUNTRIES
-const selectedPhoneCountry = ref<CountryItem>(phoneCountries[0])
-const isPhoneCountryDropdownOpen = ref(false)
-const phoneCountrySearch = ref('')
-
-const filteredPhoneCountries = computed(() => {
-  const q = phoneCountrySearch.value.trim().toLowerCase()
-  if (!q) return phoneCountries
-  return phoneCountries.filter(c =>
-    c.name.toLowerCase().includes(q) ||
-    (c.nameKm && c.nameKm.toLowerCase().includes(q)) ||
-    c.dialCode.includes(q) ||
-    c.code.toLowerCase().includes(q)
-  )
-})
-
-const selectPhoneCountry = (c: CountryItem) => {
-  selectedPhoneCountry.value = c
-  isPhoneCountryDropdownOpen.value = false
-  phoneCountrySearch.value = ''
-}
 const phoneOtpStep = ref<1 | 2>(1)
 const otpCode = ref('')
 const isOtpSending = ref(false)
@@ -576,12 +553,15 @@ const fullFormattedPhone = computed(() => {
   if (otpInputType.value === 'chat_id') {
     return otpPhone.value.trim().replace(/[^0-9\-]/g, '')
   }
-  const clean = otpPhone.value.trim().replace(/[^0-9]/g, '')
-  if (!clean) return ''
-  const dial = selectedPhoneCountry.value.dialCode.replace('+', '')
-  if (clean.startsWith(dial)) return '+' + clean
-  if (clean.startsWith('0')) return '+' + dial + clean.substring(1)
-  return '+' + dial + clean
+  let raw = otpPhone.value.trim()
+  if (!raw) return ''
+  if (raw.startsWith('+')) {
+    return '+' + raw.replace(/[^0-9]/g, '')
+  }
+  const clean = raw.replace(/[^0-9]/g, '')
+  if (clean.startsWith('855')) return '+' + clean
+  if (clean.startsWith('0')) return '+855' + clean.substring(1)
+  return '+855' + clean
 })
 
 const formattedDisplayPhone = computed(() => {
@@ -589,11 +569,7 @@ const formattedDisplayPhone = computed(() => {
     const raw = otpPhone.value.trim()
     return 'Telegram ID: ' + (raw || '-')
   }
-  const clean = otpPhone.value.replace(/[^0-9]/g, '')
-  const dial = selectedPhoneCountry.value.dialCode
-  const dialDigits = dial.replace('+', '')
-  const withoutZero = clean.replace(new RegExp('^' + dialDigits), '').replace(/^0/, '')
-  return dial + ' ' + (withoutZero || clean)
+  return otpPhone.value.trim() || '-'
 })
 
 const startOtpTimer = (seconds = 300) => {
@@ -2401,43 +2377,16 @@ onUnmounted(() => {
               </label>
 
               <div class="relative w-full">
-                <!-- Click Outside Backdrop for Dropdown -->
-                <div
-                  v-if="isPhoneCountryDropdownOpen"
-                  class="fixed inset-0 z-20"
-                  @click="isPhoneCountryDropdownOpen = false"
-                ></div>
-
-                <!-- Interactive Country Selector Trigger Button -->
-                <button
-                  type="button"
-                  @click="isPhoneCountryDropdownOpen = !isPhoneCountryDropdownOpen"
-                  class="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5 py-1 px-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800/80 text-xs font-bold text-zinc-700 dark:text-zinc-300 transition-colors cursor-pointer z-30 select-none"
-                  :title="selectedPhoneCountry.name"
-                >
-                  <!-- Real High-Res Country Flag from FlagCDN -->
-                  <span class="relative w-5 h-3.5 rounded-xs overflow-hidden shadow-2xs border border-zinc-200/80 dark:border-zinc-700/80 shrink-0 inline-flex items-center justify-center bg-zinc-100 dark:bg-zinc-800">
-                    <img
-                      :src="`https://flagcdn.com/w40/${selectedPhoneCountry.code.toLowerCase()}.png`"
-                      :alt="selectedPhoneCountry.name"
-                      class="w-full h-full object-cover"
-                      loading="lazy"
-                    />
-                  </span>
-                  <span class="font-mono text-xs">{{ selectedPhoneCountry.dialCode }}</span>
-                  <i :class="['pi text-[9px] text-zinc-400 transition-transform duration-200', isPhoneCountryDropdownOpen ? 'pi-chevron-up' : 'pi-chevron-down']"></i>
-                  <span class="text-zinc-300 dark:text-zinc-700 ml-0.5 pointer-events-none">|</span>
-                </button>
+                <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-600 dark:text-emerald-400 pointer-events-none">
+                  <i class="pi pi-phone text-sm"></i>
+                </div>
 
                 <input
                   v-model="otpPhone"
                   type="tel"
                   required
-                  :placeholder="selectedPhoneCountry.code === 'KH' ? '12 345 678' : 'Phone number'"
-                  :class="[
-                    'w-full h-11 pr-9 bg-white dark:bg-[#121214] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 focus:border-emerald-600 dark:focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 text-xs sm:text-sm rounded-xl outline-none shadow-2xs font-mono transition-all font-medium',
-                    selectedPhoneCountry.dialCode.length > 4 ? 'pl-32' : 'pl-28'
-                  ]"
+                  :placeholder="currentLang === 'km' ? 'បញ្ចូលលេខទូរស័ព្ទ (ឧ. 088 801 0546)' : 'Enter phone number (e.g. 088 801 0546)'"
+                  class="w-full h-11 pl-10 pr-9 bg-white dark:bg-[#121214] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 focus:border-emerald-600 dark:focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 text-xs sm:text-sm rounded-xl outline-none shadow-2xs font-mono transition-all font-medium"
                   @keydown.enter.prevent="sendPhoneOtp()"
                 />
 
@@ -2450,56 +2399,6 @@ onUnmounted(() => {
                 >
                   <i class="pi pi-times"></i>
                 </button>
-
-                <!-- Searchable All Countries Dropdown Menu -->
-                <div
-                  v-if="isPhoneCountryDropdownOpen"
-                  class="absolute left-0 right-0 top-full mt-1.5 z-30 bg-white dark:bg-[#18181b] border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl overflow-hidden animate-fade-in"
-                >
-                  <div class="p-2 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-[#121214]">
-                    <div class="relative flex items-center">
-                      <i class="pi pi-search absolute left-2.5 text-xs text-zinc-400"></i>
-                      <input
-                        v-model="phoneCountrySearch"
-                        type="text"
-                        :placeholder="currentLang === 'km' ? 'ស្វែងរកប្រទេស ឬកូដ...' : 'Search country or code...'"
-                        autofocus
-                        class="w-full h-8 pl-8 pr-3 bg-white dark:bg-[#18181b] text-xs text-zinc-900 dark:text-white rounded-lg border border-zinc-200 dark:border-zinc-700 focus:outline-none focus:border-emerald-500"
-                      />
-                    </div>
-                  </div>
-
-                  <div class="max-h-48 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-800/60 custom-scrollbar">
-                    <button
-                      v-for="c in filteredPhoneCountries"
-                      :key="c.code"
-                      type="button"
-                      @click="selectPhoneCountry(c)"
-                      :class="[
-                        'w-full px-3 py-2 text-xs flex items-center justify-between text-left hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition cursor-pointer',
-                        selectedPhoneCountry.code === c.code ? 'text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-50/50 dark:bg-emerald-950/30' : 'text-zinc-700 dark:text-zinc-300'
-                      ]"
-                    >
-                      <div class="flex items-center gap-2.5 truncate">
-                        <span class="relative w-5 h-3.5 rounded-xs overflow-hidden shadow-2xs border border-zinc-200/80 dark:border-zinc-700/80 shrink-0 inline-flex items-center justify-center bg-zinc-100 dark:bg-zinc-800">
-                          <img
-                            :src="`https://flagcdn.com/w40/${c.code.toLowerCase()}.png`"
-                            :alt="c.name"
-                            class="w-full h-full object-cover"
-                            loading="lazy"
-                          />
-                        </span>
-                        <span class="truncate">
-                          {{ currentLang === 'km' && c.nameKm ? `${c.nameKm} (${c.name})` : c.name }}
-                        </span>
-                      </div>
-                      <span class="text-xs font-mono text-zinc-400 shrink-0 ml-2">{{ c.dialCode }}</span>
-                    </button>
-                    <div v-if="filteredPhoneCountries.length === 0" class="p-3 text-center text-xs text-zinc-400">
-                      {{ currentLang === 'km' ? 'រកមិនឃើញប្រទេសទេ' : 'No country found' }}
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
 
