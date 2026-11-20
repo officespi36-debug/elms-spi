@@ -1263,36 +1263,133 @@ onUnmounted(() => {
 
       </div>
 
-      <!-- EMPTY STATE -->
+      <!-- EMPTY STATE (Aesthetic Modern Redesign with Custom SVG Illustration) -->
       <div
         v-else
-        class="bg-white dark:bg-slate-900/40 border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-4 shadow-xs"
+        class="relative overflow-hidden bg-white/90 dark:bg-[#0a1226]/85 backdrop-blur-xl border border-slate-200/90 dark:border-purple-500/25 rounded-3xl p-8 sm:p-14 text-center space-y-6 shadow-xl dark:shadow-2xl dark:shadow-black/60 transition-all duration-300"
       >
-        <div class="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800/60 flex items-center justify-center mx-auto text-2xl">
-          🔍
+        <!-- Background Ambient Glow & Dot Matrix Grid -->
+        <div class="absolute -top-24 -left-24 w-72 h-72 bg-purple-500/10 dark:bg-[#7045F5]/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -right-24 w-72 h-72 bg-blue-500/10 dark:bg-[#1459D9]/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(#6366F1_1px,transparent_1px)] [background-size:20px_20px] opacity-[0.035] dark:opacity-[0.06] pointer-events-none"></div>
+
+        <!-- Central High-End 3D-Style Illustration Container -->
+        <div class="relative w-28 h-28 sm:w-32 sm:h-32 mx-auto flex items-center justify-center select-none group">
+          <!-- Ambient pulse aura -->
+          <div class="absolute inset-0 bg-gradient-to-tr from-purple-600/30 via-indigo-500/25 to-cyan-400/25 rounded-full blur-2xl transform group-hover:scale-115 transition-transform duration-500"></div>
+
+          <!-- Glassmorphism Outer Ring -->
+          <div class="w-full h-full rounded-3xl bg-gradient-to-b from-white/90 to-slate-100/80 dark:from-slate-800/80 dark:to-slate-900/90 p-2 shadow-2xl shadow-purple-500/20 dark:shadow-purple-950/60 border border-white/80 dark:border-purple-500/30 flex items-center justify-center ring-4 ring-purple-500/10 dark:ring-purple-500/20 relative z-10 transition-transform duration-300 group-hover:-translate-y-1">
+            <svg class="w-20 h-20 sm:w-24 sm:h-24 drop-shadow-md" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="bookCoverGrad" x1="15" y1="35" x2="95" y2="95" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#7045F5" />
+                  <stop offset="50%" stop-color="#4F46E5" />
+                  <stop offset="100%" stop-color="#2563EB" />
+                </linearGradient>
+                <linearGradient id="bookPagesGrad" x1="20" y1="40" x2="85" y2="75" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#FFFFFF" />
+                  <stop offset="100%" stop-color="#E2E8F0" />
+                </linearGradient>
+                <linearGradient id="glassRingGrad" x1="50" y1="20" x2="105" y2="75" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#38BDF8" />
+                  <stop offset="50%" stop-color="#6366F1" />
+                  <stop offset="100%" stop-color="#A855F7" />
+                </linearGradient>
+                <linearGradient id="glassLensGrad" x1="55" y1="25" x2="95" y2="65" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.45" />
+                  <stop offset="100%" stop-color="#818CF8" stop-opacity="0.1" />
+                </linearGradient>
+                <linearGradient id="goldGrad" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#FDE047" />
+                  <stop offset="100%" stop-color="#F59E0B" />
+                </linearGradient>
+                <filter id="subtleShadow" x="-10%" y="-10%" width="130%" height="130%">
+                  <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000000" flood-opacity="0.25"/>
+                </filter>
+              </defs>
+
+              <!-- Base Platform Shadow -->
+              <ellipse cx="60" cy="98" rx="40" ry="8" fill="#000000" fill-opacity="0.15" filter="blur(3px)" />
+
+              <!-- Open Course Book -->
+              <path d="M18 72 C18 72 36 67 60 72 C84 67 102 72 102 72 L102 82 C102 82 84 77 60 82 C36 77 18 82 18 82 Z" fill="#1E1B4B" opacity="0.6"/>
+              <path d="M16 68 C16 68 36 63 60 68 C84 63 104 68 104 68 L104 76 C104 76 84 71 60 76 C36 71 16 76 16 76 Z" fill="url(#bookCoverGrad)"/>
+              
+              <path d="M19 65 C19 65 37 60 60 65 L60 73 C37 68 19 73 19 73 Z" fill="url(#bookPagesGrad)"/>
+              <path d="M60 65 C83 60 101 65 101 65 L101 73 C83 68 60 73 60 73 Z" fill="#CBD5E1"/>
+
+              <!-- Top Open Pages Surface -->
+              <path d="M20 42 C38 37 56 42 60 45 C64 42 82 37 100 42 L100 64 C82 59 64 64 60 67 C56 64 38 59 20 64 Z" fill="url(#bookPagesGrad)" filter="url(#subtleShadow)"/>
+              
+              <!-- Book Center Fold Shadow -->
+              <path d="M59 45 L61 45 L61 67 L59 67 Z" fill="#94A3B8" opacity="0.6"/>
+
+              <!-- Page Lines (Left) -->
+              <line x1="28" y1="48" x2="52" y2="48" stroke="#94A3B8" stroke-width="1.8" stroke-linecap="round" opacity="0.65"/>
+              <line x1="28" y1="53" x2="48" y2="53" stroke="#94A3B8" stroke-width="1.8" stroke-linecap="round" opacity="0.65"/>
+              <line x1="28" y1="58" x2="44" y2="58" stroke="#94A3B8" stroke-width="1.8" stroke-linecap="round" opacity="0.5"/>
+
+              <!-- Page Lines (Right) -->
+              <line x1="68" y1="48" x2="92" y2="48" stroke="#94A3B8" stroke-width="1.8" stroke-linecap="round" opacity="0.65"/>
+              <line x1="68" y1="53" x2="88" y2="53" stroke="#94A3B8" stroke-width="1.8" stroke-linecap="round" opacity="0.65"/>
+              <line x1="68" y1="58" x2="80" y2="58" stroke="#94A3B8" stroke-width="1.8" stroke-linecap="round" opacity="0.5"/>
+
+              <!-- Golden Ribbon Bookmark -->
+              <path d="M58 45 Q59 62 60 76 L64 72 L68 76 Q65 62 62 45 Z" fill="url(#goldGrad)" />
+
+              <!-- Magnifying Discovery Lens Floating in 3D -->
+              <path d="M85 71 L103 89 C104.5 90.5 104.5 93 103 94.5 C101.5 96 99 96 97.5 94.5 L79.5 76.5 Z" fill="#475569" stroke="#1E293B" stroke-width="1.5"/>
+              <path d="M87 73 L101 87" stroke="#94A3B8" stroke-width="1.2" stroke-linecap="round" opacity="0.8"/>
+              
+              <circle cx="69" cy="55" r="22" fill="none" stroke="url(#glassRingGrad)" stroke-width="4.5" filter="url(#subtleShadow)"/>
+              <circle cx="69" cy="55" r="19.5" fill="url(#glassLensGrad)"/>
+              
+              <!-- Lens Shiny Glare -->
+              <path d="M57 44 C62 39 71 38 78 41 C76 43 72 44 67 47 C62 50 59 55 58 59 C56 54 55 49 57 44 Z" fill="#FFFFFF" fill-opacity="0.6"/>
+              <circle cx="80" cy="64" r="2" fill="#FFFFFF" fill-opacity="0.65"/>
+
+              <!-- Sparkles -->
+              <path d="M96 22 Q96 28 102 28 Q96 28 96 34 Q96 28 90 28 Q96 28 96 22 Z" fill="url(#goldGrad)" filter="url(#subtleShadow)"/>
+              <path d="M22 26 Q22 31 27 31 Q22 31 22 36 Q22 31 17 31 Q22 31 22 26 Z" fill="#38BDF8"/>
+              <circle cx="106" cy="46" r="1.8" fill="#A855F7"/>
+              <circle cx="34" cy="22" r="1.4" fill="#FDE047"/>
+            </svg>
+          </div>
         </div>
 
         <template v-if="counts.all === 0">
-          <div class="space-y-1">
-            <h3 class="text-base font-bold text-slate-900 dark:text-white">
+          <div class="space-y-2 relative z-10 max-w-lg mx-auto">
+            <!-- Top Category Pill Tag -->
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10.5px] font-bold bg-purple-500/10 dark:bg-purple-500/20 text-purple-600 dark:text-purple-300 border border-purple-500/20 shadow-2xs font-khmer">
+              <span>✨</span>
+              <span>{{ t('វគ្គសិក្សារបស់ខ្ញុំ', 'My Enrolled Courses') }}</span>
+            </div>
+
+            <h3 class="text-lg sm:text-xl font-black text-slate-900 dark:text-white font-khmer tracking-tight leading-snug">
               {{ t('មិនទាន់មានវគ្គសិក្សាដែលបានចុះឈ្មោះនៅឡើយទេ', 'No enrolled courses yet') }}
             </h3>
-            <p class="text-xs text-slate-600 dark:text-slate-400 max-w-sm mx-auto font-['Kantumruy_Pro',sans-serif]">
+            <p class="text-xs sm:text-[13px] text-slate-600 dark:text-slate-400 max-w-md mx-auto font-khmer leading-relaxed">
               {{ t('សូមស្វែងរក និងចុះឈ្មោះវគ្គសិក្សាដែលអ្នកចាប់អារម្មណ៍ដើម្បីចាប់ផ្តើមរៀន។', 'Browse our catalog and enroll in courses to start your learning journey.') }}
             </p>
           </div>
-          <div class="flex flex-wrap items-center justify-center gap-3">
+
+          <!-- Action Buttons -->
+          <div class="flex flex-wrap items-center justify-center gap-3.5 relative z-10 pt-2">
             <Link
               href="/student/browse"
-              class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/20 transition-all cursor-pointer"
+              class="px-6 sm:px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#7045F5] via-[#5942e4] to-[#1459D9] hover:from-[#5d31e3] hover:to-[#104bc2] text-white font-bold text-xs sm:text-sm shadow-xl shadow-purple-500/25 hover:shadow-purple-500/40 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2.5 font-khmer cursor-pointer"
             >
-              {{ t('ស្វែងរកវគ្គសិក្សា', 'Browse Courses') }}
+              <svg class="w-4 h-4 text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <span>{{ t('ស្វែងរកវគ្គសិក្សា', 'Browse Courses') }}</span>
             </Link>
             <button
               v-if="hasActiveFilters"
               @click="resetFilters"
               type="button"
-              class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition-all cursor-pointer"
+              class="px-5 py-3.5 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm border border-slate-200/80 dark:border-slate-700 transition-all font-khmer cursor-pointer shadow-xs"
             >
               {{ t('កំណត់តម្រងឡើងវិញ', 'Reset All Filters') }}
             </button>
@@ -1300,21 +1397,32 @@ onUnmounted(() => {
         </template>
 
         <template v-else>
-          <div class="space-y-1">
-            <h3 class="text-base font-bold text-slate-900 dark:text-white">
+          <div class="space-y-2 relative z-10 max-w-lg mx-auto">
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10.5px] font-bold bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/20 shadow-2xs font-khmer">
+              <span>🔍</span>
+              <span>{{ t('លទ្ធផលស្វែងរក', 'Search Results') }}</span>
+            </div>
+
+            <h3 class="text-lg sm:text-xl font-black text-slate-900 dark:text-white font-khmer tracking-tight leading-snug">
               {{ t('រកមិនឃើញវគ្គសិក្សាដែលត្រូវតាមលក្ខខណ្ឌទេ', 'No courses match your criteria') }}
             </h3>
-            <p class="text-xs text-slate-600 dark:text-slate-400 max-w-sm mx-auto font-['Kantumruy_Pro',sans-serif]">
+            <p class="text-xs sm:text-[13px] text-slate-600 dark:text-slate-400 max-w-md mx-auto font-khmer leading-relaxed">
               {{ t('សូមសាកល្បងកែប្រែពាក្យស្វែងរក ឬលក្ខខណ្ឌតម្រងដើម្បីស្វែងរកវគ្គសិក្សារបស់អ្នក។', 'Try adjusting your search query or filter criteria to find the enrolled course you are looking for.') }}
             </p>
           </div>
-          <button
-            @click="resetFilters"
-            type="button"
-            class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/20 transition-all cursor-pointer"
-          >
-            {{ t('កំណត់តម្រងឡើងវិញ', 'Reset All Filters') }}
-          </button>
+
+          <div class="flex items-center justify-center relative z-10 pt-2">
+            <button
+              @click="resetFilters"
+              type="button"
+              class="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-[#7045F5] via-[#5942e4] to-[#1459D9] hover:from-[#5d31e3] hover:to-[#104bc2] text-white font-bold text-xs sm:text-sm shadow-xl shadow-purple-500/25 hover:shadow-purple-500/40 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2.5 font-khmer cursor-pointer"
+            >
+              <svg class="w-4 h-4 text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span>{{ t('កំណត់តម្រងឡើងវិញ', 'Reset All Filters') }}</span>
+            </button>
+          </div>
         </template>
       </div>
 
