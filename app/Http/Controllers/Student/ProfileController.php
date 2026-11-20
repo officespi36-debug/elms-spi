@@ -566,14 +566,16 @@ class ProfileController extends Controller
             }
         }
 
-        return Inertia::render('Student/Profile/VerifyIdCard', [
+        $response = Inertia::render('Student/Profile/VerifyIdCard', [
             'isValid'     => $isValid,
             'student'     => $studentData,
             'message'     => $isValid ? 'កាតសម្គាល់ខ្លួនផ្លូវការត្រូវបានផ្ទៀងផ្ទាត់ដោយជោគជ័យ' : 'កាតសម្គាល់ខ្លួនមិនត្រឹមត្រូវ ឬផុតសុពលភាព (Invalid or Revoked ID Card)',
-        ])->withHeaders([
-            'X-Robots-Tag'  => 'noindex, nofollow',
-            'Cache-Control' => 'no-store, no-cache, must-revalidate',
-        ]);
+        ])->toResponse($request);
+
+        $response->headers->set('X-Robots-Tag', 'noindex, nofollow');
+        $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate');
+
+        return $response;
     }
 
     /**
