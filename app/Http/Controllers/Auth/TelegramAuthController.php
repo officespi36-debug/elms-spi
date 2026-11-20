@@ -1438,7 +1438,11 @@ class TelegramAuthController extends Controller
         return true;
     }
 
-    private function getBrowserName(?string $userAgent): string
+    /**
+     * @param string|null $userAgent
+     * @return string
+     */
+    private function getBrowserName(?string $userAgent = null): string
     {
         $agent = $userAgent ?? '';
         if (str_contains($agent, 'Chrome'))

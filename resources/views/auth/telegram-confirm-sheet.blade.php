@@ -280,12 +280,14 @@
     </div>
 
     <!-- Raw Data Payloads (Decoupled from JS parser to eliminate linter errors) -->
+    <div id="auth-sheet-meta" class="hidden" style="display: none;" data-token="{{ $token }}" data-bot-username="{{ $botUsername ?? 'elms_verification_bot' }}"></div>
     <script type="application/json" id="initial-user-data">{!! json_encode($currentUser ?? null) !!}</script>
     <script type="application/json" id="server-accounts-data">{!! json_encode($availableAccounts ?? []) !!}</script>
 
     <script>
-        const qrToken = "{{ $token }}";
-        const botUsername = "{{ $botUsername ?? 'elms_verification_bot' }}";
+        const metaEl = document.getElementById('auth-sheet-meta');
+        const qrToken = metaEl ? (metaEl.getAttribute('data-token') || '') : '';
+        const botUsername = metaEl ? (metaEl.getAttribute('data-bot-username') || 'elms_verification_bot') : 'elms_verification_bot';
         const initialUser = JSON.parse(document.getElementById('initial-user-data')?.textContent || 'null');
         const serverAvailableAccounts = JSON.parse(document.getElementById('server-accounts-data')?.textContent || '[]');
 
@@ -366,12 +368,12 @@
         }
 
         function getAllAccounts() {
-            const map = new window.Map();
+            const accountsMap = {};
             
             // Server accounts
             if (Array.isArray(serverAvailableAccounts)) {
                 serverAvailableAccounts.forEach(acc => {
-                    if (acc && acc.id) map.set(String(acc.id), acc);
+                    if (acc && acc.id) accountsMap[String(acc.id)] = acc;
                 });
             }
 
@@ -380,17 +382,17 @@
                 const localList = JSON.parse(localStorage.getItem('spi_account_history') || '[]');
                 if (Array.isArray(localList)) {
                     localList.forEach(acc => {
-                        if (acc && acc.id) map.set(String(acc.id), acc);
+                        if (acc && acc.id) accountsMap[String(acc.id)] = acc;
                     });
                 }
             } catch (e) {}
 
             // Current active user
             if (activeUser && activeUser.id) {
-                map.set(String(activeUser.id), activeUser);
+                accountsMap[String(activeUser.id)] = activeUser;
             }
 
-            return Array.from(map.values());
+            return Object.values(accountsMap);
         }
 
         function renderAccountsList() {

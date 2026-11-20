@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\User;
+use App\Models\Announcement;
+use App\Models\Deadline;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -721,40 +723,48 @@ class TelegramService
     /**
      * Send campus announcement to Telegram group
      */
-    public function notifyAnnouncement(\App\Models\Announcement $announcement): bool
+    public function notifyAnnouncement(Announcement $announcement): bool
     {
-        $title = $announcement->title_kh ?: $announcement->title_en;
-        $body = strip_tags($announcement->body_kh ?: $announcement->body_en);
-        $snippet = mb_strlen($body) > 200 ? mb_substr($body, 0, 200) . '...' : $body;
-        $priorityBadge = $announcement->priority === 'urgent' ? '🔴 [បន្ទាន់ / URGENT]' : '📢 [ដំណឹងផ្លូវការ]';
+        try {
+            $title = $announcement->title_kh ?: $announcement->title_en;
+            $body = strip_tags($announcement->body_kh ?: $announcement->body_en);
+            $snippet = mb_strlen($body) > 200 ? mb_substr($body, 0, 200) . '...' : $body;
+            $priorityBadge = $announcement->priority === 'urgent' ? '🔴 [បន្ទាន់ / URGENT]' : '📢 [ដំណឹងផ្លូវការ]';
 
-        $msg = "<b>{$priorityBadge} សេចក្តីជូនដំណឹង — SPI E-LMS</b>\n";
-        $msg .= "━━━━━━━━━━━━━━━━━━━━━\n\n";
-        $msg .= "📌 <b>ចំណងជើង៖</b> <b>{$title}</b>\n\n";
-        $msg .= "📝 <b>ខ្លឹមសារសង្ខេប៖</b>\n{$snippet}\n\n";
-        $msg .= "🏛️ <i>វិទ្យាស្ថាន សន្តប៉ូល (Saint Paul Institute)</i>\n";
-        $msg .= "⏰ <i>កាលបរិច្ឆេទ៖ " . now()->format('d-M-Y H:i') . "</i>";
+            $msg = "<b>{$priorityBadge} សេចក្តីជូនដំណឹង — SPI E-LMS</b>\n";
+            $msg .= "━━━━━━━━━━━━━━━━━━━━━\n\n";
+            $msg .= "📌 <b>ចំណងជើង៖</b> <b>{$title}</b>\n\n";
+            $msg .= "📝 <b>ខ្លឹមសារសង្ខេប៖</b>\n{$snippet}\n\n";
+            $msg .= "🏛️ <i>វិទ្យាស្ថាន សន្តប៉ូល (Saint Paul Institute)</i>\n";
+            $msg .= "⏰ <i>កាលបរិច្ឆេទ៖ " . now()->format('d-M-Y H:i') . "</i>";
 
-        return $this->sendMessage($msg, 'HTML', $this->chatId);
+            return (bool) $this->sendMessage($msg, 'HTML', $this->chatId);
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     /**
      * Send homework/quiz deadline alert
      */
-    public function notifyDeadlineCreated(\App\Models\Deadline $deadline): bool
+    public function notifyDeadlineCreated(Deadline $deadline): bool
     {
-        $courseName = $deadline->course ? $deadline->course->title : 'General Course';
-        $dueFormatted = $deadline->due_at ? $deadline->due_at->format('d-M-Y h:i A') : 'N/A';
+        try {
+            $courseName = $deadline->course ? $deadline->course->title : 'General Course';
+            $dueFormatted = $deadline->due_at ? $deadline->due_at->format('d-M-Y h:i A') : 'N/A';
 
-        $msg = "<b>⏰ ការរំលឹកកាលបរិច្ឆេទកិច្ចការ — SPI E-LMS</b>\n";
-        $msg .= "━━━━━━━━━━━━━━━━━━━━━\n\n";
-        $msg .= "📚 <b>មុខវិជ្ជា៖</b> {$courseName}\n";
-        $msg .= "📝 <b>កិច្ចការ/ប្រឡង៖</b> <b>{$deadline->title}</b>\n";
-        $msg .= "⏳ <b>ថ្ងៃផុតកំណត់៖</b> <code>{$dueFormatted}</code>\n\n";
-        $msg .= "⚠️ <i>សូមនិស្សិតទាំងអស់រួសរាន់បញ្ចប់ និងដាក់ស្នើឱ្យបានទាន់ពេលវេលា!</i>\n";
-        $msg .= "🏛️ <i>Saint Paul Institute</i>";
+            $msg = "<b>⏰ ការរំលឹកកាលបរិច្ឆេទកិច្ចការ — SPI E-LMS</b>\n";
+            $msg .= "━━━━━━━━━━━━━━━━━━━━━\n\n";
+            $msg .= "📚 <b>មុខវិជ្ជា៖</b> {$courseName}\n";
+            $msg .= "📝 <b>កិច្ចការ/ប្រឡង៖</b> <b>{$deadline->title}</b>\n";
+            $msg .= "⏳ <b>ថ្ងៃផុតកំណត់៖</b> <code>{$dueFormatted}</code>\n\n";
+            $msg .= "⚠️ <i>សូមនិស្សិតទាំងអស់រួសរាន់បញ្ចប់ និងដាក់ស្នើឱ្យបានទាន់ពេលវេលា!</i>\n";
+            $msg .= "🏛️ <i>Saint Paul Institute</i>";
 
-        return $this->sendMessage($msg, 'HTML', $this->chatId);
+            return (bool) $this->sendMessage($msg, 'HTML', $this->chatId);
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 }
 

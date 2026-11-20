@@ -42,32 +42,37 @@ class ProfileController extends Controller
         $termInfo = $this->resolveAcademicTerm($user);
 
         // 3. Ensure official AcademicRecord exists
-        $academicRecord = AcademicRecord::with(['faculty', 'department', 'major', 'semester', 'academicYear'])
-            ->where('user_id', $user->id)
-            ->first();
+        $academicRecord = null;
+        try {
+            $academicRecord = AcademicRecord::with(['faculty', 'department', 'major', 'semester', 'academicYear'])
+                ->where('user_id', $user->id)
+                ->first();
 
-        if (!$academicRecord) {
-            $academicRecord = AcademicRecord::create([
-                'user_id'          => $user->id,
-                'faculty_id'       => $user->major?->department?->faculty_id,
-                'department_id'    => $user->major?->department_id,
-                'major_id'         => $user->major_id,
-                'academic_year_id' => $user->academic_year_id ?: $termInfo['active_year_id'],
-                'semester_id'      => $termInfo['active_semester_id'],
-                'gpa'              => null,
-                'total_credits'    => null,
-                'degree_level'     => 'Bachelor of Science (B.Sc.)',
-                'study_type'       => $user->study_type ?: 'Full-time',
-            ]);
-            $academicRecord->load(['faculty', 'department', 'major', 'semester', 'academicYear']);
+            if (!$academicRecord) {
+                $academicRecord = AcademicRecord::create([
+                    'user_id'          => $user->id,
+                    'faculty_id'       => $user->major?->department?->faculty_id,
+                    'department_id'    => $user->major?->department_id,
+                    'major_id'         => $user->major_id,
+                    'academic_year_id' => $user->academic_year_id ?: ($termInfo['active_year_id'] ?? null),
+                    'semester_id'      => $termInfo['active_semester_id'] ?? null,
+                    'gpa'              => null,
+                    'total_credits'    => null,
+                    'degree_level'     => 'Bachelor of Science (B.Sc.)',
+                    'study_type'       => $user->study_type ?: 'Full-time',
+                ]);
+                $academicRecord->load(['faculty', 'department', 'major', 'semester', 'academicYear']);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Academic record resolution fallback: ' . $e->getMessage());
         }
 
         // Intake year and program duration calculation (Bachelor = 4 years, Associate = 2 years)
         $intakeYear = 2026;
-        if (preg_match('/(\d{4})/', (string) ($academicRecord->academicYear?->name ?: $user->academicYear?->name ?: $termInfo['year']), $ym)) {
+        if (preg_match('/(\d{4})/', (string) ($academicRecord?->academicYear?->name ?: $user->academicYear?->name ?: $termInfo['year']), $ym)) {
             $intakeYear = (int) $ym[1];
         }
-        $degreeLevel = $academicRecord->degree_level ?: 'Bachelor of Science (B.Sc.)';
+        $degreeLevel = $academicRecord?->degree_level ?: 'Bachelor of Science (B.Sc.)';
         $durationYears = (stripos($degreeLevel, 'associate') !== false || str_contains($degreeLevel, 'បរិញ្ញាបត្ររង')) ? 2 : 4;
         
         $baseYear = max((int) date('Y'), $intakeYear);
@@ -80,21 +85,35 @@ class ProfileController extends Controller
         $adminApprover = User::whereIn('role', ['admin', 'super_admin'])->first();
         $approverId = $adminApprover?->id ?: $user->id;
 
-        $idCard = IdCard::firstOrCreate(
-            ['user_id' => $user->id],
-            [
-                'card_no'     => ($user->id === 1 || $user->email === 'kosalsensok065@gmail.com') ? 'SPI-2026-001582' : IdCard::generateCardNo($user),
-                'token'       => ($user->id === 1 || $user->email === 'kosalsensok065@gmail.com') ? '0b7a68d6a1a3c4de139b5fa8750c2f9960b3264c' : IdCard::generateUniqueToken(),
-                'issued_at'   => Carbon::create(2026, 11, 14, 0, 0, 0),
-                'expires_at'  => $calculatedExpiresAt,
-                'status'      => 'active',
+        try {
+            $idCard = IdCard::firstOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'card_no'     => ($user->id === 1 || $user->email === 'kosalsensok065@gmail.com') ? 'SPI-2026-001582' : IdCard::generateCardNo($user),
+                    'token'       => ($user->id === 1 || $user->email === 'kosalsensok065@gmail.com') ? '0b7a68d6a1a3c4de139b5fa8750c2f9960b3264c' : IdCard::generateUniqueToken(),
+                    'issued_at'   => Carbon::create(2026, 11, 14, 0, 0, 0),
+                    'expires_at'  => $calculatedExpiresAt,
+                    'status'      => 'active',
+                    'approved_by' => $approverId,
+                    'approved_at' => Carbon::create(2026, 11, 14, 0, 0, 0),
+                ]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('IdCard firstOrCreate fallback: ' . $e->getMessage());
+            $idCard = new IdCard([
+                'user_id' => $user->id,
+                'card_no' => 'SPI-' . date('Y') . '-' . strtoupper(substr(md5((string)$user->id), 0, 6)),
+                'token' => IdCard::generateUniqueToken(),
+                'status' => 'active',
+                'issued_at' => Carbon::now(),
+                'expires_at' => $calculatedExpiresAt,
                 'approved_by' => $approverId,
-                'approved_at' => Carbon::create(2026, 11, 14, 0, 0, 0),
-            ]
-        );
+                'approved_at' => Carbon::now(),
+            ]);
+        }
 
         // Auto-heal existing card if approved_by is missing or if expired mistakenly
-        if ($idCard->status !== 'revoked') {
+        if ($idCard && $idCard->status !== 'revoked') {
             $needsUpdate = false;
             $updates = [];
 
@@ -117,29 +136,51 @@ class ProfileController extends Controller
                 $needsUpdate = true;
             }
 
-            if ($needsUpdate) {
-                $idCard->update($updates);
-                $idCard->refresh();
+            if (empty($idCard->token)) {
+                $updates['token'] = IdCard::generateUniqueToken();
+                $needsUpdate = true;
+            }
+
+            if (empty($idCard->card_no)) {
+                $updates['card_no'] = IdCard::generateCardNo($user);
+                $needsUpdate = true;
+            }
+
+            if ($needsUpdate && $idCard->exists) {
+                try {
+                    $idCard->update($updates);
+                    $idCard->refresh();
+                } catch (\Throwable $e) {}
             }
         }
 
         // Calculate days remaining & expiry warning status
-        $daysRemaining = $idCard->expires_at ? (int) ceil(now()->floatDiffInDays($idCard->expires_at, false)) : 999;
-        $isExpiringSoon = ($idCard->status === 'active' && $daysRemaining >= 0 && $daysRemaining <= 90);
+        $daysRemaining = $idCard?->expires_at ? (int) ceil(now()->floatDiffInDays($idCard->expires_at, false)) : 999;
+        $isExpiringSoon = ($idCard?->status === 'active' && $daysRemaining >= 0 && $daysRemaining <= 90);
 
         // Check if approval was performed by a genuine registrar/admin
-        $isOfficial = ($idCard->status === 'active' && !empty($idCard->approved_at));
+        $isOfficial = ($idCard?->status === 'active' && !empty($idCard?->approved_at));
 
         // Live verified requires an active card, valid token, and official approval
-        $isLiveVerified = ($isOfficial && !empty($idCard->token) && $idCard->status === 'active');
+        $isLiveVerified = ($isOfficial && !empty($idCard?->token) && $idCard?->status === 'active');
+
+        // Safe verify URL without route generation exceptions
+        $verifyUrl = '';
+        if (!empty($idCard?->token)) {
+            try {
+                $verifyUrl = route('id.verify', ['token' => $idCard->token]);
+            } catch (\Throwable $e) {
+                $verifyUrl = url('/verify/id/' . $idCard->token);
+            }
+        }
 
         // 5. Canonical Academic Fallbacks
-        $facultyName = $academicRecord->faculty?->name ?: ($user->major?->department?->faculty?->name ?: 'Faculty of Science & Technology');
-        $facultyNameKh = $academicRecord->faculty?->name_kh ?: ($user->major?->department?->faculty?->name_kh ?: 'មហាវិទ្យាល័យវិទ្យាសាស្ត្រ និងបច្ចេកវិទ្យា');
-        $departmentName = $academicRecord->department?->name ?: ($user->major?->department?->name ?: 'Department of Information Technology');
-        $departmentNameKh = $academicRecord->department?->name_kh ?: ($user->major?->department?->name_kh ?: 'ដេប៉ាតឺម៉ង់បច្ចេកវិទ្យាព័ត៌មាន');
-        $majorName = $academicRecord->major?->name ?: ($user->major?->name ?: 'Information Technology');
-        $majorNameKh = $academicRecord->major?->name_kh ?: ($user->major?->name_kh ?: 'បច្ចេកវិទ្យាព័ត៌មាន (IT)');
+        $facultyName = $academicRecord?->faculty?->name ?: ($user->major?->department?->faculty?->name ?: 'Faculty of Science & Technology');
+        $facultyNameKh = $academicRecord?->faculty?->name_kh ?: ($user->major?->department?->faculty?->name_kh ?: 'មហាវិទ្យាល័យវិទ្យាសាស្ត្រ និងបច្ចេកវិទ្យា');
+        $departmentName = $academicRecord?->department?->name ?: ($user->major?->department?->name ?: 'Department of Information Technology');
+        $departmentNameKh = $academicRecord?->department?->name_kh ?: ($user->major?->department?->name_kh ?: 'ដេប៉ាតឺម៉ង់បច្ចេកវិទ្យាព័ត៌មាន');
+        $majorName = $academicRecord?->major?->name ?: ($user->major?->name ?: 'Information Technology');
+        $majorNameKh = $academicRecord?->major?->name_kh ?: ($user->major?->name_kh ?: 'បច្ចេកវិទ្យាព័ត៌មាន (IT)');
 
         // 6. Security: Active sessions from database session driver
         $activeSessions = [];
@@ -190,19 +231,24 @@ class ProfileController extends Controller
         }
 
         // 8. Pending profile change requests
-        $changeRequests = $user->profileChangeRequests()
-            ->latest()
-            ->limit(10)
-            ->get()
-            ->map(fn ($r) => [
-                'id'          => $r->id,
-                'field_name'  => $r->field_name,
-                'old_value'   => $r->old_value,
-                'new_value'   => $r->new_value,
-                'reason'      => $r->reason,
-                'status'      => $r->status,
-                'created_at'  => $r->created_at?->format('M j, Y · h:i A'),
-            ]);
+        $changeRequests = [];
+        try {
+            $changeRequests = $user->profileChangeRequests()
+                ->latest()
+                ->limit(10)
+                ->get()
+                ->map(fn ($r) => [
+                    'id'          => $r->id,
+                    'field_name'  => $r->field_name,
+                    'old_value'   => $r->old_value,
+                    'new_value'   => $r->new_value,
+                    'reason'      => $r->reason,
+                    'status'      => $r->status,
+                    'created_at'  => $r->created_at?->format('M j, Y · h:i A'),
+                ]);
+        } catch (\Throwable $e) {
+            Log::warning('Profile change requests error: ' . $e->getMessage());
+        }
 
         // 9. Profile completion percentage calculation with missing fields
         $completionFields = [
@@ -222,8 +268,32 @@ class ProfileController extends Controller
         $prefs = is_array($user->preferences) ? $user->preferences : [];
         $language = $prefs['locale'] ?? $prefs['language'] ?? app()->getLocale() ?? 'km';
 
-        $formatDateEn = fn (?Carbon $d) => $d ? $d->locale('en')->translatedFormat('M j, Y') : '—';
-        $formatDateKm = fn (?Carbon $d) => $d ? $this->toKhmerDigits($d->locale('km')->translatedFormat('d F Y')) : '—';
+        $formatDateEn = function ($d) {
+            if (!$d) return '—';
+            try {
+                $c = $d instanceof Carbon ? $d : Carbon::parse($d);
+                return $c->locale('en')->translatedFormat('M j, Y');
+            } catch (\Throwable $e) {
+                return '—';
+            }
+        };
+
+        $formatDateKm = function ($d) {
+            if (!$d) return '—';
+            try {
+                $c = $d instanceof Carbon ? $d : Carbon::parse($d);
+                return $this->toKhmerDigits($c->locale('km')->translatedFormat('d F Y'));
+            } catch (\Throwable $e) {
+                return '—';
+            }
+        };
+
+        $dobFormatted = '';
+        if (!empty($user->dob)) {
+            try {
+                $dobFormatted = Carbon::parse($user->dob)->format('Y-m-d');
+            } catch (\Throwable $e) {}
+        }
 
         return Inertia::render('Student/Profile/Index', [
             'activeTab' => $activeTab,
@@ -237,7 +307,7 @@ class ProfileController extends Controller
                 'phone'              => $user->phone ?? '',
                 'telegram_username'  => $user->telegram_username ?? '',
                 'gender'             => $user->gender ?? 'male',
-                'dob'                => $user->dob ? Carbon::parse($user->dob)->format('Y-m-d') : '',
+                'dob'                => $dobFormatted,
                 'bio'                => $user->bio ?? '',
                 'status'             => $user->status ?: ($user->is_active ? 'active' : 'inactive'),
                 'is_active'          => (bool) $user->is_active,
@@ -246,20 +316,20 @@ class ProfileController extends Controller
                 'missing_fields'     => $missingFields,
             ],
             'idCard' => [
-                'card_no'          => $idCard->card_no,
-                'token'            => $idCard->token,
-                'verify_url'       => route('id.verify', ['token' => $idCard->token]),
-                'issued_at'        => $formatDateEn($idCard->issued_at),
-                'issued_at_kh'     => $formatDateKm($idCard->issued_at),
-                'expires_at'       => $formatDateEn($idCard->expires_at),
-                'expires_at_kh'    => $formatDateKm($idCard->expires_at),
-                'status'           => $idCard->status,
+                'card_no'          => $idCard?->card_no ?: ('SPI-' . date('Y') . '-000000'),
+                'token'            => $idCard?->token ?: '',
+                'verify_url'       => $verifyUrl,
+                'issued_at'        => $formatDateEn($idCard?->issued_at),
+                'issued_at_kh'     => $formatDateKm($idCard?->issued_at),
+                'expires_at'       => $formatDateEn($idCard?->expires_at),
+                'expires_at_kh'    => $formatDateKm($idCard?->expires_at),
+                'status'           => $idCard?->status ?: 'active',
                 'is_official'      => $isOfficial,
                 'is_live_verified' => $isLiveVerified,
                 'days_remaining'   => $daysRemaining,
                 'is_expiring_soon' => $isExpiringSoon,
-                'approved_at'      => $formatDateEn($idCard->approved_at),
-                'approved_at_kh'   => $formatDateKm($idCard->approved_at),
+                'approved_at'      => $formatDateEn($idCard?->approved_at),
+                'approved_at_kh'   => $formatDateKm($idCard?->approved_at),
                 'institution'      => config('app.institution', 'Saint Paul Institute'),
                 'institution_kh'   => config('app.institution_kh', 'វិទ្យាស្ថាន សន្តប៉ូល'),
             ],
@@ -274,10 +344,10 @@ class ProfileController extends Controller
                 'intake_year_kh' => $this->toKhmerDigits((string) $intakeYear),
                 'term'           => $termInfo['en'],
                 'term_kh'        => $termInfo['km'],
-                'degree_level'   => $academicRecord->degree_level ?: 'Bachelor of Science (B.Sc.)',
-                'study_type'     => $academicRecord->study_type ?: 'Full-time',
-                'gpa'            => $academicRecord->gpa !== null ? (string) $academicRecord->gpa : null,
-                'total_credits'  => $academicRecord->total_credits,
+                'degree_level'   => $academicRecord?->degree_level ?: 'Bachelor of Science (B.Sc.)',
+                'study_type'     => $academicRecord?->study_type ?: 'Full-time',
+                'gpa'            => $academicRecord?->gpa !== null ? (string) $academicRecord->gpa : null,
+                'total_credits'  => $academicRecord?->total_credits,
             ],
             'security' => [
                 'active_sessions' => $activeSessions,
@@ -338,15 +408,34 @@ class ProfileController extends Controller
             $user->avatar = '/uploads/avatars/' . $hashedName;
         }
 
+        $dobVal = !empty($validated['dob']) ? trim((string) $validated['dob']) : null;
+        if ($dobVal !== null) {
+            try {
+                $dobVal = Carbon::parse($dobVal)->format('Y-m-d');
+            } catch (\Throwable $e) {
+                $dobVal = null;
+            }
+        }
+
+        $phoneVal = !empty($validated['phone']) ? trim((string) $validated['phone']) : null;
+        $tgUserVal = !empty($validated['telegram_username']) ? ltrim(trim((string) $validated['telegram_username']), '@') : null;
+        $bioVal = !empty($validated['bio']) ? trim((string) $validated['bio']) : null;
+
         $user->fill([
-            'name_kh'           => $validated['name_kh'] ?? $user->name_kh,
-            'phone'             => $validated['phone'] ?? null,
-            'telegram_username' => $validated['telegram_username'] ?? null,
+            'name_kh'           => !empty($validated['name_kh']) ? trim((string) $validated['name_kh']) : $user->name_kh,
+            'phone'             => $phoneVal,
+            'telegram_username' => $tgUserVal,
             'gender'            => $validated['gender'] ?? $user->gender,
-            'dob'               => $validated['dob'] ?? $user->dob,
-            'bio'               => $validated['bio'] ?? null,
+            'dob'               => $dobVal,
+            'bio'               => $bioVal,
         ]);
-        $user->save();
+
+        try {
+            $user->save();
+        } catch (\Throwable $saveEx) {
+            Log::error('Profile personal info save error: ' . $saveEx->getMessage());
+            return back()->with('error', 'មិនអាចកែប្រែព័ត៌មានបានឡើយ។ សូមពិនិត្យព័ត៌មានម្តងទៀត!');
+        }
 
         return back()->with('success', 'ព័ត៌មានផ្ទាល់ខ្លួនត្រូវបានកែប្រែដោយជោគជ័យ!');
     }
