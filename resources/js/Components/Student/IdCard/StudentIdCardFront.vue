@@ -63,23 +63,25 @@ const props = defineProps<{
           <img :src="cardLogoUrl || '/images/logo.png'" alt="SPI Logo" class="w-full h-full object-cover" />
         </div>
         <div class="min-w-0">
-          <p class="text-xs sm:text-[13px] font-black tracking-wide text-white uppercase drop-shadow-xs truncate font-khmer">
+          <p class="text-xs sm:text-[13px] font-black text-white drop-shadow-xs truncate font-khmer leading-tight">
             {{ currentLang === 'km' ? (idCard.institution_kh || idCard.institution) : idCard.institution }}
           </p>
-          <p class="text-[8.5px] sm:text-[9px] font-bold text-[#FFD54A] tracking-wider uppercase truncate">
-            {{ currentLang === 'km' ? 'វិទ្យាស្ថាន សន្តប៉ូល' : 'Saint Paul Institute' }}
+          <p class="text-[8.5px] sm:text-[9px] font-bold text-[#FFD54A] tracking-wider uppercase truncate font-sans">
+            SAINT PAUL INSTITUTE
           </p>
         </div>
       </div>
 
       <!-- Small STUDENT ID CARD Badge -->
       <div class="flex items-center gap-1.5 shrink-0">
-        <span class="px-2.5 py-0.5 rounded-full bg-[#1459D9]/30 text-[#16C8F5] border border-[#16C8F5]/40 text-[9px] font-black uppercase tracking-wider shadow-xs backdrop-blur-md flex items-center gap-1.5">
+        <span class="px-2.5 py-0.5 rounded-full bg-[#1459D9]/30 text-[#16C8F5] border border-[#16C8F5]/40 text-[9px] font-bold shadow-xs backdrop-blur-md flex items-center gap-1.5">
           <span
             class="w-1.5 h-1.5 rounded-full"
             :class="idCard.is_official ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'"
           ></span>
-          <span>{{ currentLang === 'km' ? (idCard.is_official ? 'កាតនិស្សិតផ្លូវការ' : 'កាតនិស្សិត') : 'STUDENT ID CARD' }}</span>
+          <span :class="currentLang === 'km' ? 'font-khmer' : 'font-sans uppercase tracking-wider font-black'">
+            {{ currentLang === 'km' ? (idCard.is_official ? 'កាតនិស្សិតផ្លូវការ' : 'កាតនិស្សិត') : 'STUDENT ID CARD' }}
+          </span>
         </span>
       </div>
     </div>
@@ -115,17 +117,20 @@ const props = defineProps<{
         
         <!-- Name (English large bold + Khmer subtitle) -->
         <div class="leading-tight">
-          <h2 class="text-sm sm:text-base font-black text-white tracking-wide truncate uppercase drop-shadow-xs">
+          <h2 class="text-sm sm:text-base font-black text-white tracking-wide truncate uppercase drop-shadow-xs font-sans">
             {{ profile.name }}
           </h2>
-          <p v-if="profile.name_kh" class="text-[11px] sm:text-xs font-semibold text-slate-300 truncate font-khmer pt-0.5">
+          <p v-if="profile.name_kh" class="text-[11px] sm:text-xs font-semibold text-slate-300 truncate font-khmer pt-0.5 leading-normal">
             {{ profile.name_kh }}
           </p>
         </div>
 
         <!-- Student ID Highlighted in Soft Gold Badge -->
         <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#FFD54A]/15 border border-[#FFD54A]/40">
-          <span class="text-[8.5px] uppercase tracking-wider text-slate-300 font-bold">
+          <span
+            class="text-[8.5px] text-slate-300 font-bold"
+            :class="currentLang === 'km' ? 'font-khmer' : 'uppercase tracking-wider font-sans'"
+          >
             {{ currentLang === 'km' ? 'អត្តលេខ:' : 'ID:' }}
           </span>
           <span class="font-mono text-xs font-black text-[#FFD54A] tracking-wider">{{ profile.student_id }}</span>
@@ -133,21 +138,34 @@ const props = defineProps<{
 
         <!-- Major & Faculty -->
         <div class="space-y-0.5">
-          <p class="text-[10.5px] sm:text-[11px] text-slate-100 font-semibold truncate flex items-center gap-1">
+          <p
+            class="text-[10.5px] sm:text-[11px] text-slate-100 font-semibold truncate flex items-center gap-1"
+            :class="currentLang === 'km' ? 'font-khmer' : 'font-sans'"
+          >
             <span class="text-[#16C8F5] text-[9px]">●</span>
             <span class="truncate">{{ currentLang === 'km' ? (academic.major_kh || academic.major) : academic.major }}</span>
           </p>
-          <p v-if="academic.faculty || academic.faculty_kh" class="text-[9px] text-slate-300/85 truncate pl-2.5 font-medium">
+          <p
+            v-if="academic.faculty || academic.faculty_kh"
+            class="text-[9px] text-slate-300/85 truncate pl-2.5 font-medium"
+            :class="currentLang === 'km' ? 'font-khmer' : 'font-sans'"
+          >
             {{ currentLang === 'km' ? (academic.faculty_kh || academic.faculty) : academic.faculty }}
           </p>
         </div>
 
         <!-- Academic Year / Status Pill -->
         <div class="flex items-center gap-2 pt-0.5">
-          <span class="text-[9px] sm:text-[9.5px] font-bold text-[#16C8F5] truncate">
+          <span
+            class="text-[9px] sm:text-[9.5px] font-bold text-[#16C8F5] truncate"
+            :class="currentLang === 'km' ? 'font-khmer' : 'font-sans'"
+          >
             {{ currentLang === 'km' ? (academic.term_kh || academic.term) : academic.term }}
           </span>
-          <span class="px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[8px] font-bold uppercase shrink-0">
+          <span
+            class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[8px] sm:text-[8.5px] font-bold shrink-0"
+            :class="currentLang === 'km' ? 'font-khmer' : 'font-sans uppercase'"
+          >
             {{ currentLang === 'km' ? 'និស្សិតកំពុងសិក្សា' : 'Active Student' }}
           </span>
         </div>
@@ -198,10 +216,13 @@ const props = defineProps<{
         
         <!-- Valid From Date -->
         <div class="flex items-center gap-1 shrink-0">
-          <span class="text-slate-400 text-[8px] sm:text-[9px] uppercase">
-            {{ currentLang === 'km' ? 'ចេញ:' : 'Valid From:' }}
+          <span
+            class="text-slate-400 text-[8px] sm:text-[9px]"
+            :class="currentLang === 'km' ? 'font-khmer' : 'uppercase font-sans'"
+          >
+            {{ currentLang === 'km' ? 'ថ្ងៃចេញ:' : 'Valid From:' }}
           </span>
-          <span class="font-medium text-slate-200">
+          <span class="font-medium text-slate-200" :class="currentLang === 'km' ? 'font-khmer' : 'font-sans'">
             {{ currentLang === 'km' ? (idCard.issued_at_kh || idCard.issued_at) : idCard.issued_at }}
           </span>
         </div>
@@ -214,10 +235,13 @@ const props = defineProps<{
 
         <!-- Valid Until Date -->
         <div class="flex items-center gap-1 shrink-0">
-          <span class="text-slate-400 text-[8px] sm:text-[9px] uppercase">
+          <span
+            class="text-slate-400 text-[8px] sm:text-[9px]"
+            :class="currentLang === 'km' ? 'font-khmer' : 'uppercase font-sans'"
+          >
             {{ currentLang === 'km' ? 'សុពលភាព:' : 'Valid Thru:' }}
           </span>
-          <span class="font-bold text-[#FFD54A]">
+          <span class="font-bold text-[#FFD54A]" :class="currentLang === 'km' ? 'font-khmer' : 'font-sans'">
             {{ currentLang === 'km' ? (idCard.expires_at_kh || idCard.expires_at) : idCard.expires_at }}
           </span>
         </div>

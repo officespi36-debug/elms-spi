@@ -1509,11 +1509,11 @@ const getLogTypeBadge = (type: string) => {
               <img :src="cardLogoUrl" alt="Logo" class="w-full h-full object-cover" />
             </div>
             <div>
-              <p class="text-[7.5pt] font-black uppercase tracking-wider text-slate-100">
+              <p class="text-[7.5pt] font-black text-slate-100 font-khmer leading-tight">
                 {{ currentLang === 'km' ? (idCard.institution_kh || idCard.institution) : idCard.institution }}
               </p>
-              <p class="text-[5.5pt] text-[#FFD54A] font-semibold">
-                {{ currentLang === 'km' ? 'វិទ្យាស្ថាន សន្តប៉ូល' : 'Saint Paul Institute' }}
+              <p class="text-[5.5pt] text-[#FFD54A] font-bold font-sans tracking-wider uppercase">
+                SAINT PAUL INSTITUTE
               </p>
             </div>
           </div>
