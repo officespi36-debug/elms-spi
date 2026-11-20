@@ -539,43 +539,61 @@ class ProfileController extends Controller
      */
     public function verifyPublicIdCard(Request $request, string $token)
     {
-        $card = IdCard::with(['user.major.department.faculty', 'user.academicRecord.major'])
-            ->where('token', $token)
-            ->first();
+        try {
+            $card = IdCard::with(['user.major.department.faculty', 'user.academicRecord.major'])
+                ->where('token', $token)
+                ->first();
 
-        $isValid = false;
-        $studentData = null;
+            $isValid = false;
+            $studentData = null;
 
-        if ($card && $card->status === 'active' && $card->user && $card->user->is_active) {
-            if (!$card->expires_at || $card->expires_at->isFuture()) {
-                $isValid = true;
-                $majorName = $card->user->academicRecord?->major?->name ?: ($card->user->major?->name ?: 'Information Technology');
-                $majorNameKh = $card->user->academicRecord?->major?->name_kh ?: ($card->user->major?->name_kh ?: 'បច្ចេកវិទ្យាព័ត៌មាន (IT)');
+            if ($card && $card->status === 'active' && $card->user && $card->user->is_active) {
+                if (!$card->expires_at || $card->expires_at->isFuture()) {
+                    $isValid = true;
+                    $majorName = $card->user->academicRecord?->major?->name ?: ($card->user->major?->name ?: 'Information Technology');
+                    $majorNameKh = $card->user->academicRecord?->major?->name_kh ?: ($card->user->major?->name_kh ?: 'បច្ចេកវិទ្យាព័ត៌មាន (IT)');
 
-                $studentData = [
-                    'name'         => $card->user->name,
-                    'name_kh'      => $card->user->name_kh,
-                    'program'      => $majorName,
-                    'program_kh'   => $majorNameKh,
-                    'status'       => 'Active Enrolled Student',
-                    'status_kh'    => 'និស្សិតផ្លូវការកំពុងសិក្សា',
-                    'expires_at'   => $card->expires_at ? $card->expires_at->format('M d, Y') : '—',
-                    'verified_at'  => now()->format('M d, Y · h:i A'),
-                    'institution'  => config('app.institution', 'Saint Paul Institute'),
-                ];
+                    $studentData = [
+                        'name'         => $card->user->name,
+                        'name_kh'      => $card->user->name_kh,
+                        'program'      => $majorName,
+                        'program_kh'   => $majorNameKh,
+                        'status'       => 'Active Enrolled Student',
+                        'status_kh'    => 'និស្សិតផ្លូវការកំពុងសិក្សា',
+                        'expires_at'   => $card->expires_at ? $card->expires_at->format('M d, Y') : '—',
+                        'verified_at'  => now()->format('M d, Y · h:i A'),
+                        'institution'  => config('app.institution', 'Saint Paul Institute'),
+                    ];
+                }
             }
+
+            $response = Inertia::render('Student/Profile/VerifyIdCard', [
+                'isValid'     => $isValid,
+                'student'     => $studentData,
+                'message'     => $isValid ? 'កាតសម្គាល់ខ្លួនផ្លូវការត្រូវបានផ្ទៀងផ្ទាត់ដោយជោគជ័យ' : 'កាតសម្គាល់ខ្លួនមិនត្រឹមត្រូវ ឬផុតសុពលភាព (Invalid or Revoked ID Card)',
+            ])->toResponse($request);
+
+            $response->headers->set('X-Robots-Tag', 'noindex, nofollow');
+            $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate');
+
+            return $response;
+        } catch (\Throwable $e) {
+            Log::error('verifyPublicIdCard error: ' . $e->getMessage(), [
+                'token' => $token,
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            $response = Inertia::render('Student/Profile/VerifyIdCard', [
+                'isValid'     => false,
+                'student'     => null,
+                'message'     => 'កាតសម្គាល់ខ្លួនមិនត្រឹមត្រូវ ឬផុតសុពលភាព (Invalid or Revoked ID Card)',
+            ])->toResponse($request);
+
+            $response->headers->set('X-Robots-Tag', 'noindex, nofollow');
+            $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate');
+
+            return $response;
         }
-
-        $response = Inertia::render('Student/Profile/VerifyIdCard', [
-            'isValid'     => $isValid,
-            'student'     => $studentData,
-            'message'     => $isValid ? 'កាតសម្គាល់ខ្លួនផ្លូវការត្រូវបានផ្ទៀងផ្ទាត់ដោយជោគជ័យ' : 'កាតសម្គាល់ខ្លួនមិនត្រឹមត្រូវ ឬផុតសុពលភាព (Invalid or Revoked ID Card)',
-        ])->toResponse($request);
-
-        $response->headers->set('X-Robots-Tag', 'noindex, nofollow');
-        $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate');
-
-        return $response;
     }
 
     /**
