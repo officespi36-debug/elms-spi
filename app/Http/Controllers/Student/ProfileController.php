@@ -41,31 +41,7 @@ class ProfileController extends Controller
         // 2. Fetch truly active academic term without duplicate years
         $termInfo = $this->resolveAcademicTerm($user);
 
-        // 3. Ensure official IdCard record exists (with proper registrar approval check)
-        $idCard = IdCard::firstOrCreate(
-            ['user_id' => $user->id],
-            [
-                'card_no'     => IdCard::generateCardNo($user),
-                'token'       => IdCard::generateUniqueToken(),
-                'issued_at'   => now(),
-                'expires_at'  => now()->addYears(4),
-                'status'      => 'active',
-                'approved_by' => null,
-                'approved_at' => null,
-            ]
-        );
-
-        // Check if approval was performed by a genuine registrar/admin
-        $approver = $idCard->approved_by ? User::find($idCard->approved_by) : null;
-        $isOfficial = ($idCard->status === 'active'
-            && !empty($idCard->approved_at)
-            && $approver !== null
-            && in_array($approver->role, ['admin', 'registrar', 'super_admin'], true));
-
-        // Live verified requires an active card, valid token, and official approval
-        $isLiveVerified = ($isOfficial && !empty($idCard->token) && $idCard->status === 'active');
-
-        // 4. Ensure official AcademicRecord exists
+        // 3. Ensure official AcademicRecord exists
         $academicRecord = AcademicRecord::with(['faculty', 'department', 'major', 'semester', 'academicYear'])
             ->where('user_id', $user->id)
             ->first();
@@ -85,6 +61,48 @@ class ProfileController extends Controller
             ]);
             $academicRecord->load(['faculty', 'department', 'major', 'semester', 'academicYear']);
         }
+
+        // Intake year and program duration calculation (Bachelor = 4 years, Associate = 2 years)
+        $intakeYear = 2026;
+        if (preg_match('/(\d{4})/', (string) ($academicRecord->academicYear?->name ?: $user->academicYear?->name ?: $termInfo['year']), $ym)) {
+            $intakeYear = (int) $ym[1];
+        }
+        $degreeLevel = $academicRecord->degree_level ?: 'Bachelor of Science (B.Sc.)';
+        $durationYears = (stripos($degreeLevel, 'associate') !== false || str_contains($degreeLevel, 'បរិញ្ញាបត្ររង')) ? 2 : 4;
+        $calculatedExpiresAt = Carbon::create($intakeYear + $durationYears, 11, 14, 23, 59, 59);
+
+        // 4. Ensure official IdCard record exists (with proper registrar approval check)
+        $idCard = IdCard::firstOrCreate(
+            ['user_id' => $user->id],
+            [
+                'card_no'     => IdCard::generateCardNo($user),
+                'token'       => IdCard::generateUniqueToken(),
+                'issued_at'   => Carbon::create($intakeYear, 11, 14, 0, 0, 0),
+                'expires_at'  => $calculatedExpiresAt,
+                'status'      => 'active',
+                'approved_by' => null,
+                'approved_at' => null,
+            ]
+        );
+
+        // Check if card is expired
+        if ($idCard->expires_at && $idCard->expires_at->isPast() && $idCard->status === 'active') {
+            $idCard->update(['status' => 'expired']);
+        }
+
+        // Calculate days remaining & expiry warning status
+        $daysRemaining = $idCard->expires_at ? (int) ceil(now()->floatDiffInDays($idCard->expires_at, false)) : 999;
+        $isExpiringSoon = ($idCard->status === 'active' && $daysRemaining >= 0 && $daysRemaining <= 90);
+
+        // Check if approval was performed by a genuine registrar/admin
+        $approver = $idCard->approved_by ? User::find($idCard->approved_by) : null;
+        $isOfficial = ($idCard->status === 'active'
+            && !empty($idCard->approved_at)
+            && $approver !== null
+            && in_array($approver->role, ['admin', 'registrar', 'super_admin'], true));
+
+        // Live verified requires an active card, valid token, and official approval
+        $isLiveVerified = ($isOfficial && !empty($idCard->token) && $idCard->status === 'active');
 
         // 5. Canonical Academic Fallbacks
         $facultyName = $academicRecord->faculty?->name ?: ($user->major?->department?->faculty?->name ?: 'Faculty of Science & Technology');
@@ -209,24 +227,28 @@ class ProfileController extends Controller
                 'status'           => $idCard->status,
                 'is_official'      => $isOfficial,
                 'is_live_verified' => $isLiveVerified,
+                'days_remaining'   => $daysRemaining,
+                'is_expiring_soon' => $isExpiringSoon,
                 'approved_at'      => $formatDateEn($idCard->approved_at),
                 'approved_at_kh'   => $formatDateKm($idCard->approved_at),
                 'institution'      => config('app.institution', 'Saint Paul Institute'),
                 'institution_kh'   => config('app.institution_kh', 'វិទ្យាស្ថាន សន្តប៉ូល'),
             ],
             'academic' => [
-                'faculty'       => $facultyName,
-                'faculty_kh'    => $facultyNameKh,
-                'department'    => $departmentName,
-                'department_kh' => $departmentNameKh,
-                'major'         => $majorName,
-                'major_kh'      => $majorNameKh,
-                'term'          => $termInfo['en'],
-                'term_kh'       => $termInfo['km'],
-                'degree_level'  => $academicRecord->degree_level ?: 'Bachelor of Science (B.Sc.)',
-                'study_type'    => $academicRecord->study_type ?: 'Full-time',
-                'gpa'           => $academicRecord->gpa !== null ? (string) $academicRecord->gpa : null,
-                'total_credits' => $academicRecord->total_credits,
+                'faculty'        => $facultyName,
+                'faculty_kh'     => $facultyNameKh,
+                'department'     => $departmentName,
+                'department_kh'  => $departmentNameKh,
+                'major'          => $majorName,
+                'major_kh'       => $majorNameKh,
+                'intake_year'    => (string) $intakeYear,
+                'intake_year_kh' => $this->toKhmerDigits((string) $intakeYear),
+                'term'           => $termInfo['en'],
+                'term_kh'        => $termInfo['km'],
+                'degree_level'   => $academicRecord->degree_level ?: 'Bachelor of Science (B.Sc.)',
+                'study_type'     => $academicRecord->study_type ?: 'Full-time',
+                'gpa'            => $academicRecord->gpa !== null ? (string) $academicRecord->gpa : null,
+                'total_credits'  => $academicRecord->total_credits,
             ],
             'security' => [
                 'active_sessions' => $activeSessions,
@@ -379,6 +401,40 @@ class ProfileController extends Controller
     }
 
     /**
+     * Report Lost ID Card.
+     * Sets status = 'revoked', logs audit event, and returns notice.
+     */
+    public function reportLostIdCard(Request $request)
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        $idCard = IdCard::where('user_id', $user->id)->first();
+        if ($idCard) {
+            $idCard->update([
+                'status' => 'revoked',
+            ]);
+        }
+
+        Log::warning("Student ID Card reported lost/revoked by user {$user->id} ({$user->name}) from IP {$request->ip()}");
+
+        try {
+            DB::table('auth_logs')->insert([
+                'user_id'    => $user->id,
+                'action'     => 'id_card_reported_lost',
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'status'     => 'revoked',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        } catch (\Throwable $e) {
+        }
+
+        return back()->with('success', 'កាតត្រូវបានរាយការណ៍ថាបានបាត់រួចរាល់ហើយ! កាតចាស់ត្រូវបានផ្អាកសុពលភាព (Revoked) ភ្លាមៗដើម្បីសុវត្ថិភាព។ សូមទាក់ទងការិយាល័យសិក្សាដើម្បីស្នើសុំកាតថ្មី។');
+    }
+
+    /**
      * Update Student Password and disconnect other sessions.
      */
     public function updatePassword(Request $request)
@@ -503,10 +559,9 @@ class ProfileController extends Controller
                     'program_kh'   => $majorNameKh,
                     'status'       => 'Active Enrolled Student',
                     'status_kh'    => 'និស្សិតផ្លូវការកំពុងសិក្សា',
-                    'card_no'      => $card->card_no,
                     'expires_at'   => $card->expires_at ? $card->expires_at->format('M d, Y') : '—',
                     'verified_at'  => now()->format('M d, Y · h:i A'),
-                    'institution'  => config('app.name', 'Saint Paul Institute'),
+                    'institution'  => config('app.institution', 'Saint Paul Institute'),
                 ];
             }
         }

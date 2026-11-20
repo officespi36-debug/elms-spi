@@ -746,6 +746,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/profile', [Student\ProfileController::class, 'update'])->name('profile.update');
         Route::post('/profile/password', [Student\ProfileController::class, 'updatePassword'])->middleware('throttle:5,1')->name('profile.password');
         Route::post('/profile/id-card/regenerate', [Student\ProfileController::class, 'regenerateIdCardToken'])->middleware('throttle:10,1')->name('profile.id-card.regenerate');
+        Route::post('/profile/id-card/report-lost', [Student\ProfileController::class, 'reportLostIdCard'])->middleware('throttle:5,1')->name('profile.id-card.report-lost');
         Route::post('/profile/change-request', [Student\ProfileController::class, 'storeChangeRequest'])->name('profile.change-request');
         Route::post('/profile/sessions/logout-others', [Student\ProfileController::class, 'logoutOtherSessions'])->name('profile.sessions.logout-others');
         Route::get('/profile/history/export-csv', [Student\ProfileController::class, 'exportHistoryCsv'])->name('profile.history.export-csv');

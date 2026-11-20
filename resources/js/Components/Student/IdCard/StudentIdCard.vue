@@ -72,6 +72,7 @@ const handleFlip = () => {
       <!-- Clear Flip Card Button -->
       <button
         type="button"
+        :aria-pressed="isFlipped"
         @click="handleFlip"
         class="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-[#131314] hover:bg-slate-200 dark:hover:bg-[#282a2c] text-slate-700 dark:text-slate-200 font-bold font-khmer text-xs transition-all cursor-pointer inline-flex items-center gap-2 border border-slate-200 dark:border-[#2d2f31] shadow-2xs hover:shadow-xs active:scale-95"
       >
@@ -90,15 +91,15 @@ const handleFlip = () => {
     </div>
 
     <!-- 3D Card Scene Container (Aspect ratio ~1.586 : 1, standard CR80) -->
-    <div
+    <button
       id="student-digital-id-card"
+      type="button"
+      :aria-pressed="isFlipped"
       @click="handleFlip"
       @keydown.space.prevent="handleFlip"
       @keydown.enter.prevent="handleFlip"
-      tabindex="0"
-      role="button"
       :aria-label="currentLang === 'km' ? 'កាតនិស្សិតឌីជីថល ចុចដើម្បីបង្វិល' : 'Digital Student ID Card. Click or press Spacebar to flip.'"
-      class="card-3d-scene w-full max-w-[440px] aspect-[1.586/1] select-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-2xl group transition-all duration-300 hover:scale-[1.01] hover:shadow-2xl"
+      class="card-3d-scene w-full max-w-[440px] aspect-[1.586/1] select-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-2xl group transition-all duration-300 hover:scale-[1.01] hover:shadow-2xl text-left p-0 border-0 bg-transparent block relative"
     >
       <div
         class="card-3d-inner w-full h-full relative transition-transform duration-600 ease-in-out"
@@ -124,7 +125,7 @@ const handleFlip = () => {
           :cardLogoUrl="cardLogoUrl"
         />
       </div>
-    </div>
+    </button>
 
     <!-- Caption / Hint below card -->
     <p class="text-[11px] text-slate-400 dark:text-slate-500 text-center flex items-center justify-center gap-1.5">
@@ -160,13 +161,39 @@ const handleFlip = () => {
   transform: rotateY(180deg);
 }
 
-/* Reduced motion preference */
+/* Reduced motion preference: fade transition instead of 3D flip */
 @media (prefers-reduced-motion: reduce) {
-  .card-3d-inner {
-    transition-duration: 0.01ms !important;
-  }
   .card-3d-scene {
-    transition: none !important;
+    perspective: none;
+  }
+  .card-3d-inner {
+    transform-style: flat;
+    transition: opacity 0.3s ease;
+  }
+  .card-3d-inner.is-flipped {
+    transform: none;
+  }
+  :deep(.card-3d-face) {
+    backface-visibility: visible;
+    -webkit-backface-visibility: visible;
+  }
+  :deep(.card-3d-front) {
+    opacity: 1;
+    transition: opacity 0.3s ease;
+  }
+  .card-3d-inner.is-flipped :deep(.card-3d-front) {
+    opacity: 0;
+    pointer-events: none;
+  }
+  :deep(.card-3d-back) {
+    transform: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  .card-3d-inner.is-flipped :deep(.card-3d-back) {
+    opacity: 1;
+    pointer-events: auto;
   }
 }
 </style>

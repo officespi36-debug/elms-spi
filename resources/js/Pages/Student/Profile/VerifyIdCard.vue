@@ -10,7 +10,6 @@ defineProps<{
     program_kh?: string
     status: string
     status_kh?: string
-    card_no: string
     expires_at: string
     verified_at: string
     institution: string
@@ -71,15 +70,9 @@ defineProps<{
             </p>
           </div>
 
-          <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-800/60">
-            <div>
-              <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">លេខកាត (Card No)</p>
-              <p class="text-xs font-mono font-bold text-slate-200 mt-0.5">{{ student.card_no }}</p>
-            </div>
-            <div>
-              <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">ស្ថានភាព (Status)</p>
-              <p class="text-xs font-bold text-emerald-400 mt-0.5">● {{ student.status_kh || student.status }}</p>
-            </div>
+          <div class="pt-2 border-t border-slate-800/60 flex items-center justify-between">
+            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">ស្ថានភាពនិស្សិត (Status)</p>
+            <p class="text-xs font-bold text-emerald-400">● {{ student.status_kh || student.status }}</p>
           </div>
 
           <div class="pt-2 border-t border-slate-800/60">

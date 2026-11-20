@@ -49,11 +49,12 @@ class IdCard extends Model
 
     public static function generateCardNo(User $user): string
     {
-        $code = $user->student_code;
-        if (!empty($code)) {
-            return 'IDC-' . preg_replace('/[^A-Za-z0-9\-]/', '', $code);
-        }
+        do {
+            $year = date('Y');
+            $random = strtoupper(Str::random(6));
+            $cardNo = "SPI-{$year}-{$random}";
+        } while (static::where('card_no', $cardNo)->exists());
 
-        return 'IDC-' . date('Y') . '-' . str_pad((string) $user->id, 5, '0', STR_PAD_LEFT);
+        return $cardNo;
     }
 }

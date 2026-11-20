@@ -42,9 +42,11 @@ interface IdCardData {
   issued_at_kh?: string
   expires_at?: string
   expires_at_kh?: string
-  status: 'active' | 'revoked' | 'pending'
+  status: 'active' | 'revoked' | 'pending' | 'expired'
   is_official: boolean
   is_live_verified?: boolean
+  days_remaining?: number
+  is_expiring_soon?: boolean
   approved_at?: string
   approved_at_kh?: string
   institution: string
@@ -58,6 +60,8 @@ interface AcademicData {
   department_kh: string
   major: string
   major_kh: string
+  intake_year?: string
+  intake_year_kh?: string
   term: string
   term_kh?: string
   degree_level: string
@@ -203,16 +207,66 @@ watch(() => props.idCard?.verify_url, () => {
 
 const copyVerifyLink = () => {
   if (!props.idCard?.verify_url) return
-  navigator.clipboard.writeText(props.idCard.verify_url).then(() => {
-    linkCopied.value = true
-    toast.success(
-      currentLang.value === 'km' ? 'បានចម្លងតំណភ្ជាប់ដោយជោគជ័យ!' : 'Verification link copied successfully!',
-      currentLang.value === 'km' ? 'ជោគជ័យ' : 'Success'
-    )
-    setTimeout(() => {
-      linkCopied.value = false
-    }, 3000)
-  })
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(props.idCard.verify_url)
+      .then(() => {
+        linkCopied.value = true
+        toast.success(
+          currentLang.value === 'km' ? 'បានចម្លងតំណភ្ជាប់ផ្ទៀងផ្ទាត់ដោយជោគជ័យ!' : 'Verification link copied successfully!',
+          currentLang.value === 'km' ? 'ជោគជ័យ' : 'Success'
+        )
+        setTimeout(() => {
+          linkCopied.value = false
+        }, 3000)
+      })
+      .catch(() => {
+        toast.error(
+          currentLang.value === 'km' ? 'មិនអាចចម្លងតំណភ្ជាប់បានទេ សូមចម្លងដោយដៃ!' : 'Failed to copy link, please copy manually!',
+          currentLang.value === 'km' ? 'កំហុស' : 'Error'
+        )
+      })
+  } else {
+    try {
+      const textarea = document.createElement('textarea')
+      textarea.value = props.idCard.verify_url
+      document.body.appendChild(textarea)
+      textarea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textarea)
+      linkCopied.value = true
+      toast.success(
+        currentLang.value === 'km' ? 'បានចម្លងតំណភ្ជាប់ផ្ទៀងផ្ទាត់ដោយជោគជ័យ!' : 'Verification link copied successfully!',
+        currentLang.value === 'km' ? 'ជោគជ័យ' : 'Success'
+      )
+      setTimeout(() => {
+        linkCopied.value = false
+      }, 3000)
+    } catch {
+      toast.error(
+        currentLang.value === 'km' ? 'មិនអាចចម្លងតំណភ្ជាប់បានទេ សូមចម្លងដោយដៃ!' : 'Failed to copy link, please copy manually!',
+        currentLang.value === 'km' ? 'កំហុស' : 'Error'
+      )
+    }
+  }
+}
+
+const copyCardNo = () => {
+  if (!props.idCard?.card_no) return
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(props.idCard.card_no)
+      .then(() => {
+        toast.success(
+          currentLang.value === 'km' ? 'បានចម្លងលេខកាតដោយជោគជ័យ!' : 'Card number copied successfully!',
+          currentLang.value === 'km' ? 'ជោគជ័យ' : 'Success'
+        )
+      })
+      .catch(() => {
+        toast.error(
+          currentLang.value === 'km' ? 'មិនអាចចម្លងលេខកាតបានទេ!' : 'Failed to copy card number!',
+          currentLang.value === 'km' ? 'កំហុស' : 'Error'
+        )
+      })
+  }
 }
 
 const confirmRegenerateToken = () => {
@@ -232,8 +286,39 @@ const confirmRegenerateToken = () => {
   })
 }
 
+const isReportLostModalOpen = ref(false)
+const isReportingLost = ref(false)
+const confirmReportLostCard = () => {
+  isReportingLost.value = true
+  router.post('/student/profile/id-card/report-lost', {}, {
+    preserveScroll: true,
+    onSuccess: () => {
+      toast.warning(
+        currentLang.value === 'km' ? 'កាតត្រូវបានរាយការណ៍ថាបាត់! សុពលភាពត្រូវបានផ្អាកភ្លាមៗ។' : 'Card reported as lost. It has been revoked immediately.',
+        currentLang.value === 'km' ? 'បានផ្អាកកាត' : 'Card Revoked'
+      )
+    },
+    onError: () => {
+      toast.error(
+        currentLang.value === 'km' ? 'មានបញ្ហាក្នុងការរាយការណ៍ សូមព្យាយាមម្តងទៀត' : 'Failed to report lost card. Please try again.',
+        currentLang.value === 'km' ? 'កំហុស' : 'Error'
+      )
+    },
+    onFinish: () => {
+      isReportingLost.value = false
+      isReportLostModalOpen.value = false
+    },
+  })
+}
+
 const printIdCard = () => {
+  const originalTitle = document.title
+  const studentCode = props.profile?.student_id || 'card'
+  document.title = `id-card-${studentCode}`
   window.print()
+  setTimeout(() => {
+    document.title = originalTitle
+  }, 1000)
 }
 
 // 4. Personal Tab: Editable fields & Instant Avatar Upload
@@ -646,7 +731,7 @@ const getLogTypeBadge = (type: string) => {
       </div>
 
       <!-- TAB 1: DIGITAL STUDENT ID CARD (Flippable Card + Verification Details) -->
-      <div v-show="currentTab === 'id-card'" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div v-show="currentTab === 'id-card'" class="grid grid-cols-1 lg:grid-cols-12 gap-6 pb-28">
         
         <!-- Left: Flippable CR80 Digital Card Container (~65% / lg:col-span-7) -->
         <div class="lg:col-span-7 bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] rounded-3xl p-6 sm:p-7 shadow-sm dark:shadow-xl flex flex-col items-center justify-between space-y-6">
@@ -674,7 +759,9 @@ const getLogTypeBadge = (type: string) => {
             :isRegeneratingToken="isRegeneratingToken"
             @printCard="printIdCard"
             @copyLink="copyVerifyLink"
+            @copyCardNo="copyCardNo"
             @openRegenerateModal="isRegenerateModalOpen = true"
+            @reportLost="isReportLostModalOpen = true"
           />
         </div>
 
@@ -1368,6 +1455,63 @@ const getLogTypeBadge = (type: string) => {
       </div>
     </div>
 
+    <!-- DIALOG MODAL: Report Lost Card Confirmation -->
+    <div
+      v-if="isReportLostModalOpen"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+      @click.self="isReportLostModalOpen = false"
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="report-lost-dialog-title"
+        class="w-full max-w-md bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] rounded-3xl p-6 shadow-2xl space-y-4"
+      >
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <div>
+            <h3 id="report-lost-dialog-title" class="text-base font-bold text-slate-900 dark:text-white">
+              {{ currentLang === 'km' ? 'បញ្ជាក់ការរាយការណ៍បាត់កាត' : 'Confirm Report Lost Card' }}
+            </h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              {{ currentLang === 'km' ? 'កាតរបស់អ្នកនឹងត្រូវបានដកហូតភ្លាមៗ' : 'Your card will be revoked immediately' }}
+            </p>
+          </div>
+        </div>
+
+        <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-[#f8fafc] dark:bg-[#131314] p-3.5 rounded-2xl border border-[#dfe3e7] dark:border-[#2d2f31]">
+          {{ currentLang === 'km' ? 'តើអ្នកពិតជាបានបាត់កាតសម្គាល់ខ្លួនមែនទេ? នៅពេលរាយការណ៍ កាតឌីជីថល និងកូដ QR ទាំងអស់នឹងត្រូវបានបិទដំណើរការ (Revoked) ភ្លាមៗ ហើយដំណឹងនឹងត្រូវបញ្ជូនទៅកាន់ការិយាល័យសិក្សា។' : 'Are you sure your ID card is lost? Once reported, this digital card and its QR code will be revoked immediately for security, and the registrar will be notified.' }}
+        </p>
+
+        <div class="flex items-center justify-end gap-2.5 pt-2">
+          <button
+            type="button"
+            @click="isReportLostModalOpen = false"
+            class="px-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-bold text-xs cursor-pointer"
+          >
+            {{ currentLang === 'km' ? 'បោះបង់' : 'Cancel' }}
+          </button>
+          <button
+            type="button"
+            :disabled="isReportingLost"
+            @click="confirmReportLostCard"
+            class="px-5 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-md cursor-pointer disabled:opacity-50 inline-flex items-center gap-1.5"
+          >
+            <svg v-if="isReportingLost" class="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>{{ isReportingLost ? (currentLang === 'km' ? 'កំពុងរាយការណ៍...' : 'Reporting...') : (currentLang === 'km' ? 'រាយការណ៍បាត់កាត' : 'Revoke & Report') }}</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
     <!-- MODAL: Request Correction for Locked Field -->
     <div
       v-if="isCorrectionModalOpen"
@@ -1497,111 +1641,113 @@ const getLogTypeBadge = (type: string) => {
     </div>
 
     <!-- DEDICATED PRINTABLE CR80 CONTAINER (Printed on 2 pages: Front on Page 1, Back on Page 2) -->
-    <div id="printable-cr80-document" class="hidden print:block">
+    <div id="printable-cr80-document" class="hidden print:block font-khmer">
       
-      <!-- PAGE 1: CR80 CARD FRONT SIDE -->
-      <div class="cr80-page-front w-[85.6mm] h-[54mm] p-[4.5mm] bg-[#071638] text-white flex flex-col justify-between rounded-[3.18mm] relative overflow-hidden">
+      <!-- PAGE 1: CR80 CARD FRONT SIDE (Persistent Data Only: Names, ID, Major, Intake, Issued, Expires) -->
+      <div class="cr80-page-front w-[85.6mm] h-[54mm] p-[4.2mm] bg-[#071638] text-white flex flex-col justify-between rounded-[3.18mm] relative overflow-hidden">
         
         <!-- Top Row -->
         <div class="flex items-center justify-between border-b border-white/10 pb-1">
           <div class="flex items-center gap-2">
-            <div class="w-[7mm] h-[7mm] rounded-full overflow-hidden flex items-center justify-center shrink-0 ring-1 ring-[#16C8F5]/50 bg-[#0a1b42]">
+            <div class="w-[7.5mm] h-[7.5mm] rounded-full overflow-hidden flex items-center justify-center shrink-0 ring-1 ring-[#16C8F5]/50 bg-[#0a1b42]">
               <img :src="cardLogoUrl" alt="Logo" class="w-full h-full object-cover" />
             </div>
             <div>
-              <p class="text-[7.5pt] font-black text-slate-100 font-khmer leading-tight">
+              <p class="text-[8pt] font-black text-slate-100 font-khmer leading-tight">
                 {{ currentLang === 'km' ? (idCard.institution_kh || idCard.institution) : idCard.institution }}
               </p>
-              <p class="text-[5.5pt] text-[#FFD54A] font-bold font-sans tracking-wider uppercase">
+              <p class="text-[6pt] text-[#FFD54A] font-bold font-sans tracking-wider uppercase">
                 SAINT PAUL INSTITUTE
               </p>
             </div>
           </div>
           <span
-            class="px-1.5 py-0.5 rounded-full bg-[#1459D9]/30 text-[#16C8F5] border border-[#16C8F5]/40 text-[5pt] font-black uppercase"
+            class="px-2 py-0.5 rounded-full bg-[#1459D9]/30 text-[#16C8F5] border border-[#16C8F5]/40 text-[6pt] font-black uppercase"
           >
             STUDENT ID CARD
           </span>
         </div>
 
-        <!-- Middle Row: 3 Balanced Sections (Photo, Details, Chip) -->
-        <div class="flex items-center gap-2.5 my-auto">
-          <div class="w-[18mm] h-[18mm] rounded-lg overflow-hidden bg-[#0c1e4a] border border-[#16C8F5]/40 flex items-center justify-center shrink-0">
+        <!-- Middle Row: Student Photo & Identity Details (No fake smart chip, persistent intake year) -->
+        <div class="flex items-center gap-3 my-auto">
+          <div class="w-[20mm] h-[20mm] rounded-lg overflow-hidden bg-[#0c1e4a] border border-[#16C8F5]/40 flex items-center justify-center shrink-0">
             <img
               v-if="avatarPreview"
               :src="avatarPreview"
               :alt="profile.name"
               class="w-full h-full object-cover"
             />
-            <span v-else class="text-sm font-bold text-white">
+            <span v-else class="text-base font-bold text-white">
               {{ profile.name ? profile.name.charAt(0).toUpperCase() : 'S' }}
             </span>
           </div>
 
           <div class="space-y-0.5 min-w-0 flex-1">
-            <p class="text-[9pt] font-black leading-tight text-white">{{ profile.name }}</p>
-            <p v-if="profile.name_kh" class="text-[7pt] font-semibold text-slate-300">{{ profile.name_kh }}</p>
-            <p class="text-[7pt] font-mono font-bold text-[#FFD54A]">ID: {{ profile.student_id }}</p>
-            <p class="text-[6pt] text-slate-200">{{ currentLang === 'km' ? (academic.major_kh || academic.major) : academic.major }}</p>
-            <p v-if="academic.faculty || academic.faculty_kh" class="text-[5.5pt] text-slate-300/80">
+            <p class="text-[9.5pt] font-black leading-tight text-white uppercase font-sans">{{ profile.name }}</p>
+            <p v-if="profile.name_kh" class="text-[7.5pt] font-semibold text-slate-200 font-khmer leading-tight">{{ profile.name_kh }}</p>
+            <div class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-amber-500/20 text-[#FFD54A] border border-[#FFD54A]/30">
+              <span class="text-[6.5pt] font-mono font-bold">ID: {{ profile.student_id }}</span>
+            </div>
+            <p class="text-[6.5pt] font-semibold text-slate-200 font-khmer leading-tight">
+              ● {{ currentLang === 'km' ? (academic.major_kh || academic.major) : academic.major }}
+            </p>
+            <p v-if="academic.faculty || academic.faculty_kh" class="text-[6pt] text-slate-300/90 font-khmer leading-tight pl-2">
               {{ currentLang === 'km' ? (academic.faculty_kh || academic.faculty) : academic.faculty }}
             </p>
-          </div>
-
-          <!-- Metallic Gold Chip in Print -->
-          <div class="w-[7mm] h-[5.5mm] rounded bg-gradient-to-br from-amber-300 to-amber-500 border border-amber-600 shrink-0 flex items-center justify-center">
-            <div class="w-[3.5mm] h-[2.5mm] border border-amber-800 bg-amber-200"></div>
+            <p class="text-[6pt] font-bold text-cyan-300 font-khmer leading-tight">
+              {{ currentLang === 'km' ? 'ឆ្នាំចូលសិក្សា: ' + (academic.intake_year_kh || academic.intake_year || '២០២៦') : 'Intake Year: ' + (academic.intake_year || '2026') }}
+            </p>
           </div>
         </div>
 
-        <!-- Bottom Row: Card No, Term, Valid Thru -->
-        <div class="pt-1 border-t border-white/10 flex items-center justify-between text-[6pt] text-slate-200 whitespace-nowrap">
-          <span>{{ currentLang === 'km' ? (academic.term_kh || academic.term) : academic.term }}</span>
-          <span class="font-mono font-bold text-[#16C8F5]">CARD: {{ idCard.card_no }}</span>
-          <span>EXP: {{ currentLang === 'km' ? (idCard.expires_at_kh || idCard.expires_at) : idCard.expires_at }}</span>
+        <!-- Bottom Row: Issued Date, Unique Card Number, Valid Thru (No dynamic semester/term) -->
+        <div class="pt-1 border-t border-white/10 flex items-center justify-between text-[6.5pt] text-slate-200 whitespace-nowrap">
+          <span>{{ currentLang === 'km' ? 'ថ្ងៃចេញ: ' + (idCard.issued_at_kh || idCard.issued_at) : 'ISSUED: ' + idCard.issued_at }}</span>
+          <span class="font-mono font-bold text-[#16C8F5] px-1.5 py-0.2 bg-[#0c1e4a] rounded border border-[#16C8F5]/30">CARD: {{ idCard.card_no }}</span>
+          <span class="font-bold text-[#FFD54A]">{{ currentLang === 'km' ? 'សុពលភាព: ' + (idCard.expires_at_kh || idCard.expires_at) : 'EXP: ' + idCard.expires_at }}</span>
         </div>
 
       </div>
 
       <!-- PAGE 2: CR80 CARD BACK SIDE -->
-      <div class="cr80-page-back w-[85.6mm] h-[54mm] p-[4.5mm] bg-[#071638] text-white flex flex-col justify-between rounded-[3.18mm] relative overflow-hidden">
+      <div class="cr80-page-back w-[85.6mm] h-[54mm] p-[4.2mm] bg-[#071638] text-white flex flex-col justify-between rounded-[3.18mm] relative overflow-hidden">
         
         <!-- Magnetic Stripe -->
-        <div class="w-full h-[6mm] bg-black rounded border border-slate-800 flex items-center px-2">
-          <span class="text-[5pt] font-mono text-slate-400 tracking-widest uppercase">STUDENT IDENTITY VERIFICATION • SPI</span>
+        <div class="w-full h-[6.5mm] bg-black rounded border border-slate-800 flex items-center px-2">
+          <span class="text-[6pt] font-mono text-slate-300 tracking-widest uppercase">STUDENT IDENTITY VERIFICATION • SAINT PAUL INSTITUTE</span>
         </div>
 
-        <!-- Terms & QR -->
-        <div class="flex items-center justify-between gap-3 my-auto py-1">
-          <div class="bg-white p-1 rounded-lg shrink-0">
+        <!-- Terms & High-Res QR -->
+        <div class="flex items-center justify-between gap-3.5 my-auto py-1">
+          <div class="bg-white p-1 rounded-lg shrink-0 border border-slate-700">
             <img
               v-if="qrDataUrl"
               :src="qrDataUrl"
               alt="Verification QR"
-              class="w-[18mm] h-[18mm] object-contain"
+              class="w-[20mm] h-[20mm] object-contain"
             />
           </div>
 
-          <div class="space-y-1 text-[6pt] text-slate-300 max-w-[50mm] leading-tight flex-1">
-            <div class="w-full bg-slate-200 text-slate-800 px-1 py-0.5 rounded text-[5pt] font-mono flex justify-between">
+          <div class="space-y-1 text-[6pt] text-slate-300 max-w-[50mm] leading-snug flex-1">
+            <div class="w-full bg-slate-200 text-slate-800 px-1.5 py-0.5 rounded text-[6pt] font-mono flex justify-between font-bold">
               <span>AUTHORIZED SIGNATURE</span>
               <span>{{ profile.student_id }}</span>
             </div>
-            <p class="text-slate-300">
+            <p class="text-slate-300 font-khmer text-[6pt]">
               {{ currentLang === 'km' ? 'កាតនេះជាកម្មសិទ្ធិរបស់វិទ្យាស្ថាន សន្តប៉ូល។ ប្រសិនបើរើសបាន សូមមេត្តាប្រគល់ជូនការិយាល័យសិក្សា ឬទាក់ទងមកវិទ្យាស្ថាន។' : 'This card is issued by Saint Paul Institute. If found, return to the office.' }}
             </p>
-            <div class="flex justify-between text-[5.5pt] text-slate-300 pt-0.5 border-t border-white/10">
-              <span>ISSUED: {{ currentLang === 'km' ? (idCard.issued_at_kh || idCard.issued_at) : idCard.issued_at }}</span>
-              <span>EXPIRES: {{ currentLang === 'km' ? (idCard.expires_at_kh || idCard.expires_at) : idCard.expires_at }}</span>
+            <div class="flex justify-between text-[6pt] text-slate-300 pt-0.5 border-t border-white/10 font-khmer">
+              <span>{{ currentLang === 'km' ? 'ថ្ងៃចេញ: ' + (idCard.issued_at_kh || idCard.issued_at) : 'ISSUED: ' + idCard.issued_at }}</span>
+              <span class="text-[#FFD54A] font-bold">{{ currentLang === 'km' ? 'ផុតកំណត់: ' + (idCard.expires_at_kh || idCard.expires_at) : 'EXP: ' + idCard.expires_at }}</span>
             </div>
           </div>
         </div>
 
         <!-- Token Hash & Website -->
-        <div class="text-[5.5pt] font-mono text-slate-400 flex items-center justify-between border-t border-white/10 pt-1">
+        <div class="text-[6pt] font-mono text-slate-400 flex items-center justify-between border-t border-white/10 pt-1 font-bold">
           <span class="text-[#16C8F5]">spilms.tech</span>
           <span>Verified by SPI</span>
-          <span class="text-emerald-400">ACTIVE</span>
+          <span class="text-emerald-400">ACTIVE OFFICIAL</span>
         </div>
 
       </div>

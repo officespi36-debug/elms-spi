@@ -72,26 +72,49 @@ const props = defineProps<{
         </div>
       </div>
 
-      <!-- Small STUDENT ID CARD Badge -->
+      <!-- Small STUDENT ID CARD / Approval Badge -->
       <div class="flex items-center gap-1.5 shrink-0">
-        <span class="px-2.5 py-0.5 rounded-full bg-blue-50/90 dark:bg-[#1459D9]/30 text-blue-700 dark:text-[#16C8F5] border border-blue-200/90 dark:border-[#16C8F5]/40 text-[9px] font-bold shadow-xs backdrop-blur-md flex items-center gap-1.5">
+        <span
+          class="px-2.5 py-0.5 rounded-full text-[9px] font-bold shadow-xs backdrop-blur-md flex items-center gap-1.5 border"
+          :class="[
+            idCard.is_official
+              ? 'bg-blue-50/90 dark:bg-[#1459D9]/30 text-blue-700 dark:text-[#16C8F5] border-blue-200/90 dark:border-[#16C8F5]/40'
+              : (idCard.status === 'revoked' || idCard.status === 'expired'
+                ? 'bg-rose-50/90 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border-rose-300 dark:border-rose-500/40'
+                : 'bg-amber-50/90 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-500/40')
+          ]"
+        >
           <span
             class="w-1.5 h-1.5 rounded-full"
-            :class="idCard.is_official ? 'bg-emerald-500 dark:bg-emerald-400 animate-pulse' : 'bg-amber-500 dark:bg-amber-400'"
+            :class="[
+              idCard.is_official
+                ? 'bg-emerald-500 dark:bg-emerald-400 animate-pulse'
+                : (idCard.status === 'revoked' || idCard.status === 'expired'
+                  ? 'bg-rose-500'
+                  : 'bg-amber-500')
+            ]"
           ></span>
           <span :class="currentLang === 'km' ? 'font-khmer' : 'font-sans uppercase tracking-wider font-black'">
-            {{ currentLang === 'km' ? (idCard.is_official ? 'កាតនិស្សិតផ្លូវការ' : 'កាតនិស្សិត') : 'STUDENT ID CARD' }}
+            {{
+              idCard.is_official
+                ? (currentLang === 'km' ? 'កាតផ្លូវការ' : 'OFFICIAL ID')
+                : (idCard.status === 'revoked'
+                  ? (currentLang === 'km' ? 'កាតត្រូវបានដកហូត' : 'REVOKED')
+                  : (idCard.status === 'expired'
+                    ? (currentLang === 'km' ? 'ផុតសុពលភាព' : 'EXPIRED')
+                    : (currentLang === 'km' ? 'រង់ចាំការអនុម័ត' : 'PENDING APPROVAL')))
+            }}
           </span>
         </span>
       </div>
     </div>
 
-    <!-- Main Content: Student Photo (Left), Identity & Academic Details (Center), EMV Chip & Waves (Right) -->
-    <div class="flex items-center gap-3 sm:gap-3.5 my-auto py-1 relative z-10">
+    <!-- Main Content: Student Photo (Left), Identity & Academic Details (Center) -->
+    <div class="flex items-center gap-3.5 sm:gap-4 my-auto py-1 relative z-10">
       
       <!-- Left: Student Portrait with Rounded Corners & Subtle Ring -->
       <div class="relative shrink-0">
-        <div class="w-18 h-18 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-slate-100 dark:bg-[#0c1e4a] ring-2 ring-blue-500/40 dark:ring-[#16C8F5]/50 shadow-xl flex items-center justify-center">
+        <div class="w-20 h-20 sm:w-22 sm:h-22 rounded-xl overflow-hidden bg-slate-100 dark:bg-[#0c1e4a] ring-2 ring-blue-500/40 dark:ring-[#16C8F5]/50 shadow-xl flex items-center justify-center">
           <img
             v-if="avatarPreview"
             :src="avatarPreview"
@@ -102,44 +125,51 @@ const props = defineProps<{
             {{ profile.name ? profile.name.charAt(0).toUpperCase() : 'S' }}
           </div>
         </div>
-        <!-- Live Verified Dot -->
+        <!-- Live Verified / Registrar Approval Dot on Photo -->
         <span
           v-if="idCard.is_official"
-          class="absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full bg-emerald-500 border-2 border-white dark:border-[#071638] shadow-md flex items-center justify-center text-white text-[9px]"
+          class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white dark:border-[#071638] shadow-md flex items-center justify-center text-white text-[10px] font-black"
           title="Official University Verified"
         >
           ✓
         </span>
+        <span
+          v-else-if="idCard.status === 'revoked' || idCard.status === 'expired'"
+          class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-rose-500 border-2 border-white dark:border-[#071638] shadow-md flex items-center justify-center text-white text-[10px] font-black"
+          title="Revoked or Expired"
+        >
+          ✕
+        </span>
       </div>
 
       <!-- Center: Student Names, ID Badge, Major, Academic Year, and Status -->
-      <div class="space-y-0.5 sm:space-y-1 min-w-0 flex-1">
+      <div class="space-y-1 min-w-0 flex-1">
         
         <!-- Name (English large bold + Khmer subtitle) -->
         <div class="leading-tight">
-          <h2 class="text-sm sm:text-[15px] font-black text-slate-900 dark:text-white tracking-wide truncate uppercase drop-shadow-xs font-sans">
+          <h2 class="text-sm sm:text-[15.5px] font-black text-slate-900 dark:text-white tracking-wide truncate uppercase drop-shadow-xs font-sans">
             {{ profile.name }}
           </h2>
-          <p v-if="profile.name_kh" class="text-[11px] sm:text-xs font-semibold text-slate-600 dark:text-slate-300 truncate font-khmer pt-0.5 leading-normal">
+          <p v-if="profile.name_kh" class="text-[11.5px] sm:text-xs font-semibold text-slate-600 dark:text-slate-300 truncate font-khmer pt-0.5 leading-normal">
             {{ profile.name_kh }}
           </p>
         </div>
 
         <!-- Student ID Highlighted in Soft Gold Badge -->
-        <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-500/15 dark:bg-[#FFD54A]/15 border border-amber-500/40 dark:border-[#FFD54A]/40">
+        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-amber-500/15 dark:bg-[#FFD54A]/15 border border-amber-500/40 dark:border-[#FFD54A]/40">
           <span
-            class="text-[8.5px] text-amber-800 dark:text-slate-300 font-bold"
+            class="text-[9px] text-amber-800 dark:text-slate-300 font-bold"
             :class="currentLang === 'km' ? 'font-khmer' : 'uppercase tracking-wider font-sans'"
           >
             {{ currentLang === 'km' ? 'អត្តលេខ:' : 'ID:' }}
           </span>
-          <span class="font-mono text-xs font-black text-amber-700 dark:text-[#FFD54A] tracking-wider">{{ profile.student_id }}</span>
+          <span class="font-mono text-xs sm:text-[12.5px] font-black text-amber-700 dark:text-[#FFD54A] tracking-wider">{{ profile.student_id }}</span>
         </div>
 
         <!-- Major & Faculty -->
         <div class="space-y-0.5">
           <p
-            class="text-[10px] sm:text-[10.5px] text-slate-900 dark:text-slate-100 font-semibold truncate flex items-center gap-1"
+            class="text-[10.5px] sm:text-[11px] text-slate-900 dark:text-slate-100 font-semibold truncate flex items-center gap-1"
             :class="currentLang === 'km' ? 'font-khmer' : 'font-sans'"
           >
             <span class="text-blue-600 dark:text-[#16C8F5] text-[9px]">●</span>
@@ -147,17 +177,17 @@ const props = defineProps<{
           </p>
           <p
             v-if="academic.faculty || academic.faculty_kh"
-            class="text-[8.5px] sm:text-[9px] text-slate-600 dark:text-slate-300/85 truncate pl-2.5 font-medium"
+            class="text-[9px] sm:text-[9.5px] text-slate-600 dark:text-slate-300/85 truncate pl-2.5 font-medium"
             :class="currentLang === 'km' ? 'font-khmer' : 'font-sans'"
           >
             {{ currentLang === 'km' ? (academic.faculty_kh || academic.faculty) : academic.faculty }}
           </p>
         </div>
 
-        <!-- Academic Year / Status Pill -->
+        <!-- Academic Term / Status Pill -->
         <div class="flex items-center gap-2 pt-0.5">
           <span
-            class="text-[8.5px] sm:text-[9px] font-bold text-blue-700 dark:text-[#16C8F5] truncate"
+            class="text-[9px] sm:text-[9.5px] font-bold text-blue-700 dark:text-[#16C8F5] truncate"
             :class="currentLang === 'km' ? 'font-khmer' : 'font-sans'"
           >
             {{ currentLang === 'km' ? (academic.term_kh || academic.term) : academic.term }}
@@ -170,23 +200,6 @@ const props = defineProps<{
           </span>
         </div>
 
-      </div>
-
-      <!-- Right: EMV Metallic Gold Smart Chip & Contactless RFID Waves -->
-      <div class="flex flex-col items-center justify-center gap-2 shrink-0 pl-1 border-l border-slate-200/80 dark:border-white/10">
-        <!-- Contactless RFID Wave Icon -->
-        <svg class="w-4 h-4 text-blue-600/80 dark:text-cyan-300/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M8.111 16.404a5.5 5.5 0 010-8.808m3.535 11.314a9.5 9.5 0 000-13.82m3.536 16.32a13.5 13.5 0 000-18.82" />
-        </svg>
-
-        <!-- EMV Metallic Smart Chip Graphic -->
-        <div class="w-9 h-7 rounded-md bg-gradient-to-br from-amber-200 via-amber-400 to-amber-600 p-[1px] shadow-md border border-amber-300/80 relative overflow-hidden">
-          <div class="w-full h-full bg-gradient-to-tr from-amber-400 via-amber-300 to-amber-200 rounded-[3px] relative flex items-center justify-center">
-            <div class="w-full h-[0.5px] bg-amber-800/60 absolute top-1/2"></div>
-            <div class="h-full w-[0.5px] bg-amber-800/60 absolute left-1/2"></div>
-            <div class="w-3.5 h-2.5 rounded-[2px] border border-amber-800/50 bg-amber-200/60"></div>
-          </div>
-        </div>
       </div>
 
     </div>
