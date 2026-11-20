@@ -38,14 +38,23 @@
             }
 
             try {
-                if ('caches' in window) {
-                    caches.keys().then(function(keys) {
-                        for (var i = 0; i < keys.length; i++) {
-                            if (keys[i].indexOf('spi-elms-v') !== -1) {
-                                caches.delete(keys[i]);
-                            }
-                        }
-                    });
+                var currentDeployBuild = 'v_20261120_d4863_idcard';
+                if (localStorage.getItem('spi_app_deploy') !== currentDeployBuild) {
+                    localStorage.setItem('spi_app_deploy', currentDeployBuild);
+                    if ('caches' in window) {
+                        caches.keys().then(function(keys) {
+                            keys.forEach(function(key) {
+                                caches.delete(key);
+                            });
+                        });
+                    }
+                    if ('serviceWorker' in navigator) {
+                        navigator.serviceWorker.getRegistrations().then(function(regs) {
+                            regs.forEach(function(reg) {
+                                reg.update();
+                            });
+                        });
+                    }
                 }
             } catch (e) {}
         })();
