@@ -642,3 +642,205 @@ html.dark .logout-beam-spinner,
   animation: border-beam-travel 3.5s linear infinite !important;
   will-change: transform, offset-distance;
 }
+
+/* ═════════════════════════════════════════════════════════════════════ */
+/* Global Auth Process Loader & Orbital Satellite Keyframe Animations    */
+/* ═════════════════════════════════════════════════════════════════════ */
+@keyframes spinSmooth {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@-webkit-keyframes spinSmooth {
+  0% {
+    -webkit-transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+  }
+}
+
+@keyframes spinSlow {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@-webkit-keyframes spinSlow {
+  0% {
+    -webkit-transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+  }
+}
+
+@keyframes ambientBreathe {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(1.05);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.22);
+  }
+}
+
+@keyframes floatMicro {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-2px) scale(1.02);
+  }
+}
+
+@keyframes scaleBounce {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes checkmarkDraw {
+  0% {
+    stroke-dashoffset: 45;
+    opacity: 0;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes dotPulse {
+  0%, 100% {
+    opacity: 0.2;
+    transform: translateY(0px);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes pingDot {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 4px rgba(56, 189, 248, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(56, 189, 248, 0);
+  }
+}
+
+@keyframes shimmerSweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+@keyframes rippleOut {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.45);
+    opacity: 0;
+  }
+}
+
+@keyframes bounceGentle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.animate-spin-smooth {
+  animation: spinSmooth 1.4s linear infinite !important;
+  -webkit-animation: spinSmooth 1.4s linear infinite !important;
+  transform-origin: center center !important;
+  -webkit-transform-origin: center center !important;
+  will-change: transform;
+}
+
+.animate-spin-slow {
+  animation: spinSlow 5s linear infinite !important;
+  -webkit-animation: spinSlow 5s linear infinite !important;
+  transform-origin: center center !important;
+  -webkit-transform-origin: center center !important;
+  will-change: transform;
+}
+
+.animate-ambient-breathe {
+  animation: ambientBreathe 3s ease-in-out infinite !important;
+}
+
+.animate-float-micro {
+  animation: floatMicro 3s ease-in-out infinite !important;
+}
+
+.animate-scale-bounce {
+  animation: scaleBounce 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+}
+
+.checkmark-path {
+  stroke-dasharray: 45;
+  stroke-dashoffset: 45;
+  animation: checkmarkDraw 0.45s cubic-bezier(0.65, 0, 0.45, 1) 0.1s forwards !important;
+}
+
+.dot-bounce {
+  display: inline-block;
+  animation: dotPulse 1.2s infinite ease-in-out !important;
+}
+
+.delay-150 {
+  animation-delay: 0.2s !important;
+}
+
+.delay-300 {
+  animation-delay: 0.4s !important;
+}
+
+.animate-ping-dot {
+  animation: pingDot 1.8s infinite !important;
+}
+
+.animate-shimmer-sweep {
+  animation: shimmerSweep 1.8s infinite linear !important;
+}
+
+.animate-ripple-out {
+  animation: rippleOut 1s cubic-bezier(0, 0.2, 0.8, 1) forwards !important;
+}
+
+.animate-bounce-gentle {
+  animation: bounceGentle 2s ease-in-out infinite !important;
+}

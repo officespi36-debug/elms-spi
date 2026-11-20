@@ -249,6 +249,7 @@ const detectedProvider = computed(() => {
       <div
         v-if="!isVisualSuccess"
         class="absolute inset-0 rounded-full border-2 border-transparent border-t-sky-400 border-r-indigo-500/50 animate-spin-smooth pointer-events-none"
+        style="animation: spinSmooth 1.4s linear infinite; -webkit-animation: spinSmooth 1.4s linear infinite; transform-origin: center center;"
       >
         <!-- Glowing Comet Head Dot -->
         <div class="w-2.5 h-2.5 rounded-full bg-sky-300 shadow-[0_0_12px_#38bdf8] absolute top-1 right-2 -translate-y-1/2"></div>
@@ -258,6 +259,7 @@ const detectedProvider = computed(() => {
       <div
         v-else
         class="absolute -inset-1.5 rounded-full border border-emerald-400/50 dark:border-emerald-400/40 animate-spin-slow pointer-events-none"
+        style="animation: spinSlow 5s linear infinite; -webkit-animation: spinSlow 5s linear infinite; transform-origin: center center;"
       >
         <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_12px_#34d399] absolute top-1 right-2 -translate-y-1/2"></div>
       </div>
@@ -425,22 +427,40 @@ const detectedProvider = computed(() => {
   </div>
 </template>
 
-<style scoped>
+<style>
 @keyframes spinSmooth {
-  from {
+  0% {
     transform: rotate(0deg);
   }
-  to {
+  100% {
     transform: rotate(360deg);
   }
 }
 
+@-webkit-keyframes spinSmooth {
+  0% {
+    -webkit-transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+  }
+}
+
 @keyframes spinSlow {
-  from {
+  0% {
     transform: rotate(0deg);
   }
-  to {
+  100% {
     transform: rotate(360deg);
+  }
+}
+
+@-webkit-keyframes spinSlow {
+  0% {
+    -webkit-transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
   }
 }
 
