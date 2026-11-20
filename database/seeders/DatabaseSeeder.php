@@ -2,8 +2,17 @@
 
 namespace Database\Seeders;
 
+use App\Models\AcademicRecord;
+use App\Models\Course;
+use App\Models\Department;
+use App\Models\Enrollment;
+use App\Models\Faculty;
+use App\Models\IdCard;
+use App\Models\Major;
 use App\Models\Setting;
+use App\Models\StudentGoal;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -69,7 +78,7 @@ class DatabaseSeeder extends Seeder
 
         // ─── 3. Ensure Official Digital ID Cards for Official Students & Admin ───
         try {
-            $faculty = \App\Models\Faculty::firstOrCreate(
+            $faculty = Faculty::firstOrCreate(
                 ['code' => 'FST'],
                 [
                     'name'        => 'Faculty of Science & Technology',
@@ -82,7 +91,7 @@ class DatabaseSeeder extends Seeder
                 ]
             );
 
-            $department = \App\Models\Department::firstOrCreate(
+            $department = Department::firstOrCreate(
                 ['code' => 'DIT'],
                 [
                     'faculty_id'  => $faculty->id,
@@ -95,7 +104,7 @@ class DatabaseSeeder extends Seeder
                 ]
             );
 
-            $major = \App\Models\Major::firstOrCreate(
+            $major = Major::firstOrCreate(
                 ['code' => 'IT-BSC'],
                 [
                     'department_id' => $department->id,
@@ -117,7 +126,7 @@ class DatabaseSeeder extends Seeder
                     'student_code' => $superAdmin->student_code ?: 'SPI-2026-001582',
                 ]);
 
-                \App\Models\AcademicRecord::firstOrCreate(
+                AcademicRecord::firstOrCreate(
                     ['user_id' => $superAdmin->id],
                     [
                         'faculty_id'    => $faculty->id,
@@ -130,16 +139,16 @@ class DatabaseSeeder extends Seeder
                     ]
                 );
 
-                \App\Models\IdCard::updateOrCreate(
+                IdCard::updateOrCreate(
                     ['user_id' => $superAdmin->id],
                     [
                         'card_no'     => 'SPI-2026-001582',
                         'token'       => '0b7a68d6a1a3c4de139b5fa8750c2f9960b3264c',
-                        'issued_at'   => \Carbon\Carbon::create(2026, 11, 14, 0, 0, 0),
-                        'expires_at'  => \Carbon\Carbon::create(2030, 11, 14, 23, 59, 59),
+                        'issued_at'   => Carbon::create(2026, 11, 14, 0, 0, 0),
+                        'expires_at'  => Carbon::create(2030, 11, 14, 23, 59, 59),
                         'status'      => 'active',
                         'approved_by' => $superAdmin->id,
-                        'approved_at' => \Carbon\Carbon::create(2026, 11, 14, 0, 0, 0),
+                        'approved_at' => Carbon::create(2026, 11, 14, 0, 0, 0),
                     ]
                 );
             }
@@ -154,15 +163,15 @@ class DatabaseSeeder extends Seeder
 
             // Ensure primary superAdmin / student has active enrolled courses & study goals
             if ($superAdmin) {
-                $published = \App\Models\Course::where('status', 'published')->take(3)->get();
+                $published = Course::where('status', 'published')->take(3)->get();
                 foreach ($published as $c) {
-                    \App\Models\Enrollment::firstOrCreate(
+                    Enrollment::firstOrCreate(
                         ['student_id' => $superAdmin->id, 'course_id' => $c->id],
                         ['status' => 'active', 'enrolled_at' => now()]
                     );
                 }
 
-                \App\Models\StudentGoal::firstOrCreate(
+                StudentGoal::firstOrCreate(
                     ['user_id' => $superAdmin->id, 'title' => 'Complete Chapter 1 on Web Development'],
                     [
                         'title_km'     => 'បញ្ចប់ជំពូកទី ១ ស្តីពីការអភិវឌ្ឍគេហទំព័រ',
