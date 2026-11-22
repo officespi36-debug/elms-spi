@@ -2365,7 +2365,7 @@ onUnmounted(() => {
                   v-model="otpPhone"
                   type="text"
                   required
-                  :placeholder="currentLang === 'km' ? 'បញ្ចូល Chat ID (ឧ. 123456789)' : 'Enter Chat ID (e.g. 123456789)'"
+                  :placeholder="currentLang === 'km' ? 'បញ្ចូល Telegram Chat ID ឬលេខទូរស័ព្ទ (ឧ. 123456789)' : 'Enter Chat ID or Phone (e.g. 123456789)'"
                   class="w-full h-11 pl-10 pr-9 bg-white dark:bg-[#121214] border border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 text-xs sm:text-sm rounded-xl outline-none shadow-2xs font-mono transition-all font-medium"
                   @keydown.enter.prevent="sendPhoneOtp()"
                 />
@@ -2380,33 +2380,41 @@ onUnmounted(() => {
                 </button>
               </div>
 
+              <!-- Quick Helper Links -->
               <div class="flex items-center justify-between text-[11px] text-zinc-500 dark:text-zinc-400 pt-0.5 px-0.5">
                 <span>💡 {{ currentLang === 'km' ? 'ស្វែងរក Chat ID របស់អ្នក៖' : 'Find your Chat ID:' }}</span>
-                <a
-                  href="https://t.me/userinfobot"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="text-sky-600 dark:text-sky-400 hover:underline inline-flex items-center gap-1 font-semibold"
-                >
-                  <span>@userinfobot</span>
-                  <i class="pi pi-external-link text-[9px]"></i>
-                </a>
+                <div class="flex items-center gap-2">
+                  <a
+                    href="https://t.me/userinfobot"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-sky-600 dark:text-sky-400 hover:underline inline-flex items-center gap-1 font-semibold"
+                  >
+                    <span>@userinfobot</span>
+                    <i class="pi pi-external-link text-[9px]"></i>
+                  </a>
+                </div>
               </div>
             </div>
 
-            <!-- Delivery Channel Selector (Telegram @VerificationCodes vs Direct SMS) -->
-            <!-- Delivery Channel Indicator: 100% Telegram Delivery -->
-            <div class="flex items-center justify-between p-2.5 rounded-xl bg-sky-50 dark:bg-sky-950/30 border border-sky-200/80 dark:border-sky-800/60 text-xs select-none">
+            <!-- Direct Official Telegram Bot Launcher (100% Free & Instant) -->
+            <a
+              href="https://t.me/elms_verification_bot"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="flex items-center justify-between p-2.5 rounded-xl bg-sky-50 dark:bg-sky-950/40 hover:bg-sky-100 dark:hover:bg-sky-900/50 border border-sky-200/80 dark:border-sky-800/70 text-xs transition-all cursor-pointer group shadow-2xs"
+            >
               <div class="flex items-center gap-2 text-sky-700 dark:text-sky-300 font-semibold min-w-0">
-                <div class="w-6 h-6 rounded-lg bg-sky-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                <div class="w-6 h-6 rounded-lg bg-sky-500 group-hover:bg-sky-600 text-white flex items-center justify-center shrink-0 shadow-xs transition-colors">
                   <i class="pi pi-telegram text-xs"></i>
                 </div>
-                <span class="truncate">{{ currentLang === 'km' ? 'វិធីសាស្ត្រទទួលកូដ OTP តាម Telegram' : 'Receive OTP via Telegram' }}</span>
+                <span class="truncate">{{ currentLang === 'km' ? 'បើក Bot ក្នុង Telegram (@elms_verification_bot)' : 'Open Telegram Bot' }}</span>
               </div>
-              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500 text-white shrink-0 shadow-2xs">
-                {{ currentLang === 'km' ? 'ឥតគិតថ្លៃ' : '100% Free' }}
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-500 text-white shrink-0 shadow-2xs flex items-center gap-1 group-hover:bg-sky-600 transition-colors">
+                <span>{{ currentLang === 'km' ? 'ចុច Start' : 'Start Bot' }}</span>
+                <i class="pi pi-external-link text-[8px]"></i>
               </span>
-            </div>
+            </a>
 
             <button
               type="button"
@@ -2415,8 +2423,8 @@ onUnmounted(() => {
               :class="[
                 'w-full h-11 rounded-xl font-semibold text-xs sm:text-sm flex items-center justify-center transition-all duration-200 select-none cursor-pointer',
                 otpPhone && !isPhoneOtpSending
-                  ? 'bg-sky-600 hover:bg-sky-700 text-white shadow-md shadow-sky-500/20 active:scale-[0.99]'
-                  : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 cursor-not-allowed opacity-60'
+                  ? 'bg-sky-600 hover:bg-sky-700 text-white shadow-md shadow-sky-500/25 active:scale-[0.99] border border-sky-500/30'
+                  : 'bg-zinc-200 dark:bg-zinc-800/80 text-zinc-400 dark:text-zinc-500 border border-zinc-300/40 dark:border-zinc-700/40 cursor-not-allowed opacity-65'
               ]"
             >
               <i v-if="isPhoneOtpSending" class="pi pi-spin pi-spinner text-sm mr-2"></i>

@@ -38,7 +38,7 @@
             }
 
             try {
-                var currentDeployBuild = 'v_20261122_auth_progress_shimmer_v12';
+                var currentDeployBuild = 'v_20261122_auth_tg_direct_launcher_v13';
                 if (localStorage.getItem('spi_app_deploy') !== currentDeployBuild) {
                     localStorage.setItem('spi_app_deploy', currentDeployBuild);
                     if ('caches' in window) {

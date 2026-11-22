@@ -632,7 +632,11 @@ class AuthController extends Controller
 
             $user = User::where('telegram_id', $cleanDigits)
                 ->orWhere('telegram_chat_id', $cleanDigits)
+                ->orWhere('phone', $cleanDigits)
+                ->orWhere('phone', 'like', '%' . substr($cleanDigits, -8))
                 ->first();
+
+            $targetChatId = $user?->telegram_chat_id ?: ($user?->telegram_id ?: $cleanDigits);
 
             if ($user) {
                 try {
@@ -654,14 +658,14 @@ class AuthController extends Controller
             ];
 
             $directBotDelivered = $telegramService->sendDirectMessage(
-                $cleanDigits,
+                $targetChatId,
                 "🔑 <b>លេខកូដផ្ទៀងផ្ទាត់ OTP</b>\n" .
                 "━━━━━━━━━━━━━━━━━━━━━\n\n" .
                 "សួស្តី <b>" . ($user?->name_kh ?: ($user?->name ?: 'Student')) . "</b> 👋\n" .
                 "លេខកូដសម្ងាត់ 6 ខ្ទង់របស់អ្នកសម្រាប់ចូលប្រើប្រាស់ SPI E-LMS គឺ៖\n\n" .
                 "👉 <code>{$otp}</code> 👈\n\n" .
                 "⏰ លេខកូដនេះមានសុពលភាពរយៈពេល <b>5 នាទី</b>។\n" .
-                "💬 Telegram Chat ID៖ <code>{$cleanDigits}</code>\n\n" .
+                "💬 Telegram Chat ID៖ <code>{$targetChatId}</code>\n\n" .
                 "⚠️ <i>ប្រសិនបើលោកអ្នកមិនបានស្នើសុំលេខកូដនេះទេ សូមកុំចែករំលែកវាទៅកាន់អ្នកដទៃ!</i>",
                 'HTML',
                 $botKeyboard
