@@ -607,10 +607,18 @@ class AuthController extends Controller
 
         // 🚀 A. Direct Telegram Chat ID Mode
         if ($isChatId) {
+            $cleanUsername = ltrim($rawInput, '@');
+            if (strlen($cleanDigits) < 4 && !empty($cleanUsername)) {
+                $userByUsername = User::where('telegram_username', $cleanUsername)->first();
+                if ($userByUsername && ($userByUsername->telegram_chat_id || $userByUsername->telegram_id)) {
+                    $cleanDigits = (string) ($userByUsername->telegram_chat_id ?: $userByUsername->telegram_id);
+                }
+            }
+
             if (strlen($cleanDigits) < 4 || strlen($cleanDigits) > 20) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'សូមបញ្ចូល Telegram Chat ID ឱ្យបានត្រឹមត្រូវ (ឧ. 123456789)!',
+                    'message' => 'សូមបញ្ចូល Telegram Chat ID ឱ្យបានត្រឹមត្រូវ (ឧ. 123456789) ឬចុច «បើក Bot ក្នុង Telegram» ដើម្បីទទួលបាន Chat ID របស់អ្នក!',
                 ], 422);
             }
 

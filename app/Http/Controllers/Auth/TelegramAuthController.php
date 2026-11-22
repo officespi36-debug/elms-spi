@@ -759,7 +759,7 @@ class TelegramAuthController extends Controller
             return $this->handleAnnouncementsCommand($chatId, $botToken);
         }
 
-        if (str_starts_with($text, '/me') || str_starts_with($text, '/profile') || str_starts_with($text, '/id') || str_contains($text, 'គណនី')) {
+        if (str_starts_with($text, '/me') || str_starts_with($text, '/profile') || str_starts_with($text, '/id') || str_starts_with($text, '/chatid') || str_starts_with($text, '/myid') || str_contains($text, 'គណនី')) {
             return $this->handleProfileCommand($chatId, $linkedUser, $botToken);
         }
 
@@ -996,6 +996,7 @@ class TelegramAuthController extends Controller
             $responseText = "🏛️ <b>វិទ្យាស្ថាន សន្តប៉ូល (Saint Paul Institute)</b>\n" .
                             "🪪 <b>កាតព័ត៌មានគណនីឌីជីថល (Digital Academic ID)</b>\n" .
                             "━━━━━━━━━━━━━━━━━━━━━\n\n" .
+                            "🆔 <b>Telegram Chat ID៖</b> <code>{$chatId}</code>\n" .
                             "👤 <b>ឈ្មោះ (EN)៖</b> {$linkedUser->name}\n";
             if (!empty($linkedUser->name_kh)) {
                 $responseText .= "🇰🇭 <b>ឈ្មោះ (KH)៖</b> {$linkedUser->name_kh}\n";
@@ -1009,8 +1010,10 @@ class TelegramAuthController extends Controller
                              "⚡ <b>ស្ថានភាព៖</b> {$statusEmoji}\n\n" .
                              "🌐 <i>ចុចប៊ូតុងខាងក្រោមដើម្បីចូលមើល Profile ពេញលេញ៖</i>";
         } else {
-            $responseText = "⚠️ <b>គណនីរបស់អ្នកមិនទាន់បានភ្ជាប់ឡើយ</b>\n\n" .
-                            "👉 សូមផ្ញើ<b>លេខទូរស័ព្ទ</b> ឬ <b>Email</b> របស់អ្នកមកទីនេះ ដើម្បីឱ្យ Bot ស្គាល់គណនីរបស់អ្នក។";
+            $responseText = "🆔 <b>Telegram Chat ID របស់អ្នកគឺ៖</b> <code>{$chatId}</code>\n" .
+                            "<i>(👉 ចុចលើលេខ Chat ID ខាងលើដើម្បីចម្លង/Copy)</i>\n\n" .
+                            "👉 យក Chat ID នេះទៅបញ្ចូលក្នុងទំព័រ Login លើ <a href='https://spilms.tech'>spilms.tech</a> ដើម្បីទទួលលេខកូដ OTP ភ្លាមៗ!\n\n" .
+                            "💡 ឬលោកអ្នកអាចផ្ញើ<b>លេខទូរស័ព្ទ</b> ឬ <b>Email</b> របស់អ្នកមកទីនេះ ដើម្បីភ្ជាប់គណនី។";
         }
 
         $inlineKeyboard = [
@@ -1331,10 +1334,14 @@ class TelegramAuthController extends Controller
             $userPhone = $linkedUser->phone ?? 'N/A';
             $welcomeText = "👋 <b>សួស្តី {$userName}</b>\n" .
                            "✅ <b>គណនី Telegram របស់អ្នកត្រូវបានភ្ជាប់ជាមួយ SPI AI-ELMS រួចរាល់!</b>\n\n" .
+                           "🆔 <b>Telegram Chat ID របស់អ្នក៖</b> <code>{$chatId}</code>\n" .
+                           "<i>(👉 ចុចលើលេខ Chat ID ដើម្បីចម្លង/Copy)</i>\n\n" .
                            "📱 <b>លេខទូរស័ព្ទ៖</b> <code>{$userPhone}</code>\n\n" .
                            "💡 ដើម្បីទទួលលេខកូដ OTP ៦ ខ្ទង់ សូមចុច <b>«🔑 ទទួលលេខកូដ OTP»</b> ខាងក្រោម ឬស្នើសុំនៅលើគេហទំព័រ spilms.tech។";
         } else {
             $welcomeText = "👋 <b>សូមស្វាគមន៍ {$senderName} មកកាន់ SPI AI-ELMS!</b>\n\n" .
+                           "🆔 <b>Telegram Chat ID របស់អ្នកគឺ៖</b> <code>{$chatId}</code>\n" .
+                           "<i>(👉 ចុចលើលេខ Chat ID ខាងលើដើម្បីចម្លង/Copy យកទៅ Login)</i>\n\n" .
                            "💡 <b>ដើម្បីភ្ជាប់គណនី ឬទទួលលេខកូដ OTP ៦ ខ្ទង់៖</b>\n" .
                            "👉 សូមចុចប៊ូតុង <b>«📱 ចែករំលែកលេខទូរស័ព្ទ»</b> ខាងក្រោម ឬ វាយ<b>លេខទូរស័ព្ទរបស់អ្នក</b>ផ្ញើមកទីនេះ ប្រព័ន្ធនឹងស្គាល់ភ្លាមៗ!";
         }

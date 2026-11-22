@@ -2431,6 +2431,11 @@ onUnmounted(() => {
               <i v-else class="pi pi-telegram text-sm mr-2"></i>
               <span>{{ isPhoneOtpSending ? (currentLang === 'km' ? 'កំពុងផ្ញើលេខកូដ...' : 'Sending code...') : (currentLang === 'km' ? 'ផ្ញើលេខកូដ OTP តាម Telegram' : 'Send OTP via Telegram') }}</span>
             </button>
+
+            <p v-if="!otpPhone" class="text-[11px] text-zinc-500 dark:text-zinc-400 text-center flex items-center justify-center gap-1.5 pt-0.5">
+              <i class="pi pi-info-circle text-sky-500 text-xs"></i>
+              <span>{{ currentLang === 'km' ? 'សូមបញ្ចូល Chat ID ឬចុចបើក Bot ខាងលើដើម្បីចាប់ផ្ដើម' : 'Enter Chat ID or tap Open Bot above' }}</span>
+            </p>
           </div>
 
           <div v-else class="space-y-3.5 animate-fade-in">
