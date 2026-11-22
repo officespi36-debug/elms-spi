@@ -426,24 +426,45 @@ const detectedProvider = computed(() => {
       </p>
     </div>
 
-    <!-- Ultra-Slim Glowing Progress Line (3.5px Bar) -->
-    <div class="w-full max-w-[240px] space-y-2 mb-4">
-      <div class="h-1.5 w-full rounded-full bg-zinc-200/80 dark:bg-zinc-800/80 overflow-hidden relative shadow-inner">
+    <!-- Ultra-Slim Glowing Progress Line -->
+    <div class="w-full max-w-[240px] relative mb-4">
+      <!-- Soft Ambient Underglow -->
+      <div
+        :class="[
+          'absolute -inset-0.5 rounded-full blur-xs opacity-70 transition-all duration-300 pointer-events-none',
+          isVisualSuccess
+            ? 'bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-400'
+            : 'bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500'
+        ]"
+        :style="{ width: `${progress}%` }"
+      ></div>
+
+      <!-- Main Progress Track -->
+      <div class="h-2 w-full rounded-full bg-zinc-200/90 dark:bg-zinc-800/90 overflow-hidden relative shadow-inner p-px border border-zinc-200/60 dark:border-zinc-700/60">
+        <!-- Filled Progress Bar -->
         <div
           :class="[
-            'h-full rounded-full transition-all duration-300 ease-out relative',
+            'h-full rounded-full transition-all duration-300 ease-out relative overflow-hidden',
             isVisualSuccess
-              ? 'bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-400 shadow-[0_0_16px_rgba(16,185,129,0.95)]'
-              : 'bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500 shadow-[0_0_12px_rgba(56,189,248,0.7)]'
+              ? 'bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.9)]'
+              : 'bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500 shadow-[0_0_10px_rgba(56,189,248,0.7)]'
           ]"
-          :style="{ width: `${progress}%` }"
+          :style="{ width: `${Math.max(progress, 4)}%` }"
         >
-          <!-- Animated Light-Sweep Shimmer on Success -->
+          <!-- Continuous Running Light-Sweep Shimmer (Always Active & Beautiful) -->
           <div
-            v-if="isVisualSuccess"
-            class="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent animate-shimmer-sweep"
+            class="absolute inset-0 bg-gradient-to-r from-transparent via-white/55 to-transparent animate-shimmer-sweep pointer-events-none"
           ></div>
         </div>
+      </div>
+
+      <!-- Glowing Leading Tip (Comet Head) on Active Progress -->
+      <div
+        v-if="!isVisualSuccess && progress > 4 && progress < 99"
+        class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-white shadow-[0_0_8px_#38bdf8,0_0_14px_#38bdf8] pointer-events-none transition-all duration-300 z-10 flex items-center justify-center"
+        :style="{ left: `${progress}%` }"
+      >
+        <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
       </div>
     </div>
 

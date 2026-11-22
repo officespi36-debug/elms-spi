@@ -542,9 +542,9 @@ html.dark .p-toast .p-toast-close-button:hover {
   ::view-transition-new(*) {
     animation: none !important;
   }
-  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.elms-ring-wrap):not(.animate-spin):not(.loading-spinner):not(.logout-beam-spinner):not(.border-beam-runner):not(.border-beam-mask):not(.border-beam-spinner):not(.border-beam-track):not(.border-beam-inner):not(.border-beam-btn):not(.auth-orbit-satellite),
-  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.elms-ring-wrap):not(.animate-spin):not(.loading-spinner):not(.logout-beam-spinner):not(.border-beam-runner):not(.border-beam-mask):not(.border-beam-spinner):not(.border-beam-track):not(.border-beam-inner):not(.border-beam-btn):not(.auth-orbit-satellite)::before,
-  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.elms-ring-wrap):not(.animate-spin):not(.loading-spinner):not(.logout-beam-spinner):not(.border-beam-runner):not(.border-beam-mask):not(.border-beam-spinner):not(.border-beam-track):not(.border-beam-inner):not(.border-beam-btn):not(.auth-orbit-satellite)::after {
+  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.elms-ring-wrap):not(.animate-spin):not(.loading-spinner):not(.logout-beam-spinner):not(.border-beam-runner):not(.border-beam-mask):not(.border-beam-spinner):not(.border-beam-track):not(.border-beam-inner):not(.border-beam-btn):not(.auth-orbit-satellite):not(.animate-shimmer-sweep),
+  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.elms-ring-wrap):not(.animate-spin):not(.loading-spinner):not(.logout-beam-spinner):not(.border-beam-runner):not(.border-beam-mask):not(.border-beam-spinner):not(.border-beam-track):not(.border-beam-inner):not(.border-beam-btn):not(.auth-orbit-satellite):not(.animate-shimmer-sweep)::before,
+  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.elms-ring-wrap):not(.animate-spin):not(.loading-spinner):not(.logout-beam-spinner):not(.border-beam-runner):not(.border-beam-mask):not(.border-beam-spinner):not(.border-beam-track):not(.border-beam-inner):not(.border-beam-btn):not(.auth-orbit-satellite):not(.animate-shimmer-sweep)::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -557,8 +557,9 @@ html.dark .p-toast .p-toast-close-button:hover {
   .logout-beam-spinner,
   .border-beam-runner,
   .border-beam-spinner,
-  .auth-orbit-satellite {
-    animation-duration: 5.6s !important;
+  .auth-orbit-satellite,
+  .animate-shimmer-sweep {
+    animation-duration: 1.8s !important;
     animation-iteration-count: infinite !important;
   }
 }
