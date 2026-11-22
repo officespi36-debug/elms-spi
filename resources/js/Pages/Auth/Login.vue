@@ -1442,7 +1442,7 @@ const redirectToGoogleOAuth = () => {
   isGoogleLoading.value = true
   isAuthenticating.value = true
   authLoadingTitle.value = currentLang.value === 'km' ? 'កំពុងតភ្ជាប់ទៅកាន់ ហ្គូហ្គល...' : 'Connecting to Google...'
-  authLoadingSubtitle.value = currentLang.value === 'km' ? 'សូមរង់ចាំមួយភ្លែត ប្រព័ន្ធកំពុងនាំអ្នកទៅកាន់ផ្ទាំង Google Sign-In...' : 'Please wait a moment while redirecting to Google Sign-In...'
+  authLoadingSubtitle.value = currentLang.value === 'km' ? 'សូមរង់ចាំមួយភ្លែត កំពុងនាំអ្នកទៅកាន់ Google...' : 'Please wait a moment while redirecting to Google...'
 
   const emailParam = form.email ? `?email=${encodeURIComponent(form.email.trim())}` : ''
   setTimeout(() => {
@@ -1456,7 +1456,7 @@ const redirectToGitHubOAuth = () => {
   isGitHubLoading.value = true
   isAuthenticating.value = true
   authLoadingTitle.value = currentLang.value === 'km' ? 'កំពុងតភ្ជាប់ទៅកាន់ ហ្គីតហាប់...' : 'Connecting to GitHub...'
-  authLoadingSubtitle.value = currentLang.value === 'km' ? 'សូមរង់ចាំមួយភ្លែត ប្រព័ន្ធកំពុងនាំអ្នកទៅកាន់ផ្ទាំង GitHub Sign-In...' : 'Please wait a moment while redirecting to GitHub Sign-In...'
+  authLoadingSubtitle.value = currentLang.value === 'km' ? 'សូមរង់ចាំមួយភ្លែត កំពុងនាំអ្នកទៅកាន់ GitHub...' : 'Please wait a moment while redirecting to GitHub...'
 
   setTimeout(() => {
     window.location.href = '/auth/github/redirect'

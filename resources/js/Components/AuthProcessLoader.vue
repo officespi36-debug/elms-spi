@@ -309,14 +309,19 @@ const displayTitle = computed(() => {
 })
 
 const displaySubtitle = computed(() => {
+  let sub = ''
   if (hasFailed.value) {
-    return props.errorMessage || (props.lang === 'km' ? 'លេខកូដ OTP មិនត្រឹមត្រូវ ឬបានផុតកំណត់សុពលភាព។' : 'Invalid or expired OTP code.')
+    sub = props.errorMessage || (props.lang === 'km' ? 'លេខកូដ OTP មិនត្រឹមត្រូវ ឬបានផុតកំណត់សុពលភាព។' : 'Invalid or expired OTP code.')
+  } else if (currentSubtitle.value) {
+    sub = currentSubtitle.value
+  } else if (isVisualSuccess.value) {
+    sub = props.lang === 'km' ? 'សូមរង់ចាំមួយភ្លែត កំពុងនាំអ្នកទៅកាន់ Dashboard...' : 'Redirecting to your dashboard...'
+  } else {
+    sub = props.lang === 'km' ? 'សូមរង់ចាំមួយភ្លែត ប្រព័ន្ធកំពុងផ្ទៀងផ្ទាត់ និងបង្កើត Session សុវត្ថិភាព' : 'Please wait a moment while verifying...'
   }
-  if (currentSubtitle.value) return currentSubtitle.value
-  if (isVisualSuccess.value) {
-    return props.lang === 'km' ? 'សូមរង់ចាំមួយភ្លែត កំពុងនាំអ្នកទៅកាន់ Dashboard...' : 'Redirecting to your dashboard...'
-  }
-  return props.lang === 'km' ? 'សូមរង់ចាំមួយភ្លែត ប្រព័ន្ធកំពុងផ្ទៀងផ្ទាត់ និងបង្កើត Session សុវត្ថិភាព' : 'Please wait a moment while verifying...'
+
+  // Prevent hyphenated brand terms like Sign-In from breaking awkwardly across lines
+  return sub.replace(/Sign-In/g, 'Sign\u2011In')
 })
 
 const cleanTitle = computed(() => {
@@ -547,7 +552,7 @@ const cleanTitle = computed(() => {
         </h3>
         <p
           :class="[
-            'text-xs sm:text-[13px] leading-relaxed max-w-xs transition-colors duration-300 font-medium',
+            'text-xs sm:text-[13px] leading-relaxed max-w-sm sm:max-w-md w-full px-2 transition-colors duration-300 font-medium text-balance [text-wrap:balance]',
             hasFailed ? 'text-red-300/80' : isVisualSuccess ? 'text-white/80' : 'text-zinc-400'
           ]"
         >
