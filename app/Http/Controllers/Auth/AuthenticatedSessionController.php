@@ -310,8 +310,11 @@ class AuthenticatedSessionController extends Controller
         return redirect('/');
     }
 
-    private function getBrowserName($userAgent)
+    private function getBrowserName(?string $userAgent): string
     {
+        if (empty($userAgent)) {
+            return 'Unknown';
+        }
         if (str_contains($userAgent, 'Chrome'))
             return 'Chrome';
         if (str_contains($userAgent, 'Firefox'))
