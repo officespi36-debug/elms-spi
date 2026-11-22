@@ -341,8 +341,8 @@ const cleanTitle = computed(() => {
         hasFailed
           ? 'bg-red-500/15'
           : isVisualSuccess
-            ? 'bg-emerald-400/25'
-            : 'bg-[#2bf5b0]/15'
+            ? 'bg-emerald-500/15 dark:bg-emerald-400/25'
+            : 'bg-emerald-500/10 dark:bg-[#2bf5b0]/15'
       ]"
     ></div>
 
@@ -399,7 +399,7 @@ const cleanTitle = computed(() => {
             cy="60"
             :r="RADIUS"
             fill="none"
-            stroke="rgba(255, 255, 255, 0.08)"
+            class="stroke-zinc-200/90 dark:stroke-white/[0.08]"
             stroke-width="3.5"
           />
 
@@ -423,7 +423,7 @@ const cleanTitle = computed(() => {
             class="auth-orbit-satellite"
             style="transform-origin: 60px 60px; animation: spinSmooth 2.8s linear infinite;"
           >
-            <circle cx="112" cy="60" r="4.5" fill="#2bf5b0" filter="url(#orbGlowPrime)" />
+            <circle cx="112" cy="60" r="4.5" fill="#059669" class="dark:fill-[#2bf5b0]" filter="url(#orbGlowPrime)" />
             <circle cx="112" cy="60" r="2" fill="#ffffff" />
           </g>
         </svg>
@@ -449,7 +449,7 @@ const cleanTitle = computed(() => {
             'relative z-10 w-22 h-22 rounded-full flex items-center justify-center transition-all duration-500 shadow-xl border',
             isVisualSuccess
               ? 'bg-gradient-to-br from-[#2bf5b0] via-[#00b87a] to-emerald-600 border-white/60 shadow-[0_12px_36px_rgba(43,245,176,0.55),inset_0_2px_6px_rgba(255,255,255,0.6)] scale-106'
-              : 'bg-gradient-to-br from-[#092019] to-[#03140e] border-[#2bf5b0]/35 shadow-[0_8px_24px_rgba(0,0,0,0.6),inset_0_2px_4px_rgba(43,245,176,0.2)]'
+              : 'bg-white dark:bg-gradient-to-br dark:from-[#092019] dark:to-[#03140e] border-emerald-400/40 dark:border-[#2bf5b0]/35 shadow-[0_8px_24px_rgba(16,185,129,0.15),inset_0_2px_4px_rgba(16,185,129,0.08)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.6),inset_0_2px_4px_rgba(43,245,176,0.2)]'
           ]"
         >
           <!-- State A: Animated Drawing Checkmark on Finish -->
@@ -467,7 +467,7 @@ const cleanTitle = computed(() => {
           </div>
 
           <!-- State B: Active Numeric Counter (0% -> 100%) -->
-          <div v-else class="flex items-baseline font-bold font-mono tracking-tight text-[#2bf5b0]">
+          <div v-else class="flex items-baseline font-bold font-mono tracking-tight text-emerald-600 dark:text-[#2bf5b0]">
             <span class="text-2xl sm:text-[26px] leading-none">{{ Math.round(progress) }}</span>
             <span class="text-xs ml-0.5 opacity-80">%</span>
           </div>
@@ -476,13 +476,13 @@ const cleanTitle = computed(() => {
         <!-- Floating Docked Provider Badge -->
         <div
           :class="[
-            'absolute bottom-0 right-0 z-20 w-8 h-8 rounded-full border-2 border-[#03100c] flex items-center justify-center transition-all duration-300 animate-badge-float overflow-hidden',
+            'absolute bottom-0 right-0 z-20 w-8 h-8 rounded-full border-2 border-white dark:border-[#03100c] flex items-center justify-center transition-all duration-300 animate-badge-float overflow-hidden',
             detectedProvider === 'google'
-              ? 'bg-white shadow-[0_4px_12px_rgba(66,133,244,0.45)]'
+              ? 'bg-white shadow-[0_4px_12px_rgba(66,133,244,0.35)]'
               : detectedProvider === 'github'
-                ? 'bg-zinc-900 border-zinc-700 shadow-[0_4px_12px_rgba(0,0,0,0.6)]'
+                ? 'bg-zinc-900 border-zinc-700 shadow-[0_4px_12px_rgba(0,0,0,0.4)]'
                 : detectedProvider === 'email'
-                  ? 'bg-sky-500 shadow-[0_4px_12px_rgba(14,165,233,0.45)]'
+                  ? 'bg-sky-500 shadow-[0_4px_12px_rgba(14,165,233,0.35)]'
                   : isVisualSuccess
                     ? 'bg-white shadow-[0_4px_12px_rgba(0,184,122,0.4)]'
                     : 'bg-[#229ed9] shadow-[0_4px_12px_rgba(34,158,217,0.4)]'
@@ -537,14 +537,14 @@ const cleanTitle = computed(() => {
           :class="[
             'text-lg sm:text-xl font-bold tracking-tight transition-colors duration-300 flex items-center justify-center gap-1.5',
             hasFailed
-              ? 'text-red-400 font-bold'
+              ? 'text-red-500 font-bold'
               : isVisualSuccess
-                ? 'text-transparent bg-clip-text bg-gradient-to-r from-[#2bf5b0] via-white to-[#ffd36b] font-extrabold drop-shadow-sm'
-                : 'text-transparent bg-clip-text bg-gradient-to-r from-white via-[#2bf5b0] to-[#7dd8ff]'
+                ? 'text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-700 to-amber-600 dark:from-[#2bf5b0] dark:via-white dark:to-[#ffd36b] font-extrabold drop-shadow-sm'
+                : 'text-transparent bg-clip-text bg-gradient-to-r from-zinc-900 via-emerald-600 to-teal-700 dark:from-white dark:via-[#2bf5b0] dark:to-[#7dd8ff]'
           ]"
         >
           <span>{{ cleanTitle }}</span>
-          <span v-if="!isVisualSuccess && !hasFailed" class="inline-flex items-center ml-0.5 text-[#2bf5b0] font-bold">
+          <span v-if="!isVisualSuccess && !hasFailed" class="inline-flex items-center ml-0.5 text-emerald-600 dark:text-[#2bf5b0] font-bold">
             <span class="dot-bounce">.</span>
             <span class="dot-bounce delay-150">.</span>
             <span class="dot-bounce delay-300">.</span>
@@ -553,7 +553,11 @@ const cleanTitle = computed(() => {
         <p
           :class="[
             'text-xs sm:text-[13px] leading-relaxed max-w-sm sm:max-w-md w-full px-2 transition-colors duration-300 font-medium text-balance [text-wrap:balance]',
-            hasFailed ? 'text-red-300/80' : isVisualSuccess ? 'text-white/80' : 'text-zinc-400'
+            hasFailed
+              ? 'text-red-500'
+              : isVisualSuccess
+                ? 'text-zinc-700 dark:text-white/80'
+                : 'text-zinc-600 dark:text-zinc-400'
           ]"
         >
           {{ displaySubtitle }}
@@ -564,9 +568,9 @@ const cleanTitle = computed(() => {
       <!-- ULTRA-SLIM PROGRESS BAR (Active Loading)                 -->
       <!-- ======================================================== -->
       <div v-if="!hasFailed" class="w-full max-w-[260px] relative mb-5">
-        <div class="h-1.5 w-full rounded-full bg-white/10 overflow-hidden relative shadow-inner">
+        <div class="h-1.5 w-full rounded-full bg-zinc-200/90 dark:bg-white/10 overflow-hidden relative shadow-inner">
           <div
-            class="h-full rounded-full bg-gradient-to-r from-[#7dd8ff] to-[#2bf5b0] shadow-[0_0_10px_rgba(43,245,176,0.8)] transition-all duration-300 ease-out relative overflow-hidden"
+            class="h-full rounded-full bg-gradient-to-r from-sky-500 to-emerald-500 dark:from-[#7dd8ff] dark:to-[#2bf5b0] shadow-[0_0_10px_rgba(43,245,176,0.6)] transition-all duration-300 ease-out relative overflow-hidden"
             :style="{ width: `${progress}%` }"
           >
             <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/70 to-transparent animate-shimmer-sweep pointer-events-none"></div>
@@ -577,27 +581,31 @@ const cleanTitle = computed(() => {
       <!-- ======================================================== -->
       <!-- 3-STEP REAL-TIME PROCESS PIPELINE                        -->
       <!-- ======================================================== -->
-      <div v-if="!hasFailed" class="w-full bg-white/[0.03] border border-[#2bf5b0]/15 rounded-2xl p-2.5 mb-5 shadow-lg backdrop-blur-md">
+      <div v-if="!hasFailed" class="w-full bg-white/90 dark:bg-white/[0.03] border border-emerald-500/20 dark:border-[#2bf5b0]/15 rounded-2xl p-2.5 mb-5 shadow-sm dark:shadow-lg backdrop-blur-md">
         <div
           v-for="(st, idx) in steps"
           :key="idx"
-          class="flex items-center justify-between py-2 px-2.5 border-b border-white/[0.04] last:border-b-0 transition-colors"
+          class="flex items-center justify-between py-2 px-2.5 border-b border-zinc-200/70 dark:border-white/[0.04] last:border-b-0 transition-colors"
         >
           <div class="flex items-center gap-2.5 min-w-0">
             <!-- Indicator Icon -->
             <div class="w-5 h-5 flex items-center justify-center shrink-0">
-              <svg v-if="st.status === 'done'" class="w-4.5 h-4.5 text-[#2bf5b0]" viewBox="0 0 20 20" fill="currentColor">
+              <svg v-if="st.status === 'done'" class="w-4.5 h-4.5 text-emerald-600 dark:text-[#2bf5b0]" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
               </svg>
-              <div v-else-if="st.status === 'running'" class="w-3.5 h-3.5 rounded-full border-2 border-[#2bf5b0]/25 border-t-[#2bf5b0] animate-spin-orbit"></div>
-              <div v-else class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+              <div v-else-if="st.status === 'running'" class="w-3.5 h-3.5 rounded-full border-2 border-emerald-600/25 border-t-emerald-600 dark:border-[#2bf5b0]/25 dark:border-t-[#2bf5b0] animate-spin-orbit"></div>
+              <div v-else class="w-1.5 h-1.5 rounded-full bg-zinc-300 dark:bg-white/20"></div>
             </div>
 
             <!-- Title -->
             <span
               :class="[
                 'text-xs truncate font-medium',
-                st.status === 'done' ? 'text-white font-semibold' : st.status === 'running' ? 'text-[#2bf5b0] font-semibold' : 'text-zinc-500'
+                st.status === 'done'
+                  ? 'text-zinc-900 dark:text-white font-semibold'
+                  : st.status === 'running'
+                    ? 'text-emerald-700 dark:text-[#2bf5b0] font-semibold'
+                    : 'text-zinc-400 dark:text-zinc-500'
               ]"
             >
               {{ st.title }}
@@ -607,13 +615,13 @@ const cleanTitle = computed(() => {
           <!-- Status Badge -->
           <span
             v-if="st.status === 'done'"
-            class="text-[10px] px-2 py-0.5 rounded-full bg-[#2bf5b0]/15 text-[#2bf5b0] font-semibold shrink-0"
+            class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:bg-[#2bf5b0]/15 dark:text-[#2bf5b0] font-semibold shrink-0"
           >
             {{ lang === 'km' ? 'រួចរាល់' : 'Done' }}
           </span>
           <span
             v-else-if="st.status === 'running'"
-            class="text-[10px] px-2 py-0.5 rounded-full bg-[#7dd8ff]/15 text-[#7dd8ff] font-semibold shrink-0"
+            class="text-[10px] px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-700 dark:bg-[#7dd8ff]/15 dark:text-[#7dd8ff] font-semibold shrink-0"
           >
             {{ lang === 'km' ? 'កំពុងដំណើរការ' : 'Processing' }}
           </span>
@@ -644,11 +652,11 @@ const cleanTitle = computed(() => {
         :class="[
           'inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold border backdrop-blur-md transition-all duration-300',
           isVisualSuccess
-            ? 'bg-[#2bf5b0]/10 border-[#2bf5b0]/40 text-[#2bf5b0] shadow-[0_2px_12px_rgba(43,245,176,0.2)]'
-            : 'bg-white/[0.04] border-white/10 text-zinc-400'
+            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:bg-[#2bf5b0]/10 dark:border-[#2bf5b0]/40 dark:text-[#2bf5b0] shadow-[0_2px_12px_rgba(43,245,176,0.2)]'
+            : 'bg-white/80 dark:bg-white/[0.04] border-zinc-200 dark:border-white/10 text-zinc-600 dark:text-zinc-400 shadow-xs dark:shadow-none'
         ]"
       >
-        <svg class="w-3.5 h-3.5 text-[#2bf5b0]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg class="w-3.5 h-3.5 text-emerald-600 dark:text-[#2bf5b0]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
           <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
         </svg>
