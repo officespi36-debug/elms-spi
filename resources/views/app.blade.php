@@ -38,7 +38,7 @@
             }
 
             try {
-                var currentDeployBuild = 'v_20261122_tg_process_celebration_v15';
+                var currentDeployBuild = 'v_20261122_auth_provider_multi_v16';
                 if (localStorage.getItem('spi_app_deploy') !== currentDeployBuild) {
                     localStorage.setItem('spi_app_deploy', currentDeployBuild);
                     if ('caches' in window) {

@@ -16,20 +16,20 @@ const checkRealConnectivity = async () => {
   if (typeof navigator === 'undefined') return
 
   // 1. If OS or Browser explicitly says offline
-  if (!navigator.onLine) {
+  if (navigator.onLine === false) {
     isOnline.value = false
     return
   }
 
   isChecking.value = true
 
-  // 2. Active Ping Test to verify real internet connectivity beyond local loopback
+  // 2. Primary check: Current origin favicon or manifest (fastest & 100% reliable)
   try {
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 2500)
+    const timeoutId = setTimeout(() => controller.abort(), 3500)
 
-    await fetch(`https://1.1.1.1/cdn-cgi/trace?_=${Date.now()}`, {
-      mode: 'no-cors',
+    await fetch(`/favicon.ico?_=${Date.now()}`, {
+      method: 'HEAD',
       cache: 'no-store',
       signal: controller.signal
     })
@@ -37,10 +37,10 @@ const checkRealConnectivity = async () => {
     clearTimeout(timeoutId)
     isOnline.value = true
   } catch (e1) {
-    // Try secondary fallback ping (Google favicon)
+    // 3. Fallback: Secondary check to Google Favicon
     try {
       const controller2 = new AbortController()
-      const timeoutId2 = setTimeout(() => controller2.abort(), 2000)
+      const timeoutId2 = setTimeout(() => controller2.abort(), 3000)
 
       await fetch(`https://www.google.com/favicon.ico?_=${Date.now()}`, {
         mode: 'no-cors',
@@ -51,8 +51,8 @@ const checkRealConnectivity = async () => {
       clearTimeout(timeoutId2)
       isOnline.value = true
     } catch (e2) {
-      // Both external internet pings failed -> Real Offline
-      isOnline.value = false
+      // If external fails but navigator.onLine is true, default to true unless proven offline
+      isOnline.value = navigator.onLine
     }
   } finally {
     isChecking.value = false
@@ -83,8 +83,8 @@ onMounted(() => {
     // Initial check
     checkRealConnectivity()
 
-    // Periodic Heartbeat check every 4 seconds
-    checkTimer = setInterval(checkRealConnectivity, 4000)
+    // Periodic Heartbeat check every 12 seconds
+    checkTimer = setInterval(checkRealConnectivity, 12000)
   }
 })
 

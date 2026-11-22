@@ -151,6 +151,7 @@ const isAuthenticating = ref(false)
 const authSuccess = ref(false)
 const authLoadingTitle = ref('')
 const authLoadingSubtitle = ref('')
+const authProvider = ref<'google' | 'telegram' | 'github' | 'email' | 'phone' | 'general'>('telegram')
 const statusMessage = ref<string | null>(null)
 
 // Dynamic Most Used Login Method for 'ជម្រើសល្អបំផុត' / 'Best Choice' badge (Defaults to 'google')
@@ -668,6 +669,7 @@ const sendEmailOtp = async () => {
 const verifyEmailOtp = async () => {
   if (!otpCode.value || otpCode.value.length < 6 || isOtpVerifying.value) return
   recordLoginMethod('email')
+  authProvider.value = 'email'
   isOtpVerifying.value = true
   isAuthenticating.value = true
   authSuccess.value = false
@@ -807,6 +809,7 @@ const sendPhoneOtp = async () => {
 const verifyPhoneOtp = async () => {
   if (!otpCode.value || otpCode.value.length < 6 || isPhoneOtpVerifying.value) return
   recordLoginMethod('phone')
+  authProvider.value = 'telegram'
   isPhoneOtpVerifying.value = true
   isAuthenticating.value = true
   authSuccess.value = false
@@ -1372,6 +1375,7 @@ const redirectToTelegramOAuth = () => {
 }
 
 const handleTelegramAuthSuccess = async (tgUser: any) => {
+  authProvider.value = 'telegram'
   isAuthenticating.value = true
   isTelegramLoading.value = true
   authLoadingTitle.value = currentLang.value === 'km' ? 'កំពុងផ្ទៀងផ្ទាត់ Telegram...' : 'Verifying Telegram Account...'
@@ -1434,27 +1438,29 @@ const handleTelegramAuthSuccess = async (tgUser: any) => {
 
 const redirectToGoogleOAuth = () => {
   recordLoginMethod('google')
+  authProvider.value = 'google'
   isGoogleLoading.value = true
   isAuthenticating.value = true
   authLoadingTitle.value = currentLang.value === 'km' ? 'កំពុងតភ្ជាប់ទៅកាន់ ហ្គូហ្គល...' : 'Connecting to Google...'
   authLoadingSubtitle.value = currentLang.value === 'km' ? 'សូមរង់ចាំមួយភ្លែត ប្រព័ន្ធកំពុងនាំអ្នកទៅកាន់ផ្ទាំង Google Sign-In...' : 'Please wait a moment while redirecting to Google Sign-In...'
 
+  const emailParam = form.email ? `?email=${encodeURIComponent(form.email.trim())}` : ''
   setTimeout(() => {
-    const emailParam = form.email ? `?email=${encodeURIComponent(form.email.trim())}` : ''
-    window.location.assign(`/auth/google/redirect${emailParam}`)
-  }, 1200)
+    window.location.href = `/auth/google/redirect${emailParam}`
+  }, 250)
 }
 
 const redirectToGitHubOAuth = () => {
   recordLoginMethod('github')
+  authProvider.value = 'github'
   isGitHubLoading.value = true
   isAuthenticating.value = true
   authLoadingTitle.value = currentLang.value === 'km' ? 'កំពុងតភ្ជាប់ទៅកាន់ ហ្គីតហាប់...' : 'Connecting to GitHub...'
   authLoadingSubtitle.value = currentLang.value === 'km' ? 'សូមរង់ចាំមួយភ្លែត ប្រព័ន្ធកំពុងនាំអ្នកទៅកាន់ផ្ទាំង GitHub Sign-In...' : 'Please wait a moment while redirecting to GitHub Sign-In...'
 
   setTimeout(() => {
-    window.location.assign('/auth/github/redirect')
-  }, 1000)
+    window.location.href = '/auth/github/redirect'
+  }, 250)
 }
 
 const handleKeyCheck = (e: KeyboardEvent) => {
@@ -2654,6 +2660,7 @@ onUnmounted(() => {
         :subtitle="authLoadingSubtitle"
         :logo-url="logoUrl"
         :lang="currentLang"
+        :provider="authProvider"
         mode="login"
       />
 
