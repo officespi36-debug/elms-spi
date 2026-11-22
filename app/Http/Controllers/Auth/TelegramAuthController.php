@@ -667,6 +667,64 @@ class TelegramAuthController extends Controller
                         'parse_mode' => 'HTML',
                     ]);
                 }
+            } elseif ($cbData === 'login_is_me') {
+                if ($cbId) {
+                    Http::withoutVerifying()->post("https://api.telegram.org/bot{$botToken}/answerCallbackQuery", [
+                        'callback_query_id' => $cbId,
+                        'text' => '✅ អរគុណសម្រាប់ការបញ្ជាក់! គណនីរបស់អ្នកមានសុវត្ថិភាពល្អ។',
+                        'show_alert' => false,
+                    ]);
+                }
+                if (isset($callbackQuery['message']['message_id'])) {
+                    $originalText = $callbackQuery['message']['text'] ?? '';
+                    $confirmedMarkup = [
+                        'inline_keyboard' => [
+                            [
+                                ['text' => '✅ បានបញ្ជាក់ថាជាខ្ញុំ', 'callback_data' => 'already_confirmed']
+                            ],
+                            [
+                                ['text' => '🚀 បើកគេហទំព័រ', 'url' => 'https://spilms.tech']
+                            ]
+                        ]
+                    ];
+                    app(TelegramService::class)->editMessageText(
+                        $chatId,
+                        $callbackQuery['message']['message_id'],
+                        $originalText . "\n\n<i>✅ បានផ្ទៀងផ្ទាត់ដោយម្ចាស់គណនី</i>",
+                        'HTML',
+                        $confirmedMarkup
+                    );
+                }
+            } elseif ($cbData === 'login_not_me') {
+                if ($cbId) {
+                    Http::withoutVerifying()->post("https://api.telegram.org/bot{$botToken}/answerCallbackQuery", [
+                        'callback_query_id' => $cbId,
+                        'text' => '🚨 ការព្រមានសុវត្ថិភាព! សូមពិនិត្យការណែនាំខាងក្រោម។',
+                        'show_alert' => true,
+                    ]);
+                }
+
+                $securityGuidance = "🚨 <b>ការណែនាំសុវត្ថិភាពបន្ទាន់</b>\n\n" .
+                                    "ប្រសិនបើសកម្មភាព Login ខាងលើមិនមែនជាលោកអ្នកទេ សូមអនុវត្តដូចខាងក្រោមជាបន្ទាន់៖\n\n" .
+                                    "<blockquote>" .
+                                    "1. 🔑 <b>ផ្លាស់ប្តូរពាក្យសម្ងាត់៖</b> ចូលទៅកាន់ spilms.tech រួចជ្រើសរើស <i>«ភ្លេចពាក្យសម្ងាត់»</i> ដើម្បីប្តូរពាក្យសម្ងាត់ថ្មីភ្លាមៗ\n" .
+                                    "2. 🛡️ <b>ទាក់ទងអ្នកគ្រប់គ្រង៖</b> ផ្ញើ Email ទៅកាន់ <code>info@spilms.tech</code>\n" .
+                                    "3. 📱 <b>កាត់ផ្តាច់ Session៖</b> ចុច /unlink ដើម្បីផ្តាច់គណនីពី Telegram នេះជាបណ្តោះអាសន្ន" .
+                                    "</blockquote>\n\n" .
+                                    "<i>ក្រុមការងារសុវត្ថិភាព SPI E-LMS រង់ចាំជួយការពារគណនីរបស់អ្នកជានិច្ច! ✨</i>";
+
+                $guidanceKeyboard = [
+                    'inline_keyboard' => [
+                        [
+                            ['text' => '🔒 ផ្លាស់ប្តូរពាក្យសម្ងាត់', 'url' => 'https://spilms.tech/forgot-password']
+                        ],
+                        [
+                            ['text' => '✉️ ផ្នែកជំនួយបច្ចេកទេស', 'callback_data' => 'support']
+                        ]
+                    ]
+                ];
+
+                app(TelegramService::class)->sendDirectMessage($chatId, $securityGuidance, 'HTML', $guidanceKeyboard);
             } elseif (str_starts_with($cbData, 'approve_qr_')) {
                 $qrToken = substr($cbData, 11);
                 $this->approveQrSession($qrToken, $chatId, $callbackQuery['from'] ?? [], $botToken);
@@ -1200,31 +1258,23 @@ class TelegramAuthController extends Controller
             $greetingName = $matchedUser?->name_kh ?: ($matchedUser?->name ?: $senderName);
 
             if ($foundOtp) {
-                $otpMsg = "🔑 <b>លេខកូដផ្ទៀងផ្ទាត់ OTP របស់អ្នកគឺ៖</b>\n" .
-                          "━━━━━━━━━━━━━━━━━━━━━\n\n" .
-                          "សួស្តី <b>{$greetingName}</b> 👋\n" .
-                          "លេខកូដ ៦ ខ្ទង់សម្រាប់ចូលប្រើប្រាស់ SPI AI-ELMS គឺ៖\n\n" .
-                          "👉 <code>{$foundOtp}</code> 👈\n\n" .
-                          "⏰ លេខកូដនេះមានសុពលភាពរយៈពេល <b>៥ នាទី</b>។\n" .
-                          "📱 សម្រាប់លេខទូរស័ព្ទ៖ <code>{$phoneDisplay}</code>\n\n" .
-                          "✅ <i>គណនី Telegram របស់អ្នកត្រូវបានភ្ជាប់ដោយជោគជ័យ! រាល់លេខកូដ OTP លើកក្រោយនឹងផ្ញើមកទីនេះដោយផ្ទាល់ភ្លាមៗ។ ✨</i>";
+                $otpData = $telegramService->formatOtpMessage($greetingName, $foundOtp, 5);
+                $otpMsg = $otpData['text'];
+                $inlineKeyboard = $otpData['reply_markup'];
             } else {
                 $otpMsg = "👋 <b>សួស្តី {$greetingName}</b>\n\n" .
                           "📱 គណនី Telegram របស់អ្នកត្រូវបានភ្ជាប់ជាមួយលេខទូរស័ព្ទ <code>{$phoneDisplay}</code> រួចរាល់ហើយ!\n\n" .
                           "⚠️ <b>ពុំទាន់មានលេខកូដ OTP សកម្មនៅឡើយទេ ឬកូដមុនបានផុតកំណត់។</b>\n\n" .
                           "👉 សូមត្រឡប់ទៅគេហទំព័រ <a href='https://spilms.tech'>spilms.tech</a> រួចចុច <b>«ផ្ញើលេខកូដ OTP»</b> ប្រព័ន្ធនឹងបញ្ជូនកូដមកទីនេះភ្លាមៗ!";
-            }
 
-            $inlineKeyboard = [
-                'inline_keyboard' => [
-                    [
-                        ['text' => '🚀 ត្រឡប់ទៅកាន់ spilms.tech', 'url' => 'https://spilms.tech']
-                    ],
-                    [
-                        ['text' => '📱 បើក E-LMS WebApp', 'web_app' => ['url' => 'https://spilms.tech']]
+                $inlineKeyboard = [
+                    'inline_keyboard' => [
+                        [
+                            ['text' => '🚀 ត្រឡប់ទៅកាន់ spilms.tech', 'url' => 'https://spilms.tech']
+                        ]
                     ]
-                ]
-            ];
+                ];
+            }
 
             Http::withoutVerifying()->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
                 'chat_id' => $chatId,

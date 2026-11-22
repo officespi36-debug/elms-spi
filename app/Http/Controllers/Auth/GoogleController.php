@@ -312,18 +312,19 @@ class GoogleController extends Controller
                 // Direct User Private Telegram Notification (if account is linked to Telegram)
                 $userChatId = $user->telegram_id ?: $user->telegram_chat_id;
                 if (!empty($userChatId) && (string)$userChatId !== (string)$groupChatId) {
+                    $alertData = $telegramService->formatLoginAlertMessage(
+                        $user->name_kh ?: $user->name,
+                        now()->setTimezone('Asia/Phnom_Penh')->format('d-M-Y h:i A'),
+                        "{$device} ({$browser})",
+                        $ip,
+                        'Google SSO (OAuth 2.0)'
+                    );
+
                     $telegramService->sendDirectMessage(
                         $userChatId,
-                        "🛡️ <b>ការជូនដំណឹងសុវត្ថិភាព៖ ការចូលប្រើប្រាស់គណនី</b>\n" .
-                        "━━━━━━━━━━━━━━━━━━━━━\n\n" .
-                        "សួស្តី <b>" . ($user->name_kh ?: $user->name) . "</b> 👋\n" .
-                        "គណនីរបស់អ្នកទើបតែបាន Login ចូលប្រើប្រាស់លើ SPI E-LMS ដោយជោគជ័យតាមរយៈ Google ៖\n\n" .
-                        "⏰ <b>ម៉ោង៖</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('d-M-Y h:i A') . "\n" .
-                        "📱 <b>ឧបករណ៍៖</b> {$device} ({$browser})\n" .
-                        "🌐 <b>IP Address៖</b> <code>{$ip}</code>\n" .
-                        "🛡️ <b>វិធីសាស្ត្រ៖</b> Google Single Sign-On (OAuth 2.0)\n\n" .
-                        "⚠️ <i>ប្រសិនបើមិនមែនជាអ្នកទេ សូមទាក់ទងមកកាន់រដ្ឋបាលជាបន្ទាន់!</i>",
-                        'HTML'
+                        $alertData['text'],
+                        'HTML',
+                        $alertData['reply_markup']
                     );
                 }
             } catch (\Throwable $tgEx) {

@@ -537,18 +537,19 @@ class AuthController extends Controller
                 // 2. Direct User Personal Telegram Notification (if account is linked)
                 $userChatId = $user->telegram_id ?: $user->telegram_chat_id;
                 if (!empty($userChatId) && (string)$userChatId !== (string)$adminGroupChatId) {
+                    $alertData = $telegramService->formatLoginAlertMessage(
+                        $user->name_kh ?: $user->name,
+                        now()->setTimezone('Asia/Phnom_Penh')->format('d-M-Y h:i A'),
+                        "{$safeDevice} ({$safeBrowser})",
+                        $safeIp,
+                        'Email OTP Verification'
+                    );
+
                     $telegramService->sendDirectMessage(
                         $userChatId,
-                        "🛡️ <b>ការជូនដំណឹងសុវត្ថិភាព៖ ការចូលប្រើប្រាស់គណនី</b>\n" .
-                        "━━━━━━━━━━━━━━━━━━━━━\n\n" .
-                        "សួស្តី <b>" . ($user->name_kh ?: $safeName) . "</b> 👋\n" .
-                        "គណនីរបស់អ្នកទើបតែបាន Login ចូលប្រើប្រាស់លើ SPI E-LMS ដោយជោគជ័យតាមរយៈ Email OTP ៖\n\n" .
-                        "⏰ <b>ម៉ោង៖</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('d-M-Y h:i A') . "\n" .
-                        "📱 <b>ឧបករណ៍៖</b> {$safeDevice} ({$safeBrowser})\n" .
-                        "🌐 <b>IP Address៖</b> <code>{$safeIp}</code>\n" .
-                        "🛡️ <b>វិធីសាស្ត្រ៖</b> 6-Digit Email OTP Verification\n\n" .
-                        "⚠️ <i>ប្រសិនបើមិនមែនជាអ្នកទេ សូមទាក់ទងមកកាន់រដ្ឋបាលជាបន្ទាន់!</i>",
-                        'HTML'
+                        $alertData['text'],
+                        'HTML',
+                        $alertData['reply_markup']
                     );
                 }
 
@@ -657,27 +658,27 @@ class AuthController extends Controller
 
             $telegramService = app(TelegramService::class);
             $botUsername = config('services.telegram.bot_username') ?: 'elms_verification_bot';
-            $botKeyboard = [
-                'inline_keyboard' => [
-                    [
-                        ['text' => '🚀 បើកគេហទំព័រ spilms.tech', 'url' => 'https://spilms.tech']
-                    ]
-                ]
-            ];
+            $recipientName = $user?->name_kh ?: ($user?->name ?: 'Student');
+            $otpData = $telegramService->formatOtpMessage($recipientName, $otp, 5);
 
-            $directBotDelivered = $telegramService->sendDirectMessage(
+            $msgId = $telegramService->sendDirectMessageWithId(
                 $targetChatId,
-                "🔑 <b>លេខកូដផ្ទៀងផ្ទាត់ OTP</b>\n" .
-                "━━━━━━━━━━━━━━━━━━━━━\n\n" .
-                "សួស្តី <b>" . ($user?->name_kh ?: ($user?->name ?: 'Student')) . "</b> 👋\n" .
-                "លេខកូដសម្ងាត់ 6 ខ្ទង់របស់អ្នកសម្រាប់ចូលប្រើប្រាស់ SPI E-LMS គឺ៖\n\n" .
-                "👉 <code>{$otp}</code> 👈\n\n" .
-                "⏰ លេខកូដនេះមានសុពលភាពរយៈពេល <b>5 នាទី</b>។\n" .
-                "💬 Telegram Chat ID៖ <code>{$targetChatId}</code>\n\n" .
-                "⚠️ <i>ប្រសិនបើលោកអ្នកមិនបានស្នើសុំលេខកូដនេះទេ សូមកុំចែករំលែកវាទៅកាន់អ្នកដទៃ!</i>",
+                $otpData['text'],
                 'HTML',
-                $botKeyboard
+                $otpData['reply_markup']
             );
+
+            $directBotDelivered = !empty($msgId);
+            if ($msgId) {
+                Cache::put('tg_otp_msg_' . $cleanDigits, [
+                    'chat_id' => $targetChatId,
+                    'msg_id' => $msgId,
+                ], now()->addMinutes(10));
+                Cache::put('tg_otp_msg_' . $targetChatId, [
+                    'chat_id' => $targetChatId,
+                    'msg_id' => $msgId,
+                ], now()->addMinutes(10));
+            }
 
             // Group Notification
             try {
@@ -1069,6 +1070,15 @@ class AuthController extends Controller
                 }
             }
 
+            // Expire Telegram OTP Message when successfully verified
+            try {
+                $savedOtpMsg = Cache::get('tg_otp_msg_' . $cleanDigits) 
+                    ?: Cache::get('tg_otp_msg_' . ($user?->telegram_chat_id ?: $user?->telegram_id));
+                if ($savedOtpMsg && !empty($savedOtpMsg['chat_id']) && !empty($savedOtpMsg['msg_id'])) {
+                    app(TelegramService::class)->expireOtpMessage($savedOtpMsg['chat_id'], (int) $savedOtpMsg['msg_id']);
+                }
+            } catch (\Throwable $expireEx) {}
+
             if (!$user) {
                 return response()->json([
                     'success' => false,
@@ -1162,18 +1172,19 @@ class AuthController extends Controller
                 // 2. Direct User Personal Telegram Notification (if account is linked)
                 $userChatId = $user->telegram_id ?: $user->telegram_chat_id;
                 if (!empty($userChatId) && (string)$userChatId !== (string)$adminGroupChatId) {
+                    $alertData = $telegramService->formatLoginAlertMessage(
+                        $user->name_kh ?: $user->name,
+                        now()->setTimezone('Asia/Phnom_Penh')->format('d-M-Y h:i A'),
+                        "{$safeDevice} ({$safeBrowser})",
+                        $safeIp,
+                        $isChatId ? 'Telegram OTP Verification' : 'Phone SMS OTP Verification'
+                    );
+
                     $telegramService->sendDirectMessage(
                         $userChatId,
-                        "🛡️ <b>ការជូនដំណឹងសុវត្ថិភាព៖ ការចូលប្រើប្រាស់គណនី</b>\n" .
-                        "━━━━━━━━━━━━━━━━━━━━━\n\n" .
-                        "សួស្តី <b>" . ($user->name_kh ?: $safeName) . "</b> 👋\n" .
-                        "គណនីរបស់អ្នកទើបតែបាន Login ចូលប្រើប្រាស់លើ SPI E-LMS ដោយជោគជ័យតាមរយៈ Phone SMS OTP ៖\n\n" .
-                        "⏰ <b>ម៉ោង៖</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('d-M-Y h:i A') . "\n" .
-                        "📱 <b>ឧបករណ៍៖</b> {$safeDevice} ({$safeBrowser})\n" .
-                        "🌐 <b>IP Address៖</b> <code>{$safeIp}</code>\n" .
-                        "🛡️ <b>វិធីសាស្ត្រ៖</b> PlasGate SMS OTP Verification\n\n" .
-                        "⚠️ <i>ប្រសិនបើមិនមែនជាអ្នកទេ សូមទាក់ទងមកកាន់រដ្ឋបាលជាបន្ទាន់!</i>",
-                        'HTML'
+                        $alertData['text'],
+                        'HTML',
+                        $alertData['reply_markup']
                     );
                 }
 

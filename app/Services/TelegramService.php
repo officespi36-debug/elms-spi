@@ -229,6 +229,167 @@ class TelegramService
     }
 
     /**
+     * Format clean modern OTP Message for Telegram (HTML parse mode)
+     */
+    public function formatOtpMessage(string $name, string $otp, int $validMinutes = 5): array
+    {
+        $safeName = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
+        $safeOtp = htmlspecialchars($otp, ENT_QUOTES, 'UTF-8');
+
+        $text = "🔐 <b>លេខកូដផ្ទៀងផ្ទាត់ OTP</b>\n\n" .
+                "សួស្តី <b>{$safeName}</b> 👋\n" .
+                "នេះជាលេខកូដសម្រាប់ចូលប្រើ <b>SPI E-LMS</b>៖\n\n" .
+                "<code>{$safeOtp}</code>\n\n" .
+                "⏳ មានសុពលភាព <b>{$validMinutes} នាទី</b> · ចុចលើលេខដើម្បី Copy\n\n" .
+                "<blockquote>⚠️ សូមកុំចែករំលែកលេខកូដនេះទៅកាន់អ្នកដទៃ។</blockquote>";
+
+        $replyMarkup = [
+            'inline_keyboard' => [
+                [
+                    ['text' => '🚀 បើកគេហទំព័រ', 'url' => 'https://spilms.tech']
+                ]
+            ]
+        ];
+
+        return [
+            'text' => $text,
+            'reply_markup' => $replyMarkup,
+        ];
+    }
+
+    /**
+     * Format clean modern Security Login Alert Message for Telegram (HTML parse mode)
+     */
+    public function formatLoginAlertMessage(string $name, string $time, string $device, string $ip, string $method): array
+    {
+        $safeName = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
+        $safeTime = htmlspecialchars($time, ENT_QUOTES, 'UTF-8');
+        $safeDevice = htmlspecialchars($device, ENT_QUOTES, 'UTF-8');
+        $safeIp = htmlspecialchars($ip, ENT_QUOTES, 'UTF-8');
+        $safeMethod = htmlspecialchars($method, ENT_QUOTES, 'UTF-8');
+
+        $text = "🛡 <b>ការជូនដំណឹងសុវត្ថិភាព</b>\n\n" .
+                "សួស្តី <b>{$safeName}</b> 👋\n" .
+                "គណនីរបស់អ្នកទើបតែបាន Login ចូលប្រើ <b>SPI E-LMS</b>\n\n" .
+                "<blockquote>" .
+                "🕒 ម៉ោង៖ {$safeTime}\n" .
+                "💻 ឧបករណ៍៖ {$safeDevice}\n" .
+                "🌐 IP៖ <code>{$safeIp}</code>\n" .
+                "🔑 វិធីសាស្ត្រ៖ {$safeMethod}" .
+                "</blockquote>\n\n" .
+                "⚠️ <i>ប្រសិនបើមិនមែនជាអ្នកទេ សូមទាក់ទងអ្នកគ្រប់គ្រងភ្លាម។</i>";
+
+        $replyMarkup = [
+            'inline_keyboard' => [
+                [
+                    ['text' => '✅ ជាខ្ញុំ', 'callback_data' => 'login_is_me'],
+                    ['text' => '🚫 មិនមែនខ្ញុំ', 'callback_data' => 'login_not_me']
+                ],
+                [
+                    ['text' => '🚀 បើកគេហទំព័រ', 'url' => 'https://spilms.tech']
+                ]
+            ]
+        ];
+
+        return [
+            'text' => $text,
+            'reply_markup' => $replyMarkup,
+        ];
+    }
+
+    /**
+     * Send direct message and return the Telegram message_id (for future editing/expiration)
+     */
+    public function sendDirectMessageWithId(string|int $chatId, string $text, string $parseMode = 'HTML', ?array $replyMarkup = null): ?int
+    {
+        $token = $this->botToken ?: '9048704504:AAFq_GM2b4yBPnpuSzr9niSmCq_sEwZ9s3M';
+        if (empty($chatId)) {
+            return null;
+        }
+
+        $payload = [
+            'chat_id'                  => (string) $chatId,
+            'text'                     => $text,
+            'parse_mode'               => $parseMode,
+            'disable_web_page_preview' => true,
+        ];
+
+        if (!empty($replyMarkup)) {
+            $payload['reply_markup'] = $replyMarkup;
+        }
+
+        try {
+            $response = Http::withoutVerifying()
+                ->timeout(8)
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                    'Accept'       => 'application/json',
+                ])
+                ->post("https://api.telegram.org/bot{$token}/sendMessage", $payload);
+
+            if ($response->successful() && $response->json('ok')) {
+                return (int) $response->json('result.message_id');
+            }
+        } catch (\Throwable $e) {
+            Log::warning("Telegram sendDirectMessageWithId error for {$chatId}: " . $e->getMessage());
+        }
+
+        return null;
+    }
+
+    /**
+     * Edit an existing Telegram message (e.g. when OTP expires or is used)
+     */
+    public function editMessageText(string|int $chatId, int $messageId, string $text, string $parseMode = 'HTML', ?array $replyMarkup = null): bool
+    {
+        $token = $this->botToken ?: '9048704504:AAFq_GM2b4yBPnpuSzr9niSmCq_sEwZ9s3M';
+        if (empty($chatId) || empty($messageId)) {
+            return false;
+        }
+
+        $payload = [
+            'chat_id'                  => (string) $chatId,
+            'message_id'               => $messageId,
+            'text'                     => $text,
+            'parse_mode'               => $parseMode,
+            'disable_web_page_preview' => true,
+        ];
+
+        if ($replyMarkup !== null) {
+            $payload['reply_markup'] = $replyMarkup;
+        }
+
+        try {
+            $response = Http::withoutVerifying()
+                ->timeout(8)
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                    'Accept'       => 'application/json',
+                ])
+                ->post("https://api.telegram.org/bot{$token}/editMessageText", $payload);
+
+            return $response->successful() && (bool) $response->json('ok');
+        } catch (\Throwable $e) {
+            Log::warning("Telegram editMessageText error for {$chatId}/{$messageId}: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Expire an OTP message by editing text to "⌛ លេខកូដនេះផុតកំណត់ហើយ" and removing buttons
+     */
+    public function expireOtpMessage(string|int $chatId, int $messageId): bool
+    {
+        $expiredText = "⌛ <b>លេខកូដនេះផុតកំណត់ហើយ</b>\n\n" .
+                       "<blockquote>លេខកូដផ្ទៀងផ្ទាត់ OTP នេះត្រូវបានប្រើប្រាស់រួចរាល់ ឬបានផុតកំណត់សុពលភាព។</blockquote>\n\n" .
+                       "<i>ប្រសិនបើអ្នកនៅតែត្រូវការចូលប្រើប្រាស់ សូមស្នើសុំលេខកូដថ្មីនៅលើគេហទំព័រ spilms.tech</i>";
+
+        return $this->editMessageText($chatId, $messageId, $expiredText, 'HTML', [
+            'inline_keyboard' => []
+        ]);
+    }
+
+    /**
      * Send OTP verification code directly to user's Telegram chat
      */
     public function sendPasswordResetOtp(User $user, string $otpCode): bool

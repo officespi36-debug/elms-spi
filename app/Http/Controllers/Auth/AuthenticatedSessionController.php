@@ -250,17 +250,19 @@ class AuthenticatedSessionController extends Controller
             // Direct User Private Telegram Notification (if account is linked)
             $userChatId = $user->telegram_id ?: $user->telegram_chat_id;
             if (!empty($userChatId) && (string)$userChatId !== (string)$adminGroupChatId) {
+                $alertData = $tg->formatLoginAlertMessage(
+                    $user->name_kh ?: $user->name,
+                    now()->setTimezone('Asia/Phnom_Penh')->format('d-M-Y h:i A'),
+                    "{$safeDevice} ({$safeBrowser})",
+                    $safeIp,
+                    'Password Authentication'
+                );
+
                 $tg->sendDirectMessage(
                     $userChatId,
-                    "🛡️ <b>ការជូនដំណឹងសុវត្ថិភាព៖ ការចូលប្រើប្រាស់គណនី</b>\n" .
-                    "━━━━━━━━━━━━━━━━━━━━━\n\n" .
-                    "សួស្តី <b>" . ($user->name_kh ?: $safeName) . "</b> 👋\n" .
-                    "គណនីរបស់អ្នកទើបតែបាន Login ចូលប្រើប្រាស់លើ SPI E-LMS ដោយជោគជ័យ ៖\n\n" .
-                    "⏰ <b>ម៉ោង៖</b> " . now()->setTimezone('Asia/Phnom_Penh')->format('d-M-Y h:i A') . "\n" .
-                    "📱 <b>ឧបករណ៍៖</b> {$safeDevice} ({$safeBrowser})\n" .
-                    "🌐 <b>IP Address៖</b> <code>{$safeIp}</code>\n\n" .
-                    "⚠️ <i>ប្រសិនបើមិនមែនជាអ្នកទេ សូមចូលទៅប្តូរពាក្យសម្ងាត់ជាបន្ទាន់!</i>",
-                    'HTML'
+                    $alertData['text'],
+                    'HTML',
+                    $alertData['reply_markup']
                 );
             }
         } catch (\Throwable $e) {
