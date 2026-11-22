@@ -1780,7 +1780,7 @@ onUnmounted(() => {
               :class="{ 'z-[5]': mostUsedMethod === 'github' }"
             >
               <div class="border-beam-track">
-                <div class="border-beam-spinner" style="animation-delay: -0.9s;"></div>
+                <div class="border-beam-spinner" style="animation-delay: -1.4s;"></div>
                 <div class="border-beam-inner"></div>
               </div>
               <svg class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 shrink-0 fill-zinc-900 dark:fill-white z-10" viewBox="0 0 24 24">
@@ -1804,7 +1804,7 @@ onUnmounted(() => {
               :class="{ 'z-[5]': mostUsedMethod === 'email' }"
             >
               <div class="border-beam-track">
-                <div class="border-beam-spinner" style="animation-delay: -1.8s;"></div>
+                <div class="border-beam-spinner" style="animation-delay: -2.8s;"></div>
                 <div class="border-beam-inner"></div>
               </div>
               <svg class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 shrink-0 text-blue-600 dark:text-blue-400 z-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1829,7 +1829,7 @@ onUnmounted(() => {
               :class="{ 'z-[5]': mostUsedMethod === 'phone' }"
             >
               <div class="border-beam-track">
-                <div class="border-beam-spinner" style="animation-delay: -2.7s;"></div>
+                <div class="border-beam-spinner" style="animation-delay: -4.2s;"></div>
                 <div class="border-beam-inner"></div>
               </div>
               <i class="pi pi-telegram absolute left-4 top-1/2 -translate-y-1/2 shrink-0 text-sky-500 text-base z-10"></i>
@@ -2819,8 +2819,8 @@ html.dark .border-beam-track::before,
     #ffffff 357deg,
     transparent 360deg
   ) !important;
-  animation: border-beam-spin 3.2s linear infinite !important;
-  -webkit-animation: border-beam-spin 3.2s linear infinite !important;
+  animation: border-beam-spin 5.6s linear infinite !important;
+  -webkit-animation: border-beam-spin 5.6s linear infinite !important;
   will-change: transform;
   z-index: 3;
 }

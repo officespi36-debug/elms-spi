@@ -235,34 +235,96 @@ const detectedProvider = computed(() => {
         ]"
       ></div>
 
-      <!-- Outer Subtle Track Ring -->
-      <div
-        :class="[
-          'absolute inset-0 rounded-full border pointer-events-none transition-colors duration-500',
-          isVisualSuccess
-            ? 'border-emerald-300/60 dark:border-emerald-600/60'
-            : 'border-zinc-200/70 dark:border-zinc-800/80'
-        ]"
-      ></div>
+      <!-- Precision SVG Orbital System (Track Ring + Satellite Dot Locked on Track) -->
+      <svg class="absolute inset-0 w-full h-full pointer-events-none overflow-visible" viewBox="0 0 120 120">
+        <defs>
+          <!-- Comet trail gradient: Sky Blue -->
+          <linearGradient id="cometGradSky" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#38bdf8" stop-opacity="0" />
+            <stop offset="45%" stop-color="#0284c7" stop-opacity="0.45" />
+            <stop offset="85%" stop-color="#38bdf8" stop-opacity="0.9" />
+            <stop offset="100%" stop-color="#7dd3fc" stop-opacity="1" />
+          </linearGradient>
 
-      <!-- Loading State: Outer Smooth Comet Ring with Glowing Head (Image 2) -->
-      <div
-        v-if="!isVisualSuccess"
-        class="absolute inset-0 rounded-full border-2 border-transparent border-t-sky-400 border-r-indigo-500/50 animate-spin-smooth pointer-events-none"
-        style="animation: spinSmooth 1.4s linear infinite; -webkit-animation: spinSmooth 1.4s linear infinite; transform-origin: center center;"
-      >
-        <!-- Glowing Comet Head Dot -->
-        <div class="w-2.5 h-2.5 rounded-full bg-sky-300 shadow-[0_0_12px_#38bdf8] absolute top-1 right-2 -translate-y-1/2"></div>
-      </div>
+          <!-- Comet trail gradient: Emerald Success -->
+          <linearGradient id="cometGradEmerald" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#10b981" stop-opacity="0" />
+            <stop offset="45%" stop-color="#059669" stop-opacity="0.45" />
+            <stop offset="85%" stop-color="#34d399" stop-opacity="0.9" />
+            <stop offset="100%" stop-color="#a7f3d0" stop-opacity="1" />
+          </linearGradient>
 
-      <!-- Success State: Outer Radiant Orbit Ring with Glowing Emerald Dot (Image 1 Redesigned) -->
-      <div
-        v-else
-        class="absolute -inset-1.5 rounded-full border border-emerald-400/50 dark:border-emerald-400/40 animate-spin-slow pointer-events-none"
-        style="animation: spinSlow 5s linear infinite; -webkit-animation: spinSlow 5s linear infinite; transform-origin: center center;"
-      >
-        <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_12px_#34d399] absolute top-1 right-2 -translate-y-1/2"></div>
-      </div>
+          <!-- Filter for satellite glowing bloom -->
+          <filter id="satelliteGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
+        <!-- 1. Permanent Subtle Track Ring (The circular line that the orb follows) -->
+        <circle
+          cx="60"
+          cy="60"
+          r="54"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          :class="isVisualSuccess ? 'text-emerald-300/60 dark:text-emerald-600/60' : 'text-zinc-200/70 dark:text-zinc-800/80'"
+          class="transition-colors duration-500"
+        />
+
+        <!-- 2. Rotating Satellite + Comet Trail (Synchronized & Locked to r=54 track) -->
+        <g
+          class="auth-orbit-satellite"
+          :style="{
+            transformOrigin: '60px 60px',
+            animation: isVisualSuccess ? 'spinSlow 5s linear infinite' : 'spinSmooth 2.8s linear infinite',
+            WebkitAnimation: isVisualSuccess ? 'spinSlow 5s linear infinite' : 'spinSmooth 2.8s linear infinite'
+          }"
+        >
+          <!-- Trailing Comet Arc: Exact r=54 -->
+          <circle
+            cx="60"
+            cy="60"
+            r="54"
+            fill="none"
+            :stroke="isVisualSuccess ? 'url(#cometGradEmerald)' : 'url(#cometGradSky)'"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-dasharray="80 260"
+            stroke-dashoffset="0"
+            transform="rotate(-80 60 60)"
+          />
+
+          <!-- Glowing Satellite Orb running 100% PRECISELY ON the r=54 track line at (114, 60) -->
+          <!-- Outer Soft Glow Aura -->
+          <circle
+            cx="114"
+            cy="60"
+            r="7"
+            :fill="isVisualSuccess ? '#34d399' : '#38bdf8'"
+            opacity="0.45"
+            filter="url(#satelliteGlow)"
+          />
+          <!-- Satellite Solid Body -->
+          <circle
+            cx="114"
+            cy="60"
+            r="4.5"
+            :fill="isVisualSuccess ? '#10b981' : '#0284c7'"
+          />
+          <!-- Bright White Radiant Core -->
+          <circle
+            cx="114"
+            cy="60"
+            r="2.2"
+            fill="#ffffff"
+          />
+        </g>
+      </svg>
 
       <!-- Success State: Expanding Ripple Wave -->
       <div
@@ -565,11 +627,17 @@ const detectedProvider = computed(() => {
 }
 
 .animate-spin-smooth {
-  animation: spinSmooth 1.6s linear infinite;
+  animation: spinSmooth 2.8s linear infinite;
 }
 
 .animate-spin-slow {
-  animation: spinSlow 6s linear infinite;
+  animation: spinSlow 5s linear infinite;
+}
+
+.auth-orbit-satellite {
+  animation: spinSmooth 2.8s linear infinite;
+  transform-origin: 60px 60px;
+  will-change: transform;
 }
 
 .animate-ambient-breathe {

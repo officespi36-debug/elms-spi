@@ -38,7 +38,7 @@
             }
 
             try {
-                var currentDeployBuild = 'v_20261120_auth_border_beam_spin_v10';
+                var currentDeployBuild = 'v_20261122_auth_orbit_satellite_track_v11';
                 if (localStorage.getItem('spi_app_deploy') !== currentDeployBuild) {
                     localStorage.setItem('spi_app_deploy', currentDeployBuild);
                     if ('caches' in window) {

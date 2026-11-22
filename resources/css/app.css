@@ -542,9 +542,9 @@ html.dark .p-toast .p-toast-close-button:hover {
   ::view-transition-new(*) {
     animation: none !important;
   }
-  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.elms-ring-wrap):not(.animate-spin):not(.loading-spinner):not(.logout-beam-spinner):not(.border-beam-runner):not(.border-beam-mask):not(.border-beam-spinner):not(.border-beam-track):not(.border-beam-inner):not(.border-beam-btn),
-  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.elms-ring-wrap):not(.animate-spin):not(.loading-spinner):not(.logout-beam-spinner):not(.border-beam-runner):not(.border-beam-mask):not(.border-beam-spinner):not(.border-beam-track):not(.border-beam-inner):not(.border-beam-btn)::before,
-  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.elms-ring-wrap):not(.animate-spin):not(.loading-spinner):not(.logout-beam-spinner):not(.border-beam-runner):not(.border-beam-mask):not(.border-beam-spinner):not(.border-beam-track):not(.border-beam-inner):not(.border-beam-btn)::after {
+  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.elms-ring-wrap):not(.animate-spin):not(.loading-spinner):not(.logout-beam-spinner):not(.border-beam-runner):not(.border-beam-mask):not(.border-beam-spinner):not(.border-beam-track):not(.border-beam-inner):not(.border-beam-btn):not(.auth-orbit-satellite),
+  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.elms-ring-wrap):not(.animate-spin):not(.loading-spinner):not(.logout-beam-spinner):not(.border-beam-runner):not(.border-beam-mask):not(.border-beam-spinner):not(.border-beam-track):not(.border-beam-inner):not(.border-beam-btn):not(.auth-orbit-satellite)::before,
+  *:not(.blue-ring-wrap):not(.init-ring-wrap):not(.init-ring-svg):not(.elms-ring-wrap):not(.animate-spin):not(.loading-spinner):not(.logout-beam-spinner):not(.border-beam-runner):not(.border-beam-mask):not(.border-beam-spinner):not(.border-beam-track):not(.border-beam-inner):not(.border-beam-btn):not(.auth-orbit-satellite)::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -556,8 +556,9 @@ html.dark .p-toast .p-toast-close-button:hover {
   .elms-ring-wrap,
   .logout-beam-spinner,
   .border-beam-runner,
-  .border-beam-spinner {
-    animation-duration: 3.2s !important;
+  .border-beam-spinner,
+  .auth-orbit-satellite {
+    animation-duration: 5.6s !important;
     animation-iteration-count: infinite !important;
   }
 }
@@ -717,8 +718,8 @@ html.dark .border-beam-track::before,
     #ffffff 357deg,
     transparent 360deg
   ) !important;
-  animation: border-beam-spin 3.2s linear infinite !important;
-  -webkit-animation: border-beam-spin 3.2s linear infinite !important;
+  animation: border-beam-spin 5.6s linear infinite !important;
+  -webkit-animation: border-beam-spin 5.6s linear infinite !important;
   will-change: transform;
   z-index: 3;
 }
