@@ -1269,15 +1269,15 @@ onUnmounted(() => {
         v-else
         class="bg-white dark:bg-slate-900/40 border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-10 sm:p-14 text-center space-y-4 shadow-xs relative overflow-hidden"
       >
-        <!-- 3D Glowing Glass Magnifying Glass Illustration -->
-        <div class="relative w-36 h-36 sm:w-44 sm:h-44 mx-auto flex items-center justify-center select-none py-1">
+        <!-- 3D Glowing Glass Magnifying Glass Illustration (Balanced Medium Size) -->
+        <div class="relative w-20 h-20 sm:w-24 sm:h-24 mx-auto flex items-center justify-center select-none py-0.5">
           <!-- Ambient Soft Radial Aura Glow -->
-          <div class="absolute inset-2 rounded-full bg-gradient-to-tr from-cyan-400/25 via-sky-400/30 to-purple-500/25 dark:from-cyan-400/20 dark:via-sky-500/20 dark:to-purple-500/25 blur-2xl pointer-events-none transform scale-110"></div>
+          <div class="absolute inset-1 rounded-full bg-gradient-to-tr from-cyan-400/25 via-sky-400/30 to-purple-500/25 dark:from-cyan-400/20 dark:via-sky-500/20 dark:to-purple-500/25 blur-xl pointer-events-none transform scale-105"></div>
           
           <img
             :src="emptySearchImgUrl"
             alt="Search Empty"
-            class="relative z-10 w-full h-full object-contain filter drop-shadow-[0_16px_32px_rgba(56,189,248,0.35)] dark:drop-shadow-[0_16px_36px_rgba(56,189,248,0.25)] transition-transform duration-500 hover:scale-105"
+            class="relative z-10 w-full h-full object-contain filter drop-shadow-[0_10px_20px_rgba(56,189,248,0.30)] dark:drop-shadow-[0_10px_24px_rgba(56,189,248,0.22)] transition-transform duration-500 hover:scale-105"
             loading="eager"
           />
         </div>
