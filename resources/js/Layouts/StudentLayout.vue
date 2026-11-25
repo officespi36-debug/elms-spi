@@ -1567,7 +1567,7 @@ const onIconError = (e: Event) => {
                   <Link
                     :href="sub.href"
                     :prefetch="sub.href.includes('/my-courses/current') ? false : 'hover'"
-                    cache-for="3m"
+                    :cache-for="sub.href.includes('/my-courses/current') ? false : '3m'"
                     @click="pendingNavPath = sub.href"
                     :title="currentLang === 'km' ? sub.khName : sub.name"
                     :class="[
@@ -1645,7 +1645,7 @@ const onIconError = (e: Event) => {
                     :key="sub.href"
                     :href="sub.href"
                     :prefetch="sub.href.includes('/my-courses/current') ? false : 'hover'"
-                    cache-for="3m"
+                    :cache-for="sub.href.includes('/my-courses/current') ? false : '3m'"
                     :class="[
                       isSubActive(sub.href)
                         ? 'bg-[#d3e3fd] text-[#041e49] font-bold border border-[#0b57d0]/20 dark:bg-purple-600/20 dark:text-purple-300 dark:border-purple-500/30'
@@ -1857,7 +1857,7 @@ const onIconError = (e: Event) => {
                 :key="sub.href"
                 :href="sub.href"
                 :prefetch="sub.href.includes('/my-courses/current') ? false : 'hover'"
-                cache-for="3m"
+                :cache-for="sub.href.includes('/my-courses/current') ? false : '3m'"
                 @click="sidebarOpen = false"
                 :class="[isSubActive(sub.href) ? 'text-purple-600 dark:text-purple-300 font-bold' : 'text-[#64748b] dark:text-slate-400 hover:text-slate-900 dark:hover:text-white', 'flex items-center gap-2 py-1.5 text-[11px] truncate group/sub']"
               >

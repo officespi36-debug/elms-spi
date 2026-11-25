@@ -119,18 +119,10 @@ onMounted(() => {
       processingMode.value = 'save'
       loaderShownAt = Date.now()
       isGlobalProcessing.value = true
-    } else {
-      // Delay showing center blur loader for GET navigations so prefetched/fast pages switch instantaneously
-      processingMode.value = 'nav'
-      pendingShowTimer = setTimeout(() => {
-        pendingShowTimer = null
-        loaderShownAt = Date.now()
-        isGlobalProcessing.value = true
-      }, 400)
+      maxWaitTimer = setTimeout(() => {
+        hideCenterLoader(true)
+      }, 8000)
     }
-    maxWaitTimer = setTimeout(() => {
-      hideCenterLoader(true)
-    }, 8000)
   })
 
   removeFinishListener = router.on('finish', () => {

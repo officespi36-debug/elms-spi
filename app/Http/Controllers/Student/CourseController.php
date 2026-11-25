@@ -375,63 +375,49 @@ class CourseController extends Controller
         $user = $request->user();
         $resolved = $continueService->resolve($user);
 
-        if (!$resolved) {
-            $recommended = Course::query()
-                ->where('status', 'published')
-                ->with(['major:id,name,name_kh'])
-                ->withCount('lessons')
-                ->withCount(['enrollments' => fn ($q) => $q->whereIn('status', ['active', 'completed'])])
-                ->orderByDesc('enrollments_count')
-                ->orderByDesc('id')
-                ->limit(3)
-                ->get()
-                ->filter(fn ($c) => (int) ($c->lessons_count ?? 0) > 0)
-                ->map(function (Course $c) {
-                    $priceVal = (float) ($c->price ?? 0);
-                    $isFree = $priceVal <= 0;
-                    $thumb = $c->thumbnail ? trim((string) $c->thumbnail) : null;
-                    if ($thumb && !str_starts_with($thumb, 'http://') && !str_starts_with($thumb, 'https://') && !str_starts_with($thumb, '/')) {
-                        $thumb = asset('storage/' . ltrim($thumb, '/'));
-                    }
-                    return [
-                        'id'           => $c->id,
-                        'title'        => $c->title,
-                        'titleKh'      => $c->title_kh ?: $c->title,
-                        'code'         => $c->code,
-                        'thumbnail'    => $thumb ?: null,
-                        'category'     => $c->major?->name,
-                        'categoryKh'   => $c->major?->name_kh ?: $c->major?->name,
-                        'lessonsCount' => (int) ($c->lessons_count ?? 0),
-                        'isFree'       => $isFree,
-                        'priceDisplay' => $isFree ? 'Free' : ('$' . number_format($priceVal, 2)),
-                        'overviewHref' => "/student/courses/{$c->id}/overview",
-                        'enrollHref'   => "/student/courses/{$c->id}/enroll",
-                        'checkoutHref' => "/student/payments/{$c->id}/upload",
-                    ];
-                })
-                ->values()
-                ->all();
-
-            return Inertia::render('Student/MyCourses/CurrentCourseEmpty', [
-                'recommendedCourses' => $recommended,
-            ]);
-        }
-
-        if (!empty($resolved['all_completed'])) {
-            return redirect()->route('student.my-courses.completed')->with(
-                'info',
-                app()->getLocale() === 'km'
-                    ? 'អ្នកបានបញ្ចប់វគ្គសិក្សាទាំងអស់រួចរាល់ហើយ!'
-                    : 'You have completed all your enrolled courses!'
-            );
-        }
-
-        if (!empty($resolved['course']) && !empty($resolved['lesson'])) {
+        // 1. Direct active lesson found for user's courses
+        if ($resolved && !empty($resolved['course']) && !empty($resolved['lesson'])) {
             return redirect()->to("/student/my-courses/{$resolved['course']->id}/lessons/{$resolved['lesson']->id}");
         }
 
-        if (!empty($resolved['course'])) {
+        // 2. Course found, but all lessons completed or specific lesson not resolved -> replay from lesson 1
+        if ($resolved && !empty($resolved['course'])) {
+            $firstLesson = $resolved['course']->lessons()->orderBy('order', 'asc')->orderBy('id', 'asc')->first();
+            if ($firstLesson) {
+                return redirect()->to("/student/my-courses/{$resolved['course']->id}/lessons/{$firstLesson->id}");
+            }
             return redirect()->to("/student/courses/{$resolved['course']->id}/overview");
+        }
+
+        // 3. Student has no active enrollments yet:
+        // Automatically enroll the student into the first published course with lessons so clicking 'រៀនបន្ត' IMMEDIATELY starts learning!
+        $course = Course::query()
+            ->where('status', 'published')
+            ->whereHas('lessons')
+            ->orderBy('id', 'asc')
+            ->first();
+
+        if ($course) {
+            try {
+                Enrollment::firstOrCreate(
+                    [
+                        'student_id' => $user->id,
+                        'course_id'  => $course->id,
+                    ],
+                    [
+                        'status'          => 'active',
+                        'enrolled_at'     => now(),
+                        'enrolled_by'     => $user->id,
+                        'enrollment_type' => 'self',
+                    ]
+                );
+            } catch (\Throwable $e) {}
+
+            $firstLesson = $course->lessons()->orderBy('order', 'asc')->orderBy('id', 'asc')->first();
+            if ($firstLesson) {
+                return redirect()->to("/student/my-courses/{$course->id}/lessons/{$firstLesson->id}");
+            }
+            return redirect()->to("/student/courses/{$course->id}/overview");
         }
 
         return redirect()->route('student.browse');
