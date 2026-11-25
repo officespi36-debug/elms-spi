@@ -1079,6 +1079,7 @@ onUnmounted(() => {
                           getCourseCardTheme(course.id).gradient
                         ]"
                       >
+                        <div class="shimmer-sweep-soft absolute inset-0 pointer-events-none"></div>
                         <div class="absolute -top-8 -right-8 w-28 h-28 rounded-full bg-white/10 blur-xl pointer-events-none"></div>
                         <div class="relative z-10 flex flex-col items-center gap-1.5 -mt-2">
                           <div class="w-11 h-11 rounded-2xl bg-white/15 backdrop-blur-xs border border-white/25 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300">
@@ -1339,6 +1340,7 @@ onUnmounted(() => {
                         getCourseCardTheme(course.id).gradient
                       ]"
                     >
+                      <div class="shimmer-sweep-soft absolute inset-0 pointer-events-none"></div>
                       <svg class="w-8 h-8 relative z-10 -mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                       </svg>
@@ -1802,6 +1804,16 @@ onUnmounted(() => {
     rgba(255, 255, 255, 0) 100%
   );
   animation: shimmerSweep 1.6s infinite;
+}
+
+.shimmer-sweep-soft {
+  background: linear-gradient(
+    110deg,
+    rgba(255, 255, 255, 0) 20%,
+    rgba(255, 255, 255, 0.16) 50%,
+    rgba(255, 255, 255, 0) 80%
+  );
+  animation: shimmerSweep 2.6s ease-in-out infinite;
 }
 
 @keyframes shimmerSweep {
