@@ -209,7 +209,7 @@ class BrowseController extends Controller
         } elseif ($sort === 'title') {
             $query->orderBy('courses.title', 'asc')->orderByDesc('courses.id');
         } elseif ($sort === 'duration') {
-            $query->orderByRaw('COALESCE(duration_seconds_sum, 0) DESC')->orderByDesc('courses.id');
+            $query->orderByRaw('COALESCE((SELECT SUM(duration_seconds) FROM lessons WHERE lessons.course_id = courses.id), 0) DESC')->orderByDesc('courses.id');
         } else {
             // 'popular'
             $query->orderByDesc('enrollments_count')->orderByDesc('courses.id');
@@ -461,20 +461,20 @@ class BrowseController extends Controller
 
         if ($q !== '') {
             $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $q);
-            $like = "%{$escaped}%";
-            $query->where(function (Builder $sub) use ($like) {
-                $sub->where('courses.title', 'like', $like)
-                    ->orWhere('courses.title_kh', 'like', $like)
-                    ->orWhere('courses.description', 'like', $like)
-                    ->orWhere('courses.description_kh', 'like', $like)
-                    ->orWhere('courses.code', 'like', $like)
-                    ->orWhereHas('teacher', function (Builder $tq) use ($like) {
-                        $tq->where('name', 'like', $like)
-                            ->orWhere('name_kh', 'like', $like);
+            $likeLower = '%' . mb_strtolower($escaped, 'UTF-8') . '%';
+            $query->where(function (Builder $sub) use ($likeLower) {
+                $sub->whereRaw('LOWER(courses.title) LIKE ?', [$likeLower])
+                    ->orWhereRaw('LOWER(courses.title_kh) LIKE ?', [$likeLower])
+                    ->orWhereRaw('LOWER(courses.description) LIKE ?', [$likeLower])
+                    ->orWhereRaw('LOWER(courses.description_kh) LIKE ?', [$likeLower])
+                    ->orWhereRaw('LOWER(courses.code) LIKE ?', [$likeLower])
+                    ->orWhereHas('teacher', function (Builder $tq) use ($likeLower) {
+                        $tq->whereRaw('LOWER(name) LIKE ?', [$likeLower])
+                            ->orWhereRaw('LOWER(name_kh) LIKE ?', [$likeLower]);
                     })
-                    ->orWhereHas('major', function (Builder $mq) use ($like) {
-                        $mq->where('name', 'like', $like)
-                            ->orWhere('name_kh', 'like', $like);
+                    ->orWhereHas('major', function (Builder $mq) use ($likeLower) {
+                        $mq->whereRaw('LOWER(name) LIKE ?', [$likeLower])
+                            ->orWhereRaw('LOWER(name_kh) LIKE ?', [$likeLower]);
                     });
             });
         }

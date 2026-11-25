@@ -278,6 +278,7 @@ const fetchCatalog = (targetPage: number | null = 1, customUrl?: string) => {
     router.visit(customUrl, {
       preserveState: true,
       preserveScroll: true,
+      headers: { 'X-Silent-Load': 'true' },
       onCancelToken: (token) => { activeCancelToken = token },
       onFinish: () => { isLoading.value = false },
       onError: () => { fetchError.value = true },
@@ -310,6 +311,7 @@ const fetchCatalog = (targetPage: number | null = 1, customUrl?: string) => {
     preserveState: true,
     replace: true,
     preserveScroll: true,
+    headers: { 'X-Silent-Load': 'true' },
     onCancelToken: (token) => { activeCancelToken = token },
     onFinish: () => { isLoading.value = false },
     onError: () => { fetchError.value = true },
@@ -320,7 +322,7 @@ const onSearchInput = () => {
   if (debounceTimer) clearTimeout(debounceTimer)
   debounceTimer = setTimeout(() => {
     fetchCatalog(1)
-  }, 300)
+  }, 180)
 }
 
 const clearSearch = () => {
