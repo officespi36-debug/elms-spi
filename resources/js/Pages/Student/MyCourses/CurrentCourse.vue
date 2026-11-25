@@ -504,7 +504,9 @@ const handleCompleteAndNext = async () => {
         'Accept': 'application/json'
       },
       body: JSON.stringify({
-        seconds: Math.floor(maxWatchedSeconds.value),
+        seconds: videoProvider.value === 'none'
+          ? Math.max(Math.floor(maxWatchedSeconds.value), currentDuration.value || 100)
+          : Math.floor(maxWatchedSeconds.value),
       })
     })
 
@@ -1310,6 +1312,7 @@ const handleContentClick = (e: MouseEvent) => {
 // ─── Real-Time Completion Eligibility Computed Properties ───
 const isEligibleToComplete = computed(() => {
   if (isLessonCompletedLocally.value) return true
+  if (videoProvider.value === 'none' || videoPlaybackError.value) return true
   if (!currentDuration.value || currentDuration.value <= 0) return true
   const required = Math.round(currentDuration.value * 0.9)
   const watched = Math.max(currentSeconds.value, maxWatchedSeconds.value, props.currentLesson?.watched_seconds || 0)
@@ -1651,31 +1654,54 @@ onUnmounted(() => {
               ></iframe>
             </div>
 
-            <!-- 3. Clean Empty State (When no video URL is available - No fake player, no fake play button) -->
+            <!-- 3. Modern Reading & Interactive Study Hero (When no video URL is attached) -->
             <div
               v-else
-              class="relative aspect-video w-full flex flex-col items-center justify-center p-8 sm:p-12 text-center select-none bg-[#090e1a] overflow-hidden"
+              class="relative aspect-video w-full flex flex-col items-center justify-center p-6 sm:p-10 text-center bg-gradient-to-br from-slate-900 via-[#131836] to-[#1e1b4b] overflow-hidden"
             >
-              <!-- Ambient background pattern -->
-              <div class="absolute inset-0 bg-[radial-gradient(#6366f1_1px,transparent_1px)] [background-size:24px_24px] opacity-15 pointer-events-none"></div>
+              <!-- Subtle ambient glow & dot pattern -->
+              <div class="absolute inset-0 bg-[radial-gradient(#818cf8_1px,transparent_1px)] [background-size:24px_24px] opacity-15 pointer-events-none"></div>
+              <div class="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-purple-600/20 blur-3xl pointer-events-none"></div>
+              <div class="absolute -bottom-24 -left-24 w-64 h-64 rounded-full bg-indigo-500/20 blur-3xl pointer-events-none"></div>
 
-              <div class="relative z-10 max-w-md space-y-4">
-                <div class="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-3xl bg-slate-900/90 border border-slate-700/80 text-purple-400 flex items-center justify-center shadow-2xl shadow-purple-900/20">
-                  <svg class="w-8 h-8 sm:w-9 sm:h-9 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
-                    <line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              <div class="relative z-10 max-w-xl w-full space-y-4">
+                <div class="w-14 h-14 sm:w-16 sm:h-16 mx-auto rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 text-purple-300 flex items-center justify-center shadow-xl">
+                  <svg class="w-7 h-7 sm:w-8 sm:h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                   </svg>
                 </div>
-                <div class="space-y-1.5">
-                  <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/10 text-amber-400 border border-amber-400/20 text-[11px] font-bold">
-                    <span>⚠️ Video not available yet</span>
+
+                <div class="space-y-2">
+                  <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-200 border border-indigo-400/30 text-[11px] font-bold">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                    <span>មេរៀនអាន & អនុវត្ត • Study Lesson</span>
+                    <span v-if="currentLesson.duration_formatted" class="text-indigo-300/80">· {{ currentLesson.duration_formatted }}</span>
                   </div>
-                  <h3 class="text-base sm:text-lg font-bold text-white tracking-tight">
-                    {{ currentLesson.title }}
+                  <h3 class="text-lg sm:text-xl font-extrabold text-white tracking-tight leading-snug">
+                    {{ currentLesson.kh_title || currentLesson.title }}
                   </h3>
-                  <p class="text-xs text-slate-400 leading-relaxed">
-                    វីដេអូមេរៀននេះមិនទាន់ត្រូវបានបញ្ចូលនៅឡើយទេ។ អ្នកអាចអានឯកសារមេរៀនខាងក្រោម ឬចុច Complete & Next ដើម្បីបន្តទៅមុខ។
+                  <p class="text-xs sm:text-[13px] text-slate-300/90 leading-relaxed max-w-md mx-auto">
+                    សូមអានសេចក្តីសង្ខេប និងឯកសារមេរៀនខាងក្រោម ឬចុច <strong class="text-white">Complete &amp; Next</strong> ដើម្បីបញ្ចប់ និងបន្តទៅមេរៀនបន្ទាប់។
                   </p>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-center gap-2.5 pt-1">
+                  <button
+                    @click="handleSmartAction"
+                    :disabled="isCompleting"
+                    type="button"
+                    class="inline-flex items-center justify-center gap-2 px-5 py-2.5 min-h-[44px] rounded-xl bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:opacity-95 text-white text-xs font-bold shadow-lg shadow-purple-600/30 transition-all active:scale-95 cursor-pointer disabled:opacity-60"
+                  >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                    <span>{{ isCompleting ? 'កំពុងរក្សាទុក...' : smartActionLabel }}</span>
+                  </button>
+                  <button
+                    @click="activeTab = 'content'"
+                    type="button"
+                    class="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 min-h-[44px] rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold border border-white/15 backdrop-blur-sm transition-colors cursor-pointer"
+                  >
+                    <span>អានខ្លឹមសារមេរៀន</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -1877,14 +1903,29 @@ onUnmounted(() => {
               </ul>
             </div>
 
-            <!-- Empty State for Overview if both are empty -->
+            <!-- Structured Fallback Overview if lesson summary & objectives are empty -->
             <div
               v-if="!currentLesson.summary && (!currentLesson.objectives || currentLesson.objectives.length === 0)"
-              class="p-6 text-center text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800"
+              class="p-5 sm:p-6 bg-slate-50/90 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-800 space-y-3"
             >
-              <span class="text-2xl block mb-2">📋</span>
-              <p class="font-medium text-slate-700 dark:text-slate-300">No overview details provided for this lesson yet.</p>
-              <p class="text-[11px] text-slate-500 mt-0.5">Please check the Lesson Content or Discussion tab.</p>
+              <div class="flex items-center justify-between gap-3 flex-wrap">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-300 flex items-center justify-center text-sm font-bold">📘</span>
+                  <div>
+                    <h4 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">{{ currentLesson.kh_title || currentLesson.title }}</h4>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ course.title }} <span v-if="teacherName">• {{ teacherName }}</span></p>
+                  </div>
+                </div>
+                <span v-if="currentLesson.duration_formatted" class="px-2.5 py-1 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px] font-semibold text-slate-600 dark:text-slate-300 tabular-nums">
+                  ⏱ {{ currentLesson.duration_formatted }}
+                </span>
+              </div>
+              <p v-if="course.description" class="text-xs sm:text-[13px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                {{ course.description }}
+              </p>
+              <p v-else class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                សិក្សាមេរៀននេះ និងពិនិត្យមើលខ្លឹមសារមេរៀន ឬសួរ AI Assistant ដើម្បីទទួលបានការពន្យល់លម្អិត។
+              </p>
             </div>
 
             <!-- Need help banner with Ask AI Assistant (Opens FAB Panel) -->

@@ -54,11 +54,12 @@ class ContinueLearningTest extends TestCase
             'order'     => 1,
         ]);
 
-        // Lesson 1 (duration: 100s)
+        // Lesson 1 (video lesson, duration: 100s)
         $this->lesson1 = Lesson::create([
             'course_id'        => $this->course->id,
             'module_id'        => $module->id,
             'title'            => 'Lesson 1',
+            'video_url'        => 'https://example.com/lesson1.mp4',
             'order'            => 1,
             'duration_seconds' => 100,
         ]);

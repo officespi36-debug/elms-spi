@@ -916,6 +916,7 @@ class CourseController extends Controller
         }
 
         $duration = (int) ($lesson->duration_seconds ?: 1100);
+        $hasVideo = !empty(trim((string) ($lesson->video_url ?? '')));
         $prog = LessonProgress::firstOrNew([
             'user_id'   => $user->id,
             'lesson_id' => $lesson->id,
@@ -929,8 +930,9 @@ class CourseController extends Controller
 
         $threshold = (int) round(0.9 * $duration);
 
-        // Verification: Must have watched at least 90% if video has duration
-        if ($duration > 0 && $watchedSeconds < $threshold) {
+        // Verification: Enforce 90% watch threshold only when the lesson actually has a video.
+        // Reading/non-video lessons can be completed directly once studied.
+        if ($hasVideo && $duration > 0 && $watchedSeconds < $threshold) {
             return response()->json([
                 'error' => "សូមទស្សនាមេរៀនយ៉ាងហោចណាស់ 90% (យ៉ាងតិច {$threshold} វិនាទី) មុននឹងបញ្ចប់មេរៀន។ (Please watch at least 90% of the lesson before completing)",
                 'watched_seconds' => $watchedSeconds,
