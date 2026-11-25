@@ -1102,8 +1102,11 @@ const sidebarNavItems = computed<NavItem[]>(() => {
   })
 })
 
+const pendingNavPath = ref<string | null>(null)
+let removeNavFinishListener: (() => void) | null = null
+
 const isSubActive = (subHref: string) => {
-  const currentUrl = page.url
+  const currentUrl = pendingNavPath.value || page.url
   const currentPath = currentUrl.split(/[?#]/)[0]
   const subPath = subHref.split(/[?#]/)[0]
 
@@ -1210,6 +1213,9 @@ watch(
     Object.keys(expandedModules.value).forEach(k => {
       expandedModules.value[k] = (activeKey === k)
     })
+    if (activeKey) {
+      prefetchModuleChildren(activeKey)
+    }
   },
   { immediate: true }
 )
@@ -1244,18 +1250,37 @@ onMounted(() => {
   window.addEventListener('offline', updateOnlineStatus)
   window.addEventListener('click', handleDocumentClick)
 
-  // Proactively prefetch currently expanded sidebar module routes & dashboard for instant 0ms clicks
+  // Proactively prefetch core Student routes & expanded sidebar routes for instant 0ms clicks
+  removeNavFinishListener = router.on('finish', () => {
+    pendingNavPath.value = null
+  })
+
+  const coreStudentRoutes = [
+    '/student/dashboard',
+    '/student/my-courses/enrolled',
+    '/student/my-courses/completed',
+    '/student/browse',
+    '/student/ai-tutor',
+    '/student/calendar',
+    '/student/progress/overview',
+    '/student/quizzes/practice',
+    '/student/certificates/my-certificates',
+  ]
+
   setTimeout(() => {
-    prefetchRoute('/student/dashboard')
     Object.keys(expandedModules.value).forEach(k => {
       if (expandedModules.value[k]) {
         prefetchModuleChildren(k)
       }
     })
-  }, 150)
+    coreStudentRoutes.forEach((routeHref, idx) => {
+      setTimeout(() => prefetchRoute(routeHref), 120 + idx * 90)
+    })
+  }, 100)
 })
 
 onUnmounted(() => {
+  if (removeNavFinishListener) removeNavFinishListener()
   window.removeEventListener('keydown', handleKeydown)
   window.removeEventListener('online', updateOnlineStatus)
   window.removeEventListener('offline', updateOnlineStatus)
@@ -1543,12 +1568,13 @@ const onIconError = (e: Event) => {
                     :href="sub.href"
                     :prefetch="sub.href.includes('/my-courses/current') ? false : 'hover'"
                     cache-for="3m"
+                    @click="pendingNavPath = sub.href"
                     :title="currentLang === 'km' ? sub.khName : sub.name"
                     :class="[
                       isSubActive(sub.href)
                         ? 'bg-purple-50 text-purple-700 font-bold border border-purple-200 dark:bg-purple-600/20 dark:text-purple-300 dark:border-purple-500/30'
                         : 'text-[#64748b] hover:text-[#1f1f1f] hover:bg-[#f0f4f9] dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800/50 border border-transparent font-medium',
-                      'flex items-center gap-x-2 rounded-lg px-2 py-1.5 text-[11px] transition-all duration-200 truncate group/sub select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 outline-none'
+                      'flex items-center gap-x-2 rounded-lg px-2 py-1.5 text-[11px] transition-colors duration-75 active:scale-[0.98] truncate group/sub select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 outline-none'
                     ]"
                   >
                     <!-- Lucide Line Icons for Submenu (Clean grey line icons, no emojis) -->

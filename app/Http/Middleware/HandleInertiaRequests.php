@@ -91,10 +91,12 @@ class HandleInertiaRequests extends Middleware
                 'user' => $user,
             ],
             'student_notifications' => fn () => $user && ($user->role === 'student' || empty($user->role))
-                ? \App\Services\StudentNotificationService::getForUser($user)
+                ? \Illuminate\Support\Facades\Cache::remember("student.{$user->id}.notifications", 15, function () use ($user) {
+                    return \App\Services\StudentNotificationService::getForUser($user);
+                })
                 : ['items' => [], 'unread_count' => 0],
             'enrolled_courses_count' => fn () => $user && ($user->role === 'student' || empty($user->role))
-                ? (function () use ($user) {
+                ? \Illuminate\Support\Facades\Cache::remember("student.{$user->id}.enrolled_count", 20, function () use ($user) {
                     try {
                         return \App\Models\Enrollment::where('student_id', $user->id)
                             ->whereIn('status', ['active', 'completed'])
@@ -102,7 +104,7 @@ class HandleInertiaRequests extends Middleware
                     } catch (\Throwable $e) {
                         return 0;
                     }
-                })()
+                })
                 : 0,
             'new_enrollments_count' => fn () => $user && ($user->role === 'student' || empty($user->role))
                 ? \Illuminate\Support\Facades\Cache::remember("student.{$user->id}.new_enrollments", 30, function () use ($user) {
