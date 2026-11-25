@@ -47,6 +47,7 @@ class EnrollmentController extends Controller
         Cache::forget("student.{$user->id}.new_enrollments");
         Cache::forget("student.{$user->id}.enrolled_count");
         Cache::forget("student.{$user->id}.notifications");
+        Cache::forget("student.{$user->id}.continue_recommended");
         app(DashboardAnalyticsService::class)->invalidateUserCache($user->id);
 
         if ($enrollment->status === 'pending_payment') {
@@ -56,8 +57,10 @@ class EnrollmentController extends Controller
                     : 'Please complete payment to access course.');
         }
 
-        return back()->with('success', app()->getLocale() === 'km'
-            ? 'ចុះឈ្មោះចូលរៀនវគ្គសិក្សាដោយជោគជ័យ!'
-            : 'Enrolled successfully!');
+        // Free course: send the student straight into the course.
+        return redirect()->route('student.my-courses.continue', $course->id)
+            ->with('success', app()->getLocale() === 'km'
+                ? 'ចុះឈ្មោះចូលរៀនវគ្គសិក្សាដោយជោគជ័យ!'
+                : 'Enrolled successfully!');
     }
 }

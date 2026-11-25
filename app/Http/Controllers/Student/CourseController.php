@@ -368,59 +368,203 @@ class CourseController extends Controller
     }
 
     /**
-     * Resolve current learning session and 302 redirect to the active lesson.
+     * Continue Learning entry point.
+     *
+     * Resolves one of five states for the authenticated student:
+     *   A - no enrollments              -> render empty state + recommended courses
+     *   B - enrolled, not started        -> render "start first lesson" card
+     *   C - in progress                  -> 302 redirect to the active lesson
+     *   D - all completed                -> render completion message + certificate link
+     *   E - enrolled but no lessons yet  -> render "coming soon" message
      */
-    public function current(Request $request, ContinueLearningService $continueService)
-    {
+    public function current(
+        Request $request,
+        ContinueLearningService $continueService,
+        CourseProgressService $progressService
+    ) {
         $user = $request->user();
-        $resolved = $continueService->resolve($user);
 
-        // 1. Direct active lesson found for user's courses
-        if ($resolved && !empty($resolved['course']) && !empty($resolved['lesson'])) {
-            return redirect()->to("/student/my-courses/{$resolved['course']->id}/lessons/{$resolved['lesson']->id}");
+        // Load the student's active/completed enrollments for published courses (no N+1).
+        $enrollments = Enrollment::where('student_id', $user->id)
+            ->whereIn('status', ['active', 'completed'])
+            ->whereHas('course', fn ($q) => $q->where('status', 'published'))
+            ->with([
+                'course.teacher:id,name,name_kh,email,avatar,role',
+                'course.major:id,name,name_kh',
+                'course.modules:id,course_id,title,kh_title,order',
+                'course.modules.lessons:id,module_id,chapter_id,course_id,title,kh_title,order,duration_seconds',
+                'course.lessons:id,module_id,chapter_id,course_id,title,kh_title,order,duration_seconds',
+            ])
+            ->latest('updated_at')
+            ->get();
+
+        // State A: no published-course enrollments.
+        if ($enrollments->isEmpty()) {
+            return $this->renderContinuePage($user, 'A', null, $progressService);
         }
 
-        // 2. Course found, but all lessons completed or specific lesson not resolved -> replay from lesson 1
-        if ($resolved && !empty($resolved['course'])) {
-            $firstLesson = $resolved['course']->lessons()->orderBy('order', 'asc')->orderBy('id', 'asc')->first();
-            if ($firstLesson) {
-                return redirect()->to("/student/my-courses/{$resolved['course']->id}/lessons/{$firstLesson->id}");
+        // Compute per-course progress states in a single pass.
+        $computed = $progressService->calculateForEnrollments($user, $enrollments);
+
+        $inProgress = $computed->firstWhere('state', 'in_progress');
+        $notStarted = $computed->firstWhere('state', 'not_started');
+        $comingSoon = $computed->firstWhere('state', 'coming_soon');
+        $allCompleted = $computed->isNotEmpty() && $computed->every(fn ($p) => $p['state'] === 'completed');
+
+        // State C: at least one course in progress -> 302 to the active lesson.
+        if ($inProgress) {
+            $resolved = $continueService->resolve($user);
+            if ($resolved && !empty($resolved['course']) && !empty($resolved['lesson'])) {
+                return redirect()->to("/student/my-courses/{$resolved['course']->id}/lessons/{$resolved['lesson']->id}");
             }
-            return redirect()->to("/student/courses/{$resolved['course']->id}/overview");
+            $courseId = $inProgress['course']->id ?? $inProgress['enrollment']->course_id;
+            return redirect()->to("/student/my-courses/{$courseId}/continue");
         }
 
-        // 3. Student has no active enrollments yet:
-        // Automatically enroll the student into the first published course with lessons so clicking 'រៀនបន្ត' IMMEDIATELY starts learning!
-        $course = Course::query()
-            ->where('status', 'published')
-            ->whereHas('lessons')
-            ->orderBy('id', 'asc')
-            ->first();
+        // State B: enrolled but not started -> render "start first lesson" card.
+        if ($notStarted) {
+            return $this->renderContinuePage($user, 'B', $notStarted, $progressService);
+        }
 
-        if ($course) {
-            try {
-                Enrollment::firstOrCreate(
-                    [
-                        'student_id' => $user->id,
-                        'course_id'  => $course->id,
-                    ],
-                    [
-                        'status'          => 'active',
-                        'enrolled_at'     => now(),
-                        'enrolled_by'     => $user->id,
-                        'enrollment_type' => 'self',
-                    ]
-                );
-            } catch (\Throwable $e) {}
+        // State E: enrolled but every course has no lessons yet.
+        if ($comingSoon) {
+            return $this->renderContinuePage($user, 'E', null, $progressService);
+        }
 
-            $firstLesson = $course->lessons()->orderBy('order', 'asc')->orderBy('id', 'asc')->first();
-            if ($firstLesson) {
-                return redirect()->to("/student/my-courses/{$course->id}/lessons/{$firstLesson->id}");
+        // State D: all enrollments are completed.
+        if ($allCompleted) {
+            return $this->renderContinuePage($user, 'D', null, $progressService);
+        }
+
+        // Fallback: treat as state A.
+        return $this->renderContinuePage($user, 'A', null, $progressService);
+    }
+
+    /**
+     * Render the Continue Learning page for non-redirect states (A, B, D, E).
+     */
+    private function renderContinuePage(
+        User $user,
+        string $state,
+        ?array $startItem,
+        CourseProgressService $progressService
+    ) {
+        $hasEnrollments = in_array($state, ['B', 'D', 'E'], true);
+        $startCourse = null;
+
+        if ($state === 'B' && $startItem) {
+            /** @var Course $course */
+            $course = $startItem['course'] ?? null;
+            if ($course) {
+                $thumb = $course->thumbnail ? trim((string) $course->thumbnail) : null;
+                if ($thumb && !str_starts_with($thumb, 'http://') && !str_starts_with($thumb, 'https://') && !str_starts_with($thumb, '/')) {
+                    $thumb = asset('storage/' . ltrim($thumb, '/'));
+                }
+                $startCourse = [
+                    'id'           => $course->id,
+                    'title'        => $course->title,
+                    'titleKh'      => $course->title_kh ?: $course->title,
+                    'thumbnail'    => $thumb ?: null,
+                    'continueHref' => "/student/my-courses/{$course->id}/continue",
+                    'lessonsCount' => (int) ($startItem['lessons_total'] ?? 0),
+                ];
             }
-            return redirect()->to("/student/courses/{$course->id}/overview");
         }
 
-        return redirect()->route('student.browse');
+        // Recommended courses only make sense in states A, D, E.
+        $recommended = in_array($state, ['A', 'D', 'E'], true)
+            ? $this->getRecommendedCourses($user, $progressService)
+            : [];
+
+        return Inertia::render('Student/MyCourses/CurrentCourseEmpty', [
+            'state'              => $state,
+            'hasEnrollments'     => $hasEnrollments,
+            'startCourse'        => $startCourse,
+            'recommendedCourses' => $recommended,
+        ]);
+    }
+
+    /**
+     * Get up to 3 recommended courses for the student.
+     * Published, >=1 lesson, not already enrolled, sorted by student's major
+     * first, then beginner level, then popularity. Cached 5 minutes per user.
+     */
+    private function getRecommendedCourses(User $user, CourseProgressService $progressService): array
+    {
+        $cacheKey = "student.{$user->id}.continue_recommended";
+
+        return Cache::remember($cacheKey, 300, function () use ($user, $progressService) {
+            $enrolledCourseIds = Enrollment::where('student_id', $user->id)
+                ->pluck('course_id')
+                ->all();
+
+            $query = Course::query()
+                ->where('status', 'published')
+                ->whereHas('lessons')
+                ->when(!empty($enrolledCourseIds), fn ($q) => $q->whereNotIn('id', $enrolledCourseIds))
+                ->with([
+                    'teacher:id,name,name_kh,email,avatar,role',
+                    'major:id,name,name_kh',
+                ])
+                ->withCount('lessons')
+                ->withSum('lessons as duration_seconds_sum', 'duration_seconds')
+                ->withCount(['enrollments' => fn ($q) => $q->whereIn('status', ['active', 'completed'])]);
+
+            // Student's major first, then beginner level, then popularity.
+            $userMajorId = $user->major_id ? (int) $user->major_id : 0;
+            $query->orderByRaw('CASE WHEN major_id = ? THEN 0 ELSE 1 END', [$userMajorId])
+                ->orderByRaw("CASE WHEN LOWER(COALESCE(level, '')) = 'beginner' THEN 0 ELSE 1 END")
+                ->orderByDesc('enrollments_count')
+                ->orderByDesc('id');
+
+            $courses = $query->limit(3)->get();
+
+            return $courses->map(function (Course $c) use ($progressService) {
+                $priceVal = (float) ($c->price ?? 0);
+                $isFree = $priceVal <= 0;
+
+                $thumb = $c->thumbnail ? trim((string) $c->thumbnail) : null;
+                if ($thumb && !str_starts_with($thumb, 'http://') && !str_starts_with($thumb, 'https://') && !str_starts_with($thumb, '/')) {
+                    $thumb = asset('storage/' . ltrim($thumb, '/'));
+                }
+
+                $teacherName = $c->teacher ? $progressService->cleanTeacherName($c->teacher, $c) : null;
+                $teacherNameKh = $c->teacher ? $progressService->cleanTeacherNameKh($c->teacher, $c) : null;
+
+                $durationSeconds = (int) ($c->duration_seconds_sum ?? 0);
+                $totalMinutes = (int) round($durationSeconds / 60);
+                if ($totalMinutes <= 0) {
+                    $durationLabel = null;
+                } else {
+                    $hours = intdiv($totalMinutes, 60);
+                    $mins = $totalMinutes % 60;
+                    $durationLabel = $hours > 0
+                        ? $hours . 'h ' . str_pad((string) $mins, 2, '0', STR_PAD_LEFT) . 'm'
+                        : $mins . 'm';
+                }
+
+                return [
+                    'id'              => $c->id,
+                    'title'           => $c->title,
+                    'titleKh'         => $c->title_kh ?: $c->title,
+                    'code'            => $c->code,
+                    'thumbnail'       => $thumb ?: null,
+                    'category'        => $c->major?->name,
+                    'categoryKh'      => $c->major?->name_kh ?: ($c->major?->name ?? null),
+                    'teacherName'     => $teacherName,
+                    'teacherNameKh'   => $teacherNameKh,
+                    'lessonsCount'    => (int) ($c->lessons_count ?? 0),
+                    'durationSeconds' => $durationSeconds,
+                    'durationLabel'   => $durationLabel,
+                    'isFree'          => $isFree,
+                    'priceDisplay'    => $isFree ? 'Free' : ('$' . number_format($priceVal, 2)),
+                    'overviewHref'    => "/student/courses/{$c->id}/overview",
+                    'enrollHref'      => "/student/courses/{$c->id}/enroll",
+                    'checkoutHref'    => "/student/payments/{$c->id}/upload",
+                    'level'           => $c->level ? strtolower(trim((string) $c->level)) : null,
+                ];
+            })->values()->all();
+        });
     }
 
     /**
