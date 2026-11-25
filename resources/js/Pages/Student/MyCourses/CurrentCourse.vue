@@ -137,6 +137,8 @@ onMounted(() => {
     removeInertiaFinish = router.on('finish', () => {
       isSwitchingLesson.value = false
     })
+    router.on('error', () => { isSwitchingLesson.value = false })
+    router.on('cancel', () => { isSwitchingLesson.value = false })
   }
 })
 
@@ -1873,11 +1875,28 @@ onUnmounted(() => {
 
             <div
               v-else
-              class="p-8 text-center text-xs text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900/60 border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xs"
+              class="p-6 sm:p-8 bg-slate-50/80 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 rounded-2xl space-y-4"
             >
-              <span class="text-3xl block mb-2">📝</span>
-              <p class="font-semibold text-slate-800 dark:text-slate-200">No notes for this lesson yet</p>
-              <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">គ្មានកំណត់ត្រា ឬខ្លឹមសារអត្ថបទសម្រាប់មេរៀននេះនៅឡើយទេ។ You can ask questions in the Discussion tab.</p>
+              <div class="flex items-start justify-between gap-3 flex-wrap">
+                <div class="space-y-1">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 text-[11px] font-bold">
+                    📖 Study Guide
+                  </span>
+                  <h4 class="text-base font-bold text-slate-900 dark:text-white leading-[1.6]">
+                    {{ currentLesson.kh_title || currentLesson.title }}
+                  </h4>
+                </div>
+                <button
+                  type="button"
+                  @click="openAiAssistant()"
+                  class="min-h-[44px] px-4 py-2 rounded-xl bg-gradient-to-r from-[#7c3aed] to-[#6366f1] text-white text-xs font-bold shadow-md shadow-purple-600/20 hover:-translate-y-0.5 active:scale-[0.98] transition-all cursor-pointer shrink-0"
+                >
+                  ✨ Ask AI Tutor for Notes
+                </button>
+              </div>
+              <p class="text-[15px] sm:text-base text-slate-700 dark:text-slate-300 leading-[1.75]">
+                {{ currentLesson.summary || course.description || 'សូមពិនិត្យមើលឯកសារជំនួយក្នុងផ្ទាំង Resources ឬប្រើប្រាស់ AI Tutor ដើម្បីទទួលបានការពន្យល់លម្អិតអំពីមេរៀននេះ។' }}
+              </p>
             </div>
           </div>
 
