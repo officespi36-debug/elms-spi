@@ -38,7 +38,7 @@
             }
 
             try {
-                var currentDeployBuild = 'v_20261125_lesson_player_content_polish_v36';
+                var currentDeployBuild = 'v_20261125_current_courses_dashboard_v37';
                 if (localStorage.getItem('spi_app_deploy') !== currentDeployBuild) {
                     localStorage.setItem('spi_app_deploy', currentDeployBuild);
                     if ('caches' in window) {

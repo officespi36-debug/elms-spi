@@ -100,7 +100,7 @@ class ContinueLearningTest extends TestCase
                 ->where('startCourse.id', $this->course->id)
             );
 
-        // State C: in progress -> 302 redirect to first incomplete lesson
+        // State C: in progress -> renders CurrentCourseEmpty dashboard with in_progress stat
         LessonProgress::create([
             'user_id'         => $this->student->id,
             'lesson_id'       => $this->lesson1->id,
@@ -111,8 +111,19 @@ class ContinueLearningTest extends TestCase
         $stateCResponse = $this->actingAs($this->student)
             ->get('/student/my-courses/current');
 
-        $stateCResponse->assertStatus(302);
-        $stateCResponse->assertRedirect("/student/my-courses/{$this->course->id}/lessons/{$this->lesson1->id}");
+        $stateCResponse->assertStatus(200)
+            ->assertInertia(fn ($page) => $page
+                ->component('Student/MyCourses/CurrentCourseEmpty')
+                ->where('state', 'C')
+                ->where('hasEnrollments', true)
+                ->where('stats.in_progress', 1)
+            );
+
+        // Direct jump (?redirect=1) redirects (302) to first incomplete lesson
+        $redirectResponse = $this->actingAs($this->student)
+            ->get('/student/my-courses/current?redirect=1');
+        $redirectResponse->assertStatus(302);
+        $redirectResponse->assertRedirect("/student/my-courses/{$this->course->id}/lessons/{$this->lesson1->id}");
     }
 
     /**

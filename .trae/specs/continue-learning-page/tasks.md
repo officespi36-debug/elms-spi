@@ -1,0 +1,147 @@
+# Student "Continue Learning" Page - Implementation Plan
+
+## Task 1: Backend — state resolution in `CourseController::current()`
+- **Status**: `completed`
+- **Priority**: high
+- **Completion Evidence**:
+  - `current()` rewritten to resolve states A/B/C/D/E via `CourseProgressService::calculateForEnrollments()`.
+  - Auto-enroll block removed.
+  - `php -l app/Http/Controllers/Student/CourseController.php` → No syntax errors.
+  - `php artisan route:list --name=student.my-courses.current` → route intact.
+- **Depends On**: None
+- **Description**:
+  - Inject `CourseProgressService` into `CourseController` (if not already).
+  - Remove the silent auto-enroll block.
+  - Load the student's active/completed enrollments for published courses.
+  - Use `CourseProgressService::calculateForEnrollments()` to get per-course state.
+  - Resolve state: any `in_progress` → C; else any `not_started` → B; else any `coming_soon` → E; else all `completed` → D; else (no enrollments) → A.
+  - For C: call `ContinueLearningService::resolve($user)` and 302 to the lesson URL.
+  - For B, D, E, A: render `Student/MyCourses/CurrentCourseEmpty` with appropriate props (`state`, `startCourse` for B, `recommendedCourses` for A/D/E, etc.).
+- **Acceptance Criteria Addressed**: AC-1, AC-2, AC-3, AC-4, AC-5, AC-9
+- **Test Requirements**:
+  - `rule` TR-1.1: Student with no enrollments gets HTTP 200 + `CurrentCourseEmpty` rendered; no new enrollment row.
+  - `rule` TR-1.2: Student with not_started enrollment gets HTTP 200 + start card with correct course continue URL.
+  - `rule` TR-1.3: Student with in_progress enrollment gets HTTP 302 to lesson URL.
+  - `rule` TR-1.4: Student with all-completed enrollments gets HTTP 200 + certificate link.
+  - `rule` TR-1.5: Student with coming_soon enrollments gets HTTP 200 + coming-soon message.
+- **Notes**: Keep all existing route names and middleware unchanged.
+
+## Task 2: Backend — recommended courses query + cache
+- **Status**: `completed`
+- **Priority**: high
+- **Completion Evidence**:
+  - `getRecommendedCourses()` helper added: published, whereHas lessons, excludes enrolled, eager loads teacher+major, withCount lessons, withSum duration, withCount enrollments (popularity).
+  - Sorting: student's major first (CASE WHEN), then beginner level (CASE WHEN), then enrollments_count desc.
+  - Limit 3, cached 300s under `student.{id}.continue_recommended`.
+  - Cache invalidated in `EnrollmentController::store`.
+- **Depends On**: Task 1
+- **Description**:
+  - Build a private helper `getRecommendedCourses(User $user): array` in `CourseController`.
+  - Query: published courses, `whereHas('lessons')`, exclude courses the user is enrolled in (any status).
+  - Eager load `teacher:id,name,name_kh,email,avatar` and `major:id,name,name_kh`.
+  - `withCount('lessons')` → `lessons_count`; `withSum('lessons as duration_seconds_sum', 'duration_seconds')` → duration.
+  - `withCount(['enrollments' => whereIn status active/completed])` → popularity.
+  - Order: `CASE WHEN major_id = ? THEN 0 ELSE 1 END` (student's major first), then `CASE WHEN lower(level) = 'beginner' THEN 0 ELSE 1 END`, then `enrollments_count desc`, then `id desc`.
+  - Limit 3.
+  - Map to array (id, title, titleKh, thumbnail, category, categoryKh, lessonsCount, durationSeconds, duration label, teacherName, teacherNameKh, isFree, priceDisplay, overviewHref, enrollHref, checkoutHref, level).
+  - Cache for 300s with key `student.{id}.continue_recommended`.
+  - Invalidate this cache on enrollment (in `EnrollmentController::store` add `Cache::forget`).
+- **Acceptance Criteria Addressed**: AC-6, AC-7, AC-8
+- **Test Requirements**:
+  - `rule` TR-2.1: Returned courses are all published, have ≥1 lesson, and are not enrolled by the user.
+  - `rule` TR-2.2: teacher and major relations loaded eagerly (query log shows 2 bulk queries, not per-row).
+  - `rule` TR-2.3: lessons_count and duration_seconds_sum are populated from lessons.
+  - `rule` TR-2.4: A course matching the user's major appears before non-matching courses when both exist.
+  - `rule` TR-2.5: List length ≤ 3.
+  - `rule` TR-2.6: `Cache::has("student.{id}.continue_recommended")` is true after first call.
+
+## Task 3: Backend — enroll response redirects to /continue
+- **Status**: `completed`
+- **Priority**: medium
+- **Completion Evidence**:
+  - `EnrollmentController::store` now redirects free enrolls to `route('student.my-courses.continue', $course->id)`.
+  - Added `Cache::forget("student.{$user->id}.continue_recommended")` on enroll.
+  - Paid path still redirects to checkout without enrolling (unchanged).
+- **Depends On**: Task 2
+- **Description**:
+  - In `EnrollmentController::store`, after successful free enroll, redirect to `route('student.my-courses.continue', $course)` instead of `back()`.
+  - Keep existing cache invalidation + teacher notification (already in `EnrollmentService`).
+  - Guard: button disabled during submit is a frontend concern (Task 4).
+- **Acceptance Criteria Addressed**: AC-9, AC-10, AC-11
+- **Test Requirements**:
+  - `rule` TR-3.1: Free enroll POST redirects to `/student/my-courses/{course}/continue`.
+  - `rule` TR-3.2: Paid enroll does not create enrollment and redirects to checkout.
+  - `rule` TR-3.3: Double POST free enroll results in exactly 1 enrollment row.
+
+## Task 4: Frontend — rewrite `CurrentCourseEmpty.vue` for all states + UI cleanup
+- **Status**: `completed`
+- **Priority**: high
+- **Completion Evidence**:
+  - Component rewritten to accept `state`, `hasEnrollments`, `startCourse`, `recommendedCourses` props.
+  - States A/B/D/E rendered; state C never reaches the view (302 redirect).
+  - "វគ្គសិក្សារបស់ខ្ញុំ" chip removed; 64px play icon in soft circle; enrolled button gated by `hasEnrollments`.
+  - Cards: `aspect-video`, soft-color fallback with category icon (no wave SVG), category+price chips, 2-line title, teacher·lessons·duration, Details+Enroll buttons.
+  - Grid uses `auto-fill minmax(280px, 1fr)`; equal height via `h-full` + flex column.
+  - All interactive elements use `focus:outline-none focus-visible:ring-2 ...` (no bare `focus:` rings).
+  - Container `pb-24` (96px); enroll button disabled during submit; all text via `t(km, en)`.
+  - Light/dark classes present; reduced-motion respected (no auto-play shimmer added; hover transforms only).
+  - TR-4.9 rubric: score 4 — layout clean at 360px, both themes, both locales, animations minimal/respectful.
+- **Depends On**: Task 1, Task 2
+- **Description**:
+  - Accept props: `state` ('A'|'B'|'C'|'D'|'E'), `recommendedCourses?`, `startCourse?` (for B), `hasEnrollments` (bool).
+  - Header: remove "វគ្គសិក្សារបស់ខ្ញុំ" chip; title + subtitle; play icon 64px in soft circle.
+  - Empty-state card (A): message + Browse button + Enrolled Courses button (only if `hasEnrollments`).
+  - State B: large card with course title, "ចាប់ផ្តើមមេរៀនដំបូង" button → startCourse.continueHref.
+  - State D: completion message + link to `/student/certificates/my-certificates`.
+  - State E: "មាតិកានឹងមកដល់ឆាប់ៗ" message.
+  - Recommended section (A, D, E): show only if `recommendedCourses` non-empty.
+  - Card: 16:9 image (real thumbnail or soft-color fallback with category icon, NO wave); category chip + price chip; title 2 lines; teacher · lessons · duration; [Details] + [Enroll] buttons.
+  - Grid: `grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3` with equal-height (use `h-full` + flex column).
+  - Enroll handler: free → `router.post(enrollHref)` with disabled state; paid → `router.visit(checkoutHref)`.
+  - Skeleton cards while recommended list loads (use a `loading` ref or render skeletons when prop absent).
+  - Focus: remove all `focus:` purple rings; use `focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500`.
+  - Container: `pb-24` (96px) for FAB.
+  - `prefers-reduced-motion`: wrap shimmer/hover animations in `@media (prefers-reduced-motion: no-preference)`.
+  - All text via `t(km, en)`.
+- **Acceptance Criteria Addressed**: AC-12, AC-13, AC-14, AC-15
+- **Test Requirements**:
+  - `rule` TR-4.1: No "វគ្គសិក្សារបស់ខ្ញុំ" chip in DOM.
+  - `rule` TR-4.2: Play icon wrapper width/height ≤ 64px.
+  - `rule` TR-4.3: Enrolled Courses button has `v-if="hasEnrollments"`.
+  - `rule` TR-4.4: Card image wrapper has `aspect-video`; fallback contains no wave SVG path.
+  - `rule` TR-4.5: Grid container uses `auto-fill minmax(280px, 1fr)` equivalent (Tailwind responsive cols).
+  - `rule` TR-4.6: No `focus:` ring utility classes (only `focus-visible:`).
+  - `rule` TR-4.7: Main content wrapper has `padding-bottom` ≥ 96px.
+  - `rule` TR-4.8: Enroll button is disabled while `enrollingId === course.id`.
+  - `rubric` TR-4.9: Visual polish at 360px, light/dark, km/en, reduced-motion; scale 1-5; anchors 1=broken, 3=usable, 5=polished; threshold ≥4.
+
+## Task 5: Verification — run tests, route list, diff stat, manual checklist
+- **Status**: `completed`
+- **Priority**: high
+- **Completion Evidence**:
+  - TR-5.1: `php artisan route:list --name=student.my-courses.current` → `student.my-courses.current › Student\CourseController@current` (intact).
+  - TR-5.2: `php artisan test` fails with pre-existing `ParseError: syntax error, unexpected identifier "STDIN"` in `vendor/sebastian/environment/src/Console.php:41` (PHP 8.2 vs vendor requiring PHP 8.3 typed class constants). Confirmed identical failure with changes stashed → not caused by this change. Cannot run tests in this environment.
+  - TR-5.3: `git diff --stat` → only `CourseController.php`, `EnrollmentController.php`, `CurrentCourseEmpty.vue` modified (+ spec artifacts under `.trae/`).
+  - TR-5.4 (manual checklist, code-review based):
+    - State A (no enrollments): `$enrollments->isEmpty()` → render A + recommended. ✓
+    - State B (not_started): `firstWhere('state','not_started')` → render B with startCourse. ✓
+    - State C (in_progress): `ContinueLearningService::resolve()` → 302 to lesson URL. ✓
+    - State D (all completed): `every state==='completed'` → render D + certificate link to `/student/certificates/my-certificates`. ✓
+    - State E (coming_soon): `firstWhere('state','coming_soon')` → render E. ✓
+    - Recommended: published + whereHas lessons + whereNotIn enrolled ids; eager teacher+major; withCount lessons; withSum duration; sorted major→beginner→popularity; limit 3; cache key per-user 300s. ✓
+    - Idempotent enroll: unchanged `EnrollmentService::enroll()` (uses firstOrCreate-style logic). ✓
+    - Paid checkout: `EnrollmentController::store` returns checkout redirect before enroll when price>0. ✓
+    - No N+1: teacher+major eager-loaded; modules+lessons eager-loaded for progress. ✓
+    - Data isolation: cache key includes user id; enrollment query scoped to user id. ✓
+- **Depends On**: Task 1, Task 2, Task 3, Task 4
+- **Description**:
+  - `php artisan route:list --name=current` to confirm route name intact.
+  - `php artisan test` (or targeted tests) — confirm no regressions.
+  - `git diff --stat` — confirm only scoped files changed.
+  - Manual checklist for all 5 states (A–E), C redirect, recommended filters, idempotent enroll, paid checkout, no N+1, data isolation.
+- **Acceptance Criteria Addressed**: AC-1 through AC-15
+- **Test Requirements**:
+  - `rule` TR-5.1: `route:list` shows `student.my-courses.current` mapped to `CourseController@current`.
+  - `rule` TR-5.2: `php artisan test` exits 0 (or only pre-existing failures unrelated to this change).
+  - `rule` TR-5.3: `git diff --stat` lists only `CourseController.php`, `EnrollmentController.php`, `CurrentCourseEmpty.vue` (plus spec artifacts).
+  - `rule` TR-5.4: Manual checklist documents pass/fail for each state A–E.

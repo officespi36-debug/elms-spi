@@ -384,6 +384,17 @@ class CourseController extends Controller
     ) {
         $user = $request->user();
 
+        // Optional direct jump if requested explicitly via query param (e.g. ?redirect=1 or ?jump=1)
+        if ($request->boolean('redirect') || $request->boolean('jump')) {
+            $resolved = $continueService->resolve($user);
+            if ($resolved && !empty($resolved['course']) && !empty($resolved['lesson'])) {
+                return redirect()->to("/student/my-courses/{$resolved['course']->id}/lessons/{$resolved['lesson']->id}");
+            }
+            if ($resolved && !empty($resolved['course'])) {
+                return redirect()->to("/student/my-courses/{$resolved['course']->id}/continue");
+            }
+        }
+
         // Load the student's active/completed enrollments for published courses (no N+1).
         $enrollments = Enrollment::where('student_id', $user->id)
             ->whereIn('status', ['active', 'completed'])
@@ -392,52 +403,163 @@ class CourseController extends Controller
                 'course.teacher:id,name,name_kh,email,avatar,role',
                 'course.major:id,name,name_kh',
                 'course.modules:id,course_id,title,kh_title,order',
+                'course.modules.chapters:id,module_id,chapter_number,title,kh_title,order',
                 'course.modules.lessons:id,module_id,chapter_id,course_id,title,kh_title,order,duration_seconds',
                 'course.lessons:id,module_id,chapter_id,course_id,title,kh_title,order,duration_seconds',
             ])
             ->latest('updated_at')
             ->get();
 
+        // Recommended courses (cached 5 min)
+        $recommended = $this->getRecommendedCourses($user, $progressService);
+
         // State A: no published-course enrollments.
         if ($enrollments->isEmpty()) {
-            return $this->renderContinuePage($user, 'A', null, $progressService);
+            return Inertia::render('Student/MyCourses/CurrentCourseEmpty', [
+                'courses'            => [],
+                'stats'              => [
+                    'total_courses' => 0,
+                    'in_progress'   => 0,
+                    'completed'     => 0,
+                    'not_started'   => 0,
+                ],
+                'majors'             => [],
+                'recommendedCourses' => $recommended,
+                'state'              => 'A',
+                'hasEnrollments'     => false,
+                'startCourse'        => null,
+            ]);
         }
 
-        // Compute per-course progress states in a single pass.
+        // Compute per-course progress states in a single batch pass.
         $computed = $progressService->calculateForEnrollments($user, $enrollments);
 
-        $inProgress = $computed->firstWhere('state', 'in_progress');
-        $notStarted = $computed->firstWhere('state', 'not_started');
-        $comingSoon = $computed->firstWhere('state', 'coming_soon');
-        $allCompleted = $computed->isNotEmpty() && $computed->every(fn ($p) => $p['state'] === 'completed');
+        // Map into full, reactive course dashboard items
+        $courses = $computed->map(function ($item) use ($progressService) {
+            /** @var Course $c */
+            $c = $item['course'];
+            /** @var Enrollment $enr */
+            $enr = $item['enrollment'];
 
-        // State C: at least one course in progress -> 302 to the active lesson.
-        if ($inProgress) {
-            $resolved = $continueService->resolve($user);
-            if ($resolved && !empty($resolved['course']) && !empty($resolved['lesson'])) {
-                return redirect()->to("/student/my-courses/{$resolved['course']->id}/lessons/{$resolved['lesson']->id}");
+            $thumb = $c->thumbnail ? trim((string) $c->thumbnail) : null;
+            if ($thumb && !str_starts_with($thumb, 'http://') && !str_starts_with($thumb, 'https://') && !str_starts_with($thumb, '/')) {
+                $thumb = asset('storage/' . ltrim($thumb, '/'));
             }
-            $courseId = $inProgress['course']->id ?? $inProgress['enrollment']->course_id;
-            return redirect()->to("/student/my-courses/{$courseId}/continue");
+
+            $currentLesson = $item['current_lesson'] ?? null;
+            $continueUrl = !empty($currentLesson?->id)
+                ? "/student/my-courses/{$c->id}/lessons/{$currentLesson->id}"
+                : "/student/my-courses/{$c->id}/continue";
+
+            $lastAccessedHuman = $item['last_activity_at'] ?: null;
+
+            return [
+                'id'                 => (int) $c->id,
+                'enrollment_id'      => (int) $enr->id,
+                'title'              => $c->title,
+                'title_kh'           => $c->title_kh ?: $c->title,
+                'description'        => $c->description ?: 'Explore lessons, practical drills, and materials curated for your academic advancement.',
+                'thumbnail'          => $thumb ?: null,
+                'major_id'           => $c->major_id ? (int) $c->major_id : null,
+                'major'              => $c->major?->name ?: 'Academic Studies',
+                'major_kh'           => $c->major?->name_kh ?: ($c->major?->name ?: 'ការសិក្សាទូទៅ'),
+                'teacher'            => [
+                    'name'    => $progressService->cleanTeacherName($c->teacher, $c),
+                    'name_kh' => $progressService->cleanTeacherNameKh($c->teacher, $c),
+                    'avatar'  => $c->teacher?->avatar_url ?: null,
+                ],
+                'lessons_total'      => (int) $item['lessons_total'],
+                'lessons_completed'  => (int) $item['lessons_done'],
+                'progress_percent'   => (int) $item['percent'],
+                'status'             => $item['state'], // 'in_progress', 'completed', 'not_started', 'coming_soon'
+                'status_label'       => $item['state_label'],
+                'last_accessed'      => $lastAccessedHuman,
+                'last_accessed_ms'   => (int) ($item['last_activity_ms'] ?? 0),
+                'continue_url'       => $continueUrl,
+                'overview_url'       => "/student/courses/{$c->id}/overview",
+                'current_lesson'     => $currentLesson ? [
+                    'id'       => $currentLesson->id,
+                    'title'    => $currentLesson->title,
+                    'title_kh' => $currentLesson->kh_title ?: $currentLesson->title,
+                ] : null,
+            ];
+        })->values();
+
+        // Accurate summary stats directly from database records
+        $inProgressCount = $courses->where('status', 'in_progress')->count();
+        $completedCount  = $courses->where('status', 'completed')->count();
+        $notStartedCount = $courses->where('status', 'not_started')->count();
+        $totalCourses    = $courses->count();
+
+        $stats = [
+            'total_courses' => $totalCourses,
+            'in_progress'   => $inProgressCount,
+            'completed'     => $completedCount,
+            'not_started'   => $notStartedCount,
+        ];
+
+        // Majors list for filter
+        $majorsMap = [];
+        try {
+            $majorsList = Major::query()->select(['id', 'name', 'name_kh'])->orderBy('name')->get();
+            foreach ($majorsList as $m) {
+                $majorsMap[$m->id] = [
+                    'id'      => (int) $m->id,
+                    'name'    => $m->name,
+                    'name_kh' => $m->name_kh ?: $m->name,
+                ];
+            }
+        } catch (\Throwable $e) {}
+
+        // Also add any major present on enrolled courses
+        foreach ($courses as $cItem) {
+            $mId = $cItem['major_id'] ?? null;
+            if ($mId && !isset($majorsMap[$mId])) {
+                $majorsMap[$mId] = [
+                    'id'      => (int) $mId,
+                    'name'    => $cItem['major'],
+                    'name_kh' => $cItem['major_kh'] ?: $cItem['major'],
+                ];
+            }
+        }
+        $majors = array_values($majorsMap);
+
+        // Compute state for backwards compatibility
+        $allCompleted = $totalCourses > 0 && $completedCount === $totalCourses;
+        $inProgress = $courses->firstWhere('status', 'in_progress');
+        $notStarted = $courses->firstWhere('status', 'not_started');
+        $comingSoon = $courses->firstWhere('status', 'coming_soon');
+
+        $state = 'B';
+        if ($inProgress) {
+            $state = 'C';
+        } elseif ($allCompleted) {
+            $state = 'D';
+        } elseif ($comingSoon && $notStartedCount === 0) {
+            $state = 'E';
         }
 
-        // State B: enrolled but not started -> render "start first lesson" card.
+        $startCourse = null;
         if ($notStarted) {
-            return $this->renderContinuePage($user, 'B', $notStarted, $progressService);
+            $startCourse = [
+                'id'           => $notStarted['id'],
+                'title'        => $notStarted['title'],
+                'titleKh'      => $notStarted['title_kh'],
+                'thumbnail'    => $notStarted['thumbnail'],
+                'continueHref' => $notStarted['continue_url'],
+                'lessonsCount' => $notStarted['lessons_total'],
+            ];
         }
 
-        // State E: enrolled but every course has no lessons yet.
-        if ($comingSoon) {
-            return $this->renderContinuePage($user, 'E', null, $progressService);
-        }
-
-        // State D: all enrollments are completed.
-        if ($allCompleted) {
-            return $this->renderContinuePage($user, 'D', null, $progressService);
-        }
-
-        // Fallback: treat as state A.
-        return $this->renderContinuePage($user, 'A', null, $progressService);
+        return Inertia::render('Student/MyCourses/CurrentCourseEmpty', [
+            'courses'            => $courses->all(),
+            'stats'              => $stats,
+            'majors'             => $majors,
+            'recommendedCourses' => $recommended,
+            'state'              => $state,
+            'hasEnrollments'     => true,
+            'startCourse'        => $startCourse,
+        ]);
     }
 
     /**

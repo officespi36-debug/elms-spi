@@ -1,0 +1,171 @@
+<style>
+  :root {
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --text-caption: 12px;
+    --text-body: 14px;
+    --text-title: 16px;
+    --weight-medium: 500;
+    --weight-strong: 700;
+    --surface: #ffffff;
+    --surface-muted: #f4f5f7;
+    --border: #e3e5e8;
+    --text: #1f2328;
+    --text-muted: #6b7280;
+    --brand: #7c3aed;
+    --chart-series-1: #7c3aed;
+    --chart-series-2: #a78bfa;
+    --chart-series-3: #c4b5fd;
+    --chart-series-4: #ddd6fe;
+    --radius: 8px;
+    --radius-card: 12px;
+    --radius-full: 999px;
+    --spacer-4: 4px;
+    --spacer-8: 8px;
+    --spacer-12: 12px;
+    --spacer-16: 16px;
+    --spacer-20: 20px;
+    --spacer-24: 24px;
+  }
+  :root[data-widget-theme="dark"] {
+    --surface: #1e1f20;
+    --surface-muted: #282a2c;
+    --border: #3c4043;
+    --text: #f1f3f4;
+    --text-muted: #9aa0a6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-widget-theme="light"]) {
+      --surface: #1e1f20;
+      --surface-muted: #282a2c;
+      --border: #3c4043;
+      --text: #f1f3f4;
+      --text-muted: #9aa0a6;
+    }
+  }
+  .lms-insight {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    font-family: var(--font-sans);
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    padding: var(--spacer-20);
+  }
+  .lms-insight * {
+    box-sizing: border-box;
+  }
+  .lms-insight__title {
+    font-size: var(--text-title);
+    line-height: 24px;
+    font-weight: var(--weight-medium);
+    margin: 0 0 var(--spacer-4);
+  }
+  .lms-insight__subtitle {
+    font-size: var(--text-caption);
+    line-height: 18px;
+    color: var(--text-muted);
+    margin: 0 0 var(--spacer-16);
+  }
+  .lms-insight__rows {
+    display: grid;
+    gap: var(--spacer-12);
+  }
+  .lms-insight__row {
+    display: grid;
+    grid-template-columns: 132px 1fr 48px;
+    align-items: center;
+    gap: var(--spacer-12);
+  }
+  .lms-insight__label {
+    font-size: var(--text-caption);
+    line-height: 18px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .lms-insight__track {
+    position: relative;
+    height: 12px;
+    background: var(--surface-muted);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+  }
+  .lms-insight__fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    height: 100%;
+    border-radius: var(--radius-full);
+    background: var(--chart-series-3);
+    transition: width 160ms ease-out;
+  }
+  .lms-insight__row--focal .lms-insight__fill {
+    background: var(--brand);
+  }
+  .lms-insight__row--focal .lms-insight__label,
+  .lms-insight__row--focal .lms-insight__value {
+    color: var(--text);
+    font-weight: var(--weight-strong);
+  }
+  .lms-insight__value {
+    font-size: var(--text-body);
+    line-height: 20px;
+    color: var(--text-muted);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .lms-insight__legend {
+    display: flex;
+    align-items: center;
+    gap: var(--spacer-8);
+    margin-top: var(--spacer-16);
+    font-size: var(--text-caption);
+    line-height: 18px;
+    color: var(--text-muted);
+  }
+  .lms-insight__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    background: var(--brand);
+    flex: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .lms-insight__fill { transition: none; }
+  }
+</style>
+
+<div class="lms-insight" data-dynamic-ui-widget data-template="bar-chart-multiple" role="img" aria-label="Enrollments by major this term">
+  <p class="lms-insight__title">Enrollments by major</p>
+  <p class="lms-insight__subtitle">Current term &middot; total active enrollments</p>
+
+  <div class="lms-insight__rows">
+    <div class="lms-insight__row lms-insight__row--focal">
+      <span class="lms-insight__label">Information Technology</span>
+      <span class="lms-insight__track"><span class="lms-insight__fill" style="width: 100%"></span></span>
+      <span class="lms-insight__value">412</span>
+    </div>
+    <div class="lms-insight__row">
+      <span class="lms-insight__label">Business Administration</span>
+      <span class="lms-insight__track"><span class="lms-insight__fill" style="width: 77%"></span></span>
+      <span class="lms-insight__value">318</span>
+    </div>
+    <div class="lms-insight__row">
+      <span class="lms-insight__label">Tourism &amp; Hospitality</span>
+      <span class="lms-insight__track"><span class="lms-insight__fill" style="width: 59%"></span></span>
+      <span class="lms-insight__value">245</span>
+    </div>
+    <div class="lms-insight__row">
+      <span class="lms-insight__label">Design</span>
+      <span class="lms-insight__track"><span class="lms-insight__fill" style="width: 43%"></span></span>
+      <span class="lms-insight__value">176</span>
+    </div>
+  </div>
+
+  <div class="lms-insight__legend">
+    <span class="lms-insight__dot" aria-hidden="true"></span>
+    <span>Top major highlighted &middot; illustrative sample data</span>
+  </div>
+</div>

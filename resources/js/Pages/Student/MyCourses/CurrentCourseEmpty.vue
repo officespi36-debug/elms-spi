@@ -1,8 +1,27 @@
 <script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import StudentLayout from '@/Layouts/StudentLayout.vue'
+import CourseCard, { type EnrolledCourseDashboardItem } from '@/Components/Student/CourseCard.vue'
+import CourseSkeletonCard from '@/Components/Student/CourseSkeletonCard.vue'
 import { useLanguage } from '@/Services/i18n'
-import { ref } from 'vue'
+import {
+  BookOpen,
+  PlayCircle,
+  CheckCircle2,
+  Search,
+  X,
+  Filter,
+  ArrowUpDown,
+  GraduationCap,
+  Sparkles,
+  RefreshCw,
+  FolderOpen,
+  ArrowRight,
+  Clock,
+  Layers,
+  AlertCircle
+} from 'lucide-vue-next'
 
 type ContinueState = 'A' | 'B' | 'C' | 'D' | 'E'
 
@@ -27,31 +46,56 @@ interface RecommendedCourse {
   level?: string | null
 }
 
-interface StartCourse {
+interface MajorOption {
   id: number
-  title: string
-  titleKh?: string
-  thumbnail?: string | null
-  continueHref: string
-  lessonsCount: number
+  name: string
+  name_kh?: string
 }
 
 const props = withDefaults(defineProps<{
-  state: ContinueState
+  state?: ContinueState
   hasEnrollments?: boolean
-  startCourse?: StartCourse | null
+  startCourse?: any | null
   recommendedCourses?: RecommendedCourse[]
+  courses?: EnrolledCourseDashboardItem[]
+  stats?: {
+    total_courses: number
+    in_progress: number
+    completed: number
+    not_started?: number
+  }
+  majors?: MajorOption[]
 }>(), {
+  state: 'B',
   hasEnrollments: false,
   startCourse: null,
   recommendedCourses: () => [],
+  courses: () => [],
+  stats: () => ({
+    total_courses: 0,
+    in_progress: 0,
+    completed: 0,
+    not_started: 0,
+  }),
+  majors: () => [],
 })
 
 const { t, currentLang } = useLanguage()
-const enrollingId = ref<number | null>(null)
-const isNavigating = ref(false)
-const thumbErrors = ref<Record<number, boolean>>({})
+const isKm = computed(() => currentLang.value === 'km')
 
+// Filter and search state
+const searchQuery = ref('')
+const selectedMajor = ref<'all' | number>('all')
+const selectedStatus = ref<'all' | 'in_progress' | 'completed'>('all')
+const sortBy = ref<'recent' | 'title' | 'progress'>('recent')
+
+// UI interaction states
+const isLoading = ref(false)
+const hasError = ref(false)
+const errorMessage = ref('')
+const enrollingId = ref<number | null>(null)
+
+// Format duration helper for recommendations
 const formatDuration = (seconds?: number, fallbackLabel?: string | null) => {
   const sec = Number(seconds || 0)
   if (!sec || sec <= 0) return fallbackLabel || ''
@@ -59,36 +103,98 @@ const formatDuration = (seconds?: number, fallbackLabel?: string | null) => {
   if (totalMinutes <= 0) return ''
   const hours = Math.floor(totalMinutes / 60)
   const mins = totalMinutes % 60
-  if (currentLang.value === 'km') {
+  if (isKm.value) {
     return hours > 0 ? `${hours} ម៉ោង ${String(mins).padStart(2, '0')} នាទី` : `${mins} នាទី`
   }
   return hours > 0 ? `${hours}h ${String(mins).padStart(2, '0')}m` : `${mins}m`
 }
 
-const categoryIconType = (category?: string | null) => {
-  const cat = (category || '').toLowerCase()
-  if (cat.includes('it') || cat.includes('program') || cat.includes('web') || cat.includes('បច្ចេកវិទ្យា')) return 'code'
-  if (cat.includes('tour') || cat.includes('hosp') || cat.includes('ទេសចរណ៍')) return 'compass'
-  if (cat.includes('agr') || cat.includes('plant') || cat.includes('កសិកម្ម')) return 'leaf'
-  if (cat.includes('social') || cat.includes('សង្គម')) return 'users'
-  return 'book'
+// Summary Statistics directly from database
+const totalCoursesCount = computed(() => props.stats?.total_courses ?? props.courses.length)
+const inProgressCount = computed(() => props.stats?.in_progress ?? props.courses.filter(c => c.status === 'in_progress').length)
+const completedCount = computed(() => props.stats?.completed ?? props.courses.filter(c => c.status === 'completed' || c.progress_percent >= 100).length)
+
+// Reactive search & filter pipeline
+const filteredCourses = computed(() => {
+  let list = [...(props.courses || [])]
+
+  // 1. Status Filter
+  if (selectedStatus.value === 'in_progress') {
+    list = list.filter(c => c.status === 'in_progress' || (c.progress_percent > 0 && c.progress_percent < 100))
+  } else if (selectedStatus.value === 'completed') {
+    list = list.filter(c => c.status === 'completed' || c.progress_percent >= 100)
+  }
+
+  // 2. Major Filter
+  if (selectedMajor.value !== 'all') {
+    const targetId = Number(selectedMajor.value)
+    list = list.filter(c => c.major_id === targetId)
+  }
+
+  // 3. Search Query Filter
+  const q = searchQuery.value.trim().toLowerCase()
+  if (q !== '') {
+    list = list.filter(c => {
+      const title = (c.title || '').toLowerCase()
+      const titleKh = (c.title_kh || '').toLowerCase()
+      const desc = (c.description || '').toLowerCase()
+      const teacher = (c.teacher?.name || '').toLowerCase()
+      const teacherKh = (c.teacher?.name_kh || '').toLowerCase()
+      const major = (c.major || '').toLowerCase()
+      const majorKh = (c.major_kh || '').toLowerCase()
+
+      return (
+        title.includes(q) ||
+        titleKh.includes(q) ||
+        desc.includes(q) ||
+        teacher.includes(q) ||
+        teacherKh.includes(q) ||
+        major.includes(q) ||
+        majorKh.includes(q)
+      )
+    })
+  }
+
+  // 4. Sorting
+  if (sortBy.value === 'title') {
+    list.sort((a, b) => {
+      const nameA = isKm.value && a.title_kh ? a.title_kh : a.title
+      const nameB = isKm.value && b.title_kh ? b.title_kh : b.title
+      return nameA.localeCompare(nameB, isKm.value ? 'km' : 'en')
+    })
+  } else if (sortBy.value === 'progress') {
+    list.sort((a, b) => b.progress_percent - a.progress_percent)
+  } else {
+    // 'recent' accessed first
+    list.sort((a, b) => (b.last_accessed_ms || 0) - (a.last_accessed_ms || 0))
+  }
+
+  return list
+})
+
+const resetFilters = () => {
+  searchQuery.value = ''
+  selectedMajor.value = 'all'
+  selectedStatus.value = 'all'
+  sortBy.value = 'recent'
 }
 
-// Soft palette for the category fallback thumbnail (no waves).
-const FALLBACK_PALETTE = [
-  { bg: 'bg-blue-50 dark:bg-blue-900/20', ring: 'text-blue-600 dark:text-blue-300', soft: 'bg-blue-100/70 dark:bg-blue-800/40' },
-  { bg: 'bg-purple-50 dark:bg-purple-900/20', ring: 'text-purple-600 dark:text-purple-300', soft: 'bg-purple-100/70 dark:bg-purple-800/40' },
-  { bg: 'bg-emerald-50 dark:bg-emerald-900/20', ring: 'text-emerald-600 dark:text-emerald-300', soft: 'bg-emerald-100/70 dark:bg-emerald-800/40' },
-  { bg: 'bg-amber-50 dark:bg-amber-900/20', ring: 'text-amber-600 dark:text-amber-300', soft: 'bg-amber-100/70 dark:bg-amber-800/40' },
-  { bg: 'bg-rose-50 dark:bg-rose-900/20', ring: 'text-rose-600 dark:text-rose-300', soft: 'bg-rose-100/70 dark:bg-rose-800/40' },
-]
+const retryLoading = () => {
+  hasError.value = false
+  isLoading.value = true
+  router.reload({
+    onFinish: () => {
+      isLoading.value = false
+    },
+    onError: () => {
+      isLoading.value = false
+      hasError.value = true
+      errorMessage.value = isKm.value ? 'មិនអាចទាញយកទិន្នន័យបានទេ។ សូមព្យាយាមម្តងទៀត។' : 'Failed to fetch course data. Please try again.'
+    }
+  })
+}
 
-const paletteFor = (id: number) => FALLBACK_PALETTE[Math.abs(Number(id) || 0) % FALLBACK_PALETTE.length]
-
-const localizedTitle = (c: { title: string; titleKh?: string }) =>
-  currentLang.value === 'km' ? (c.titleKh || c.title) : c.title
-
-const handleEnroll = (course: RecommendedCourse) => {
+const handleEnrollRecommended = (course: RecommendedCourse) => {
   if (enrollingId.value === course.id) return
   if (!course.isFree) {
     router.visit(course.checkoutHref)
@@ -104,278 +210,448 @@ const handleEnroll = (course: RecommendedCourse) => {
 </script>
 
 <template>
-  <Head :title="t('រៀនបន្ត', 'Continue Learning')" />
+  <Head :title="isKm ? 'វគ្គសិក្សារបស់ខ្ញុំ - SPI LMS' : 'My Courses - SPI LMS'" />
 
   <StudentLayout>
-    <div class="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 space-y-8">
-      <!-- Page Header -->
-      <div class="flex flex-col gap-3 border-b border-slate-200 dark:border-slate-800/80 pb-5">
-        <div class="flex items-center gap-3">
-          <!-- 64px play icon inside a soft circle -->
-          <div class="relative shrink-0 w-16 h-16 rounded-full bg-purple-50 dark:bg-purple-900/25 border border-purple-100 dark:border-purple-700/40 flex items-center justify-center">
-            <svg class="w-8 h-8 text-purple-600 dark:text-purple-300 translate-x-0.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M8 5.14v14l11-7-11-7z" />
-            </svg>
-          </div>
-          <div class="space-y-0.5 min-w-0">
-            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight truncate">
-              {{ t('រៀនបន្ត', 'Continue Learning') }}
-            </h1>
-            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 truncate">
-              {{ t('បន្តមេរៀនចុងក្រោយរបស់អ្នកយ៉ាងឆាប់រហ័សពីកន្លែងដែលអ្នកបានផ្អាក។', 'Pick up right where you left off in your active courses.') }}
-            </p>
-          </div>
-        </div>
-      </div>
+    <div class="w-full min-h-screen bg-[#F7F8FC] dark:bg-[#121316] py-6 sm:py-8 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-[1440px] mx-auto space-y-6 sm:space-y-8">
 
-      <!-- State B: Start first lesson -->
-      <section v-if="state === 'B' && startCourse" class="space-y-4">
-        <div class="bg-white dark:bg-[#1e1f20] border border-slate-200 dark:border-[#2d2f31] rounded-3xl p-6 sm:p-10 shadow-sm relative overflow-hidden">
-          <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(124,58,237,0.06),transparent_65%)] dark:bg-[radial-gradient(circle_at_top,rgba(139,92,246,0.12),transparent_65%)] pointer-events-none"></div>
-          <div class="relative z-10 max-w-2xl space-y-5">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200/70 dark:border-emerald-700/40 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-              {{ t('រួចរាល់ក្នុងការចាប់ផ្តើម', 'Ready to start') }}
+        <!-- 1. Page Header -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/80 dark:border-slate-800/80 pb-5">
+          <div class="flex items-center gap-3.5">
+            <!-- Professional Purple Accent Icon Badge -->
+            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-[#7045F5] to-[#916eff] flex items-center justify-center text-white shadow-lg shadow-[#7045F5]/25 shrink-0">
+              <BookOpen class="w-6 h-6 sm:w-7 sm:h-7" />
             </div>
-            <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
-              {{ t('ចាប់ផ្តើមមេរៀនដំបូងរបស់អ្នក', 'Start your first lesson') }}
-            </h2>
-            <p class="text-sm text-slate-600 dark:text-slate-400">
-              {{ t('អ្នកបានចុះឈ្មោះចូលរៀនវគ្គសិក្សានេះរួចហើយ។ ចុចប៊ូតុងខាងក្រោមដើម្បីចាប់ផ្តើមមេរៀនដំបូង។', 'You have enrolled in this course. Click below to begin your first lesson.') }}
-            </p>
 
-            <div class="flex flex-col sm:flex-row sm:items-center gap-4 bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700/50 rounded-2xl p-4">
-              <div class="w-24 h-16 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 shrink-0">
-                <img v-if="startCourse.thumbnail" :src="startCourse.thumbnail" :alt="localizedTitle(startCourse)" class="w-full h-full object-cover" />
-                <div v-else class="w-full h-full flex items-center justify-center text-slate-400">
-                  <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                </div>
+            <div class="space-y-0.5 min-w-0">
+              <div class="flex items-center gap-2">
+                <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                  {{ isKm ? 'វគ្គសិក្សារបស់ខ្ញុំ' : 'My Courses' }}
+                </h1>
+                <span class="hidden sm:inline-flex px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#7045F5]/10 text-[#7045F5] dark:text-[#a78bfa] border border-[#7045F5]/20">
+                  {{ isKm ? 'ផ្ទាំងសិក្សាផ្ទាល់ខ្លួន' : 'Learning Dashboard' }}
+                </span>
               </div>
-              <div class="flex-1 min-w-0">
-                <h3 class="font-bold text-slate-900 dark:text-white truncate">{{ localizedTitle(startCourse) }}</h3>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ startCourse.lessonsCount }} {{ t('មេរៀន', 'lessons') }}</p>
-              </div>
-              <Link
-                :href="startCourse.continueHref"
-                class="inline-flex items-center justify-center gap-2 px-5 py-3 min-h-[48px] rounded-xl bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:opacity-95 text-white font-bold text-sm shadow-md shadow-purple-600/25 transition-opacity active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#1e1f20]"
-              >
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.14v14l11-7-11-7z" /></svg>
-                {{ t('ចាប់ផ្តើម', 'Start') }}
-              </Link>
+              <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-[1.7] line-clamp-1">
+                {{ isKm ? 'តាមដាន និងបន្តការសិក្សារបស់អ្នកយ៉ាងរលូនពីកន្លែងដែលអ្នកបានផ្អាក។' : 'Track and resume your learning seamlessly right where you left off.' }}
+              </p>
             </div>
           </div>
-        </div>
-      </section>
 
-      <!-- State A: Empty state -->
-      <section v-else-if="state === 'A'" class="space-y-4">
-        <div class="bg-white dark:bg-[#1e1f20] border border-dashed border-slate-200 dark:border-[#2d2f31] rounded-3xl p-8 sm:p-12 text-center shadow-sm relative overflow-hidden">
-          <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(124,58,237,0.06),transparent_65%)] dark:bg-[radial-gradient(circle_at_top,rgba(139,92,246,0.12),transparent_65%)] pointer-events-none"></div>
-          <div class="relative z-10 max-w-lg mx-auto space-y-5">
-            <h2 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">
-              {{ t('មិនទាន់មានវគ្គសិក្សាដែលកំពុងរៀននៅឡើយទេ', 'No active course to continue yet') }}
-            </h2>
-            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-              {{ t('នៅពេលអ្នកចុះឈ្មោះចូលរៀនវគ្គសិក្សាណាមួយ ប្រព័ន្ធនឹងកត់ត្រាមេរៀនចុងក្រោយរបស់អ្នក ដើម្បីឲ្យអ្នកចុចបន្តរៀនពីកន្លែងនេះភ្លាមៗ។', 'Once you enroll in a course, your latest lesson progress will be saved here so you can jump back in with one click.') }}
-            </p>
-            <div class="flex flex-wrap items-center justify-center gap-3 pt-1">
-              <Link
-                href="/student/browse"
-                class="inline-flex items-center justify-center gap-2 px-5 py-3 min-h-[48px] rounded-xl bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:opacity-95 text-white font-bold text-xs shadow-md shadow-purple-600/25 transition-opacity active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#1e1f20]"
-              >
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
-                <span>{{ t('ស្វែងរកវគ្គសិក្សា', 'Browse Courses') }}</span>
-              </Link>
-              <Link
-                v-if="hasEnrollments"
-                href="/student/my-courses/enrolled"
-                class="inline-flex items-center justify-center gap-2 px-4 py-3 min-h-[48px] rounded-xl bg-slate-100 dark:bg-[#282a2c] hover:bg-slate-200 dark:hover:bg-[#323538] text-slate-700 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-[#3c4043] transition-colors active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#1e1f20]"
-              >
-                <span>{{ t('វគ្គសិក្សាដែលបានចុះឈ្មោះ', 'Enrolled Courses') }}</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- State D: All completed -->
-      <section v-else-if="state === 'D'" class="space-y-4">
-        <div class="bg-white dark:bg-[#1e1f20] border border-emerald-200/70 dark:border-emerald-700/40 rounded-3xl p-8 sm:p-12 text-center shadow-sm relative overflow-hidden">
-          <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.08),transparent_65%)] dark:bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.16),transparent_65%)] pointer-events-none"></div>
-          <div class="relative z-10 max-w-lg mx-auto space-y-5">
-            <div class="w-16 h-16 mx-auto rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
-              <svg class="w-9 h-9 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
-            </div>
-            <h2 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">
-              {{ t('អ្នកបានបញ្ចប់វគ្គសិក្សាទាំងអស់រួចរាល់ហើយ!', 'You have completed all your enrolled courses!') }}
-            </h2>
-            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-              {{ t('អបអរសាទរ! សូមពិនិត្យមើលវិញ្ញាបនបត្ររបស់អ្នក ឬស្វែងរកវគ្គសិក្សាថ្មីៗដើម្បីបន្តការរៀន។', 'Congratulations! Check your certificates or explore new courses to keep learning.') }}
-            </p>
-            <div class="flex flex-wrap items-center justify-center gap-3 pt-1">
-              <Link
-                href="/student/certificates/my-certificates"
-                class="inline-flex items-center justify-center gap-2 px-5 py-3 min-h-[48px] rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:opacity-95 text-white font-bold text-xs shadow-md shadow-emerald-600/25 transition-opacity active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#1e1f20]"
-              >
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
-                <span>{{ t('វិញ្ញាបនបត្ររបស់ខ្ញុំ', 'My Certificates') }}</span>
-              </Link>
-              <Link
-                href="/student/browse"
-                class="inline-flex items-center justify-center gap-2 px-4 py-3 min-h-[48px] rounded-xl bg-slate-100 dark:bg-[#282a2c] hover:bg-slate-200 dark:hover:bg-[#323538] text-slate-700 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-[#3c4043] transition-colors active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#1e1f20]"
-              >
-                {{ t('ស្វែងរកវគ្គសិក្សា', 'Browse Courses') }}
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- State E: Coming soon -->
-      <section v-else-if="state === 'E'" class="space-y-4">
-        <div class="bg-white dark:bg-[#1e1f20] border border-dashed border-slate-200 dark:border-[#2d2f31] rounded-3xl p-8 sm:p-12 text-center shadow-sm">
-          <div class="max-w-lg mx-auto space-y-5">
-            <div class="w-16 h-16 mx-auto rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center">
-              <svg class="w-9 h-9 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            </div>
-            <h2 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">
-              {{ t('មាតិកានឹងមកដល់ឆាប់ៗ', 'Content coming soon') }}
-            </h2>
-            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-              {{ t('វគ្គសិក្សាដែលអ្នកបានចុះឈ្មោះមិនទាន់មានមេរៀននៅឡើយទេ។ សូមមើលវិញនៅពេលឆាប់ៗនេះ ឬស្វែងរកវគ្គសិក្សាផ្សេងទៀត។', 'The courses you enrolled in do not have lessons yet. Please check back soon or explore other courses.') }}
-            </p>
-            <div class="flex flex-wrap items-center justify-center gap-3 pt-1">
-              <Link
-                v-if="hasEnrollments"
-                href="/student/my-courses/enrolled"
-                class="inline-flex items-center justify-center gap-2 px-4 py-3 min-h-[48px] rounded-xl bg-slate-100 dark:bg-[#282a2c] hover:bg-slate-200 dark:hover:bg-[#323538] text-slate-700 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-[#3c4043] transition-colors active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#1e1f20]"
-              >
-                {{ t('វគ្គសិក្សាដែលបានចុះឈ្មោះ', 'Enrolled Courses') }}
-              </Link>
-              <Link
-                href="/student/browse"
-                class="inline-flex items-center justify-center gap-2 px-5 py-3 min-h-[48px] rounded-xl bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:opacity-95 text-white font-bold text-xs shadow-md shadow-purple-600/25 transition-opacity active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#1e1f20]"
-              >
-                {{ t('ស្វែងរកវគ្គសិក្សា', 'Browse Courses') }}
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Recommended courses (shown in A, D, E) -->
-      <section v-if="['A','D','E'].includes(state) && recommendedCourses.length > 0" class="space-y-4">
-        <div class="flex items-center justify-between">
-          <h2 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
-            {{ t('វគ្គសិក្សាណែនាំសម្រាប់ចាប់ផ្តើម', 'Recommended Courses to Start') }}
-          </h2>
-          <Link
-            href="/student/browse"
-            class="text-xs font-bold text-purple-600 dark:text-purple-400 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 rounded"
-          >
-            {{ t('មើលទាំងអស់', 'View all') }} →
-          </Link>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
-          <article
-            v-for="course in recommendedCourses"
-            :key="course.id"
-            class="bg-white dark:bg-[#1e1f20] border border-slate-200 dark:border-[#2d2f31] hover:border-purple-400 dark:hover:border-purple-500/60 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all duration-200 flex flex-col h-full"
-          >
-            <!-- 16:9 thumbnail with soft-color fallback (no waves) -->
-            <Link :href="course.overviewHref" class="block relative aspect-video overflow-hidden bg-slate-100 dark:bg-slate-800">
-              <img
-                v-if="course.thumbnail && !thumbErrors[course.id]"
-                :src="course.thumbnail"
-                :alt="localizedTitle(course)"
-                loading="lazy"
-                @error="thumbErrors[course.id] = true"
-                class="w-full h-full object-cover"
-              />
-              <div
-                v-else
-                :class="['relative w-full h-full flex items-center justify-center', paletteFor(course.id).bg]"
-              >
-                <div :class="['w-12 h-12 rounded-xl flex items-center justify-center', paletteFor(course.id).soft]">
-                  <svg v-if="categoryIconType(course.categoryKh || course.category) === 'code'" :class="['w-6 h-6', paletteFor(course.id).ring]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                  </svg>
-                  <svg v-else-if="categoryIconType(course.categoryKh || course.category) === 'compass'" :class="['w-6 h-6', paletteFor(course.id).ring]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 2a10 10 0 100 20 10 10 0 000-20zm3.5 6.5l-2 5-5 2 2-5 5-2z" />
-                  </svg>
-                  <svg v-else-if="categoryIconType(course.categoryKh || course.category) === 'leaf'" :class="['w-6 h-6', paletteFor(course.id).ring]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 21c.5-4.5 2.5-8 7-10 3-1.3 6-1.5 9-1.5 0 4.5-1.5 8.5-5 10.5-3.5 2-7.5 1.5-11 1z" />
-                  </svg>
-                  <svg v-else-if="categoryIconType(course.categoryKh || course.category) === 'users'" :class="['w-6 h-6', paletteFor(course.id).ring]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <svg v-else :class="['w-6 h-6', paletteFor(course.id).ring]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                  </svg>
-                </div>
-              </div>
+          <!-- Quick Navigation Actions -->
+          <div class="flex items-center gap-2.5 shrink-0">
+            <Link
+              href="/student/browse"
+              class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-[#1e1f20] hover:bg-slate-50 dark:hover:bg-[#25272a] text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm border border-slate-200/90 dark:border-slate-800 shadow-xs hover:border-[#7045F5]/40 transition-all duration-200"
+            >
+              <Sparkles class="w-4 h-4 text-[#7045F5]" />
+              <span>{{ isKm ? 'ស្វែងរកវគ្គថ្មី' : 'Browse Catalog' }}</span>
             </Link>
+          </div>
+        </div>
 
-            <div class="p-4 space-y-2 flex-1 flex flex-col">
-              <div class="flex items-center gap-2 flex-wrap">
-                <span
-                  v-if="course.category || course.categoryKh"
-                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-semibold bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300"
-                >
-                  {{ currentLang === 'km' ? (course.categoryKh || course.category) : (course.category || course.categoryKh) }}
-                </span>
-                <span
-                  :class="course.isFree ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'"
-                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-semibold"
-                >
-                  {{ course.isFree ? t('ឥតគិតថ្លៃ', 'Free') : course.priceDisplay }}
-                </span>
+        <!-- Error Banner with Retry -->
+        <div
+          v-if="hasError"
+          class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 flex items-center justify-between gap-4"
+        >
+          <div class="flex items-center gap-3">
+            <AlertCircle class="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0" />
+            <span class="text-xs sm:text-sm font-medium">{{ errorMessage }}</span>
+          </div>
+          <button
+            type="button"
+            @click="retryLoading"
+            class="px-3 py-1.5 rounded-lg bg-rose-600 text-white font-bold text-xs hover:bg-rose-700 transition-colors shrink-0"
+          >
+            {{ isKm ? 'ព្យាយាមម្តងទៀត' : 'Retry' }}
+          </button>
+        </div>
+
+        <!-- 2. Course Summary (Three Compact Statistic Cards) -->
+        <section aria-label="Course Summary Statistics">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+            <!-- Card 1: Total Courses -->
+            <div class="bg-white dark:bg-[#1e1f20] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] flex items-center gap-4 transition-transform duration-200 hover:-translate-y-0.5">
+              <div class="w-12 h-12 rounded-xl bg-[#7045F5]/10 text-[#7045F5] dark:text-[#a78bfa] flex items-center justify-center shrink-0 border border-[#7045F5]/20">
+                <BookOpen class="w-6 h-6" />
               </div>
-
-              <h3 class="text-sm font-bold text-slate-900 dark:text-white line-clamp-2 leading-snug">
-                {{ localizedTitle(course) }}
-              </h3>
-
-              <div class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-x-2 gap-y-1 flex-wrap mt-auto pt-1">
-                <span v-if="course.teacherName" class="truncate max-w-[140px]">
-                  {{ currentLang === 'km' ? (course.teacherNameKh || course.teacherName) : course.teacherName }}
-                </span>
-                <span v-if="course.teacherName" class="text-slate-300 dark:text-slate-600">•</span>
-                <span>{{ course.lessonsCount }} {{ t('មេរៀន', 'lessons') }}</span>
-                <span v-if="course.durationSeconds || course.durationLabel" class="text-slate-300 dark:text-slate-600">•</span>
-                <span v-if="course.durationSeconds || course.durationLabel">{{ formatDuration(course.durationSeconds, course.durationLabel) }}</span>
+              <div class="min-w-0">
+                <div class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                  {{ totalCoursesCount }}
+                </div>
+                <div class="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 truncate">
+                  {{ isKm ? 'វគ្គសិក្សាសរុប' : 'Total Courses' }}
+                </div>
               </div>
             </div>
 
-            <div class="px-4 pb-4 grid grid-cols-2 gap-2">
-              <Link
-                :href="course.overviewHref"
-                class="flex items-center justify-center py-2.5 px-3 min-h-[48px] rounded-xl bg-slate-100 dark:bg-[#282a2c] hover:bg-slate-200 dark:hover:bg-[#323538] text-slate-700 dark:text-slate-200 text-xs font-semibold text-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
-              >
-                {{ t('មើលលម្អិត', 'Details') }}
-              </Link>
+            <!-- Card 2: In Progress -->
+            <div class="bg-white dark:bg-[#1e1f20] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] flex items-center gap-4 transition-transform duration-200 hover:-translate-y-0.5">
+              <div class="w-12 h-12 rounded-xl bg-[#2563EB]/10 text-[#2563EB] dark:text-blue-400 flex items-center justify-center shrink-0 border border-[#2563EB]/20">
+                <PlayCircle class="w-6 h-6" />
+              </div>
+              <div class="min-w-0">
+                <div class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                  {{ inProgressCount }}
+                </div>
+                <div class="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 truncate">
+                  {{ isKm ? 'កំពុងរៀន' : 'In Progress' }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 3: Completed -->
+            <div class="bg-white dark:bg-[#1e1f20] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] flex items-center gap-4 transition-transform duration-200 hover:-translate-y-0.5">
+              <div class="w-12 h-12 rounded-xl bg-[#10B981]/10 text-[#10B981] dark:text-emerald-400 flex items-center justify-center shrink-0 border border-[#10B981]/20">
+                <CheckCircle2 class="w-6 h-6" />
+              </div>
+              <div class="min-w-0">
+                <div class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                  {{ completedCount }}
+                </div>
+                <div class="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 truncate">
+                  {{ isKm ? 'បានបញ្ចប់' : 'Completed' }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. Search and Filter Bar -->
+        <section aria-label="Course Filters" class="bg-white dark:bg-[#1e1f20] rounded-2xl p-4 sm:p-5 border border-slate-200/90 dark:border-slate-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] space-y-4">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+
+            <!-- Search Input -->
+            <div class="relative flex-1 max-w-lg">
+              <Search class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                v-model="searchQuery"
+                type="text"
+                :placeholder="isKm ? 'ស្វែងរកវគ្គសិក្សា, គ្រូ ឬជំនាញ...' : 'Search courses, instructor, or major...'"
+                class="w-full pl-10 pr-9 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/90 dark:border-slate-800 text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7045F5]/30 focus:border-[#7045F5] transition-all"
+              />
               <button
-                @click="handleEnroll(course)"
+                v-if="searchQuery"
                 type="button"
-                :disabled="enrollingId === course.id"
-                class="flex items-center justify-center py-2.5 px-3 min-h-[48px] rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold text-center transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#1e1f20]"
+                @click="searchQuery = ''"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5 rounded-full"
+                aria-label="Clear search"
               >
-                {{ enrollingId === course.id ? t('កំពុងចុះឈ្មោះ...', 'Enrolling...') : t('ចុះឈ្មោះឥឡូវ', 'Enroll Now') }}
+                <X class="w-3.5 h-3.5" />
               </button>
             </div>
-          </article>
-        </div>
-      </section>
+
+            <!-- Filters Group: Major, Status, Sort -->
+            <div class="flex flex-wrap items-center gap-3">
+              <!-- Filter by Major / Subject -->
+              <div v-if="majors && majors.length > 0" class="flex items-center gap-2">
+                <select
+                  v-model="selectedMajor"
+                  class="px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/90 dark:border-slate-800 text-xs sm:text-sm text-slate-800 dark:text-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-[#7045F5]/30 focus:border-[#7045F5] transition-all cursor-pointer"
+                >
+                  <option value="all">{{ isKm ? 'ជំនាញទាំងអស់' : 'All Majors' }}</option>
+                  <option
+                    v-for="m in majors"
+                    :key="m.id"
+                    :value="m.id"
+                  >
+                    {{ isKm && m.name_kh ? m.name_kh : m.name }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Sorting Dropdown -->
+              <div class="flex items-center gap-2">
+                <select
+                  v-model="sortBy"
+                  class="px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/90 dark:border-slate-800 text-xs sm:text-sm text-slate-800 dark:text-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-[#7045F5]/30 focus:border-[#7045F5] transition-all cursor-pointer"
+                >
+                  <option value="recent">{{ isKm ? 'បានចូលរៀនថ្មីៗ' : 'Recently Accessed' }}</option>
+                  <option value="title">{{ isKm ? 'ឈ្មោះវគ្គសិក្សា A-Z' : 'Course Name A-Z' }}</option>
+                  <option value="progress">{{ isKm ? 'វឌ្ឍនភាព ខ្ពស់-ទាប' : 'Highest Progress' }}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Status Filter Tabs: All, In Progress, Completed -->
+          <div class="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 overflow-x-auto no-scrollbar">
+            <!-- Tab: All -->
+            <button
+              type="button"
+              @click="selectedStatus = 'all'"
+              :class="[
+                'px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 flex items-center gap-2 shrink-0 select-none',
+                selectedStatus === 'all'
+                  ? 'bg-[#7045F5] text-white shadow-md shadow-[#7045F5]/25'
+                  : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+              ]"
+            >
+              <span>{{ isKm ? 'ទាំងអស់' : 'All Courses' }}</span>
+              <span
+                :class="[
+                  'px-2 py-0.5 rounded-full text-[10px] font-extrabold',
+                  selectedStatus === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                ]"
+              >
+                {{ totalCoursesCount }}
+              </span>
+            </button>
+
+            <!-- Tab: In Progress -->
+            <button
+              type="button"
+              @click="selectedStatus = 'in_progress'"
+              :class="[
+                'px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 flex items-center gap-2 shrink-0 select-none',
+                selectedStatus === 'in_progress'
+                  ? 'bg-[#2563EB] text-white shadow-md shadow-[#2563EB]/25'
+                  : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+              ]"
+            >
+              <span>{{ isKm ? 'កំពុងរៀន' : 'In Progress' }}</span>
+              <span
+                :class="[
+                  'px-2 py-0.5 rounded-full text-[10px] font-extrabold',
+                  selectedStatus === 'in_progress' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                ]"
+              >
+                {{ inProgressCount }}
+              </span>
+            </button>
+
+            <!-- Tab: Completed -->
+            <button
+              type="button"
+              @click="selectedStatus = 'completed'"
+              :class="[
+                'px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 flex items-center gap-2 shrink-0 select-none',
+                selectedStatus === 'completed'
+                  ? 'bg-[#10B981] text-white shadow-md shadow-[#10B981]/25'
+                  : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+              ]"
+            >
+              <span>{{ isKm ? 'បានបញ្ចប់' : 'Completed' }}</span>
+              <span
+                :class="[
+                  'px-2 py-0.5 rounded-full text-[10px] font-extrabold',
+                  selectedStatus === 'completed' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                ]"
+              >
+                {{ completedCount }}
+              </span>
+            </button>
+
+            <!-- Active Filter Reset Indicator -->
+            <button
+              v-if="searchQuery || selectedMajor !== 'all' || selectedStatus !== 'all'"
+              type="button"
+              @click="resetFilters"
+              class="ml-auto px-3 py-1.5 rounded-lg text-xs font-semibold text-[#7045F5] hover:bg-[#7045F5]/10 transition-colors flex items-center gap-1 shrink-0"
+            >
+              <RefreshCw class="w-3 h-3" />
+              <span>{{ isKm ? 'កំណត់ឡើងវិញ' : 'Reset' }}</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- 4. Course Cards Grid (Responsive 3-col on lg, 2-col on md, 1-col on mobile) -->
+        <section aria-label="Enrolled Courses List">
+          <!-- Loading Skeleton State -->
+          <div
+            v-if="isLoading"
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            <CourseSkeletonCard v-for="i in 6" :key="`skel-${i}`" />
+          </div>
+
+          <!-- Courses Found Grid -->
+          <div
+            v-else-if="filteredCourses.length > 0"
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            <CourseCard
+              v-for="course in filteredCourses"
+              :key="course.id"
+              :course="course"
+              :locale="currentLang"
+            />
+          </div>
+
+          <!-- Empty Filter State (Courses exist, but none match search/filter) -->
+          <div
+            v-else-if="courses && courses.length > 0"
+            class="bg-white dark:bg-[#1e1f20] rounded-2xl p-8 sm:p-12 border border-slate-200/90 dark:border-slate-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] text-center space-y-4 max-w-lg mx-auto"
+          >
+            <div class="w-16 h-16 rounded-2xl bg-purple-50 dark:bg-purple-900/20 text-[#7045F5] flex items-center justify-center mx-auto border border-purple-100 dark:border-purple-800/40">
+              <Search class="w-8 h-8" />
+            </div>
+            <div class="space-y-1">
+              <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                {{ isKm ? 'រកមិនឃើញវគ្គសិក្សាត្រូវគ្នាទេ' : 'No matching courses found' }}
+              </h3>
+              <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                {{ isKm ? 'សូមសាកល្បងផ្លាស់ប្តូរពាក្យស្វែងរក ឬដោះការច្រោះចេញ។' : 'Try adjusting your search query or resetting filters.' }}
+              </p>
+            </div>
+            <button
+              type="button"
+              @click="resetFilters"
+              class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#7045F5] hover:bg-[#5f35e0] text-white font-bold text-xs sm:text-sm shadow-md shadow-[#7045F5]/25 transition-all"
+            >
+              <RefreshCw class="w-3.5 h-3.5" />
+              <span>{{ isKm ? 'សម្អាតការច្រោះទាំងអស់' : 'Clear all filters' }}</span>
+            </button>
+          </div>
+
+          <!-- Empty Enrollments State (Student has 0 enrolled courses) -->
+          <div
+            v-else
+            class="space-y-8"
+          >
+            <!-- Friendly Empty Hero Box -->
+            <div class="bg-white dark:bg-[#1e1f20] rounded-3xl p-8 sm:p-12 border border-slate-200/90 dark:border-slate-800 shadow-sm text-center relative overflow-hidden max-w-3xl mx-auto space-y-5">
+              <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(112,69,245,0.08),transparent_70%)] pointer-events-none"></div>
+
+              <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-purple-50 dark:bg-purple-900/25 border border-purple-100 dark:border-purple-700/40 text-[#7045F5] flex items-center justify-center mx-auto shadow-inner relative z-10">
+                <GraduationCap class="w-8 h-8 sm:w-10 sm:h-10" />
+              </div>
+
+              <div class="space-y-2 relative z-10">
+                <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                  {{ isKm ? 'អ្នកមិនទាន់បានចុះឈ្មោះក្នុងវគ្គសិក្សាណាមួយនៅឡើយទេ' : 'You haven’t enrolled in any courses yet' }}
+                </h2>
+                <p class="text-sm text-slate-600 dark:text-slate-400 max-w-xl mx-auto leading-[1.7]">
+                  {{ isKm ? 'ចាប់ផ្តើមដំណើរសិក្សារបស់អ្នកនៅថ្ងៃនេះ ដោយជ្រើសរើសវគ្គសិក្សាដែលបានណែនាំខាងក្រោម ឬស្វែងរកនៅក្នុងកាតាឡុកវគ្គសិក្សាពេញលេញ។' : 'Start your learning journey today by exploring our curated recommended courses below or browse our full catalog.' }}
+                </p>
+              </div>
+
+              <div class="pt-2 relative z-10 flex flex-wrap justify-center gap-3">
+                <Link
+                  href="/student/browse"
+                  class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#7045F5] to-[#5b32e6] hover:from-[#5f35e0] hover:to-[#4e27cc] text-white font-bold text-sm shadow-md shadow-[#7045F5]/30 hover:shadow-lg transition-all"
+                >
+                  <Sparkles class="w-4 h-4" />
+                  <span>{{ isKm ? 'ស្វែងរកវគ្គសិក្សាទាំងអស់' : 'Explore All Courses' }}</span>
+                </Link>
+              </div>
+            </div>
+
+            <!-- Recommended Courses Section (when total courses = 0) -->
+            <div v-if="recommendedCourses && recommendedCourses.length > 0" class="space-y-4 pt-4">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="text-lg font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                    <Sparkles class="w-5 h-5 text-[#7045F5]" />
+                    <span>{{ isKm ? 'វគ្គសិក្សាណែនាំសម្រាប់អ្នក' : 'Recommended Courses for You' }}</span>
+                  </h3>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">
+                    {{ isKm ? 'ផ្អែកលើជំនាញ និងកម្រិតសិក្សារបស់អ្នក' : 'Curated based on your major and learning goals' }}
+                  </p>
+                </div>
+
+                <Link
+                  href="/student/browse"
+                  class="text-xs sm:text-sm font-bold text-[#7045F5] hover:underline inline-flex items-center gap-1"
+                >
+                  <span>{{ isKm ? 'មើលទាំងអស់' : 'View all' }}</span>
+                  <ArrowRight class="w-3.5 h-3.5" />
+                </Link>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div
+                  v-for="rec in recommendedCourses"
+                  :key="rec.id"
+                  class="bg-white dark:bg-[#1e1f20] rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col justify-between hover:-translate-y-1 transition-all duration-300"
+                >
+                  <!-- Rec Cover -->
+                  <div class="aspect-video w-full relative bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                    <img
+                      v-if="rec.thumbnail"
+                      :src="rec.thumbnail"
+                      :alt="isKm && rec.titleKh ? rec.titleKh : rec.title"
+                      class="w-full h-full object-cover"
+                    />
+                    <div v-else class="w-full h-full bg-gradient-to-tr from-purple-700 to-indigo-800 flex items-center justify-center text-white">
+                      <BookOpen class="w-8 h-8 opacity-70" />
+                    </div>
+
+                    <!-- Category Pill -->
+                    <div class="absolute top-3 left-3">
+                      <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-white/90 dark:bg-slate-900/90 text-slate-800 dark:text-slate-200 backdrop-blur-md border border-white/30 dark:border-slate-700/50 shadow-xs">
+                        {{ isKm && rec.categoryKh ? rec.categoryKh : (rec.category || 'Academic') }}
+                      </span>
+                    </div>
+
+                    <!-- Price badge -->
+                    <div class="absolute top-3 right-3">
+                      <span
+                        :class="[
+                          'px-2.5 py-1 rounded-full text-[11px] font-bold backdrop-blur-md border shadow-xs',
+                          rec.isFree
+                            ? 'bg-emerald-500/90 text-white border-emerald-400/50'
+                            : 'bg-purple-600/90 text-white border-purple-400/50'
+                        ]"
+                      >
+                        {{ rec.priceDisplay }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Rec Body -->
+                  <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+                    <div class="space-y-2">
+                      <h4 class="font-bold text-slate-900 dark:text-white text-base line-clamp-2 leading-[1.7]">
+                        {{ isKm && rec.titleKh ? rec.titleKh : rec.title }}
+                      </h4>
+                      <p class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                        <Clock class="w-3.5 h-3.5 text-slate-400" />
+                        <span>{{ rec.lessonsCount }} {{ isKm ? 'មេរៀន' : 'lessons' }}</span>
+                        <span v-if="rec.durationSeconds" class="text-slate-300 dark:text-slate-600">•</span>
+                        <span v-if="rec.durationSeconds">{{ formatDuration(rec.durationSeconds, rec.durationLabel) }}</span>
+                      </p>
+                    </div>
+
+                    <!-- Rec Actions -->
+                    <div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-2">
+                      <Link
+                        :href="rec.overviewHref"
+                        class="flex-1 py-2 rounded-xl text-center text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
+                      >
+                        {{ isKm ? 'មើលព័ត៌មាន' : 'Overview' }}
+                      </Link>
+
+                      <button
+                        type="button"
+                        @click="handleEnrollRecommended(rec)"
+                        :disabled="enrollingId === rec.id"
+                        class="flex-1 py-2 rounded-xl text-center text-xs font-bold bg-[#7045F5] hover:bg-[#5f35e0] text-white shadow-xs transition-colors disabled:opacity-50"
+                      >
+                        {{ enrollingId === rec.id ? (isKm ? 'កំពុងចុះឈ្មោះ...' : 'Enrolling...') : (rec.isFree ? (isKm ? 'ចុះឈ្មោះរៀន' : 'Enroll Now') : (isKm ? 'ទិញវគ្គសិក្សា' : 'Buy Course')) }}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
     </div>
   </StudentLayout>
 </template>
 
 <style scoped>
-@media (prefers-reduced-motion: reduce) {
-  * {
-    transition: none !important;
-    animation: none !important;
-  }
+/* Clean custom styles if needed */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 </style>
