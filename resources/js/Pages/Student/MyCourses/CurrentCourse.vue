@@ -2,6 +2,12 @@
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import StudentLayout from '@/Layouts/StudentLayout.vue'
+import LessonHeader from '@/Components/LessonPlayer/LessonHeader.vue'
+import LessonHero from '@/Components/LessonPlayer/LessonHero.vue'
+import LessonTabs from '@/Components/LessonPlayer/LessonTabs.vue'
+import CourseContentSidebar from '@/Components/LessonPlayer/CourseContentSidebar.vue'
+import StickyActionBar from '@/Components/LessonPlayer/StickyActionBar.vue'
+import LessonSkeleton from '@/Components/LessonPlayer/LessonSkeleton.vue'
 import { marked } from 'marked'
 import hljs from 'highlight.js'
 import 'highlight.js/styles/github-dark.css'
@@ -79,7 +85,7 @@ const props = defineProps<{
   currentUserId?: number
 }>()
 
-// Active tab state (respects initial ?tab= query parameter)
+// Active tab state (respects initial ?tab= query parameter; defaults to 'content' so students see lesson content first)
 const getInitialTab = (): 'overview' | 'content' | 'resources' | 'discussion' => {
   if (typeof window !== 'undefined') {
     const p = new URLSearchParams(window.location.search).get('tab')
@@ -87,9 +93,60 @@ const getInitialTab = (): 'overview' | 'content' | 'resources' | 'discussion' =>
       return p as any
     }
   }
-  return 'overview'
+  return 'content'
 }
 const activeTab = ref<'overview' | 'content' | 'resources' | 'discussion'>(getInitialTab())
+const showStickyBar = ref(false)
+const readingPercent = ref(0)
+const justCompleted = ref(false)
+const isSwitchingLesson = ref(false)
+
+const scrollToLessonContent = () => {
+  if (typeof document === 'undefined') return
+  const el = document.getElementById('lesson-content-section')
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+}
+
+const handlePageScroll = () => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight
+  if (docHeight <= 0) {
+    readingPercent.value = 100
+    showStickyBar.value = true
+    return
+  }
+  const pct = Math.min(100, Math.max(0, (window.scrollY / docHeight) * 100))
+  readingPercent.value = pct
+  showStickyBar.value = pct >= 60 || window.scrollY > 360
+}
+
+let removeInertiaStart: (() => void) | null = null
+let removeInertiaFinish: (() => void) | null = null
+
+onMounted(() => {
+  if (typeof window !== 'undefined') {
+    window.addEventListener('scroll', handlePageScroll, { passive: true })
+    handlePageScroll()
+    removeInertiaStart = router.on('start', (e: any) => {
+      if (!e?.detail?.visit?.prefetch && String(e?.detail?.visit?.url || '').includes('/lessons/')) {
+        isSwitchingLesson.value = true
+      }
+    })
+    removeInertiaFinish = router.on('finish', () => {
+      isSwitchingLesson.value = false
+    })
+  }
+})
+
+onUnmounted(() => {
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('scroll', handlePageScroll)
+  }
+  if (removeInertiaStart) removeInertiaStart()
+  if (removeInertiaFinish) removeInertiaFinish()
+})
 const isVideoPlaying = ref(false)
 const videoSpeed = ref<'1x' | '1.25x' | '1.5x' | '2x'>('1x')
 const isMuted = ref(false)
@@ -522,6 +579,7 @@ const handleCompleteAndNext = async () => {
 
     // Success: Update local state & chapter progress
     isLessonCompletedLocally.value = true
+    justCompleted.value = true
     if (data.course_progress_percent !== undefined) {
       localProgressPercent.value = data.course_progress_percent
     }
@@ -1496,66 +1554,27 @@ onUnmounted(() => {
         </div>
       </transition>
 
-      <!-- MAIN GRID: Left 8 cols Video & Tabs, Right 4 cols Course Progress & Accordion -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+      <!-- Skeleton loader during lesson switch -->
+      <LessonSkeleton v-if="isSwitchingLesson" />
 
-        <!-- LEFT 8 COLUMNS: Video Player, Title, Tabs, About, Next/Previous Actions -->
-        <div class="lg:col-span-8 space-y-4 min-w-0">
+      <!-- MAIN GRID: Left 8 cols (~68%) Video/Hero & Tabs, Right 4 cols (~32%) Course Progress & Accordion -->
+      <div v-else class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-          <!-- Video Title Bar -->
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/80">
-            <div class="flex items-center gap-3 min-w-0">
-              <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-600/30 dark:to-indigo-600/30 text-purple-600 dark:text-purple-300 border border-purple-200/80 dark:border-purple-500/30 flex items-center justify-center text-lg shrink-0">
-                ▶
-              </div>
-              <div class="min-w-0">
-                <h1 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight line-clamp-2 leading-snug">
-                  {{ currentLesson.title }}
-                </h1>
-                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium truncate flex items-center gap-1.5 mt-1">
-                  <Link :href="'/student/courses/' + course.id + '/overview'" class="hover:text-purple-600 dark:hover:text-purple-400 transition-colors">{{ course.title }}</Link>
-                  <span class="text-slate-300 dark:text-slate-600">•</span>
-                  <Link
-                    :href="'/student/courses/' + course.id + '/overview'"
-                    class="hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-                    title="View Course Information & Instructor"
-                  >
-                    {{ teacherDisplay }}
-                  </Link>
-                </p>
-              </div>
-            </div>
+        <!-- LEFT 8 COLUMNS: Lesson Header, Hero/Video Player, Sticky Tabs, Content, Bottom Actions -->
+        <div class="lg:col-span-8 space-y-5 min-w-0">
 
-            <!-- Top Navigation Buttons (< Previous, Next >) - Navigation Only -->
-            <div class="flex items-center gap-2 self-start sm:self-auto shrink-0">
-              <button
-                @click="handlePreviousNav"
-                :disabled="!previousLessonItem"
-                aria-label="Previous lesson"
-                type="button"
-                :class="[
-                  !previousLessonItem ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer',
-                  'px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-800/90 text-slate-700 dark:text-slate-300 text-xs font-semibold border border-slate-200 dark:border-slate-700/80 flex items-center gap-1.5 transition-colors shadow-2xs'
-                ]"
-              >
-                <span>‹</span>
-                <span>Previous</span>
-              </button>
-              <button
-                @click="handleNextNav"
-                :disabled="!nextLessonItem || nextLessonItem.is_locked"
-                aria-label="Next lesson"
-                type="button"
-                :class="[
-                  !nextLessonItem || nextLessonItem.is_locked ? 'opacity-40 cursor-not-allowed' : 'hover:bg-indigo-500 cursor-pointer',
-                  'px-3.5 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-semibold shadow-md shadow-indigo-600/20 flex items-center gap-1.5 transition-colors'
-                ]"
-              >
-                <span>Next</span>
-                <span>›</span>
-              </button>
-            </div>
-          </div>
+          <!-- 1. Top Bar Card -->
+          <LessonHeader
+            :title="currentLesson.kh_title || currentLesson.title"
+            :course-title="course.title"
+            :teacher-name="teacherDisplay"
+            :lesson-type="currentLesson.type || (videoProvider === 'none' ? 'reading' : 'video')"
+            :has-previous="!!previousLessonItem"
+            :has-next="!!nextLessonItem"
+            :is-next-locked="!!nextLessonItem?.is_locked"
+            @previous="handlePreviousNav"
+            @next="handleNextNav"
+          />
 
           <!-- Video Player Screen -->
           <div
@@ -1654,57 +1673,19 @@ onUnmounted(() => {
               ></iframe>
             </div>
 
-            <!-- 3. Modern Reading & Interactive Study Hero (When no video URL is attached) -->
-            <div
+            <!-- 3. Redesigned Two-Column Study Hero (When no video URL is attached) -->
+            <LessonHero
               v-else
-              class="relative aspect-video w-full flex flex-col items-center justify-center p-6 sm:p-10 text-center bg-gradient-to-br from-slate-900 via-[#131836] to-[#1e1b4b] overflow-hidden"
-            >
-              <!-- Subtle ambient glow & dot pattern -->
-              <div class="absolute inset-0 bg-[radial-gradient(#818cf8_1px,transparent_1px)] [background-size:24px_24px] opacity-15 pointer-events-none"></div>
-              <div class="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-purple-600/20 blur-3xl pointer-events-none"></div>
-              <div class="absolute -bottom-24 -left-24 w-64 h-64 rounded-full bg-indigo-500/20 blur-3xl pointer-events-none"></div>
-
-              <div class="relative z-10 max-w-xl w-full space-y-4">
-                <div class="w-14 h-14 sm:w-16 sm:h-16 mx-auto rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 text-purple-300 flex items-center justify-center shadow-xl">
-                  <svg class="w-7 h-7 sm:w-8 sm:h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                  </svg>
-                </div>
-
-                <div class="space-y-2">
-                  <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-200 border border-indigo-400/30 text-[11px] font-bold">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                    <span>មេរៀនអាន & អនុវត្ត • Study Lesson</span>
-                    <span v-if="currentLesson.duration_formatted" class="text-indigo-300/80">· {{ currentLesson.duration_formatted }}</span>
-                  </div>
-                  <h3 class="text-lg sm:text-xl font-extrabold text-white tracking-tight leading-snug">
-                    {{ currentLesson.kh_title || currentLesson.title }}
-                  </h3>
-                  <p class="text-xs sm:text-[13px] text-slate-300/90 leading-relaxed max-w-md mx-auto">
-                    សូមអានសេចក្តីសង្ខេប និងឯកសារមេរៀនខាងក្រោម ឬចុច <strong class="text-white">Complete &amp; Next</strong> ដើម្បីបញ្ចប់ និងបន្តទៅមេរៀនបន្ទាប់។
-                  </p>
-                </div>
-
-                <div class="flex flex-wrap items-center justify-center gap-2.5 pt-1">
-                  <button
-                    @click="handleSmartAction"
-                    :disabled="isCompleting"
-                    type="button"
-                    class="inline-flex items-center justify-center gap-2 px-5 py-2.5 min-h-[44px] rounded-xl bg-gradient-to-r from-[#6366f1] to-[#7c3aed] hover:opacity-95 text-white text-xs font-bold shadow-lg shadow-purple-600/30 transition-all active:scale-95 cursor-pointer disabled:opacity-60"
-                  >
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
-                    <span>{{ isCompleting ? 'កំពុងរក្សាទុក...' : smartActionLabel }}</span>
-                  </button>
-                  <button
-                    @click="activeTab = 'content'"
-                    type="button"
-                    class="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 min-h-[44px] rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold border border-white/15 backdrop-blur-sm transition-colors cursor-pointer"
-                  >
-                    <span>អានខ្លឹមសារមេរៀន</span>
-                  </button>
-                </div>
-              </div>
-            </div>
+              :title="currentLesson.kh_title || currentLesson.title"
+              :description="currentLesson.summary || course.description"
+              :lesson-type="currentLesson.type || 'reading'"
+              :duration-formatted="currentLesson.duration_formatted || formatSeconds(currentLesson.duration_seconds)"
+              :lesson-number="(currentLessonIndex >= 0 ? currentLessonIndex + 1 : 1)"
+              :total-lessons="allOrderedLessons.length || totalLessonsCount || 1"
+              :objectives="currentLesson.objectives"
+              @start-lesson="() => { activeTab = 'content'; scrollToLessonContent() }"
+              @read-materials="() => { activeTab = 'resources'; scrollToLessonContent() }"
+            />
 
             <!-- Video Player Bottom Control Bar (Shown only when real video exists) -->
             <div
@@ -1779,97 +1760,13 @@ onUnmounted(() => {
             </div>
           </div>
 
-          <!-- Lesson Navigation Tabs (Overview, Lesson Content, Resources, Discussion) -->
-          <div class="rounded-t-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 px-4 sm:px-5 pt-4">
-            <nav
-              role="tablist"
-              aria-label="Lesson Details Tabs"
-              class="flex items-center gap-5 sm:gap-7 text-xs font-semibold overflow-x-auto"
-            >
-              <button
-                id="tab-overview"
-                role="tab"
-                :aria-selected="activeTab === 'overview'"
-                aria-controls="panel-overview"
-                tabindex="0"
-                @click="setTab('overview')"
-                @keydown="handleTabKeydown($event, 'overview')"
-                :class="[
-                  activeTab === 'overview'
-                    ? 'text-purple-600 dark:text-purple-400 font-bold border-b-2 border-purple-600 dark:border-purple-400'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border-b-2 border-transparent'
-                ]"
-                class="pb-3 px-1 transition-all outline-none focus:outline-none focus-visible:text-purple-600 dark:focus-visible:text-purple-400 cursor-pointer"
-              >
-                Overview
-              </button>
-
-              <button
-                id="tab-content"
-                role="tab"
-                :aria-selected="activeTab === 'content'"
-                aria-controls="panel-content"
-                tabindex="0"
-                @click="setTab('content')"
-                @keydown="handleTabKeydown($event, 'content')"
-                :class="[
-                  activeTab === 'content'
-                    ? 'text-purple-600 dark:text-purple-400 font-bold border-b-2 border-purple-600 dark:border-purple-400'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border-b-2 border-transparent'
-                ]"
-                class="pb-3 px-1 transition-all outline-none focus:outline-none focus-visible:text-purple-600 dark:focus-visible:text-purple-400 cursor-pointer"
-              >
-                Lesson Content
-              </button>
-
-              <button
-                id="tab-resources"
-                role="tab"
-                :aria-selected="activeTab === 'resources'"
-                aria-controls="panel-resources"
-                tabindex="0"
-                @click="setTab('resources')"
-                @keydown="handleTabKeydown($event, 'resources')"
-                :class="[
-                  activeTab === 'resources'
-                    ? 'text-purple-600 dark:text-purple-400 font-bold border-b-2 border-purple-600 dark:border-purple-400'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border-b-2 border-transparent'
-                ]"
-                class="pb-3 px-1 transition-all outline-none focus:outline-none focus-visible:text-purple-600 dark:focus-visible:text-purple-400 cursor-pointer flex items-center gap-1.5"
-              >
-                <span>Resources</span>
-                <span
-                  v-if="localResources && localResources.length > 0"
-                  class="px-1.5 py-0.5 rounded-full text-[10px] bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 font-bold tabular-nums"
-                >
-                  {{ localResources.length }}
-                </span>
-              </button>
-
-              <button
-                id="tab-discussion"
-                role="tab"
-                :aria-selected="activeTab === 'discussion'"
-                aria-controls="panel-discussion"
-                tabindex="0"
-                @click="setTab('discussion')"
-                @keydown="handleTabKeydown($event, 'discussion')"
-                :class="[
-                  activeTab === 'discussion'
-                    ? 'text-purple-600 dark:text-purple-400 font-bold border-b-2 border-purple-600 dark:border-purple-400'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 border-b-2 border-transparent'
-                ]"
-                class="pb-3 px-1 transition-all outline-none focus:outline-none focus-visible:text-purple-600 dark:focus-visible:text-purple-400 cursor-pointer flex items-center gap-1.5"
-              >
-                <span>Discussion</span>
-                <span
-                  v-if="localComments && localComments.length > 0"
-                  class="px-1.5 py-0.5 rounded-full text-[10px] bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 font-bold tabular-nums"
-                >
-                  {{ localComments.length }}
-                </span>
-              </button>
-            </nav>
+          <!-- 3. Sticky Lesson Navigation Tabs with sliding underline -->
+          <div id="lesson-content-section" class="scroll-mt-24">
+            <LessonTabs
+              v-model="activeTab"
+              :resources-count="localResources?.length || 0"
+              :discussion-count="localComments?.length || 0"
+            />
           </div>
 
           <!-- TAB CONTENT: Overview -->
@@ -2707,183 +2604,35 @@ onUnmounted(() => {
 
         </div>
 
-        <!-- RIGHT 4 COLUMNS: Course Progress & Curriculum Accordion -->
-        <div class="lg:col-span-4 space-y-6 sticky top-20">
-
-          <!-- Course Progress Card -->
-          <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
-            <div class="flex items-start justify-between gap-3">
-              <div>
-                <p class="text-sm font-bold text-slate-900 dark:text-white">Course Progress</p>
-                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Keep up the great work</p>
-              </div>
-              <span class="px-2.5 py-1 rounded-full bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-bold tabular-nums">{{ localProgressPercent }}%</span>
-            </div>
-            <p class="text-xs text-slate-600 dark:text-slate-300 tabular-nums">
-              {{ localCompletedCount }} / {{ totalLessonsCount || localChapters.flatMap(c => c.lessons).length }} Lessons Completed
-            </p>
-
-            <div
-              class="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden"
-              role="progressbar"
-              :aria-valuenow="localProgressPercent"
-              aria-valuemin="0"
-              aria-valuemax="100"
-              :aria-label="`Course progress: ${localProgressPercent}%`"
-            >
-              <div
-                class="h-full bg-gradient-to-r from-purple-500 via-violet-500 to-indigo-500 rounded-full transition-all duration-500"
-                :style="{ width: localProgressPercent + '%' }"
-              ></div>
-            </div>
-          </div>
-
-          <!-- Course Content Accordion -->
-          <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-              <h3 class="text-[18px] font-semibold text-slate-900 dark:text-white capitalize">
-                Course content
-              </h3>
-              <button
-                @click="toggleExpandAll"
-                type="button"
-                aria-label="Expand or collapse all chapters"
-                class="text-[11px] font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 transition-colors cursor-pointer"
-              >
-                {{ localChapters.length > 0 && localChapters.every(c => c.expanded) ? 'Collapse All' : 'Expand All' }}
-              </button>
-            </div>
-
-            <!-- Chapter Items List (Hides empty modules with 0 lessons) -->
-            <div class="space-y-2">
-              <div
-                v-for="chap in localChapters.filter(c => (c.lessons && c.lessons.length > 0) || (c.total_count && c.total_count > 0))"
-                :key="chap.id"
-                class="rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-950/60 overflow-hidden"
-              >
-                <!-- Chapter Header: Single Chevron with Lucide Icon -->
-                <button
-                  @click="toggleChapter(chap)"
-                  type="button"
-                  :class="[
-                    chap.is_locked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800/40',
-                    'w-full p-3 flex items-center justify-between text-xs transition-colors'
-                  ]"
-                >
-                  <div class="flex items-center gap-2 text-left truncate">
-                    <span class="font-bold text-slate-800 dark:text-slate-200 truncate">
-                      {{ chap.kh_title || chap.title }}
-                    </span>
-                  </div>
-
-                  <div class="flex items-center gap-2 shrink-0">
-                    <span class="text-[11px] font-bold text-purple-600 dark:text-purple-400 tabular-nums">
-                      {{ chap.progress }}
-                    </span>
-
-                    <!-- Single Clean Chevron with rotation -->
-                    <svg
-                      :class="[chap.expanded ? 'rotate-180' : 'rotate-0', 'w-3.5 h-3.5 text-slate-400 dark:text-slate-500 transition-transform duration-200 shrink-0']"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </button>
-
-                <!-- Lessons inside chapter -->
-                <div
-                  v-show="chap.expanded"
-                  class="border-t border-slate-200 dark:border-slate-800/60 p-2 space-y-1 bg-white dark:bg-slate-950/90"
-                >
-                  <div
-                    v-for="lsn in chap.lessons"
-                    :key="lsn.id"
-                    :id="'sidebar-lesson-' + lsn.id"
-                    @click="!lsn.is_locked && router.visit(`/student/my-courses/${course.id}/lessons/${lsn.id}`)"
-                    :class="[
-                      lsn.id === currentLesson.id
-                        ? 'bg-purple-50 dark:bg-purple-600/25 border-purple-300 dark:border-purple-500/40 text-purple-900 dark:text-white font-bold'
-                        : lsn.is_locked
-                        ? 'text-slate-400 dark:text-slate-600 border-transparent opacity-60 cursor-not-allowed'
-                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900 border-transparent cursor-pointer',
-                      'p-2.5 rounded-xl border text-xs flex items-center justify-between transition-colors'
-                    ]"
-                  >
-                    <div class="flex items-center gap-2.5 min-w-0 pr-2">
-                      <!-- Completed Checkmark -->
-                      <span
-                        v-if="lsn.is_completed"
-                        class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[10px] font-bold shrink-0"
-                      >
-                        ✓
-                      </span>
-                      <!-- Active Play Icon -->
-                      <span
-                        v-else-if="lsn.id === currentLesson.id"
-                        class="w-4 h-4 rounded-full bg-purple-600 text-white flex items-center justify-center text-[9px] shrink-0"
-                      >
-                        ▶
-                      </span>
-                      <!-- Locked Lucide Icon -->
-                      <svg
-                        v-else-if="lsn.is_locked"
-                        class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        stroke-width="2"
-                      >
-                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                      </svg>
-                      <!-- Uncompleted circle -->
-                      <span
-                        v-else
-                        class="w-4 h-4 rounded-full border border-slate-300 dark:border-slate-600 flex items-center justify-center text-[9px] shrink-0"
-                      >
-                        ○
-                      </span>
-
-                      <span class="line-clamp-2 text-left leading-snug">{{ lsn.title }}</span>
-                    </div>
-
-                    <span class="text-[10px] text-slate-500 dark:text-slate-400 shrink-0 tabular-nums font-sans">
-                      {{ lsn.duration_formatted || formatSeconds(lsn.duration_seconds) }}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
+        <!-- RIGHT 4 COLUMNS (~32%): Sticky Circular Progress Ring + Course Content Accordion + Mobile Drawer -->
+        <div class="lg:col-span-4">
+          <CourseContentSidebar
+            :chapters="localChapters"
+            :current-lesson-id="currentLesson.id"
+            :progress-percent="localProgressPercent"
+            :completed-count="localCompletedCount"
+            :total-count="totalLessonsCount || allOrderedLessons.length"
+            @toggle-chapter="toggleChapter"
+            @toggle-expand-all="toggleExpandAll"
+            @select-lesson="(lsn) => router.visit(`/student/my-courses/${course.id}/lessons/${lsn.id}`)"
+          />
         </div>
 
       </div>
 
-      <!-- Mobile Sticky Bottom Bar for Complete & Next Lesson -->
-      <div class="fixed bottom-0 left-0 right-0 p-3 bg-white/95 dark:bg-slate-900/95 border-t border-slate-200 dark:border-slate-800 z-30 lg:hidden shadow-lg pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center justify-between gap-3">
-        <button
-          @click="handlePreviousNav"
-          :disabled="!previousLessonItem"
-          type="button"
-          class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold"
-        >
-          ← Prev
-        </button>
-        <button
-          @click="handleSmartAction"
-          :disabled="isCompleting || (!isLessonCompletedLocally && !isEligibleToComplete)"
-          type="button"
-          class="flex-1 py-2 rounded-xl bg-purple-600 text-white text-xs font-bold text-center shadow-md shadow-purple-600/30 disabled:opacity-50"
-        >
-          <span v-if="isCompleting">Saving...</span>
-          <span v-else>{{ smartActionLabel }}</span>
-        </button>
-      </div>
+      <!-- 4. Glassmorphic Sticky Bottom Action Bar (appears past 60% scroll or on short pages) -->
+      <StickyActionBar
+        :visible="showStickyBar"
+        :has-previous="!!previousLessonItem"
+        :reading-percent="readingPercent"
+        :is-completing="isCompleting"
+        :is-eligible="isEligibleToComplete"
+        :is-completed="isLessonCompletedLocally"
+        :action-label="smartActionLabel"
+        :just-completed="justCompleted"
+        @previous="handlePreviousNav"
+        @action="handleSmartAction"
+      />
 
     </div>
   </StudentLayout>
