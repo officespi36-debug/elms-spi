@@ -318,20 +318,16 @@ function runCountUp(targets: {
 }
 
 async function loadDashboard() {
-  loading.value = true
-  loadingStep.value = 'skeleton'
   error.value = ''
 
-  // Immediately use props.stats if provided directly by server-side Inertia render
+  // Immediately use props.stats if provided directly by server-side Inertia render (0ms instant render)
   if (props.stats) {
     liveStats.value = props.stats
-  }
-
-  // Smooth 500ms skeleton shimmer
-  await new Promise(resolve => setTimeout(resolve, 500))
-
-  // If props.stats was not provided (e.g. client API fallback), fetch endpoint
-  if (!liveStats.value) {
+    loading.value = false
+    loadingStep.value = 'loaded'
+  } else {
+    loading.value = true
+    loadingStep.value = 'skeleton'
     try {
       const response = await fetch('/api/student/dashboard', {
         credentials: 'same-origin',
@@ -933,6 +929,8 @@ const recentActivities = computed(() => {
             v-for="(stat, idx) in statsCards"
             :key="stat.type"
             :href="stat.href"
+            prefetch="hover"
+            cache-for="3m"
             :style="{ animationDelay: `${idx * 70}ms` }"
             :class="[
               'stat-card relative overflow-hidden rounded-2xl bg-gradient-to-br text-white p-3.5 sm:p-4 shadow-sm hover:shadow-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col justify-between group cursor-pointer border border-white/10 min-h-[136px] sm:min-h-[140px] max-h-[142px]',
