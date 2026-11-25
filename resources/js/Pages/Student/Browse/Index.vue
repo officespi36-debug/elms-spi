@@ -155,7 +155,45 @@ const wishlistPending = ref<Record<number, boolean>>({})
 const wishlistOverrides = ref<Record<number, boolean>>({})
 const wishlistErrorMsg = ref<string | null>(null)
 const thumbErrors = ref<Record<number, boolean>>({})
+const thumbLoaded = ref<Record<number, boolean>>({})
 const avatarErrors = ref<Record<number, boolean>>({})
+
+const COURSE_CARD_THEMES = [
+  {
+    gradient: 'from-[#2563eb] via-[#3b82f6] to-[#4f46e5]',
+    wavePath: 'M0 18 Q 20 6, 42 15 T 74 7 T 100 13 L 100 25 L 0 25 Z',
+    waveLine: 'M0 18 Q 20 6, 42 15 T 74 7 T 100 13',
+  },
+  {
+    gradient: 'from-[#0284c7] via-[#2563eb] to-[#4f46e5]',
+    wavePath: 'M0 15 Q 25 22, 48 10 T 80 16 T 100 7 L 100 25 L 0 25 Z',
+    waveLine: 'M0 15 Q 25 22, 48 10 T 80 16 T 100 7',
+  },
+  {
+    gradient: 'from-[#6d28d9] via-[#7c3aed] to-[#4f46e5]',
+    wavePath: 'M0 20 Q 18 8, 45 16 T 72 5 T 100 14 L 100 25 L 0 25 Z',
+    waveLine: 'M0 20 Q 18 8, 45 16 T 72 5 T 100 14',
+  },
+  {
+    gradient: 'from-[#7c3aed] via-[#8b5cf6] to-[#6366f1]',
+    wavePath: 'M0 14 Q 22 4, 50 18 T 78 9 T 100 12 L 100 25 L 0 25 Z',
+    waveLine: 'M0 14 Q 22 4, 50 18 T 78 9 T 100 12',
+  },
+  {
+    gradient: 'from-[#1d4ed8] via-[#4338ca] to-[#3730a3]',
+    wavePath: 'M0 17 Q 24 7, 46 15 T 76 6 T 100 11 L 100 25 L 0 25 Z',
+    waveLine: 'M0 17 Q 24 7, 46 15 T 76 6 T 100 11',
+  },
+  {
+    gradient: 'from-[#4f46e5] via-[#7c3aed] to-[#9333ea]',
+    wavePath: 'M0 19 Q 20 9, 44 14 T 75 8 T 100 15 L 100 25 L 0 25 Z',
+    waveLine: 'M0 19 Q 20 9, 44 14 T 75 8 T 100 15',
+  },
+]
+
+const getCourseCardTheme = (courseId: number) => {
+  return COURSE_CARD_THEMES[Math.abs(Number(courseId) || 0) % COURSE_CARD_THEMES.length]
+}
 
 const searchInputRef = ref<HTMLInputElement | null>(null)
 const filterDrawerRef = ref<HTMLDialogElement | null>(null)
@@ -957,37 +995,111 @@ onUnmounted(() => {
             </button>
           </div>
 
+          <!-- DASHBOARD-STYLE SHIMMER SKELETON LOADING STATE -->
+          <div
+            v-if="isLoading"
+            aria-busy="true"
+            class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6"
+          >
+            <div
+              v-for="n in 6"
+              :key="'skel-' + n"
+              class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] rounded-[20px] overflow-hidden shadow-xs flex flex-col justify-between"
+            >
+              <div>
+                <div class="relative w-full aspect-video bg-gradient-to-br from-slate-200 via-slate-100 to-slate-200 dark:from-[#1e1f20] dark:via-[#282a2c] dark:to-[#1e1f20] overflow-hidden border-b border-slate-100 dark:border-[#2d2f31]">
+                  <div class="shimmer-sweep absolute inset-0 pointer-events-none"></div>
+                  <div class="absolute inset-x-0 bottom-0 overflow-hidden">
+                    <svg class="w-full h-9 text-white/50 dark:text-[#333538]/70" viewBox="0 0 100 25" preserveAspectRatio="none">
+                      <path d="M0 18 Q 20 4, 40 14 T 70 6 T 100 12 L 100 25 L 0 25 Z" fill="currentColor" opacity="0.45"/>
+                      <path d="M0 18 Q 20 4, 40 14 T 70 6 T 100 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.85"/>
+                    </svg>
+                  </div>
+                </div>
+                <div class="p-4 space-y-2.5">
+                  <div class="h-4 w-24 rounded-full bg-slate-200 dark:bg-[#282a2c]"></div>
+                  <div class="h-4 w-4/5 rounded-md bg-slate-200 dark:bg-[#282a2c]"></div>
+                  <div class="h-3 w-full rounded-md bg-slate-100 dark:bg-[#242628]"></div>
+                  <div class="h-3 w-2/3 rounded-md bg-slate-100 dark:bg-[#242628]"></div>
+                </div>
+              </div>
+              <div class="px-4 pb-4 pt-2 flex gap-2">
+                <div class="h-9 flex-1 rounded-xl bg-slate-100 dark:bg-[#282a2c]"></div>
+                <div class="h-9 flex-1 rounded-xl bg-slate-200 dark:bg-[#333538]"></div>
+              </div>
+            </div>
+          </div>
+
           <!-- COURSES GRID OR LIST -->
           <template v-else-if="catalogItems.length > 0">
             <!-- GRID VIEW (3 cols desktop / 2 cols tablet / 1 col mobile) -->
             <div v-if="viewMode === 'grid'" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
               <article
-                v-for="course in catalogItems"
+                v-for="(course, idx) in catalogItems"
                 :key="course.id"
-                class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-purple-400 dark:hover:border-purple-500/60 rounded-[20px] overflow-hidden shadow-xs hover:shadow-md dark:shadow-xl transition-transform duration-200 hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0 group flex flex-col justify-between"
+                :style="{ animationDelay: `${Math.min(idx, 8) * 50}ms` }"
+                class="browse-card-enter bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-purple-400 dark:hover:border-purple-500/60 rounded-[20px] overflow-hidden shadow-xs hover:shadow-md dark:shadow-xl transition-transform duration-200 hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0 group flex flex-col justify-between"
               >
                 <div>
-                  <!-- 16:9 REAL THUMBNAIL OR GRADIENT FALLBACK -->
+                  <!-- 16:9 REAL THUMBNAIL (WITH SHIMMER SKELETON) OR DASHBOARD-STYLE GRADIENT + WAVE -->
                   <div class="relative w-full aspect-video bg-slate-100 dark:bg-[#131314] overflow-hidden border-b border-slate-100 dark:border-[#2d2f31]">
                     <Link
                       :href="course.overviewHref"
+                      prefetch="hover"
+                      cache-for="3m"
                       class="block w-full h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-purple-500"
                     >
-                      <img
-                        v-if="course.thumbnail && !thumbErrors[course.id]"
-                        :src="course.thumbnail"
-                        :alt="localizedCourseTitle(course)"
-                        loading="lazy"
-                        @error="thumbErrors[course.id] = true"
-                        class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
-                      />
+                      <template v-if="course.thumbnail && !thumbErrors[course.id]">
+                        <div
+                          v-if="!thumbLoaded[course.id]"
+                          :class="['absolute inset-0 bg-gradient-to-br overflow-hidden', getCourseCardTheme(course.id).gradient]"
+                        >
+                          <div class="shimmer-sweep absolute inset-0 pointer-events-none"></div>
+                          <svg class="absolute inset-x-0 bottom-0 w-full h-9 text-white" viewBox="0 0 100 25" preserveAspectRatio="none" aria-hidden="true">
+                            <path :d="getCourseCardTheme(course.id).wavePath" fill="currentColor" opacity="0.22"/>
+                            <path :d="getCourseCardTheme(course.id).waveLine" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" vector-effect="non-scaling-stroke" opacity="0.9"/>
+                          </svg>
+                        </div>
+                        <img
+                          :src="course.thumbnail"
+                          :alt="localizedCourseTitle(course)"
+                          loading="lazy"
+                          @load="thumbLoaded[course.id] = true"
+                          @error="thumbErrors[course.id] = true"
+                          :class="[
+                            'w-full h-full object-cover transition-all duration-300 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100',
+                            thumbLoaded[course.id] ? 'opacity-100' : 'opacity-0'
+                          ]"
+                        />
+                      </template>
                       <div
                         v-else
-                        class="w-full h-full bg-gradient-to-br from-purple-600/90 via-indigo-600 to-slate-800 flex items-center justify-center text-white/80"
+                        :class="[
+                          'relative w-full h-full bg-gradient-to-br flex flex-col items-center justify-center text-white overflow-hidden select-none',
+                          getCourseCardTheme(course.id).gradient
+                        ]"
                       >
-                        <svg class="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                        </svg>
+                        <div class="absolute -top-8 -right-8 w-28 h-28 rounded-full bg-white/10 blur-xl pointer-events-none"></div>
+                        <div class="relative z-10 flex flex-col items-center gap-1.5 -mt-2">
+                          <div class="w-11 h-11 rounded-2xl bg-white/15 backdrop-blur-xs border border-white/25 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300">
+                            <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                          </div>
+                          <span v-if="course.code" class="text-[10px] font-bold tracking-wider uppercase text-white/85 px-2 py-0.5 rounded-full bg-white/10 border border-white/15">
+                            {{ course.code }}
+                          </span>
+                        </div>
+                        <!-- Signature Dashboard Sparkline Wave at Bottom -->
+                        <div class="absolute inset-x-0 bottom-0 overflow-hidden pointer-events-none">
+                          <svg class="w-full h-9 sm:h-10 text-white" viewBox="0 0 100 25" preserveAspectRatio="none" aria-hidden="true">
+                            <g transform="translate(0 3)" opacity="0.12">
+                              <path :d="getCourseCardTheme(course.id).wavePath" fill="currentColor"/>
+                            </g>
+                            <path :d="getCourseCardTheme(course.id).wavePath" fill="currentColor" opacity="0.22"/>
+                            <path :d="getCourseCardTheme(course.id).waveLine" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" opacity="0.9"/>
+                          </svg>
+                        </div>
                       </div>
                     </Link>
 
@@ -1200,22 +1312,39 @@ onUnmounted(() => {
                   <!-- 16:9 Thumbnail -->
                   <Link
                     :href="course.overviewHref"
+                    prefetch="hover"
+                    cache-for="3m"
                     class="relative w-full sm:w-48 aspect-video rounded-xl overflow-hidden bg-slate-100 dark:bg-[#131314] shrink-0 border border-slate-100 dark:border-[#2d2f31] focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
                   >
-                    <img
-                      v-if="course.thumbnail && !thumbErrors[course.id]"
-                      :src="course.thumbnail"
-                      :alt="localizedCourseTitle(course)"
-                      loading="lazy"
-                      @error="thumbErrors[course.id] = true"
-                      class="w-full h-full object-cover"
-                    />
+                    <template v-if="course.thumbnail && !thumbErrors[course.id]">
+                      <div
+                        v-if="!thumbLoaded[course.id]"
+                        :class="['absolute inset-0 bg-gradient-to-br overflow-hidden', getCourseCardTheme(course.id).gradient]"
+                      >
+                        <div class="shimmer-sweep absolute inset-0 pointer-events-none"></div>
+                      </div>
+                      <img
+                        :src="course.thumbnail"
+                        :alt="localizedCourseTitle(course)"
+                        loading="lazy"
+                        @load="thumbLoaded[course.id] = true"
+                        @error="thumbErrors[course.id] = true"
+                        :class="['w-full h-full object-cover transition-opacity duration-300', thumbLoaded[course.id] ? 'opacity-100' : 'opacity-0']"
+                      />
+                    </template>
                     <div
                       v-else
-                      class="w-full h-full bg-gradient-to-br from-purple-600/90 via-indigo-600 to-slate-800 flex items-center justify-center text-white/80"
+                      :class="[
+                        'relative w-full h-full bg-gradient-to-br flex items-center justify-center text-white overflow-hidden',
+                        getCourseCardTheme(course.id).gradient
+                      ]"
                     >
-                      <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                      <svg class="w-8 h-8 relative z-10 -mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                      </svg>
+                      <svg class="absolute inset-x-0 bottom-0 w-full h-6 text-white pointer-events-none" viewBox="0 0 100 25" preserveAspectRatio="none" aria-hidden="true">
+                        <path :d="getCourseCardTheme(course.id).wavePath" fill="currentColor" opacity="0.22"/>
+                        <path :d="getCourseCardTheme(course.id).waveLine" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" vector-effect="non-scaling-stroke" opacity="0.9"/>
                       </svg>
                     </div>
                   </Link>
@@ -1648,5 +1777,39 @@ onUnmounted(() => {
 .browse-drawer::backdrop {
   background: rgba(15, 23, 42, 0.55);
   backdrop-filter: blur(2px);
+}
+
+.browse-card-enter {
+  animation: browseCardEnter 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes browseCardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.shimmer-sweep {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.45) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: shimmerSweep 1.6s infinite;
+}
+
+@keyframes shimmerSweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
 </style>

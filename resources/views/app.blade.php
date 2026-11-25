@@ -38,7 +38,7 @@
             }
 
             try {
-                var currentDeployBuild = 'v_20261125_browse_pg_fix_v27';
+                var currentDeployBuild = 'v_20261125_browse_wave_shimmer_v28';
                 if (localStorage.getItem('spi_app_deploy') !== currentDeployBuild) {
                     localStorage.setItem('spi_app_deploy', currentDeployBuild);
                     if ('caches' in window) {
