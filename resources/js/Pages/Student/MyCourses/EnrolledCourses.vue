@@ -318,7 +318,17 @@ const onSearchInput = () => {
   if (debounceTimer) clearTimeout(debounceTimer)
   debounceTimer = setTimeout(() => {
     triggerServerFilter()
-  }, 300)
+  }, 120)
+}
+
+const prefetchedCourseHrefs = new Set<string>()
+const prefetchCourse = (course: EnrolledCourseItem) => {
+  const href = course?.overviewHref
+  if (!href || prefetchedCourseHrefs.has(href)) return
+  prefetchedCourseHrefs.add(href)
+  try {
+    router.prefetch(href, {}, { cacheFor: '2m' })
+  } catch (e) {}
 }
 
 const changeTab = (tab: 'all' | 'in_progress' | 'not_started' | 'completed' | 'coming_soon') => {
@@ -587,7 +597,7 @@ onUnmounted(() => {
               activeTab === 'all'
                 ? 'bg-purple-600 text-white font-bold shadow-md shadow-purple-600/20'
                 : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-800',
-              'px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-2 transition-all cursor-pointer shadow-xs shrink-0'
+              'px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-2 transition-colors duration-100 active:scale-[0.97] cursor-pointer shadow-xs shrink-0'
             ]"
           >
             <span>{{ t('វគ្គសិក្សាទាំងអស់', 'All Courses') }}</span>
@@ -603,7 +613,7 @@ onUnmounted(() => {
               activeTab === 'in_progress'
                 ? 'bg-purple-600 text-white font-bold shadow-md shadow-purple-600/20'
                 : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-800',
-              'px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-2 transition-all cursor-pointer shadow-xs shrink-0'
+              'px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-2 transition-colors duration-100 active:scale-[0.97] cursor-pointer shadow-xs shrink-0'
             ]"
           >
             <span>{{ t('កំពុងសិក្សា', 'In Progress') }}</span>
@@ -619,7 +629,7 @@ onUnmounted(() => {
               activeTab === 'not_started'
                 ? 'bg-purple-600 text-white font-bold shadow-md shadow-purple-600/20'
                 : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-800',
-              'px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-2 transition-all cursor-pointer shadow-xs shrink-0'
+              'px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-2 transition-colors duration-100 active:scale-[0.97] cursor-pointer shadow-xs shrink-0'
             ]"
           >
             <span>{{ t('មិនទាន់ចាប់ផ្តើម', 'Not Started') }}</span>
@@ -635,7 +645,7 @@ onUnmounted(() => {
               activeTab === 'completed'
                 ? 'bg-gradient-to-r from-[#6366f1] to-[#7c3aed] text-white font-bold shadow-md shadow-purple-600/20'
                 : 'bg-white dark:bg-[#1e1f20] text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-[#282a2c] border border-[#dfe3e7] dark:border-[#2d2f31]',
-              'px-3.5 py-1.5 rounded-full text-xs flex items-center gap-2 transition-all cursor-pointer shadow-xs shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500'
+              'px-3.5 py-1.5 rounded-full text-xs flex items-center gap-2 transition-colors duration-100 active:scale-[0.97] cursor-pointer shadow-xs shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500'
             ]"
           >
             <span>{{ t('បានបញ្ចប់', 'Completed') }}</span>
@@ -747,6 +757,7 @@ onUnmounted(() => {
           <div
             v-for="course in courses"
             :key="course.id"
+            @mouseenter="prefetchCourse(course)"
             @click="navigateToCourseOverview(course)"
             class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-purple-400 hover:dark:border-purple-400/60 rounded-3xl overflow-hidden shadow-sm dark:shadow-xl transition-all duration-200 hover:-translate-y-1 group flex flex-col justify-between cursor-pointer relative"
           >
@@ -1151,6 +1162,7 @@ onUnmounted(() => {
           <div
             v-for="course in courses"
             :key="course.id"
+            @mouseenter="prefetchCourse(course)"
             @click="navigateToCourseOverview(course)"
             class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-purple-400 hover:dark:border-purple-400/60 rounded-3xl p-4 sm:p-5 shadow-sm dark:shadow-xl transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer group"
           >
@@ -1340,7 +1352,9 @@ onUnmounted(() => {
           <div class="flex flex-wrap items-center justify-center gap-3">
             <Link
               href="/student/browse"
-              class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/20 transition-all cursor-pointer"
+              prefetch="hover"
+              cache-for="3m"
+              class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/20 transition-colors duration-100 active:scale-[0.97] cursor-pointer"
             >
               {{ t('ស្វែងរកវគ្គសិក្សា', 'Browse Courses') }}
             </Link>
