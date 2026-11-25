@@ -1157,6 +1157,25 @@ const isChildActive = (children?: NavSubItem[]) => {
   return children.some(child => isSubActive(child.href))
 }
 
+const prefetchedUrls = new Set<string>()
+const prefetchRoute = (href: string) => {
+  if (!href || href.includes('/my-courses/current') || prefetchedUrls.has(href)) return
+  const currentPath = page.url.split(/[?#]/)[0]
+  if (href === currentPath) return
+  prefetchedUrls.add(href)
+  try {
+    router.prefetch(href, {}, { cacheFor: '3m' })
+  } catch (e) {}
+}
+
+const prefetchModuleChildren = (key: string) => {
+  const mod = studentNav.find(m => m.key === key)
+  if (!mod?.children?.length) return
+  mod.children.forEach((sub, idx) => {
+    setTimeout(() => prefetchRoute(sub.href), idx * 70)
+  })
+}
+
 const toggleModule = (key: string) => {
   const isCurrentOpen = !!expandedModules.value[key]
   // Only one submenu expanded at a time: reset all
@@ -1164,6 +1183,9 @@ const toggleModule = (key: string) => {
     expandedModules.value[k] = false
   })
   expandedModules.value[key] = !isCurrentOpen
+  if (!isCurrentOpen) {
+    prefetchModuleChildren(key)
+  }
 }
 
 watch(
@@ -1221,6 +1243,16 @@ onMounted(() => {
   window.addEventListener('online', updateOnlineStatus)
   window.addEventListener('offline', updateOnlineStatus)
   window.addEventListener('click', handleDocumentClick)
+
+  // Proactively prefetch currently expanded sidebar module routes & dashboard for instant 0ms clicks
+  setTimeout(() => {
+    prefetchRoute('/student/dashboard')
+    Object.keys(expandedModules.value).forEach(k => {
+      if (expandedModules.value[k]) {
+        prefetchModuleChildren(k)
+      }
+    })
+  }, 150)
 })
 
 onUnmounted(() => {
@@ -1510,6 +1542,7 @@ const onIconError = (e: Event) => {
                   <Link
                     :href="sub.href"
                     :prefetch="sub.href.includes('/my-courses/current') ? false : 'hover'"
+                    cache-for="3m"
                     :title="currentLang === 'km' ? sub.khName : sub.name"
                     :class="[
                       isSubActive(sub.href)
@@ -1586,6 +1619,7 @@ const onIconError = (e: Event) => {
                     :key="sub.href"
                     :href="sub.href"
                     :prefetch="sub.href.includes('/my-courses/current') ? false : 'hover'"
+                    cache-for="3m"
                     :class="[
                       isSubActive(sub.href)
                         ? 'bg-[#d3e3fd] text-[#041e49] font-bold border border-[#0b57d0]/20 dark:bg-purple-600/20 dark:text-purple-300 dark:border-purple-500/30'
@@ -1796,7 +1830,8 @@ const onIconError = (e: Event) => {
                 v-for="sub in item.children"
                 :key="sub.href"
                 :href="sub.href"
-                prefetch="hover"
+                :prefetch="sub.href.includes('/my-courses/current') ? false : 'hover'"
+                cache-for="3m"
                 @click="sidebarOpen = false"
                 :class="[isSubActive(sub.href) ? 'text-purple-600 dark:text-purple-300 font-bold' : 'text-[#64748b] dark:text-slate-400 hover:text-slate-900 dark:hover:text-white', 'flex items-center gap-2 py-1.5 text-[11px] truncate group/sub']"
               >

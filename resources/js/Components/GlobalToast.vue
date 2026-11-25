@@ -40,6 +40,7 @@ const loadingText = computed(() => {
 const MIN_LOADER_DISPLAY_MS = 160
 let loaderShownAt = 0
 let lastMethod = ''
+let pendingShowTimer: ReturnType<typeof setTimeout> | null = null
 let showDelayTimer: ReturnType<typeof setTimeout> | null = null
 let maxWaitTimer: ReturnType<typeof setTimeout> | null = null
 let removeStartListener: (() => void) | null = null
@@ -49,6 +50,10 @@ let removeSuccessListener: (() => void) | null = null
 let removeErrorListener: (() => void) | null = null
 
 const hideCenterLoader = (forceImmediate = false) => {
+  if (pendingShowTimer) {
+    clearTimeout(pendingShowTimer)
+    pendingShowTimer = null
+  }
   if (showDelayTimer) {
     clearTimeout(showDelayTimer)
     showDelayTimer = null
@@ -61,7 +66,7 @@ const hideCenterLoader = (forceImmediate = false) => {
     isGlobalProcessing.value = false
     return
   }
-  const minDisplay = (processingMode.value === 'nav' || lastMethod === 'get') ? 160 : 300
+  const minDisplay = (processingMode.value === 'nav' || lastMethod === 'get') ? 120 : 280
   const elapsed = Date.now() - loaderShownAt
   const remaining = Math.max(0, minDisplay - elapsed)
   if (remaining === 0) {
@@ -97,6 +102,10 @@ onMounted(() => {
       return
     }
 
+    if (pendingShowTimer) {
+      clearTimeout(pendingShowTimer)
+      pendingShowTimer = null
+    }
     if (showDelayTimer) {
       clearTimeout(showDelayTimer)
       showDelayTimer = null
@@ -108,11 +117,17 @@ onMounted(() => {
 
     if (method && method !== 'get') {
       processingMode.value = 'save'
+      loaderShownAt = Date.now()
+      isGlobalProcessing.value = true
     } else {
+      // Delay showing center blur loader for GET navigations so prefetched/fast pages switch instantaneously
       processingMode.value = 'nav'
+      pendingShowTimer = setTimeout(() => {
+        pendingShowTimer = null
+        loaderShownAt = Date.now()
+        isGlobalProcessing.value = true
+      }, 400)
     }
-    loaderShownAt = Date.now()
-    isGlobalProcessing.value = true
     maxWaitTimer = setTimeout(() => {
       hideCenterLoader(true)
     }, 8000)
