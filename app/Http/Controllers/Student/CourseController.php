@@ -376,11 +376,21 @@ class CourseController extends Controller
         $resolved = $continueService->resolve($user);
 
         if (!$resolved) {
-            return redirect()->route('student.browse');
+            return redirect()->route('student.browse')->with(
+                'info',
+                app()->getLocale() === 'km'
+                    ? 'អ្នកមិនទាន់មានវគ្គសិក្សាដែលបានចុះឈ្មោះនៅឡើយទេ។ សូមជ្រើសរើសវគ្គសិក្សាមួយដើម្បីចាប់ផ្តើមរៀន!'
+                    : 'You have not enrolled in any course yet. Choose a course below to start learning!'
+            );
         }
 
         if (!empty($resolved['all_completed'])) {
-            return redirect()->route('student.my-courses.completed');
+            return redirect()->route('student.my-courses.completed')->with(
+                'info',
+                app()->getLocale() === 'km'
+                    ? 'អ្នកបានបញ្ចប់វគ្គសិក្សាទាំងអស់រួចរាល់ហើយ!'
+                    : 'You have completed all your enrolled courses!'
+            );
         }
 
         if (!empty($resolved['course']) && !empty($resolved['lesson'])) {
