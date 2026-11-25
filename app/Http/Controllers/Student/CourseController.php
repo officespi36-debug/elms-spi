@@ -1269,6 +1269,7 @@ class CourseController extends Controller
 
         return Inertia::render('Student/MyCourses/CompletedCourses', [
             'enrollments'       => $filtered->values()->all(),
+            'all_enrollments'   => $allCompletedList->values()->all(),
             'counts'            => $counts,
             'stats'             => $stats,
             'latestCertificate' => $latestCertificate,

@@ -92,12 +92,12 @@ onMounted(() => {
     const rawUrl = (visit?.url?.pathname || visit?.url?.href || visit?.url || '').toString().toLowerCase()
     lastMethod = method
 
-    // NEVER show center loader for logout or silent in-page filter/search updates
+    // NEVER show center loader for logout, silent updates, or in-page preserveState GET filter/tab/sort visits
     if (
       rawUrl.includes('logout') ||
       visit?.headers?.['X-Silent-Load'] === 'true' ||
       visit?.headers?.['x-silent-load'] === 'true' ||
-      (rawUrl.includes('/student/my-courses/enrolled') && visit?.preserveState)
+      ((!method || method === 'get') && visit?.preserveState)
     ) {
       return
     }

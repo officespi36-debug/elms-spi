@@ -81,6 +81,7 @@ interface AchievementBadge {
 
 const props = defineProps<{
   enrollments?: CompletedCourseItem[]
+  all_enrollments?: CompletedCourseItem[]
   counts?: {
     all: number
     certificates: number
@@ -180,20 +181,19 @@ watch(() => props.filters?.q, (q) => {
 })
 
 const triggerServerFilter = () => {
-  router.get(
-    '/student/my-courses/completed',
-    {
-      status: activeTab.value,
-      sort: selectedSort.value,
-      q: searchQuery.value.trim() || undefined,
-      view: viewMode.value,
-    },
-    {
-      preserveState: true,
-      replace: true,
-      preserveScroll: true,
+  if (typeof window === 'undefined') return
+  try {
+    const url = new URL(window.location.href)
+    url.searchParams.set('status', activeTab.value)
+    url.searchParams.set('sort', selectedSort.value)
+    if (searchQuery.value.trim()) {
+      url.searchParams.set('q', searchQuery.value.trim())
+    } else {
+      url.searchParams.delete('q')
     }
-  )
+    url.searchParams.set('view', viewMode.value)
+    window.history.replaceState(window.history.state, '', url.toString())
+  } catch (e) {}
 }
 
 const changeTab = (tab: 'all' | 'certificates' | 'no_certificate') => {
@@ -206,7 +206,7 @@ const onSearchInput = () => {
   if (debounceTimer) clearTimeout(debounceTimer)
   debounceTimer = setTimeout(() => {
     triggerServerFilter()
-  }, 300)
+  }, 120)
 }
 
 const clearSearch = () => {
@@ -261,9 +261,50 @@ const isCertModalOpen = ref(false)
 const isNoCertModalOpen = ref(false)
 const selectedCertCourse = ref<CompletedCourseItem | null>(null)
 
-// Real Completed Courses dynamically computed from Database props
+// Base source of all completed courses from Database props
+const allCourses = computed<CompletedCourseItem[]>(() => {
+  return Array.isArray(props.all_enrollments)
+    ? props.all_enrollments
+    : (Array.isArray(props.enrollments) ? props.enrollments : [])
+})
+
+// Real Completed Courses dynamically filtered & sorted client-side (0ms, zero loading)
 const courses = computed<CompletedCourseItem[]>(() => {
-  return Array.isArray(props.enrollments) ? props.enrollments : []
+  let list = [...allCourses.value]
+
+  if (activeTab.value === 'certificates') {
+    list = list.filter(c => !!c.hasCertificate)
+  } else if (activeTab.value === 'no_certificate') {
+    list = list.filter(c => !c.hasCertificate)
+  }
+
+  const q = searchQuery.value.trim().toLowerCase()
+  if (q) {
+    list = list.filter(c =>
+      (c.title || '').toLowerCase().includes(q) ||
+      (c.titleKh || '').toLowerCase().includes(q) ||
+      (c.category || '').toLowerCase().includes(q) ||
+      (c.categoryKh || '').toLowerCase().includes(q) ||
+      (c.teacher?.name || '').toLowerCase().includes(q) ||
+      (c.teacher?.name_kh || '').toLowerCase().includes(q) ||
+      (c.slug || '').toLowerCase().includes(q) ||
+      (c.certificateId || '').toLowerCase().includes(q)
+    )
+  }
+
+  if (selectedSort.value === 'oldest') {
+    list.sort((a, b) => (a.completedDateTimestamp || 0) - (b.completedDateTimestamp || 0))
+  } else if (selectedSort.value === 'highest_score') {
+    list.sort((a, b) => (b.quizScore || 0) - (a.quizScore || 0))
+  } else if (selectedSort.value === 'name') {
+    list.sort((a, b) => (a.title || '').localeCompare(b.title || '', undefined, { numeric: true, sensitivity: 'base' }))
+  } else if (selectedSort.value === 'most_time') {
+    list.sort((a, b) => (b.studyTimeSeconds || 0) - (a.studyTimeSeconds || 0))
+  } else {
+    list.sort((a, b) => (b.completedDateTimestamp || 0) - (a.completedDateTimestamp || 0))
+  }
+
+  return list
 })
 
 // Localization helpers
