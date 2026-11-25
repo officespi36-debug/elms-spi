@@ -376,12 +376,45 @@ class CourseController extends Controller
         $resolved = $continueService->resolve($user);
 
         if (!$resolved) {
-            return redirect()->route('student.browse')->with(
-                'info',
-                app()->getLocale() === 'km'
-                    ? 'អ្នកមិនទាន់មានវគ្គសិក្សាដែលបានចុះឈ្មោះនៅឡើយទេ។ សូមជ្រើសរើសវគ្គសិក្សាមួយដើម្បីចាប់ផ្តើមរៀន!'
-                    : 'You have not enrolled in any course yet. Choose a course below to start learning!'
-            );
+            $recommended = Course::query()
+                ->where('status', 'published')
+                ->with(['major:id,name,name_kh'])
+                ->withCount('lessons')
+                ->withCount(['enrollments' => fn ($q) => $q->whereIn('status', ['active', 'completed'])])
+                ->orderByDesc('enrollments_count')
+                ->orderByDesc('id')
+                ->limit(3)
+                ->get()
+                ->filter(fn ($c) => (int) ($c->lessons_count ?? 0) > 0)
+                ->map(function (Course $c) {
+                    $priceVal = (float) ($c->price ?? 0);
+                    $isFree = $priceVal <= 0;
+                    $thumb = $c->thumbnail ? trim((string) $c->thumbnail) : null;
+                    if ($thumb && !str_starts_with($thumb, 'http://') && !str_starts_with($thumb, 'https://') && !str_starts_with($thumb, '/')) {
+                        $thumb = asset('storage/' . ltrim($thumb, '/'));
+                    }
+                    return [
+                        'id'           => $c->id,
+                        'title'        => $c->title,
+                        'titleKh'      => $c->title_kh ?: $c->title,
+                        'code'         => $c->code,
+                        'thumbnail'    => $thumb ?: null,
+                        'category'     => $c->major?->name,
+                        'categoryKh'   => $c->major?->name_kh ?: $c->major?->name,
+                        'lessonsCount' => (int) ($c->lessons_count ?? 0),
+                        'isFree'       => $isFree,
+                        'priceDisplay' => $isFree ? 'Free' : ('$' . number_format($priceVal, 2)),
+                        'overviewHref' => "/student/courses/{$c->id}/overview",
+                        'enrollHref'   => "/student/courses/{$c->id}/enroll",
+                        'checkoutHref' => "/student/payments/{$c->id}/upload",
+                    ];
+                })
+                ->values()
+                ->all();
+
+            return Inertia::render('Student/MyCourses/CurrentCourseEmpty', [
+                'recommendedCourses' => $recommended,
+            ]);
         }
 
         if (!empty($resolved['all_completed'])) {
