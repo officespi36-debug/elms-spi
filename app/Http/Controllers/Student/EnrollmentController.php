@@ -45,6 +45,8 @@ class EnrollmentController extends Controller
         $enrollment = $enrollmentService->enroll($user, $course, 'self', $user);
 
         Cache::forget("student.{$user->id}.new_enrollments");
+        Cache::forget("student.{$user->id}.enrolled_count");
+        Cache::forget("student.{$user->id}.notifications");
         app(DashboardAnalyticsService::class)->invalidateUserCache($user->id);
 
         if ($enrollment->status === 'pending_payment') {
