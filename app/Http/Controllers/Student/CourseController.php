@@ -352,6 +352,7 @@ class CourseController extends Controller
 
         return Inertia::render('Student/MyCourses/EnrolledCourses', [
             'enrollments'           => $filtered->values()->all(),
+            'all_enrollments'       => $allCoursesList->values()->all(),
             'counts'                => $counts,
             'categories'            => $distinctCategories,
             'categoryOptions'       => $categoryOptions,

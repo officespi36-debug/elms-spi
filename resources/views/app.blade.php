@@ -38,7 +38,7 @@
             }
 
             try {
-                var currentDeployBuild = 'v_20261125_enrolled_no_filter_loader_v21';
+                var currentDeployBuild = 'v_20261125_enrolled_instant_filter_v22';
                 if (localStorage.getItem('spi_app_deploy') !== currentDeployBuild) {
                     localStorage.setItem('spi_app_deploy', currentDeployBuild);
                     if ('caches' in window) {

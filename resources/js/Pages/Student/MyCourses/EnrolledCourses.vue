@@ -46,6 +46,7 @@ interface EnrolledCourseItem {
   remainingTime: string
   lastAccessed: string
   lastAccessedTimeMs: number
+  enrolledTimestampMs?: number
   enrolledDate: string
   overviewHref: string
   learningHref: string
@@ -58,6 +59,7 @@ interface EnrolledCourseItem {
 
 const props = defineProps<{
   enrollments?: EnrolledCourseItem[]
+  all_enrollments?: EnrolledCourseItem[]
   counts?: {
     all: number
     in_progress: number
@@ -150,9 +152,54 @@ const getInitials = (name?: string) => {
   return name.slice(0, 2).toUpperCase()
 }
 
-// Real Enrolled Courses dynamically computed from Database props
+// Base source of all enrolled courses from Database props
+const allCourses = computed<EnrolledCourseItem[]>(() => {
+  return props.all_enrollments ?? props.enrollments ?? []
+})
+
+// Real Enrolled Courses dynamically filtered and sorted client-side (0ms, no loading)
 const courses = computed<EnrolledCourseItem[]>(() => {
-  return props.enrollments || []
+  let list = [...allCourses.value]
+
+  if (activeTab.value !== 'all') {
+    list = list.filter(c => c.status === activeTab.value)
+  }
+
+  if (selectedCategory.value !== 'all') {
+    const catLower = selectedCategory.value.toLowerCase()
+    list = list.filter(c =>
+      (c.category || '').toLowerCase() === catLower ||
+      (c.categoryKh || '').toLowerCase() === catLower
+    )
+  }
+
+  const q = searchQuery.value.trim().toLowerCase()
+  if (q) {
+    list = list.filter(c =>
+      (c.title || '').toLowerCase().includes(q) ||
+      (c.titleKh || '').toLowerCase().includes(q) ||
+      (c.teacher?.name || '').toLowerCase().includes(q) ||
+      (c.teacher?.name_kh || '').toLowerCase().includes(q) ||
+      (c.category || '').toLowerCase().includes(q) ||
+      (c.categoryKh || '').toLowerCase().includes(q) ||
+      (c.currentLesson || '').toLowerCase().includes(q) ||
+      (c.currentChapter || '').toLowerCase().includes(q)
+    )
+  }
+
+  if (selectedSort.value === 'recent') {
+    list.sort((a, b) => (b.lastAccessedTimeMs || 0) - (a.lastAccessedTimeMs || 0))
+  } else if (selectedSort.value === 'progress') {
+    list.sort((a, b) => (b.progress || 0) - (a.progress || 0))
+  } else if (selectedSort.value === 'title') {
+    list.sort((a, b) => (a.title || '').localeCompare(b.title || '', undefined, { numeric: true, sensitivity: 'base' }))
+  } else if (selectedSort.value === 'oldest') {
+    list.sort((a, b) => (a.enrolledTimestampMs || 0) - (b.enrolledTimestampMs || 0))
+  } else {
+    list.sort((a, b) => (b.enrolledTimestampMs || 0) - (a.enrolledTimestampMs || 0))
+  }
+
+  return list
 })
 
 const counts = computed(() => {
@@ -165,10 +212,10 @@ const counts = computed(() => {
       coming_soon: props.counts.coming_soon ?? 0,
     }
   }
-  const in_progress = courses.value.filter(c => c.status === 'in_progress').length
-  const not_started = courses.value.filter(c => c.status === 'not_started').length
-  const completed = courses.value.filter(c => c.status === 'completed').length
-  const coming_soon = courses.value.filter(c => c.status === 'coming_soon' || c.status === 'no_content').length
+  const in_progress = allCourses.value.filter(c => c.status === 'in_progress').length
+  const not_started = allCourses.value.filter(c => c.status === 'not_started').length
+  const completed = allCourses.value.filter(c => c.status === 'completed').length
+  const coming_soon = allCourses.value.filter(c => c.status === 'coming_soon' || c.status === 'no_content').length
   const all = in_progress + not_started + completed + coming_soon
   return { all, in_progress, not_started, completed, coming_soon }
 })
@@ -251,24 +298,20 @@ const hasActiveFilters = computed(() => {
 })
 
 const triggerServerFilter = () => {
-  router.get(
-    '/student/my-courses/enrolled',
-    {
-      status: activeTab.value,
-      category: selectedCategory.value,
-      sort: selectedSort.value,
-      q: searchQuery.value.trim() || undefined,
-      view: viewMode.value,
-    },
-    {
-      preserveState: true,
-      replace: true,
-      preserveScroll: true,
-      headers: {
-        'X-Silent-Load': 'true',
-      },
+  if (typeof window === 'undefined') return
+  try {
+    const url = new URL(window.location.href)
+    url.searchParams.set('status', activeTab.value)
+    url.searchParams.set('category', selectedCategory.value)
+    url.searchParams.set('sort', selectedSort.value)
+    if (searchQuery.value.trim()) {
+      url.searchParams.set('q', searchQuery.value.trim())
+    } else {
+      url.searchParams.delete('q')
     }
-  )
+    url.searchParams.set('view', viewMode.value)
+    window.history.replaceState(window.history.state, '', url.toString())
+  } catch (e) {}
 }
 
 const onSearchInput = () => {
