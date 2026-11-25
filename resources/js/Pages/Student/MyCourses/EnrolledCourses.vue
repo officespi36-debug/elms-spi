@@ -264,6 +264,9 @@ const triggerServerFilter = () => {
       preserveState: true,
       replace: true,
       preserveScroll: true,
+      headers: {
+        'X-Silent-Load': 'true',
+      },
     }
   )
 }
