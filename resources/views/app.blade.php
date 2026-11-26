@@ -38,7 +38,7 @@
             }
 
             try {
-                var currentDeployBuild = 'v_20261126_student_current_courses_fullwidth_v39';
+                var currentDeployBuild = 'v_20261126_student_current_courses_stats_fixed_v40';
                 if (localStorage.getItem('spi_app_deploy') !== currentDeployBuild) {
                     localStorage.setItem('spi_app_deploy', currentDeployBuild);
                     if ('caches' in window) {

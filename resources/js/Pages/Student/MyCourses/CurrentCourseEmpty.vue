@@ -109,6 +109,28 @@ const formatDuration = (seconds?: number, fallbackLabel?: string | null) => {
   return hours > 0 ? `${hours}h ${String(mins).padStart(2, '0')}m` : `${mins}m`
 }
 
+// Real database course counts
+const totalCoursesCount = computed(() => {
+  if (props.stats && props.stats.total_courses !== undefined && props.stats.total_courses !== null) {
+    return Number(props.stats.total_courses)
+  }
+  return (props.courses || []).length
+})
+
+const inProgressCount = computed(() => {
+  if (props.stats && props.stats.in_progress !== undefined && props.stats.in_progress !== null) {
+    return Number(props.stats.in_progress)
+  }
+  return (props.courses || []).filter(c => c.status === 'in_progress' || (c.progress_percent > 0 && c.progress_percent < 100)).length
+})
+
+const completedCount = computed(() => {
+  if (props.stats && props.stats.completed !== undefined && props.stats.completed !== null) {
+    return Number(props.stats.completed)
+  }
+  return (props.courses || []).filter(c => c.status === 'completed' || c.progress_percent >= 100).length
+})
+
 // Dynamic stat cards matching Student Dashboard styling
 const statCardsData = computed(() => [
   {
@@ -120,7 +142,6 @@ const statCardsData = computed(() => [
     gradient: 'from-[#7045F5] via-[#7c3aed] to-[#5b21b6]',
     wavePath: 'M0 18 Q 20 4, 40 14 T 70 6 T 100 12 L 100 25 L 0 25 Z',
     waveLine: 'M0 18 Q 20 4, 40 14 T 70 6 T 100 12',
-    icon: BookOpen,
   },
   {
     type: 'in_progress',
@@ -131,7 +152,6 @@ const statCardsData = computed(() => [
     gradient: 'from-[#2563EB] via-[#1d4ed8] to-[#1e40af]',
     wavePath: 'M0 20 Q 25 8, 45 16 T 75 4 T 100 10 L 100 25 L 0 25 Z',
     waveLine: 'M0 20 Q 25 8, 45 16 T 75 4 T 100 10',
-    icon: PlayCircle,
   },
   {
     type: 'completed',
@@ -142,7 +162,6 @@ const statCardsData = computed(() => [
     gradient: 'from-[#059669] via-[#10B981] to-[#047857]',
     wavePath: 'M0 16 Q 20 22, 45 8 T 75 14 T 100 4 L 100 25 L 0 25 Z',
     waveLine: 'M0 16 Q 20 22, 45 8 T 75 14 T 100 4',
-    icon: CheckCircle2,
   },
 ])
 
@@ -330,7 +349,9 @@ const handleEnrollRecommended = (course: RecommendedCourse) => {
               <div class="flex items-start justify-between gap-1">
                 <span class="text-xs sm:text-[13px] font-bold tracking-tight uppercase text-white/90 leading-tight mr-1">{{ stat.title }}</span>
                 <div class="text-white/95 group-hover:text-white group-hover:scale-110 transition-transform duration-200 shrink-0">
-                  <component :is="stat.icon" class="w-7 h-7 sm:w-8 sm:h-8" />
+                  <BookOpen v-if="stat.type === 'total'" class="w-7 h-7 sm:w-8 sm:h-8" />
+                  <PlayCircle v-else-if="stat.type === 'in_progress'" class="w-7 h-7 sm:w-8 sm:h-8" />
+                  <CheckCircle2 v-else-if="stat.type === 'completed'" class="w-7 h-7 sm:w-8 sm:h-8" />
                 </div>
               </div>
 
