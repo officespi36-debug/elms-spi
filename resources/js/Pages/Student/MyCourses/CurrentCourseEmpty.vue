@@ -131,40 +131,6 @@ const completedCount = computed(() => {
   return (props.courses || []).filter(c => c.status === 'completed' || c.progress_percent >= 100).length
 })
 
-// Dynamic stat cards matching Student Dashboard styling
-const statCardsData = computed(() => [
-  {
-    type: 'total',
-    filterKey: 'all' as const,
-    title: isKm.value ? 'វគ្គសិក្សាសរុប' : 'Total Courses',
-    value: totalCoursesCount.value,
-    subtitle: isKm.value ? 'វគ្គសិក្សាទាំងអស់ដែលបានចុះឈ្មោះ' : 'All enrolled courses',
-    gradient: 'from-[#7045F5] via-[#7c3aed] to-[#5b21b6]',
-    wavePath: 'M0 18 Q 20 4, 40 14 T 70 6 T 100 12 L 100 25 L 0 25 Z',
-    waveLine: 'M0 18 Q 20 4, 40 14 T 70 6 T 100 12',
-  },
-  {
-    type: 'in_progress',
-    filterKey: 'in_progress' as const,
-    title: isKm.value ? 'កំពុងរៀន' : 'In Progress',
-    value: inProgressCount.value,
-    subtitle: isKm.value ? 'វគ្គសិក្សាកំពុងបន្តរៀន' : 'Courses in active progress',
-    gradient: 'from-[#2563EB] via-[#1d4ed8] to-[#1e40af]',
-    wavePath: 'M0 20 Q 25 8, 45 16 T 75 4 T 100 10 L 100 25 L 0 25 Z',
-    waveLine: 'M0 20 Q 25 8, 45 16 T 75 4 T 100 10',
-  },
-  {
-    type: 'completed',
-    filterKey: 'completed' as const,
-    title: isKm.value ? 'បានបញ្ចប់' : 'Completed',
-    value: completedCount.value,
-    subtitle: isKm.value ? 'បានបញ្ចប់ ១០០% ដោយជោគជ័យ' : 'Successfully completed',
-    gradient: 'from-[#059669] via-[#10B981] to-[#047857]',
-    wavePath: 'M0 16 Q 20 22, 45 8 T 75 14 T 100 4 L 100 25 L 0 25 Z',
-    waveLine: 'M0 16 Q 20 22, 45 8 T 75 14 T 100 4',
-  },
-])
-
 // Reactive search & filter pipeline
 const filteredCourses = computed(() => {
   let list = [...(props.courses || [])]
@@ -331,52 +297,6 @@ const handleEnrollRecommended = (course: RecommendedCourse) => {
           {{ isKm ? 'ព្យាយាមម្តងទៀត' : 'Retry' }}
         </button>
       </div>
-
-      <!-- 2. Course Summary (Dashboard Style Wave Cards) -->
-      <section aria-label="Course Summary Statistics">
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
-          <div
-            v-for="stat in statCardsData"
-            :key="stat.type"
-            @click="selectedStatus = stat.filterKey"
-            :class="[
-              'stat-card relative overflow-hidden rounded-2xl bg-gradient-to-br text-white p-4 sm:p-5 shadow-xs hover:shadow-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col justify-between group cursor-pointer border min-h-[136px] sm:min-h-[142px]',
-              stat.gradient,
-              selectedStatus === stat.filterKey ? 'ring-2 ring-white/90 shadow-lg scale-[1.01]' : 'border-white/10 hover:-translate-y-1'
-            ]"
-          >
-            <div>
-              <div class="flex items-start justify-between gap-1">
-                <span class="text-xs sm:text-[13px] font-bold tracking-tight uppercase text-white/90 leading-tight mr-1">{{ stat.title }}</span>
-                <div class="text-white/95 group-hover:text-white group-hover:scale-110 transition-transform duration-200 shrink-0">
-                  <BookOpen v-if="stat.type === 'total'" class="w-7 h-7 sm:w-8 sm:h-8" />
-                  <PlayCircle v-else-if="stat.type === 'in_progress'" class="w-7 h-7 sm:w-8 sm:h-8" />
-                  <CheckCircle2 v-else-if="stat.type === 'completed'" class="w-7 h-7 sm:w-8 sm:h-8" />
-                </div>
-              </div>
-
-              <!-- Metric Number -->
-              <h4 class="text-2xl sm:text-3xl font-black tracking-tight text-white mt-1.5 tabular-nums">
-                {{ stat.value }}
-              </h4>
-              <p class="text-xs text-white/90 font-medium mt-0.5 flex items-center gap-1 truncate">
-                <span>{{ stat.subtitle }}</span>
-              </p>
-            </div>
-
-            <!-- Sparkline Wave at Bottom (Dashboard Style) -->
-            <div class="mt-2 -mx-4 -mb-4 sm:-mx-5 sm:-mb-5 overflow-hidden rounded-b-2xl pointer-events-none">
-              <svg class="w-full h-7 sm:h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none" aria-hidden="true">
-                <g transform="translate(0 3)" opacity="0.10">
-                  <path :d="stat.wavePath" fill="currentColor"/>
-                </g>
-                <path :d="stat.wavePath" fill="currentColor" opacity="0.20"/>
-                <path :d="stat.waveLine" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" opacity="0.9"/>
-              </svg>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <!-- 3. Search and Filter Bar -->
       <section aria-label="Course Filters" class="bg-white dark:bg-[#1e1f20] rounded-2xl p-4 sm:p-5 border border-[#dfe3e7] dark:border-[#2d2f31] shadow-xs space-y-4">
