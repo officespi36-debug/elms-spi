@@ -383,224 +383,236 @@ class CourseController extends Controller
         CourseProgressService $progressService
     ) {
         $user = $request->user();
-
-        // Optional direct jump if requested explicitly via query param (e.g. ?redirect=1 or ?jump=1)
-        if ($request->boolean('redirect') || $request->boolean('jump')) {
-            $resolved = $continueService->resolve($user);
-            if ($resolved && !empty($resolved['course']) && !empty($resolved['lesson'])) {
-                return redirect()->to("/student/my-courses/{$resolved['course']->id}/lessons/{$resolved['lesson']->id}");
-            }
-            if ($resolved && !empty($resolved['course'])) {
-                return redirect()->to("/student/my-courses/{$resolved['course']->id}/continue");
-            }
+        if (!$user) {
+            return redirect()->route('login');
         }
 
-        // Load the student's active/completed enrollments for published courses (no N+1).
-        $enrollments = Enrollment::where('student_id', $user->id)
-            ->whereIn('status', ['active', 'completed'])
-            ->whereHas('course', fn ($q) => $q->where('status', 'published'))
-            ->with([
-                'course.teacher:id,name,name_kh,email,avatar,role',
-                'course.major:id,name,name_kh',
-                'course.modules:id,course_id,title,kh_title,order',
-                'course.modules.chapters:id,module_id,chapter_number,title,kh_title,order',
-                'course.modules.lessons:id,module_id,chapter_id,course_id,title,kh_title,order,duration_seconds',
-                'course.lessons:id,module_id,chapter_id,course_id,title,kh_title,order,duration_seconds',
-            ])
-            ->latest('updated_at')
-            ->get();
+        try {
+            // Optional direct jump if requested explicitly via query param (e.g. ?redirect=1 or ?jump=1)
+            if ($request->boolean('redirect') || $request->boolean('jump')) {
+                $resolved = $continueService->resolve($user);
+                if ($resolved && !empty($resolved['course']) && !empty($resolved['lesson'])) {
+                    return redirect()->to("/student/my-courses/{$resolved['course']->id}/lessons/{$resolved['lesson']->id}");
+                }
+                if ($resolved && !empty($resolved['course'])) {
+                    return redirect()->to("/student/my-courses/{$resolved['course']->id}/continue");
+                }
+            }
 
-        // Recommended courses (cached 5 min)
-        $recommended = $this->getRecommendedCourses($user, $progressService);
+            // Load the student's active/completed enrollments for published courses (no N+1).
+            $enrollments = Enrollment::where('student_id', $user->id)
+                ->whereIn('status', ['active', 'completed'])
+                ->whereHas('course', fn ($q) => $q->where('status', 'published'))
+                ->with([
+                    'course.teacher:id,name,name_kh,email,avatar,role',
+                    'course.major:id,name,name_kh',
+                    'course.modules:id,course_id,title,kh_title,order',
+                    'course.modules.chapters:id,module_id,chapter_number,title,kh_title,order',
+                    'course.modules.lessons:id,module_id,chapter_id,course_id,title,kh_title,order,duration_seconds',
+                    'course.lessons:id,module_id,chapter_id,course_id,title,kh_title,order,duration_seconds',
+                ])
+                ->latest('updated_at')
+                ->get();
 
-        // State A: no published-course enrollments.
-        if ($enrollments->isEmpty()) {
+            // Recommended courses (cached 5 min)
+            $recommended = $this->getRecommendedCourses($user, $progressService);
+
+            // Compute per-course progress states in a single batch pass.
+            $computed = $progressService->calculateForEnrollments($user, $enrollments);
+
+            // Map into full, reactive course dashboard items
+            $courses = $computed->map(function ($item) use ($progressService) {
+                /** @var Course $c */
+                $c = $item['course'];
+                /** @var Enrollment $enr */
+                $enr = $item['enrollment'];
+
+                $thumb = $c->thumbnail ? trim((string) $c->thumbnail) : null;
+                if ($thumb && !str_starts_with($thumb, 'http://') && !str_starts_with($thumb, 'https://') && !str_starts_with($thumb, '/')) {
+                    $thumb = asset('storage/' . ltrim($thumb, '/'));
+                }
+
+                $currentLesson = $item['current_lesson'] ?? null;
+                $continueUrl = !empty($currentLesson?->id)
+                    ? "/student/my-courses/{$c->id}/lessons/{$currentLesson->id}"
+                    : "/student/my-courses/{$c->id}/continue";
+
+                $lastAccessedHuman = !empty($item['last_activity_at']) ? (string) $item['last_activity_at'] : null;
+
+                $percent = (int) ($item['percent'] ?? 0);
+                $lessonsTotal = !empty($item['lessons_total'])
+                    ? (int) $item['lessons_total']
+                    : (!empty($item['total_lessons']) ? (int) $item['total_lessons'] : 3);
+                $lessonsDone = !empty($item['lessons_done'])
+                    ? (int) $item['lessons_done']
+                    : ($percent >= 100 ? $lessonsTotal : 0);
+                if ($percent >= 100 && $lessonsDone < $lessonsTotal) {
+                    $lessonsDone = $lessonsTotal;
+                }
+
+                return [
+                    'id'                 => (int) $c->id,
+                    'enrollment_id'      => (int) $enr->id,
+                    'title'              => $c->title,
+                    'title_kh'           => $c->title_kh ?: $c->title,
+                    'description'        => $c->description ?: 'Explore lessons, practical drills, and materials curated for your academic advancement.',
+                    'thumbnail'          => $thumb ?: null,
+                    'major_id'           => $c->major_id ? (int) $c->major_id : null,
+                    'major'              => $c->major?->name ?: 'Academic Studies',
+                    'major_kh'           => $c->major?->name_kh ?: ($c->major?->name ?: 'ការសិក្សាទូទៅ'),
+                    'teacher'            => [
+                        'name'    => $progressService->cleanTeacherName($c->teacher, $c),
+                        'name_kh' => $progressService->cleanTeacherNameKh($c->teacher, $c),
+                        'avatar'  => $c->teacher?->avatar_url ?: null,
+                    ],
+                    'lessons_total'      => $lessonsTotal,
+                    'lessons_completed'  => $lessonsDone,
+                    'progress_percent'   => $percent,
+                    'status'             => $item['state'] ?? 'not_started',
+                    'status_label'       => $item['state_label'] ?? 'In Progress',
+                    'last_accessed'      => $lastAccessedHuman,
+                    'last_accessed_ms'   => (int) ($item['last_activity_ms'] ?? 0),
+                    'continue_url'       => $continueUrl,
+                    'overview_url'       => "/student/courses/{$c->id}/overview",
+                    'current_lesson'     => $currentLesson ? [
+                        'id'       => $currentLesson->id,
+                        'title'    => $currentLesson->title,
+                        'title_kh' => $currentLesson->kh_title ?: $currentLesson->title,
+                    ] : null,
+                ];
+            })->values();
+
+            // Accurate summary stats directly from database records
+            $inProgressCount = $courses->where('status', 'in_progress')->count();
+            $completedCount  = $courses->where('status', 'completed')->count();
+            $notStartedCount = $courses->where('status', 'not_started')->count();
+            $totalCourses    = $courses->count();
+
+            // Real Study Time calculation from database
+            $totalStudySeconds = 0;
+            try {
+                $studyDailySeconds = (int) StudyDaily::where('user_id', $user->id)->sum('seconds');
+                $lpSeconds = (int) LessonProgress::where('user_id', $user->id)->sum('seconds_watched');
+                $totalStudySeconds = max($studyDailySeconds, $lpSeconds);
+                if ($totalStudySeconds === 0) {
+                    $analyticsService = app(DashboardAnalyticsService::class);
+                    $win30 = $analyticsService->getWindowAnalytics($user, 30);
+                    $totalStudySeconds = (int) ($win30['totalSeconds'] ?? 0);
+                }
+            } catch (\Throwable $e) {
+                $totalStudySeconds = 0;
+            }
+
+            $studyHours = (int) floor($totalStudySeconds / 3600);
+            $studyMinutes = (int) floor(($totalStudySeconds % 3600) / 60);
+            $studyTimeDisplay = $studyHours > 0 ? "{$studyHours}h " . str_pad((string)$studyMinutes, 2, '0', STR_PAD_LEFT) . "m" : "{$studyMinutes}m";
+            $studyTimeDisplayKh = $studyHours > 0 ? "{$studyHours} ម៉ោង {$studyMinutes} នាទី" : "{$studyMinutes} នាទី";
+
+            $stats = [
+                'total_courses'        => $totalCourses,
+                'in_progress'          => $inProgressCount,
+                'completed'            => $completedCount,
+                'not_started'          => $notStartedCount,
+                'total_study_seconds'  => $totalStudySeconds,
+                'study_hours'          => $studyHours,
+                'study_minutes'        => $studyMinutes,
+                'study_time'           => $studyTimeDisplay,
+                'study_time_kh'        => $studyTimeDisplayKh,
+            ];
+
+            // Majors list for filter
+            $majorsMap = [];
+            try {
+                $majorsList = Major::query()->select(['id', 'name', 'name_kh'])->orderBy('name')->get();
+                foreach ($majorsList as $m) {
+                    $majorsMap[$m->id] = [
+                        'id'      => (int) $m->id,
+                        'name'    => $m->name,
+                        'name_kh' => $m->name_kh ?: $m->name,
+                    ];
+                }
+            } catch (\Throwable $e) {}
+
+            // Also add any major present on enrolled courses
+            foreach ($courses as $cItem) {
+                $mId = $cItem['major_id'] ?? null;
+                if ($mId && !isset($majorsMap[$mId])) {
+                    $majorsMap[$mId] = [
+                        'id'      => (int) $mId,
+                        'name'    => $cItem['major'],
+                        'name_kh' => $cItem['major_kh'] ?: $cItem['major'],
+                    ];
+                }
+            }
+            $majors = array_values($majorsMap);
+
+            // Compute state for backwards compatibility
+            $allCompleted = $totalCourses > 0 && $completedCount === $totalCourses;
+            $inProgress = $courses->firstWhere('status', 'in_progress');
+            $notStarted = $courses->firstWhere('status', 'not_started');
+            $comingSoon = $courses->firstWhere('status', 'coming_soon');
+
+            $state = 'B';
+            if ($inProgress) {
+                $state = 'C';
+            } elseif ($allCompleted) {
+                $state = 'D';
+            } elseif ($comingSoon && $notStartedCount === 0) {
+                $state = 'E';
+            }
+
+            // Recent learning activities (Unit lessons) for quick resume cards as in student dashboard
+            $recentActivities = $this->buildRecentActivities($user);
+
+            $startCourse = null;
+            if ($notStarted) {
+                $startCourse = [
+                    'id'           => $notStarted['id'],
+                    'title'        => $notStarted['title'],
+                    'titleKh'      => $notStarted['title_kh'],
+                    'thumbnail'    => $notStarted['thumbnail'],
+                    'continueHref' => $notStarted['continue_url'],
+                    'lessonsCount' => $notStarted['lessons_total'],
+                ];
+            }
+
+            return Inertia::render('Student/MyCourses/CurrentCourseEmpty', [
+                'courses'            => $courses->all(),
+                'recentActivities'   => $recentActivities,
+                'stats'              => $stats,
+                'majors'             => $majors,
+                'recommendedCourses' => $recommended,
+                'state'              => $state,
+                'hasEnrollments'     => $enrollments->isNotEmpty(),
+                'startCourse'        => $startCourse,
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Current Courses Error: ' . $e->getMessage(), [
+                'exception' => $e,
+                'user_id'   => $user->id,
+            ]);
+
             return Inertia::render('Student/MyCourses/CurrentCourseEmpty', [
                 'courses'            => [],
                 'recentActivities'   => [],
                 'stats'              => [
-                    'total_courses' => 0,
-                    'in_progress'   => 0,
-                    'completed'     => 0,
-                    'not_started'   => 0,
+                    'total_courses'        => 0,
+                    'in_progress'          => 0,
+                    'completed'            => 0,
+                    'not_started'          => 0,
+                    'total_study_seconds'  => 0,
+                    'study_hours'          => 0,
+                    'study_minutes'        => 0,
+                    'study_time'           => '0m',
+                    'study_time_kh'        => '០ នាទី',
                 ],
                 'majors'             => [],
-                'recommendedCourses' => $recommended,
-                'state'              => 'A',
+                'recommendedCourses' => [],
+                'state'              => 'B',
                 'hasEnrollments'     => false,
                 'startCourse'        => null,
             ]);
         }
-
-        // Compute per-course progress states in a single batch pass.
-        $computed = $progressService->calculateForEnrollments($user, $enrollments);
-
-        // Map into full, reactive course dashboard items
-        $courses = $computed->map(function ($item) use ($progressService) {
-            /** @var Course $c */
-            $c = $item['course'];
-            /** @var Enrollment $enr */
-            $enr = $item['enrollment'];
-
-            $thumb = $c->thumbnail ? trim((string) $c->thumbnail) : null;
-            if ($thumb && !str_starts_with($thumb, 'http://') && !str_starts_with($thumb, 'https://') && !str_starts_with($thumb, '/')) {
-                $thumb = asset('storage/' . ltrim($thumb, '/'));
-            }
-
-            $currentLesson = $item['current_lesson'] ?? null;
-            $continueUrl = !empty($currentLesson?->id)
-                ? "/student/my-courses/{$c->id}/lessons/{$currentLesson->id}"
-                : "/student/my-courses/{$c->id}/continue";
-
-            $lastAccessedHuman = $item['last_activity_at'] ?: null;
-
-            return [
-                'id'                 => (int) $c->id,
-                'enrollment_id'      => (int) $enr->id,
-                'title'              => $c->title,
-                'title_kh'           => $c->title_kh ?: $c->title,
-                'description'        => $c->description ?: 'Explore lessons, practical drills, and materials curated for your academic advancement.',
-                'thumbnail'          => $thumb ?: null,
-                'major_id'           => $c->major_id ? (int) $c->major_id : null,
-                'major'              => $c->major?->name ?: 'Academic Studies',
-                'major_kh'           => $c->major?->name_kh ?: ($c->major?->name ?: 'ការសិក្សាទូទៅ'),
-                'teacher'            => [
-                    'name'    => $progressService->cleanTeacherName($c->teacher, $c),
-                    'name_kh' => $progressService->cleanTeacherNameKh($c->teacher, $c),
-                    'avatar'  => $c->teacher?->avatar_url ?: null,
-                ],
-                'lessons_total'      => (int) $item['lessons_total'],
-                'lessons_completed'  => (int) $item['lessons_done'],
-                'progress_percent'   => (int) $item['percent'],
-                'status'             => $item['state'], // 'in_progress', 'completed', 'not_started', 'coming_soon'
-                'status_label'       => $item['state_label'],
-                'last_accessed'      => $lastAccessedHuman,
-                'last_accessed_ms'   => (int) ($item['last_activity_ms'] ?? 0),
-                'continue_url'       => $continueUrl,
-                'overview_url'       => "/student/courses/{$c->id}/overview",
-                'current_lesson'     => $currentLesson ? [
-                    'id'       => $currentLesson->id,
-                    'title'    => $currentLesson->title,
-                    'title_kh' => $currentLesson->kh_title ?: $currentLesson->title,
-                ] : null,
-            ];
-        })->values();
-
-        // Accurate summary stats directly from database records
-        $inProgressCount = $courses->where('status', 'in_progress')->count();
-        $completedCount  = $courses->where('status', 'completed')->count();
-        $notStartedCount = $courses->where('status', 'not_started')->count();
-        $totalCourses    = $courses->count();
-
-        // Real Study Time calculation from database
-        $totalStudySeconds = 0;
-        try {
-            $studyDailySeconds = (int) StudyDaily::where('user_id', $user->id)->sum('seconds');
-            $lpSeconds = (int) LessonProgress::where('user_id', $user->id)->sum('seconds_watched');
-            $totalStudySeconds = max($studyDailySeconds, $lpSeconds);
-            if ($totalStudySeconds === 0) {
-                $analyticsService = app(DashboardAnalyticsService::class);
-                $win30 = $analyticsService->getWindowAnalytics($user, 30);
-                $totalStudySeconds = (int) ($win30['totalSeconds'] ?? 0);
-            }
-        } catch (\Throwable $e) {
-            $totalStudySeconds = 0;
-        }
-
-        $studyHours = (int) floor($totalStudySeconds / 3600);
-        $studyMinutes = (int) floor(($totalStudySeconds % 3600) / 60);
-        $studyTimeDisplay = $studyHours > 0 ? "{$studyHours}h " . str_pad((string)$studyMinutes, 2, '0', STR_PAD_LEFT) . "m" : "{$studyMinutes}m";
-        $studyTimeDisplayKh = $studyHours > 0 ? "{$studyHours} ម៉ោង {$studyMinutes} នាទី" : "{$studyMinutes} នាទី";
-
-        $stats = [
-            'total_courses'        => $totalCourses,
-            'in_progress'          => $inProgressCount,
-            'completed'            => $completedCount,
-            'not_started'          => $notStartedCount,
-            'total_study_seconds'  => $totalStudySeconds,
-            'study_hours'          => $studyHours,
-            'study_minutes'        => $studyMinutes,
-            'study_time'           => $studyTimeDisplay,
-            'study_time_kh'        => $studyTimeDisplayKh,
-        ];
-
-        // Majors list for filter
-        $majorsMap = [];
-        try {
-            $majorsList = Major::query()->select(['id', 'name', 'name_kh'])->orderBy('name')->get();
-            foreach ($majorsList as $m) {
-                $majorsMap[$m->id] = [
-                    'id'      => (int) $m->id,
-                    'name'    => $m->name,
-                    'name_kh' => $m->name_kh ?: $m->name,
-                ];
-            }
-        } catch (\Throwable $e) {}
-
-        // Also add any major present on enrolled courses
-        foreach ($courses as $cItem) {
-            $mId = $cItem['major_id'] ?? null;
-            if ($mId && !isset($majorsMap[$mId])) {
-                $majorsMap[$mId] = [
-                    'id'      => (int) $mId,
-                    'name'    => $cItem['major'],
-                    'name_kh' => $cItem['major_kh'] ?: $cItem['major'],
-                ];
-            }
-        }
-        $majors = array_values($majorsMap);
-
-        // Compute state for backwards compatibility
-        $allCompleted = $totalCourses > 0 && $completedCount === $totalCourses;
-        $inProgress = $courses->firstWhere('status', 'in_progress');
-        $notStarted = $courses->firstWhere('status', 'not_started');
-        $comingSoon = $courses->firstWhere('status', 'coming_soon');
-
-        $state = 'B';
-        if ($inProgress) {
-            $state = 'C';
-        } elseif ($allCompleted) {
-            $state = 'D';
-        } elseif ($comingSoon && $notStartedCount === 0) {
-            $state = 'E';
-        }
-
-        // Direct shortcut jump only if explicitly requested via ?redirect=1 or ?jump=1
-        if ($request->boolean('redirect') || $request->boolean('jump')) {
-            $resolved = $continueService->resolve($user);
-            if ($resolved && !empty($resolved['course']) && !empty($resolved['lesson'])) {
-                return redirect()->to("/student/my-courses/{$resolved['course']->id}/lessons/{$resolved['lesson']->id}");
-            }
-            if ($inProgress && !empty($inProgress['id'])) {
-                return redirect()->to("/student/my-courses/{$inProgress['id']}/continue");
-            }
-        }
-
-        // Recent learning activities (Unit lessons) for quick resume cards as in student dashboard
-        $recentActivities = $this->buildRecentActivities($user);
-
-        $startCourse = null;
-        if ($notStarted) {
-            $startCourse = [
-                'id'           => $notStarted['id'],
-                'title'        => $notStarted['title'],
-                'titleKh'      => $notStarted['title_kh'],
-                'thumbnail'    => $notStarted['thumbnail'],
-                'continueHref' => $notStarted['continue_url'],
-                'lessonsCount' => $notStarted['lessons_total'],
-            ];
-        }
-
-        return Inertia::render('Student/MyCourses/CurrentCourseEmpty', [
-            'courses'            => $courses->all(),
-            'recentActivities'   => $recentActivities,
-            'stats'              => $stats,
-            'majors'             => $majors,
-            'recommendedCourses' => $recommended,
-            'state'              => $state,
-            'hasEnrollments'     => true,
-            'startCourse'        => $startCourse,
-        ]);
     }
 
     /**

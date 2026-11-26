@@ -171,7 +171,7 @@ const formattedActivities = computed(() => {
       cleanTitle,
       category,
       duration: durationDisplay,
-      thumbnail: a.thumbnail || '/images/courses/default-coding.png',
+      thumbnail: a.thumbnail || '/images/courses/default-study-book.png',
       progress: Math.min(100, Math.max(0, Math.round(p)))
     }
   })
@@ -383,13 +383,34 @@ const retryLoading = () => {
           </div>
         </div>
 
-        <!-- Right Side Academic Illustration (Books, Cap, Building) -->
-        <div class="hidden md:block shrink-0 h-24 sm:h-28 w-48 sm:w-64 relative z-0 opacity-95 pointer-events-none">
-          <img
-            :src="'/images/dashboard/academic-books-banner.svg'"
-            alt="Academic Stack"
-            class="w-full h-full object-contain object-right"
-          />
+        <!-- Right Side: Action Buttons & Academic Illustration -->
+        <div class="flex items-center gap-4 z-10">
+          <div class="hidden sm:flex items-center gap-2.5">
+            <Link
+              href="/student/browse"
+              class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#7045F5] hover:bg-[#5f35e0] text-white font-bold text-xs shadow-md shadow-[#7045F5]/25 hover:shadow-lg transition-all"
+            >
+              <Sparkles class="w-3.5 h-3.5" />
+              <span>{{ isKm ? 'ស្វែងរកវគ្គសិក្សា' : 'Explore Courses' }}</span>
+            </Link>
+
+            <Link
+              href="/student/ai/tutor"
+              class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-purple-200 dark:border-purple-800/50 text-[#7045F5] dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 font-bold text-xs shadow-xs transition-all"
+            >
+              <Sparkles class="w-3.5 h-3.5 text-amber-500" />
+              <span>{{ isKm ? 'ការណែនាំពី AI' : 'AI Learning' }}</span>
+            </Link>
+          </div>
+
+          <!-- Academic Illustration (Books, Cap, Building) -->
+          <div class="hidden md:block shrink-0 h-24 sm:h-28 w-44 sm:w-56 relative z-0 opacity-95 pointer-events-none">
+            <img
+              :src="'/images/dashboard/academic-books-banner.svg'"
+              alt="Academic Stack"
+              class="w-full h-full object-contain object-right"
+            />
+          </div>
         </div>
       </section>
 

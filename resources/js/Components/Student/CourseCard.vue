@@ -260,7 +260,7 @@ const fallbackThumb = computed(() => {
             class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-white dark:bg-slate-900 border-2 border-[#7045F5]/30 hover:border-[#7045F5] text-[#7045F5] dark:text-[#a78bfa] hover:bg-[#7045F5]/5 font-bold text-xs sm:text-sm shadow-xs transition-all duration-200"
           >
             <Eye class="w-4 h-4 shrink-0" />
-            <span>{{ isKm ? 'ពិនិត្យវគ្គសិក្សាឡើងវិញ' : 'Review Course' }}</span>
+            <span>{{ isKm ? 'មើលវគ្គសិក្សា' : 'View Course' }}</span>
           </Link>
         </template>
 
