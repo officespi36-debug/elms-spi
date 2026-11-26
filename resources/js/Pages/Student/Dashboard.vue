@@ -1022,7 +1022,7 @@ const recentActivities = computed(() => {
             <div v-if="continueCourseData" class="bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-[#7045F5] hover:shadow-lg hover:dark:border-[#7045F5]/60 rounded-3xl p-6 shadow-sm dark:shadow-xl flex flex-col md:flex-row items-center gap-5 sm:gap-6 relative overflow-hidden transition-all duration-300 group">
               
               <!-- Real Course Thumbnail for Continue Learning -->
-              <Link :href="continueCourseData.href" class="relative w-full md:w-36 h-28 rounded-2xl overflow-hidden shrink-0 shadow-md bg-gradient-to-br from-purple-600/90 via-[#7045F5] to-slate-800 border border-[#dfe3e7] dark:border-[#2d2f31] flex items-center justify-center cursor-pointer">
+              <Link :href="continueCourseData.href" class="relative w-full md:w-36 h-28 rounded-2xl overflow-hidden shrink-0 shadow-md bg-emerald-950 border border-[#dfe3e7] dark:border-[#2d2f31] flex items-center justify-center cursor-pointer">
                 <img
                   v-if="continueCourseData.thumbnail"
                   :src="continueCourseData.thumbnail"
@@ -1030,9 +1030,12 @@ const recentActivities = computed(() => {
                   class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   loading="lazy"
                 />
-                <svg v-else class="w-9 h-9 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
+                <img
+                  v-else
+                  :src="'/images/courses/default-study-book.png'"
+                  :alt="currentLang === 'km' ? (continueCourseData.title_kh || continueCourseData.title) : continueCourseData.title"
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
                 <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-2">
                   <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-400 text-slate-950 font-black text-[10px] shadow-sm">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
@@ -1158,7 +1161,7 @@ const recentActivities = computed(() => {
                 class="course-card-scroll bg-white dark:bg-[#1e1f20] border border-[#dfe3e7] dark:border-[#2d2f31] hover:border-[#7045F5] hover:dark:border-[#7045F5]/70 hover:dark:bg-[#232426] rounded-2xl p-4.5 sm:p-5 shadow-xs dark:shadow-xl flex flex-col justify-between space-y-3.5 transition-all duration-300 hover:-translate-y-1 hover:shadow-md group"
               >
                 <!-- Real Representative Course Thumbnail Image -->
-                <div class="relative w-full h-36 rounded-2xl overflow-hidden bg-gradient-to-br from-purple-600/90 via-[#7045F5] to-slate-800 border border-[#dfe3e7] dark:border-[#2d2f31] shadow-xs flex items-center justify-center">
+                <div class="relative w-full h-36 rounded-2xl overflow-hidden bg-emerald-950 border border-[#dfe3e7] dark:border-[#2d2f31] shadow-xs flex items-center justify-center">
                   <img
                     v-if="c.thumbnail"
                     :src="c.thumbnail"
@@ -1166,9 +1169,12 @@ const recentActivities = computed(() => {
                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     loading="lazy"
                   />
-                  <svg v-else class="w-10 h-10 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                  </svg>
+                  <img
+                    v-else
+                    :src="'/images/courses/default-study-book.png'"
+                    :alt="currentLang === 'km' ? (c.title_kh || c.title) : c.title"
+                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
                   <!-- Vignette gradient overlay for text and badge contrast -->
                   <div class="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/20 pointer-events-none"></div>
 
