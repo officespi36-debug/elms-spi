@@ -241,9 +241,9 @@ const handleEnrollRecommended = (course: RecommendedCourse) => {
       <!-- 1. Top Page Banner & Quick Shortcuts -->
       <div class="px-5 py-4 sm:px-6 sm:py-5 rounded-2xl border border-[#dfe3e7] dark:border-[#2d2f31] bg-gradient-to-r from-white via-indigo-50/40 to-purple-50/50 dark:from-[#1e1f20] dark:via-[#202331] dark:to-[#242031] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div class="flex items-center gap-3.5 min-w-0">
-          <!-- Professional Purple Accent Icon Badge -->
-          <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-[#7045F5] to-[#916eff] flex items-center justify-center text-white shadow-lg shadow-[#7045F5]/25 shrink-0">
-            <BookOpen class="w-6 h-6 sm:w-7 sm:h-7" />
+          <!-- Professional Learning Accent Icon Badge -->
+          <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl overflow-hidden shadow-lg shadow-emerald-500/25 shrink-0 border border-emerald-300/40 dark:border-emerald-700/40">
+            <img :src="'/images/dashboard/learning-book.png'" alt="Learning" class="w-full h-full object-cover" />
           </div>
 
           <div class="space-y-0.5 min-w-0">
@@ -482,8 +482,8 @@ const handleEnrollRecommended = (course: RecommendedCourse) => {
             <div class="bg-white dark:bg-[#1e1f20] rounded-3xl p-8 sm:p-12 border border-slate-200/90 dark:border-slate-800 shadow-sm text-center relative overflow-hidden max-w-3xl mx-auto space-y-5">
               <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(112,69,245,0.08),transparent_70%)] pointer-events-none"></div>
 
-              <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-purple-50 dark:bg-purple-900/25 border border-purple-100 dark:border-purple-700/40 text-[#7045F5] flex items-center justify-center mx-auto shadow-inner relative z-10">
-                <GraduationCap class="w-8 h-8 sm:w-10 sm:h-10" />
+              <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl overflow-hidden shadow-lg mx-auto relative z-10 border border-emerald-300/40 dark:border-emerald-700/40">
+                <img :src="'/images/dashboard/learning-book.png'" alt="Learning" class="w-full h-full object-cover" />
               </div>
 
               <div class="space-y-2 relative z-10">
@@ -542,9 +542,12 @@ const handleEnrollRecommended = (course: RecommendedCourse) => {
                       :alt="isKm && rec.titleKh ? rec.titleKh : rec.title"
                       class="w-full h-full object-cover"
                     />
-                    <div v-else class="w-full h-full bg-gradient-to-tr from-purple-700 to-indigo-800 flex items-center justify-center text-white">
-                      <BookOpen class="w-8 h-8 opacity-70" />
-                    </div>
+                    <img
+                      v-else
+                      :src="'/images/courses/default-study-book.png'"
+                      :alt="isKm && rec.titleKh ? rec.titleKh : rec.title"
+                      class="w-full h-full object-cover"
+                    />
 
                     <!-- Category Pill -->
                     <div class="absolute top-3 left-3">
