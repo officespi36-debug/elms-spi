@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 220" width="100%" height="100%" fill="none">
+  <defs>
+    <!-- Gradients for books -->
+    <linearGradient id="bookPurple" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7C3AED" />
+      <stop offset="100%" stop-color="#4C1D95" />
+    </linearGradient>
+    <linearGradient id="bookBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563EB" />
+      <stop offset="100%" stop-color="#1E3A8A" />
+    </linearGradient>
+    <linearGradient id="bookTeal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0D9488" />
+      <stop offset="100%" stop-color="#115E59" />
+    </linearGradient>
+    <linearGradient id="bookGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F59E0B" />
+      <stop offset="100%" stop-color="#B45309" />
+    </linearGradient>
+    <!-- Building silhouette gradient -->
+    <linearGradient id="buildingGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#7C3AED" stop-opacity="0.12" />
+      <stop offset="100%" stop-color="#7C3AED" stop-opacity="0.03" />
+    </linearGradient>
+    <!-- Pages gradient -->
+    <linearGradient id="pageGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#F8FAFC" />
+      <stop offset="100%" stop-color="#E2E8F0" />
+    </linearGradient>
+    <filter id="softShadow" x="-10%" y="-10%" width="125%" height="125%">
+      <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#4C1D95" flood-opacity="0.18" />
+    </filter>
+  </defs>
+
+  <!-- 1. Classical SPI Building Silhouette in Background -->
+  <g transform="translate(230, 20)">
+    <!-- Pediment -->
+    <polygon points="100,28 15,62 185,62" fill="url(#buildingGrad)" />
+    <!-- Entablature -->
+    <rect x="22" y="62" width="156" height="7" rx="2" fill="url(#buildingGrad)" />
+    <!-- Pillars -->
+    <rect x="30" y="69" width="9" height="75" rx="2" fill="url(#buildingGrad)" />
+    <rect x="52" y="69" width="9" height="75" rx="2" fill="url(#buildingGrad)" />
+    <rect x="74" y="69" width="9" height="75" rx="2" fill="url(#buildingGrad)" />
+    <rect x="96" y="69" width="9" height="75" rx="2" fill="url(#buildingGrad)" />
+    <rect x="118" y="69" width="9" height="75" rx="2" fill="url(#buildingGrad)" />
+    <rect x="140" y="69" width="9" height="75" rx="2" fill="url(#buildingGrad)" />
+    <rect x="162" y="69" width="9" height="75" rx="2" fill="url(#buildingGrad)" />
+    <!-- Base steps -->
+    <rect x="12" y="144" width="176" height="6" rx="2" fill="url(#buildingGrad)" />
+    <rect x="5" y="150" width="190" height="7" rx="2" fill="url(#buildingGrad)" />
+    <!-- Center Seal circle -->
+    <circle cx="100" cy="50" r="8" fill="#7C3AED" fill-opacity="0.2" />
+    <text x="100" y="53" font-family="sans-serif" font-size="5" font-weight="900" fill="#7C3AED" text-anchor="middle" fill-opacity="0.7">SPI</text>
+  </g>
+
+  <!-- 2. Isometric / Perspective Stack of Books -->
+  <!-- Bottom Book (Dark Purple / Violet) -->
+  <g filter="url(#softShadow)" transform="translate(18, 15)">
+    <!-- Book 1: Base thick textbook -->
+    <!-- Cover Base -->
+    <path d="M 60 160 L 220 128 L 265 145 L 98 178 Z" fill="url(#bookPurple)" />
+    <path d="M 60 160 L 60 178 L 98 196 L 98 178 Z" fill="#3B0764" />
+    <path d="M 98 178 L 265 145 L 265 163 L 98 196 Z" fill="url(#bookPurple)" />
+    <!-- Pages -->
+    <path d="M 68 163 L 215 133 L 258 149 L 105 180 Z" fill="url(#pageGrad)" />
+    <path d="M 105 180 L 258 149 L 258 159 L 105 190 Z" fill="#CBD5E1" />
+
+    <!-- Book 2: Middle Book (Royal Blue) -->
+    <path d="M 72 138 L 208 110 L 246 125 L 104 153 Z" fill="url(#bookBlue)" />
+    <path d="M 72 138 L 72 152 L 104 167 L 104 153 Z" fill="#172554" />
+    <path d="M 104 153 L 246 125 L 246 139 L 104 167 Z" fill="url(#bookBlue)" />
+    <!-- Pages -->
+    <path d="M 79 141 L 204 115 L 240 128 L 109 155 Z" fill="url(#pageGrad)" />
+    <path d="M 109 155 L 240 128 L 240 136 L 109 162 Z" fill="#CBD5E1" />
+
+    <!-- Book 3: Top Book (Teal / Cyan) -->
+    <path d="M 82 118 L 195 95 L 230 108 L 111 131 Z" fill="url(#bookTeal)" />
+    <path d="M 82 118 L 82 130 L 111 143 L 111 131 Z" fill="#042F2E" />
+    <path d="M 111 131 L 230 108 L 230 120 L 111 143 Z" fill="url(#bookTeal)" />
+    <!-- Pages -->
+    <path d="M 88 121 L 191 100 L 225 111 L 115 133 Z" fill="url(#pageGrad)" />
+    <path d="M 115 133 L 225 111 L 225 118 L 115 139 Z" fill="#CBD5E1" />
+
+    <!-- 3. Graduation Cap (Mortarboard) -->
+    <!-- Cap Skull Base -->
+    <ellipse cx="155" cy="85" rx="35" ry="12" fill="#0F172A" />
+    <path d="M 120 85 Q 155 105 190 85 L 190 94 Q 155 114 120 94 Z" fill="#1E293B" />
+    <!-- Diamond Top Board -->
+    <polygon points="155,42 225,62 155,82 85,62" fill="#1E293B" filter="url(#softShadow)" />
+    <polygon points="155,44 221,62 155,80 89,62" fill="#0F172A" />
+    <!-- Button on top -->
+    <ellipse cx="155" cy="62" rx="4" ry="2.5" fill="#D97706" />
+    <!-- Tassel Ribbon & Hanging Ball -->
+    <path d="M 155 62 Q 130 66 115 76 Q 106 84 104 98" stroke="url(#bookGold)" stroke-width="2.5" stroke-linecap="round" fill="none" />
+    <!-- Tassel Brush -->
+    <polygon points="102,98 108,98 111,114 99,114" fill="url(#bookGold)" />
+    <circle cx="104.5" cy="98" r="2.5" fill="#F59E0B" />
+
+    <!-- Ribbon bookmark sticking out from middle book -->
+    <path d="M 235 132 Q 248 135 252 148 L 246 150 L 244 142 Z" fill="#F43F5E" />
+  </g>
+
+  <!-- Floating Sparkles / Stars -->
+  <g fill="#A855F7" fill-opacity="0.8">
+    <path d="M 68 70 Q 72 70 72 66 Q 72 70 76 70 Q 72 70 72 74 Q 72 70 68 70 Z" />
+    <path d="M 270 95 Q 273 95 273 92 Q 273 95 276 95 Q 273 95 273 98 Q 273 95 270 95 Z" />
+    <path d="M 240 38 Q 244 38 244 34 Q 244 38 248 38 Q 244 38 244 42 Q 244 38 240 38 Z" fill="#F59E0B" />
+  </g>
+</svg>

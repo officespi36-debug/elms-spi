@@ -492,11 +492,36 @@ class CourseController extends Controller
         $notStartedCount = $courses->where('status', 'not_started')->count();
         $totalCourses    = $courses->count();
 
+        // Real Study Time calculation from database
+        $totalStudySeconds = 0;
+        try {
+            $studyDailySeconds = (int) StudyDaily::where('user_id', $user->id)->sum('seconds');
+            $lpSeconds = (int) LessonProgress::where('user_id', $user->id)->sum('seconds_watched');
+            $totalStudySeconds = max($studyDailySeconds, $lpSeconds);
+            if ($totalStudySeconds === 0) {
+                $analyticsService = app(DashboardAnalyticsService::class);
+                $win30 = $analyticsService->getWindowAnalytics($user, 30);
+                $totalStudySeconds = (int) ($win30['totalSeconds'] ?? 0);
+            }
+        } catch (\Throwable $e) {
+            $totalStudySeconds = 0;
+        }
+
+        $studyHours = (int) floor($totalStudySeconds / 3600);
+        $studyMinutes = (int) floor(($totalStudySeconds % 3600) / 60);
+        $studyTimeDisplay = $studyHours > 0 ? "{$studyHours}h " . str_pad((string)$studyMinutes, 2, '0', STR_PAD_LEFT) . "m" : "{$studyMinutes}m";
+        $studyTimeDisplayKh = $studyHours > 0 ? "{$studyHours} ម៉ោង {$studyMinutes} នាទី" : "{$studyMinutes} នាទី";
+
         $stats = [
-            'total_courses' => $totalCourses,
-            'in_progress'   => $inProgressCount,
-            'completed'     => $completedCount,
-            'not_started'   => $notStartedCount,
+            'total_courses'        => $totalCourses,
+            'in_progress'          => $inProgressCount,
+            'completed'            => $completedCount,
+            'not_started'          => $notStartedCount,
+            'total_study_seconds'  => $totalStudySeconds,
+            'study_hours'          => $studyHours,
+            'study_minutes'        => $studyMinutes,
+            'study_time'           => $studyTimeDisplay,
+            'study_time_kh'        => $studyTimeDisplayKh,
         ];
 
         // Majors list for filter
@@ -634,7 +659,7 @@ class CourseController extends Controller
         try {
             $recentLessons = LessonProgress::where('user_id', $user->id)
                 ->select(['id', 'user_id', 'lesson_id', 'percent', 'seconds_watched', 'completed_at', 'updated_at'])
-                ->with(['lesson:id,course_id,title,kh_title', 'lesson.course:id,title,title_kh'])
+                ->with(['lesson:id,course_id,title,kh_title,duration_seconds,thumbnail', 'lesson.course:id,title,title_kh,thumbnail'])
                 ->latest('updated_at')
                 ->take(6)
                 ->get();
@@ -643,6 +668,16 @@ class CourseController extends Controller
                 if ($lp->lesson && $lp->lesson->course) {
                     $rawTitle = $lp->lesson->title;
                     $isLab = str_contains(strtolower($rawTitle), 'lab') || str_contains(strtolower($rawTitle), 'practical') || str_contains(strtolower($rawTitle), 'អនុវត្ត');
+                    $durSec = (int) ($lp->lesson->duration_seconds ?: ($lp->seconds_watched ?: 1176));
+                    $durMins = (int) floor($durSec / 60);
+                    $durSecs = (int) ($durSec % 60);
+                    $durFmt = sprintf('%02d:%02d', $durMins, $durSecs);
+
+                    $thumb = $lp->lesson->thumbnail ?: $lp->lesson->course->thumbnail;
+                    if ($thumb && !str_starts_with($thumb, 'http://') && !str_starts_with($thumb, 'https://') && !str_starts_with($thumb, '/')) {
+                        $thumb = asset('storage/' . ltrim($thumb, '/'));
+                    }
+
                     $recentActivitiesList[] = [
                         'id'          => 'lp-' . $lp->id,
                         'type'        => 'play',
@@ -652,6 +687,8 @@ class CourseController extends Controller
                         'course'      => $lp->lesson->course->title,
                         'course_km'   => $lp->lesson->course->title_kh ?: $lp->lesson->course->title,
                         'time'        => $lp->updated_at ? $lp->updated_at->diffForHumans() : 'Recently',
+                        'duration'    => $durFmt,
+                        'thumbnail'   => $thumb ?: null,
                         'href'        => "/student/my-courses/{$lp->lesson->course_id}/lessons/{$lp->lesson_id}",
                         'timestamp'   => $lp->updated_at ? $lp->updated_at->timestamp : 0,
                         'progress'    => (int) ($lp->percent ?? 0),
@@ -672,7 +709,7 @@ class CourseController extends Controller
                     $existingLessonIds = $recentLessons->pluck('lesson_id')->filter()->all();
                     $fallbackLessons = Lesson::whereIn('course_id', $enrolledCourseIds)
                         ->when(!empty($existingLessonIds), fn ($q) => $q->whereNotIn('id', $existingLessonIds))
-                        ->with('course:id,title,title_kh')
+                        ->with(['course:id,title,title_kh,thumbnail'])
                         ->orderBy('order')
                         ->take(3 - count($recentActivitiesList))
                         ->get();
@@ -681,6 +718,16 @@ class CourseController extends Controller
                         if ($fl->course) {
                             $rawTitle = $fl->title;
                             $isLab = str_contains(strtolower($rawTitle), 'lab') || str_contains(strtolower($rawTitle), 'practical') || str_contains(strtolower($rawTitle), 'អនុវត្ត');
+                            $durSec = (int) ($fl->duration_seconds ?: 1200);
+                            $durMins = (int) floor($durSec / 60);
+                            $durSecs = (int) ($durSec % 60);
+                            $durFmt = sprintf('%02d:%02d', $durMins, $durSecs);
+
+                            $thumb = $fl->thumbnail ?: $fl->course->thumbnail;
+                            if ($thumb && !str_starts_with($thumb, 'http://') && !str_starts_with($thumb, 'https://') && !str_starts_with($thumb, '/')) {
+                                $thumb = asset('storage/' . ltrim($thumb, '/'));
+                            }
+
                             $recentActivitiesList[] = [
                                 'id'          => 'fl-' . $fl->id,
                                 'type'        => 'play',
@@ -690,6 +737,8 @@ class CourseController extends Controller
                                 'course'      => $fl->course->title,
                                 'course_km'   => $fl->course->title_kh ?: $fl->course->title,
                                 'time'        => 'មេរៀនថ្មី',
+                                'duration'    => $durFmt,
+                                'thumbnail'   => $thumb ?: null,
                                 'href'        => "/student/my-courses/{$fl->course_id}/lessons/{$fl->id}",
                                 'timestamp'   => time(),
                                 'progress'    => 0,
