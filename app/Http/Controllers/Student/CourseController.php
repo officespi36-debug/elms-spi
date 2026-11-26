@@ -539,6 +539,17 @@ class CourseController extends Controller
             $state = 'E';
         }
 
+        // State C: in progress -> 302 redirect directly to the active lesson to continue learning (unless ?list=1 or ?dashboard=1)
+        if ($state === 'C' && !$request->boolean('list') && !$request->boolean('dashboard')) {
+            $resolved = $continueService->resolve($user);
+            if ($resolved && !empty($resolved['course']) && !empty($resolved['lesson'])) {
+                return redirect()->to("/student/my-courses/{$resolved['course']->id}/lessons/{$resolved['lesson']->id}");
+            }
+            if ($inProgress && !empty($inProgress['id'])) {
+                return redirect()->to("/student/my-courses/{$inProgress['id']}/continue");
+            }
+        }
+
         $startCourse = null;
         if ($notStarted) {
             $startCourse = [

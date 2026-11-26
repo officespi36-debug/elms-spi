@@ -108,10 +108,17 @@ class ContinueLearningTest extends TestCase
             'percent'         => 10,
         ]);
 
+        // State C: in progress -> 302 redirect directly to first incomplete lesson
         $stateCResponse = $this->actingAs($this->student)
             ->get('/student/my-courses/current');
 
-        $stateCResponse->assertStatus(200)
+        $stateCResponse->assertStatus(302);
+        $stateCResponse->assertRedirect("/student/my-courses/{$this->course->id}/lessons/{$this->lesson1->id}");
+
+        // When explicitly requesting list/dashboard with ?list=1, it renders the dashboard view
+        $listResponse = $this->actingAs($this->student)
+            ->get('/student/my-courses/current?list=1');
+        $listResponse->assertStatus(200)
             ->assertInertia(fn ($page) => $page
                 ->component('Student/MyCourses/CurrentCourseEmpty')
                 ->where('state', 'C')
