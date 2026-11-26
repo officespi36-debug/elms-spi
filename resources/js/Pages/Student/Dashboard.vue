@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { Link, usePage, router } from '@inertiajs/vue3'
 import StudentLayout from '@/Layouts/StudentLayout.vue'
 import TodaysGoalWidget from '@/Components/Student/TodaysGoalWidget.vue'
@@ -395,7 +395,7 @@ const statsCards = computed(() => {
     },
     {
       type: 'study_time',
-      title: currentLang.value === 'km' ? 'ពេលវេលាសិក្សាសរុប' : 'Total Study Time',
+      title: currentLang.value === 'km' ? 'ម៉ោងសិក្សាសរុប' : 'Total Study Time',
       value: formatStudyDuration(studyTimeDisplay),
       subtitle: 'Total Study Time',
       gradient: 'from-[#0EA5E9] to-[#38BDF8]',
@@ -427,7 +427,21 @@ const completedCoursesCount = computed(() => {
 const totalCoursesCount = computed(() => coursesToDisplay.value.length)
 
 // Default filter tab
-const selectedCourseFilter = ref<'in_progress' | 'completed' | 'all'>('in_progress')
+const selectedCourseFilter = ref<'in_progress' | 'completed' | 'all'>('all')
+
+watch(coursesToDisplay, (newCourses) => {
+  if (newCourses && newCourses.length > 0) {
+    const hasInProg = newCourses.some(c => c.status === 'in_progress' || c.status === 'not_started')
+    const hasComp = newCourses.some(c => c.status === 'completed')
+    if (!hasInProg && hasComp) {
+      selectedCourseFilter.value = 'completed'
+    } else if (hasInProg) {
+      selectedCourseFilter.value = 'in_progress'
+    } else {
+      selectedCourseFilter.value = 'all'
+    }
+  }
+}, { immediate: true })
 
 const filteredCourses = computed(() => {
   if (selectedCourseFilter.value === 'all') return coursesToDisplay.value
@@ -696,7 +710,7 @@ const upcomingEvents = computed(() => {
                       </svg>
                     </div>
 
-                    <span class="text-[11px] font-bold text-white/90 truncate">{{ stat.title }}</span>
+                    <span class="text-[10px] sm:text-[10.5px] xl:text-[11px] font-bold text-white/95 leading-tight whitespace-nowrap">{{ stat.title }}</span>
                   </div>
 
                   <!-- Number Value -->
@@ -992,7 +1006,7 @@ const upcomingEvents = computed(() => {
                     <div class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                       {{ act.category_km || 'មេរៀន' }} · {{ act.time }}
                     </div>
-                    <h4 class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white line-clamp-1 group-hover:text-[#7045F5] transition-colors">
+                    <h4 class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white line-clamp-2 min-h-[2.2rem] group-hover:text-[#7045F5] transition-colors leading-snug">
                       {{ act.cleanTitle }}
                     </h4>
                     <p class="text-xs text-slate-500 dark:text-slate-400 truncate">
@@ -1239,11 +1253,11 @@ const upcomingEvents = computed(() => {
                   </svg>
                 </div>
 
-                <div class="mt-2 space-y-0.5">
-                  <span class="text-[9.5px] font-semibold text-slate-600 dark:text-slate-300 line-clamp-1">
+                <div class="mt-1.5 space-y-0.5 w-full">
+                  <div class="text-[8.5px] sm:text-[9.5px] font-bold text-slate-700 dark:text-slate-300 leading-tight text-center break-words min-h-[22px] flex items-center justify-center">
                     {{ ach.title }}
-                  </span>
-                  <div class="text-sm font-black text-slate-900 dark:text-white tabular-nums">
+                  </div>
+                  <div class="text-xs sm:text-sm font-black text-slate-900 dark:text-white tabular-nums">
                     {{ ach.value }}
                   </div>
                 </div>

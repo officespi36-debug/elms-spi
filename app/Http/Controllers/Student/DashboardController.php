@@ -510,9 +510,14 @@ class DashboardController extends Controller
 
             $majorName = $course->major?->name ?? 'Information Technology';
             $majorKh = $course->major?->name_kh ?: ($course->major?->name ?? 'បច្ចេកវិទ្យាព័ត៌មាន');
-            $lessonsTotal = (int) ($item['total_lessons'] ?? 0);
-            $lessonsDone = (int) ($item['completed_lessons'] ?? 0);
-            $lastActivity = !empty($item['latest_activity']) ? Carbon::parse($item['latest_activity'])->diffForHumans() : 'ថ្មីៗនេះ';
+            $lessonsTotal = (int) ($item['lessons_total'] ?? $item['total_lessons'] ?? (isset($course->lessons) ? count($course->lessons) : 3) ?: 3);
+            $lessonsDone = (int) ($item['lessons_done'] ?? $item['completed_lessons'] ?? ($progress >= 100 ? $lessonsTotal : 0));
+            if ($progress >= 100 && $lessonsDone < $lessonsTotal) {
+                $lessonsDone = $lessonsTotal;
+            }
+            $lastActivity = !empty($item['last_activity_at'])
+                ? Carbon::parse($item['last_activity_at'])->diffForHumans()
+                : (!empty($item['latest_activity']) ? Carbon::parse($item['latest_activity'])->diffForHumans() : 'ថ្មីៗនេះ');
 
             $list[] = [
                 'id'            => $course->id,
@@ -573,6 +578,12 @@ class DashboardController extends Controller
                 ? "/student/my-courses/{$activeCourse->id}/lessons/{$currentLesson->id}"
                 : "/student/my-courses/{$activeCourse->id}/continue");
 
+        $contTotal = (int) ($activeCourseItem['lessons_total'] ?? $currentData['total_lessons_count'] ?? (isset($activeCourse->lessons) ? count($activeCourse->lessons) : 3) ?: 3);
+        $contDone = (int) ($activeCourseItem['lessons_done'] ?? $currentData['completed_lessons_count'] ?? ($allCompleted ? $contTotal : 0));
+        if ($allCompleted && $contDone < $contTotal) {
+            $contDone = $contTotal;
+        }
+
         return [
             'id'            => $activeCourse->id,
             'title'         => $activeCourse->title,
@@ -581,8 +592,8 @@ class DashboardController extends Controller
             'chapter_kh'    => $activeCourse->major?->name_kh ?: ($activeCourse->major?->name ?? 'កម្មវិធីសិក្សា'),
             'major_name'    => $activeCourseItem['major_name'] ?? ($activeCourse->major?->name ?? 'Information Technology'),
             'major_kh'      => $activeCourseItem['major_kh'] ?? ($activeCourse->major?->name_kh ?: 'បច្ចេកវិទ្យាព័ត៌មាន'),
-            'lessons_total' => (int) ($activeCourseItem['lessons_total'] ?? 0),
-            'lessons_done'  => (int) ($activeCourseItem['lessons_done'] ?? 0),
+            'lessons_total' => $contTotal,
+            'lessons_done'  => $contDone,
             'last_accessed' => $activeCourseItem['last_accessed'] ?? '២ ម៉ោងមុន',
             'teacher'       => $activeCourseItem['teacher'] ?? $progressService->cleanTeacherName($activeCourse->teacher, $activeCourse),
             'teacher_kh'    => $activeCourseItem['teacher_kh'] ?? $progressService->cleanTeacherNameKh($activeCourse->teacher, $activeCourse),
