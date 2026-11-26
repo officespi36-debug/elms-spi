@@ -500,32 +500,39 @@ class DashboardController extends Controller
                 $bgGradient = 'from-pink-50 to-purple-50 dark:from-pink-950/40 dark:to-purple-950/40';
             }
 
+            $currentLesson = $item['current_lesson'] ?? null;
+            $continueUrl = !empty($currentLesson?->id)
+                ? "/student/my-courses/{$course->id}/lessons/{$currentLesson->id}"
+                : "/student/my-courses/{$course->id}/continue";
+
             $list[] = [
-                'id'          => $course->id,
-                'title'       => $course->title,
-                'title_kh'    => $course->title_kh ?: $course->title,
-                'code'        => $course->code,
-                'teacher'     => $teacherName,
-                'teacher_kh'  => $teacherNameKh,
-                'progress'    => $progress,
-                'status'      => $status,
-                'statusLabel' => $status === 'completed'
+                'id'           => $course->id,
+                'title'        => $course->title,
+                'title_kh'     => $course->title_kh ?: $course->title,
+                'code'         => $course->code,
+                'teacher'      => $teacherName,
+                'teacher_kh'   => $teacherNameKh,
+                'progress'     => $progress,
+                'status'       => $status,
+                'statusLabel'  => $status === 'completed'
                     ? 'Completed'
                     : ($status === 'in_progress'
                         ? 'In Progress'
                         : ($status === 'no_content' ? 'Content Coming Soon' : 'Not Started')),
-                'badgeClass'  => $status === 'completed'
+                'badgeClass'   => $status === 'completed'
                     ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
                     : ($status === 'in_progress'
                         ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30'
                         : ($status === 'no_content'
                             ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30'
                             : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700')),
-                'iconType'    => $iconType,
-                'iconColor'   => $iconColor,
-                'bgGradient'  => $bgGradient,
-                'thumbnail'   => $this->normalizeThumbnail($course->thumbnail),
-                'href'        => '/student/courses/' . $course->id . '/overview',
+                'iconType'     => $iconType,
+                'iconColor'    => $iconColor,
+                'bgGradient'   => $bgGradient,
+                'thumbnail'    => $this->normalizeThumbnail($course->thumbnail),
+                'href'         => $continueUrl,
+                'continue_url' => $continueUrl,
+                'overview_url' => '/student/courses/' . $course->id . '/overview',
             ];
         }
 
@@ -546,6 +553,12 @@ class DashboardController extends Controller
         $activeCourseItem = collect($myCoursesList)->firstWhere('id', $activeCourse->id);
         $allCompleted = !empty($currentData['all_completed']);
 
+        $href = $allCompleted
+            ? "/student/courses/{$activeCourse->id}/overview"
+            : ($currentLesson
+                ? "/student/my-courses/{$activeCourse->id}/lessons/{$currentLesson->id}"
+                : "/student/my-courses/{$activeCourse->id}/continue");
+
         return [
             'id'            => $activeCourse->id,
             'title'         => $activeCourse->title,
@@ -559,7 +572,7 @@ class DashboardController extends Controller
             'lastLesson_kh' => $currentLesson?->kh_title ?: ($currentLesson?->title ?? ($allCompleted ? 'បានបញ្ចប់មេរៀនទាំងអស់' : 'ចាប់ផ្តើមមេរៀន')),
             'timeLeft'      => $currentData['time_left'] ?? '00:00',
             'thumbnail'     => $activeCourseItem['thumbnail'] ?? $this->normalizeThumbnail($activeCourse->thumbnail),
-            'href'          => $currentLesson ? "/student/my-courses/{$activeCourse->id}/lessons/{$currentLesson->id}" : "/student/my-courses/{$activeCourse->id}/continue",
+            'href'          => $href,
             'overviewHref'  => '/student/courses/' . $activeCourse->id . '/overview',
         ];
     }
@@ -587,7 +600,7 @@ class DashboardController extends Controller
                         'course'      => $lp->lesson->course->title,
                         'course_km'   => $lp->lesson->course->title_kh ?: $lp->lesson->course->title,
                         'time'        => $lp->updated_at ? $lp->updated_at->diffForHumans() : 'Today',
-                        'href'        => '/student/learn/' . $lp->lesson->course_id . '?lesson_id=' . $lp->lesson_id,
+                        'href'        => "/student/my-courses/{$lp->lesson->course_id}/lessons/{$lp->lesson_id}",
                         'timestamp'   => $lp->updated_at ? $lp->updated_at->timestamp : 0,
                         'progress'    => (int) ($lp->percent ?? 0),
                         'category'    => 'Lesson',
