@@ -20,10 +20,27 @@ import {
   ArrowRight,
   Clock,
   Layers,
-  AlertCircle
+  AlertCircle,
+  ChevronRight
 } from 'lucide-vue-next'
 
 type ContinueState = 'A' | 'B' | 'C' | 'D' | 'E'
+
+export interface RecentActivityItem {
+  id: string
+  type: string
+  iconBg?: string
+  title: string
+  title_km?: string
+  course: string
+  course_km?: string
+  time: string
+  href: string
+  timestamp: number
+  progress: number
+  category?: string
+  category_km?: string
+}
 
 interface RecommendedCourse {
   id: number
@@ -58,6 +75,7 @@ const props = withDefaults(defineProps<{
   startCourse?: any | null
   recommendedCourses?: RecommendedCourse[]
   courses?: EnrolledCourseDashboardItem[]
+  recentActivities?: RecentActivityItem[]
   stats?: {
     total_courses: number
     in_progress: number
@@ -71,6 +89,7 @@ const props = withDefaults(defineProps<{
   startCourse: null,
   recommendedCourses: () => [],
   courses: () => [],
+  recentActivities: () => [],
   stats: () => ({
     total_courses: 0,
     in_progress: 0,
@@ -108,6 +127,47 @@ const formatDuration = (seconds?: number, fallbackLabel?: string | null) => {
   }
   return hours > 0 ? `${hours}h ${String(mins).padStart(2, '0')}m` : `${mins}m`
 }
+
+// Formatted recent learning activities matching Image 2
+const formattedActivities = computed(() => {
+  if (!props.recentActivities || props.recentActivities.length === 0) {
+    return []
+  }
+  return props.recentActivities.map((a) => {
+    const rawTitle = (isKm.value && a.title_km) ? a.title_km : (a.title || '')
+    const cleanTitle = rawTitle.replace(/^(Watched:\s*|បានទស្សនា:\s*|Completed Quiz:\s*|បានបញ្ចប់ Quiz:\s*|Downloaded:\s*|បានទាញយក:\s*)/i, '').trim()
+
+    let category = (isKm.value && a.category_km) ? a.category_km : (a.category || (isKm.value ? 'មេរៀន' : 'Lesson'))
+    const lowTitle = rawTitle.toLowerCase()
+    if (lowTitle.includes('lab') || lowTitle.includes('practical') || rawTitle.includes('អនុវត្ត')) {
+      category = isKm.value ? 'ការអនុវត្ត' : 'Lab'
+    } else if (lowTitle.includes('quiz') || rawTitle.includes('កម្រងសំណួរ') || a.type === 'check') {
+      category = isKm.value ? 'កម្រងសំណួរ' : 'Quiz'
+    }
+
+    const p = (a as any).progress ?? (a as any).percent ?? 0
+    const rawTime = a.time || ''
+    const shortTime = rawTime
+      .replace(/(\d+)\s*hours?\s*ago/i, '$1h ago')
+      .replace(/(\d+)\s*days?\s*ago/i, '$1d ago')
+      .replace(/(\d+)\s*minutes?\s*ago/i, '$1m ago')
+      .replace(/(\d+)\s*seconds?\s*ago/i, '$1s ago')
+      .replace(/(\d+)\s*ម៉ោងមុន/i, '$1h មុន')
+      .replace(/(\d+)\s*នាទីមុន/i, '$1m មុន')
+      .replace(/(\d+)\s*វិនាទីមុន/i, '$1s មុន')
+      .replace(/Today/i, isKm.value ? 'ថ្ងៃនេះ' : 'Today')
+
+    return {
+      ...a,
+      courseDisplay: isKm.value ? (a.course_km || a.course) : a.course,
+      cleanTitle,
+      category,
+      time: rawTime,
+      shortTime,
+      progress: Math.min(100, Math.max(0, Math.round(p)))
+    }
+  })
+})
 
 // Real database course counts
 const totalCoursesCount = computed(() => {
@@ -297,6 +357,85 @@ const handleEnrollRecommended = (course: RecommendedCourse) => {
           {{ isKm ? 'ព្យាយាមម្តងទៀត' : 'Retry' }}
         </button>
       </div>
+
+      <!-- 2. Recent Learning Activities (សកម្មភាពសិក្សាថ្មីៗ) as shown in Image 2 -->
+      <section v-if="formattedActivities.length > 0" class="space-y-3.5">
+        <div class="flex items-center justify-between">
+          <h2 class="text-[18px] sm:text-[20px] font-bold text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-2">
+            <span>{{ isKm ? 'សកម្មភាពសិក្សាថ្មីៗ' : 'Recent Learning Activity' }}</span>
+          </h2>
+          <Link
+            href="/student/progress/learning-time"
+            class="text-[13.5px] font-semibold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors inline-flex items-center gap-1 group/history"
+          >
+            <span>{{ isKm ? 'មើលប្រវត្តិទាំងអស់' : 'View all history' }}</span>
+            <ChevronRight class="w-4 h-4 group-hover/history:translate-x-0.5 transition-transform" />
+          </Link>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div
+            v-for="(act, idx) in formattedActivities"
+            :key="act.id"
+            role="link"
+            tabindex="0"
+            @click="router.visit(act.href)"
+            @keydown.enter="router.visit(act.href)"
+            class="recent-activity-card group relative flex items-start gap-3.5 p-4 rounded-2xl border transition-all duration-200 cursor-pointer bg-white dark:bg-[#1e1f20] border-slate-200 dark:border-white/[0.08] hover:-translate-y-[3px] hover:border-[#a78bfa] dark:hover:border-[#a78bfa] hover:shadow-lg hover:shadow-purple-500/10 dark:hover:shadow-black/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-600 focus-visible:ring-offset-2"
+          >
+            <!-- 1. Circular Play Button (exact style from Image 2: 48x48px, gradient #6366f1 -> #7c3aed, white triangle, purple glow) -->
+            <Link
+              :href="act.href"
+              :aria-label="`${isKm ? 'បន្តមេរៀន' : 'Resume lesson'}: ${act.cleanTitle}`"
+              class="w-12 h-12 rounded-full bg-gradient-to-br from-[#6366f1] to-[#7c3aed] flex items-center justify-center text-white shrink-0 shadow-lg shadow-purple-500/25 group-hover:scale-105 transition-all duration-200 focus:outline-none"
+              @click.stop
+            >
+              <svg class="w-5 h-5 ml-0.5 fill-white text-white drop-shadow-xs" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="6 3 20 12 6 21 6 3"></polygon>
+              </svg>
+            </Link>
+
+            <!-- 2. Content -->
+            <div class="flex-1 min-w-0 space-y-1">
+              <!-- Top line: Category • Time & Resume link on hover -->
+              <div class="flex items-center justify-between gap-1 text-[12px] text-slate-500 dark:text-slate-400 font-medium">
+                <span class="whitespace-nowrap shrink-0">{{ act.category }} · {{ act.shortTime }}</span>
+                <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-xs font-semibold text-purple-600 dark:text-purple-400 inline-flex items-center gap-0.5 shrink-0 whitespace-nowrap">
+                  {{ isKm ? 'បន្ត' : 'Resume' }}
+                  <ChevronRight class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                </span>
+              </div>
+
+              <!-- Lesson Title -->
+              <h4
+                class="font-bold text-[15px] text-slate-900 dark:text-[#e2e8f0] leading-snug line-clamp-2 min-h-[2.6rem] group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors break-words"
+                :title="act.cleanTitle"
+              >
+                {{ act.cleanTitle }}
+              </h4>
+
+              <!-- Course Title -->
+              <p class="text-[14px] text-[#475569] dark:text-slate-400 truncate font-medium">
+                {{ act.courseDisplay }}
+              </p>
+
+              <!-- Progress Row & Bar -->
+              <div class="pt-1.5 space-y-1">
+                <div class="flex items-center justify-between text-[11px] text-slate-400 dark:text-slate-500 font-medium">
+                  <span>{{ isKm ? 'វឌ្ឍនភាព' : 'Progress' }}</span>
+                  <span class="font-semibold text-slate-700 dark:text-slate-300">{{ act.progress }}% {{ isKm ? 'បានមើល' : 'watched' }}</span>
+                </div>
+                <div class="w-full h-1 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
+                  <div
+                    class="h-full bg-gradient-to-r from-[#6366f1] to-[#7c3aed] rounded-full transition-all duration-300"
+                    :style="{ width: `${act.progress}%` }"
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <!-- 3. Search and Filter Bar -->
       <section aria-label="Course Filters" class="bg-white dark:bg-[#1e1f20] rounded-2xl p-4 sm:p-5 border border-[#dfe3e7] dark:border-[#2d2f31] shadow-xs space-y-4">

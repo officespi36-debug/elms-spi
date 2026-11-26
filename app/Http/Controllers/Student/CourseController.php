@@ -417,6 +417,7 @@ class CourseController extends Controller
         if ($enrollments->isEmpty()) {
             return Inertia::render('Student/MyCourses/CurrentCourseEmpty', [
                 'courses'            => [],
+                'recentActivities'   => [],
                 'stats'              => [
                     'total_courses' => 0,
                     'in_progress'   => 0,
@@ -539,8 +540,8 @@ class CourseController extends Controller
             $state = 'E';
         }
 
-        // State C: in progress -> 302 redirect directly to the active lesson to continue learning (unless ?list=1 or ?dashboard=1)
-        if ($state === 'C' && !$request->boolean('list') && !$request->boolean('dashboard')) {
+        // Direct shortcut jump only if explicitly requested via ?redirect=1 or ?jump=1
+        if ($request->boolean('redirect') || $request->boolean('jump')) {
             $resolved = $continueService->resolve($user);
             if ($resolved && !empty($resolved['course']) && !empty($resolved['lesson'])) {
                 return redirect()->to("/student/my-courses/{$resolved['course']->id}/lessons/{$resolved['lesson']->id}");
@@ -549,6 +550,9 @@ class CourseController extends Controller
                 return redirect()->to("/student/my-courses/{$inProgress['id']}/continue");
             }
         }
+
+        // Recent learning activities (Unit lessons) for quick resume cards as in student dashboard
+        $recentActivities = $this->buildRecentActivities($user);
 
         $startCourse = null;
         if ($notStarted) {
@@ -564,6 +568,7 @@ class CourseController extends Controller
 
         return Inertia::render('Student/MyCourses/CurrentCourseEmpty', [
             'courses'            => $courses->all(),
+            'recentActivities'   => $recentActivities,
             'stats'              => $stats,
             'majors'             => $majors,
             'recommendedCourses' => $recommended,
@@ -614,7 +619,95 @@ class CourseController extends Controller
             'hasEnrollments'     => $hasEnrollments,
             'startCourse'        => $startCourse,
             'recommendedCourses' => $recommended,
+            'recentActivities'   => $this->buildRecentActivities($user),
         ]);
+    }
+
+    /**
+     * Build recent learning activities (lessons/quizzes) for the student.
+     * Mirrors the exact visual data required by the Recent Activity cards.
+     */
+    protected function buildRecentActivities(User $user): array
+    {
+        $recentActivitiesList = [];
+
+        try {
+            $recentLessons = LessonProgress::where('user_id', $user->id)
+                ->select(['id', 'user_id', 'lesson_id', 'percent', 'seconds_watched', 'completed_at', 'updated_at'])
+                ->with(['lesson:id,course_id,title,kh_title', 'lesson.course:id,title,title_kh'])
+                ->latest('updated_at')
+                ->take(6)
+                ->get();
+
+            foreach ($recentLessons as $lp) {
+                if ($lp->lesson && $lp->lesson->course) {
+                    $rawTitle = $lp->lesson->title;
+                    $isLab = str_contains(strtolower($rawTitle), 'lab') || str_contains(strtolower($rawTitle), 'practical') || str_contains(strtolower($rawTitle), 'អនុវត្ត');
+                    $recentActivitiesList[] = [
+                        'id'          => 'lp-' . $lp->id,
+                        'type'        => 'play',
+                        'iconBg'      => 'bg-purple-600/20 text-purple-600 dark:text-purple-400 border border-purple-500/30',
+                        'title'       => $lp->lesson->title,
+                        'title_km'    => $lp->lesson->kh_title ?: $lp->lesson->title,
+                        'course'      => $lp->lesson->course->title,
+                        'course_km'   => $lp->lesson->course->title_kh ?: $lp->lesson->course->title,
+                        'time'        => $lp->updated_at ? $lp->updated_at->diffForHumans() : 'Recently',
+                        'href'        => "/student/my-courses/{$lp->lesson->course_id}/lessons/{$lp->lesson_id}",
+                        'timestamp'   => $lp->updated_at ? $lp->updated_at->timestamp : 0,
+                        'progress'    => (int) ($lp->percent ?? 0),
+                        'category'    => $isLab ? 'Lab' : 'Lesson',
+                        'category_km' => $isLab ? 'ការអនុវត្ត' : 'មេរៀន',
+                    ];
+                }
+            }
+
+            // If user has fewer than 3 recent lesson progress items,
+            // populate from enrolled courses' lessons so actionable cards are always available
+            if (count($recentActivitiesList) < 3) {
+                $enrolledCourseIds = Enrollment::where('student_id', $user->id)
+                    ->whereIn('status', ['active', 'completed'])
+                    ->pluck('course_id');
+
+                if ($enrolledCourseIds->isNotEmpty()) {
+                    $existingLessonIds = $recentLessons->pluck('lesson_id')->filter()->all();
+                    $fallbackLessons = Lesson::whereIn('course_id', $enrolledCourseIds)
+                        ->when(!empty($existingLessonIds), fn ($q) => $q->whereNotIn('id', $existingLessonIds))
+                        ->with('course:id,title,title_kh')
+                        ->orderBy('order')
+                        ->take(3 - count($recentActivitiesList))
+                        ->get();
+
+                    foreach ($fallbackLessons as $fl) {
+                        if ($fl->course) {
+                            $rawTitle = $fl->title;
+                            $isLab = str_contains(strtolower($rawTitle), 'lab') || str_contains(strtolower($rawTitle), 'practical') || str_contains(strtolower($rawTitle), 'អនុវត្ត');
+                            $recentActivitiesList[] = [
+                                'id'          => 'fl-' . $fl->id,
+                                'type'        => 'play',
+                                'iconBg'      => 'bg-purple-600/20 text-purple-600 dark:text-purple-400 border border-purple-500/30',
+                                'title'       => $fl->title,
+                                'title_km'    => $fl->kh_title ?: $fl->title,
+                                'course'      => $fl->course->title,
+                                'course_km'   => $fl->course->title_kh ?: $fl->course->title,
+                                'time'        => 'មេរៀនថ្មី',
+                                'href'        => "/student/my-courses/{$fl->course_id}/lessons/{$fl->id}",
+                                'timestamp'   => time(),
+                                'progress'    => 0,
+                                'category'    => $isLab ? 'Lab' : 'Lesson',
+                                'category_km' => $isLab ? 'ការអនុវត្ត' : 'មេរៀន',
+                            ];
+                        }
+                    }
+                }
+            }
+
+            usort($recentActivitiesList, fn ($a, $b) => $b['timestamp'] <=> $a['timestamp']);
+            $recentActivitiesList = array_slice($recentActivitiesList, 0, 3);
+        } catch (\Throwable $e) {
+            $recentActivitiesList = [];
+        }
+
+        return $recentActivitiesList;
     }
 
     /**

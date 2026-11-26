@@ -38,7 +38,7 @@
             }
 
             try {
-                var currentDeployBuild = 'v_20261126_student_custom_book_illustration_v43';
+                var currentDeployBuild = 'v_20261126_student_recent_activities_learning_hub_v44';
                 if (localStorage.getItem('spi_app_deploy') !== currentDeployBuild) {
                     localStorage.setItem('spi_app_deploy', currentDeployBuild);
                     if ('caches' in window) {
