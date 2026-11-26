@@ -44,9 +44,12 @@ class DashboardController extends Controller
         // 1. Academic Term & Welcome Banner Profile from DB
         $academicTerm = $this->resolveActiveAcademicTerm();
         $studentProfile = [
-            'id'      => $user->id,
-            'name'    => $user->name,
-            'name_kh' => $user->name_kh ?: $user->name,
+            'id'         => $user->id,
+            'name'       => $user->name,
+            'name_kh'    => $user->name_kh ?: $user->name,
+            'email'      => $user->email,
+            'avatar'     => $user->avatar ? (str_starts_with($user->avatar, 'http') || str_starts_with($user->avatar, '/') ? $user->avatar : asset('storage/' . ltrim($user->avatar, '/'))) : null,
+            'avatar_url' => $user->avatar_url,
         ];
 
         // 2. Real Enrollments & Course Progress from DB
@@ -505,14 +508,25 @@ class DashboardController extends Controller
                 ? "/student/my-courses/{$course->id}/lessons/{$currentLesson->id}"
                 : "/student/my-courses/{$course->id}/continue";
 
+            $majorName = $course->major?->name ?? 'Information Technology';
+            $majorKh = $course->major?->name_kh ?: ($course->major?->name ?? 'បច្ចេកវិទ្យាព័ត៌មាន');
+            $lessonsTotal = (int) ($item['total_lessons'] ?? 0);
+            $lessonsDone = (int) ($item['completed_lessons'] ?? 0);
+            $lastActivity = !empty($item['latest_activity']) ? Carbon::parse($item['latest_activity'])->diffForHumans() : 'ថ្មីៗនេះ';
+
             $list[] = [
-                'id'           => $course->id,
-                'title'        => $course->title,
-                'title_kh'     => $course->title_kh ?: $course->title,
-                'code'         => $course->code,
-                'teacher'      => $teacherName,
-                'teacher_kh'   => $teacherNameKh,
-                'progress'     => $progress,
+                'id'            => $course->id,
+                'title'         => $course->title,
+                'title_kh'      => $course->title_kh ?: $course->title,
+                'code'          => $course->code,
+                'major_name'    => $majorName,
+                'major_kh'      => $majorKh,
+                'lessons_total' => $lessonsTotal,
+                'lessons_done'  => $lessonsDone,
+                'last_accessed' => $lastActivity,
+                'teacher'       => $teacherName,
+                'teacher_kh'    => $teacherNameKh,
+                'progress'      => $progress,
                 'status'       => $status,
                 'statusLabel'  => $status === 'completed'
                     ? 'Completed'
@@ -565,6 +579,11 @@ class DashboardController extends Controller
             'title_kh'      => $activeCourse->title_kh ?: $activeCourse->title,
             'chapter'       => $activeCourse->major?->name ?? 'Course Curriculum',
             'chapter_kh'    => $activeCourse->major?->name_kh ?: ($activeCourse->major?->name ?? 'កម្មវិធីសិក្សា'),
+            'major_name'    => $activeCourseItem['major_name'] ?? ($activeCourse->major?->name ?? 'Information Technology'),
+            'major_kh'      => $activeCourseItem['major_kh'] ?? ($activeCourse->major?->name_kh ?: 'បច្ចេកវិទ្យាព័ត៌មាន'),
+            'lessons_total' => (int) ($activeCourseItem['lessons_total'] ?? 0),
+            'lessons_done'  => (int) ($activeCourseItem['lessons_done'] ?? 0),
+            'last_accessed' => $activeCourseItem['last_accessed'] ?? '២ ម៉ោងមុន',
             'teacher'       => $activeCourseItem['teacher'] ?? $progressService->cleanTeacherName($activeCourse->teacher, $activeCourse),
             'teacher_kh'    => $activeCourseItem['teacher_kh'] ?? $progressService->cleanTeacherNameKh($activeCourse->teacher, $activeCourse),
             'progress'      => (int) ($currentData['progress_percent'] ?? 0),
