@@ -149,16 +149,19 @@ const teacherInitials = computed(() => {
       </template>
       <div
         v-else
-        :class="['w-full h-full bg-gradient-to-br flex items-center justify-center p-6 text-white relative', fallbackStyle]"
+        :class="['w-full h-full bg-gradient-to-br flex items-center justify-center p-6 text-white relative overflow-hidden', fallbackStyle]"
       >
-        <!-- Subtle background pattern -->
-        <div class="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,white_1px,transparent_1px)] bg-[size:16px_16px]"></div>
-        <div class="relative z-10 flex flex-col items-center justify-center text-center">
-          <div class="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20 mb-2 shadow-inner">
-            <BookOpen class="w-6 h-6 text-white" />
+        <!-- Subtle decorative shapes and glow -->
+        <div class="absolute -top-12 -right-12 w-36 h-36 rounded-full bg-white/10 blur-xl pointer-events-none"></div>
+        <div class="absolute -bottom-12 -left-12 w-36 h-36 rounded-full bg-black/20 blur-xl pointer-events-none"></div>
+        <div class="absolute inset-0 opacity-15 bg-[radial-gradient(circle_at_center,white_1px,transparent_1px)] bg-[size:16px_16px]"></div>
+
+        <div class="relative z-10 flex flex-col items-center justify-center text-center px-4">
+          <div class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 mb-2 shadow-lg shadow-black/10 group-hover:scale-110 transition-transform duration-300">
+            <BookOpen class="w-7 h-7 text-white" />
           </div>
-          <span class="text-xs font-semibold text-white/90 tracking-wide uppercase line-clamp-1 max-w-[80%]">
-            {{ displayMajor }}
+          <span class="text-xs font-bold text-white/95 tracking-wide drop-shadow-sm line-clamp-1">
+            {{ displayTitle }}
           </span>
         </div>
       </div>

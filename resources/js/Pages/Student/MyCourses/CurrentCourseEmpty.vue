@@ -109,10 +109,42 @@ const formatDuration = (seconds?: number, fallbackLabel?: string | null) => {
   return hours > 0 ? `${hours}h ${String(mins).padStart(2, '0')}m` : `${mins}m`
 }
 
-// Summary Statistics directly from database
-const totalCoursesCount = computed(() => props.stats?.total_courses ?? props.courses.length)
-const inProgressCount = computed(() => props.stats?.in_progress ?? props.courses.filter(c => c.status === 'in_progress').length)
-const completedCount = computed(() => props.stats?.completed ?? props.courses.filter(c => c.status === 'completed' || c.progress_percent >= 100).length)
+// Dynamic stat cards matching Student Dashboard styling
+const statCardsData = computed(() => [
+  {
+    type: 'total',
+    filterKey: 'all' as const,
+    title: isKm.value ? 'វគ្គសិក្សាសរុប' : 'Total Courses',
+    value: totalCoursesCount.value,
+    subtitle: isKm.value ? 'វគ្គសិក្សាទាំងអស់ដែលបានចុះឈ្មោះ' : 'All enrolled courses',
+    gradient: 'from-[#7045F5] via-[#7c3aed] to-[#5b21b6]',
+    wavePath: 'M0 18 Q 20 4, 40 14 T 70 6 T 100 12 L 100 25 L 0 25 Z',
+    waveLine: 'M0 18 Q 20 4, 40 14 T 70 6 T 100 12',
+    icon: BookOpen,
+  },
+  {
+    type: 'in_progress',
+    filterKey: 'in_progress' as const,
+    title: isKm.value ? 'កំពុងរៀន' : 'In Progress',
+    value: inProgressCount.value,
+    subtitle: isKm.value ? 'វគ្គសិក្សាកំពុងបន្តរៀន' : 'Courses in active progress',
+    gradient: 'from-[#2563EB] via-[#1d4ed8] to-[#1e40af]',
+    wavePath: 'M0 20 Q 25 8, 45 16 T 75 4 T 100 10 L 100 25 L 0 25 Z',
+    waveLine: 'M0 20 Q 25 8, 45 16 T 75 4 T 100 10',
+    icon: PlayCircle,
+  },
+  {
+    type: 'completed',
+    filterKey: 'completed' as const,
+    title: isKm.value ? 'បានបញ្ចប់' : 'Completed',
+    value: completedCount.value,
+    subtitle: isKm.value ? 'បានបញ្ចប់ ១០០% ដោយជោគជ័យ' : 'Successfully completed',
+    gradient: 'from-[#059669] via-[#10B981] to-[#047857]',
+    wavePath: 'M0 16 Q 20 22, 45 8 T 75 14 T 100 4 L 100 25 L 0 25 Z',
+    waveLine: 'M0 16 Q 20 22, 45 8 T 75 14 T 100 4',
+    icon: CheckCircle2,
+  },
+])
 
 // Reactive search & filter pipeline
 const filteredCourses = computed(() => {
@@ -212,250 +244,244 @@ const handleEnrollRecommended = (course: RecommendedCourse) => {
 <template>
   <Head :title="isKm ? 'វគ្គសិក្សារបស់ខ្ញុំ - SPI LMS' : 'My Courses - SPI LMS'" />
 
-  <StudentLayout>
-    <div class="w-full min-h-screen bg-[#F7F8FC] dark:bg-[#121316] py-6 sm:py-8 px-4 sm:px-6 lg:px-8">
-      <div class="max-w-[1440px] mx-auto space-y-6 sm:space-y-8">
+  <StudentLayout
+    :title="isKm ? 'វគ្គសិក្សារបស់ខ្ញុំ' : 'My Courses'"
+    :breadcrumbs="[
+      { label: isKm ? 'ផ្ទាំងគ្រប់គ្រង' : 'Dashboard', href: '/student/dashboard' },
+      { label: isKm ? 'វគ្គសិក្សារបស់ខ្ញុំ' : 'My Courses' }
+    ]"
+  >
+    <div class="student-courses-page space-y-6 pb-28 sm:pb-36 notranslate" translate="no">
 
-        <!-- 1. Page Header -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/80 dark:border-slate-800/80 pb-5">
-          <div class="flex items-center gap-3.5">
-            <!-- Professional Purple Accent Icon Badge -->
-            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-[#7045F5] to-[#916eff] flex items-center justify-center text-white shadow-lg shadow-[#7045F5]/25 shrink-0">
-              <BookOpen class="w-6 h-6 sm:w-7 sm:h-7" />
+      <!-- 1. Top Page Banner & Quick Shortcuts -->
+      <div class="px-5 py-4 sm:px-6 sm:py-5 rounded-2xl border border-[#dfe3e7] dark:border-[#2d2f31] bg-gradient-to-r from-white via-indigo-50/40 to-purple-50/50 dark:from-[#1e1f20] dark:via-[#202331] dark:to-[#242031] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5 min-w-0">
+          <!-- Professional Purple Accent Icon Badge -->
+          <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-[#7045F5] to-[#916eff] flex items-center justify-center text-white shadow-lg shadow-[#7045F5]/25 shrink-0">
+            <BookOpen class="w-6 h-6 sm:w-7 sm:h-7" />
+          </div>
+
+          <div class="space-y-0.5 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                {{ isKm ? 'វគ្គសិក្សារបស់ខ្ញុំ' : 'My Courses' }}
+              </h1>
+              <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#7045F5]/10 text-[#7045F5] dark:text-[#a78bfa] border border-[#7045F5]/20">
+                {{ isKm ? 'ផ្ទាំងសិក្សាផ្ទាល់ខ្លួន' : 'Learning Dashboard' }}
+              </span>
             </div>
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-[1.7] line-clamp-1">
+              {{ isKm ? 'តាមដាន និងបន្តការសិក្សារបស់អ្នកយ៉ាងរលូនពីកន្លែងដែលអ្នកបានផ្អាក។' : 'Track and resume your learning seamlessly right where you left off.' }}
+            </p>
+          </div>
+        </div>
 
-            <div class="space-y-0.5 min-w-0">
-              <div class="flex items-center gap-2">
-                <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                  {{ isKm ? 'វគ្គសិក្សារបស់ខ្ញុំ' : 'My Courses' }}
-                </h1>
-                <span class="hidden sm:inline-flex px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#7045F5]/10 text-[#7045F5] dark:text-[#a78bfa] border border-[#7045F5]/20">
-                  {{ isKm ? 'ផ្ទាំងសិក្សាផ្ទាល់ខ្លួន' : 'Learning Dashboard' }}
-                </span>
+        <!-- Quick Navigation Actions -->
+        <div class="flex items-center gap-2.5 shrink-0">
+          <Link
+            href="/student/browse"
+            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#7045F5] to-[#5b32e6] hover:from-[#5f35e0] hover:to-[#4e27cc] text-white font-bold text-xs sm:text-sm shadow-md shadow-[#7045F5]/20 hover:shadow-lg transition-all duration-200"
+          >
+            <Sparkles class="w-4 h-4" />
+            <span>{{ isKm ? 'ស្វែងរកវគ្គថ្មី' : 'Browse Catalog' }}</span>
+          </Link>
+          <Link
+            href="/student/dashboard"
+            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-[#1e1f20] hover:bg-slate-50 dark:hover:bg-[#25272a] text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm border border-slate-200/90 dark:border-slate-800 shadow-xs hover:border-[#7045F5]/40 transition-all duration-200"
+          >
+            <span>{{ isKm ? 'ផ្ទាំងគ្រប់គ្រង' : 'Dashboard' }}</span>
+            <ArrowRight class="w-3.5 h-3.5 text-slate-400" />
+          </Link>
+        </div>
+      </div>
+
+      <!-- Error Banner with Retry -->
+      <div
+        v-if="hasError"
+        class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 flex items-center justify-between gap-4"
+      >
+        <div class="flex items-center gap-3">
+          <AlertCircle class="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0" />
+          <span class="text-xs sm:text-sm font-medium">{{ errorMessage }}</span>
+        </div>
+        <button
+          type="button"
+          @click="retryLoading"
+          class="px-3 py-1.5 rounded-lg bg-rose-600 text-white font-bold text-xs hover:bg-rose-700 transition-colors shrink-0"
+        >
+          {{ isKm ? 'ព្យាយាមម្តងទៀត' : 'Retry' }}
+        </button>
+      </div>
+
+      <!-- 2. Course Summary (Dashboard Style Wave Cards) -->
+      <section aria-label="Course Summary Statistics">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
+          <div
+            v-for="stat in statCardsData"
+            :key="stat.type"
+            @click="selectedStatus = stat.filterKey"
+            :class="[
+              'stat-card relative overflow-hidden rounded-2xl bg-gradient-to-br text-white p-4 sm:p-5 shadow-xs hover:shadow-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col justify-between group cursor-pointer border min-h-[136px] sm:min-h-[142px]',
+              stat.gradient,
+              selectedStatus === stat.filterKey ? 'ring-2 ring-white/90 shadow-lg scale-[1.01]' : 'border-white/10 hover:-translate-y-1'
+            ]"
+          >
+            <div>
+              <div class="flex items-start justify-between gap-1">
+                <span class="text-xs sm:text-[13px] font-bold tracking-tight uppercase text-white/90 leading-tight mr-1">{{ stat.title }}</span>
+                <div class="text-white/95 group-hover:text-white group-hover:scale-110 transition-transform duration-200 shrink-0">
+                  <component :is="stat.icon" class="w-7 h-7 sm:w-8 sm:h-8" />
+                </div>
               </div>
-              <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-[1.7] line-clamp-1">
-                {{ isKm ? 'តាមដាន និងបន្តការសិក្សារបស់អ្នកយ៉ាងរលូនពីកន្លែងដែលអ្នកបានផ្អាក។' : 'Track and resume your learning seamlessly right where you left off.' }}
+
+              <!-- Metric Number -->
+              <h4 class="text-2xl sm:text-3xl font-black tracking-tight text-white mt-1.5 tabular-nums">
+                {{ stat.value }}
+              </h4>
+              <p class="text-xs text-white/90 font-medium mt-0.5 flex items-center gap-1 truncate">
+                <span>{{ stat.subtitle }}</span>
               </p>
             </div>
+
+            <!-- Sparkline Wave at Bottom (Dashboard Style) -->
+            <div class="mt-2 -mx-4 -mb-4 sm:-mx-5 sm:-mb-5 overflow-hidden rounded-b-2xl pointer-events-none">
+              <svg class="w-full h-7 sm:h-8 text-white" viewBox="0 0 100 25" preserveAspectRatio="none" aria-hidden="true">
+                <g transform="translate(0 3)" opacity="0.10">
+                  <path :d="stat.wavePath" fill="currentColor"/>
+                </g>
+                <path :d="stat.wavePath" fill="currentColor" opacity="0.20"/>
+                <path :d="stat.waveLine" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" opacity="0.9"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. Search and Filter Bar -->
+      <section aria-label="Course Filters" class="bg-white dark:bg-[#1e1f20] rounded-2xl p-4 sm:p-5 border border-[#dfe3e7] dark:border-[#2d2f31] shadow-xs space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3.5">
+          <!-- Search Input -->
+          <div class="relative flex-1">
+            <Search class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              v-model="searchQuery"
+              type="text"
+              :placeholder="isKm ? 'ស្វែងរកវគ្គសិក្សា, គ្រូ ឬជំនាញ...' : 'Search courses, instructor, or major...'"
+              class="w-full pl-10 pr-9 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-[#dfe3e7] dark:border-[#2d2f31] text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7045F5]/30 focus:border-[#7045F5] transition-all"
+            />
+            <button
+              v-if="searchQuery"
+              type="button"
+              @click="searchQuery = ''"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5 rounded-full cursor-pointer"
+              aria-label="Clear search"
+            >
+              <X class="w-3.5 h-3.5" />
+            </button>
           </div>
 
-          <!-- Quick Navigation Actions -->
-          <div class="flex items-center gap-2.5 shrink-0">
-            <Link
-              href="/student/browse"
-              class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-[#1e1f20] hover:bg-slate-50 dark:hover:bg-[#25272a] text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm border border-slate-200/90 dark:border-slate-800 shadow-xs hover:border-[#7045F5]/40 transition-all duration-200"
+          <!-- Filters Group: Major & Sort -->
+          <div class="flex items-center gap-2.5 shrink-0 flex-wrap sm:flex-nowrap">
+            <!-- Major Dropdown -->
+            <select
+              v-if="majors && majors.length > 0"
+              v-model="selectedMajor"
+              class="px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-[#dfe3e7] dark:border-[#2d2f31] text-xs sm:text-sm text-slate-800 dark:text-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-[#7045F5]/30 focus:border-[#7045F5] transition-all cursor-pointer"
             >
-              <Sparkles class="w-4 h-4 text-[#7045F5]" />
-              <span>{{ isKm ? 'ស្វែងរកវគ្គថ្មី' : 'Browse Catalog' }}</span>
-            </Link>
+              <option value="all">{{ isKm ? 'ជំនាញទាំងអស់' : 'All Majors' }}</option>
+              <option v-for="m in majors" :key="m.id" :value="m.id">
+                {{ isKm && m.name_kh ? m.name_kh : m.name }}
+              </option>
+            </select>
+
+            <!-- Sort Dropdown -->
+            <select
+              v-model="sortBy"
+              class="px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-[#dfe3e7] dark:border-[#2d2f31] text-xs sm:text-sm text-slate-800 dark:text-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-[#7045F5]/30 focus:border-[#7045F5] transition-all cursor-pointer"
+            >
+              <option value="recent">{{ isKm ? 'បានចូលរៀនថ្មីៗ' : 'Recently Accessed' }}</option>
+              <option value="title">{{ isKm ? 'ឈ្មោះវគ្គសិក្សា A-Z' : 'Course Name A-Z' }}</option>
+              <option value="progress">{{ isKm ? 'វឌ្ឍនភាព ខ្ពស់-ទាប' : 'Highest Progress' }}</option>
+            </select>
           </div>
         </div>
 
-        <!-- Error Banner with Retry -->
-        <div
-          v-if="hasError"
-          class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 flex items-center justify-between gap-4"
-        >
-          <div class="flex items-center gap-3">
-            <AlertCircle class="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0" />
-            <span class="text-xs sm:text-sm font-medium">{{ errorMessage }}</span>
-          </div>
+        <!-- Status Tabs Row -->
+        <div class="flex items-center gap-2 pt-3 border-t border-slate-100 dark:border-slate-800/80 overflow-x-auto no-scrollbar">
           <button
             type="button"
-            @click="retryLoading"
-            class="px-3 py-1.5 rounded-lg bg-rose-600 text-white font-bold text-xs hover:bg-rose-700 transition-colors shrink-0"
+            @click="selectedStatus = 'all'"
+            :class="[
+              'px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 flex items-center gap-2 shrink-0 select-none cursor-pointer',
+              selectedStatus === 'all'
+                ? 'bg-[#7045F5] text-white shadow-md shadow-[#7045F5]/25'
+                : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+            ]"
           >
-            {{ isKm ? 'ព្យាយាមម្តងទៀត' : 'Retry' }}
+            <span>{{ isKm ? 'ទាំងអស់' : 'All Courses' }}</span>
+            <span
+              :class="[
+                'px-2 py-0.5 rounded-full text-[10px] font-extrabold',
+                selectedStatus === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+              ]"
+            >
+              {{ totalCoursesCount }}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            @click="selectedStatus = 'in_progress'"
+            :class="[
+              'px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 flex items-center gap-2 shrink-0 select-none cursor-pointer',
+              selectedStatus === 'in_progress'
+                ? 'bg-[#2563EB] text-white shadow-md shadow-[#2563EB]/25'
+                : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+            ]"
+          >
+            <span>{{ isKm ? 'កំពុងរៀន' : 'In Progress' }}</span>
+            <span
+              :class="[
+                'px-2 py-0.5 rounded-full text-[10px] font-extrabold',
+                selectedStatus === 'in_progress' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+              ]"
+            >
+              {{ inProgressCount }}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            @click="selectedStatus = 'completed'"
+            :class="[
+              'px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 flex items-center gap-2 shrink-0 select-none cursor-pointer',
+              selectedStatus === 'completed'
+                ? 'bg-[#10B981] text-white shadow-md shadow-[#10B981]/25'
+                : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+            ]"
+          >
+            <span>{{ isKm ? 'បានបញ្ចប់' : 'Completed' }}</span>
+            <span
+              :class="[
+                'px-2 py-0.5 rounded-full text-[10px] font-extrabold',
+                selectedStatus === 'completed' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+              ]"
+            >
+              {{ completedCount }}
+            </span>
+          </button>
+
+          <button
+            v-if="searchQuery || selectedMajor !== 'all' || selectedStatus !== 'all'"
+            type="button"
+            @click="resetFilters"
+            class="ml-auto px-3 py-1.5 rounded-lg text-xs font-semibold text-[#7045F5] hover:bg-[#7045F5]/10 transition-colors flex items-center gap-1 shrink-0 cursor-pointer"
+          >
+            <RefreshCw class="w-3 h-3" />
+            <span>{{ isKm ? 'កំណត់ឡើងវិញ' : 'Reset' }}</span>
           </button>
         </div>
-
-        <!-- 2. Course Summary (Three Compact Statistic Cards) -->
-        <section aria-label="Course Summary Statistics">
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-            <!-- Card 1: Total Courses -->
-            <div class="bg-white dark:bg-[#1e1f20] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] flex items-center gap-4 transition-transform duration-200 hover:-translate-y-0.5">
-              <div class="w-12 h-12 rounded-xl bg-[#7045F5]/10 text-[#7045F5] dark:text-[#a78bfa] flex items-center justify-center shrink-0 border border-[#7045F5]/20">
-                <BookOpen class="w-6 h-6" />
-              </div>
-              <div class="min-w-0">
-                <div class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                  {{ totalCoursesCount }}
-                </div>
-                <div class="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 truncate">
-                  {{ isKm ? 'វគ្គសិក្សាសរុប' : 'Total Courses' }}
-                </div>
-              </div>
-            </div>
-
-            <!-- Card 2: In Progress -->
-            <div class="bg-white dark:bg-[#1e1f20] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] flex items-center gap-4 transition-transform duration-200 hover:-translate-y-0.5">
-              <div class="w-12 h-12 rounded-xl bg-[#2563EB]/10 text-[#2563EB] dark:text-blue-400 flex items-center justify-center shrink-0 border border-[#2563EB]/20">
-                <PlayCircle class="w-6 h-6" />
-              </div>
-              <div class="min-w-0">
-                <div class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                  {{ inProgressCount }}
-                </div>
-                <div class="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 truncate">
-                  {{ isKm ? 'កំពុងរៀន' : 'In Progress' }}
-                </div>
-              </div>
-            </div>
-
-            <!-- Card 3: Completed -->
-            <div class="bg-white dark:bg-[#1e1f20] rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] flex items-center gap-4 transition-transform duration-200 hover:-translate-y-0.5">
-              <div class="w-12 h-12 rounded-xl bg-[#10B981]/10 text-[#10B981] dark:text-emerald-400 flex items-center justify-center shrink-0 border border-[#10B981]/20">
-                <CheckCircle2 class="w-6 h-6" />
-              </div>
-              <div class="min-w-0">
-                <div class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                  {{ completedCount }}
-                </div>
-                <div class="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 truncate">
-                  {{ isKm ? 'បានបញ្ចប់' : 'Completed' }}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- 3. Search and Filter Bar -->
-        <section aria-label="Course Filters" class="bg-white dark:bg-[#1e1f20] rounded-2xl p-4 sm:p-5 border border-slate-200/90 dark:border-slate-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] space-y-4">
-          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-
-            <!-- Search Input -->
-            <div class="relative flex-1 max-w-lg">
-              <Search class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <input
-                v-model="searchQuery"
-                type="text"
-                :placeholder="isKm ? 'ស្វែងរកវគ្គសិក្សា, គ្រូ ឬជំនាញ...' : 'Search courses, instructor, or major...'"
-                class="w-full pl-10 pr-9 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/90 dark:border-slate-800 text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7045F5]/30 focus:border-[#7045F5] transition-all"
-              />
-              <button
-                v-if="searchQuery"
-                type="button"
-                @click="searchQuery = ''"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5 rounded-full"
-                aria-label="Clear search"
-              >
-                <X class="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-            <!-- Filters Group: Major, Status, Sort -->
-            <div class="flex flex-wrap items-center gap-3">
-              <!-- Filter by Major / Subject -->
-              <div v-if="majors && majors.length > 0" class="flex items-center gap-2">
-                <select
-                  v-model="selectedMajor"
-                  class="px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/90 dark:border-slate-800 text-xs sm:text-sm text-slate-800 dark:text-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-[#7045F5]/30 focus:border-[#7045F5] transition-all cursor-pointer"
-                >
-                  <option value="all">{{ isKm ? 'ជំនាញទាំងអស់' : 'All Majors' }}</option>
-                  <option
-                    v-for="m in majors"
-                    :key="m.id"
-                    :value="m.id"
-                  >
-                    {{ isKm && m.name_kh ? m.name_kh : m.name }}
-                  </option>
-                </select>
-              </div>
-
-              <!-- Sorting Dropdown -->
-              <div class="flex items-center gap-2">
-                <select
-                  v-model="sortBy"
-                  class="px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/90 dark:border-slate-800 text-xs sm:text-sm text-slate-800 dark:text-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-[#7045F5]/30 focus:border-[#7045F5] transition-all cursor-pointer"
-                >
-                  <option value="recent">{{ isKm ? 'បានចូលរៀនថ្មីៗ' : 'Recently Accessed' }}</option>
-                  <option value="title">{{ isKm ? 'ឈ្មោះវគ្គសិក្សា A-Z' : 'Course Name A-Z' }}</option>
-                  <option value="progress">{{ isKm ? 'វឌ្ឍនភាព ខ្ពស់-ទាប' : 'Highest Progress' }}</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <!-- Status Filter Tabs: All, In Progress, Completed -->
-          <div class="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 overflow-x-auto no-scrollbar">
-            <!-- Tab: All -->
-            <button
-              type="button"
-              @click="selectedStatus = 'all'"
-              :class="[
-                'px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 flex items-center gap-2 shrink-0 select-none',
-                selectedStatus === 'all'
-                  ? 'bg-[#7045F5] text-white shadow-md shadow-[#7045F5]/25'
-                  : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
-              ]"
-            >
-              <span>{{ isKm ? 'ទាំងអស់' : 'All Courses' }}</span>
-              <span
-                :class="[
-                  'px-2 py-0.5 rounded-full text-[10px] font-extrabold',
-                  selectedStatus === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
-                ]"
-              >
-                {{ totalCoursesCount }}
-              </span>
-            </button>
-
-            <!-- Tab: In Progress -->
-            <button
-              type="button"
-              @click="selectedStatus = 'in_progress'"
-              :class="[
-                'px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 flex items-center gap-2 shrink-0 select-none',
-                selectedStatus === 'in_progress'
-                  ? 'bg-[#2563EB] text-white shadow-md shadow-[#2563EB]/25'
-                  : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
-              ]"
-            >
-              <span>{{ isKm ? 'កំពុងរៀន' : 'In Progress' }}</span>
-              <span
-                :class="[
-                  'px-2 py-0.5 rounded-full text-[10px] font-extrabold',
-                  selectedStatus === 'in_progress' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
-                ]"
-              >
-                {{ inProgressCount }}
-              </span>
-            </button>
-
-            <!-- Tab: Completed -->
-            <button
-              type="button"
-              @click="selectedStatus = 'completed'"
-              :class="[
-                'px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 flex items-center gap-2 shrink-0 select-none',
-                selectedStatus === 'completed'
-                  ? 'bg-[#10B981] text-white shadow-md shadow-[#10B981]/25'
-                  : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/60 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
-              ]"
-            >
-              <span>{{ isKm ? 'បានបញ្ចប់' : 'Completed' }}</span>
-              <span
-                :class="[
-                  'px-2 py-0.5 rounded-full text-[10px] font-extrabold',
-                  selectedStatus === 'completed' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
-                ]"
-              >
-                {{ completedCount }}
-              </span>
-            </button>
-
-            <!-- Active Filter Reset Indicator -->
-            <button
-              v-if="searchQuery || selectedMajor !== 'all' || selectedStatus !== 'all'"
-              type="button"
-              @click="resetFilters"
-              class="ml-auto px-3 py-1.5 rounded-lg text-xs font-semibold text-[#7045F5] hover:bg-[#7045F5]/10 transition-colors flex items-center gap-1 shrink-0"
-            >
-              <RefreshCw class="w-3 h-3" />
-              <span>{{ isKm ? 'កំណត់ឡើងវិញ' : 'Reset' }}</span>
-            </button>
-          </div>
-        </section>
+      </section>
 
         <!-- 4. Course Cards Grid (Responsive 3-col on lg, 2-col on md, 1-col on mobile) -->
         <section aria-label="Enrolled Courses List">
@@ -640,7 +666,6 @@ const handleEnrollRecommended = (course: RecommendedCourse) => {
           </div>
         </section>
 
-      </div>
     </div>
   </StudentLayout>
 </template>
